@@ -1,5 +1,12 @@
 # Python files
 __pycache__/
+venv/
 
 # Editor files
 .idea
+
+# Mypy cache
+.mypy_cache/
+
+# Temp files
+temp/**
