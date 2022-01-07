@@ -26,7 +26,7 @@ class Map:
 
     def make_map(self, level: int):
         """
-        Function which actually creates the game map for a specified levelf.
+        Function which actually creates the game map for a specified level.
 
         Parameters
         ----------
