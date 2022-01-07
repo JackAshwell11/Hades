@@ -6,7 +6,8 @@ from typing import List
 
 class Map:
     """
-    Procedurally generates a 2D list of integers representing a game map.
+    Procedurally generates a 2D list of integers representing a game map based on a
+    given game level.
 
     Parameters
     ----------
