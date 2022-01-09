@@ -7,9 +7,9 @@ from typing import Optional
 import arcade
 
 # Custom
-from map import Map
+from generation.map import Map
 
-MAP_WIDTH = 50
+MAP_WIDTH = 30
 MAP_HEIGHT = 20
 
 
@@ -18,21 +18,21 @@ class Game(arcade.Window):
 
     def __init__(self) -> None:
         super().__init__()
-        self.grid: Optional[Map] = None
+        self.map: Optional[Map] = None
         self.setup_level(1)
 
     def setup_level(self, level: int):
         """
-        Creates the game map for a specific level.
+        Creates the game generation for a specific level.
 
         Parameters
         ----------
         level: int
-            The level to create a map for. Each level is more difficult than the
+            The level to create a generation for. Each level is more difficult than the
             previous.
         """
-        self.grid = Map(MAP_WIDTH, MAP_HEIGHT)
-        self.grid.make_map(level)
+        self.map = Map(MAP_WIDTH, MAP_HEIGHT)
+        self.map.make_map(level)
 
 
 def main() -> None:
