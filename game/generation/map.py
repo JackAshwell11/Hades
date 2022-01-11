@@ -2,11 +2,15 @@ from __future__ import annotations
 
 # Builtin
 import random
+from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional, Tuple
 
 # Pip
 import numpy as np
+
+# Custom
+from .rooms import Template, starting_room
 
 # Constants
 EMPTY = 0
@@ -22,12 +26,13 @@ MAX_RECT_COUNT = 20
 class Direction(Enum):
     """Represents a 4-point compass useful for determining where doors are."""
 
-    NORTH = 0
-    EAST = 1
-    SOUTH = 2
-    WEST = 3
+    NORTH = "NORTH"
+    EAST = "EAST"
+    SOUTH = "SOUTH"
+    WEST = "WEST"
 
 
+@dataclass()
 class Door:
     """
     Represents a door with a specific direction useful for spawning new rects.
@@ -42,12 +47,9 @@ class Door:
         The rectangle object that this door belongs too.
     """
 
-    def __init__(
-        self, position: Tuple[int, int], direction: Direction, rect: Rect
-    ) -> None:
-        self.position: Tuple[int, int] = position
-        self.direction: Direction = direction
-        self.rect: Rect = rect
+    position: Tuple[int, int]
+    direction: Direction
+    rect: Rect
 
     def __repr__(self) -> str:
         return f"<Door (Position={self.position}) (Direction={self.direction.name})>"
@@ -68,17 +70,27 @@ class Rect:
     height: int
         The height of the rectangle.
     parent: Optional[Rect]
-        The rect object that spawned this current object.
+        The rect object that spawned this current object. If this is None then the rect
+        is the starting room.
+    rect_type: Template
+        The type of rect the current object is.
     """
 
     def __init__(
-        self, x: int, y: int, width: int, height: int, parent: Optional[Rect]
+        self,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+        parent: Optional[Rect],
+        rect_type: Template,
     ) -> None:
         self.x: int = x
         self.y: int = y
         self.width: int = width
         self.height: int = height
         self.parent: Optional[Rect] = parent
+        self.rect_type: Template = rect_type
 
     def __repr__(self) -> str:
         return (
@@ -109,7 +121,7 @@ class Map:
     def __init__(self, width: int, height: int) -> None:
         self.width: int = width
         self.height: int = height
-        self.grid: np.ndarray = np.zeros((self.height, self.width), dtype=np.int8)
+        self.grid: np.ndarray = np.full((self.height, self.width), EMPTY, np.int8)
         self.doors: List[Door] = []
 
     def __repr__(self) -> str:
@@ -152,29 +164,31 @@ class Map:
             random.randint(4, self.width - 4),
             random.randint(4, self.height - 4),
         )
+        # Get top-left corner
+        top_left_x, top_left_y = (starting_pos_x - 3, starting_pos_y - 3)
+        # Create starting rect object
+        start_rect = Rect(top_left_x, top_left_y, 6, 6, None, starting_room)
         # Create walls
         self.grid[
-            starting_pos_y - 3 : starting_pos_y + 4,
-            starting_pos_x - 3 : starting_pos_x + 4,
+            top_left_y : top_left_y + start_rect.rect_type.max_height + 2,
+            top_left_x : top_left_x + start_rect.rect_type.max_width + 2,
         ] = WALL
         # Create inner floors
         self.grid[
-            starting_pos_y - 2 : starting_pos_y + 3,
-            starting_pos_x - 2 : starting_pos_x + 3,
+            top_left_y + 1 : top_left_y + start_rect.rect_type.max_height + 1,
+            top_left_x + 1 : top_left_x + start_rect.rect_type.max_width + 1,
         ] = FLOOR
         # Create door floors
         self.grid[
-            starting_pos_y - 1 : starting_pos_y + 2,
-            starting_pos_x - 3 : starting_pos_x + 4,
+            top_left_y : top_left_y + 7,
+            top_left_x + 2 : top_left_x + 5,
         ] = FLOOR
         self.grid[
-            starting_pos_y - 3 : starting_pos_y + 4,
-            starting_pos_x - 1 : starting_pos_x + 2,
+            top_left_y + 2 : top_left_y + 5,
+            top_left_x : top_left_x + 7,
         ] = FLOOR
         # Set player position
         self.grid[starting_pos_y, starting_pos_x] = PLAYER_START
-        # Create starting rect object
-        start_rect = Rect(starting_pos_x, starting_pos_y, 6, 6, None)
         # Update doors dict
         self.doors.append(
             Door((starting_pos_x, starting_pos_y - 3), Direction.NORTH, start_rect)
