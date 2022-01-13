@@ -29,7 +29,7 @@ class Template:
         The minimum height this object can be.
     max_height: int
         The maximum height this object can be.
-    probabilities: Dict[RectInstance, float]
+    probabilities: Dict[str, float]
         A dict containing the probabilities for spawning more rects after the current
         one.
     """
@@ -38,18 +38,21 @@ class Template:
     max_width: int = -1
     min_height: int = -1
     max_height: int = -1
-    probabilities: Dict[RectInstance, float] = field(default_factory=dict)
+    probabilities: Dict[str, float] = field(default_factory=dict)
 
+
+# These templates have to be the value of RectInstance otherwise we wouldn't be able to
+# iterate over the dict to calculate the new probabilities
 
 starting_room = Template(
-    5,
-    5,
-    5,
-    5,
+    7,
+    7,
+    7,
+    7,
     {
-        RectInstance.SMALL_ROOM: 0.34,
-        RectInstance.MEDIUM_ROOM: 0.33,
-        RectInstance.LARGE_ROOM: 0.33,
+        RectInstance.SMALL_ROOM.value: 0.34,
+        RectInstance.MEDIUM_ROOM.value: 0.33,
+        RectInstance.LARGE_ROOM.value: 0.33,
     },
 )
 
@@ -59,9 +62,9 @@ small_room = Template(
     5,
     7,
     {
-        RectInstance.SMALL_ROOM: 0.2,
-        RectInstance.MEDIUM_ROOM: 0.4,
-        RectInstance.LARGE_ROOM: 0.4,
+        RectInstance.SMALL_ROOM.value: 0.2,
+        RectInstance.MEDIUM_ROOM.value: 0.4,
+        RectInstance.LARGE_ROOM.value: 0.4,
     },
 )
 
@@ -71,9 +74,9 @@ medium_room = Template(
     7,
     9,
     {
-        RectInstance.SMALL_ROOM: 0.4,
-        RectInstance.MEDIUM_ROOM: 0.3,
-        RectInstance.LARGE_ROOM: 0.2,
+        RectInstance.SMALL_ROOM.value: 0.4,
+        RectInstance.MEDIUM_ROOM.value: 0.3,
+        RectInstance.LARGE_ROOM.value: 0.2,
     },
 )
 
@@ -83,8 +86,8 @@ large_room = Template(
     9,
     11,
     {
-        RectInstance.SMALL_ROOM: 0.6,
-        RectInstance.MEDIUM_ROOM: 0.3,
-        RectInstance.LARGE_ROOM: 0.1,
+        RectInstance.SMALL_ROOM.value: 0.6,
+        RectInstance.MEDIUM_ROOM.value: 0.3,
+        RectInstance.LARGE_ROOM.value: 0.1,
     },
 )

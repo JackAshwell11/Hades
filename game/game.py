@@ -31,8 +31,7 @@ class Game(arcade.Window):
             The level to create a generation for. Each level is more difficult than the
             previous.
         """
-        self.map = Map(MAP_WIDTH, MAP_HEIGHT)
-        self.map.make_map(level)
+        self.map = Map(level)
 
 
 def main() -> None:
