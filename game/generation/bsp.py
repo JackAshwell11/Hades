@@ -15,6 +15,7 @@ WALL = 2
 PLAYER_START = 3
 
 MIN_CONTAINER_SIZE = 6
+MIN_ROOM_SIZE = 4
 
 
 class Rect:
@@ -111,15 +112,18 @@ class Leaf:
             f" (Top-left position=({self.container.x1}, {self.container.y1}))>"
         )
 
-    def split(self) -> bool:
-        """
-        Splits a container either horizontally or vertically.
+    def split(self) -> None:
+        """Splits a container either horizontally or vertically."""
+        # Test if this container is already split or not. This container will always
+        # have a left and right leaf when splitting since the checks later on in this
+        # function ensure it is big enough to be split
+        if self.left is not None and self.right is not None:
+            self.left.split()
+            self.right.split()
+            # Return just to make sure this container isn't split again with left and
+            # right being overwritten
+            return
 
-        Returns
-        -------
-        bool:
-            Whether the split was successful or not.
-        """
         # To determine the direction of split, we test if the width is 25% larger than
         # the height, if so we split vertically. However, if the height is 25% larger
         # than the width, we split horizontally. Otherwise, we split randomly
@@ -144,7 +148,7 @@ class Leaf:
             max_size = self.container.height - MIN_CONTAINER_SIZE
         if max_size <= MIN_CONTAINER_SIZE:
             # Container to small to split
-            return False
+            return
 
         # Create the split position. This ensures that there will be MIN_CONTAINER_SIZE
         # on each side
@@ -200,5 +204,31 @@ class Leaf:
                 self.debug_lines,
             )
 
-        # Split was successful
-        return True
+    def create_room(self) -> None:
+        """Creates a random sized room inside a container."""
+        # Test if this container is already split or not. If it is, we do not want to
+        # create a room inside it otherwise it will overwrite other rooms
+        if self.left is not None and self.right is not None:
+            self.left.create_room()
+            self.right.create_room()
+            # Return just to make sure this container doesn't create a room overwriting
+            # others
+            return
+
+        # Pick a random width and height making sure it is at least MIN_ROOM_SIZE but
+        # doesn't exceed the container
+        width = random.randint(MIN_ROOM_SIZE, self.container.width)
+        height = random.randint(MIN_ROOM_SIZE, self.container.height)
+        # Use the width and height to find a suitable x and y position which can create
+        # the room
+        x_pos = random.randint(
+            self.container.x1, self.container.x1 + self.container.width - width
+        )
+        y_pos = random.randint(
+            self.container.y1, self.container.y1 + self.container.height - height
+        )
+        # Update the grid with the walls and floors
+        self.grid[y_pos : y_pos + height, x_pos : x_pos + width] = WALL
+        self.grid[y_pos + 1 : y_pos + height - 1, x_pos + 1 : x_pos + width - 1] = FLOOR
+        # Create the room rect
+        self.room = Rect(x_pos, y_pos, x_pos + width - 1, y_pos + height - 1)

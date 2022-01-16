@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import List, Optional
+from typing import Optional
 
 # Pip
 import numpy as np
@@ -29,17 +29,16 @@ class Map:
         The amount of times the bsp should split.
     grid: Optional[np.ndarray]
         The 2D grid which represents the dungeon.
-    leafs: List[Leaf]
-        The list which holds all the leaf objects.
+    bsp: Optional[Leaf]
+        The root leaf for the binary space partition.
     """
 
     def __init__(self, level: int) -> None:
         self.level: int = level
         self.width: int = -1
         self.height: int = -1
-        self.split_count: int = 5
+        self.split_count: int = -1
         self.grid: Optional[np.ndarray] = None
-        self.leafs: List[Leaf] = []
         self.bsp: Optional[Leaf] = None
         self.make_map()
 
@@ -59,26 +58,17 @@ class Map:
         self.grid = np.full((self.height, self.width), 0, np.int8)
 
         # Create the first leaf used for generation
-        self.leafs.append(Leaf(0, 0, self.width - 1, self.height - 1, self.grid, True))
+        self.bsp = Leaf(0, 0, self.width - 1, self.height - 1, self.grid)
 
         np.set_printoptions(
             edgeitems=30, linewidth=100000, formatter=dict(float=lambda x: "%.3g" % x)
         )
 
-        # Start the splitting
+        # Start the recursive splitting
         for count in range(self.split_count):
-            for leaf_count in range(len(self.leafs)):
-                if (
-                    self.leafs[leaf_count].left is None
-                    and self.leafs[leaf_count].right is None
-                ):
-                    if self.leafs[leaf_count].split():
-                        self.leafs.append(self.leafs[leaf_count].left)
-                        self.leafs.append(self.leafs[leaf_count].right)
-        print(self.grid)
+            self.bsp.split()
 
-        # Create the rooms
-        # for leaf in self.leafs:
-        #     pass
+        # Create the rooms recursively
+        self.bsp.create_room()
 
         # Create the hallways
