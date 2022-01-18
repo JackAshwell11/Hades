@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import Optional
+from typing import Optional, Tuple
 
 # Pip
 import numpy as np
@@ -31,6 +31,8 @@ class Map:
         The 2D grid which represents the dungeon.
     bsp: Optional[Leaf]
         The root leaf for the binary space partition.
+    player_spawn: Optional[Tuple[int, int]]
+        The coordinates for the player spawn. This is in the format (x, y).
     """
 
     def __init__(self, level: int) -> None:
@@ -40,6 +42,7 @@ class Map:
         self.split_count: int = -1
         self.grid: Optional[np.ndarray] = None
         self.bsp: Optional[Leaf] = None
+        self.player_spawn: Optional[Tuple[int, int]] = None
         self.make_map()
 
     def __repr__(self) -> str:
@@ -49,10 +52,9 @@ class Map:
         """Function which manages the map generation for a specified level."""
 
         # Create constants used during the generation
-        # TO DO USING SELF.LEVEL
         self.width = 40
         self.height = 20
-        self.split_count = 5
+        self.split_count = 3
 
         # Create the 2D grid used for representing the dungeon
         self.grid = np.full((self.height, self.width), 0, np.int8)
@@ -61,7 +63,9 @@ class Map:
         self.bsp = Leaf(0, 0, self.width - 1, self.height - 1, self.grid)
 
         np.set_printoptions(
-            edgeitems=30, linewidth=100000, formatter=dict(float=lambda x: "%.3g" % x)
+            edgeitems=100,
+            linewidth=10000000000000000,
+            formatter=dict(float=lambda x: "%.3g" % x),
         )
 
         # Start the recursive splitting
@@ -71,9 +75,8 @@ class Map:
         # Create the rooms recursively
         self.bsp.create_room()
 
-        print(self.grid)
-
         # Create the hallways
         self.bsp.create_hallway()
 
-        print(self.grid)
+        # Create player spawn
+        self.player_spawn = self.bsp.create_player_spawn()

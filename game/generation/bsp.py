@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 
 # Builtin
-from typing import Optional
+from typing import Optional, Tuple
 
 # Pip
 import numpy as np
@@ -288,24 +288,24 @@ class Leaf:
         # Connect the left and right rooms
         if self.split_vertical:
             # Leaf was split vertically so create a horizontal hallway
-            self.horizontal_corridor(
+            self.horizontal_hallway(
                 left_room.center_x, right_room.center_x, left_room.center_y
             )
             # Return the right room, so it can be connected on the next level
             return right_room
         else:
             # Leaf was split horizontally so create a vertical hallway
-            self.vertical_corridor(
+            self.vertical_hallway(
                 left_room.center_y, right_room.center_y, left_room.center_x
             )
             # Return the left room, so it can be connected on the next level
             return left_room
 
-    def horizontal_corridor(
+    def horizontal_hallway(
         self, left_center_x: int, right_center_x: int, left_center_y: int
     ) -> None:
         """
-        Creates a horizontal corridor from one point to another with a floor height of
+        Creates a horizontal hallway from one point to another with a floor height of
         2.
 
         Parameters
@@ -328,11 +328,11 @@ class Leaf:
             for y in range(left_center_y - 1, left_center_y + 1):
                 self.grid[y, x] = FLOOR
 
-    def vertical_corridor(
+    def vertical_hallway(
         self, left_center_y: int, right_center_y: int, left_center_x: int
     ) -> None:
         """
-        Creates a vertical corridor from one point to another with a floor width of 2.
+        Creates a vertical hallway from one point to another with a floor width of 2.
 
         Parameters
         ----------
@@ -353,3 +353,9 @@ class Leaf:
         for y in range(left_center_y, right_center_y):
             for x in range(left_center_x - 1, left_center_x + 1):
                 self.grid[y, x] = FLOOR
+
+    def create_player_spawn(self) -> Tuple[int, int]:
+        """Picks a random point which is a floor and creates the player spawn."""
+        # We have to break this up otherwise mypy will return a Tuple[Any, ...] error
+        player_spawn = random.choice(np.argwhere(self.grid == 1))
+        return player_spawn[0], player_spawn[1]
