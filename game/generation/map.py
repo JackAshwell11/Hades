@@ -71,4 +71,9 @@ class Map:
         # Create the rooms recursively
         self.bsp.create_room()
 
+        print(self.grid)
+
         # Create the hallways
+        self.bsp.create_hallway()
+
+        print(self.grid)

@@ -13,9 +13,10 @@ EMPTY = 0
 FLOOR = 1
 WALL = 2
 PLAYER_START = 3
+DEBUG_WALL = 9
 
 MIN_CONTAINER_SIZE = 6
-MIN_ROOM_SIZE = 4
+MIN_ROOM_SIZE = 5
 
 
 class Rect:
@@ -56,6 +57,16 @@ class Rect:
         """Returns the height of the rect."""
         return self.y2 - self.y1 + 1
 
+    @property
+    def center_x(self) -> int:
+        """Returns the x coordinate of the center position."""
+        return int((self.x1 + self.x2) / 2)
+
+    @property
+    def center_y(self) -> int:
+        """Returns the y coordinate of the center position."""
+        return int((self.y1 + self.y2) / 2)
+
 
 class Leaf:
     """
@@ -88,6 +99,9 @@ class Leaf:
         The rect object for representing this leaf.
     room: Optional[Rect]
         The rect object for representing the room inside this leaf.
+    split_vertical: Optional[bool]
+        Whether or not the leaf was split vertically. By default, this is None
+        (not split).
     """
 
     def __init__(
@@ -104,6 +118,7 @@ class Leaf:
         self.container: Rect = Rect(x1, y1, x2, y2)
         self.room: Optional[Rect] = None
         self.grid: np.ndarray = grid
+        self.split_vertical: Optional[bool] = None
         self.debug_lines: bool = debug_lines
 
     def __repr__(self) -> str:
@@ -160,7 +175,7 @@ class Leaf:
             # the actual container
             pos = self.container.x1 + pos
             if self.debug_lines:
-                self.grid[self.container.y1 : self.container.y2 + 1, pos] = WALL
+                self.grid[self.container.y1 : self.container.y2 + 1, pos] = DEBUG_WALL
 
             # Create child leafs
             self.left = Leaf(
@@ -184,7 +199,7 @@ class Leaf:
             # the actual container
             pos = self.container.y1 + pos
             if self.debug_lines:
-                self.grid[pos, self.container.x1 : self.container.x2 + 1] = WALL
+                self.grid[pos, self.container.x1 : self.container.x2 + 1] = DEBUG_WALL
 
             # Create child leafs
             self.left = Leaf(
@@ -203,6 +218,9 @@ class Leaf:
                 self.grid,
                 self.debug_lines,
             )
+
+        # Set the leaf's split direction
+        self.split_vertical = split_vertical
 
     def create_room(self) -> None:
         """Creates a random sized room inside a container."""
@@ -232,3 +250,106 @@ class Leaf:
         self.grid[y_pos + 1 : y_pos + height - 1, x_pos + 1 : x_pos + width - 1] = FLOOR
         # Create the room rect
         self.room = Rect(x_pos, y_pos, x_pos + width - 1, y_pos + height - 1)
+
+    def create_hallway(
+        self, left_room: Optional[Rect] = None, right_room: Optional[Rect] = None
+    ) -> Rect:
+        """
+        Creates the hallway links between rooms. This uses a post-order traversal
+        since we want to work our way up from the bottom of the tree.
+
+        Parameters
+        ----------
+        left_room: Optional[Rect]
+            The left room to create a hallway too.
+        right_room: Optional[Rect]
+            The right room to create a hallway too.
+
+        Returns
+        -------
+        Rect
+            A room to create a hallway too.
+        """
+        # Traverse the left tree to connect its rooms
+        if self.left is not None:
+            left_room = self.left.create_hallway()
+
+        # Traverse the right tree to connect its rooms
+        if self.right is not None:
+            right_room = self.right.create_hallway()
+
+        # Return the current's leaf's room, so it can be connected with a matching one
+        if self.room is not None:
+            return self.room
+
+        # Make sure that the rooms are not None
+        assert left_room is not None and right_room is not None
+
+        # Connect the left and right rooms
+        if self.split_vertical:
+            # Leaf was split vertically so create a horizontal hallway
+            self.horizontal_corridor(
+                left_room.center_x, right_room.center_x, left_room.center_y
+            )
+            # Return the right room, so it can be connected on the next level
+            return right_room
+        else:
+            # Leaf was split horizontally so create a vertical hallway
+            self.vertical_corridor(
+                left_room.center_y, right_room.center_y, left_room.center_x
+            )
+            # Return the left room, so it can be connected on the next level
+            return left_room
+
+    def horizontal_corridor(
+        self, left_center_x: int, right_center_x: int, left_center_y: int
+    ) -> None:
+        """
+        Creates a horizontal corridor from one point to another with a floor height of
+        2.
+
+        Parameters
+        ----------
+        left_center_x: int
+            The x coordinate of the left room.
+
+        right_center_x: int
+            The x coordinate of the right room.
+
+        left_center_y: int
+            The y coordinate of the left room.
+        """
+        for x in range(left_center_x, right_center_x + 1):
+            for y in range(left_center_y - 2, left_center_y + 2):
+                if self.grid[y, x] == EMPTY:
+                    self.grid[y, x] = WALL
+
+        for x in range(left_center_x, right_center_x):
+            for y in range(left_center_y - 1, left_center_y + 1):
+                self.grid[y, x] = FLOOR
+
+    def vertical_corridor(
+        self, left_center_y: int, right_center_y: int, left_center_x: int
+    ) -> None:
+        """
+        Creates a vertical corridor from one point to another with a floor width of 2.
+
+        Parameters
+        ----------
+        left_center_y: int
+            The y coordinate of the left room.
+
+        right_center_y: int
+            The y coordinate of the right room.
+
+        left_center_x: int
+            The x coordinate of the left room.
+        """
+        for y in range(left_center_y, right_center_y + 1):
+            for x in range(left_center_x - 2, left_center_x + 2):
+                if self.grid[y, x] == EMPTY:
+                    self.grid[y, x] = WALL
+
+        for y in range(left_center_y, right_center_y):
+            for x in range(left_center_x - 1, left_center_x + 1):
+                self.grid[y, x] = FLOOR
