@@ -8,15 +8,8 @@ from typing import Optional, Tuple
 # Pip
 import numpy as np
 
-# Constants
-EMPTY = 0
-FLOOR = 1
-WALL = 2
-PLAYER_START = 3
-DEBUG_WALL = 9
-
-MIN_CONTAINER_SIZE = 6
-MIN_ROOM_SIZE = 5
+# Custom
+from constants import DEBUG_WALL, EMPTY, FLOOR, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, WALL
 
 
 class Rect:

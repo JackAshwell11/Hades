@@ -62,12 +62,6 @@ class Map:
         # Create the first leaf used for generation
         self.bsp = Leaf(0, 0, self.width - 1, self.height - 1, self.grid)
 
-        np.set_printoptions(
-            edgeitems=100,
-            linewidth=10000000000000000,
-            formatter=dict(float=lambda x: "%.3g" % x),
-        )
-
         # Start the recursive splitting
         for count in range(self.split_count):
             self.bsp.split()
@@ -75,8 +69,8 @@ class Map:
         # Create the rooms recursively
         self.bsp.create_room()
 
-        # Create the hallways
+        # Create the hallways recursively
         self.bsp.create_hallway()
 
-        # Create player spawn
+        # Get the coordinates for the player spawn
         self.player_spawn = self.bsp.create_player_spawn()
