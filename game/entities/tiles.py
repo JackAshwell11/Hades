@@ -4,12 +4,33 @@ from __future__ import annotations
 import arcade
 
 # Custom
-from textures.textures import textures
+from textures.textures import calculate_position, textures
 
 
 class Tile(arcade.Sprite):
-    def __init__(self, x, y, tile_type):
+    """
+    Represents a single immovable tile in the game.
+
+    Parameters
+    ----------
+    x: int
+        The x position of the tile in the game map.
+    y: int
+        The y position of the tile in the game map.
+    tile_type: int
+        The numeric ID of the tile.
+
+    Attributes
+    ----------
+    texture: arcade.Texture
+        The sprite which represents this tile.
+    center_x: float
+        The x position of the tile on the screen.
+    center_y: float
+        The y position of the tile on the screen.
+    """
+
+    def __init__(self, x: int, y: int, tile_type: int) -> None:
         super().__init__()
-        self.texture = textures[tile_type - 1]
-        self.center_x = x * 16 * 1 + 16 / 2 * 1
-        self.center_y = y * 16 * 1 + 16 / 2 * 1
+        self.texture: arcade.Texture = textures[tile_type - 1]
+        self.center_x, self.center_y = calculate_position(x, y)

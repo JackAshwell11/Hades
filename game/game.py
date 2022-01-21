@@ -13,7 +13,16 @@ from generation.map import Map
 
 
 class Game(arcade.Window):
-    """Manages the game and its actions."""
+    """
+    Manages the game and its actions.
+
+    Attributes
+    ----------
+    game_map: Optional[Map]
+        The game map for the current level.
+    game_sprite_list: Optional[arcade.SpriteList]
+        The sprite list for the converted game map.
+    """
 
     def __init__(self) -> None:
         super().__init__()
@@ -22,7 +31,7 @@ class Game(arcade.Window):
         self.setup_level(1)
         arcade.set_background_color(arcade.color.WHITE)
 
-    def setup_level(self, level: int):
+    def setup_level(self, level: int) -> None:
         """
         Creates the game generation for a specific level.
 
@@ -47,13 +56,14 @@ class Game(arcade.Window):
                 if sprite is not None:
                     self.game_sprite_list.append(sprite)
 
-    def on_draw(self):
+    def on_draw(self) -> None:
         """
         Render the screen.
         """
         arcade.start_render()
 
         # Draw the game map
+        assert self.game_sprite_list is not None
         self.game_sprite_list.draw()
 
 
