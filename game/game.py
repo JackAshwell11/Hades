@@ -6,6 +6,7 @@ from typing import Optional
 # Pip
 import arcade
 from constants import FLOOR, WALL
+from entities.player import Player
 from entities.tiles import Tile
 
 # Custom
@@ -28,6 +29,7 @@ class Game(arcade.Window):
         super().__init__()
         self.game_map: Optional[Map] = None
         self.game_sprite_list: Optional[arcade.SpriteList] = None
+        self.player: Optional[Player] = None
         self.setup_level(1)
         arcade.set_background_color(arcade.color.WHITE)
 
@@ -41,6 +43,7 @@ class Game(arcade.Window):
             The level to create a generation for. Each level is more difficult than the
             previous.
         """
+        # Create the game map and assign sprites to it
         self.game_map = Map(level)
         self.game_sprite_list = arcade.SpriteList(use_spatial_hash=True)
         for count_y, y in enumerate(self.game_map.grid):
@@ -56,6 +59,11 @@ class Game(arcade.Window):
                 if sprite is not None:
                     self.game_sprite_list.append(sprite)
 
+        # Create the player object
+        self.player = Player(
+            self.game_map.player_spawn[0], self.game_map.player_spawn[1]
+        )
+
     def on_draw(self) -> None:
         """
         Render the screen.
@@ -64,7 +72,9 @@ class Game(arcade.Window):
 
         # Draw the game map
         assert self.game_sprite_list is not None
+        assert self.player is not None
         self.game_sprite_list.draw()
+        self.player.draw()
 
 
 def main() -> None:

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import pathlib
-
 # Builtin
+import pathlib
 from typing import Tuple
 
 # Pip
@@ -34,12 +33,22 @@ def calculate_position(x: int, y: int) -> Tuple[float, float]:
     )
 
 
-# Load the textures for each sprite
+# Create the texture path
 texture_path = pathlib.Path(__file__).resolve().parent.joinpath("images")
-filenames = [
+
+# Create the tile textures
+tile_filenames = [
     "floor.png",
     "wall.png",
 ]
-textures = [
-    arcade.load_texture(str(texture_path.joinpath(filename))) for filename in filenames
+tile_textures = [
+    arcade.load_texture(str(texture_path.joinpath(filename)))
+    for filename in tile_filenames
+]
+
+# Create the player textures
+player_filename = ["player.png"]
+player_textures = [
+    arcade.load_texture(str(texture_path.joinpath(filename)))
+    for filename in player_filename
 ]

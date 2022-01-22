@@ -351,4 +351,4 @@ class Leaf:
         """Picks a random point which is a floor and creates the player spawn."""
         # We have to break this up otherwise mypy will return a Tuple[Any, ...] error
         player_spawn = random.choice(np.argwhere(self.grid == 1))
-        return player_spawn[0], player_spawn[1]
+        return player_spawn[1], player_spawn[0]

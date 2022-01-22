@@ -4,7 +4,7 @@ from __future__ import annotations
 import arcade
 
 # Custom
-from textures.textures import calculate_position, textures
+from textures.textures import calculate_position, tile_textures
 
 
 class Tile(arcade.Sprite):
@@ -32,5 +32,5 @@ class Tile(arcade.Sprite):
 
     def __init__(self, x: int, y: int, tile_type: int) -> None:
         super().__init__()
-        self.texture: arcade.Texture = textures[tile_type - 1]
+        self.texture: arcade.Texture = tile_textures[tile_type - 1]
         self.center_x, self.center_y = calculate_position(x, y)
