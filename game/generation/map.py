@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 
 # Pip
 import numpy as np
+from constants import MAP_HEIGHT, MAP_WIDTH, SPLIT_COUNT
 
 # Custom
 from .bsp import Leaf
@@ -52,9 +53,9 @@ class Map:
         """Function which manages the map generation for a specified level."""
 
         # Create constants used during the generation
-        self.width = 40
-        self.height = 20
-        self.split_count = 3
+        self.width = MAP_WIDTH
+        self.height = MAP_HEIGHT
+        self.split_count = SPLIT_COUNT
 
         np.set_printoptions(
             edgeitems=100,

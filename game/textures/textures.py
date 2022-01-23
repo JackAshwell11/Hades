@@ -8,7 +8,7 @@ from typing import Tuple
 import arcade
 
 # Custom
-from constants import SPRITE_HEIGHT, SPRITE_SCALE, SPRITE_WIDTH
+from constants import SPRITE_HEIGHT, SPRITE_WIDTH
 
 
 def calculate_position(x: int, y: int) -> Tuple[float, float]:
@@ -28,8 +28,8 @@ def calculate_position(x: int, y: int) -> Tuple[float, float]:
         The x and y position of a sprite on the screen.
     """
     return (
-        x * SPRITE_WIDTH * SPRITE_SCALE + SPRITE_WIDTH / 2 * SPRITE_SCALE,
-        y * SPRITE_HEIGHT * SPRITE_SCALE + SPRITE_HEIGHT / 2 * SPRITE_SCALE,
+        x * SPRITE_WIDTH * 1 + SPRITE_WIDTH / 2 * 1,
+        y * SPRITE_HEIGHT * 1 + SPRITE_HEIGHT / 2 * 1,
     )
 
 

@@ -11,6 +11,11 @@ import numpy as np
 # Custom
 from constants import DEBUG_WALL, EMPTY, FLOOR, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, WALL
 
+# TODO:
+# Fix some rooms not getting connected.
+# Find way to have hallway width controlled by constant (when size incremented, width
+# doubles).
+
 
 class Rect:
     """
@@ -291,8 +296,9 @@ class Leaf:
             self.vertical_hallway(
                 left_room.center_y, right_room.center_y, left_room.center_x
             )
-            # Return the left room, so it can be connected on the next level
-            return left_room
+            # Return a random room since the top or bottom one can be connected to the
+            # neighbour
+            return left_room if bool(random.getrandbits(1)) else right_room
 
     def horizontal_hallway(
         self, left_center_x: int, right_center_x: int, left_center_y: int
