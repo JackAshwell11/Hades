@@ -32,7 +32,6 @@ class Game(arcade.Window):
         self.player: Optional[Player] = None
         self.camera: Optional[arcade.Camera] = None
         self.setup(1)
-        arcade.set_background_color(arcade.color.BLACK)
 
     def setup(self, level: int) -> None:
         """
@@ -72,7 +71,6 @@ class Game(arcade.Window):
 
     def on_draw(self) -> None:
         """Render the screen."""
-
         # Clear the screen
         arcade.start_render()
 
@@ -113,8 +111,7 @@ class Game(arcade.Window):
             screen_center_y = 0
 
         # Move the camera to the new position
-        new_position = (screen_center_x, screen_center_y)
-        self.camera.move_to(new_position)  # noqa
+        self.camera.move_to((screen_center_x, screen_center_y))  # noqa
 
 
 def main() -> None:

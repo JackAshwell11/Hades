@@ -57,12 +57,6 @@ class Map:
         self.height = MAP_HEIGHT
         self.split_count = SPLIT_COUNT
 
-        np.set_printoptions(
-            edgeitems=100,
-            linewidth=10000000000000000,
-            formatter=dict(float=lambda x: "%.3g" % x),
-        )
-
         # Create the 2D grid used for representing the dungeon
         self.grid = np.full((self.height, self.width), 0, np.int8)
 
