@@ -86,7 +86,7 @@ class Game(arcade.Window):
 
     def on_update(self, delta_time: float) -> None:
         """
-        Movement and game logic happens here.
+        Processes movement and game logic.
 
         Parameters
         ----------
