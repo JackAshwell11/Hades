@@ -9,12 +9,15 @@ from typing import Optional, Tuple
 import numpy as np
 
 # Custom
-from constants import DEBUG_WALL, EMPTY, FLOOR, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, WALL
-
-# TODO:
-# Fix some rooms not getting connected.
-# Find way to have hallway width controlled by constant (when size incremented, width
-# doubles).
+from constants import (
+    DEBUG_WALL,
+    EMPTY,
+    FLOOR,
+    HALLWAY_WIDTH,
+    MIN_CONTAINER_SIZE,
+    MIN_ROOM_SIZE,
+    WALL,
+)
 
 
 class Rect:
@@ -319,12 +322,18 @@ class Leaf:
             The y coordinate of the left room.
         """
         for x in range(left_center_x, right_center_x + 1):
-            for y in range(left_center_y - 2, left_center_y + 2):
+            for y in range(
+                left_center_y - int(np.floor(HALLWAY_WIDTH / 2)),
+                left_center_y + int(np.ceil(HALLWAY_WIDTH / 2)),
+            ):
                 if self.grid[y, x] == EMPTY:
                     self.grid[y, x] = WALL
 
         for x in range(left_center_x, right_center_x):
-            for y in range(left_center_y - 1, left_center_y + 1):
+            for y in range(
+                left_center_y - int(np.floor(HALLWAY_WIDTH / 2)) + 1,
+                left_center_y + int(np.ceil(HALLWAY_WIDTH / 2)) - 1,
+            ):
                 self.grid[y, x] = FLOOR
 
     def vertical_hallway(
@@ -345,12 +354,18 @@ class Leaf:
             The x coordinate of the left room.
         """
         for y in range(left_center_y, right_center_y + 1):
-            for x in range(left_center_x - 2, left_center_x + 2):
+            for x in range(
+                left_center_x - int(np.floor(HALLWAY_WIDTH / 2)),
+                left_center_x + int(np.ceil(HALLWAY_WIDTH / 2)),
+            ):
                 if self.grid[y, x] == EMPTY:
                     self.grid[y, x] = WALL
 
         for y in range(left_center_y, right_center_y):
-            for x in range(left_center_x - 1, left_center_x + 1):
+            for x in range(
+                left_center_x - int(np.floor(HALLWAY_WIDTH / 2)) + 1,
+                left_center_x + int(np.ceil(HALLWAY_WIDTH / 2)) - 1,
+            ):
                 self.grid[y, x] = FLOOR
 
     def create_player_spawn(self) -> Tuple[int, int]:

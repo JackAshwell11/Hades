@@ -4,6 +4,7 @@ from __future__ import annotations
 MAP_WIDTH = 40
 MAP_HEIGHT = 20
 SPLIT_COUNT = 3
+HALLWAY_WIDTH = 5
 EMPTY = 0
 FLOOR = 1
 WALL = 2
