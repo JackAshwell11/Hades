@@ -5,12 +5,16 @@ from typing import Optional
 
 # Pip
 import arcade
-from constants import FLOOR, WALL
-from entities.player import Player
-from entities.tiles import Tile
 
 # Custom
+from constants import FLOOR, MOVEMENT_SPEED, WALL
+from entities.player import Player
+from entities.tiles import Tile
 from generation.map import Map
+
+# TODO:
+# Stop player going over walls.
+# Keep viewport within the grid.
 
 
 class Game(arcade.Window):
@@ -23,6 +27,18 @@ class Game(arcade.Window):
         The game map for the current level.
     game_sprite_list: Optional[arcade.SpriteList]
         The sprite list for the converted game map.
+    player: Optional[Player]
+        The playable character in the game.
+    camera: Optional[arcade.Camera]
+        The camera used for moving the viewport around the screen.
+    left_pressed: bool
+        Whether the left key is pressed or not.
+    right_pressed: bool
+        Whether the right key is pressed or not.
+    up_pressed: bool
+        Whether the up key is pressed or not.
+    down_pressed: bool
+        Whether the down key is pressed or not.
     """
 
     def __init__(self) -> None:
@@ -31,6 +47,10 @@ class Game(arcade.Window):
         self.game_sprite_list: Optional[arcade.SpriteList] = None
         self.player: Optional[Player] = None
         self.camera: Optional[arcade.Camera] = None
+        self.left_pressed: bool = False
+        self.right_pressed: bool = False
+        self.up_pressed: bool = False
+        self.down_pressed: bool = False
         self.setup(1)
 
     def setup(self, level: int) -> None:
@@ -95,6 +115,64 @@ class Game(arcade.Window):
         """
         # Position the camera
         self.center_camera_on_player()
+
+        # Calculate the speed and direction of the player based on the keys pressed
+        assert self.player is not None
+        self.player.change_x, self.player.change_y = 0, 0
+
+        if self.up_pressed and not self.down_pressed:
+            self.player.change_y = MOVEMENT_SPEED
+        elif self.down_pressed and not self.up_pressed:
+            self.player.change_y = -MOVEMENT_SPEED
+        if self.left_pressed and not self.right_pressed:
+            self.player.change_x = -MOVEMENT_SPEED
+        elif self.right_pressed and not self.left_pressed:
+            self.player.change_x = MOVEMENT_SPEED
+
+        # Update the player sprite
+        self.player.update()
+
+    def on_key_press(self, key: int, modifiers: int) -> None:
+        """
+        Called when the player presses a key.
+
+        Parameters
+        ----------
+        key: int
+            The key that was hit.
+        modifiers: int
+            Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
+            event.
+        """
+        if key is arcade.key.W:
+            self.up_pressed = True
+        elif key is arcade.key.S:
+            self.down_pressed = True
+        elif key is arcade.key.A:
+            self.left_pressed = True
+        elif key is arcade.key.D:
+            self.right_pressed = True
+
+    def on_key_release(self, key: int, modifiers: int) -> None:
+        """
+        Called when the player releases a key.
+
+        Parameters
+        ----------
+        key: int
+            The key that was hit.
+        modifiers: int
+            Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
+            event.
+        """
+        if key is arcade.key.W:
+            self.up_pressed = False
+        elif key is arcade.key.S:
+            self.down_pressed = False
+        elif key is arcade.key.A:
+            self.left_pressed = False
+        elif key is arcade.key.D:
+            self.right_pressed = False
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
