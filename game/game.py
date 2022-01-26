@@ -11,6 +11,7 @@ from constants import FLOOR, MOVEMENT_SPEED, WALL
 from entities.player import Player
 from entities.tiles import Tile
 from generation.map import Map
+from textures.textures import calculate_max_camera_size
 
 # TODO:
 # Stop player going over walls.
@@ -25,10 +26,14 @@ class Game(arcade.Window):
     ----------
     game_map: Optional[Map]
         The game map for the current level.
-    game_sprite_list: Optional[arcade.SpriteList]
-        The sprite list for the converted game map.
+    floor_sprites: Optional[arcade.SpriteList]
+        The sprite list for the floor sprites.
+    wall_sprites: Optional[arcade.SpriteList]
+        The sprite list for the wall sprites.
     player: Optional[Player]
         The playable character in the game.
+    physics_engine: Optional[arcade.PhysicsEngineSimple]
+        The physics engine which processes wall collision.
     camera: Optional[arcade.Camera]
         The camera used for moving the viewport around the screen.
     left_pressed: bool
@@ -44,8 +49,10 @@ class Game(arcade.Window):
     def __init__(self) -> None:
         super().__init__()
         self.game_map: Optional[Map] = None
-        self.game_sprite_list: Optional[arcade.SpriteList] = None
+        self.floor_sprites: Optional[arcade.SpriteList] = None
+        self.wall_sprites: Optional[arcade.SpriteList] = None
         self.player: Optional[Player] = None
+        self.physics_engine: Optional[arcade.PhysicsEngineSimple] = None
         self.camera: Optional[arcade.Camera] = None
         self.left_pressed: bool = False
         self.right_pressed: bool = False
@@ -67,24 +74,23 @@ class Game(arcade.Window):
         self.game_map = Map(level)
 
         # Assign sprites to the game map
-        self.game_sprite_list = arcade.SpriteList(use_spatial_hash=True)
+        self.floor_sprites = arcade.SpriteList(use_spatial_hash=True)
+        self.wall_sprites = arcade.SpriteList(use_spatial_hash=True)
         for count_y, y in enumerate(self.game_map.grid):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
-                sprite = None
                 if x == FLOOR:
-                    sprite = Tile(count_x, count_y, FLOOR)
+                    self.floor_sprites.append(Tile(count_x, count_y, FLOOR))
                 elif x == WALL:
-                    sprite = Tile(count_x, count_y, WALL)
-
-                # Add the newly created sprite to the sprite list
-                if sprite is not None:
-                    self.game_sprite_list.append(sprite)
+                    self.wall_sprites.append(Tile(count_x, count_y, WALL))
 
         # Create the player object
         self.player = Player(
             self.game_map.player_spawn[0], self.game_map.player_spawn[1]
         )
+
+        # Create the physics engine
+        self.physics_engine = arcade.PhysicsEngineSimple(self.player, self.wall_sprites)
 
         # Set up the Camera
         self.camera = arcade.Camera(self.width, self.height)
@@ -99,9 +105,11 @@ class Game(arcade.Window):
         self.camera.use()
 
         # Draw the game map
-        assert self.game_sprite_list is not None
+        assert self.floor_sprites is not None
+        assert self.wall_sprites is not None
         assert self.player is not None
-        self.game_sprite_list.draw()
+        self.floor_sprites.draw()
+        self.wall_sprites.draw()
         self.player.draw()
 
     def on_update(self, delta_time: float) -> None:
@@ -129,8 +137,9 @@ class Game(arcade.Window):
         elif self.right_pressed and not self.left_pressed:
             self.player.change_x = MOVEMENT_SPEED
 
-        # Update the player sprite
-        self.player.update()
+        # Update the physics engine which processes collision
+        assert self.physics_engine is not None
+        self.physics_engine.update()
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         """
@@ -182,11 +191,23 @@ class Game(arcade.Window):
         screen_center_x = self.player.center_x - (self.camera.viewport_width / 2)
         screen_center_y = self.player.center_y - (self.camera.viewport_height / 2)
 
-        # Make sure the camera doesn't travel past 0
+        # Make sure the camera doesn't extend beyond the boundaries
+        assert self.game_map is not None
+        upper_camera_x, upper_camera_y = calculate_max_camera_size(
+            len(self.game_map.grid[0]) - 1,
+            len(self.game_map.grid) - 1,
+            self.camera.viewport_width,
+            self.camera.viewport_height,
+        )
+
         if screen_center_x < 0:
             screen_center_x = 0
         if screen_center_y < 0:
             screen_center_y = 0
+        if screen_center_x > upper_camera_x:
+            screen_center_x = upper_camera_x
+        if screen_center_y > upper_camera_y:
+            screen_center_y = upper_camera_y
 
         # Move the camera to the new position
         self.camera.move_to((screen_center_x, screen_center_y))  # noqa

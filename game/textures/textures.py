@@ -28,8 +28,37 @@ def calculate_position(x: int, y: int) -> Tuple[float, float]:
         The x and y position of a sprite on the screen.
     """
     return (
-        x * SPRITE_WIDTH * 1 + SPRITE_WIDTH / 2 * 1,
-        y * SPRITE_HEIGHT * 1 + SPRITE_HEIGHT / 2 * 1,
+        x * SPRITE_WIDTH + SPRITE_WIDTH / 2,
+        y * SPRITE_HEIGHT + SPRITE_HEIGHT / 2,
+    )
+
+
+def calculate_max_camera_size(
+    x: int, y: int, width: int, height: int
+) -> Tuple[float, float]:
+    """
+    Calculates the max width and height the camera can be based on the grid size.
+
+    Parameters
+    ----------
+    x: int
+        The x index of the last item in the grid.
+    y: int
+        The y index of the last item in the grid.
+    width: int
+        The width of the viewport camera.
+    height: int
+        The height of the viewport camera.
+
+    Returns
+    -------
+    Tuple[float, float]
+        The max width and height that the camera can be.
+    """
+    upper_x, upper_y = calculate_position(x, y)
+    return (
+        upper_x - width + (width / SPRITE_WIDTH),
+        upper_y - height + (height / SPRITE_HEIGHT),
     )
 
 
