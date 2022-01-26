@@ -11,7 +11,7 @@ WALL = 2
 DEBUG_WALL = 9
 
 # Map container/room generation
-MIN_CONTAINER_SIZE = 6
+MIN_CONTAINER_SIZE = 7
 MIN_ROOM_SIZE = 5
 
 # Sprite sizes

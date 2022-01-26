@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import random
 from typing import Optional, Tuple
 
 # Pip
@@ -38,9 +39,9 @@ class Map:
 
     def __init__(self, level: int) -> None:
         self.level: int = level
-        self.width: int = -1
-        self.height: int = -1
-        self.split_count: int = -1
+        self.width: int = MAP_WIDTH
+        self.height: int = MAP_HEIGHT
+        self.split_count: int = SPLIT_COUNT
         self.grid: Optional[np.ndarray] = None
         self.bsp: Optional[Leaf] = None
         self.player_spawn: Optional[Tuple[int, int]] = None
@@ -51,12 +52,6 @@ class Map:
 
     def make_map(self) -> None:
         """Function which manages the map generation for a specified level."""
-
-        # Create constants used during the generation
-        self.width = MAP_WIDTH
-        self.height = MAP_HEIGHT
-        self.split_count = SPLIT_COUNT
-
         # Create the 2D grid used for representing the dungeon
         self.grid = np.full((self.height, self.width), 0, np.int8)
 
@@ -74,4 +69,10 @@ class Map:
         self.bsp.create_hallway()
 
         # Get the coordinates for the player spawn
-        self.player_spawn = self.bsp.create_player_spawn()
+        self.player_spawn = self.create_player_spawn()
+
+    def create_player_spawn(self) -> Tuple[int, int]:
+        """Picks a random point which is a floor and creates the player spawn."""
+        # We have to break this up otherwise mypy will return a Tuple[Any, ...] error
+        player_spawn = random.choice(np.argwhere(self.grid == 1))
+        return player_spawn[1], player_spawn[0]

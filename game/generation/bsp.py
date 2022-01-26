@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 
 # Builtin
-from typing import Optional, Tuple
+from typing import Optional
 
 # Pip
 import numpy as np
@@ -288,16 +288,22 @@ class Leaf:
 
         # Connect the left and right rooms
         if self.split_vertical:
-            # Leaf was split vertically so create a horizontal hallway
+            # Leaf was split vertically so create a horizontal then vertical hallway
             self.horizontal_hallway(
                 left_room.center_x, right_room.center_x, left_room.center_y
+            )
+            self.vertical_hallway(
+                left_room.center_y, right_room.center_y, right_room.center_x
             )
             # Return the right room, so it can be connected on the next level
             return right_room
         else:
-            # Leaf was split horizontally so create a vertical hallway
+            # Leaf was split horizontally so create a vertical then horizontal hallway
             self.vertical_hallway(
                 left_room.center_y, right_room.center_y, left_room.center_x
+            )
+            self.horizontal_hallway(
+                left_room.center_x, right_room.center_x, right_room.center_y
             )
             # Return a random room since the top or bottom one can be connected to the
             # neighbour
@@ -321,7 +327,7 @@ class Leaf:
         left_center_y: int
             The y coordinate of the left room.
         """
-        for x in range(left_center_x, right_center_x + 1):
+        for x in range(left_center_x - 1, right_center_x + 1):
             for y in range(
                 left_center_y - int(np.floor(HALLWAY_WIDTH / 2)),
                 left_center_y + int(np.ceil(HALLWAY_WIDTH / 2)),
@@ -353,7 +359,7 @@ class Leaf:
         left_center_x: int
             The x coordinate of the left room.
         """
-        for y in range(left_center_y, right_center_y + 1):
+        for y in range(left_center_y - 1, right_center_y + 1):
             for x in range(
                 left_center_x - int(np.floor(HALLWAY_WIDTH / 2)),
                 left_center_x + int(np.ceil(HALLWAY_WIDTH / 2)),
@@ -367,9 +373,3 @@ class Leaf:
                 left_center_x + int(np.ceil(HALLWAY_WIDTH / 2)) - 1,
             ):
                 self.grid[y, x] = FLOOR
-
-    def create_player_spawn(self) -> Tuple[int, int]:
-        """Picks a random point which is a floor and creates the player spawn."""
-        # We have to break this up otherwise mypy will return a Tuple[Any, ...] error
-        player_spawn = random.choice(np.argwhere(self.grid == 1))
-        return player_spawn[1], player_spawn[0]
