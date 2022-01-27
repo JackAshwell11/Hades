@@ -2,11 +2,11 @@ from __future__ import annotations
 
 # Builtin
 import random
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 # Pip
 import numpy as np
-from constants import MAP_HEIGHT, MAP_WIDTH, SPLIT_COUNT
+from constants import ENEMY_COUNT, MAP_HEIGHT, MAP_WIDTH, SPLIT_COUNT
 
 # Custom
 from .bsp import Leaf
@@ -35,6 +35,8 @@ class Map:
         The root leaf for the binary space partition.
     player_spawn: Optional[Tuple[int, int]]
         The coordinates for the player spawn. This is in the format (x, y).
+    enemy_spawns: List[Tuple[int, int]]
+        The coordinates for the enemy spawn points. This is in the format (x, y).
     """
 
     def __init__(self, level: int) -> None:
@@ -45,6 +47,7 @@ class Map:
         self.grid: Optional[np.ndarray] = None
         self.bsp: Optional[Leaf] = None
         self.player_spawn: Optional[Tuple[int, int]] = None
+        self.enemy_spawns: List[Tuple[int, int]] = []
         self.make_map()
 
     def __repr__(self) -> str:
@@ -70,6 +73,10 @@ class Map:
 
         # Get the coordinates for the player spawn
         self.player_spawn = self.create_player_spawn()
+
+        # Get the coordinates for the enemy spawn points
+        for _ in range(ENEMY_COUNT):
+            pass
 
     def create_player_spawn(self) -> Tuple[int, int]:
         """Picks a random point which is a floor and creates the player spawn."""
