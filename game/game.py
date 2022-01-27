@@ -13,10 +13,6 @@ from entities.tiles import Tile
 from generation.map import Map
 from textures.textures import calculate_max_camera_size
 
-# TODO:
-# Stop player going over walls.
-# Keep viewport within the grid.
-
 
 class Game(arcade.Window):
     """

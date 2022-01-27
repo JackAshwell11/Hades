@@ -289,87 +289,66 @@ class Leaf:
         # Connect the left and right rooms
         if self.split_vertical:
             # Leaf was split vertically so create a horizontal then vertical hallway
-            self.horizontal_hallway(
-                left_room.center_x, right_room.center_x, left_room.center_y
+            self.place_hallway(
+                left_room.center_x, right_room.center_x, left_room.center_y, False
             )
-            self.vertical_hallway(
-                left_room.center_y, right_room.center_y, right_room.center_x
+            self.place_hallway(
+                left_room.center_y, right_room.center_y, right_room.center_x, True
             )
             # Return the right room, so it can be connected on the next level
             return right_room
         else:
             # Leaf was split horizontally so create a vertical then horizontal hallway
-            self.vertical_hallway(
-                left_room.center_y, right_room.center_y, left_room.center_x
+            self.place_hallway(
+                left_room.center_y, right_room.center_y, left_room.center_x, True
             )
-            self.horizontal_hallway(
-                left_room.center_x, right_room.center_x, right_room.center_y
+            self.place_hallway(
+                left_room.center_x, right_room.center_x, right_room.center_y, False
             )
-            # Return a random room since the top or bottom one can be connected to the
-            # neighbour
+            # Return a random room since the top or bottom one can be connected on the
+            # next level
             return left_room if bool(random.getrandbits(1)) else right_room
 
-    def horizontal_hallway(
-        self, left_center_x: int, right_center_x: int, left_center_y: int
+    def place_hallway(
+        self, start_pos: int, end_pos: int, width_pos: int, is_vertical: bool
     ) -> None:
         """
-        Creates a horizontal hallway from one point to another with a floor height of
-        2.
+        Places a hallway in any direction from start_pos to end_pos with a width of
+        HALLWAY_WIDTH spread out around width_pos.
 
         Parameters
         ----------
-        left_center_x: int
-            The x coordinate of the left room.
-
-        right_center_x: int
-            The x coordinate of the right room.
-
-        left_center_y: int
-            The y coordinate of the left room.
+        start_pos: int
+            The starting coordinate for the hallway.
+        end_pos: int
+            The sending coordinate for the hallway.
+        width_pos: int
+            The coordinate which for the width to be spread out around.
+        is_vertical: bool
+            Whether the hallway is vertical or not.
         """
-        for x in range(left_center_x - 1, right_center_x + 1):
-            for y in range(
-                left_center_y - int(np.floor(HALLWAY_WIDTH / 2)),
-                left_center_y + int(np.ceil(HALLWAY_WIDTH / 2)),
-            ):
-                if self.grid[y, x] == EMPTY:
-                    self.grid[y, x] = WALL
+        # Determine the range for the width of the hallway
+        min_hallway_width, max_hallway_width = (
+            width_pos - int(np.floor(HALLWAY_WIDTH / 2)),
+            width_pos + int(np.ceil(HALLWAY_WIDTH / 2)),
+        )
 
-        for x in range(left_center_x, right_center_x):
-            for y in range(
-                left_center_y - int(np.floor(HALLWAY_WIDTH / 2)) + 1,
-                left_center_y + int(np.ceil(HALLWAY_WIDTH / 2)) - 1,
-            ):
-                self.grid[y, x] = FLOOR
+        # Create the hallway
+        if is_vertical:
+            for y in range(start_pos - 1, end_pos + 1):
+                for x in range(min_hallway_width, max_hallway_width):
+                    if self.grid[y, x] == EMPTY:
+                        self.grid[y, x] = WALL
 
-    def vertical_hallway(
-        self, left_center_y: int, right_center_y: int, left_center_x: int
-    ) -> None:
-        """
-        Creates a vertical hallway from one point to another with a floor width of 2.
+            for y in range(start_pos, end_pos):
+                for x in range(min_hallway_width + 1, max_hallway_width - 1):
+                    self.grid[y, x] = FLOOR
+        else:
+            for x in range(start_pos - 1, end_pos + 1):
+                for y in range(min_hallway_width, max_hallway_width):
+                    if self.grid[y, x] == EMPTY:
+                        self.grid[y, x] = WALL
 
-        Parameters
-        ----------
-        left_center_y: int
-            The y coordinate of the left room.
-
-        right_center_y: int
-            The y coordinate of the right room.
-
-        left_center_x: int
-            The x coordinate of the left room.
-        """
-        for y in range(left_center_y - 1, right_center_y + 1):
-            for x in range(
-                left_center_x - int(np.floor(HALLWAY_WIDTH / 2)),
-                left_center_x + int(np.ceil(HALLWAY_WIDTH / 2)),
-            ):
-                if self.grid[y, x] == EMPTY:
-                    self.grid[y, x] = WALL
-
-        for y in range(left_center_y, right_center_y):
-            for x in range(
-                left_center_x - int(np.floor(HALLWAY_WIDTH / 2)) + 1,
-                left_center_x + int(np.ceil(HALLWAY_WIDTH / 2)) - 1,
-            ):
-                self.grid[y, x] = FLOOR
+            for x in range(start_pos, end_pos):
+                for y in range(min_hallway_width + 1, max_hallway_width - 1):
+                    self.grid[y, x] = FLOOR
