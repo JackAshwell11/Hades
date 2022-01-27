@@ -104,9 +104,9 @@ class Game(arcade.Window):
         assert self.floor_sprites is not None
         assert self.wall_sprites is not None
         assert self.player is not None
-        self.floor_sprites.draw()
-        self.wall_sprites.draw()
-        self.player.draw()
+        self.floor_sprites.draw(pixelated=True)
+        self.wall_sprites.draw(pixelated=True)
+        self.player.draw(pixelated=True)
 
     def on_update(self, delta_time: float) -> None:
         """
