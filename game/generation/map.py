@@ -6,7 +6,7 @@ from typing import List, Optional, Tuple
 
 # Pip
 import numpy as np
-from constants import ENEMY_COUNT, MAP_HEIGHT, MAP_WIDTH, SPLIT_COUNT
+from constants import ENEMY, ENEMY_COUNT, MAP_HEIGHT, MAP_WIDTH, PLAYER, SPLIT_COUNT
 
 # Custom
 from .bsp import Leaf
@@ -72,14 +72,21 @@ class Map:
         self.bsp.create_hallway()
 
         # Get the coordinates for the player spawn
-        self.player_spawn = self.create_player_spawn()
+        self.replace_random_floor(PLAYER)
 
         # Get the coordinates for the enemy spawn points
         for _ in range(ENEMY_COUNT):
-            pass
+            self.replace_random_floor(ENEMY)
 
-    def create_player_spawn(self) -> Tuple[int, int]:
-        """Picks a random point which is a floor and creates the player spawn."""
-        # We have to break this up otherwise mypy will return a Tuple[Any, ...] error
+    def replace_random_floor(self, entity: int) -> None:
+        """
+        Replaces a random floor tile with a player, enemy or item tile.
+
+        Parameters
+        ----------
+        entity: int
+            The tile to replace the floor tile with.
+        """
+        assert self.grid is not None
         player_spawn = random.choice(np.argwhere(self.grid == 1))
-        return player_spawn[1], player_spawn[0]
+        self.grid[player_spawn[0], player_spawn[1]] = entity

@@ -33,35 +33,6 @@ def calculate_position(x: int, y: int) -> Tuple[float, float]:
     )
 
 
-def calculate_max_camera_size(
-    x: int, y: int, width: int, height: int
-) -> Tuple[float, float]:
-    """
-    Calculates the max width and height the camera can be based on the grid size.
-
-    Parameters
-    ----------
-    x: int
-        The x index of the last item in the grid.
-    y: int
-        The y index of the last item in the grid.
-    width: int
-        The width of the viewport camera.
-    height: int
-        The height of the viewport camera.
-
-    Returns
-    -------
-    Tuple[float, float]
-        The max width and height that the camera can be.
-    """
-    upper_x, upper_y = calculate_position(x, y)
-    return (
-        upper_x - width + (width / SPRITE_WIDTH),
-        upper_y - height + (height / SPRITE_HEIGHT),
-    )
-
-
 # Create the texture path
 texture_path = pathlib.Path(__file__).resolve().parent.joinpath("images")
 
@@ -80,4 +51,11 @@ player_filename = ["player.png"]
 player_textures = [
     arcade.load_texture(str(texture_path.joinpath(filename)))
     for filename in player_filename
+]
+
+# Create the enemy textures
+enemy_filename = ["enemy.png"]
+enemy_textures = [
+    arcade.load_texture(str(texture_path.joinpath(filename)))
+    for filename in enemy_filename
 ]

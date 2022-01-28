@@ -9,6 +9,8 @@ HALLWAY_WIDTH = 5
 EMPTY = 0
 FLOOR = 1
 WALL = 2
+PLAYER = 3
+ENEMY = 4
 DEBUG_WALL = 9
 
 # Map container/room generation

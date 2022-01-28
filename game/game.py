@@ -7,11 +7,20 @@ from typing import Optional
 import arcade
 
 # Custom
-from constants import FLOOR, MOVEMENT_SPEED, WALL
+from constants import (
+    ENEMY,
+    FLOOR,
+    MOVEMENT_SPEED,
+    PLAYER,
+    SPRITE_HEIGHT,
+    SPRITE_WIDTH,
+    WALL,
+)
+from entities.enemy import Enemy
 from entities.player import Player
 from entities.tiles import Tile
 from generation.map import Map
-from textures.textures import calculate_max_camera_size
+from textures.textures import calculate_position
 
 
 class Game(arcade.Window):
@@ -22,12 +31,14 @@ class Game(arcade.Window):
     ----------
     game_map: Optional[Map]
         The game map for the current level.
-    floor_sprites: Optional[arcade.SpriteList]
+    floor_sprites: arcade.SpriteList
         The sprite list for the floor sprites.
-    wall_sprites: Optional[arcade.SpriteList]
+    wall_sprites: arcade.SpriteList
         The sprite list for the wall sprites.
     player: Optional[Player]
         The playable character in the game.
+    enemies: arcade.SpriteList
+        The sprite list for the enemy sprites.
     physics_engine: Optional[arcade.PhysicsEngineSimple]
         The physics engine which processes wall collision.
     camera: Optional[arcade.Camera]
@@ -45,9 +56,10 @@ class Game(arcade.Window):
     def __init__(self) -> None:
         super().__init__()
         self.game_map: Optional[Map] = None
-        self.floor_sprites: Optional[arcade.SpriteList] = None
-        self.wall_sprites: Optional[arcade.SpriteList] = None
+        self.floor_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
+        self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.player: Optional[Player] = None
+        self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.physics_engine: Optional[arcade.PhysicsEngineSimple] = None
         self.camera: Optional[arcade.Camera] = None
         self.left_pressed: bool = False
@@ -79,11 +91,12 @@ class Game(arcade.Window):
                     self.floor_sprites.append(Tile(count_x, count_y, FLOOR))
                 elif x == WALL:
                     self.wall_sprites.append(Tile(count_x, count_y, WALL))
-
-        # Create the player object
-        self.player = Player(
-            self.game_map.player_spawn[0], self.game_map.player_spawn[1]
-        )
+                elif x == PLAYER:
+                    self.player = Player(count_x, count_y)
+                    self.floor_sprites.append(Tile(count_x, count_y, FLOOR))
+                elif x == ENEMY:
+                    self.enemies.append(Enemy(count_x, count_y))
+                    self.floor_sprites.append(Tile(count_x, count_y, FLOOR))
 
         # Create the physics engine
         self.physics_engine = arcade.PhysicsEngineSimple(self.player, self.wall_sprites)
@@ -104,9 +117,11 @@ class Game(arcade.Window):
         assert self.floor_sprites is not None
         assert self.wall_sprites is not None
         assert self.player is not None
+        assert self.enemies is not None
         self.floor_sprites.draw(pixelated=True)
         self.wall_sprites.draw(pixelated=True)
         self.player.draw(pixelated=True)
+        self.enemies.draw(pixelated=True)
 
     def on_update(self, delta_time: float) -> None:
         """
@@ -187,15 +202,23 @@ class Game(arcade.Window):
         screen_center_x = self.player.center_x - (self.camera.viewport_width / 2)
         screen_center_y = self.player.center_y - (self.camera.viewport_height / 2)
 
-        # Make sure the camera doesn't extend beyond the boundaries
+        # Calculate the maximum width and height a sprite can be
         assert self.game_map is not None
-        upper_camera_x, upper_camera_y = calculate_max_camera_size(
-            len(self.game_map.grid[0]) - 1,
-            len(self.game_map.grid) - 1,
-            self.camera.viewport_width,
-            self.camera.viewport_height,
+        upper_x, upper_y = calculate_position(
+            len(self.game_map.grid[0]) - 1, len(self.game_map.grid) - 1
         )
 
+        # Calculate the maximum width and height the camera can be
+        upper_camera_x, upper_camera_y = (
+            upper_x
+            - self.camera.viewport_width
+            + (self.camera.viewport_width / SPRITE_WIDTH),
+            upper_y
+            - self.camera.viewport_height
+            + (self.camera.viewport_width / SPRITE_HEIGHT),
+        )
+
+        # Make sure the camera doesn't extend beyond the boundaries
         if screen_center_x < 0:
             screen_center_x = 0
         if screen_center_y < 0:
