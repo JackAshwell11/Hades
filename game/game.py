@@ -221,11 +221,11 @@ class Game(arcade.Window):
         # Make sure the camera doesn't extend beyond the boundaries
         if screen_center_x < 0:
             screen_center_x = 0
+        elif screen_center_x > upper_camera_x:
+            screen_center_x = upper_camera_x
         if screen_center_y < 0:
             screen_center_y = 0
-        if screen_center_x > upper_camera_x:
-            screen_center_x = upper_camera_x
-        if screen_center_y > upper_camera_y:
+        elif screen_center_y > upper_camera_y:
             screen_center_y = upper_camera_y
 
         # Move the camera to the new position
