@@ -215,7 +215,7 @@ class Game(arcade.Window):
             + (self.camera.viewport_width / SPRITE_WIDTH),
             upper_y
             - self.camera.viewport_height
-            + (self.camera.viewport_width / SPRITE_HEIGHT),
+            + (self.camera.viewport_height / SPRITE_HEIGHT),
         )
 
         # Make sure the camera doesn't extend beyond the boundaries
