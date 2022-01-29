@@ -11,7 +11,7 @@ import arcade
 from constants import SPRITE_HEIGHT, SPRITE_WIDTH
 
 
-def calculate_position(x: int, y: int) -> Tuple[float, float]:
+def pos_to_pixel(x: int, y: int) -> Tuple[float, float]:
     """
     Calculate the x and y position based on the game map position.
 
@@ -36,26 +36,23 @@ def calculate_position(x: int, y: int) -> Tuple[float, float]:
 # Create the texture path
 texture_path = pathlib.Path(__file__).resolve().parent.joinpath("images")
 
-# Create the tile textures
-tile_filenames = [
-    "floor.png",
-    "wall.png",
-]
-tile_textures = [
-    arcade.load_texture(str(texture_path.joinpath(filename)))
-    for filename in tile_filenames
-]
+# Create a list to hold all the filenames for the textures
+filenames = {
+    "tiles": [
+        "floor.png",
+        "wall.png",
+    ],
+    "player": [
+        "player.png",
+    ],
+    "enemy": [
+        "enemy.png",
+    ],
+}
 
-# Create the player textures
-player_filename = ["player.png"]
-player_textures = [
-    arcade.load_texture(str(texture_path.joinpath(filename)))
-    for filename in player_filename
-]
-
-# Create the enemy textures
-enemy_filename = ["enemy.png"]
-enemy_textures = [
-    arcade.load_texture(str(texture_path.joinpath(filename)))
-    for filename in enemy_filename
-]
+# Create the textures
+textures = {}
+for key, value in filenames.items():
+    textures[key] = [
+        arcade.load_texture(str(texture_path.joinpath(filename))) for filename in value
+    ]

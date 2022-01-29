@@ -17,10 +17,11 @@ from constants import (
     WALL,
 )
 from entities.enemy import Enemy
+from entities.entity import Entity, TileType
 from entities.player import Player
 from entities.tiles import Tile
 from generation.map import Map
-from textures.textures import calculate_position
+from textures.textures import pos_to_pixel
 
 
 class Game(arcade.Window):
@@ -58,7 +59,7 @@ class Game(arcade.Window):
         self.game_map: Optional[Map] = None
         self.floor_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
-        self.player: Optional[Player] = None
+        self.player: Optional[Entity] = None
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.physics_engine: Optional[arcade.PhysicsEngineSimple] = None
         self.camera: Optional[arcade.Camera] = None
@@ -88,15 +89,27 @@ class Game(arcade.Window):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
                 if x == FLOOR:
-                    self.floor_sprites.append(Tile(count_x, count_y, FLOOR))
+                    self.floor_sprites.append(
+                        Entity(count_x, count_y, TileType.FLOOR, tile=Tile())
+                    )
                 elif x == WALL:
-                    self.wall_sprites.append(Tile(count_x, count_y, WALL))
+                    self.wall_sprites.append(
+                        Entity(count_x, count_y, TileType.WALL, tile=Tile())
+                    )
                 elif x == PLAYER:
-                    self.player = Player(count_x, count_y)
-                    self.floor_sprites.append(Tile(count_x, count_y, FLOOR))
+                    self.player = Entity(
+                        count_x, count_y, TileType.PLAYER, character=Player()
+                    )
+                    self.floor_sprites.append(
+                        Entity(count_x, count_y, TileType.FLOOR, tile=Tile())
+                    )
                 elif x == ENEMY:
-                    self.enemies.append(Enemy(count_x, count_y))
-                    self.floor_sprites.append(Tile(count_x, count_y, FLOOR))
+                    self.enemies.append(
+                        Entity(count_x, count_y, TileType.ENEMY, character=Enemy())
+                    )
+                    self.floor_sprites.append(
+                        Entity(count_x, count_y, TileType.FLOOR, tile=Tile())
+                    )
 
         # Create the physics engine
         self.physics_engine = arcade.PhysicsEngineSimple(self.player, self.wall_sprites)
@@ -204,7 +217,7 @@ class Game(arcade.Window):
 
         # Calculate the maximum width and height a sprite can be
         assert self.game_map is not None
-        upper_x, upper_y = calculate_position(
+        upper_x, upper_y = pos_to_pixel(
             len(self.game_map.grid[0]) - 1, len(self.game_map.grid) - 1
         )
 
