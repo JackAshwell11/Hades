@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from enum import Enum
-
 # Builtin
-from typing import TYPE_CHECKING, Optional, Union
+from enum import Enum
+from typing import TYPE_CHECKING, Optional
 
 # Pip
 import arcade
@@ -13,9 +12,7 @@ from constants import SPRITE_SCALE
 from textures.textures import pos_to_pixel, textures
 
 if TYPE_CHECKING:
-    from .enemy import Enemy
-    from .player import Player
-    from .tiles import Tile
+    from .character import Character
 
 
 class TileType(Enum):
@@ -37,10 +34,10 @@ class Entity(arcade.Sprite):
         The y position of the sprite in the game map.
     tile_id: TileType
         The tile ID for the entity.
-    character: Optional[Union[Player, Enemy]]
+    character: Optional[Character]
         The character which this entity represents
-    tile: Optional[Tile]
-        The tile which this entity represents.
+    is_tile: bool
+        Whether the entity is a tile or not.
     item
         The item which this entity represents.
 
@@ -59,15 +56,15 @@ class Entity(arcade.Sprite):
         x: int,
         y: int,
         tile_id: TileType,
-        character: Optional[Union[Player, Enemy]] = None,
-        tile: Optional[Tile] = None,
+        character: Optional[Character] = None,
+        is_tile: bool = False,
         item=None,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.center_x, self.center_y = pos_to_pixel(x, y)
         self.texture: arcade.Texture = tile_id.value
-        self.character: Optional[Union[Player, Enemy]] = character
-        self.tile: Optional[Tile] = tile
+        self.character: Optional[Character] = character
+        self.tile: bool = is_tile
         self.item = item
 
     def __repr__(self) -> str:

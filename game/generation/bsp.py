@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import random
-
 # Builtin
+import random
 from typing import Optional
 
 # Pip

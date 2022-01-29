@@ -16,10 +16,8 @@ from constants import (
     SPRITE_WIDTH,
     WALL,
 )
-from entities.enemy import Enemy
+from entities.character import Character
 from entities.entity import Entity, TileType
-from entities.player import Player
-from entities.tiles import Tile
 from generation.map import Map
 from textures.textures import pos_to_pixel
 
@@ -36,7 +34,7 @@ class Game(arcade.Window):
         The sprite list for the floor sprites.
     wall_sprites: arcade.SpriteList
         The sprite list for the wall sprites.
-    player: Optional[Player]
+    player: Optional[Entity]
         The playable character in the game.
     enemies: arcade.SpriteList
         The sprite list for the enemy sprites.
@@ -90,25 +88,25 @@ class Game(arcade.Window):
                 # Determine which type the tile is
                 if x == FLOOR:
                     self.floor_sprites.append(
-                        Entity(count_x, count_y, TileType.FLOOR, tile=Tile())
+                        Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
                     )
                 elif x == WALL:
                     self.wall_sprites.append(
-                        Entity(count_x, count_y, TileType.WALL, tile=Tile())
+                        Entity(count_x, count_y, TileType.WALL, is_tile=True)
                     )
                 elif x == PLAYER:
                     self.player = Entity(
-                        count_x, count_y, TileType.PLAYER, character=Player()
+                        count_x, count_y, TileType.PLAYER, character=Character()
                     )
                     self.floor_sprites.append(
-                        Entity(count_x, count_y, TileType.FLOOR, tile=Tile())
+                        Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
                     )
                 elif x == ENEMY:
                     self.enemies.append(
-                        Entity(count_x, count_y, TileType.ENEMY, character=Enemy())
+                        Entity(count_x, count_y, TileType.ENEMY, character=Character())
                     )
                     self.floor_sprites.append(
-                        Entity(count_x, count_y, TileType.FLOOR, tile=Tile())
+                        Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
                     )
 
         # Create the physics engine
