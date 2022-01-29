@@ -32,14 +32,16 @@ class Entity(arcade.Sprite):
         The x position of the sprite in the game map.
     y: int
         The y position of the sprite in the game map.
-    tile_id: TileType
-        The tile ID for the entity.
+    tile_type: TileType
+        The tile type for the entity.
     character: Optional[Character]
         The character which this entity represents
     is_tile: bool
         Whether the entity is a tile or not.
     item
         The item which this entity represents.
+    ai
+        The AI algorithm which this entity uses.
 
     Attributes
     ----------
@@ -55,17 +57,19 @@ class Entity(arcade.Sprite):
         self,
         x: int,
         y: int,
-        tile_id: TileType,
+        tile_type: TileType,
         character: Optional[Character] = None,
         is_tile: bool = False,
         item=None,
+        ai=None,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.texture: arcade.Texture = tile_id.value
+        self.texture: arcade.Texture = tile_type.value
         self.character: Optional[Character] = character
         self.tile: bool = is_tile
         self.item = item
+        self.ai = ai
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
