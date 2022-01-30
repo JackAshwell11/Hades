@@ -10,8 +10,8 @@ import arcade
 from constants import (
     ENEMY,
     FLOOR,
-    MOVEMENT_SPEED,
     PLAYER,
+    PLAYER_MOVEMENT_FORCE,
     SPRITE_HEIGHT,
     SPRITE_WIDTH,
     WALL,
@@ -20,6 +20,7 @@ from entities.ai import FollowLineOfSight
 from entities.character import Character
 from entities.entity import Entity, TileType
 from generation.map import Map
+from physics import PhysicsEngine
 from textures.textures import pos_to_pixel
 
 
@@ -39,7 +40,7 @@ class Game(arcade.Window):
         The playable character in the game.
     enemies: arcade.SpriteList
         The sprite list for the enemy sprites.
-    physics_engine: Optional[arcade.PhysicsEngineSimple]
+    physics_engine: Optional[arcade.PymunkPhysicsEngine]
         The physics engine which processes wall collision.
     camera: Optional[arcade.Camera]
         The camera used for moving the viewport around the screen.
@@ -60,13 +61,12 @@ class Game(arcade.Window):
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.player: Optional[Entity] = None
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
-        self.physics_engine: Optional[arcade.PhysicsEngineSimple] = None
+        self.physics_engine: Optional[arcade.PymunkPhysicsEngine] = None
         self.camera: Optional[arcade.Camera] = None
         self.left_pressed: bool = False
         self.right_pressed: bool = False
         self.up_pressed: bool = False
         self.down_pressed: bool = False
-        self.setup(1)
 
     def setup(self, level: int) -> None:
         """
@@ -116,7 +116,8 @@ class Game(arcade.Window):
                     )
 
         # Create the physics engine
-        self.physics_engine = arcade.PhysicsEngineSimple(self.player, self.wall_sprites)
+        self.physics_engine = PhysicsEngine(0)
+        self.physics_engine.setup(self.player, self.wall_sprites, self.enemies)
 
         # Set up the Camera
         self.camera = arcade.Camera(self.width, self.height)
@@ -152,27 +153,31 @@ class Game(arcade.Window):
 
         # Calculate the speed and direction of the player based on the keys pressed
         assert self.player is not None
+        assert self.physics_engine is not None
         self.player.change_x, self.player.change_y = 0, 0
 
         if self.up_pressed and not self.down_pressed:
-            self.player.change_y = MOVEMENT_SPEED
+            self.physics_engine.apply_force(self.player, (0, PLAYER_MOVEMENT_FORCE))
         elif self.down_pressed and not self.up_pressed:
-            self.player.change_y = -MOVEMENT_SPEED
+            self.physics_engine.apply_force(self.player, (0, -PLAYER_MOVEMENT_FORCE))
         if self.left_pressed and not self.right_pressed:
-            self.player.change_x = -MOVEMENT_SPEED
+            self.physics_engine.apply_force(self.player, (-PLAYER_MOVEMENT_FORCE, 0))
         elif self.right_pressed and not self.left_pressed:
-            self.player.change_x = MOVEMENT_SPEED
+            self.physics_engine.apply_force(self.player, (PLAYER_MOVEMENT_FORCE, 0))
 
-        # Update the physics engine which processes collision
-        assert self.physics_engine is not None
-        self.physics_engine.update()
+        # Update the physics engine
+        self.physics_engine.step()
 
         # Position the camera
         self.center_camera_on_player()
 
         # Move the enemies
         for enemy in self.enemies:
-            enemy.character.ai.calculate_movement(self.player, self.wall_sprites)
+            force = enemy.character.ai.calculate_movement(
+                self.player, self.wall_sprites
+            )
+            physics_obj = self.physics_engine.get_physics_object(enemy)
+            physics_obj.body.apply_force_at_local_point(force)
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         """
@@ -257,6 +262,7 @@ class Game(arcade.Window):
 def main() -> None:
     """Initialises the game and runs it."""
     window = Game()
+    window.setup(1)
     window.run()
 
 

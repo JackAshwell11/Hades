@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Tuple
 
 # Pip
 import arcade
+
+# Custom
+from constants import ENEMY_VIEW_DISTANCE, SPRITE_WIDTH
 
 if TYPE_CHECKING:
     from .entity import Entity
@@ -17,7 +20,9 @@ class FollowLineOfSight:
     def __init__(self) -> None:
         self.owner: Optional[Entity] = None
 
-    def calculate_movement(self, target: Entity, walls: arcade.SpriteList):
+    def calculate_movement(
+        self, target: Entity, walls: arcade.SpriteList
+    ) -> Tuple[float, float]:
         """
         Calculates the new position for an enemy.
 
@@ -27,4 +32,24 @@ class FollowLineOfSight:
             The player target to move towards.
         walls: arcade.SpriteList
             The wall tiles to avoid.
+
+        Returns
+        -------
+        Tuple[float, float]
+            The calculated force to apply to the enemy to move it towards the target.
         """
+        assert self.owner is not None
+
+        # Find if the enemy is within line of sight of the player and within view
+        # distance
+        if arcade.has_line_of_sight(
+            (self.owner.center_x, self.owner.center_y),
+            (target.center_x, target.center_y),
+            walls,
+            ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
+        ):
+            # Calculate the distance and direction to the player
+            print(arcade.get_distance_between_sprites(self.owner, target))
+            # Apply the movement force in the specific direction
+        # Enemy does not have line of sight and is not within range
+        return 0, 0
