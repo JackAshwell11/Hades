@@ -16,6 +16,7 @@ from constants import (
     SPRITE_WIDTH,
     WALL,
 )
+from entities.ai import FollowLineOfSight
 from entities.character import Character
 from entities.entity import Entity, TileType
 from generation.map import Map
@@ -103,7 +104,12 @@ class Game(arcade.Window):
                     )
                 elif x == ENEMY:
                     self.enemies.append(
-                        Entity(count_x, count_y, TileType.ENEMY, character=Character())
+                        Entity(
+                            count_x,
+                            count_y,
+                            TileType.ENEMY,
+                            character=Character(ai=FollowLineOfSight()),
+                        )
                     )
                     self.floor_sprites.append(
                         Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
@@ -143,8 +149,6 @@ class Game(arcade.Window):
         delta_time: float
             Time interval since the last time the function was called.
         """
-        # Position the camera
-        self.center_camera_on_player()
 
         # Calculate the speed and direction of the player based on the keys pressed
         assert self.player is not None
@@ -162,6 +166,13 @@ class Game(arcade.Window):
         # Update the physics engine which processes collision
         assert self.physics_engine is not None
         self.physics_engine.update()
+
+        # Position the camera
+        self.center_camera_on_player()
+
+        # Move the enemies
+        for enemy in self.enemies:
+            enemy.character.ai.calculate_movement(self.player, self.wall_sprites)
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         """

@@ -16,6 +16,8 @@ if TYPE_CHECKING:
 
 
 class TileType(Enum):
+    """Stores the references to the textures for each tile."""
+
     FLOOR = textures["tiles"][0]
     WALL = textures["tiles"][1]
     PLAYER = textures["player"][0]
@@ -40,8 +42,6 @@ class Entity(arcade.Sprite):
         Whether the entity is a tile or not.
     item
         The item which this entity represents.
-    ai
-        The AI algorithm which this entity uses.
 
     Attributes
     ----------
@@ -61,7 +61,6 @@ class Entity(arcade.Sprite):
         character: Optional[Character] = None,
         is_tile: bool = False,
         item=None,
-        ai=None,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.center_x, self.center_y = pos_to_pixel(x, y)
@@ -69,7 +68,10 @@ class Entity(arcade.Sprite):
         self.character: Optional[Character] = character
         self.tile: bool = is_tile
         self.item = item
-        self.ai = ai
+
+        # Set a few internal variables to allow various things to work
+        if self.character and self.character.ai:
+            self.character.ai.owner = self
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"

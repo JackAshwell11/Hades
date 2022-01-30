@@ -55,6 +55,11 @@ class Map:
 
     def make_map(self) -> None:
         """Function which manages the map generation for a specified level."""
+        # Set the numpy print formatting to allow pretty printing (for debugging)
+        np.set_printoptions(
+            edgeitems=30, linewidth=1000, formatter=dict(float=lambda x: "%.3g" % x)
+        )
+
         # Create the 2D grid used for representing the dungeon
         self.grid = np.full((self.height, self.width), 0, np.int8)
 

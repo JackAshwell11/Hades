@@ -24,3 +24,6 @@ SPRITE_HEIGHT = 16 * SPRITE_SCALE
 
 # Player constants
 MOVEMENT_SPEED = 5
+
+# Enemy constants
+ENEMY_VIEW_DISTANCE = 5
