@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional, Tuple
 import arcade
 
 # Custom
-from constants import ENEMY_VIEW_DISTANCE, SPRITE_WIDTH
+from constants import ENEMY_MOVEMENT_FORCE, ENEMY_VIEW_DISTANCE, SPRITE_WIDTH
 
 if TYPE_CHECKING:
     from .entity import Entity
@@ -49,7 +49,11 @@ class FollowLineOfSight:
             ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
         ):
             # Calculate the distance and direction to the player
-            print(arcade.get_distance_between_sprites(self.owner, target))
+            horizontal, vertical = (
+                self.owner.center_x - target.center_x,
+                self.owner.center_y - target.center_y,
+            )
             # Apply the movement force in the specific direction
+            return -horizontal * ENEMY_MOVEMENT_FORCE, -vertical * ENEMY_MOVEMENT_FORCE
         # Enemy does not have line of sight and is not within range
         return 0, 0

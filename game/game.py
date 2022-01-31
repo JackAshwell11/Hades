@@ -9,6 +9,7 @@ import arcade
 # Custom
 from constants import (
     ENEMY,
+    ENEMY_VIEW_DISTANCE,
     FLOOR,
     PLAYER,
     PLAYER_MOVEMENT_FORCE,
@@ -27,6 +28,11 @@ from textures.textures import pos_to_pixel
 class Game(arcade.Window):
     """
     Manages the game and its actions.
+
+    Parameters
+    ----------
+    draw_enemy_debug_circles: bool
+        Whether to draw the enemy's view distance as a circle around each enemy or not.
 
     Attributes
     ----------
@@ -54,8 +60,9 @@ class Game(arcade.Window):
         Whether the down key is pressed or not.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, draw_enemy_debug_circles: bool = False) -> None:
         super().__init__()
+        self.draw_enemy_debug_circles: bool = draw_enemy_debug_circles
         self.game_map: Optional[Map] = None
         self.floor_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
@@ -141,6 +148,16 @@ class Game(arcade.Window):
         self.player.draw(pixelated=True)
         self.enemies.draw(pixelated=True)
 
+        # Draw the circles if draw_enemy_debug_circles is set to true
+        if self.draw_enemy_debug_circles:
+            for enemy in self.enemies:
+                arcade.draw_circle_outline(
+                    enemy.center_x,
+                    enemy.center_y,
+                    ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
+                    arcade.color.RED,
+                )
+
     def on_update(self, delta_time: float) -> None:
         """
         Processes movement and game logic.
@@ -177,7 +194,7 @@ class Game(arcade.Window):
                 self.player, self.wall_sprites
             )
             physics_obj = self.physics_engine.get_physics_object(enemy)
-            physics_obj.body.apply_force_at_local_point(force)
+            physics_obj.body.apply_force_at_local_point(force, (0, 0))
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         """
