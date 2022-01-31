@@ -20,6 +20,9 @@ class FollowLineOfSight:
     def __init__(self) -> None:
         self.owner: Optional[Entity] = None
 
+    def __repr__(self) -> str:
+        return f"<FollowLineOfSight (Owner={self.owner})>"
+
     def calculate_movement(
         self, target: Entity, walls: arcade.SpriteList
     ) -> Tuple[float, float]:

@@ -25,7 +25,7 @@ from physics import PhysicsEngine
 from textures.textures import pos_to_pixel
 
 
-class Game(arcade.Window):
+class Game(arcade.View):
     """
     Manages the game and its actions.
 
@@ -74,6 +74,9 @@ class Game(arcade.Window):
         self.right_pressed: bool = False
         self.up_pressed: bool = False
         self.down_pressed: bool = False
+
+    def __repr__(self) -> str:
+        return f"<Game (Current window={self.window})>"
 
     def setup(self, level: int) -> None:
         """
@@ -127,12 +130,16 @@ class Game(arcade.Window):
         self.physics_engine.setup(self.player, self.wall_sprites, self.enemies)
 
         # Set up the Camera
-        self.camera = arcade.Camera(self.width, self.height)
+        self.camera = arcade.Camera(self.window.width, self.window.height)
+
+    def on_show(self) -> None:
+        """Set up the screen so this view can work properly."""
+        arcade.set_background_color(arcade.color.BLACK)
 
     def on_draw(self) -> None:
         """Render the screen."""
         # Clear the screen
-        arcade.start_render()
+        self.clear()
 
         # Activate our Camera
         assert self.camera is not None
@@ -274,14 +281,3 @@ class Game(arcade.Window):
 
         # Move the camera to the new position
         self.camera.move_to((screen_center_x, screen_center_y))  # noqa
-
-
-def main() -> None:
-    """Initialises the game and runs it."""
-    window = Game(True)
-    window.setup(1)
-    window.run()
-
-
-if __name__ == "__main__":
-    main()

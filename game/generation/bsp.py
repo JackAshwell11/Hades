@@ -123,8 +123,9 @@ class Leaf:
 
     def __repr__(self) -> str:
         return (
-            f"<Leaf (Left={self.left}) (Right={self.right})"
-            f" (Top-left position=({self.container.x1}, {self.container.y1}))>"
+            f"<Leaf (Left={self.left}) (Right={self.right}) (Top-left"
+            f" position=({self.container.x1}, {self.container.y1})) (Bottom-right"
+            f" position=({self.container.x2}, {self.container.y2}))>"
         )
 
     def split(self) -> None:
