@@ -84,8 +84,6 @@ class Leaf:
         The bottom-right y position.
     grid: np.ndarray
         The 2D grid which represents the dungeon.
-    debug_lines: bool
-        Whether or not to show the split lines. By default, this is False.
 
     Attributes
     ----------
@@ -111,7 +109,6 @@ class Leaf:
         x2: int,
         y2: int,
         grid: np.ndarray,
-        debug_lines: bool = False,
     ) -> None:
         self.left: Optional[Leaf] = None
         self.right: Optional[Leaf] = None
@@ -119,7 +116,6 @@ class Leaf:
         self.room: Optional[Rect] = None
         self.grid: np.ndarray = grid
         self.split_vertical: Optional[bool] = None
-        self.debug_lines: bool = debug_lines
 
     def __repr__(self) -> str:
         return (
@@ -128,14 +124,14 @@ class Leaf:
             f" position=({self.container.x2}, {self.container.y2}))>"
         )
 
-    def split(self) -> None:
+    def split(self, debug_lines: bool = False) -> None:
         """Splits a container either horizontally or vertically."""
         # Test if this container is already split or not. This container will always
         # have a left and right leaf when splitting since the checks later on in this
         # function ensure it is big enough to be split
         if self.left is not None and self.right is not None:
-            self.left.split()
-            self.right.split()
+            self.left.split(debug_lines)
+            self.right.split(debug_lines)
             # Return just to make sure this container isn't split again with left and
             # right being overwritten
             return
@@ -175,7 +171,7 @@ class Leaf:
             # Split vertically making sure to adjust pos, so it can be within range of
             # the actual container
             pos = self.container.x1 + pos
-            if self.debug_lines:
+            if debug_lines:
                 self.grid[self.container.y1 : self.container.y2 + 1, pos] = DEBUG_WALL
 
             # Create child leafs
@@ -185,7 +181,6 @@ class Leaf:
                 pos - 1,
                 self.container.y2,
                 self.grid,
-                self.debug_lines,
             )
             self.right = Leaf(
                 pos + 1,
@@ -193,13 +188,12 @@ class Leaf:
                 self.container.x2,
                 self.container.y2,
                 self.grid,
-                self.debug_lines,
             )
         else:
             # Split horizontally making sure to adjust pos, so it can be within range of
             # the actual container
             pos = self.container.y1 + pos
-            if self.debug_lines:
+            if debug_lines:
                 self.grid[pos, self.container.x1 : self.container.x2 + 1] = DEBUG_WALL
 
             # Create child leafs
@@ -209,7 +203,6 @@ class Leaf:
                 self.container.x2,
                 pos - 1,
                 self.grid,
-                self.debug_lines,
             )
             self.right = Leaf(
                 self.container.x1,
@@ -217,7 +210,6 @@ class Leaf:
                 self.container.x2,
                 self.container.y2,
                 self.grid,
-                self.debug_lines,
             )
 
         # Set the leaf's split direction

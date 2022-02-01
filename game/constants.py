@@ -12,6 +12,8 @@ WALL = 2
 PLAYER = 3
 ENEMY = 4
 DEBUG_WALL = 9
+DEBUG_LINES = False
+DEBUG_CIRCLES = True
 
 # Map container/room generation
 MIN_CONTAINER_SIZE = 7

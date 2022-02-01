@@ -6,7 +6,15 @@ from typing import List, Optional, Tuple
 
 # Pip
 import numpy as np
-from constants import ENEMY, ENEMY_COUNT, MAP_HEIGHT, MAP_WIDTH, PLAYER, SPLIT_COUNT
+from constants import (
+    DEBUG_LINES,
+    ENEMY,
+    ENEMY_COUNT,
+    MAP_HEIGHT,
+    MAP_WIDTH,
+    PLAYER,
+    SPLIT_COUNT,
+)
 
 # Custom
 from generation.bsp import Leaf
@@ -68,7 +76,7 @@ class Map:
 
         # Start the recursive splitting
         for count in range(self.split_count):
-            self.bsp.split()
+            self.bsp.split(DEBUG_LINES)
 
         # Create the rooms recursively
         self.bsp.create_room()
