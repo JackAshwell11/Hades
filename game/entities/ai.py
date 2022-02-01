@@ -10,7 +10,7 @@ import arcade
 from constants import ENEMY_MOVEMENT_FORCE, ENEMY_VIEW_DISTANCE, SPRITE_WIDTH
 
 if TYPE_CHECKING:
-    from .entity import Entity
+    from entities.entity import Entity
 
 
 class FollowLineOfSight:

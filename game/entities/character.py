@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Optional
 
 # Custom
-from .ai import FollowLineOfSight
+from entities.ai import FollowLineOfSight
 
 
 class Character:

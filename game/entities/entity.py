@@ -12,7 +12,7 @@ from constants import SPRITE_SCALE
 from textures.textures import pos_to_pixel, textures
 
 if TYPE_CHECKING:
-    from .character import Character
+    from entities.character import Character
 
 
 class TileType(Enum):

@@ -5,7 +5,7 @@ import arcade
 import arcade.gui
 
 # Custom
-from .game import Game
+from views.game import Game
 
 
 class StartButton(arcade.gui.UIFlatButton):

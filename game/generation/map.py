@@ -9,7 +9,7 @@ import numpy as np
 from constants import ENEMY, ENEMY_COUNT, MAP_HEIGHT, MAP_WIDTH, PLAYER, SPLIT_COUNT
 
 # Custom
-from .bsp import Leaf
+from generation.bsp import Leaf
 
 
 class Map:
