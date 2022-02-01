@@ -8,6 +8,7 @@ import arcade
 
 # Custom
 from constants import (
+    DAMPING,
     ENEMY,
     ENEMY_VIEW_DISTANCE,
     FLOOR,
@@ -126,7 +127,7 @@ class Game(arcade.View):
                     )
 
         # Create the physics engine
-        self.physics_engine = PhysicsEngine(0)
+        self.physics_engine = PhysicsEngine(DAMPING)
         self.physics_engine.setup(self.player, self.wall_sprites, self.enemies)
 
         # Set up the Camera
