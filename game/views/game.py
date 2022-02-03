@@ -20,7 +20,7 @@ from constants import (
     WALL,
 )
 from entities.ai import FollowLineOfSight
-from entities.character import Character, Direction
+from entities.character import Character
 from entities.entity import Entity, TileType
 from generation.map import Map
 from physics import PhysicsEngine
@@ -68,6 +68,9 @@ class Game(arcade.View):
         self.game_map: Optional[Map] = None
         self.floor_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
+        self.bullet_sprites: arcade.SpriteList = arcade.SpriteList(
+            use_spatial_hash=True
+        )
         self.player: Optional[Entity] = None
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.physics_engine: Optional[arcade.PymunkPhysicsEngine] = None
@@ -156,6 +159,7 @@ class Game(arcade.View):
         # Draw the game map
         self.floor_sprites.draw(pixelated=True)
         self.wall_sprites.draw(pixelated=True)
+        self.bullet_sprites.draw(pixelated=True)
         self.player.draw(pixelated=True)
         self.enemies.draw(pixelated=True)
 
@@ -193,16 +197,12 @@ class Game(arcade.View):
 
         if self.up_pressed and not self.down_pressed:
             self.physics_engine.apply_force(self.player, (0, PLAYER_MOVEMENT_FORCE))
-            self.player.character.direction = Direction.NORTH
         elif self.down_pressed and not self.up_pressed:
             self.physics_engine.apply_force(self.player, (0, -PLAYER_MOVEMENT_FORCE))
-            self.player.character.facing_down = Direction.SOUTH
         if self.left_pressed and not self.right_pressed:
             self.physics_engine.apply_force(self.player, (-PLAYER_MOVEMENT_FORCE, 0))
-            self.player.character.facing_left = Direction.WEST
         elif self.right_pressed and not self.left_pressed:
             self.physics_engine.apply_force(self.player, (PLAYER_MOVEMENT_FORCE, 0))
-            self.player.character.facing_right = Direction.EAST
 
         # Update the physics engine
         self.physics_engine.step()
@@ -284,7 +284,7 @@ class Game(arcade.View):
             button == arcade.MOUSE_BUTTON_LEFT
             and self.player.character.time_since_last_attack >= ATTACK_COOLDOWN
         ):
-            self.player.character.attack(self.wall_sprites)
+            self.player.character.ranged_attack(x, y, self.bullet_sprites)
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""

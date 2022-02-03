@@ -48,6 +48,7 @@ filenames = {
     "enemy": [
         "enemy.png",
     ],
+    "attack": ["bullet.png"],
 }
 
 # Create the textures
