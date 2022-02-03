@@ -8,6 +8,7 @@ import arcade
 
 # Custom
 from constants import (
+    ATTACK_COOLDOWN,
     DAMPING,
     ENEMY,
     ENEMY_VIEW_DISTANCE,
@@ -19,7 +20,7 @@ from constants import (
     WALL,
 )
 from entities.ai import FollowLineOfSight
-from entities.character import Character
+from entities.character import Character, Direction
 from entities.entity import Entity, TileType
 from generation.map import Map
 from physics import PhysicsEngine
@@ -139,18 +140,20 @@ class Game(arcade.View):
 
     def on_draw(self) -> None:
         """Render the screen."""
-        # Clear the screen
-        self.clear()
-
-        # Activate our Camera
+        # Make sure variables needed are valid
         assert self.camera is not None
-        self.camera.use()
-
-        # Draw the game map
         assert self.floor_sprites is not None
         assert self.wall_sprites is not None
         assert self.player is not None
         assert self.enemies is not None
+
+        # Clear the screen
+        self.clear()
+
+        # Activate our Camera
+        self.camera.use()
+
+        # Draw the game map
         self.floor_sprites.draw(pixelated=True)
         self.wall_sprites.draw(pixelated=True)
         self.player.draw(pixelated=True)
@@ -175,20 +178,31 @@ class Game(arcade.View):
         delta_time: float
             Time interval since the last time the function was called.
         """
-
-        # Calculate the speed and direction of the player based on the keys pressed
+        # Make sure variables needed are valid
         assert self.player is not None
         assert self.physics_engine is not None
+        assert self.enemies is not None
+
+        # Update the character's time since last attack
+        self.player.character.time_since_last_attack += delta_time
+        for enemy in self.enemies:
+            enemy.character.time_since_last_attack += delta_time
+
+        # Calculate the speed and direction of the player based on the keys pressed
         self.player.change_x, self.player.change_y = 0, 0
 
         if self.up_pressed and not self.down_pressed:
             self.physics_engine.apply_force(self.player, (0, PLAYER_MOVEMENT_FORCE))
+            self.player.character.direction = Direction.NORTH
         elif self.down_pressed and not self.up_pressed:
             self.physics_engine.apply_force(self.player, (0, -PLAYER_MOVEMENT_FORCE))
+            self.player.character.facing_down = Direction.SOUTH
         if self.left_pressed and not self.right_pressed:
             self.physics_engine.apply_force(self.player, (-PLAYER_MOVEMENT_FORCE, 0))
+            self.player.character.facing_left = Direction.WEST
         elif self.right_pressed and not self.left_pressed:
             self.physics_engine.apply_force(self.player, (PLAYER_MOVEMENT_FORCE, 0))
+            self.player.character.facing_right = Direction.EAST
 
         # Update the physics engine
         self.physics_engine.step()
@@ -246,16 +260,44 @@ class Game(arcade.View):
         elif key is arcade.key.D:
             self.right_pressed = False
 
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
+        """
+        Called when the player presses the mouse button.
+
+        Parameters
+        ----------
+        x: float
+            The x position of the mouse.
+        y: float
+            The y position of the mouse.
+        button: int
+            Which button was hit.
+        modifiers: int
+            Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
+            event.
+        """
+        # Make sure variables needed are valid
+        assert self.player is not None
+
+        # Test if the player can attack
+        if (
+            button == arcade.MOUSE_BUTTON_LEFT
+            and self.player.character.time_since_last_attack >= ATTACK_COOLDOWN
+        ):
+            self.player.character.attack(self.wall_sprites)
+
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
-        # Calculate the screen position centered on the player
+        # Make sure variables needed are valid
         assert self.player is not None
         assert self.camera is not None
+        assert self.game_map is not None
+
+        # Calculate the screen position centered on the player
         screen_center_x = self.player.center_x - (self.camera.viewport_width / 2)
         screen_center_y = self.player.center_y - (self.camera.viewport_height / 2)
 
         # Calculate the maximum width and height a sprite can be
-        assert self.game_map is not None
         upper_x, upper_y = pos_to_pixel(
             len(self.game_map.grid[0]) - 1, len(self.game_map.grid) - 1
         )

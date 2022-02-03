@@ -70,8 +70,10 @@ class Entity(arcade.Sprite):
         self.item = item
 
         # Set a few internal variables to allow various things to work
-        if self.character and self.character.ai:
-            self.character.ai.owner = self
+        if self.character:
+            self.character.owner = self
+            if self.character.ai:
+                self.character.ai.owner = self
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
