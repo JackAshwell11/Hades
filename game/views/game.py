@@ -44,8 +44,8 @@ class Game(arcade.View):
         The sprite list for the floor sprites.
     wall_sprites: arcade.SpriteList
         The sprite list for the wall sprites.
-    player: Optional[Entity]
-        The playable character in the game.
+    player_list: arcade.SpriteList
+        The sprite list for the playable character in the game.
     enemies: arcade.SpriteList
         The sprite list for the enemy sprites.
     physics_engine: Optional[arcade.PymunkPhysicsEngine]
@@ -71,7 +71,7 @@ class Game(arcade.View):
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList(
             use_spatial_hash=True
         )
-        self.player: Optional[Entity] = None
+        self.player_list: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.physics_engine: Optional[arcade.PymunkPhysicsEngine] = None
         self.camera: Optional[arcade.Camera] = None
@@ -82,6 +82,12 @@ class Game(arcade.View):
 
     def __repr__(self) -> str:
         return f"<Game (Current window={self.window})>"
+
+    @property
+    def player(self) -> Entity:
+        """Returns the sprite object for the player."""
+        assert self.player_list is not None
+        return self.player_list[0]
 
     def setup(self, level: int) -> None:
         """
@@ -111,8 +117,8 @@ class Game(arcade.View):
                         Entity(count_x, count_y, TileType.WALL, is_tile=True)
                     )
                 elif x == PLAYER:
-                    self.player = Entity(
-                        count_x, count_y, TileType.PLAYER, character=Character()
+                    self.player_list.append(
+                        Entity(count_x, count_y, TileType.PLAYER, character=Character())
                     )
                     self.floor_sprites.append(
                         Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
@@ -145,10 +151,6 @@ class Game(arcade.View):
         """Render the screen."""
         # Make sure variables needed are valid
         assert self.camera is not None
-        assert self.floor_sprites is not None
-        assert self.wall_sprites is not None
-        assert self.player is not None
-        assert self.enemies is not None
 
         # Clear the screen
         self.clear()
@@ -183,9 +185,7 @@ class Game(arcade.View):
             Time interval since the last time the function was called.
         """
         # Make sure variables needed are valid
-        assert self.player is not None
         assert self.physics_engine is not None
-        assert self.enemies is not None
 
         # Update the character's time since last attack
         self.player.character.time_since_last_attack += delta_time
@@ -276,9 +276,6 @@ class Game(arcade.View):
             Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
             event.
         """
-        # Make sure variables needed are valid
-        assert self.player is not None
-
         # Test if the player can attack
         if (
             button == arcade.MOUSE_BUTTON_LEFT
@@ -289,7 +286,6 @@ class Game(arcade.View):
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
         # Make sure variables needed are valid
-        assert self.player is not None
         assert self.camera is not None
         assert self.game_map is not None
 
