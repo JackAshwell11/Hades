@@ -103,8 +103,6 @@ class Game(arcade.View):
         self.game_map = Map(level)
 
         # Assign sprites to the game map
-        self.floor_sprites = arcade.SpriteList(use_spatial_hash=True)
-        self.wall_sprites = arcade.SpriteList(use_spatial_hash=True)
         for count_y, y in enumerate(self.game_map.grid):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
@@ -190,7 +188,7 @@ class Game(arcade.View):
         # Update the character's time since last attack
         self.player.character.time_since_last_attack += delta_time
         for enemy in self.enemies:
-            enemy.character.time_since_last_attack += delta_time
+            enemy.character.time_since_last_attack += delta_time  # noqa
 
         # Calculate the speed and direction of the player based on the keys pressed
         self.player.change_x, self.player.change_y = 0, 0
@@ -212,7 +210,7 @@ class Game(arcade.View):
 
         # Move the enemies
         for enemy in self.enemies:
-            force = enemy.character.ai.calculate_movement(
+            force = enemy.character.ai.calculate_movement(  # noqa
                 self.player, self.wall_sprites
             )
             physics_obj = self.physics_engine.get_physics_object(enemy)
