@@ -40,12 +40,12 @@ class Game(arcade.View):
     ----------
     game_map: Optional[Map]
         The game map for the current level.
+    player: Optional[Entity]
+        The sprite for the playable character in the game.
     floor_sprites: arcade.SpriteList
         The sprite list for the floor sprites.
     wall_sprites: arcade.SpriteList
         The sprite list for the wall sprites.
-    player_list: arcade.SpriteList
-        The sprite list for the playable character in the game.
     enemies: arcade.SpriteList
         The sprite list for the enemy sprites.
     physics_engine: Optional[arcade.PymunkPhysicsEngine]
@@ -66,12 +66,12 @@ class Game(arcade.View):
         super().__init__()
         self.draw_debug_circles: bool = draw_debug_circles
         self.game_map: Optional[Map] = None
+        self.player: Optional[Entity] = None
         self.floor_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList(
             use_spatial_hash=True
         )
-        self.player_list: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.physics_engine: Optional[arcade.PymunkPhysicsEngine] = None
         self.camera: Optional[arcade.Camera] = None
@@ -82,12 +82,6 @@ class Game(arcade.View):
 
     def __repr__(self) -> str:
         return f"<Game (Current window={self.window})>"
-
-    @property
-    def player(self) -> Entity:
-        """Returns the sprite object for the player."""
-        assert self.player_list is not None
-        return self.player_list[0]
 
     def setup(self, level: int) -> None:
         """
@@ -115,8 +109,8 @@ class Game(arcade.View):
                         Entity(count_x, count_y, TileType.WALL, is_tile=True)
                     )
                 elif x == PLAYER:
-                    self.player_list.append(
-                        Entity(count_x, count_y, TileType.PLAYER, character=Character())
+                    self.player = Entity(
+                        count_x, count_y, TileType.PLAYER, character=Character()
                     )
                     self.floor_sprites.append(
                         Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
@@ -149,6 +143,7 @@ class Game(arcade.View):
         """Render the screen."""
         # Make sure variables needed are valid
         assert self.camera is not None
+        assert self.player is not None
 
         # Clear the screen
         self.clear()
@@ -184,6 +179,7 @@ class Game(arcade.View):
         """
         # Make sure variables needed are valid
         assert self.physics_engine is not None
+        assert self.player is not None
 
         # Update the character's time since last attack
         self.player.character.time_since_last_attack += delta_time
@@ -191,8 +187,6 @@ class Game(arcade.View):
             enemy.character.time_since_last_attack += delta_time  # noqa
 
         # Calculate the speed and direction of the player based on the keys pressed
-        self.player.change_x, self.player.change_y = 0, 0
-
         if self.up_pressed and not self.down_pressed:
             self.physics_engine.apply_force(self.player, (0, PLAYER_MOVEMENT_FORCE))
         elif self.down_pressed and not self.up_pressed:
@@ -274,6 +268,9 @@ class Game(arcade.View):
             Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
             event.
         """
+        # Make sure variables needed are valid
+        assert self.player is not None
+
         # Test if the player can attack
         if (
             button == arcade.MOUSE_BUTTON_LEFT
@@ -286,6 +283,7 @@ class Game(arcade.View):
         # Make sure variables needed are valid
         assert self.camera is not None
         assert self.game_map is not None
+        assert self.player is not None
 
         # Calculate the screen position centered on the player
         screen_center_x = self.player.center_x - (self.camera.viewport_width / 2)
