@@ -44,7 +44,6 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         enemy_list: arcade.SpriteList
             The sprite list for the enemy sprites
         """
-
         # Add the player sprite to the physics engine
         self.add_sprite(
             player,

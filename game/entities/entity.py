@@ -18,10 +18,10 @@ if TYPE_CHECKING:
 class TileType(Enum):
     """Stores the references to the textures for each tile."""
 
-    FLOOR = textures["tiles"][0]
-    WALL = textures["tiles"][1]
-    PLAYER = textures["player"][0]
-    ENEMY = textures["enemy"][0]
+    FLOOR: arcade.Texture = textures["tiles"][0]
+    WALL: arcade.Texture = textures["tiles"][1]
+    PLAYER: arcade.Texture = textures["player"][0]
+    ENEMY: arcade.Texture = textures["enemy"][0]
 
 
 class Entity(arcade.Sprite):
