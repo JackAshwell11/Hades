@@ -196,9 +196,6 @@ class Game(arcade.View):
         elif self.right_pressed and not self.left_pressed:
             self.physics_engine.apply_force(self.player, (PLAYER_MOVEMENT_FORCE, 0))
 
-        # Update the physics engine
-        self.physics_engine.step()
-
         # Position the camera
         self.center_camera_on_player()
 
@@ -207,8 +204,10 @@ class Game(arcade.View):
             force = enemy.character.ai.calculate_movement(  # noqa
                 self.player, self.wall_sprites
             )
-            physics_obj = self.physics_engine.get_physics_object(enemy)
-            physics_obj.body.apply_force_at_local_point(force, (0, 0))
+            self.physics_engine.apply_force(enemy, force)
+
+        # Update the physics engine
+        self.physics_engine.step()
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         """

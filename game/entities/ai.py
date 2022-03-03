@@ -34,7 +34,7 @@ class FollowLineOfSight:
         target: Entity
             The player target to move towards.
         walls: arcade.SpriteList
-            The wall tiles to avoid.
+            The wall tiles which block the enemy's vision.
 
         Returns
         -------

@@ -21,6 +21,8 @@ class Character:
     ----------
     ai: Optional[FollowLineOfSight]
         The AI algorithm which this character uses.
+    time_since_last_attack: float
+        How long it has been since the last attack.
     """
 
     def __init__(self, ai: Optional[FollowLineOfSight] = None) -> None:
