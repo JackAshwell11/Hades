@@ -8,20 +8,21 @@ from typing import TYPE_CHECKING, Optional
 import arcade
 
 # Custom
-from constants import SPRITE_SCALE
+from constants import SPRITE_SCALE, SPRITE_WIDTH
 from textures.textures import pos_to_pixel, textures
 
 if TYPE_CHECKING:
     from entities.character import Character
+    from physics import PhysicsEngine
 
 
 class TileType(Enum):
     """Stores the references to the textures for each tile."""
 
-    FLOOR: arcade.Texture = textures["tiles"][0]
-    WALL: arcade.Texture = textures["tiles"][1]
-    PLAYER: arcade.Texture = textures["player"][0]
-    ENEMY: arcade.Texture = textures["enemy"][0]
+    FLOOR = textures["tiles"][0]
+    WALL = textures["tiles"][1]
+    PLAYER = textures["player"][0]
+    ENEMY = textures["enemy"][0]
 
 
 class Entity(arcade.Sprite):
@@ -50,7 +51,9 @@ class Entity(arcade.Sprite):
     center_x: float
         The x position of the sprite on the screen.
     center_y: float
-        The y position of the sprite on the screen.-
+        The y position of the sprite on the screen.
+    cone: arcade.Sprite
+        The cone sprite which represents the attack range of this entity.
     """
 
     def __init__(
@@ -68,6 +71,12 @@ class Entity(arcade.Sprite):
         self.character: Optional[Character] = character
         self.tile: bool = is_tile
         self.item = item
+        self.cone: arcade.Sprite = arcade.Sprite(
+            scale=SPRITE_SCALE,
+            center_x=self.center_x + (SPRITE_WIDTH / 2),
+            center_y=self.center_y,
+            texture=textures["attack"][1],
+        )
 
         # Set a few internal variables to allow various things to work
         if self.character:
@@ -77,3 +86,25 @@ class Entity(arcade.Sprite):
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
+
+    def pymunk_moved(
+        self, physics_engine: PhysicsEngine, dx: float, dy: float, d_angle: float
+    ) -> None:
+        """
+        Called by the pymunk physics engine if this entity moves.
+        Parameters
+        ----------
+        physics_engine: PhysicsEngine
+            The pymunk physics engine which manages physics for this entity.
+        dx: float
+            The change in x. Positive means the entity is travelling right and negative
+            means left.
+        dy: float
+            The change in y. Positive means the entity is travelling up and negative
+            means down.
+        d_angle: float
+            The change in the angle. This shouldn't be used in this game.
+        """
+        # Move the cone
+        self.cone.center_x += dx
+        self.cone.center_y += dy

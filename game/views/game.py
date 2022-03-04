@@ -33,8 +33,8 @@ class Game(arcade.View):
 
     Parameters
     ----------
-    draw_debug_circles: bool
-        Whether to draw the view distance as a circle around each enemy/player or not.
+    debug_mode: bool
+        Whether to draw the various debug things or not.
 
     Attributes
     ----------
@@ -62,9 +62,9 @@ class Game(arcade.View):
         Whether the down key is pressed or not.
     """
 
-    def __init__(self, draw_debug_circles: bool = False) -> None:
+    def __init__(self, debug_mode: bool = False) -> None:
         super().__init__()
-        self.draw_debug_circles: bool = draw_debug_circles
+        self.debug_mode: bool = debug_mode
         self.game_map: Optional[Map] = None
         self.player: Optional[Entity] = None
         self.floor_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
@@ -158,8 +158,9 @@ class Game(arcade.View):
         self.player.draw(pixelated=True)
         self.enemies.draw(pixelated=True)
 
-        # Draw the circles if draw_enemy_debug_circles is set to true
-        if self.draw_debug_circles:
+        # Draw the debug items
+        if self.debug_mode:
+            self.player.cone.draw()
             for enemy in self.enemies:
                 arcade.draw_circle_outline(
                     enemy.center_x,
@@ -167,6 +168,7 @@ class Game(arcade.View):
                     ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
                     arcade.color.RED,
                 )
+                enemy.cone.draw()  # noqa
 
     def on_update(self, delta_time: float) -> None:
         """
@@ -276,6 +278,24 @@ class Game(arcade.View):
             and self.player.character.time_since_last_attack >= ATTACK_COOLDOWN
         ):
             self.player.character.ranged_attack(x, y, self.bullet_sprites)
+
+    def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
+        """
+        Called when the mouse moves.
+
+        Parameters
+        ----------
+        x: float
+            The x position of the mouse.
+        y: float
+            The y position of the mouse.
+        dx: float
+            The change in the x position.
+        dy: float
+            The change in the y position.
+        """
+        # angle = math.atan2(y - self.player.center_y, x - self.player.center_x)
+        # self.player.angle = math.degrees(angle)
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""

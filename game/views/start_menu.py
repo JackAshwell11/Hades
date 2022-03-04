@@ -3,7 +3,7 @@ from __future__ import annotations
 # Pip
 import arcade
 import arcade.gui
-from constants import DEBUG_CIRCLES
+from constants import DEBUG_GAME
 
 # Custom
 from views.game import Game
@@ -15,7 +15,7 @@ class StartButton(arcade.gui.UIFlatButton):
     def on_click(self, event: arcade.gui.UIOnClickEvent) -> None:
         """Called when the button is clicked."""
         # Set up the new game
-        new_game = Game(DEBUG_CIRCLES)
+        new_game = Game(DEBUG_GAME)
         new_game.setup(1)
 
         # Get the current window and view
