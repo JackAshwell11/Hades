@@ -307,10 +307,15 @@ class Game(arcade.View):
         """
         # Make sure variables needed are valid
         assert self.player is not None
+        assert self.camera is not None
 
         # Calculate the new angle in degrees
-        angle_radians = math.atan2(y - self.player.center_y, x - self.player.center_x)
-        self.player.angle = math.degrees(angle_radians)
+        camera_x, camera_y = self.camera.position
+        vec_x, vec_y = (
+            x - self.player.center_x + camera_x,
+            y - self.player.center_y + camera_y,
+        )
+        self.player.angle = math.degrees(math.atan2(vec_y, vec_x))
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
