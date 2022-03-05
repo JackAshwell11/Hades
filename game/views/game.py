@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import math
 from typing import Optional
 
 # Pip
@@ -11,16 +12,18 @@ from constants import (
     ATTACK_COOLDOWN,
     DAMPING,
     ENEMY,
+    ENEMY_HEALTH,
     ENEMY_VIEW_DISTANCE,
     FLOOR,
     PLAYER,
+    PLAYER_HEALTH,
     PLAYER_MOVEMENT_FORCE,
     SPRITE_HEIGHT,
     SPRITE_WIDTH,
     WALL,
 )
 from entities.ai import FollowLineOfSight
-from entities.character import Character
+from entities.character import Character, Damage
 from entities.entity import Entity, TileType
 from generation.map import Map
 from physics import PhysicsEngine
@@ -110,7 +113,10 @@ class Game(arcade.View):
                     )
                 elif x == PLAYER:
                     self.player = Entity(
-                        count_x, count_y, TileType.PLAYER, character=Character()
+                        count_x,
+                        count_y,
+                        TileType.PLAYER,
+                        character=Character(PLAYER_HEALTH),
                     )
                     self.floor_sprites.append(
                         Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
@@ -121,7 +127,7 @@ class Game(arcade.View):
                             count_x,
                             count_y,
                             TileType.ENEMY,
-                            character=Character(ai=FollowLineOfSight()),
+                            character=Character(ENEMY_HEALTH, ai=FollowLineOfSight()),
                         )
                     )
                     self.floor_sprites.append(
@@ -182,6 +188,11 @@ class Game(arcade.View):
         # Make sure variables needed are valid
         assert self.physics_engine is not None
         assert self.player is not None
+
+        # Check if the enemies should be killed
+        for enemy in self.enemies:
+            if enemy.character.health <= 0:
+                enemy.remove_from_sprite_lists()
 
         # Update the character's time since last attack
         self.player.character.time_since_last_attack += delta_time
@@ -277,7 +288,7 @@ class Game(arcade.View):
             button == arcade.MOUSE_BUTTON_LEFT
             and self.player.character.time_since_last_attack >= ATTACK_COOLDOWN
         ):
-            self.player.character.ranged_attack(x, y, self.bullet_sprites)
+            self.player.character.melee_attack(self.enemies, Damage.PLAYER)
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """
@@ -294,8 +305,12 @@ class Game(arcade.View):
         dy: float
             The change in the y position.
         """
-        # angle = math.atan2(y - self.player.center_y, x - self.player.center_x)
-        # self.player.angle = math.degrees(angle)
+        # Make sure variables needed are valid
+        assert self.player is not None
+
+        # Calculate the new angle in degrees
+        angle_radians = math.atan2(y - self.player.center_y, x - self.player.center_x)
+        self.player.angle = math.degrees(angle_radians)
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+from enum import IntEnum
 from typing import TYPE_CHECKING, Optional
 
 # Pip
@@ -10,7 +11,14 @@ import arcade
 from entities.ai import FollowLineOfSight
 
 if TYPE_CHECKING:
-    from .entity import Entity
+    from entities.entity import Entity
+
+
+class Damage(IntEnum):
+    """Stores the amount of damage each character deals to other characters."""
+
+    PLAYER = 20
+    ENEMY = 10
 
 
 class Character:
@@ -19,32 +27,67 @@ class Character:
 
     Parameters
     ----------
+    health: int
+        The health of this character.
     ai: Optional[FollowLineOfSight]
         The AI algorithm which this character uses.
+
+    Attributes
+    ----------
+    owner: Optional[Entity]
+        The parent entity object which manages this character.
     time_since_last_attack: float
         How long it has been since the last attack.
     """
 
-    def __init__(self, ai: Optional[FollowLineOfSight] = None) -> None:
-        self.owner: Optional[Entity] = None
+    def __init__(self, health: int, ai: Optional[FollowLineOfSight] = None) -> None:
+        self.health: int = health
         self.ai: Optional[FollowLineOfSight] = ai
+        self.owner: Optional[Entity] = None
         self.time_since_last_attack: float = 0
 
     def __repr__(self) -> str:
         return "<Character>"
 
-    def ranged_attack(self, x: float, y: float, bullet_list: arcade.SpriteList) -> None:
-        """Performs an attack in the direction the character is facing."""
-        # Make sure variables needed are valid
-        assert self.owner is not None
+    def deal_damage(self, damage: Damage) -> None:
+        """
+        Deals damage to a character.
 
-        # Reset the internal time counter
-        self.time_since_last_attack = 0
+        Parameters
+        ----------
+        damage: Damage
+            The damage to deal to the entity.
+        """
+        self.health -= damage.value
 
-        # Create the bullet sprite
-        # bullet = arcade.Sprite(texture=textures["attack"][0],
-        # center_x=self.owner.center_x, center_y=self.owner.center_y)
+    def melee_attack(self, enemy_list: arcade.SpriteList, damage: Damage) -> None:
+        """
+        Performs a melee attack dealing damage to every character that is within the
+        attack range (the cone).
 
+        Parameters
+        ----------
+        enemy_list: arcade.SpriteList
+            Who the character should attack.
+        damage: Damage
+            The amount of damage to deal.
+        """
+        for enemy in self.owner.cone.collides_with_list(enemy_list):  # type: ignore
+            enemy.character.deal_damage(damage)
+
+    # def ranged_attack(self, x: float, y: float, bullet_list: arcade.SpriteList) ->
+    # None:
+    #     """Performs an attack in the direction the character is facing."""
+    #     # Make sure variables needed are valid
+    #     assert self.owner is not None
+    #
+    #     # Reset the internal time counter
+    #     self.time_since_last_attack = 0
+    #
+    #     # Create the bullet sprite
+    #     # bullet = arcade.Sprite(texture=textures["attack"][0],
+    #     # center_x=self.owner.center_x, center_y=self.owner.center_y)
+    #
     # def melee_attack(self) -> None:
     #     # Make sure variables needed are valid
     #     assert self.owner is not None
