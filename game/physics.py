@@ -7,8 +7,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 if TYPE_CHECKING:
-    from entities.bullet import Bullet
-    from entities.entity import Entity
+    from entities.entity import Bullet, Entity
     from entities.tile import Tile
 
 

@@ -23,7 +23,8 @@ from constants import (
     WALL,
 )
 from entities.ai import FollowLineOfSight
-from entities.entity import Entity
+from entities.enemy import Enemy
+from entities.player import Player
 from entities.tile import Tile
 from generation.map import Map
 from physics import PhysicsEngine
@@ -43,7 +44,7 @@ class Game(arcade.View):
     ----------
     game_map: Optional[Map]
         The game map for the current level.
-    player: Optional[Entity]
+    player: Optional[Player]
         The sprite for the playable character in the game.
     floor_sprites: arcade.SpriteList
         The sprite list for the floor sprites.
@@ -69,7 +70,7 @@ class Game(arcade.View):
         super().__init__()
         self.debug_mode: bool = debug_mode
         self.game_map: Optional[Map] = None
-        self.player: Optional[Entity] = None
+        self.player: Optional[Player] = None
         self.floor_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList(
@@ -112,7 +113,7 @@ class Game(arcade.View):
                         Tile(count_x, count_y, non_moving_textures["tiles"][1])
                     )
                 elif x == PLAYER:
-                    self.player = Entity(
+                    self.player = Player(
                         count_x,
                         count_y,
                         moving_textures["player"],
@@ -123,7 +124,7 @@ class Game(arcade.View):
                     )
                 elif x == ENEMY:
                     self.enemies.append(
-                        Entity(
+                        Enemy(
                             count_x,
                             count_y,
                             moving_textures["enemy"],

@@ -2,19 +2,51 @@ from __future__ import annotations
 
 # Builtin
 import math
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 # Pip
 import arcade
 
 # Custom
 from constants import BULLET_OFFSET, BULLET_VELOCITY, SPRITE_SCALE
-from entities.bullet import Bullet
 from textures import pos_to_pixel
 
 if TYPE_CHECKING:
-    from ai import FollowLineOfSight
     from physics import PhysicsEngine
+
+
+class Bullet(arcade.SpriteSolidColor):
+    """
+    Represents a bullet in the game.
+
+    Parameters
+    ----------
+    x: float
+        The starting x position of the bullet.
+    y: float
+        The starting y position of the bullet.
+    width: int
+        Width of the bullet.
+    height: int
+        Height of the bullet.
+    color: Tuple[int, int, int]
+        The color of the bullet.
+    """
+
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        width: int,
+        height: int,
+        color: Tuple[int, int, int],
+    ) -> None:
+        super().__init__(width=width, height=height, color=color)
+        self.center_x: float = x
+        self.center_y: float = y
+
+    def __repr__(self) -> str:
+        return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
 
 
 class Entity(arcade.Sprite):
@@ -31,17 +63,9 @@ class Entity(arcade.Sprite):
         The textures which represent this entity.
     health: int
         The health of this entity.
-    ai: Optional[FollowLineOfSight]
-        The AI which this entity uses.
 
     Attributes
     ----------
-    texture: arcade.Texture
-        The sprite which represents this entity.
-    center_x: float
-        The x position of the entity on the screen.
-    center_y: float
-        The y position of the entity on the screen.
     direction: float
         The angle the entity is facing.
     facing: int
@@ -54,21 +78,15 @@ class Entity(arcade.Sprite):
         y: int,
         texture_dict: Dict[str, List[List[arcade.Texture]]],
         health: int,
-        ai: Optional[FollowLineOfSight] = None,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.center_x, self.center_y = pos_to_pixel(x, y)
         self.texture_dict: Dict[str, List[List[arcade.Texture]]] = texture_dict
         self.texture: arcade.Texture = self.texture_dict["idle"][0][0]
         self.health: int = health
-        self.ai: Optional[FollowLineOfSight] = ai
         self.direction: float = 0
         self.facing: int = 0
         self.time_since_last_attack: float = 0
-
-        # Set a few internal variables to allow various things to work
-        if self.ai:
-            self.ai.owner = self
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
