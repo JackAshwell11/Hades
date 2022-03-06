@@ -41,6 +41,7 @@ class FollowLineOfSight:
         Tuple[float, float]
             The calculated force to apply to the enemy to move it towards the target.
         """
+        # Make sure variables needed are valid
         assert self.owner is not None
 
         # Find if the enemy is within line of sight of the player and within view

@@ -23,11 +23,11 @@ from constants import (
     WALL,
 )
 from entities.ai import FollowLineOfSight
-from entities.character import Character
-from entities.entity import Entity, TileType
+from entities.entity import Entity
+from entities.tile import Tile
 from generation.map import Map
 from physics import PhysicsEngine
-from textures.textures import pos_to_pixel
+from textures import moving_textures, non_moving_textures, pos_to_pixel
 
 
 class Game(arcade.View):
@@ -105,33 +105,34 @@ class Game(arcade.View):
                 # Determine which type the tile is
                 if x == FLOOR:
                     self.floor_sprites.append(
-                        Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
+                        Tile(count_x, count_y, non_moving_textures["tiles"][0])
                     )
                 elif x == WALL:
                     self.wall_sprites.append(
-                        Entity(count_x, count_y, TileType.WALL, is_tile=True)
+                        Tile(count_x, count_y, non_moving_textures["tiles"][1])
                     )
                 elif x == PLAYER:
                     self.player = Entity(
                         count_x,
                         count_y,
-                        TileType.PLAYER,
-                        character=Character(PLAYER_HEALTH),
+                        moving_textures["player"],
+                        PLAYER_HEALTH,
                     )
                     self.floor_sprites.append(
-                        Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
+                        Tile(count_x, count_y, non_moving_textures["tiles"][0])
                     )
                 elif x == ENEMY:
                     self.enemies.append(
                         Entity(
                             count_x,
                             count_y,
-                            TileType.ENEMY,
-                            character=Character(ENEMY_HEALTH, ai=FollowLineOfSight()),
+                            moving_textures["enemy"],
+                            ENEMY_HEALTH,
+                            FollowLineOfSight(),
                         )
                     )
                     self.floor_sprites.append(
-                        Entity(count_x, count_y, TileType.FLOOR, is_tile=True)
+                        Tile(count_x, count_y, non_moving_textures["tiles"][0])
                     )
 
         # Create the physics engine
@@ -166,7 +167,6 @@ class Game(arcade.View):
 
         # Draw the debug items
         if self.debug_mode:
-            self.player.cone.draw()
             for enemy in self.enemies:
                 arcade.draw_circle_outline(
                     enemy.center_x,
@@ -174,7 +174,6 @@ class Game(arcade.View):
                     ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
                     arcade.color.RED,
                 )
-                enemy.cone.draw()  # noqa
 
     def on_update(self, delta_time: float) -> None:
         """
@@ -191,13 +190,13 @@ class Game(arcade.View):
 
         # Check if the enemies should be killed
         for enemy in self.enemies:
-            if enemy.character.health <= 0:
+            if enemy.health <= 0:  # noqa
                 enemy.remove_from_sprite_lists()
 
         # Update the character's time since last attack
-        self.player.character.time_since_last_attack += delta_time
+        self.player.time_since_last_attack += delta_time
         for enemy in self.enemies:
-            enemy.character.time_since_last_attack += delta_time  # noqa
+            enemy.time_since_last_attack += delta_time  # noqa
 
         # Calculate the speed and direction of the player based on the keys pressed
         if self.up_pressed and not self.down_pressed:
@@ -214,9 +213,7 @@ class Game(arcade.View):
 
         # Move the enemies
         for enemy in self.enemies:
-            force = enemy.character.ai.calculate_movement(  # noqa
-                self.player, self.wall_sprites
-            )
+            force = enemy.ai.calculate_movement(self.player, self.wall_sprites)  # noqa
             self.physics_engine.apply_force(enemy, force)
 
         # Update the physics engine
@@ -286,10 +283,10 @@ class Game(arcade.View):
         # Test if the player can attack
         if (
             button == arcade.MOUSE_BUTTON_LEFT
-            and self.player.character.time_since_last_attack >= ATTACK_COOLDOWN
+            and self.player.time_since_last_attack >= ATTACK_COOLDOWN
         ):
-            # self.player.character.melee_attack(self.enemies, Damage.PLAYER)
-            self.player.character.ranged_attack(self.bullet_sprites)
+            # self.player.melee_attack(self.enemies, Damage.PLAYER)
+            self.player.ranged_attack(self.bullet_sprites)
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from entities.character import Bullet
+from entities.bullet import Bullet
 
 if TYPE_CHECKING:
     from entities.entity import Entity
