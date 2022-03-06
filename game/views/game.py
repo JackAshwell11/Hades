@@ -51,7 +51,7 @@ class Game(arcade.View):
         The sprite list for the wall sprites.
     enemies: arcade.SpriteList
         The sprite list for the enemy sprites.
-    physics_engine: Optional[arcade.PymunkPhysicsEngine]
+    physics_engine: Optional[PhysicsEngine]
         The physics engine which processes wall collision.
     camera: Optional[arcade.Camera]
         The camera used for moving the viewport around the screen.
@@ -76,7 +76,7 @@ class Game(arcade.View):
             use_spatial_hash=True
         )
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
-        self.physics_engine: Optional[arcade.PymunkPhysicsEngine] = None
+        self.physics_engine: Optional[PhysicsEngine] = None
         self.camera: Optional[arcade.Camera] = None
         self.left_pressed: bool = False
         self.right_pressed: bool = False
@@ -93,8 +93,8 @@ class Game(arcade.View):
         Parameters
         ----------
         level: int
-            The level to create a generation for. Each level is more difficult than the
-            previous.
+            The level to create a generation for. Each level should be more difficult
+            than the last.
         """
         # Create the game map
         self.game_map = Map(level)

@@ -6,11 +6,70 @@ from typing import TYPE_CHECKING
 # Pip
 import arcade
 
-# Custom
-from entities.bullet import Bullet
-
 if TYPE_CHECKING:
+    from entities.bullet import Bullet
     from entities.entity import Entity
+    from entities.tile import Tile
+
+
+def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
+    """
+    Handles collision between a wall tile and a bullet sprite as they touch. This uses
+    the begin_handler which processes collision when two shapes are touching for the
+    first time.
+
+    Parameters
+    ----------
+    wall: Tile
+        The wall tile which the bullet hit.
+    bullet: Bullet
+        The bullet sprite which hit the wall tile.
+
+    Returns
+    -------
+    bool
+        Whether or not Pymunk should process the collision. This handler returns False
+        since we just want to remove the bullet and not process collision.
+    """
+    print("wall")
+    # Remove the bullet
+    try:
+        bullet.remove_from_sprite_lists()
+    except AttributeError:
+        # An error randomly occurs here so just ignore it
+        pass
+    # Stop collision processing
+    return False
+
+
+def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
+    """
+    Handles collision between an enemy entity and a bullet sprite as they touch. This
+    uses the begin_handler which processes collision when two shapes are touching for
+    the first time.
+
+    Parameters
+    ----------
+    enemy: Entity
+        The enemy entity which the bullet hit.
+    bullet: Bullet
+        The bullet sprite which hit the enemy entity.
+
+    Returns
+    -------
+    bool
+        Whether or not Pymunk should process the collision. This handler returns False
+        since we just want to remove the bullet and not process collision.
+    """
+    print("enemy")
+    # Remove the bullet
+    try:
+        bullet.remove_from_sprite_lists()
+    except AttributeError:
+        # An error randomly occurs here so just ignore it
+        pass
+    # Stop collision processing
+    return False
 
 
 class PhysicsEngine(arcade.PymunkPhysicsEngine):
@@ -68,6 +127,14 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             moment_of_intertia=arcade.PymunkPhysicsEngine.MOMENT_INF,
             damping=self.damping,
             collision_type="enemy",
+        )
+
+        # Add collision handlers
+        self.add_collision_handler(
+            "wall", "bullet", begin_handler=wall_bullet_begin_handler
+        )
+        self.add_collision_handler(
+            "enemy", "bullet", begin_handler=enemy_bullet_begin_handler
         )
 
     def __repr__(self) -> str:
