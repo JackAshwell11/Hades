@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING
 # Pip
 import arcade
 
+# Custom
+from entities.character import Bullet
+
 if TYPE_CHECKING:
     from entities.entity import Entity
 
@@ -71,4 +74,20 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         return (
             f"<PhysicsEngine (Damping={self.damping}) (Sprite"
             f" count={len(self.sprites)})>"
+        )
+
+    def add_bullet(self, bullet: Bullet) -> None:
+        """
+        Adds a bullet to the physics engine.
+
+        Parameters
+        ----------
+        bullet: Bullet
+            The bullet to add to the physics engine.
+        """
+        self.add_sprite(
+            bullet,
+            moment_of_inertia=self.MOMENT_INF,
+            body_type=self.KINEMATIC,
+            collision_type="bullet",
         )

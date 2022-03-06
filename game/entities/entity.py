@@ -52,6 +52,10 @@ class Entity(arcade.Sprite):
         The x position of the sprite on the screen.
     center_y: float
         The y position of the sprite on the screen.
+    direction: float
+        The angle the entity is facing.
+    facing: int
+        The direction the entity is facing. 0 is right and 1 is left.
     cone: arcade.Sprite
         The cone sprite which represents the attack range of this entity.
     """
@@ -67,10 +71,12 @@ class Entity(arcade.Sprite):
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.texture: arcade.Texture = tile_type.value
         self.character: Optional[Character] = character
         self.tile: bool = is_tile
         self.item = item
+        self.texture: arcade.Texture = tile_type.value
+        self.direction: float = 0
+        self.facing: int = 0
         self.cone: arcade.Sprite = arcade.Sprite(
             scale=SPRITE_SCALE,
             center_x=self.center_x + (SPRITE_WIDTH / 2),

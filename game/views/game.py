@@ -23,7 +23,7 @@ from constants import (
     WALL,
 )
 from entities.ai import FollowLineOfSight
-from entities.character import Character, Damage
+from entities.character import Character
 from entities.entity import Entity, TileType
 from generation.map import Map
 from physics import PhysicsEngine
@@ -288,7 +288,8 @@ class Game(arcade.View):
             button == arcade.MOUSE_BUTTON_LEFT
             and self.player.character.time_since_last_attack >= ATTACK_COOLDOWN
         ):
-            self.player.character.melee_attack(self.enemies, Damage.PLAYER)
+            # self.player.character.melee_attack(self.enemies, Damage.PLAYER)
+            self.player.character.ranged_attack(self.bullet_sprites)
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """
@@ -315,7 +316,11 @@ class Game(arcade.View):
             x - self.player.center_x + camera_x,
             y - self.player.center_y + camera_y,
         )
-        self.player.angle = math.degrees(math.atan2(vec_y, vec_x))
+        angle = math.degrees(math.atan2(vec_y, vec_x))
+        if angle < 0:
+            angle = angle + 360
+        self.player.direction = angle
+        self.player.facing = 1 if 90 <= angle <= 270 else 0
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""

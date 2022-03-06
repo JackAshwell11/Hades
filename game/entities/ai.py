@@ -57,6 +57,11 @@ class FollowLineOfSight:
                 self.owner.center_y - target.center_y,
             )
             # Apply the movement force in the specific direction
-            return -horizontal * ENEMY_MOVEMENT_FORCE, -vertical * ENEMY_MOVEMENT_FORCE
+            horizontal_force, vertical_force = (
+                -horizontal * ENEMY_MOVEMENT_FORCE,
+                -vertical * ENEMY_MOVEMENT_FORCE,
+            )
+            self.owner.direction = 1 if horizontal_force < 0 else 0
+            return horizontal_force, vertical_force
         # Enemy does not have line of sight and is not within range
         return 0, 0
