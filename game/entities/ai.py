@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING
 
 # Pip
 import arcade
@@ -18,14 +18,14 @@ class FollowLineOfSight:
     sight with the target, and the target is within the enemy's view distance."""
 
     def __init__(self) -> None:
-        self.owner: Optional[Entity] = None
+        self.owner: Entity | None = None
 
     def __repr__(self) -> str:
         return f"<FollowLineOfSight (Owner={self.owner})>"
 
     def calculate_movement(
         self, target: Entity, walls: arcade.SpriteList
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """
         Calculates the new position for an enemy.
 
@@ -38,7 +38,7 @@ class FollowLineOfSight:
 
         Returns
         -------
-        Tuple[float, float]
+        tuple[float, float]
             The calculated force to apply to the enemy to move it towards the target.
         """
         # Make sure variables needed are valid

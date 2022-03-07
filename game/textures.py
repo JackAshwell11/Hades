@@ -2,7 +2,6 @@ from __future__ import annotations
 
 # Builtin
 import pathlib
-from typing import Dict, List, Tuple
 
 # Pip
 import arcade
@@ -11,7 +10,7 @@ import arcade
 from constants import SPRITE_HEIGHT, SPRITE_WIDTH
 
 
-def pos_to_pixel(x: int, y: int) -> Tuple[float, float]:
+def pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     """
     Calculate the x and y position based on the game map position.
 
@@ -24,7 +23,7 @@ def pos_to_pixel(x: int, y: int) -> Tuple[float, float]:
 
     Returns
     -------
-    Tuple[float, float]
+    tuple[float, float]
         The x and y position of a sprite on the screen.
     """
     return (
@@ -58,13 +57,13 @@ moving_filenames = {
 }
 
 # Create the non-moving textures
-non_moving_textures: Dict[str, List[arcade.Texture]] = {
+non_moving_textures: dict[str, list[arcade.Texture]] = {
     key: [arcade.load_texture(texture_path.joinpath(filename)) for filename in value]
     for key, value in non_moving_filenames.items()
 }
 
 # Create the moving textures
-moving_textures: Dict[str, Dict[str, List[List[arcade.Texture]]]] = {
+moving_textures: dict[str, dict[str, list[list[arcade.Texture]]]] = {
     key: {
         animation_type: [
             arcade.load_texture_pair(texture_path.joinpath(filename))

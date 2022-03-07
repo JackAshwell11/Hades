@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-# Builtin
-from typing import Dict, List
-
 # Pip
 import arcade
 
@@ -21,7 +18,7 @@ class Enemy(Entity):
         The x position of the enemy in the game map.
     y: int
         The y position of the enemy in the game map.
-    texture_dict: Dict[str, List[List[arcade.Texture]]]
+    texture_dict: dict[str, list[list[arcade.Texture]]]
         The textures which represent this enemy.
     health: int
         The health of this enemy.
@@ -33,7 +30,7 @@ class Enemy(Entity):
         self,
         x: int,
         y: int,
-        texture_dict: Dict[str, List[List[arcade.Texture]]],
+        texture_dict: dict[str, list[list[arcade.Texture]]],
         health: int,
         ai: FollowLineOfSight,
     ) -> None:

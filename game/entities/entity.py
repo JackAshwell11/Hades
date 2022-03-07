@@ -2,7 +2,7 @@ from __future__ import annotations
 
 # Builtin
 import math
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING
 
 # Pip
 import arcade
@@ -29,7 +29,7 @@ class Bullet(arcade.SpriteSolidColor):
         Width of the bullet.
     height: int
         Height of the bullet.
-    color: Tuple[int, int, int]
+    color: tuple[int, int, int]
         The color of the bullet.
     """
 
@@ -39,7 +39,7 @@ class Bullet(arcade.SpriteSolidColor):
         y: float,
         width: int,
         height: int,
-        color: Tuple[int, int, int],
+        color: tuple[int, int, int],
     ) -> None:
         super().__init__(width=width, height=height, color=color)
         self.center_x: float = x
@@ -59,7 +59,7 @@ class Entity(arcade.Sprite):
         The x position of the entity in the game map.
     y: int
         The y position of the entity in the game map.
-    texture_dict: Dict[str, List[List[arcade.Texture]]]
+    texture_dict: dict[str, list[list[arcade.Texture]]]
         The textures which represent this entity.
     health: int
         The health of this entity.
@@ -76,12 +76,12 @@ class Entity(arcade.Sprite):
         self,
         x: int,
         y: int,
-        texture_dict: Dict[str, List[List[arcade.Texture]]],
+        texture_dict: dict[str, list[list[arcade.Texture]]],
         health: int,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.texture_dict: Dict[str, List[List[arcade.Texture]]] = texture_dict
+        self.texture_dict: dict[str, list[list[arcade.Texture]]] = texture_dict
         self.texture: arcade.Texture = self.texture_dict["idle"][0][0]
         self.health: int = health
         self.direction: float = 0

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 # Builtin
 import math
-from typing import Optional
 
 # Pip
 import arcade
@@ -42,9 +41,9 @@ class Game(arcade.View):
 
     Attributes
     ----------
-    game_map: Optional[Map]
+    game_map: Map | None
         The game map for the current level.
-    player: Optional[Player]
+    player: Player | None
         The sprite for the playable character in the game.
     floor_sprites: arcade.SpriteList
         The sprite list for the floor sprites.
@@ -52,9 +51,9 @@ class Game(arcade.View):
         The sprite list for the wall sprites.
     enemies: arcade.SpriteList
         The sprite list for the enemy sprites.
-    physics_engine: Optional[PhysicsEngine]
+    physics_engine: PhysicsEngine | None
         The physics engine which processes wall collision.
-    camera: Optional[arcade.Camera]
+    camera: arcade.Camera | None
         The camera used for moving the viewport around the screen.
     left_pressed: bool
         Whether the left key is pressed or not.
@@ -69,16 +68,16 @@ class Game(arcade.View):
     def __init__(self, debug_mode: bool = False) -> None:
         super().__init__()
         self.debug_mode: bool = debug_mode
-        self.game_map: Optional[Map] = None
-        self.player: Optional[Player] = None
+        self.game_map: Map | None = None
+        self.player: Player | None = None
         self.floor_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList(
             use_spatial_hash=True
         )
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
-        self.physics_engine: Optional[PhysicsEngine] = None
-        self.camera: Optional[arcade.Camera] = None
+        self.physics_engine: PhysicsEngine | None = None
+        self.camera: arcade.Camera | None = None
         self.left_pressed: bool = False
         self.right_pressed: bool = False
         self.up_pressed: bool = False

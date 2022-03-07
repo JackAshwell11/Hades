@@ -2,7 +2,6 @@ from __future__ import annotations
 
 # Builtin
 import random
-from typing import List, Optional, Tuple
 
 # Pip
 import numpy as np
@@ -37,13 +36,13 @@ class Map:
         The height of the game generation.
     split_count: int = 5
         The amount of times the bsp should split.
-    grid: Optional[np.ndarray]
+    grid: np.ndarray | None
         The 2D grid which represents the dungeon.
-    bsp: Optional[Leaf]
+    bsp: Leaf | None
         The root leaf for the binary space partition.
-    player_spawn: Optional[Tuple[int, int]]
+    player_spawn: tuple[int, int] | None
         The coordinates for the player spawn. This is in the format (x, y).
-    enemy_spawns: List[Tuple[int, int]]
+    enemy_spawns: list[tuple[int, int]]
         The coordinates for the enemy spawn points. This is in the format (x, y).
     """
 
@@ -52,10 +51,10 @@ class Map:
         self.width: int = MAP_WIDTH
         self.height: int = MAP_HEIGHT
         self.split_count: int = SPLIT_COUNT
-        self.grid: Optional[np.ndarray] = None
-        self.bsp: Optional[Leaf] = None
-        self.player_spawn: Optional[Tuple[int, int]] = None
-        self.enemy_spawns: List[Tuple[int, int]] = []
+        self.grid: np.ndarray | None = None
+        self.bsp: Leaf | None = None
+        self.player_spawn: tuple[int, int] | None = None
+        self.enemy_spawns: list[tuple[int, int]] = []
         self.make_map()
 
     def __repr__(self) -> str:

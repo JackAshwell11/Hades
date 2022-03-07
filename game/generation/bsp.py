@@ -2,7 +2,6 @@ from __future__ import annotations
 
 # Builtin
 import random
-from typing import Optional
 
 # Pip
 import numpy as np
@@ -87,17 +86,17 @@ class Leaf:
 
     Attributes
     ----------
-    left: Optional[Leaf]
+    left: Leaf | None
         The left container of this leaf. If this is None, we have reached the end of the
         branch.
-    right: Optional[Leaf]
+    right: Leaf | None
         The right container of this leaf. If this is None, we have reached the end of
         the branch.
     container: Rect
         The rect object for representing this leaf.
-    room: Optional[Rect]
+    room: Rect | None
         The rect object for representing the room inside this leaf.
-    split_vertical: Optional[bool]
+    split_vertical: bool | None
         Whether or not the leaf was split vertically. By default, this is None
         (not split).
     """
@@ -110,12 +109,12 @@ class Leaf:
         y2: int,
         grid: np.ndarray,
     ) -> None:
-        self.left: Optional[Leaf] = None
-        self.right: Optional[Leaf] = None
+        self.left: Leaf | None = None
+        self.right: Leaf | None = None
         self.container: Rect = Rect(x1, y1, x2, y2)
-        self.room: Optional[Rect] = None
+        self.room: Rect | None = None
         self.grid: np.ndarray = grid
-        self.split_vertical: Optional[bool] = None
+        self.split_vertical: bool | None = None
 
     def __repr__(self) -> str:
         return (
@@ -245,7 +244,7 @@ class Leaf:
         self.room = Rect(x_pos, y_pos, x_pos + width - 1, y_pos + height - 1)
 
     def create_hallway(
-        self, left_room: Optional[Rect] = None, right_room: Optional[Rect] = None
+        self, left_room: Rect | None = None, right_room: Rect | None = None
     ) -> Rect:
         """
         Creates the hallway links between rooms. This uses a post-order traversal
@@ -253,9 +252,9 @@ class Leaf:
 
         Parameters
         ----------
-        left_room: Optional[Rect]
+        left_room: Rect | None
             The left room to create a hallway too.
-        right_room: Optional[Rect]
+        right_room: Rect | None
             The right room to create a hallway too.
 
         Returns
