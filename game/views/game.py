@@ -143,7 +143,8 @@ class Game(arcade.View):
         self.camera = arcade.Camera(self.window.width, self.window.height)
 
     def on_show(self) -> None:
-        """Set up the screen so this view can work properly."""
+        """Called when the view loads."""
+        # Set the background color
         arcade.set_background_color(arcade.color.BLACK)
 
     def on_draw(self) -> None:
@@ -188,15 +189,11 @@ class Game(arcade.View):
         assert self.physics_engine is not None
         assert self.player is not None
 
-        # Check if the enemies should be killed
-        for enemy in self.enemies:
-            if enemy.health <= 0:  # noqa
-                enemy.remove_from_sprite_lists()
+        # Process logic for the enemies
+        self.enemies.on_update()
 
-        # Update the character's time since last attack
-        self.player.time_since_last_attack += delta_time
-        for enemy in self.enemies:
-            enemy.time_since_last_attack += delta_time  # noqa
+        # Process logic for the player
+        self.player.on_update()
 
         # Calculate the speed and direction of the player based on the keys pressed
         if self.up_pressed and not self.down_pressed:
@@ -210,11 +207,6 @@ class Game(arcade.View):
 
         # Position the camera
         self.center_camera_on_player()
-
-        # Move the enemies
-        for enemy in self.enemies:
-            force = enemy.ai.calculate_movement(self.player, self.wall_sprites)  # noqa
-            self.physics_engine.apply_force(enemy, force)
 
         # Update the physics engine
         self.physics_engine.step()

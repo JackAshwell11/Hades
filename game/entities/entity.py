@@ -91,6 +91,28 @@ class Entity(arcade.Sprite):
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
 
+    def on_update(self, delta_time: float = 1 / 60) -> None:
+        """
+        Processes movement and game logic.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
+        """
+        raise NotImplementedError
+
+    def deal_damage(self, damage: int) -> None:
+        """
+        Deals damage to an entity.
+
+        Parameters
+        ----------
+        damage: int
+            The amount of health to take away from the entity.
+        """
+        self.health -= damage
+
     def ranged_attack(self, bullet_list: arcade.SpriteList) -> None:
         """
         Performs a ranged attack in the direction the character is facing.

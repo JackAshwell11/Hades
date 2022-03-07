@@ -21,9 +21,6 @@ class Player(Entity):
         The textures which represent this player.
     health: int
         The health of this player.
-
-    Attributes
-    ----------
     """
 
     def __init__(
@@ -34,3 +31,18 @@ class Player(Entity):
         health: int,
     ) -> None:
         super().__init__(x, y, texture_dict, health)
+
+    def __repr__(self) -> str:
+        return f"<Player (Position=({self.center_x}, {self.center_y}))>"
+
+    def on_update(self, delta_time: float = 1 / 60) -> None:
+        """
+        Processes player logic.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
+        """
+        # Update the player's time since last attack
+        self.time_since_last_attack += delta_time

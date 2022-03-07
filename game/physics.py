@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING
 # Pip
 import arcade
 
+# Custom
+from constants import PLAYER_DAMAGE
+
 if TYPE_CHECKING:
     from entities.entity import Bullet, Entity
     from entities.tile import Tile
@@ -27,12 +30,11 @@ def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
     Returns
     -------
     bool
-        Whether or not Pymunk should process the collision. This handler returns False
+        Whether Pymunk should process the collision or not. This handler returns False
         since we just want to remove the bullet and not process collision.
     """
-    print("wall")
-    # Remove the bullet
     try:
+        # Remove the bullet
         bullet.remove_from_sprite_lists()
     except AttributeError:
         # An error randomly occurs here so just ignore it
@@ -57,13 +59,15 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
     Returns
     -------
     bool
-        Whether or not Pymunk should process the collision. This handler returns False
+        Whether Pymunk should process the collision or not. This handler returns False
         since we just want to remove the bullet and not process collision.
     """
-    print("enemy")
-    # Remove the bullet
     try:
+        # Remove the bullet
         bullet.remove_from_sprite_lists()
+
+        # Deal damage to the enemy
+        enemy.deal_damage(PLAYER_DAMAGE)
     except AttributeError:
         # An error randomly occurs here so just ignore it
         pass
