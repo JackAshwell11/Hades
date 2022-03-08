@@ -4,7 +4,7 @@ from __future__ import annotations
 import arcade
 
 # Custom
-from entities.entity import Entity
+from entities.entity import Entity, EntityID
 
 
 class Player(Entity):
@@ -22,6 +22,9 @@ class Player(Entity):
     health: int
         The health of this player.
     """
+
+    # Class variables
+    ID: EntityID = EntityID.PLAYER
 
     def __init__(
         self,

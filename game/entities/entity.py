@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-# Builtin
 import math
+
+# Builtin
+from enum import IntEnum
 from typing import TYPE_CHECKING
 
 # Pip
@@ -13,6 +15,14 @@ from textures import pos_to_pixel
 
 if TYPE_CHECKING:
     from physics import PhysicsEngine
+
+
+class EntityID(IntEnum):
+    """Stores the ID of each enemy to make checking more efficient."""
+
+    ENTITY = 0
+    PLAYER = 1
+    ENEMY = 2
 
 
 class Bullet(arcade.SpriteSolidColor):
@@ -31,6 +41,8 @@ class Bullet(arcade.SpriteSolidColor):
         Height of the bullet.
     color: tuple[int, int, int]
         The color of the bullet.
+    owner: Entity
+        The entity which shot the bullet.
     """
 
     def __init__(
@@ -40,10 +52,12 @@ class Bullet(arcade.SpriteSolidColor):
         width: int,
         height: int,
         color: tuple[int, int, int],
+        owner: Entity,
     ) -> None:
         super().__init__(width=width, height=height, color=color)
         self.center_x: float = x
         self.center_y: float = y
+        self.owner: Entity = owner
 
     def __repr__(self) -> str:
         return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
@@ -70,7 +84,12 @@ class Entity(arcade.Sprite):
         The angle the entity is facing.
     facing: int
         The direction the entity is facing. 0 is right and 1 is left.
+    time_since_last_attack: float
+        The time since the last attack.
     """
+
+    # Class variables
+    ID: EntityID = EntityID.ENTITY
 
     def __init__(
         self,
@@ -127,7 +146,7 @@ class Entity(arcade.Sprite):
         self.time_since_last_attack = 0
 
         # Create and add the new bullet to the physics engine
-        new_bullet = Bullet(self.center_x, self.center_y, 25, 5, arcade.color.RED)
+        new_bullet = Bullet(self.center_x, self.center_y, 25, 5, arcade.color.RED, self)
         new_bullet.angle = self.direction
         physics: PhysicsEngine = self.physics_engines[0]
         physics.add_bullet(new_bullet)

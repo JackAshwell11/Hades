@@ -11,6 +11,7 @@ from constants import (
     ATTACK_COOLDOWN,
     DAMPING,
     ENEMY,
+    ENEMY_ATTACK_RANGE,
     ENEMY_HEALTH,
     ENEMY_VIEW_DISTANCE,
     FLOOR,
@@ -174,6 +175,12 @@ class Game(arcade.View):
                     enemy.center_y,
                     ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
                     arcade.color.RED,
+                )
+                arcade.draw_circle_outline(
+                    enemy.center_x,
+                    enemy.center_y,
+                    ENEMY_ATTACK_RANGE * SPRITE_WIDTH,
+                    arcade.color.BLUE,
                 )
 
     def on_update(self, delta_time: float) -> None:

@@ -7,10 +7,12 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import PLAYER_DAMAGE
+from constants import ENEMY_DAMAGE, PLAYER_DAMAGE
+from entities.entity import EntityID
 
 if TYPE_CHECKING:
     from entities.entity import Bullet, Entity
+    from entities.player import Player
     from entities.tile import Tile
 
 
@@ -66,8 +68,44 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
         # Remove the bullet
         bullet.remove_from_sprite_lists()
 
-        # Deal damage to the enemy
-        enemy.deal_damage(PLAYER_DAMAGE)
+        # Check if the owner is the player
+        if bullet.owner.ID is EntityID.PLAYER:
+            # Deal damage to the enemy
+            enemy.deal_damage(PLAYER_DAMAGE)
+    except AttributeError:
+        # An error randomly occurs here so just ignore it
+        pass
+    # Stop collision processing
+    return False
+
+
+def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
+    """
+    Handles collision between a player entity and a bullet sprite as they touch. This
+    uses the begin_handler which processes collision when two shapes are touching for
+    the first time.
+
+    Parameters
+    ----------
+    player: Player
+        The player entity which the bullet hit.
+    bullet: Bullet
+        The bullet sprite which hit the enemy entity.
+
+    Returns
+    -------
+    bool
+        Whether Pymunk should process the collision or not. This handler returns False
+        since we just want to remove the bullet and not process collision.
+    """
+    try:
+        # Remove the bullet
+        bullet.remove_from_sprite_lists()
+
+        # Check if the owner is an enemy
+        if bullet.owner.ID is EntityID.ENEMY:
+            # Deal damage to the player
+            player.deal_damage(ENEMY_DAMAGE)
     except AttributeError:
         # An error randomly occurs here so just ignore it
         pass
@@ -138,6 +176,9 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         )
         self.add_collision_handler(
             "enemy", "bullet", begin_handler=enemy_bullet_begin_handler
+        )
+        self.add_collision_handler(
+            "player", "bullet", begin_handler=player_bullet_begin_handler
         )
 
     def __repr__(self) -> str:

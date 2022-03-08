@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 # Builtin
+import math
 from typing import TYPE_CHECKING
 
 # Pip
 import arcade
 
 # Custom
-from constants import ATTACK_COOLDOWN
+from constants import (
+    ATTACK_COOLDOWN,
+    ENEMY_ATTACK_RANGE,
+    ENEMY_VIEW_DISTANCE,
+    SPRITE_WIDTH,
+)
 from entities.ai import FollowLineOfSight
-from entities.entity import Entity
+from entities.entity import Entity, EntityID
 
 if TYPE_CHECKING:
     from physics import PhysicsEngine
@@ -33,6 +39,9 @@ class Enemy(Entity):
     ai: FollowLineOfSight
         The AI which this entity uses.
     """
+
+    # Class variables
+    ID: EntityID = EntityID.ENEMY
 
     def __init__(
         self,
@@ -64,16 +73,41 @@ class Enemy(Entity):
             return
 
         # Update the enemy's time since last attack
+        self.time_since_last_attack: float
         self.time_since_last_attack += delta_time
 
-        if self.time_since_last_attack >= ATTACK_COOLDOWN:
-            # Get the current view and the physics engine. The current view will be used
-            # to get the player object and the wall sprites
-            current_view: Game = arcade.get_window().current_view  # noqa
-            physics: PhysicsEngine = self.physics_engines[0]
+        # Get the current view and the physics engine.
+        # The current view will be used to get the player object and the wall sprites
+        current_view: Game = arcade.get_window().current_view  # noqa
+        physics: PhysicsEngine = self.physics_engines[0]
 
-            # Move the enemy
-            force = self.ai.calculate_movement(
+        # Check if the player is within the max view distance
+        if arcade.has_line_of_sight(
+            (self.center_x, self.center_y),
+            (current_view.player.center_x, current_view.player.center_y),
+            current_view.wall_sprites,
+            ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
+        ):
+            # Get the force needed to move the enemy
+            horizontal, vertical = self.ai.calculate_movement(
                 current_view.player, current_view.wall_sprites
             )
-            physics.apply_force(self, force)
+
+            # Set the needed internal variables
+            self.facing = 1 if horizontal < 0 else 0
+            self.direction = math.degrees(math.atan2(vertical, horizontal))
+
+            # Apply the force
+            physics.apply_force(self, (horizontal, vertical))
+
+            # Check if the player is within the attack range and can attack
+            x_diff_squared = (current_view.player.center_x - self.center_x) ** 2
+            y_diff_squared = (current_view.player.center_y - self.center_y) ** 2
+            hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
+            if (
+                hypot_distance <= ENEMY_ATTACK_RANGE * SPRITE_WIDTH
+                and self.time_since_last_attack >= ATTACK_COOLDOWN
+            ):
+                # Enemy can attack so reset the counter and attack
+                self.time_since_last_attack = 0
+                self.ranged_attack(current_view.bullet_sprites)
