@@ -284,8 +284,10 @@ class Game(arcade.View):
             button == arcade.MOUSE_BUTTON_LEFT
             and self.player.time_since_last_attack >= ATTACK_COOLDOWN
         ):
-            # self.player.melee_attack(self.enemies, Damage.PLAYER)
+            # Reset the player's counter
+            self.player.time_since_last_attack = 0
             self.player.ranged_attack(self.bullet_sprites)
+            # self.player.melee_attack(self.enemies, Damage.PLAYER)
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """

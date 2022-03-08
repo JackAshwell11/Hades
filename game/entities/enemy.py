@@ -73,7 +73,6 @@ class Enemy(Entity):
             return
 
         # Update the enemy's time since last attack
-        self.time_since_last_attack: float
         self.time_since_last_attack += delta_time
 
         # Get the current view and the physics engine.
@@ -109,5 +108,5 @@ class Enemy(Entity):
                 and self.time_since_last_attack >= ATTACK_COOLDOWN
             ):
                 # Enemy can attack so reset the counter and attack
-                self.time_since_last_attack = 0
+                self.time_since_last_attack: float = 0  # Mypy is annoying
                 self.ranged_attack(current_view.bullet_sprites)
