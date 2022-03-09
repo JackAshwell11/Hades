@@ -75,8 +75,8 @@ class Enemy(Entity):
         # Update the enemy's time since last attack
         self.time_since_last_attack += delta_time
 
-        # Get the current view and the physics engine.
-        # The current view will be used to get the player object and the wall sprites
+        # Get the current view and the physics engine. The current view will be used to
+        # get the player object and the wall sprites
         current_view: Game = arcade.get_window().current_view  # noqa
         physics: PhysicsEngine = self.physics_engines[0]
 

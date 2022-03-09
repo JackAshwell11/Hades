@@ -38,3 +38,6 @@ class Tile(arcade.Sprite):
         super().__init__(scale=SPRITE_SCALE)
         self.center_x, self.center_y = pos_to_pixel(x, y)
         self.texture: arcade.Texture = texture
+
+    def __repr__(self) -> str:
+        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
