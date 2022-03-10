@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import math
-
 # Builtin
+import math
 from enum import IntEnum
 from typing import TYPE_CHECKING
 

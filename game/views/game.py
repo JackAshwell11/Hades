@@ -10,17 +10,14 @@ import arcade
 from constants import (
     ATTACK_COOLDOWN,
     DAMPING,
-    ENEMY,
     ENEMY_ATTACK_RANGE,
     ENEMY_HEALTH,
     ENEMY_VIEW_DISTANCE,
-    FLOOR,
-    PLAYER,
     PLAYER_HEALTH,
     PLAYER_MOVEMENT_FORCE,
     SPRITE_HEIGHT,
     SPRITE_WIDTH,
-    WALL,
+    TileType,
 )
 from entities.ai import FollowLineOfSight
 from entities.enemy import Enemy
@@ -104,15 +101,15 @@ class Game(arcade.View):
         for count_y, y in enumerate(self.game_map.grid):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
-                if x == FLOOR:
+                if x == TileType.FLOOR.value:
                     self.floor_sprites.append(
                         Tile(count_x, count_y, non_moving_textures["tiles"][0])
                     )
-                elif x == WALL:
+                elif x == TileType.WALL.value:
                     self.wall_sprites.append(
                         Tile(count_x, count_y, non_moving_textures["tiles"][1])
                     )
-                elif x == PLAYER:
+                elif x == TileType.PLAYER.value:
                     self.player = Player(
                         count_x,
                         count_y,
@@ -122,7 +119,7 @@ class Game(arcade.View):
                     self.floor_sprites.append(
                         Tile(count_x, count_y, non_moving_textures["tiles"][0])
                     )
-                elif x == ENEMY:
+                elif x == TileType.ENEMY.value:
                     self.enemies.append(
                         Enemy(
                             count_x,

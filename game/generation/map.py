@@ -6,13 +6,12 @@ import random
 # Pip
 import numpy as np
 from constants import (
+    BASE_ENEMY_COUNT,
+    BASE_MAP_HEIGHT,
+    BASE_MAP_WIDTH,
+    BASE_SPLIT_COUNT,
     DEBUG_LINES,
-    ENEMY,
-    ENEMY_COUNT,
-    MAP_HEIGHT,
-    MAP_WIDTH,
-    PLAYER,
-    SPLIT_COUNT,
+    TileType,
 )
 
 # Custom
@@ -30,12 +29,9 @@ class Map:
 
     Attributes
     ----------
-    width: int
-        The width of the game generation.
-    height: int
-        The height of the game generation.
-    split_count: int = 5
-        The amount of times the bsp should split.
+    map_constants: dict[str, int]
+        A mapping of constant name to value. These constants are width, height, split
+        count (how many times the bsp should split) and enemy count.
     grid: np.ndarray | None
         The 2D grid which represents the dungeon.
     bsp: Leaf | None
@@ -48,9 +44,7 @@ class Map:
 
     def __init__(self, level: int) -> None:
         self.level: int = level
-        self.width: int = MAP_WIDTH
-        self.height: int = MAP_HEIGHT
-        self.split_count: int = SPLIT_COUNT
+        self.map_constants: dict[str, int] = self.generate_constants()
         self.grid: np.ndarray | None = None
         self.bsp: Leaf | None = None
         self.player_spawn: tuple[int, int] | None = None
@@ -58,7 +52,28 @@ class Map:
         self.make_map()
 
     def __repr__(self) -> str:
-        return f"<Map (Width={self.width}) (Height={self.height})>"
+        return (
+            f"<Map (Width={self.map_constants['width']})"
+            f" (Height={self.map_constants['height']}) (Split"
+            f" count={self.map_constants['split count']}) (Enemy"
+            f" count={self.map_constants['enemy count']})>"
+        )
+
+    def generate_constants(self) -> dict[str, int]:
+        """
+        Generates the needed constants based on a given level.
+
+        Returns
+        -------
+        dict[str, int]
+            The generated constants.
+        """
+        return {
+            "width": int(np.ceil(BASE_MAP_WIDTH * 1.1**self.level)),
+            "height": int(np.ceil(BASE_MAP_HEIGHT * 1.1**self.level)),
+            "split count": int(np.ceil(BASE_SPLIT_COUNT * 1.5**self.level)),
+            "enemy count": int(np.ceil(BASE_ENEMY_COUNT * 1.1**self.level)),
+        }
 
     def make_map(self) -> None:
         """Function which manages the map generation for a specified level."""
@@ -68,13 +83,21 @@ class Map:
         )
 
         # Create the 2D grid used for representing the dungeon
-        self.grid = np.full((self.height, self.width), 0, np.int8)
+        self.grid = np.full(
+            (self.map_constants["height"], self.map_constants["width"]), 0, np.int8
+        )
 
         # Create the first leaf used for generation
-        self.bsp = Leaf(0, 0, self.width - 1, self.height - 1, self.grid)
+        self.bsp = Leaf(
+            0,
+            0,
+            self.map_constants["width"] - 1,
+            self.map_constants["height"] - 1,
+            self.grid,
+        )
 
         # Start the recursive splitting
-        for count in range(self.split_count):
+        for count in range(self.map_constants["split count"]):
             self.bsp.split(DEBUG_LINES)
 
         # Create the rooms recursively
@@ -84,21 +107,21 @@ class Map:
         self.bsp.create_hallway()
 
         # Get the coordinates for the player spawn
-        self.replace_random_floor(PLAYER)
+        self.replace_random_floor(TileType.PLAYER)
 
         # Get the coordinates for the enemy spawn points
-        for _ in range(ENEMY_COUNT):
-            self.replace_random_floor(ENEMY)
+        for _ in range(self.map_constants["enemy count"]):
+            self.replace_random_floor(TileType.ENEMY)
 
-    def replace_random_floor(self, entity: int) -> None:
+    def replace_random_floor(self, entity: TileType) -> None:
         """
         Replaces a random floor tile with a player, enemy or item tile.
 
         Parameters
         ----------
-        entity: int
+        entity: TileType
             The tile to replace the floor tile with.
         """
         assert self.grid is not None
         player_spawn = random.choice(np.argwhere(self.grid == 1))
-        self.grid[player_spawn[0], player_spawn[1]] = entity
+        self.grid[player_spawn[0], player_spawn[1]] = entity.value

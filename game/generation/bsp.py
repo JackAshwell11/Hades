@@ -7,15 +7,7 @@ import random
 import numpy as np
 
 # Custom
-from constants import (
-    DEBUG_WALL,
-    EMPTY,
-    FLOOR,
-    HALLWAY_WIDTH,
-    MIN_CONTAINER_SIZE,
-    MIN_ROOM_SIZE,
-    WALL,
-)
+from constants import HALLWAY_WIDTH, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, TileType
 
 
 class Rect:
@@ -171,7 +163,9 @@ class Leaf:
             # the actual container
             pos = self.container.x1 + pos
             if debug_lines:
-                self.grid[self.container.y1 : self.container.y2 + 1, pos] = DEBUG_WALL
+                self.grid[
+                    self.container.y1 : self.container.y2 + 1, pos
+                ] = TileType.DEBUG_WALL.value
 
             # Create child leafs
             self.left = Leaf(
@@ -193,7 +187,9 @@ class Leaf:
             # the actual container
             pos = self.container.y1 + pos
             if debug_lines:
-                self.grid[pos, self.container.x1 : self.container.x2 + 1] = DEBUG_WALL
+                self.grid[
+                    pos, self.container.x1 : self.container.x2 + 1
+                ] = TileType.DEBUG_WALL.value
 
             # Create child leafs
             self.left = Leaf(
@@ -238,8 +234,10 @@ class Leaf:
             self.container.y1, self.container.y1 + self.container.height - height
         )
         # Update the grid with the walls and floors
-        self.grid[y_pos : y_pos + height, x_pos : x_pos + width] = WALL
-        self.grid[y_pos + 1 : y_pos + height - 1, x_pos + 1 : x_pos + width - 1] = FLOOR
+        self.grid[y_pos : y_pos + height, x_pos : x_pos + width] = TileType.WALL.value
+        self.grid[
+            y_pos + 1 : y_pos + height - 1, x_pos + 1 : x_pos + width - 1
+        ] = TileType.FLOOR.value
         # Create the room rect
         self.room = Rect(x_pos, y_pos, x_pos + width - 1, y_pos + height - 1)
 
@@ -328,18 +326,18 @@ class Leaf:
         if is_vertical:
             for y in range(start_pos - 1, end_pos + 1):
                 for x in range(min_hallway_width, max_hallway_width):
-                    if self.grid[y, x] == EMPTY:
-                        self.grid[y, x] = WALL
+                    if self.grid[y, x] == TileType.EMPTY.value:
+                        self.grid[y, x] = TileType.WALL.value
 
             for y in range(start_pos, end_pos):
                 for x in range(min_hallway_width + 1, max_hallway_width - 1):
-                    self.grid[y, x] = FLOOR
+                    self.grid[y, x] = TileType.FLOOR.value
         else:
             for x in range(start_pos - 1, end_pos + 1):
                 for y in range(min_hallway_width, max_hallway_width):
-                    if self.grid[y, x] == EMPTY:
-                        self.grid[y, x] = WALL
+                    if self.grid[y, x] == TileType.EMPTY.value:
+                        self.grid[y, x] = TileType.WALL.value
 
             for x in range(start_pos, end_pos):
                 for y in range(min_hallway_width + 1, max_hallway_width - 1):
-                    self.grid[y, x] = FLOOR
+                    self.grid[y, x] = TileType.FLOOR.value
