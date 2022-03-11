@@ -16,7 +16,7 @@ class TileType(IntEnum):
     DEBUG_WALL = 9
 
 
-# Room constants
+# Room probabilities
 BASE_ROOM = {
     "SMALL": 0.5,
     "LARGE": 0.5,
@@ -30,8 +30,6 @@ LARGE_ROOM = {
     "LARGE": 0.3,
 }
 
-# ADD PROBABILITIES IN HERE AND NAMED TUPLE SIZES FOR HALLWAY
-
 # Map generation constants
 BASE_MAP_WIDTH = 30
 BASE_MAP_HEIGHT = 20
@@ -42,7 +40,7 @@ MIN_ROOM_SIZE = 5
 HALLWAY_WIDTH = 5
 
 # Debug constants
-DEBUG_LINES = False
+DEBUG_LINES = True
 DEBUG_GAME = True
 
 # Sprite sizes

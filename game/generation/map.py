@@ -103,10 +103,7 @@ class Map:
         # Start the recursive splitting
         for count in range(self.map_constants["split count"]):
             # Use the probabilities to check if we should split
-            if np.random.choice(
-                [True, False],
-                p=[self.probabilities["SMALL"], self.probabilities["LARGE"]],
-            ):
+            if np.random.choice([True, False], p=list(self.probabilities.values())):
                 # Split the bsp
                 self.bsp.split(DEBUG_LINES)
 
