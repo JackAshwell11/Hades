@@ -2,7 +2,6 @@ from __future__ import annotations
 
 # Builtin
 from enum import IntEnum
-from typing import NamedTuple
 
 
 # Tile types
@@ -18,23 +17,18 @@ class TileType(IntEnum):
 
 
 # Room constants
-class Room(NamedTuple):
-    """
-    Represents a template for a room in the game map.
-
-    MIN_SIZE: int
-        The minimum size a room can be.
-    MAX_SIZE: int
-        The maximum size a room can be.
-    """
-
-    MIN_SIZE: int = -1
-    MAX_SIZE: int = -1
-
-
-SMALL_ROOM = Room()
-MEDIUM_ROOM = Room()
-LARGER_ROOM = Room()
+BASE_ROOM = {
+    "SMALL": 0.5,
+    "LARGE": 0.5,
+}
+SMALL_ROOM = {
+    "SMALL": 0.5,
+    "LARGE": 0.5,
+}
+LARGE_ROOM = {
+    "SMALL": 0.5,
+    "LARGE": 0.5,
+}
 
 # ADD PROBABILITIES IN HERE AND NAMED TUPLE SIZES FOR HALLWAY
 

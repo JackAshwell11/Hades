@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-# Builtin
-import random
-
 # Pip
 import numpy as np
 from constants import (
     BASE_ENEMY_COUNT,
     BASE_MAP_HEIGHT,
     BASE_MAP_WIDTH,
+    BASE_ROOM,
     BASE_SPLIT_COUNT,
     DEBUG_LINES,
+    LARGE_ROOM,
+    SMALL_ROOM,
     TileType,
 )
 
@@ -40,6 +40,9 @@ class Map:
         The coordinates for the player spawn. This is in the format (x, y).
     enemy_spawns: list[tuple[int, int]]
         The coordinates for the enemy spawn points. This is in the format (x, y).
+    probabilities: dict[str, float]
+        The current probabilities used to determine if we should split on each iteration
+        or not.
     """
 
     def __init__(self, level: int) -> None:
@@ -49,6 +52,7 @@ class Map:
         self.bsp: Leaf | None = None
         self.player_spawn: tuple[int, int] | None = None
         self.enemy_spawns: list[tuple[int, int]] = []
+        self.probabilities: dict[str, float] = BASE_ROOM
         self.make_map()
 
     def __repr__(self) -> str:
@@ -69,8 +73,8 @@ class Map:
             The generated constants.
         """
         return {
-            "width": int(np.ceil(BASE_MAP_WIDTH * 1.1**self.level)),
-            "height": int(np.ceil(BASE_MAP_HEIGHT * 1.1**self.level)),
+            "width": int(np.ceil(BASE_MAP_WIDTH * 1.2**self.level)),
+            "height": int(np.ceil(BASE_MAP_HEIGHT * 1.2**self.level)),
             "split count": int(np.ceil(BASE_SPLIT_COUNT * 1.5**self.level)),
             "enemy count": int(np.ceil(BASE_ENEMY_COUNT * 1.1**self.level)),
         }
@@ -98,7 +102,32 @@ class Map:
 
         # Start the recursive splitting
         for count in range(self.map_constants["split count"]):
-            self.bsp.split(DEBUG_LINES)
+            # Use the probabilities to check if we should split
+            if np.random.choice(
+                [True, False],
+                p=[self.probabilities["SMALL"], self.probabilities["LARGE"]],
+            ):
+                # Split the bsp
+                self.bsp.split(DEBUG_LINES)
+
+                # Multiply the probabilities by SMALL_ROOM
+                self.probabilities["SMALL"] *= SMALL_ROOM["SMALL"]
+                self.probabilities["LARGE"] *= SMALL_ROOM["LARGE"]
+            else:
+                # Multiply the probabilities by LARGE_ROOM
+                self.probabilities["SMALL"] *= LARGE_ROOM["SMALL"]
+                self.probabilities["LARGE"] *= LARGE_ROOM["LARGE"]
+
+            # Normalise the probabilities so they add up to 1
+            probabilities_sum = 1 / (
+                self.probabilities["SMALL"] + self.probabilities["LARGE"]
+            )
+            self.probabilities["SMALL"] = (
+                self.probabilities["SMALL"] * probabilities_sum
+            )
+            self.probabilities["LARGE"] = (
+                self.probabilities["LARGE"] * probabilities_sum
+            )
 
         # Create the rooms recursively
         self.bsp.create_room()
@@ -123,5 +152,6 @@ class Map:
             The tile to replace the floor tile with.
         """
         assert self.grid is not None
-        player_spawn = random.choice(np.argwhere(self.grid == 1))
+        spaces = np.argwhere(self.grid == 1)
+        player_spawn = spaces[np.random.randint(0, len(spaces))]
         self.grid[player_spawn[0], player_spawn[1]] = entity.value
