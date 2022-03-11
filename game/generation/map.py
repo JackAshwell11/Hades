@@ -120,7 +120,10 @@ class Map:
 
             # Normalise the probabilities so they add up to 1
             probabilities_sum = 1 / sum(self.probabilities.values())  # type: ignore
-            self.probabilities = {key: value * probabilities_sum for key, value in self.probabilities.items()}
+            self.probabilities = {
+                key: value * probabilities_sum
+                for key, value in self.probabilities.items()
+            }
 
         # Create the rooms recursively
         self.bsp.create_room()
