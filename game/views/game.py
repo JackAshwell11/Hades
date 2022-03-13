@@ -13,6 +13,7 @@ from constants import (
     ENEMY_ATTACK_RANGE,
     ENEMY_HEALTH,
     ENEMY_VIEW_DISTANCE,
+    PLAYER_ATTACK_RANGE,
     PLAYER_HEALTH,
     PLAYER_MOVEMENT_FORCE,
     SPRITE_HEIGHT,
@@ -25,6 +26,7 @@ from entities.player import Player
 from entities.tile import Tile
 from generation.map import Map
 from physics import PhysicsEngine
+from shaders.melee import MeleeShader
 from textures import moving_textures, non_moving_textures, pos_to_pixel
 
 
@@ -53,6 +55,8 @@ class Game(arcade.View):
         The physics engine which processes wall collision.
     camera: arcade.Camera | None
         The camera used for moving the viewport around the screen.
+    melee_shader: MeleeShader
+        f
     left_pressed: bool
         Whether the left key is pressed or not.
     right_pressed: bool
@@ -76,6 +80,7 @@ class Game(arcade.View):
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.physics_engine: PhysicsEngine | None = None
         self.camera: arcade.Camera | None = None
+        self.melee_shader: MeleeShader = MeleeShader(self)
         self.left_pressed: bool = False
         self.right_pressed: bool = False
         self.up_pressed: bool = False
@@ -140,6 +145,9 @@ class Game(arcade.View):
         # Set up the Camera
         self.camera = arcade.Camera(self.window.width, self.window.height)
 
+        # Set up the melee shader
+        self.melee_shader.setup_shader()
+
     def on_show(self) -> None:
         """Called when the view loads."""
         # Set the background color
@@ -179,6 +187,12 @@ class Game(arcade.View):
                     ENEMY_ATTACK_RANGE * SPRITE_WIDTH,
                     arcade.color.BLUE,
                 )
+            arcade.draw_circle_outline(
+                self.player.center_x,
+                self.player.center_y,
+                SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
+                arcade.color.RED,
+            )
 
     def on_update(self, delta_time: float) -> None:
         """
@@ -283,7 +297,7 @@ class Game(arcade.View):
         ):
             # Reset the player's counter
             self.player.time_since_last_attack = 0
-            self.player.ranged_attack(self.bullet_sprites)
+            self.player.melee_shader()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """

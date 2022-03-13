@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+# Builtin
+from typing import TYPE_CHECKING
+
 # Pip
 import arcade
 
 # Custom
 from entities.entity import Entity, EntityID
+
+if TYPE_CHECKING:
+    from views.game import Game
 
 
 class Player(Entity):
@@ -49,3 +55,13 @@ class Player(Entity):
         """
         # Update the player's time since last attack
         self.time_since_last_attack += delta_time
+
+    def melee_shader(self) -> None:
+        """"""
+        # Get the current window and view
+        window = arcade.get_window()
+        current_view: Game = window.current_view  # noqa
+
+        # Run the shader
+        f = current_view.melee_shader.run_shader()
+        print(f)
