@@ -149,6 +149,10 @@ class Game(arcade.View):
         # Set up the melee shader
         self.player.melee_shader.setup_shader()
 
+        # Check if any enemy has line of sight
+        for enemy in self.enemies:
+            enemy.check_line_of_sight()  # noqa
+
     def on_show(self) -> None:
         """Called when the view loads."""
         # Set the background color
