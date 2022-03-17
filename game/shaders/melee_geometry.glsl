@@ -5,6 +5,8 @@ uniform Projection {
 } proj;
 // The position we measure distance from
 uniform vec2 origin;
+// The position we measure distance from accounting for the camera scroll
+uniform vec2 origin_relative;
 // The maximum distance
 uniform float maxDistance;
 // Sampler for reading wall data
@@ -26,7 +28,7 @@ vec2 screen2texcoord(vec2 pos) {
     return vec2(pos / textureSize(walls, 0).xy);
 }
 void main() {
-    // ONLY emit a line between the sprite and origin when within the distance
+    // Only emit a line between the sprite and origin when within the distance
     if (distance(v_position[0], origin) > maxDistance) return;
     // Read samples from the wall texture in a line looking for obstacles
     // We simply make a vector between the origina and the sprite location
@@ -35,7 +37,7 @@ void main() {
     vec2 dir = v_position[0] - origin;
     for (int i = 0; i < steps; i++) {
         // Read pixels along the vector
-        vec2 pos = origin + dir * (float(i) / float(steps));
+        vec2 pos = origin_relative + dir * (float(i) / float(steps));
         vec4 color = texture(walls, screen2texcoord(pos));
         // If we find non-zero pixel data we have obstacles in our path!
         if (color != vec4(0.0)) return;

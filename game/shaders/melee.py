@@ -6,16 +6,13 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
-import arcade
 from constants import PLAYER_ATTACK_RANGE, SPRITE_WIDTH
 
 if TYPE_CHECKING:
     from arcade import ArcadeContext
     from arcade.gl import Buffer, Framebuffer, Program, Query
     from entities.enemy import Enemy
-    from entities.player import Player
     from views.game import Game
-    from window import Window
 
 # Create the paths to the shader files
 vertex_path = pathlib.Path(__file__).parent.joinpath("melee_vertex.glsl")
@@ -25,7 +22,7 @@ geometry_path = pathlib.Path(__file__).parent.joinpath("melee_geometry.glsl")
 class MeleeShader:
     """
     A helper class which eases setting up the shader for the player's melee attack. This
-    currently only works for the player but will probably change in the future.
+    currently only works for the player but may change in the future.
 
     Parameters
     ----------
@@ -58,29 +55,9 @@ class MeleeShader:
         return "<MeleeShader>"
 
     @property
-    def window(self) -> Window:
-        """Returns the window object for easy access."""
-        return self.view.window
-
-    @property
     def ctx(self) -> ArcadeContext:
         """Returns the arcade context object for running OpenGL programs."""
-        return self.window.ctx
-
-    @property
-    def walls(self) -> arcade.SpriteList:
-        """Returns the wall sprites for easy access."""
-        return self.view.wall_sprites
-
-    @property
-    def enemies(self) -> arcade.SpriteList:
-        """Returns the enemy sprites for easy access."""
-        return self.view.enemies
-
-    @property
-    def player(self) -> Player:
-        """Returns the player object for easy access."""
-        return self.view.player
+        return self.view.window.ctx
 
     def setup_shader(self) -> None:
         """Sets up the shader and it's needed attributes."""
@@ -91,16 +68,17 @@ class MeleeShader:
             vertex_shader=open(vertex_path).read(),
             geometry_shader=open(geometry_path).read(),
         )
-        # Configure program with maximum distance
+        # Configure program with maximum distance and angle range
         self.program["maxDistance"] = PLAYER_ATTACK_RANGE * SPRITE_WIDTH
+        # self.program["angle_range"] = PLAYER_MELEE_DEGREE
 
         # We now need a buffer that can capture the result from the shader and process
         # it. But we need to make sure there is room for len(self.view.enemies) 32-bit
         # floats. To do this, since each enemy is 8-bit, we can multiply them by 4 to
         # get 32-bit and therefore multiply len(self.view.enemies) by 4 to get multiple
         # 32-bit floats
-        self.enemies._write_sprite_buffers_to_gpu()
-        self.result_buffer = self.ctx.buffer(reserve=len(self.enemies) * 4)
+        self.view.enemies._write_sprite_buffers_to_gpu()
+        self.result_buffer = self.ctx.buffer(reserve=len(self.view.enemies) * 4)
 
         # We also need a query to count how many sprites the shader gave us. To do this
         # we make a sampler that counts the number of primitives (the enemy locations in
@@ -112,12 +90,20 @@ class MeleeShader:
         # can load the wall textures into that framebuffer
         self.walls_framebuffer = self.ctx.framebuffer(
             color_attachments=[
-                self.ctx.texture((self.window.width, self.window.height))
+                self.ctx.texture((self.view.window.width, self.view.window.height))
             ]
         )
+        self.update_collision()
+
+    def update_collision(self) -> None:
+        """Updates the wall framebuffer to ensure collision detection is accurate."""
+        # Make sure variables needed are valid
+        assert self.walls_framebuffer is not None
+
+        # Update the framebuffer
         with self.walls_framebuffer.activate() as fbo:
             fbo.clear()
-            self.walls.draw()
+            self.view.wall_sprites.draw()
 
     def run_shader(self) -> list[Enemy]:
         """
@@ -137,15 +123,20 @@ class MeleeShader:
 
         # Update the shader's origin point, so we can draw the rays from the correct
         # position
-        self.program["origin"] = self.player.position
+        self.program["origin"] = self.view.player.position
+
+        # Update the shader's relative origin point. This is the player's position
+        # accounting for the camera scroll
+        self.program["origin_relative"] = (
+            self.view.player.center_x - self.view.camera.position[0],
+            self.view.player.center_y - self.view.camera.position[1],
+        )
+
+        # Update the shader's direction, so we can attack in specific directions
+        # self.program["direction"] = self.view.player.direction
 
         # Ensure the internal sprite buffers are up-to-date
-        self.enemies._write_sprite_buffers_to_gpu()
-
-        # Make sure the wall positions are up-to-date
-        with self.walls_framebuffer.activate() as fbo:
-            fbo.clear()
-            self.walls.draw()
+        self.view.enemies._write_sprite_buffers_to_gpu()
 
         # Bind the wall textures to channel 0 so the shader can read them
         self.walls_framebuffer.color_attachments[0].use(0)
@@ -156,10 +147,10 @@ class MeleeShader:
             # run the shader. This only requires the correct input names (in_pos in this
             # case) which will automatically map the enemy position in the position
             # buffer to the vertex shader
-            self.enemies._geometry.transform(
+            self.view.enemies._geometry.transform(
                 self.program,
                 self.result_buffer,
-                vertices=len(self.enemies),
+                vertices=len(self.view.enemies),
             )
 
         # Store the number of primitives/sprites found
@@ -169,12 +160,13 @@ class MeleeShader:
             # python objects. To do this, we unpack the result buffer from the VRAM and
             # convert each item into 32-bit floats which can then be searched for in the
             # enemies list
-            return [
-                self.enemies[int(i)]
+            f = [
+                self.view.enemies[int(i)]
                 for i in struct.unpack(
                     f"{num_sprites_found}f",
                     self.result_buffer.read(size=num_sprites_found * 4),
                 )
             ]
+            print(f)
         # No sprites found
         return []

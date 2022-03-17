@@ -26,7 +26,6 @@ from entities.player import Player
 from entities.tile import Tile
 from generation.map import Map
 from physics import PhysicsEngine
-from shaders.melee import MeleeShader
 from textures import moving_textures, non_moving_textures, pos_to_pixel
 
 
@@ -55,8 +54,6 @@ class Game(arcade.View):
         The physics engine which processes wall collision.
     camera: arcade.Camera | None
         The camera used for moving the viewport around the screen.
-    melee_shader: MeleeShader
-        f
     left_pressed: bool
         Whether the left key is pressed or not.
     right_pressed: bool
@@ -80,7 +77,6 @@ class Game(arcade.View):
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.physics_engine: PhysicsEngine | None = None
         self.camera: arcade.Camera | None = None
-        self.melee_shader: MeleeShader = MeleeShader(self)
         self.left_pressed: bool = False
         self.right_pressed: bool = False
         self.up_pressed: bool = False
@@ -116,6 +112,7 @@ class Game(arcade.View):
                     )
                 elif x == TileType.PLAYER.value:
                     self.player = Player(
+                        self,
                         count_x,
                         count_y,
                         moving_textures["player"],
@@ -127,6 +124,7 @@ class Game(arcade.View):
                 elif x == TileType.ENEMY.value:
                     self.enemies.append(
                         Enemy(
+                            self,
                             count_x,
                             count_y,
                             moving_textures["enemy"],
@@ -138,6 +136,9 @@ class Game(arcade.View):
                         Tile(count_x, count_y, non_moving_textures["tiles"][0])
                     )
 
+        # Make sure the player was actually created
+        assert self.player is not None
+
         # Create the physics engine
         self.physics_engine = PhysicsEngine(DAMPING)
         self.physics_engine.setup(self.player, self.wall_sprites, self.enemies)
@@ -146,7 +147,7 @@ class Game(arcade.View):
         self.camera = arcade.Camera(self.window.width, self.window.height)
 
         # Set up the melee shader
-        self.melee_shader.setup_shader()
+        self.player.melee_shader.setup_shader()
 
     def on_show(self) -> None:
         """Called when the view loads."""
@@ -213,15 +214,38 @@ class Game(arcade.View):
         # Process logic for the player
         self.player.on_update()
 
-        # Calculate the speed and direction of the player based on the keys pressed
+        # Calculate the vertical velocity of the player based on the keys pressed
+        update_enemies = False
+        vertical_force = None
         if self.up_pressed and not self.down_pressed:
-            self.physics_engine.apply_force(self.player, (0, PLAYER_MOVEMENT_FORCE))
+            vertical_force = (0, PLAYER_MOVEMENT_FORCE)
         elif self.down_pressed and not self.up_pressed:
-            self.physics_engine.apply_force(self.player, (0, -PLAYER_MOVEMENT_FORCE))
+            vertical_force = (0, -PLAYER_MOVEMENT_FORCE)
+        if vertical_force:
+            # Apply the vertical force
+            self.physics_engine.apply_force(self.player, vertical_force)
+
+            # Set update_enemies
+            update_enemies = True
+
+        # Calculate the horizontal velocity of the player based on the keys pressed
+        horizontal_force = None
         if self.left_pressed and not self.right_pressed:
-            self.physics_engine.apply_force(self.player, (-PLAYER_MOVEMENT_FORCE, 0))
+            horizontal_force = (-PLAYER_MOVEMENT_FORCE, 0)
         elif self.right_pressed and not self.left_pressed:
-            self.physics_engine.apply_force(self.player, (PLAYER_MOVEMENT_FORCE, 0))
+            horizontal_force = (PLAYER_MOVEMENT_FORCE, 0)
+        if horizontal_force:
+            # Apply the horizontal force
+            self.physics_engine.apply_force(self.player, horizontal_force)
+
+            # Set update_enemies
+            update_enemies = True
+
+        # Check if we need to update the enemy's line of sight
+        if update_enemies:
+            # Update the enemy's line of sight check
+            for enemy in self.enemies:
+                enemy.check_line_of_sight()  # noqa
 
         # Position the camera
         self.center_camera_on_player()
@@ -297,7 +321,7 @@ class Game(arcade.View):
         ):
             # Reset the player's counter
             self.player.time_since_last_attack = 0
-            self.player.melee_shader()
+            self.player.run_shader()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """
@@ -326,7 +350,7 @@ class Game(arcade.View):
         )
         angle = math.degrees(math.atan2(vec_y, vec_x))
         if angle < 0:
-            angle = angle + 360
+            angle += 360
         self.player.direction = angle
         self.player.facing = 1 if 90 <= angle <= 270 else 0
 
@@ -356,6 +380,9 @@ class Game(arcade.View):
             + (self.camera.viewport_height / SPRITE_HEIGHT),
         )
 
+        # Store the old position, so we can check if it has changed
+        old_position = (self.camera.position[0], self.camera.position[1])
+
         # Make sure the camera doesn't extend beyond the boundaries
         if screen_center_x < 0:
             screen_center_x = 0
@@ -365,6 +392,11 @@ class Game(arcade.View):
             screen_center_y = 0
         elif screen_center_y > upper_camera_y:
             screen_center_y = upper_camera_y
+        new_position = screen_center_x, screen_center_y
 
-        # Move the camera to the new position
-        self.camera.move_to((screen_center_x, screen_center_y))  # noqa
+        # Check if the camera position has changed
+        if old_position != new_position:
+            # Move the camera to the new position
+            self.camera.move_to((screen_center_x, screen_center_y))  # noqa
+            # Update the melee shader collision framebuffer
+            self.player.melee_shader.update_collision()

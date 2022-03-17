@@ -14,6 +14,7 @@ from textures import pos_to_pixel
 
 if TYPE_CHECKING:
     from physics import PhysicsEngine
+    from views.game import Game
 
 
 class EntityID(IntEnum):
@@ -68,6 +69,8 @@ class Entity(arcade.Sprite):
 
     Parameters
     ----------
+    game: Game
+        The game view. This is passed so the entity can have a reference to it.
     x: int
         The x position of the entity in the game map.
     y: int
@@ -92,12 +95,14 @@ class Entity(arcade.Sprite):
 
     def __init__(
         self,
+        game: Game,
         x: int,
         y: int,
         texture_dict: dict[str, list[list[arcade.Texture]]],
         health: int,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
+        self.game: Game = game
         self.center_x, self.center_y = pos_to_pixel(x, y)
         self.texture_dict: dict[str, list[list[arcade.Texture]]] = texture_dict
         self.texture: arcade.Texture = self.texture_dict["idle"][0][0]
@@ -165,3 +170,7 @@ class Entity(arcade.Sprite):
             math.sin(angle_radians) * BULLET_VELOCITY,
         )
         physics.set_velocity(new_bullet, (change_x, change_y))
+
+    def melee_attack(self, target: list[Entity]) -> None:
+        """"""
+        print(target)

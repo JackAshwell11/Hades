@@ -8,6 +8,7 @@ import arcade
 
 # Custom
 from entities.entity import Entity, EntityID
+from shaders.melee import MeleeShader
 
 if TYPE_CHECKING:
     from views.game import Game
@@ -19,6 +20,8 @@ class Player(Entity):
 
     Parameters
     ----------
+    game: Game
+        The game view. This is passed so the player can have a reference to it.
     x: int
         The x position of the player in the game map.
     y: int
@@ -27,6 +30,12 @@ class Player(Entity):
         The textures which represent this player.
     health: int
         The health of this player.
+
+    Attributes
+    ----------
+    melee_shader: MeleeShader
+        The OpenGL shader used to find and attack any enemies within a specific distance
+        around the player based on their direction.
     """
 
     # Class variables
@@ -34,12 +43,14 @@ class Player(Entity):
 
     def __init__(
         self,
+        game: Game,
         x: int,
         y: int,
         texture_dict: dict[str, list[list[arcade.Texture]]],
         health: int,
     ) -> None:
-        super().__init__(x, y, texture_dict, health)
+        super().__init__(game, x, y, texture_dict, health)
+        self.melee_shader: MeleeShader = MeleeShader(self.game)
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
@@ -56,12 +67,8 @@ class Player(Entity):
         # Update the player's time since last attack
         self.time_since_last_attack += delta_time
 
-    def melee_shader(self) -> None:
+    def run_shader(self) -> None:
         """"""
-        # Get the current window and view
-        window = arcade.get_window()
-        current_view: Game = window.current_view  # noqa
-
         # Run the shader
-        f = current_view.melee_shader.run_shader()
+        f = self.melee_shader.run_shader()
         print(f)

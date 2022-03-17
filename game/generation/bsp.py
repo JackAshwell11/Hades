@@ -210,21 +210,34 @@ class Leaf:
         # Set the leaf's split direction
         self.split_vertical = split_vertical
 
-    def create_room(self) -> None:
-        """Creates a random sized room inside a container."""
+    def create_room(self, rooms: list[Rect]) -> list[Rect]:
+        """
+        Creates a random sized room inside a container.
+
+        Parameters
+        ----------
+        rooms: list[Rect]
+            A list of all the generated rooms.
+
+        Returns
+        -------
+        list[Rect]
+            A list of all the generated rooms.
+        """
         # Test if this container is already split or not. If it is, we do not want to
         # create a room inside it otherwise it will overwrite other rooms
         if self.left is not None and self.right is not None:
-            self.left.create_room()
-            self.right.create_room()
+            self.left.create_room(rooms)
+            self.right.create_room(rooms)
             # Return just to make sure this container doesn't create a room overwriting
             # others
-            return
+            return rooms
 
         # Pick a random width and height making sure it is at least MIN_ROOM_SIZE but
         # doesn't exceed the container
         width = random.randint(MIN_ROOM_SIZE, self.container.width)
         height = random.randint(MIN_ROOM_SIZE, self.container.height)
+
         # Use the width and height to find a suitable x and y position which can create
         # the room
         x_pos = random.randint(
@@ -233,13 +246,19 @@ class Leaf:
         y_pos = random.randint(
             self.container.y1, self.container.y1 + self.container.height - height
         )
+
         # Update the grid with the walls and floors
         self.grid[y_pos : y_pos + height, x_pos : x_pos + width] = TileType.WALL.value
         self.grid[
             y_pos + 1 : y_pos + height - 1, x_pos + 1 : x_pos + width - 1
         ] = TileType.FLOOR.value
+
         # Create the room rect
         self.room = Rect(x_pos, y_pos, x_pos + width - 1, y_pos + height - 1)
+        rooms.append(self.room)
+
+        # Return rooms, so it can be used in the next stage
+        return rooms
 
     def create_hallway(
         self, left_room: Rect | None = None, right_room: Rect | None = None
@@ -284,6 +303,7 @@ class Leaf:
             self.place_hallway(
                 left_room.center_y, right_room.center_y, right_room.center_x, True
             )
+
             # Return the right room, so it can be connected on the next level
             return right_room
         else:
@@ -294,6 +314,7 @@ class Leaf:
             self.place_hallway(
                 left_room.center_x, right_room.center_x, right_room.center_y, False
             )
+
             # Return a random room since the top or bottom one can be connected on the
             # next level
             return left_room if bool(random.getrandbits(1)) else right_room

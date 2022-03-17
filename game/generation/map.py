@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+# Builtin
+from typing import TYPE_CHECKING
+
 # Pip
 import numpy as np
 from constants import (
@@ -16,6 +19,9 @@ from constants import (
 
 # Custom
 from generation.bsp import Leaf
+
+if TYPE_CHECKING:
+    from generation.bsp import Rect
 
 
 class Map:
@@ -123,17 +129,37 @@ class Map:
             }
 
         # Create the rooms recursively
-        self.bsp.create_room()
+        rect_areas = sorted(
+            ((room, room.width * room.height) for room in self.bsp.create_room([])),
+            key=lambda x: x[1],
+        )
 
         # Create the hallways recursively
         self.bsp.create_hallway()
 
-        # Get the coordinates for the player spawn
-        self.replace_random_floor(TileType.PLAYER)
+        # Place the player spawn
+        self.place_player(rect_areas)
 
         # Get the coordinates for the enemy spawn points
         for _ in range(self.map_constants["enemy count"]):
             self.replace_random_floor(TileType.ENEMY)
+
+    def place_player(self, areas: list[tuple[Rect, int]]) -> None:
+        """
+        Places the player in the smallest room.
+
+        Parameters
+        ----------
+        areas: list[tuple[Rect, int]]
+            A list of rooms sorted by their area.
+        """
+        # Make sure variables needed are valid
+        assert self.grid is not None
+
+        # smallest = areas[0][0]
+        spaces = np.argwhere(self.grid == 1)
+        player_spawn = spaces[np.random.randint(0, len(spaces))]
+        self.grid[player_spawn[0], player_spawn[1]] = TileType.PLAYER.value
 
     def replace_random_floor(self, entity: TileType) -> None:
         """
@@ -144,7 +170,38 @@ class Map:
         entity: TileType
             The tile to replace the floor tile with.
         """
+        # Make sure variables needed are valid
         assert self.grid is not None
+
+        # Place the entity
         spaces = np.argwhere(self.grid == 1)
         player_spawn = spaces[np.random.randint(0, len(spaces))]
         self.grid[player_spawn[0], player_spawn[1]] = entity.value
+
+    def place_tile(self, entity: TileType, rect: Rect) -> None:
+        """
+        Places a given entity in a random position within the grid with a given offset.
+
+        Parameters
+        ----------
+        entity: TileType
+            The entity to place in the grid.
+        rect: Rect
+            The rect object to place the tile in.
+        """
+        # Make sure variables needed are valid
+        assert self.grid is not None
+
+        # Get all the empty spaces within the range
+        print(entity, rect)
+
+
+# TO DO IDEA:
+# have all hallways be rects then have function which places a rect in the map
+#
+# when placing tiles, pick a rect based on its size then place tile at random point
+# inside
+#
+# maybe have hallway be a subclass of rect
+#
+# have create_room make the room based on the width and height of the container
