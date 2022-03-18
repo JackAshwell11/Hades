@@ -83,31 +83,33 @@ class Enemy(Entity):
         # Update the enemy's time since last attack
         self.time_since_last_attack += delta_time
 
-        # Check if the player is within the max view distance
-        if self.line_of_sight:
-            # Get the force needed to move the enemy
-            horizontal, vertical = self.ai.calculate_movement(
-                self.game.player, self.game.wall_sprites
-            )
+        # Check if the player is not within the max view distance
+        if not self.line_of_sight:
+            return
 
-            # Set the needed internal variables
-            self.facing = 1 if horizontal < 0 else 0
-            self.direction = math.degrees(math.atan2(vertical, horizontal))
+        # Player is within line of sight so get the force needed to move the enemy
+        horizontal, vertical = self.ai.calculate_movement(
+            self.game.player, self.game.wall_sprites
+        )
 
-            # Apply the force
-            self.physics_engines[0].apply_force(self, (horizontal, vertical))
+        # Set the needed internal variables
+        self.facing = 1 if horizontal < 0 else 0
+        self.direction = math.degrees(math.atan2(vertical, horizontal))
 
-            # Check if the player is within the attack range and can attack
-            x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
-            y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
-            hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
-            if (
-                hypot_distance <= ENEMY_ATTACK_RANGE * SPRITE_WIDTH
-                and self.time_since_last_attack >= ATTACK_COOLDOWN
-            ):
-                # Enemy can attack so reset the counter and attack
-                self.time_since_last_attack: float = 0  # Mypy is annoying
-                self.ranged_attack(self.game.bullet_sprites)
+        # Apply the force
+        self.physics_engines[0].apply_force(self, (horizontal, vertical))
+
+        # Check if the player is within the attack range and can attack
+        x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
+        y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
+        hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
+        if (
+            hypot_distance <= ENEMY_ATTACK_RANGE * SPRITE_WIDTH
+            and self.time_since_last_attack >= ATTACK_COOLDOWN
+        ):
+            # Enemy can attack so reset the counter and attack
+            self.time_since_last_attack: float = 0  # Mypy is annoying
+            self.ranged_attack(self.game.bullet_sprites)
 
     def check_line_of_sight(self) -> None:
         """Checks if the enemy has line of sight with the player"""
