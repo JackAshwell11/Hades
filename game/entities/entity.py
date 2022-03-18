@@ -54,6 +54,7 @@ class Bullet(arcade.SpriteSolidColor):
         color: tuple[int, int, int],
         owner: Entity,
     ) -> None:
+        super().__init__(width, height, color)
         self.center_x: float = x
         self.center_y: float = y
         self.owner: Entity = owner
