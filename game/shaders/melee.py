@@ -77,7 +77,7 @@ class MeleeShader:
         # floats. To do this, since each enemy is 8-bit, we can multiply them by 4 to
         # get 32-bit and therefore multiply len(self.view.enemies) by 4 to get multiple
         # 32-bit floats
-        self.view.enemies._write_sprite_buffers_to_gpu()
+        self.view.enemies.write_sprite_buffers_to_gpu()
         self.result_buffer = self.ctx.buffer(reserve=len(self.view.enemies) * 4)
 
         # We also need a query to count how many sprites the shader gave us. To do this
@@ -136,7 +136,7 @@ class MeleeShader:
         # self.program["direction"] = self.view.player.direction
 
         # Ensure the internal sprite buffers are up-to-date
-        self.view.enemies._write_sprite_buffers_to_gpu()
+        self.view.enemies.write_sprite_buffers_to_gpu()
 
         # Bind the wall textures to channel 0 so the shader can read them
         self.walls_framebuffer.color_attachments[0].use(0)
@@ -147,7 +147,7 @@ class MeleeShader:
             # run the shader. This only requires the correct input names (in_pos in this
             # case) which will automatically map the enemy position in the position
             # buffer to the vertex shader
-            self.view.enemies._geometry.transform(
+            self.view.enemies.geometry.transform(
                 self.program,
                 self.result_buffer,
                 vertices=len(self.view.enemies),
@@ -160,13 +160,12 @@ class MeleeShader:
             # python objects. To do this, we unpack the result buffer from the VRAM and
             # convert each item into 32-bit floats which can then be searched for in the
             # enemies list
-            f = [
+            return [
                 self.view.enemies[int(i)]
                 for i in struct.unpack(
                     f"{num_sprites_found}f",
                     self.result_buffer.read(size=num_sprites_found * 4),
                 )
             ]
-            print(f)
         # No sprites found
         return []

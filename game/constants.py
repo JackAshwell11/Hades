@@ -3,6 +3,9 @@ from __future__ import annotations
 # Builtin
 from enum import IntEnum
 
+# Pip
+import arcade
+
 
 # Tile types
 class TileType(IntEnum):
@@ -35,13 +38,15 @@ BASE_MAP_WIDTH = 30
 BASE_MAP_HEIGHT = 20
 BASE_SPLIT_COUNT = 5
 BASE_ENEMY_COUNT = 5
-MIN_CONTAINER_SIZE = 7
+MIN_CONTAINER_SIZE = 6
 MIN_ROOM_SIZE = 5
 HALLWAY_WIDTH = 5
 
 # Debug constants
 DEBUG_LINES = False
 DEBUG_GAME = True
+DEBUG_VIEW_DISTANCE = arcade.color.RED
+DEBUG_ATTACK_DISTANCE = arcade.color.BLUE
 
 # Sprite sizes
 SPRITE_SCALE = 2.5

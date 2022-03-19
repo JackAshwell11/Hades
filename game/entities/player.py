@@ -67,8 +67,8 @@ class Player(Entity):
         # Update the player's time since last attack
         self.time_since_last_attack += delta_time
 
-    def run_shader(self) -> None:
-        """"""
-        # Run the shader
-        f = self.melee_shader.run_shader()
-        print(f)
+    def run_melee_shader(self) -> None:
+        """Runs the melee shader to get all enemies within melee range of the player."""
+        # Deal melee damage to any entity that the player can attack. This is determined
+        # by the melee shader
+        self.melee_attack(self.melee_shader.run_shader())

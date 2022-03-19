@@ -10,6 +10,8 @@ import arcade
 from constants import (
     ATTACK_COOLDOWN,
     DAMPING,
+    DEBUG_ATTACK_DISTANCE,
+    DEBUG_VIEW_DISTANCE,
     ENEMY_ATTACK_RANGE,
     ENEMY_HEALTH,
     ENEMY_VIEW_DISTANCE,
@@ -54,6 +56,10 @@ class Game(arcade.View):
         The physics engine which processes wall collision.
     camera: arcade.Camera | None
         The camera used for moving the viewport around the screen.
+    gui_camera: arcade.Camera | None
+        The camera used for visualising the GUI elements.
+    health_text: arcade.Text
+        The text object used for displaying the player's health.gf
     left_pressed: bool
         Whether the left key is pressed or not.
     right_pressed: bool
@@ -77,6 +83,14 @@ class Game(arcade.View):
         self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.physics_engine: PhysicsEngine | None = None
         self.camera: arcade.Camera | None = None
+        self.gui_camera: arcade.Camera | None = None
+        self.health_text: arcade.Text = arcade.Text(
+            "Score: 0  Health: 0",
+            10,
+            10,
+            arcade.color.WHITE,
+            20,
+        )
         self.left_pressed: bool = False
         self.right_pressed: bool = False
         self.up_pressed: bool = False
@@ -102,39 +116,40 @@ class Game(arcade.View):
         for count_y, y in enumerate(self.game_map.grid):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
-                if x == TileType.FLOOR.value:
-                    self.floor_sprites.append(
-                        Tile(count_x, count_y, non_moving_textures["tiles"][0])
-                    )
-                elif x == TileType.WALL.value:
-                    self.wall_sprites.append(
-                        Tile(count_x, count_y, non_moving_textures["tiles"][1])
-                    )
-                elif x == TileType.PLAYER.value:
-                    self.player = Player(
-                        self,
-                        count_x,
-                        count_y,
-                        moving_textures["player"],
-                        PLAYER_HEALTH,
-                    )
-                    self.floor_sprites.append(
-                        Tile(count_x, count_y, non_moving_textures["tiles"][0])
-                    )
-                elif x == TileType.ENEMY.value:
-                    self.enemies.append(
-                        Enemy(
+                match x:
+                    case TileType.FLOOR.value:
+                        self.floor_sprites.append(
+                            Tile(count_x, count_y, non_moving_textures["tiles"][0])
+                        )
+                    case TileType.WALL.value:
+                        self.wall_sprites.append(
+                            Tile(count_x, count_y, non_moving_textures["tiles"][1])
+                        )
+                    case TileType.PLAYER.value:
+                        self.player = Player(
                             self,
                             count_x,
                             count_y,
-                            moving_textures["enemy"],
-                            ENEMY_HEALTH,
-                            FollowLineOfSight(),
+                            moving_textures["player"],
+                            PLAYER_HEALTH,
                         )
-                    )
-                    self.floor_sprites.append(
-                        Tile(count_x, count_y, non_moving_textures["tiles"][0])
-                    )
+                        self.floor_sprites.append(
+                            Tile(count_x, count_y, non_moving_textures["tiles"][0])
+                        )
+                    case TileType.ENEMY.value:
+                        self.enemies.append(
+                            Enemy(
+                                self,
+                                count_x,
+                                count_y,
+                                moving_textures["enemy"],
+                                ENEMY_HEALTH,
+                                FollowLineOfSight(),
+                            )
+                        )
+                        self.floor_sprites.append(
+                            Tile(count_x, count_y, non_moving_textures["tiles"][0])
+                        )
 
         # Make sure the player was actually created
         assert self.player is not None
@@ -145,6 +160,7 @@ class Game(arcade.View):
 
         # Set up the Camera
         self.camera = arcade.Camera(self.window.width, self.window.height)
+        self.gui_camera = arcade.Camera(self.window.width, self.window.height)
 
         # Set up the melee shader
         self.player.melee_shader.setup_shader()
@@ -156,13 +172,14 @@ class Game(arcade.View):
     def on_show(self) -> None:
         """Called when the view loads."""
         # Set the background color
-        arcade.set_background_color(arcade.color.BLACK)
+        self.window.background_color = arcade.color.BLACK
 
     def on_draw(self) -> None:
         """Render the screen."""
         # Make sure variables needed are valid
         assert self.camera is not None
         assert self.player is not None
+        assert self.gui_camera is not None
 
         # Clear the screen
         self.clear()
@@ -184,20 +201,25 @@ class Game(arcade.View):
                     enemy.center_x,
                     enemy.center_y,
                     ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
-                    arcade.color.RED,
+                    DEBUG_VIEW_DISTANCE,
                 )
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
                     ENEMY_ATTACK_RANGE * SPRITE_WIDTH,
-                    arcade.color.BLUE,
+                    DEBUG_ATTACK_DISTANCE,
                 )
             arcade.draw_circle_outline(
                 self.player.center_x,
                 self.player.center_y,
                 SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
-                arcade.color.RED,
+                DEBUG_VIEW_DISTANCE,
             )
+
+        # Draw the health on the screen
+        self.gui_camera.use()
+        self.health_text.value = f"Health: {self.player.health}"
+        self.health_text.draw()
 
     def on_update(self, delta_time: float) -> None:
         """
@@ -212,11 +234,9 @@ class Game(arcade.View):
         assert self.physics_engine is not None
         assert self.player is not None
 
-        # Process logic for the enemies
-        self.enemies.on_update()
-
-        # Process logic for the player
-        self.player.on_update()
+        # Check if the game should end
+        if self.player.health == 0 or not self.enemies:
+            arcade.exit()
 
         # Calculate the vertical velocity of the player based on the keys pressed
         update_enemies = False
@@ -254,6 +274,12 @@ class Game(arcade.View):
         # Position the camera
         self.center_camera_on_player()
 
+        # Process logic for the enemies
+        self.enemies.on_update()
+
+        # Process logic for the player
+        self.player.on_update()
+
         # Update the physics engine
         self.physics_engine.step()
 
@@ -269,14 +295,15 @@ class Game(arcade.View):
             Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
             event.
         """
-        if key is arcade.key.W:
-            self.up_pressed = True
-        elif key is arcade.key.S:
-            self.down_pressed = True
-        elif key is arcade.key.A:
-            self.left_pressed = True
-        elif key is arcade.key.D:
-            self.right_pressed = True
+        match key:
+            case arcade.key.W:
+                self.up_pressed = True
+            case arcade.key.S:
+                self.down_pressed = True
+            case arcade.key.A:
+                self.left_pressed = True
+            case arcade.key.D:
+                self.right_pressed = True
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         """
@@ -290,14 +317,15 @@ class Game(arcade.View):
             Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
             event.
         """
-        if key is arcade.key.W:
-            self.up_pressed = False
-        elif key is arcade.key.S:
-            self.down_pressed = False
-        elif key is arcade.key.A:
-            self.left_pressed = False
-        elif key is arcade.key.D:
-            self.right_pressed = False
+        match key:
+            case arcade.key.W:
+                self.up_pressed = False
+            case arcade.key.S:
+                self.down_pressed = False
+            case arcade.key.A:
+                self.left_pressed = False
+            case arcade.key.D:
+                self.right_pressed = False
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         """
@@ -325,7 +353,7 @@ class Game(arcade.View):
         ):
             # Reset the player's counter
             self.player.time_since_last_attack = 0
-            self.player.run_shader()
+            self.player.ranged_attack(self.bullet_sprites)
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """

@@ -12,7 +12,9 @@ from constants import HALLWAY_WIDTH, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, TileType
 
 class Rect:
     """
-    Represents a rectangle of any size useful for creating the dungeon.
+    Represents a rectangle of any size useful for creating the dungeon. Containers
+    include the split wall in their sizes whereas rooms don't so MIN_CONTAINER_SIZE must
+    be bigger than MIN_ROOM_SIZE.
 
     Parameters
     ----------

@@ -138,7 +138,7 @@ class Entity(arcade.Sprite):
 
     def ranged_attack(self, bullet_list: arcade.SpriteList) -> None:
         """
-        Performs a ranged attack in the direction the character is facing.
+        Performs a ranged attack in the direction the entity is facing.
 
         Parameters
         ----------
@@ -172,5 +172,14 @@ class Entity(arcade.Sprite):
         physics.set_velocity(new_bullet, (change_x, change_y))
 
     def melee_attack(self, target: list[Entity]) -> None:
-        """"""
-        print(target)
+        """
+        Performs a melee attack in the direction the entity is facing.
+
+        Parameters
+        ----------
+        target: list[Entity]
+            The entities to deal damage to.
+        """
+        # Deal damage to every entity in the target list
+        for entity in target:
+            print(entity)
