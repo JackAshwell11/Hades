@@ -6,7 +6,7 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
-from constants import PLAYER_ATTACK_RANGE, SPRITE_WIDTH
+from constants import PLAYER_ATTACK_RANGE, PLAYER_MELEE_DEGREE, SPRITE_WIDTH
 
 if TYPE_CHECKING:
     from arcade import ArcadeContext
@@ -70,7 +70,7 @@ class MeleeShader:
         )
         # Configure program with maximum distance and angle range
         self.program["maxDistance"] = PLAYER_ATTACK_RANGE * SPRITE_WIDTH
-        # self.program["angle_range"] = PLAYER_MELEE_DEGREE
+        self.program["half_angle_range"] = PLAYER_MELEE_DEGREE // 2
 
         # We now need a buffer that can capture the result from the shader and process
         # it. But we need to make sure there is room for len(self.view.enemies) 32-bit
@@ -133,7 +133,7 @@ class MeleeShader:
         )
 
         # Update the shader's direction, so we can attack in specific directions
-        # self.program["direction"] = self.view.player.direction
+        self.program["direction"] = self.view.player.direction
 
         # Ensure the internal sprite buffers are up-to-date
         self.view.enemies.write_sprite_buffers_to_gpu()
@@ -160,12 +160,14 @@ class MeleeShader:
             # python objects. To do this, we unpack the result buffer from the VRAM and
             # convert each item into 32-bit floats which can then be searched for in the
             # enemies list
-            return [
+            f = [
                 self.view.enemies[int(i)]
                 for i in struct.unpack(
                     f"{num_sprites_found}f",
                     self.result_buffer.read(size=num_sprites_found * 4),
                 )
             ]
+            print(f)
+            return f
         # No sprites found
         return []

@@ -9,6 +9,10 @@ uniform vec2 origin;
 uniform vec2 origin_relative;
 // The maximum distance
 uniform float maxDistance;
+// The origin's direction
+uniform float direction;
+// Half of the angle range that the target can be within
+uniform int half_angle_range;
 // Sampler for reading wall data
 uniform sampler2D walls;
 // These configure the geometry shader to process a points
@@ -30,6 +34,17 @@ vec2 screen2texcoord(vec2 pos) {
 void main() {
     // Only emit a line between the sprite and origin when within the distance
     if (distance(v_position[0], origin) > maxDistance) return;
+    // Get the angle between the origin and the target. This needs to be in the format arcade uses
+    float x_diff = distance(v_position[0].x, origin_relative.x);
+    float y_diff = distance(v_position[0].y, origin_relative.y);
+    float angle = -degrees(atan(x_diff, y_diff)) + 90;
+    if (angle < 0) {
+        angle += 360;
+    }
+    // Check if the target is within the angle range of the origin
+    float min_angle = direction - half_angle_range;
+    float max_angle = direction + half_angle_range;
+    if ((min_angle > angle) || (angle > max_angle)) return;
     // Read samples from the wall texture in a line looking for obstacles
     // We simply make a vector between the origina and the sprite location
     // and trace pixels in this path with a reasonable step.
