@@ -128,59 +128,40 @@ class Map:
                 for key, value in self.probabilities.items()
             }
 
-        # Create the rooms recursively
+        # Create a list which will hold all the created rects. Since mutable data
+        # structures in Python don't create new objects when passed as parameters,
+        # modifying the list in each recursive call will modify this original list
+        # simplifying the code
+        rects: list[Rect] = []
+
+        # Create the rooms and hallways recursively
+        self.bsp.create_room(rects)
+        self.bsp.create_hallway(rects)
+
+        # Create a sorted list of tuples based on the rect areas
         rect_areas = sorted(
-            ((room, room.width * room.height) for room in self.bsp.create_room([])),
+            ((rect, rect.width * rect.height) for rect in rects),
             key=lambda x: x[1],
         )
 
-        # Create the hallways recursively
-        self.bsp.create_hallway()
+        # Place the player spawn in the smallest room
+        self.place_tile(TileType.PLAYER, rect_areas[0][0])
 
-        # Place the player spawn
-        self.place_player(rect_areas)
+        # Get the total area
+        areas = [area[1] for area in rect_areas]
+        total_area = sum(areas)
 
-        # Get the coordinates for the enemy spawn points
-        for _ in range(self.map_constants["enemy count"]):
-            self.replace_random_floor(TileType.ENEMY)
-
-    def place_player(self, areas: list[tuple[Rect, int]]) -> None:
-        """
-        Places the player in the smallest room.
-
-        Parameters
-        ----------
-        areas: list[tuple[Rect, int]]
-            A list of rooms sorted by their area.
-        """
-        # Make sure variables needed are valid
-        assert self.grid is not None
-
-        # smallest = areas[0][0]
-        spaces = np.argwhere(self.grid == 1)
-        player_spawn = spaces[np.random.randint(0, len(spaces))]
-        self.grid[player_spawn[0], player_spawn[1]] = TileType.PLAYER.value
-
-    def replace_random_floor(self, entity: TileType) -> None:
-        """
-        Replaces a random floor tile with a player, enemy or item tile.
-
-        Parameters
-        ----------
-        entity: TileType
-            The tile to replace the floor tile with.
-        """
-        # Make sure variables needed are valid
-        assert self.grid is not None
-
-        # Place the entity
-        spaces = np.argwhere(self.grid == 1)
-        player_spawn = spaces[np.random.randint(0, len(spaces))]
-        self.grid[player_spawn[0], player_spawn[1]] = entity.value
+        # Get all the destination rects
+        for rect in np.random.choice(
+            [rect[0] for rect in rect_areas],
+            self.map_constants["enemy count"],
+            p=[area / total_area for area in areas],
+        ):
+            self.place_tile(TileType.ENEMY, rect)
 
     def place_tile(self, entity: TileType, rect: Rect) -> None:
         """
-        Places a given entity in a random position within the grid with a given offset.
+        Places a given entity in a random position in a given rect.
 
         Parameters
         ----------
@@ -192,16 +173,11 @@ class Map:
         # Make sure variables needed are valid
         assert self.grid is not None
 
-        # Get all the empty spaces within the range
-        print(entity, rect)
+        # Get a random position within the rect making sure to exclude the walls
+        position_x, position_y = (
+            np.random.randint(rect.x1 + 1, rect.x2 - 1),
+            np.random.randint(rect.y1 + 1, rect.y2 - 1),
+        )
 
-
-# TO DO IDEA:
-# have all hallways be rects then have function which places a rect in the map
-#
-# when placing tiles, pick a rect based on its size then place tile at random point
-# inside
-#
-# maybe have hallway be a subclass of rect
-#
-# have create_room make the room based on the width and height of the container
+        # Place the entity in the random position
+        self.grid[position_y, position_x] = entity.value

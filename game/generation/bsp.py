@@ -7,7 +7,7 @@ import random
 import numpy as np
 
 # Custom
-from constants import HALLWAY_WIDTH, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, TileType
+from constants import HALLWAY_SIZE, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, TileType
 
 
 class Rect:
@@ -43,12 +43,12 @@ class Rect:
     @property
     def width(self) -> int:
         """Returns the width of the rect."""
-        return self.x2 - self.x1 + 1
+        return abs(self.x2 - self.x1 + 1)
 
     @property
     def height(self) -> int:
         """Returns the height of the rect."""
-        return self.y2 - self.y1 + 1
+        return abs(self.y2 - self.y1 + 1)
 
     @property
     def center_x(self) -> int:
@@ -212,18 +212,13 @@ class Leaf:
         # Set the leaf's split direction
         self.split_vertical = split_vertical
 
-    def create_room(self, rooms: list[Rect]) -> list[Rect]:
+    def create_room(self, rooms: list[Rect]) -> None:
         """
         Creates a random sized room inside a container.
 
         Parameters
         ----------
         rooms: list[Rect]
-            A list of all the generated rooms.
-
-        Returns
-        -------
-        list[Rect]
             A list of all the generated rooms.
         """
         # Test if this container is already split or not. If it is, we do not want to
@@ -233,7 +228,7 @@ class Leaf:
             self.right.create_room(rooms)
             # Return just to make sure this container doesn't create a room overwriting
             # others
-            return rooms
+            return
 
         # Pick a random width and height making sure it is at least MIN_ROOM_SIZE but
         # doesn't exceed the container
@@ -249,28 +244,32 @@ class Leaf:
             self.container.y1, self.container.y1 + self.container.height - height
         )
 
-        # Update the grid with the walls and floors
-        self.grid[y_pos : y_pos + height, x_pos : x_pos + width] = TileType.WALL.value
-        self.grid[
-            y_pos + 1 : y_pos + height - 1, x_pos + 1 : x_pos + width - 1
-        ] = TileType.FLOOR.value
-
         # Create the room rect
         self.room = Rect(x_pos, y_pos, x_pos + width - 1, y_pos + height - 1)
-        rooms.append(self.room)
 
-        # Return rooms, so it can be used in the next stage
-        return rooms
+        # Place the room rect in the 2D grid
+        rooms.append(self.room)
+        self.place_rect(self.room)
 
     def create_hallway(
-        self, left_room: Rect | None = None, right_room: Rect | None = None
+        self,
+        hallways: list[Rect],
+        left_room: Rect | None = None,
+        right_room: Rect | None = None,
     ) -> Rect:
         """
         Creates the hallway links between rooms. This uses a post-order traversal
         since we want to work our way up from the bottom of the tree.
 
+        To save the hallways, we are using the fact that mutable data structures in
+        Python don't create new objects when passed as variables therefore as long as we
+        pass the list on each call, adding new items to the list will modify the
+        original list simplifying the code.
+
         Parameters
         ----------
+        hallways: list[Rect]
+            A list of all the generated hallways.
         left_room: Rect | None
             The left room to create a hallway too.
         right_room: Rect | None
@@ -283,11 +282,11 @@ class Leaf:
         """
         # Traverse the left tree to connect its rooms
         if self.left is not None:
-            left_room = self.left.create_hallway()
+            left_room = self.left.create_hallway(hallways)
 
         # Traverse the right tree to connect its rooms
         if self.right is not None:
-            right_room = self.right.create_hallway()
+            right_room = self.right.create_hallway(hallways)
 
         # Return the current's leaf's room, so it can be connected with a matching one
         if self.room is not None:
@@ -296,71 +295,143 @@ class Leaf:
         # Make sure that the rooms are not None
         assert left_room is not None and right_room is not None
 
-        # Connect the left and right rooms
+        # Create hallway intersection point. This will be used to determine which
+        # orientation the hallway is out of 8 orientations which are: RIGHT-UP,
+        # RIGHT-DOWN, LEFT-UP, LEFT-DOWN, UP-LEFT, UP-RIGHT, DOWN-LEFT, DOWN-RIGHT
         if self.split_vertical:
-            # Leaf was split vertically so create a horizontal then vertical hallway
-            self.place_hallway(
-                left_room.center_x, right_room.center_x, left_room.center_y, False
+            hallway_intersection_x, hallway_intersection_y = (
+                right_room.center_x,
+                left_room.center_y,
             )
-            self.place_hallway(
-                left_room.center_y, right_room.center_y, right_room.center_x, True
-            )
-
-            # Return the right room, so it can be connected on the next level
-            return right_room
         else:
-            # Leaf was split horizontally so create a vertical then horizontal hallway
-            self.place_hallway(
-                left_room.center_y, right_room.center_y, left_room.center_x, True
-            )
-            self.place_hallway(
-                left_room.center_x, right_room.center_x, right_room.center_y, False
+            hallway_intersection_x, hallway_intersection_y = (
+                left_room.center_x,
+                right_room.center_y,
             )
 
-            # Return a random room since the top or bottom one can be connected on the
-            # next level
-            return left_room if bool(random.getrandbits(1)) else right_room
+        # Determine hallway width/height
+        half_hallway_size = HALLWAY_SIZE // 2
 
-    def place_hallway(
-        self, start_pos: int, end_pos: int, width_pos: int, is_vertical: bool
-    ) -> None:
+        # Set the base variables for the hallways
+        first_top_left = [
+            left_room.center_x - half_hallway_size,
+            left_room.center_y - half_hallway_size,
+        ]
+        first_bottom_right = [
+            left_room.center_x + half_hallway_size,
+            left_room.center_y + half_hallway_size,
+        ]
+        second_top_left = [
+            right_room.center_x - half_hallway_size,
+            right_room.center_y - half_hallway_size,
+        ]
+        second_bottom_right = [
+            right_room.center_x + half_hallway_size,
+            right_room.center_y + half_hallway_size,
+        ]
+
+        # Determine if we need to change the first hallway's points based on its
+        # orientation
+        if hallway_intersection_x >= left_room.center_x and self.split_vertical:
+            # First hallway is right
+            first_top_left[0] = left_room.x2 - 1
+            first_bottom_right[0] = hallway_intersection_x + half_hallway_size + 1
+        elif hallway_intersection_y >= left_room.center_y and not self.split_vertical:
+            # First hallway is down
+            first_top_left[1] = left_room.y2 - 1
+            first_bottom_right[1] = hallway_intersection_y + half_hallway_size + 1
+        elif hallway_intersection_x <= left_room.center_x and self.split_vertical:
+            # First hallway is left
+            first_top_left[0] = hallway_intersection_x - half_hallway_size - 1
+            first_bottom_right[0] = left_room.x1 + 1
+        elif hallway_intersection_y <= left_room.center_y and not self.split_vertical:
+            # First hallway is up
+            first_top_left[1] = hallway_intersection_y - half_hallway_size - 1
+            first_bottom_right[1] = left_room.y1 + 1
+
+        # Determine if we need to change the second hallway's points based on its
+        # orientation (or if we even need one at al)
+        valid = False
+        if (
+            hallway_intersection_x <= right_room.center_x
+            and not self.split_vertical
+            and hallway_intersection_x < right_room.x1
+        ):
+            # Second hallway is right
+            second_top_left[0] = hallway_intersection_x - half_hallway_size
+            second_bottom_right[0] = right_room.x1 + 1
+            valid = True
+        elif (
+            hallway_intersection_y <= right_room.center_y
+            and self.split_vertical
+            and hallway_intersection_y < right_room.y1
+        ):
+            # Second hallway is down
+            second_top_left[1] = hallway_intersection_y - half_hallway_size
+            second_bottom_right[1] = right_room.y1 + 1
+            valid = True
+        elif (
+            hallway_intersection_x >= right_room.center_x
+            and not self.split_vertical
+            and hallway_intersection_x > right_room.x2
+        ):
+            # Second hallway is left
+            second_top_left[0] = right_room.x2 - 1
+            second_bottom_right[0] = hallway_intersection_x + half_hallway_size
+            valid = True
+        elif (
+            hallway_intersection_y >= right_room.center_y
+            and self.split_vertical
+            and hallway_intersection_y > right_room.y2
+        ):
+            # Second hallway is up
+            second_top_left[1] = right_room.y2 - 1
+            second_bottom_right[1] = hallway_intersection_y + half_hallway_size
+            valid = True
+
+        # Place the hallways
+        first_hallway = Rect(
+            *first_top_left,
+            *first_bottom_right,
+        )
+        hallways.append(first_hallway)
+        self.place_rect(first_hallway)
+        if valid:
+            second_hallway = Rect(
+                *second_top_left,
+                *second_bottom_right,
+            )
+            hallways.append(second_hallway)
+            self.place_rect(second_hallway)
+
+        # Return a room, so it can be connected on the next level
+        if self.split_vertical:
+            return right_room
+        return left_room if bool(random.getrandbits(1)) else right_room
+
+    def place_rect(self, rect: Rect) -> None:
         """
-        Places a hallway in any direction from start_pos to end_pos with a width of
-        HALLWAY_WIDTH spread out around width_pos.
+        Places a rect in the 2D grid.
 
         Parameters
         ----------
-        start_pos: int
-            The starting coordinate for the hallway.
-        end_pos: int
-            The sending coordinate for the hallway.
-        width_pos: int
-            The coordinate which for the width to be spread out around.
-        is_vertical: bool
-            Whether the hallway is vertical or not.
+        rect: Rect
+            The rect to place in the 2D grid.
         """
-        # Determine the range for the width of the hallway
-        min_hallway_width, max_hallway_width = (
-            width_pos - int(np.floor(HALLWAY_WIDTH / 2)),
-            width_pos + int(np.ceil(HALLWAY_WIDTH / 2)),
-        )
+        # Get the width and height of the array
+        height, width = self.grid.shape
 
-        # Create the hallway
-        if is_vertical:
-            for y in range(start_pos - 1, end_pos + 1):
-                for x in range(min_hallway_width, max_hallway_width):
-                    if self.grid[y, x] == TileType.EMPTY.value:
-                        self.grid[y, x] = TileType.WALL.value
+        # Place the walls
+        temp = self.grid[
+            rect.y1 : min(rect.y2 + 1, height),
+            rect.x1 : min(rect.x2 + 1, width),
+        ]
+        temp[temp == TileType.EMPTY.value] = TileType.WALL.value
 
-            for y in range(start_pos, end_pos):
-                for x in range(min_hallway_width + 1, max_hallway_width - 1):
-                    self.grid[y, x] = TileType.FLOOR.value
-        else:
-            for x in range(start_pos - 1, end_pos + 1):
-                for y in range(min_hallway_width, max_hallway_width):
-                    if self.grid[y, x] == TileType.EMPTY.value:
-                        self.grid[y, x] = TileType.WALL.value
-
-            for x in range(start_pos, end_pos):
-                for y in range(min_hallway_width + 1, max_hallway_width - 1):
-                    self.grid[y, x] = TileType.FLOOR.value
+        # Place the floors. The ranges must be -1 in all directions since we don't want
+        # to overwrite the walls keeping the player in, but we still want to overwrite
+        # walls that block the path for hallways
+        self.grid[
+            rect.y1 + 1 : min(rect.y2, height - 1),
+            rect.x1 + 1 : min(rect.x2, width - 1),
+        ] = TileType.FLOOR.value
