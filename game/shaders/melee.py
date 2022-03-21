@@ -160,14 +160,12 @@ class MeleeShader:
             # python objects. To do this, we unpack the result buffer from the VRAM and
             # convert each item into 32-bit floats which can then be searched for in the
             # enemies list
-            f = [
+            return [
                 self.view.enemies[int(i)]
                 for i in struct.unpack(
                     f"{num_sprites_found}f",
                     self.result_buffer.read(size=num_sprites_found * 4),
                 )
             ]
-            print(f)
-            return f
         # No sprites found
         return []

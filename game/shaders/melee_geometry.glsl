@@ -35,9 +35,10 @@ void main() {
     // Only emit a line between the sprite and origin when within the distance
     if (distance(v_position[0], origin) > maxDistance) return;
     // Get the angle between the origin and the target. This needs to be in the format arcade uses
-    float x_diff = distance(v_position[0].x, origin_relative.x);
-    float y_diff = distance(v_position[0].y, origin_relative.y);
+    float x_diff = v_position[0].x - origin.x;
+    float y_diff = v_position[0].y - origin.y;
     float angle = -degrees(atan(x_diff, y_diff)) + 90;
+    // Make sure the angle is between 0 and 360
     if (angle < 0) {
         angle += 360;
     }
