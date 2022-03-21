@@ -9,4 +9,5 @@ venv/
 .mypy_cache/
 
 # Temp files
-melee_temp/
+game/melee_temp/
+game/resources-TEMP/
