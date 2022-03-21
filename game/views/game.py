@@ -15,12 +15,13 @@ from constants import (
     ENEMY_ATTACK_RANGE,
     ENEMY_HEALTH,
     ENEMY_VIEW_DISTANCE,
+    FACING_LEFT,
+    FACING_RIGHT,
     PLAYER_ATTACK_RANGE,
     PLAYER_HEALTH,
     PLAYER_MELEE_DEGREE,
     PLAYER_MOVEMENT_FORCE,
-    SPRITE_HEIGHT,
-    SPRITE_WIDTH,
+    SPRITE_SIZE,
     TileType,
 )
 from entities.ai import FollowLineOfSight
@@ -202,14 +203,14 @@ class Game(arcade.View):
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
+                    ENEMY_VIEW_DISTANCE * SPRITE_SIZE,
                     DEBUG_VIEW_DISTANCE,
                 )
                 # Draw the enemy's attack distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    ENEMY_ATTACK_RANGE * SPRITE_WIDTH,
+                    ENEMY_ATTACK_RANGE * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
 
@@ -219,15 +220,15 @@ class Game(arcade.View):
             high_angle = math.radians(self.player.direction + half_angle)
             point_low = (
                 self.player.center_x
-                + math.cos(low_angle) * SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
+                + math.cos(low_angle) * SPRITE_SIZE * PLAYER_ATTACK_RANGE,
                 self.player.center_y
-                + math.sin(low_angle) * SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
+                + math.sin(low_angle) * SPRITE_SIZE * PLAYER_ATTACK_RANGE,
             )
             point_high = (
                 self.player.center_x
-                + math.cos(high_angle) * SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
+                + math.cos(high_angle) * SPRITE_SIZE * PLAYER_ATTACK_RANGE,
                 self.player.center_y
-                + math.sin(high_angle) * SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
+                + math.sin(high_angle) * SPRITE_SIZE * PLAYER_ATTACK_RANGE,
             )
             # Draw both boundary lines for the player fov
             arcade.draw_line(
@@ -249,7 +250,7 @@ class Game(arcade.View):
                 self.player.center_y,
                 math.hypot(point_high[0] - point_low[0], point_high[1] - point_low[1])
                 * 2,
-                PLAYER_ATTACK_RANGE * SPRITE_WIDTH * 2,
+                PLAYER_ATTACK_RANGE * SPRITE_SIZE * 2,
                 DEBUG_ATTACK_DISTANCE,
                 math.degrees(low_angle),
                 math.degrees(high_angle),
@@ -425,7 +426,7 @@ class Game(arcade.View):
         if angle < 0:
             angle += 360
         self.player.direction = angle
-        self.player.facing = 1 if 90 <= angle <= 270 else 0
+        self.player.facing = FACING_LEFT if 90 <= angle <= 270 else FACING_RIGHT
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
@@ -447,10 +448,10 @@ class Game(arcade.View):
         upper_camera_x, upper_camera_y = (
             upper_x
             - self.camera.viewport_width
-            + (self.camera.viewport_width / SPRITE_WIDTH),
+            + (self.camera.viewport_width / SPRITE_SIZE),
             upper_y
             - self.camera.viewport_height
-            + (self.camera.viewport_height / SPRITE_HEIGHT),
+            + (self.camera.viewport_height / SPRITE_SIZE),
         )
 
         # Store the old position, so we can check if it has changed

@@ -12,7 +12,7 @@ from constants import (
     ATTACK_COOLDOWN,
     ENEMY_ATTACK_RANGE,
     ENEMY_VIEW_DISTANCE,
-    SPRITE_WIDTH,
+    SPRITE_SIZE,
 )
 from entities.ai import FollowLineOfSight
 from entities.entity import Entity, EntityID
@@ -104,7 +104,7 @@ class Enemy(Entity):
         y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
         hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
         if (
-            hypot_distance <= ENEMY_ATTACK_RANGE * SPRITE_WIDTH
+            hypot_distance <= ENEMY_ATTACK_RANGE * SPRITE_SIZE
             and self.time_since_last_attack >= ATTACK_COOLDOWN
         ):
             # Enemy can attack so reset the counter and attack
@@ -118,5 +118,5 @@ class Enemy(Entity):
             (self.center_x, self.center_y),
             (self.game.player.center_x, self.game.player.center_y),
             self.game.wall_sprites,
-            ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
+            ENEMY_VIEW_DISTANCE * SPRITE_SIZE,
         )

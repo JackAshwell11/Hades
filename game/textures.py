@@ -7,7 +7,7 @@ import pathlib
 import arcade
 
 # Custom
-from constants import SPRITE_HEIGHT, SPRITE_WIDTH
+from constants import SPRITE_SIZE
 
 
 def pos_to_pixel(x: int, y: int) -> tuple[float, float]:
@@ -27,14 +27,14 @@ def pos_to_pixel(x: int, y: int) -> tuple[float, float]:
         The x and y position of a sprite on the screen.
     """
     return (
-        x * SPRITE_WIDTH + SPRITE_WIDTH / 2,
-        y * SPRITE_HEIGHT + SPRITE_HEIGHT / 2,
+        x * SPRITE_SIZE + SPRITE_SIZE / 2,
+        y * SPRITE_SIZE + SPRITE_SIZE / 2,
     )
 
 
 # Create the texture path
 texture_path = (
-    pathlib.Path(__file__).resolve().parent.joinpath("resources").joinpath("images")
+    pathlib.Path(__file__).resolve().parent.joinpath("resources").joinpath("textures")
 )
 
 # Create a dictionary to hold all the filenames for the non-moving textures
@@ -43,7 +43,6 @@ non_moving_filenames = {
         "floor.png",
         "wall.png",
     ],
-    "attack": ["bullet.png", "cone.png"],
 }
 
 # Create a dictionary to hold all the filenames for the non-moving textures
