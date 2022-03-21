@@ -17,6 +17,7 @@ from constants import (
     ENEMY_VIEW_DISTANCE,
     PLAYER_ATTACK_RANGE,
     PLAYER_HEALTH,
+    PLAYER_MELEE_DEGREE,
     PLAYER_MOVEMENT_FORCE,
     SPRITE_HEIGHT,
     SPRITE_WIDTH,
@@ -197,23 +198,62 @@ class Game(arcade.View):
         # Draw the debug items
         if self.debug_mode:
             for enemy in self.enemies:
+                # Draw the enemy's view distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
                     ENEMY_VIEW_DISTANCE * SPRITE_WIDTH,
                     DEBUG_VIEW_DISTANCE,
                 )
+                # Draw the enemy's attack distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
                     ENEMY_ATTACK_RANGE * SPRITE_WIDTH,
                     DEBUG_ATTACK_DISTANCE,
                 )
-            arcade.draw_circle_outline(
+
+            # Calculate the two boundary points for the player fov
+            half_angle = PLAYER_MELEE_DEGREE // 2
+            low_angle = math.radians(self.player.direction - half_angle)
+            high_angle = math.radians(self.player.direction + half_angle)
+            point_low = (
+                self.player.center_x
+                + math.cos(low_angle) * SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
+                self.player.center_y
+                + math.sin(low_angle) * SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
+            )
+            point_high = (
+                self.player.center_x
+                + math.cos(high_angle) * SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
+                self.player.center_y
+                + math.sin(high_angle) * SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
+            )
+            # Draw both boundary lines for the player fov
+            arcade.draw_line(
                 self.player.center_x,
                 self.player.center_y,
-                SPRITE_WIDTH * PLAYER_ATTACK_RANGE,
-                DEBUG_VIEW_DISTANCE,
+                *point_low,
+                DEBUG_ATTACK_DISTANCE,
+            )
+            arcade.draw_line(
+                self.player.center_x,
+                self.player.center_y,
+                *point_high,
+                DEBUG_ATTACK_DISTANCE,
+            )
+            # Draw the arc between the two making sure to double the width and height
+            # since the radius is calculated, but we want the diameter
+            arcade.draw_arc_outline(
+                self.player.center_x,
+                self.player.center_y,
+                math.hypot(point_high[0] - point_low[0], point_high[1] - point_low[1])
+                * 2,
+                PLAYER_ATTACK_RANGE * SPRITE_WIDTH * 2,
+                DEBUG_ATTACK_DISTANCE,
+                math.degrees(low_angle),
+                math.degrees(high_angle),
+                2,
             )
 
         # Draw the health on the screen
