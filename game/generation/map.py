@@ -151,15 +151,20 @@ class Map:
         areas = [area[1] for area in rect_areas]
         total_area = sum(areas)
 
-        # Get all the destination rects
-        for rect in np.random.choice(
-            [rect[0] for rect in rect_areas],
-            self.map_constants["enemy count"],
-            p=[area / total_area for area in areas],
-        ):
-            self.place_tile(TileType.ENEMY, rect)
+        # Place the enemies using a counter to make sure other tiles aren't replaced
+        enemies_spawned = 0
+        while enemies_spawned < self.map_constants["enemy count"]:
+            if self.place_tile(
+                TileType.ENEMY,
+                np.random.choice(
+                    [rect[0] for rect in rect_areas],
+                    p=[area / total_area for area in areas],
+                ),
+            ):
+                # Enemy placed
+                enemies_spawned += 1
 
-    def place_tile(self, entity: TileType, rect: Rect) -> None:
+    def place_tile(self, entity: TileType, rect: Rect) -> bool:
         """
         Places a given entity in a random position in a given rect.
 
@@ -169,6 +174,11 @@ class Map:
             The entity to place in the grid.
         rect: Rect
             The rect object to place the tile in.
+
+        Returns
+        -------
+        bool
+            Whether or not an enemy was placed.
         """
         # Make sure variables needed are valid
         assert self.grid is not None
@@ -179,5 +189,13 @@ class Map:
             np.random.randint(rect.y1 + 1, rect.y2 - 1),
         )
 
+        # Check if the chosen position is already taken
+        if self.grid[position_y, position_x] != TileType.FLOOR.value:
+            # Already taken
+            return False
+
         # Place the entity in the random position
         self.grid[position_y, position_x] = entity.value
+
+        # Return true so we know an enemy has been placed
+        return True

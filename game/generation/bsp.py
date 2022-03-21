@@ -118,7 +118,14 @@ class Leaf:
         )
 
     def split(self, debug_lines: bool = False) -> None:
-        """Splits a container either horizontally or vertically."""
+        """
+        Splits a container either horizontally or vertically.
+
+        Parameters
+        ----------
+        debug_lines: bool
+            Whether or not to draw the debug lines.
+        """
         # Test if this container is already split or not. This container will always
         # have a left and right leaf when splitting since the checks later on in this
         # function ensure it is big enough to be split
