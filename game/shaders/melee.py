@@ -6,7 +6,7 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
-from constants import PLAYER_ATTACK_RANGE, PLAYER_MELEE_DEGREE, SPRITE_SIZE
+from constants import PLAYER_MELEE_DEGREE, PLAYER_MELEE_RANGE, SPRITE_SIZE
 
 if TYPE_CHECKING:
     from arcade import ArcadeContext
@@ -69,7 +69,7 @@ class MeleeShader:
             geometry_shader=open(geometry_path).read(),
         )
         # Configure program with maximum distance and angle range
-        self.program["max_distance"] = PLAYER_ATTACK_RANGE * SPRITE_SIZE
+        self.program["max_distance"] = PLAYER_MELEE_RANGE * SPRITE_SIZE
         self.program["half_angle_range"] = PLAYER_MELEE_DEGREE // 2
 
         # We now need a buffer that can capture the result from the shader and process

@@ -17,9 +17,9 @@ from constants import (
     ENEMY_VIEW_DISTANCE,
     FACING_LEFT,
     FACING_RIGHT,
-    PLAYER_ATTACK_RANGE,
     PLAYER_HEALTH,
     PLAYER_MELEE_DEGREE,
+    PLAYER_MELEE_RANGE,
     PLAYER_MOVEMENT_FORCE,
     SPRITE_SIZE,
     TileType,
@@ -220,15 +220,15 @@ class Game(arcade.View):
             high_angle = math.radians(self.player.direction + half_angle)
             point_low = (
                 self.player.center_x
-                + math.cos(low_angle) * SPRITE_SIZE * PLAYER_ATTACK_RANGE,
+                + math.cos(low_angle) * SPRITE_SIZE * PLAYER_MELEE_RANGE,
                 self.player.center_y
-                + math.sin(low_angle) * SPRITE_SIZE * PLAYER_ATTACK_RANGE,
+                + math.sin(low_angle) * SPRITE_SIZE * PLAYER_MELEE_RANGE,
             )
             point_high = (
                 self.player.center_x
-                + math.cos(high_angle) * SPRITE_SIZE * PLAYER_ATTACK_RANGE,
+                + math.cos(high_angle) * SPRITE_SIZE * PLAYER_MELEE_RANGE,
                 self.player.center_y
-                + math.sin(high_angle) * SPRITE_SIZE * PLAYER_ATTACK_RANGE,
+                + math.sin(high_angle) * SPRITE_SIZE * PLAYER_MELEE_RANGE,
             )
             # Draw both boundary lines for the player fov
             arcade.draw_line(
@@ -250,7 +250,7 @@ class Game(arcade.View):
                 self.player.center_y,
                 math.hypot(point_high[0] - point_low[0], point_high[1] - point_low[1])
                 * 2,
-                PLAYER_ATTACK_RANGE * SPRITE_SIZE * 2,
+                PLAYER_MELEE_RANGE * SPRITE_SIZE * 2,
                 DEBUG_ATTACK_DISTANCE,
                 math.degrees(low_angle),
                 math.degrees(high_angle),
