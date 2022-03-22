@@ -181,5 +181,4 @@ class Entity(arcade.Sprite):
             The entities to deal damage to.
         """
         # Deal damage to every entity in the target list
-        for entity in target:
-            print(entity)
+        print(target)

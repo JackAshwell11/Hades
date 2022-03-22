@@ -69,7 +69,7 @@ class MeleeShader:
             geometry_shader=open(geometry_path).read(),
         )
         # Configure program with maximum distance and angle range
-        self.program["maxDistance"] = PLAYER_ATTACK_RANGE * SPRITE_SIZE
+        self.program["max_distance"] = PLAYER_ATTACK_RANGE * SPRITE_SIZE
         self.program["half_angle_range"] = PLAYER_MELEE_DEGREE // 2
 
         # We now need a buffer that can capture the result from the shader and process
@@ -169,3 +169,11 @@ class MeleeShader:
             ]
         # No sprites found
         return []
+
+
+# TODO:
+#
+# There definitely seems to be a bug with this. Looks like it only occurs when attacking
+# an enemy from the side, need to find the cause of this.
+#
+# Also try to improve parts of the geometry shader so it is easier to work with.
