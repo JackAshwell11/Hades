@@ -235,9 +235,6 @@ class Item(Tile):
         The y position of the item in the game map.
     """
 
-    # Class variables
-    raw_texture: arcade.Texture | None = None
-
     def __init__(
         self,
         game: Game,
