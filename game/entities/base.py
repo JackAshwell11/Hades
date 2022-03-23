@@ -182,3 +182,70 @@ class Entity(arcade.Sprite):
         """
         # Deal damage to every entity in the target list
         print(target)
+
+
+class Tile(arcade.Sprite):
+    """
+    Represents a tile in the game.
+
+    Parameters
+    ----------
+    x: int
+        The x position of the tile in the game map.
+    y: int
+        The y position of the tile in the game map.
+
+    Attributes
+    ----------
+    center_x: float
+        The x position of the tile on the screen.
+    center_y: float
+        The y position of the tile on the screen.
+    texture: arcade.Texture
+        The sprite which represents this tile.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture | None = None
+
+    def __init__(
+        self,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(scale=SPRITE_SCALE)
+        self.center_x, self.center_y = pos_to_pixel(x, y)
+        self.texture: arcade.Texture = self.raw_texture
+
+    def __repr__(self) -> str:
+        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
+
+
+class Item(Tile):
+    """
+    Represents an item in the game.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the item can have a reference to it.
+    x: int
+        The x position of the item in the game map.
+    y: int
+        The y position of the item in the game map.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture | None = None
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(x, y)
+        self.game: Game = game
+
+    def __repr__(self) -> str:
+        return f"<Item (Position=({self.center_x}, {self.center_y}))>"

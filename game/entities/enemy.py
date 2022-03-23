@@ -15,7 +15,7 @@ from constants import (
     SPRITE_SIZE,
 )
 from entities.ai import FollowLineOfSight
-from entities.entity import Entity, EntityID
+from entities.base import Entity, EntityID
 
 if TYPE_CHECKING:
     from views.game import Game

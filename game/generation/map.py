@@ -7,11 +7,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 from constants import (
     BASE_ENEMY_COUNT,
+    BASE_ITEM_COUNT,
     BASE_MAP_HEIGHT,
     BASE_MAP_WIDTH,
     BASE_ROOM,
     BASE_SPLIT_COUNT,
     DEBUG_LINES,
+    ENEMY_DISTRIBUTION,
+    ITEM_DISTRIBUTION,
     LARGE_ROOM,
     SMALL_ROOM,
     TileType,
@@ -35,9 +38,10 @@ class Map:
 
     Attributes
     ----------
-    map_constants: dict[str, int]
+    map_constants: dict[TileType | str, int]
         A mapping of constant name to value. These constants are width, height, split
-        count (how many times the bsp should split) and enemy count.
+        count (how many times the bsp should split) and the counts for the different
+        enemies and items.
     grid: np.ndarray | None
         The 2D grid which represents the dungeon.
     bsp: Leaf | None
@@ -53,7 +57,7 @@ class Map:
 
     def __init__(self, level: int) -> None:
         self.level: int = level
-        self.map_constants: dict[str, int] = self.generate_constants()
+        self.map_constants: dict[TileType | str, int] = self.generate_constants()
         self.grid: np.ndarray | None = None
         self.bsp: Leaf | None = None
         self.player_spawn: tuple[int, int] | None = None
@@ -66,24 +70,46 @@ class Map:
             f"<Map (Width={self.map_constants['width']})"
             f" (Height={self.map_constants['height']}) (Split"
             f" count={self.map_constants['split count']}) (Enemy"
-            f" count={self.map_constants['enemy count']})>"
+            f" count={self.map_constants['enemy count']}) (Item"
+            f" count={self.map_constants['item count']})>"
         )
 
-    def generate_constants(self) -> dict[str, int]:
+    def generate_constants(self) -> dict[TileType | str, int]:
         """
         Generates the needed constants based on a given level.
 
         Returns
         -------
-        dict[str, int]
+        dict[TileType | str, int]
             The generated constants.
         """
-        return {
-            "width": int(np.ceil(BASE_MAP_WIDTH * 1.2**self.level)),
-            "height": int(np.ceil(BASE_MAP_HEIGHT * 1.2**self.level)),
-            "split count": int(np.ceil(BASE_SPLIT_COUNT * 1.5**self.level)),
-            "enemy count": int(np.ceil(BASE_ENEMY_COUNT * 1.1**self.level)),
+        # Create the counts for the enemies and items
+        enemy_count = int(np.round(BASE_ENEMY_COUNT * 1.1**self.level))
+        item_count = int(np.round(BASE_ITEM_COUNT * 1.1**self.level))
+
+        # Create the dictionary to hold the counts for each enemy and item
+        enemy_dict: dict[TileType | str, int] = {
+            key: int(np.ceil(value * enemy_count))
+            for key, value in ENEMY_DISTRIBUTION.items()
         }
+        enemy_dict.update(
+            {
+                key: int(np.ceil(value * item_count))
+                for key, value in ITEM_DISTRIBUTION.items()
+            }
+        )
+
+        # Create the generation constants dict
+        generation_constants: dict[TileType | str, int] = {
+            "width": int(np.round(BASE_MAP_WIDTH * 1.2**self.level)),
+            "height": int(np.round(BASE_MAP_HEIGHT * 1.2**self.level)),
+            "split count": int(np.round(BASE_SPLIT_COUNT * 1.5**self.level)),
+            "enemy count": enemy_count,
+            "item count": item_count,
+        }
+
+        # Merge the enemy/item dict and generation constants dict then return the result
+        return generation_constants | enemy_dict
 
     def make_map(self) -> None:
         """Function which manages the map generation for a specified level."""
@@ -143,26 +169,73 @@ class Map:
             ((rect, rect.width * rect.height) for rect in rects),
             key=lambda x: x[1],
         )
+        total_area = sum(area[1] for area in rect_areas)
 
         # Place the player spawn in the smallest room
         self.place_tile(TileType.PLAYER, rect_areas[0][0])
 
-        # Get the total area
-        areas = [area[1] for area in rect_areas]
-        total_area = sum(areas)
+        # Place the enemies
+        self.place_enemies(
+            rect_areas,
+            [area[1] / total_area for area in rect_areas],
+        )
 
-        # Place the enemies using a counter to make sure other tiles aren't replaced
-        enemies_spawned = 0
-        while enemies_spawned < self.map_constants["enemy count"]:
-            if self.place_tile(
-                TileType.ENEMY,
-                np.random.choice(
-                    [rect[0] for rect in rect_areas],
-                    p=[area / total_area for area in areas],
-                ),
-            ):
-                # Enemy placed
-                enemies_spawned += 1
+        # Place the items
+        self.place_items(rect_areas)
+
+    def place_enemies(
+        self,
+        rect_areas: list[tuple[Rect, int]],
+        area_probabilities: list[float],
+    ) -> None:
+        """
+        Places the enemies in the grid making sure other tiles aren't replaced.
+
+        Parameters
+        ----------
+        rect_areas: list[tuple[Rect, int]]
+            A sorted list of rects and their areas.
+        area_probabilities: list[float]
+            A list of areas probabilities. This corresponds to rect_areas.
+        """
+        # Repeatedly place an enemy type. If they are placed, we can increment the
+        # counter. Otherwise, continue
+        for enemy in ENEMY_DISTRIBUTION.keys():
+            # Get the count for this enemy type
+            count = self.map_constants[enemy]
+            enemies_placed = 0
+            while enemies_placed < count:
+                if self.place_tile(
+                    enemy,
+                    np.random.choice(
+                        [rect[0] for rect in rect_areas], p=area_probabilities
+                    ),
+                ):
+                    # Enemy placed
+                    enemies_placed += 1
+
+    def place_items(self, rect_areas: list[tuple[Rect, int]]) -> None:
+        """
+        Places the items in the grid making sure other tiles aren't replaced.
+
+        Parameters
+        ----------
+        rect_areas: list[tuple[Rect, int]]
+            A sorted list of rects and their areas. This is only used to pick a random
+            rect, the items aren't actually placed based on weights.
+        """
+        # Repeatedly place an item type. If they are placed, we can increment the
+        # counter. Otherwise, continue
+        for item in ITEM_DISTRIBUTION.keys():
+            # Get the count for this item type
+            count = self.map_constants[item]
+            items_placed = 0
+            while items_placed < count:
+                if self.place_tile(
+                    item, np.random.choice([rect[0] for rect in rect_areas])
+                ):
+                    # Item placed
+                    items_placed += 1
 
     def place_tile(self, entity: TileType, rect: Rect) -> bool:
         """

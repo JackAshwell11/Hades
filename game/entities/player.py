@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from entities.entity import Entity, EntityID
+from entities.base import Entity, EntityID
 from shaders.melee import MeleeShader
 
 if TYPE_CHECKING:

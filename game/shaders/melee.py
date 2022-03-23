@@ -68,7 +68,8 @@ class MeleeShader:
             vertex_shader=open(vertex_path).read(),
             geometry_shader=open(geometry_path).read(),
         )
-        # Configure program with maximum distance and angle range
+
+        # Configure program with the maximum distance and the angle range
         self.program["max_distance"] = PLAYER_MELEE_RANGE * SPRITE_SIZE
         self.program["half_angle_range"] = PLAYER_MELEE_DEGREE // 2
 

@@ -4,40 +4,57 @@ from __future__ import annotations
 import arcade
 
 # Custom
-from constants import SPRITE_SCALE
-from textures import pos_to_pixel
+from entities.base import Tile
+from textures import non_moving_textures
 
 
-class Tile(arcade.Sprite):
+class Floor(Tile):
     """
-    Represents a tile in the game.
+    Represents a floor tile in the game.
 
     Parameters
     ----------
     x: int
-        The x position of the tile in the game map.
+        The x position of the floor tile in the game map.
     y: int
-        The y position of the tile in the game map.
-    texture: arcade.Texture
-        The sprite which represents this tile.
-
-    Attributes
-    ----------
-    center_x: float
-        The x position of the tile on the screen.
-    center_y: float
-        The y position of the tile on the screen.
+        The y position of the floor tile in the game map.
     """
+
+    # Class variables
+    raw_texture: arcade.Texture | None = non_moving_textures["tiles"][0]
 
     def __init__(
         self,
         x: int,
         y: int,
-        texture: arcade.Texture,
     ) -> None:
-        super().__init__(scale=SPRITE_SCALE)
-        self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.texture: arcade.Texture = texture
+        super().__init__(x, y)
 
     def __repr__(self) -> str:
-        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
+        return f"<Floor (Position=({self.center_x}, {self.center_y}))>"
+
+
+class Wall(Tile):
+    """
+    Represents a wall tile in the game.
+
+    Parameters
+    ----------
+    x: int
+        The x position of the wall tile in the game map.
+    y: int
+        The y position of the wall tile in the game map.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture | None = non_moving_textures["tiles"][1]
+
+    def __init__(
+        self,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(x, y)
+
+    def __repr__(self) -> str:
+        return f"<Wall (Position=({self.center_x}, {self.center_y}))>"

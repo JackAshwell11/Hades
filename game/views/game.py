@@ -26,11 +26,12 @@ from constants import (
 )
 from entities.ai import FollowLineOfSight
 from entities.enemy import Enemy
+from entities.item import HealthPotion, Shop
 from entities.player import Player
-from entities.tile import Tile
+from entities.tile import Floor, Wall
 from generation.map import Map
 from physics import PhysicsEngine
-from textures import moving_textures, non_moving_textures, pos_to_pixel
+from textures import moving_textures, pos_to_pixel
 
 
 class Game(arcade.View):
@@ -48,10 +49,13 @@ class Game(arcade.View):
         The game map for the current level.
     player: Player | None
         The sprite for the playable character in the game.
-    floor_sprites: arcade.SpriteList
-        The sprite list for the floor sprites.
     wall_sprites: arcade.SpriteList
-        The sprite list for the wall sprites.
+        The sprite list for the wall sprites. This is only used for updating the melee
+        shader.
+    tile_sprites: arcade.SpriteList
+        The sprite list for the tile sprites.
+    bullet_sprites: arcade.SpriteList
+        The sprite list for the bullet sprites.
     enemies: arcade.SpriteList
         The sprite list for the enemy sprites.
     physics_engine: PhysicsEngine | None
@@ -77,8 +81,8 @@ class Game(arcade.View):
         self.debug_mode: bool = debug_mode
         self.game_map: Map | None = None
         self.player: Player | None = None
-        self.floor_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
+        self.tile_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList(
             use_spatial_hash=True
         )
@@ -120,13 +124,11 @@ class Game(arcade.View):
                 # Determine which type the tile is
                 match x:
                     case TileType.FLOOR.value:
-                        self.floor_sprites.append(
-                            Tile(count_x, count_y, non_moving_textures["tiles"][0])
-                        )
+                        self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.WALL.value:
-                        self.wall_sprites.append(
-                            Tile(count_x, count_y, non_moving_textures["tiles"][1])
-                        )
+                        wall = Wall(count_x, count_y)
+                        self.wall_sprites.append(wall)
+                        self.tile_sprites.append(wall)
                     case TileType.PLAYER.value:
                         self.player = Player(
                             self,
@@ -135,9 +137,7 @@ class Game(arcade.View):
                             moving_textures["player"],
                             PLAYER_HEALTH,
                         )
-                        self.floor_sprites.append(
-                            Tile(count_x, count_y, non_moving_textures["tiles"][0])
-                        )
+                        self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.ENEMY.value:
                         self.enemies.append(
                             Enemy(
@@ -149,9 +149,13 @@ class Game(arcade.View):
                                 FollowLineOfSight(),
                             )
                         )
-                        self.floor_sprites.append(
-                            Tile(count_x, count_y, non_moving_textures["tiles"][0])
-                        )
+                        self.tile_sprites.append(Floor(count_x, count_y))
+                    case TileType.HEALTH_POTION.value:
+                        self.tile_sprites.append(Floor(count_x, count_y))
+                        self.tile_sprites.append(HealthPotion(self, count_x, count_y))
+                    case TileType.SHOP.value:
+                        self.tile_sprites.append(Floor(count_x, count_y))
+                        self.tile_sprites.append(Shop(self, count_x, count_y))
 
         # Make sure the player was actually created
         assert self.player is not None
@@ -190,11 +194,10 @@ class Game(arcade.View):
         self.camera.use()
 
         # Draw the game map
-        self.floor_sprites.draw(pixelated=True)
-        self.wall_sprites.draw(pixelated=True)
+        self.tile_sprites.draw(pixelated=True)
         self.bullet_sprites.draw(pixelated=True)
-        self.player.draw(pixelated=True)
         self.enemies.draw(pixelated=True)
+        self.player.draw(pixelated=True)
 
         # Draw the debug items
         if self.debug_mode:
@@ -394,8 +397,8 @@ class Game(arcade.View):
         ):
             # Reset the player's counter
             self.player.time_since_last_attack = 0
-            # self.player.ranged_attack(self.bullet_sprites)
-            self.player.run_melee_shader()
+            self.player.ranged_attack(self.bullet_sprites)
+            # self.player.run_melee_shader()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """

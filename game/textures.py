@@ -43,6 +43,10 @@ non_moving_filenames = {
         "floor.png",
         "wall.png",
     ],
+    "items": [
+        "health_potion.png",
+        "shop.png",
+    ],
 }
 
 # Create a dictionary to hold all the filenames for the non-moving textures

@@ -10,7 +10,7 @@ import arcade
 from constants import ENEMY_MOVEMENT_FORCE
 
 if TYPE_CHECKING:
-    from entities.entity import Entity
+    from entities.base import Entity
     from entities.player import Player
 
 

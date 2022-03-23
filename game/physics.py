@@ -8,10 +8,10 @@ import arcade
 
 # Custom
 from constants import ENEMY_DAMAGE, PLAYER_DAMAGE
-from entities.entity import EntityID
+from entities.base import EntityID
 
 if TYPE_CHECKING:
-    from entities.entity import Bullet, Entity
+    from entities.base import Bullet, Entity
     from entities.player import Player
     from entities.tile import Tile
 
