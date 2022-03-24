@@ -48,6 +48,7 @@ class Wall(Tile):
 
     # Class variables
     raw_texture: arcade.Texture | None = non_moving_textures["tiles"][1]
+    is_static: bool = True
 
     def __init__(
         self,

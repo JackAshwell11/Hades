@@ -207,6 +207,7 @@ class Tile(arcade.Sprite):
 
     # Class variables
     raw_texture: arcade.Texture | None = None
+    is_static: bool = False
 
     def __init__(
         self,
@@ -246,3 +247,8 @@ class Item(Tile):
 
     def __repr__(self) -> str:
         return f"<Item (Position=({self.center_x}, {self.center_y}))>"
+
+    def item_activate(self) -> None:
+        """Called when the item is activated by the player. Override this to add item
+        functionality."""
+        raise NotImplementedError

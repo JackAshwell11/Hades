@@ -132,7 +132,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
     def setup(
         self,
         player: Entity,
-        wall_list: arcade.SpriteList,
+        tile_list: arcade.SpriteList,
         enemy_list: arcade.SpriteList,
     ) -> None:
         """
@@ -142,30 +142,33 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         ----------
         player: Entity
             The player entity.
-        wall_list: arcade.SpriteList
-            The sprite list for the wall sprites.
+        tile_list: arcade.SpriteList
+            The sprite list for the tile sprites. This includes both static and
+            non-static sprites.
         enemy_list: arcade.SpriteList
             The sprite list for the enemy sprites
         """
         # Add the player sprite to the physics engine
         self.add_sprite(
             player,
-            moment_of_inertia=arcade.PymunkPhysicsEngine.MOMENT_INF,
+            moment_of_inertia=self.MOMENT_INF,
             damping=self.damping,
             collision_type="player",
         )
 
-        # Add the wall sprites to the physics engine
-        self.add_sprite_list(
-            wall_list,
-            body_type=arcade.PymunkPhysicsEngine.STATIC,
-            collision_type="wall",
-        )
+        # Add the static tile sprites to the physics engine
+        for tile in tile_list:
+            if tile.is_static:  # noqa
+                self.add_sprite(
+                    tile,
+                    body_type=self.STATIC,
+                    collision_type="wall",
+                )
 
         # Add the enemy sprites to the physics engine
         self.add_sprite_list(
             enemy_list,
-            moment_of_intertia=arcade.PymunkPhysicsEngine.MOMENT_INF,
+            moment_of_intertia=self.MOMENT_INF,
             damping=self.damping,
             collision_type="enemy",
         )

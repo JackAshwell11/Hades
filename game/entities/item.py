@@ -42,6 +42,10 @@ class HealthPotion(Item):
     def __repr__(self) -> str:
         return f"<HealthPotion (Position=({self.center_x}, {self.center_y}))>"
 
+    def item_activate(self) -> None:
+        """Called when the item is activated by the player."""
+        print("item")
+
 
 class Shop(Item):
     """
@@ -59,6 +63,7 @@ class Shop(Item):
 
     # Class variables
     raw_texture: arcade.Texture = non_moving_textures["items"][1]
+    is_static: bool = True
 
     def __init__(
         self,
@@ -70,3 +75,7 @@ class Shop(Item):
 
     def __repr__(self) -> str:
         return f"<Shop (Position=({self.center_x}, {self.center_y}))>"
+
+    def item_activate(self) -> None:
+        """Called when the item is activated by the player."""
+        print("shop")

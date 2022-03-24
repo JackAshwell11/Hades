@@ -2,6 +2,7 @@ from __future__ import annotations
 
 # Builtin
 import math
+from typing import TYPE_CHECKING
 
 # Pip
 import arcade
@@ -33,6 +34,9 @@ from generation.map import Map
 from physics import PhysicsEngine
 from textures import moving_textures, pos_to_pixel
 
+if TYPE_CHECKING:
+    from entities.base import Item
+
 
 class Game(arcade.View):
     """
@@ -53,7 +57,11 @@ class Game(arcade.View):
         The sprite list for the wall sprites. This is only used for updating the melee
         shader.
     tile_sprites: arcade.SpriteList
-        The sprite list for the tile sprites.
+        The sprite list for the tile sprites. This is used for drawing the different
+        tiles.
+    item_sprites: arcade.SpriteList
+        The sprite list for the item sprites. This is only used for detecting player
+        activity around the item.
     bullet_sprites: arcade.SpriteList
         The sprite list for the bullet sprites.
     enemies: arcade.SpriteList
@@ -65,7 +73,9 @@ class Game(arcade.View):
     gui_camera: arcade.Camera | None
         The camera used for visualising the GUI elements.
     health_text: arcade.Text
-        The text object used for displaying the player's health.gf
+        The text object used for displaying the player's health.
+    nearest_item: Item | None
+        Stores the nearest item so the player can activate it.
     left_pressed: bool
         Whether the left key is pressed or not.
     right_pressed: bool
@@ -83,6 +93,7 @@ class Game(arcade.View):
         self.player: Player | None = None
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
+        self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList(
             use_spatial_hash=True
         )
@@ -95,6 +106,14 @@ class Game(arcade.View):
             10,
             10,
             arcade.color.WHITE,
+            20,
+        )
+        self.nearest_item: Item | None = None
+        self.item_text: arcade.Text = arcade.Text(
+            "Press E to activate",
+            self.window.width / 2 - 150,
+            self.window.height / 2 - 200,
+            arcade.color.BLACK,
             20,
         )
         self.left_pressed: bool = False
@@ -152,17 +171,21 @@ class Game(arcade.View):
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.HEALTH_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
-                        self.tile_sprites.append(HealthPotion(self, count_x, count_y))
+                        health_potion = HealthPotion(self, count_x, count_y)
+                        self.tile_sprites.append(health_potion)
+                        self.item_sprites.append(health_potion)
                     case TileType.SHOP.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
-                        self.tile_sprites.append(Shop(self, count_x, count_y))
+                        shop = Shop(self, count_x, count_y)
+                        self.tile_sprites.append(shop)
+                        self.item_sprites.append(shop)
 
         # Make sure the player was actually created
         assert self.player is not None
 
         # Create the physics engine
         self.physics_engine = PhysicsEngine(DAMPING)
-        self.physics_engine.setup(self.player, self.wall_sprites, self.enemies)
+        self.physics_engine.setup(self.player, self.tile_sprites, self.enemies)
 
         # Set up the Camera
         self.camera = arcade.Camera(self.window.width, self.window.height)
@@ -174,6 +197,8 @@ class Game(arcade.View):
         # Check if any enemy has line of sight
         for enemy in self.enemies:
             enemy.check_line_of_sight()  # noqa
+
+        self.window.register_event_type("on_item_activate")
 
     def on_show(self) -> None:
         """Called when the view loads."""
@@ -260,10 +285,12 @@ class Game(arcade.View):
                 2,
             )
 
-        # Draw the health on the screen
+        # Draw the gui on the screen
         self.gui_camera.use()
         self.health_text.value = f"Health: {self.player.health}"
         self.health_text.draw()
+        if self.nearest_item:
+            self.item_text.draw()
 
     def on_update(self, delta_time: float) -> None:
         """
@@ -327,6 +354,18 @@ class Game(arcade.View):
         # Update the physics engine
         self.physics_engine.step()
 
+        # Check for any nearby items
+        item_collision = arcade.check_for_collision_with_list(
+            self.player, self.item_sprites
+        )
+        if item_collision:
+            # Set nearest_item since we are colliding with an item
+            self.nearest_item = item_collision[0]
+        else:
+            # Reset nearest_item since we don't want to activate an item that the player
+            # is not colliding with
+            self.nearest_item = None
+
     def on_key_press(self, key: int, modifiers: int) -> None:
         """
         Called when the player presses a key.
@@ -348,6 +387,9 @@ class Game(arcade.View):
                 self.left_pressed = True
             case arcade.key.D:
                 self.right_pressed = True
+            case arcade.key.E:
+                if self.nearest_item:
+                    self.nearest_item.item_activate()
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         """
