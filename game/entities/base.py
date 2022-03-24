@@ -9,16 +9,17 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import BULLET_OFFSET, BULLET_VELOCITY, SPRITE_SCALE
+from constants import BULLET_OFFSET, BULLET_VELOCITY, SPRITE_SCALE, TileType
 from textures import pos_to_pixel
 
 if TYPE_CHECKING:
+    from entities.player import Player
     from physics import PhysicsEngine
     from views.game import Game
 
 
 class EntityID(IntEnum):
-    """Stores the ID of each enemy to make checking more efficient."""
+    """Stores the ID of each enemy to make collision checking more efficient."""
 
     ENTITY = 0
     PLAYER = 1
@@ -236,6 +237,9 @@ class Item(Tile):
         The y position of the item in the game map.
     """
 
+    # Class variables
+    item_id: TileType = TileType.NONE
+
     def __init__(
         self,
         game: Game,
@@ -247,6 +251,11 @@ class Item(Tile):
 
     def __repr__(self) -> str:
         return f"<Item (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def player(self) -> Player:
+        """Returns the player object for ease of access."""
+        return self.game.player
 
     def item_activate(self) -> None:
         """Called when the item is activated by the player. Override this to add item

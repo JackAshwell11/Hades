@@ -11,6 +11,7 @@ import arcade
 class TileType(IntEnum):
     """Stores the ID of each tile in the game map."""
 
+    NONE = -1
     EMPTY = 0
     FLOOR = 1
     WALL = 2
@@ -80,6 +81,7 @@ PLAYER_MOVEMENT_FORCE = 10000
 PLAYER_MELEE_RANGE = 3
 PLAYER_MELEE_DEGREE = 60
 PLAYER_DAMAGE = 10
+INVENTORY_SIZE = 9
 
 # Enemy constants
 ENEMY_HEALTH = 10

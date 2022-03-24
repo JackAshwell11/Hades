@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
+from constants import TileType
 from entities.base import Item
 from textures import non_moving_textures
 
@@ -30,6 +31,7 @@ class HealthPotion(Item):
 
     # Class variables
     raw_texture: arcade.Texture = non_moving_textures["items"][0]
+    item_id: TileType = TileType.HEALTH_POTION
 
     def __init__(
         self,
@@ -44,7 +46,15 @@ class HealthPotion(Item):
 
     def item_activate(self) -> None:
         """Called when the item is activated by the player."""
-        print("item")
+        try:
+            # Try and add the item to the player's inventory
+            self.player.inventory_obj.add_item(self.item_id)
+
+            # Add successful
+            self.remove_from_sprite_lists()
+        except IndexError:
+            # Add not successful. TO DO: Probably give message to user
+            pass
 
 
 class Shop(Item):
@@ -64,6 +74,7 @@ class Shop(Item):
     # Class variables
     raw_texture: arcade.Texture = non_moving_textures["items"][1]
     is_static: bool = True
+    item_id: TileType = TileType.HEALTH_POTION
 
     def __init__(
         self,

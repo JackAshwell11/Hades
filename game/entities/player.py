@@ -8,9 +8,11 @@ import arcade
 
 # Custom
 from entities.base import Entity, EntityID
+from entities.inventory import Inventory
 from shaders.melee import MeleeShader
 
 if TYPE_CHECKING:
+    from constants import TileType
     from views.game import Game
 
 
@@ -36,6 +38,8 @@ class Player(Entity):
     melee_shader: MeleeShader
         The OpenGL shader used to find and attack any enemies within a specific distance
         around the player based on their direction.
+    inventory_obj: Inventory
+        The inventory object which represents this player's inventory.
     """
 
     # Class variables
@@ -51,9 +55,15 @@ class Player(Entity):
     ) -> None:
         super().__init__(game, x, y, texture_dict, health)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
+        self.inventory_obj: Inventory = Inventory(self)
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def inventory(self) -> list[TileType]:
+        """Returns the player's inventory."""
+        return self.inventory_obj.array
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
