@@ -397,10 +397,6 @@ class Game(arcade.View):
             case arcade.key.E:
                 if self.nearest_item:
                     self.nearest_item.item_activate()
-            case arcade.key.Z:
-                self.player.inventory_obj.set_next_consumable_index()
-            case arcade.key.X:
-                self.player.inventory_obj.set_previous_consumable_index()
             case arcade.key.R:
                 self.window.show_view(self.window.views["InventoryView"])
                 self.window.views["InventoryView"].manager.enable()

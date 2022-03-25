@@ -8,6 +8,7 @@ import arcade
 import arcade.gui
 
 if TYPE_CHECKING:
+    from entities.base import Item
     from entities.inventory import Inventory
     from views.game import Game
     from window import Window
@@ -16,14 +17,18 @@ if TYPE_CHECKING:
 class InventoryBox(arcade.gui.UITextureButton):
     """Represents an individual box showing an item in the player's inventory."""
 
-    def __init__(self) -> None:
-        super().__init__(width=100, height=100)
+    # Class variables
+    item_ref: Item | None = None
 
     def __repr__(self) -> str:
         return (
             f"<InventoryBox (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"
         )
+
+    def on_click(self, _) -> None:
+        """Called when the button is clicked."""
+        print(self.item_ref)
 
 
 class BackButton(arcade.gui.UIFlatButton):
@@ -71,10 +76,12 @@ class InventoryView(arcade.View):
         self.inventory: Inventory = inventory
 
         # Create the inventory grid
-        for _ in range(self.inventory.grid_size):
+        for i in range(self.inventory.height):
             horizontal_box = arcade.gui.UIBoxLayout(vertical=False)
-            for _ in range(self.inventory.grid_size):
-                horizontal_box.add(InventoryBox().with_border(color=arcade.color.WHITE))
+            for j in range(self.inventory.width):
+                horizontal_box.add(
+                    InventoryBox(width=100, height=100).with_border(width=4)
+                )
             self.vertical_box.add(horizontal_box)
 
         # Create the back button
@@ -91,43 +98,29 @@ class InventoryView(arcade.View):
     def __repr__(self) -> str:
         return f"<InventoryView (Current window={self.window})>"
 
-    def get_item(self, index: int) -> str:
-        """
-        Gets an item at a specific index from the inventory.
-
-        Parameters
-        ----------
-        index: int
-            The index to get the item at.
-
-        Returns
-        -------
-        str
-            The name of the item. If the item doesn't exist, this wil be None.
-        """
-        # Check if there actually exists an item at the given position
-        if len(self.inventory.array) - 1 < index:
-            return ""
-
-        # Get the item name
-        return str(self.inventory.array[index].item_id.value)
-
     def on_show(self) -> None:
         """Called when the view loads."""
         # Set the background color
-        self.window.background_color = arcade.color.BLACK
+        self.window.background_color = arcade.color.BABY_BLUE
 
         # Update each box to show the player's inventory
         for row_count, box_layout in enumerate(self.vertical_box.children):
-            for column_count, obj in enumerate(box_layout.children):
+            for column_count, ui_border_obj in enumerate(box_layout.children):
                 # Check if the current object is the back button
-                if not obj.children:
+                if not ui_border_obj.children:
                     continue
 
-                # Set the text attribute
-                obj.children[0].text = self.get_item(
-                    row_count * 3 + column_count
-                )  # noqa
+                # Get the inventory array position
+                array_pos = column_count + row_count * 3
+
+                # Check if there actually exists an item at the given position
+                if len(self.inventory.array) - 1 < array_pos:
+                    continue
+
+                # Set the inventory box item reference and its texture
+                inventory_box_obj: InventoryBox = ui_border_obj.children[0]  # noqa
+                inventory_box_obj.item_ref = self.inventory.array[array_pos]
+                inventory_box_obj.texture = self.inventory.array[array_pos].texture
 
     def on_draw(self) -> None:
         """Render the screen."""

@@ -40,8 +40,6 @@ class Player(Entity):
         around the player based on their direction.
     inventory_obj: Inventory
         The inventory object which represents this player's inventory.
-    equipped_consumable: int
-        The index of the currently equipped consumable.
     """
 
     # Class variables
@@ -58,7 +56,6 @@ class Player(Entity):
         super().__init__(game, x, y, texture_dict, health)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.inventory_obj: Inventory = Inventory(self)
-        self.equipped_consumable: int = -1
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
