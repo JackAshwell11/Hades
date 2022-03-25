@@ -9,8 +9,8 @@ import arcade.gui
 
 if TYPE_CHECKING:
     from entities.inventory import Inventory
-    from window import Window
     from views.game import Game
+    from window import Window
 
 
 class InventoryBox(arcade.gui.UITextureButton):
