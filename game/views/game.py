@@ -33,6 +33,7 @@ from entities.tile import Floor, Wall
 from generation.map import Map
 from physics import PhysicsEngine
 from textures import moving_textures, pos_to_pixel
+from views.inventory_view import InventoryView
 
 if TYPE_CHECKING:
     from entities.base import Item
@@ -198,7 +199,9 @@ class Game(arcade.View):
         for enemy in self.enemies:
             enemy.check_line_of_sight()  # noqa
 
-        self.window.register_event_type("on_item_activate")
+        # Set up the inventory view
+        inventory_view = InventoryView()
+        self.window.views["InventoryView"] = inventory_view
 
     def on_show(self) -> None:
         """Called when the view loads."""
@@ -390,6 +393,12 @@ class Game(arcade.View):
             case arcade.key.E:
                 if self.nearest_item:
                     self.nearest_item.item_activate()
+            case arcade.key.Z:
+                self.player.inventory_obj.set_next_consumable_index()
+            case arcade.key.X:
+                self.player.inventory_obj.set_previous_consumable_index()
+            case arcade.key.R:
+                self.window.show_view(self.window.views["InventoryView"])
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         """

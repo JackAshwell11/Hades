@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+# Builtin
+from typing import TYPE_CHECKING
+
 # Pip
 import arcade
 import arcade.gui
@@ -8,24 +11,28 @@ import arcade.gui
 from constants import DEBUG_GAME
 from views.game import Game
 
+if TYPE_CHECKING:
+    from window import Window
+
 
 class StartButton(arcade.gui.UIFlatButton):
     """A button which when clicked will start the game."""
 
     def on_click(self, event: arcade.gui.UIOnClickEvent) -> None:
         """Called when the button is clicked."""
-        # Set up the new game
-        new_game = Game(DEBUG_GAME)
-        new_game.setup(1)
-
         # Get the current window and view
-        window = arcade.get_window()
+        window: Window = arcade.get_window()
         current_view: StartMenu = window.current_view  # noqa
 
         # Deactivate the UI manager so the buttons can't be clicked
         current_view.manager.disable()
 
-        # Show the game view
+        # Set up the new game
+        new_game = Game(DEBUG_GAME)
+        new_game.setup(1)
+
+        # Add the new game to the view manager and show it
+        window.views["Game"] = new_game
         window.show_view(new_game)
 
     def __repr__(self) -> str:
@@ -73,9 +80,6 @@ class StartMenu(arcade.View):
             )
         )
 
-        # Enable the UI elements
-        self.manager.enable()
-
     def __repr__(self) -> str:
         return f"<StartMenu (Current window={self.window})>"
 
@@ -85,7 +89,7 @@ class StartMenu(arcade.View):
         self.clear()
 
         # Draw the background colour
-        arcade.set_background_color(arcade.color.OCEAN_BOAT_BLUE)
+        self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
 
         # Draw the UI elements
         self.manager.draw()
