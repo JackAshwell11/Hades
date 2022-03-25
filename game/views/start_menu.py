@@ -29,10 +29,10 @@ class StartButton(arcade.gui.UIFlatButton):
 
         # Set up the new game
         new_game = Game(DEBUG_GAME)
+        window.views["Game"] = new_game
         new_game.setup(1)
 
-        # Add the new game to the view manager and show it
-        window.views["Game"] = new_game
+        # Show the new game
         window.show_view(new_game)
 
     def __repr__(self) -> str:
@@ -57,26 +57,33 @@ class QuitButton(arcade.gui.UIFlatButton):
 
 
 class StartMenu(arcade.View):
-    """Creates a start menu allowing the player to pick which game mode and options they
-    want."""
+    """
+    Creates a start menu allowing the player to pick which game mode and options they
+    want.
+
+    Attributes
+    ----------
+    manager: arcade.gui.UIManager
+        Manages all the different UI elements.
+    """
 
     def __init__(self) -> None:
         super().__init__()
         self.manager: arcade.gui.UIManager = arcade.gui.UIManager()
-        self.vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
+        vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
 
         # Create the start button
         start_button = StartButton(text="Start Game", width=200)
-        self.vertical_box.add(start_button.with_space_around(bottom=20))
+        vertical_box.add(start_button.with_space_around(bottom=20))
 
         # Create the quit button
         quit_button = QuitButton(text="Quit Game", width=200)
-        self.vertical_box.add(quit_button.with_space_around(bottom=20))
+        vertical_box.add(quit_button.with_space_around(bottom=20))
 
         # Register the UI elements
         self.manager.add(
             arcade.gui.UIAnchorWidget(
-                anchor_x="center_x", anchor_y="center_y", child=self.vertical_box
+                anchor_x="center_x", anchor_y="center_y", child=vertical_box
             )
         )
 

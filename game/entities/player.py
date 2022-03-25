@@ -12,7 +12,7 @@ from entities.inventory import Inventory
 from shaders.melee import MeleeShader
 
 if TYPE_CHECKING:
-    from constants import TileType
+    from entities.base import Item
     from views.game import Game
 
 
@@ -64,7 +64,7 @@ class Player(Entity):
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
 
     @property
-    def inventory(self) -> list[TileType]:
+    def inventory(self) -> list[Item]:
         """Returns the player's inventory."""
         return self.inventory_obj.array
 

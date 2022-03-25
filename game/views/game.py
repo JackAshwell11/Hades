@@ -200,7 +200,7 @@ class Game(arcade.View):
             enemy.check_line_of_sight()  # noqa
 
         # Set up the inventory view
-        inventory_view = InventoryView()
+        inventory_view = InventoryView(self.player.inventory_obj)
         self.window.views["InventoryView"] = inventory_view
 
     def on_show(self) -> None:
@@ -381,6 +381,10 @@ class Game(arcade.View):
             Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
             event.
         """
+        # Make sure variables needed are valid
+        assert self.player is not None
+
+        # Find out what key was pressed
         match key:
             case arcade.key.W:
                 self.up_pressed = True
@@ -399,6 +403,7 @@ class Game(arcade.View):
                 self.player.inventory_obj.set_previous_consumable_index()
             case arcade.key.R:
                 self.window.show_view(self.window.views["InventoryView"])
+                self.window.views["InventoryView"].manager.enable()
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         """

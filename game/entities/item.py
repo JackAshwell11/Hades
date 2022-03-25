@@ -48,7 +48,7 @@ class HealthPotion(Item):
         """Called when the item is activated by the player."""
         try:
             # Try and add the item to the player's inventory
-            self.player.inventory_obj.add_item(self.item_id)
+            self.player.inventory_obj.add_item(self)
 
             # Add successful
             self.remove_from_sprite_lists()
