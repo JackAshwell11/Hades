@@ -125,7 +125,9 @@ class InventoryView(arcade.View):
                     continue
 
                 # Set the text attribute
-                obj.children[0].text = self.get_item(row_count + column_count)  # noqa
+                obj.children[0].text = self.get_item(
+                    row_count * 3 + column_count
+                )  # noqa
 
     def on_draw(self) -> None:
         """Render the screen."""
