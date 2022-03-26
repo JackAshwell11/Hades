@@ -3,10 +3,8 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING
 
-# Pip
-import arcade
-
 # Custom
+from constants import PlayerType
 from entities.base import Entity, EntityID
 from entities.inventory import Inventory
 from shaders.melee import MeleeShader
@@ -28,10 +26,8 @@ class Player(Entity):
         The x position of the player in the game map.
     y: int
         The y position of the player in the game map.
-    texture_dict: dict[str, list[list[arcade.Texture]]]
-        The textures which represent this player.
-    health: int
-        The health of this player.
+    player_type: PlayerType
+        The constant data about this specific player.
 
     Attributes
     ----------
@@ -45,15 +41,8 @@ class Player(Entity):
     # Class variables
     ID: EntityID = EntityID.PLAYER
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-        texture_dict: dict[str, list[list[arcade.Texture]]],
-        health: int,
-    ) -> None:
-        super().__init__(game, x, y, texture_dict, health)
+    def __init__(self, game: Game, x: int, y: int, player_type: PlayerType) -> None:
+        super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.inventory_obj: Inventory = Inventory(self)
 

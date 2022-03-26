@@ -8,12 +8,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import (
-    ATTACK_COOLDOWN,
-    ENEMY_ATTACK_RANGE,
-    ENEMY_VIEW_DISTANCE,
-    SPRITE_SIZE,
-)
+from constants import ATTACK_COOLDOWN, SPRITE_SIZE, EnemyType
 from entities.ai import FollowLineOfSight
 from entities.base import Entity, EntityID
 
@@ -33,10 +28,8 @@ class Enemy(Entity):
         The x position of the enemy in the game map.
     y: int
         The y position of the enemy in the game map.
-    texture_dict: dict[str, list[list[arcade.Texture]]]
-        The textures which represent this enemy.
-    health: int
-        The health of this enemy.
+    enemy_type: EnemyType
+        The constant data about this specific enemy.
     ai: FollowLineOfSight
         The AI which this entity uses.
 
@@ -54,11 +47,10 @@ class Enemy(Entity):
         game: Game,
         x: int,
         y: int,
-        texture_dict: dict[str, list[list[arcade.Texture]]],
-        health: int,
+        enemy_type: EnemyType,
         ai: FollowLineOfSight,
     ) -> None:
-        super().__init__(game, x, y, texture_dict, health)
+        super().__init__(game, x, y, enemy_type)
         self.ai: FollowLineOfSight = ai
         self.ai.owner = self
         self.line_of_sight: bool = False
@@ -104,7 +96,7 @@ class Enemy(Entity):
         y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
         hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
         if (
-            hypot_distance <= ENEMY_ATTACK_RANGE * SPRITE_SIZE
+            hypot_distance <= self.entity_type.attack_range * SPRITE_SIZE
             and self.time_since_last_attack >= ATTACK_COOLDOWN
         ):
             # Enemy can attack so reset the counter and attack
@@ -118,5 +110,5 @@ class Enemy(Entity):
             (self.center_x, self.center_y),
             (self.game.player.center_x, self.game.player.center_y),
             self.game.wall_sprites,
-            ENEMY_VIEW_DISTANCE * SPRITE_SIZE,
+            self.entity_type.view_distance * SPRITE_SIZE,
         )

@@ -6,9 +6,6 @@ from typing import TYPE_CHECKING
 # Pip
 import arcade
 
-# Custom
-from constants import ENEMY_MOVEMENT_FORCE
-
 if TYPE_CHECKING:
     from entities.base import Entity
     from entities.player import Player
@@ -75,6 +72,8 @@ class FollowLineOfSight(AIBase):
 
         # Calculate the velocity for the enemy to move towards the player
         return (
-            -(self.owner.center_x - target.center_x) * ENEMY_MOVEMENT_FORCE,
-            -(self.owner.center_y - target.center_y) * ENEMY_MOVEMENT_FORCE,
+            -(self.owner.center_x - target.center_x)
+            * self.owner.entity_type.movement_force,
+            -(self.owner.center_y - target.center_y)
+            * self.owner.entity_type.movement_force,
         )

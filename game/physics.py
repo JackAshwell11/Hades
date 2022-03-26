@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import ENEMY_DAMAGE, PLAYER_DAMAGE
 from entities.base import EntityID
 
 if TYPE_CHECKING:
@@ -71,7 +70,7 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
         # Check if the owner is the player
         if bullet.owner.ID is EntityID.PLAYER:
             # Deal damage to the enemy
-            enemy.deal_damage(PLAYER_DAMAGE)
+            enemy.deal_damage(bullet.owner.entity_type.damage)
     except AttributeError:
         # An error randomly occurs here so just ignore it
         pass
@@ -105,7 +104,7 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
         # Check if the owner is an enemy
         if bullet.owner.ID is EntityID.ENEMY:
             # Deal damage to the player
-            player.deal_damage(ENEMY_DAMAGE)
+            player.deal_damage(bullet.owner.entity_type.damage)
     except AttributeError:
         # An error randomly occurs here so just ignore it
         pass

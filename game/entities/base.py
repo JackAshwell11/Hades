@@ -9,7 +9,14 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import BULLET_OFFSET, BULLET_VELOCITY, SPRITE_SCALE, TileType
+from constants import (
+    BULLET_OFFSET,
+    BULLET_VELOCITY,
+    SPRITE_SCALE,
+    EnemyType,
+    PlayerType,
+    TileType,
+)
 from textures import pos_to_pixel
 
 if TYPE_CHECKING:
@@ -76,13 +83,16 @@ class Entity(arcade.Sprite):
         The x position of the entity in the game map.
     y: int
         The y position of the entity in the game map.
-    texture_dict: dict[str, list[list[arcade.Texture]]]
-        The textures which represent this entity.
-    health: int
-        The health of this entity.
+    entity_type: PlayerType | EnemyType
+        The constant data about this specific entity. This allows me to support multiple
+        player types later on when I add different characters.
 
     Attributes
     ----------
+    health: int
+        The health of this entity.
+    armour: int
+        The armour of this entity.
     direction: float
         The angle the entity is facing.
     facing: int
@@ -99,15 +109,15 @@ class Entity(arcade.Sprite):
         game: Game,
         x: int,
         y: int,
-        texture_dict: dict[str, list[list[arcade.Texture]]],
-        health: int,
+        entity_type: PlayerType | EnemyType,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.game: Game = game
         self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.texture_dict: dict[str, list[list[arcade.Texture]]] = texture_dict
-        self.texture: arcade.Texture = self.texture_dict["idle"][0][0]
-        self.health: int = health
+        self.entity_type: PlayerType | EnemyType = entity_type
+        self.texture: arcade.Texture = self.entity_type.textures["idle"][0][0]
+        self.health: int = self.entity_type.health
+        self.armour: int = self.entity_type.armour
         self.direction: float = 0
         self.facing: int = 0
         self.time_since_last_attack: float = 0

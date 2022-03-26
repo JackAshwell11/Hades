@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import HEALTH_POTION_INCREASE, PLAYER_HEALTH, TileType
+from constants import HEALTH_POTION_INCREASE, TileType
 from entities.base import Item
 from textures import non_moving_textures
 
@@ -59,9 +59,9 @@ class HealthPotion(Item):
     def item_use(self) -> None:
         """Called when the item is ued by the player.""" ""
         # Add health to the player
-        self.game.player.health += HEALTH_POTION_INCREASE
-        if self.game.player.health > PLAYER_HEALTH:
-            self.game.player.health = PLAYER_HEALTH
+        self.player.health += HEALTH_POTION_INCREASE
+        if self.player.health > self.player.entity_type.health:
+            self.player.health = self.player.entity_type.health
 
         # Health increase successful
         self.remove_from_sprite_lists()

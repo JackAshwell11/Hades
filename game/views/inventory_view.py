@@ -31,8 +31,9 @@ class InventoryBox(arcade.gui.UITextureButton):
 
     def on_click(self, _) -> None:
         """Called when the button is clicked."""
-        # Make sure variables needed are valid
-        assert self.item_ref is not None
+        # Stop slots being clicked on if they're empty
+        if not self.item_ref:
+            return
 
         # Check if the item is a consumable
         if self.item_ref.item_id in CONSUMABLES:

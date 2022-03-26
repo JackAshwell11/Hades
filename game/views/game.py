@@ -13,15 +13,10 @@ from constants import (
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
     DEBUG_VIEW_DISTANCE,
-    ENEMY_ATTACK_RANGE,
-    ENEMY_HEALTH,
-    ENEMY_VIEW_DISTANCE,
+    ENEMY1,
     FACING_LEFT,
     FACING_RIGHT,
-    PLAYER_HEALTH,
-    PLAYER_MELEE_DEGREE,
-    PLAYER_MELEE_RANGE,
-    PLAYER_MOVEMENT_FORCE,
+    PLAYER,
     SPRITE_SIZE,
     TileType,
 )
@@ -32,7 +27,7 @@ from entities.player import Player
 from entities.tile import Floor, Wall
 from generation.map import Map
 from physics import PhysicsEngine
-from textures import moving_textures, pos_to_pixel
+from textures import pos_to_pixel
 from views.inventory_view import InventoryView
 
 if TYPE_CHECKING:
@@ -154,8 +149,7 @@ class Game(arcade.View):
                             self,
                             count_x,
                             count_y,
-                            moving_textures["player"],
-                            PLAYER_HEALTH,
+                            PLAYER,
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.ENEMY.value:
@@ -164,8 +158,7 @@ class Game(arcade.View):
                                 self,
                                 count_x,
                                 count_y,
-                                moving_textures["enemy"],
-                                ENEMY_HEALTH,
+                                ENEMY1,
                                 FollowLineOfSight(),
                             )
                         )
@@ -234,32 +227,40 @@ class Game(arcade.View):
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    ENEMY_VIEW_DISTANCE * SPRITE_SIZE,
+                    enemy.entity_type.view_distance * SPRITE_SIZE,  # noqa
                     DEBUG_VIEW_DISTANCE,
                 )
                 # Draw the enemy's attack distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    ENEMY_ATTACK_RANGE * SPRITE_SIZE,
+                    enemy.entity_type.attack_range * SPRITE_SIZE,  # noqa
                     DEBUG_ATTACK_DISTANCE,
                 )
 
             # Calculate the two boundary points for the player fov
-            half_angle = PLAYER_MELEE_DEGREE // 2
+            half_angle = self.player.entity_type.melee_degree // 2
             low_angle = math.radians(self.player.direction - half_angle)
             high_angle = math.radians(self.player.direction + half_angle)
             point_low = (
                 self.player.center_x
-                + math.cos(low_angle) * SPRITE_SIZE * PLAYER_MELEE_RANGE,
+                + math.cos(low_angle)
+                * SPRITE_SIZE
+                * self.player.entity_type.melee_range,
                 self.player.center_y
-                + math.sin(low_angle) * SPRITE_SIZE * PLAYER_MELEE_RANGE,
+                + math.sin(low_angle)
+                * SPRITE_SIZE
+                * self.player.entity_type.melee_range,
             )
             point_high = (
                 self.player.center_x
-                + math.cos(high_angle) * SPRITE_SIZE * PLAYER_MELEE_RANGE,
+                + math.cos(high_angle)
+                * SPRITE_SIZE
+                * self.player.entity_type.melee_range,
                 self.player.center_y
-                + math.sin(high_angle) * SPRITE_SIZE * PLAYER_MELEE_RANGE,
+                + math.sin(high_angle)
+                * SPRITE_SIZE
+                * self.player.entity_type.melee_range,
             )
             # Draw both boundary lines for the player fov
             arcade.draw_line(
@@ -281,7 +282,7 @@ class Game(arcade.View):
                 self.player.center_y,
                 math.hypot(point_high[0] - point_low[0], point_high[1] - point_low[1])
                 * 2,
-                PLAYER_MELEE_RANGE * SPRITE_SIZE * 2,
+                self.player.entity_type.melee_range * SPRITE_SIZE * 2,
                 DEBUG_ATTACK_DISTANCE,
                 math.degrees(low_angle),
                 math.degrees(high_angle),
@@ -316,9 +317,9 @@ class Game(arcade.View):
         update_enemies = False
         vertical_force = None
         if self.up_pressed and not self.down_pressed:
-            vertical_force = (0, PLAYER_MOVEMENT_FORCE)
+            vertical_force = (0, self.player.entity_type.movement_force)
         elif self.down_pressed and not self.up_pressed:
-            vertical_force = (0, -PLAYER_MOVEMENT_FORCE)
+            vertical_force = (0, -self.player.entity_type.movement_force)
         if vertical_force:
             # Apply the vertical force
             self.physics_engine.apply_force(self.player, vertical_force)
@@ -329,9 +330,9 @@ class Game(arcade.View):
         # Calculate the horizontal velocity of the player based on the keys pressed
         horizontal_force = None
         if self.left_pressed and not self.right_pressed:
-            horizontal_force = (-PLAYER_MOVEMENT_FORCE, 0)
+            horizontal_force = (-self.player.entity_type.movement_force, 0)
         elif self.right_pressed and not self.left_pressed:
-            horizontal_force = (PLAYER_MOVEMENT_FORCE, 0)
+            horizontal_force = (self.player.entity_type.movement_force, 0)
         if horizontal_force:
             # Apply the horizontal force
             self.physics_engine.apply_force(self.player, horizontal_force)

@@ -6,9 +6,6 @@ import pathlib
 # Pip
 import arcade
 
-# Custom
-from constants import SPRITE_SIZE
-
 
 def pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     """
@@ -26,6 +23,10 @@ def pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     tuple[float, float]
         The x and y position of a sprite on the screen.
     """
+    # Avoid a circular import
+    from constants import SPRITE_SIZE
+
+    # Calculate the position on screen
     return (
         x * SPRITE_SIZE + SPRITE_SIZE / 2,
         y * SPRITE_SIZE + SPRITE_SIZE / 2,

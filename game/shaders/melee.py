@@ -6,7 +6,7 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
-from constants import PLAYER_MELEE_DEGREE, PLAYER_MELEE_RANGE, SPRITE_SIZE
+from constants import SPRITE_SIZE
 
 if TYPE_CHECKING:
     from arcade import ArcadeContext
@@ -70,8 +70,12 @@ class MeleeShader:
         )
 
         # Configure program with the maximum distance and the angle range
-        self.program["max_distance"] = PLAYER_MELEE_RANGE * SPRITE_SIZE
-        self.program["half_angle_range"] = PLAYER_MELEE_DEGREE // 2
+        self.program["max_distance"] = (
+            self.view.player.entity_type.melee_range * SPRITE_SIZE
+        )
+        self.program["half_angle_range"] = (
+            self.view.player.entity_type.melee_degree // 2
+        )
 
         # We now need a buffer that can capture the result from the shader and process
         # it. But we need to make sure there is room for len(self.view.enemies) 32-bit
