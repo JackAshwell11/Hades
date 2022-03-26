@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import TileType
+from constants import HEALTH_POTION_INCREASE, PLAYER_HEALTH, TileType
 from entities.base import Item
 from textures import non_moving_textures
 
@@ -55,6 +55,16 @@ class HealthPotion(Item):
         except IndexError:
             # Add not successful. TO DO: Probably give message to user
             pass
+
+    def item_use(self) -> None:
+        """Called when the item is ued by the player.""" ""
+        # Add health to the player
+        self.game.player.health += HEALTH_POTION_INCREASE
+        if self.game.player.health > PLAYER_HEALTH:
+            self.game.player.health = PLAYER_HEALTH
+
+        # Health increase successful
+        self.remove_from_sprite_lists()
 
 
 class Shop(Item):

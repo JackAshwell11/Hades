@@ -259,5 +259,10 @@ class Item(Tile):
 
     def item_activate(self) -> None:
         """Called when the item is activated by the player. Override this to add item
+        activate functionality."""
+        return
+
+    def item_use(self) -> None:
+        """Called when the item is ued by the player. Override this to add item use
         functionality."""
-        raise NotImplementedError
+        return

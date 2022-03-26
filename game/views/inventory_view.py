@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING
 import arcade
 import arcade.gui
 
+# Custom
+from constants import CONSUMABLES
+
 if TYPE_CHECKING:
     from entities.base import Item
     from entities.inventory import Inventory
@@ -28,7 +31,26 @@ class InventoryBox(arcade.gui.UITextureButton):
 
     def on_click(self, _) -> None:
         """Called when the button is clicked."""
-        print(self.item_ref)
+        # Make sure variables needed are valid
+        assert self.item_ref is not None
+
+        # Check if the item is a consumable
+        if self.item_ref.item_id in CONSUMABLES:
+            # Use it
+            self.item_ref.item_use()
+
+            # Get the current window, current view and game view
+            window: Window = arcade.get_window()
+            game_view: Game = window.views["Game"]  # noqa
+            current_view: InventoryView = window.current_view  # noqa
+
+            # Remove the item from the player's inventory and clear the texture and item
+            # ref
+            game_view.player.inventory.remove(self.item_ref)
+            self.item_ref = self.texture = None
+
+            # Update the inventory
+            current_view.update_inventory()
 
 
 class BackButton(arcade.gui.UIFlatButton):
@@ -80,7 +102,7 @@ class InventoryView(arcade.View):
             horizontal_box = arcade.gui.UIBoxLayout(vertical=False)
             for j in range(self.inventory.width):
                 horizontal_box.add(
-                    InventoryBox(width=100, height=100).with_border(width=4)
+                    InventoryBox(width=128, height=128).with_border(width=4)
                 )
             self.vertical_box.add(horizontal_box)
 
@@ -98,11 +120,8 @@ class InventoryView(arcade.View):
     def __repr__(self) -> str:
         return f"<InventoryView (Current window={self.window})>"
 
-    def on_show(self) -> None:
-        """Called when the view loads."""
-        # Set the background color
-        self.window.background_color = arcade.color.BABY_BLUE
-
+    def update_inventory(self) -> None:
+        """Updates the inventory grid."""
         # Update each box to show the player's inventory
         for row_count, box_layout in enumerate(self.vertical_box.children):
             for column_count, ui_border_obj in enumerate(box_layout.children):
@@ -121,6 +140,14 @@ class InventoryView(arcade.View):
                 inventory_box_obj: InventoryBox = ui_border_obj.children[0]  # noqa
                 inventory_box_obj.item_ref = self.inventory.array[array_pos]
                 inventory_box_obj.texture = self.inventory.array[array_pos].texture
+
+    def on_show(self) -> None:
+        """Called when the view loads."""
+        # Set the background color
+        self.window.background_color = arcade.color.BABY_BLUE
+
+        # Update the inventory grid
+        self.update_inventory()
 
     def on_draw(self) -> None:
         """Render the screen."""

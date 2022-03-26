@@ -398,6 +398,9 @@ class Game(arcade.View):
                 if self.nearest_item:
                     self.nearest_item.item_activate()
             case arcade.key.R:
+                if self.nearest_item:
+                    self.nearest_item.item_use()
+            case arcade.key.F:
                 self.window.show_view(self.window.views["InventoryView"])
                 self.window.views["InventoryView"].manager.enable()
 
