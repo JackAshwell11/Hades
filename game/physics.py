@@ -151,8 +151,8 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         self.add_sprite(
             player,
             moment_of_inertia=self.MOMENT_INF,
-            damping=self.damping,
             collision_type="player",
+            max_velocity=player.entity_type.max_velocity,
         )
 
         # Add the static tile sprites to the physics engine
@@ -165,12 +165,13 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                 )
 
         # Add the enemy sprites to the physics engine
-        self.add_sprite_list(
-            enemy_list,
-            moment_of_intertia=self.MOMENT_INF,
-            damping=self.damping,
-            collision_type="enemy",
-        )
+        for enemy in enemy_list:
+            self.add_sprite(
+                enemy,
+                moment_of_inertia=self.MOMENT_INF,
+                collision_type="enemy",
+                max_velocity=enemy.entity_type.max_velocity,  # noqa
+            )
 
         # Add collision handlers
         self.add_collision_handler(

@@ -31,6 +31,8 @@ class PlayerType(NamedTuple):
         The player's armour.
     textures: dict[str, list[list[arcade.Texture]]]
         The textures which represent this player.
+    max_velocity: int
+        The max speed that the player can go.
     movement_force: int
         The force applied to the player when it moves.
     melee_range: int
@@ -44,7 +46,7 @@ class PlayerType(NamedTuple):
     health: int
     armour: int
     textures: dict[str, list[list[arcade.Texture]]]
-    movement_force: int
+    max_velocity: int
     melee_range: int
     melee_degree: int
     damage: int
@@ -63,8 +65,8 @@ class EnemyType(NamedTuple):
         The enemy's armour.
     textures: dict[str, list[list[arcade.Texture]]]
         The textures which represent this enemy.
-    movement_force: int
-        The force applied to the enemy when it moves.
+    max_velocity: int
+        The max speed that the enemy can go.
     view_distance: int
         The amount of tiles the enemy can see too.
     attack_range: int
@@ -77,22 +79,23 @@ class EnemyType(NamedTuple):
     health: int
     armour: int
     textures: dict[str, list[list[arcade.Texture]]]
-    movement_force: int
+    max_velocity: int
     view_distance: int
     attack_range: int
     damage: int
 
 
 # Player characters
-PLAYER = PlayerType(100, 20, moving_textures["player"], 10000, 3, 60, 10)
+PLAYER = PlayerType(100, 20, moving_textures["player"], 200, 3, 60, 10)
 
 # Enemy characters
-ENEMY1 = EnemyType("enemy1", 10, 10, moving_textures["enemy"], 20, 5, 3, 5)
-ENEMY2 = EnemyType("enemy2", 10, 10, moving_textures["enemy"], 20, 5, 3, 5)
+ENEMY1 = EnemyType("enemy1", 10, 10, moving_textures["enemy"], 50, 5, 3, 5)
+ENEMY2 = EnemyType("enemy2", 10, 10, moving_textures["enemy"], 50, 5, 3, 5)
 
 # Other entity constants
 FACING_RIGHT = 0
 FACING_LEFT = 1
 ATTACK_COOLDOWN = 1
+MOVEMENT_FORCE = 1000000
 BULLET_VELOCITY = 300
 BULLET_OFFSET = 30

@@ -8,7 +8,14 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import ATTACK_COOLDOWN, ENEMY1, FACING_LEFT, FACING_RIGHT, PLAYER
+from constants.entity import (
+    ATTACK_COOLDOWN,
+    ENEMY1,
+    FACING_LEFT,
+    FACING_RIGHT,
+    MOVEMENT_FORCE,
+    PLAYER,
+)
 from constants.general import (
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
@@ -313,9 +320,9 @@ class Game(arcade.View):
         update_enemies = False
         vertical_force = None
         if self.up_pressed and not self.down_pressed:
-            vertical_force = (0, self.player.entity_type.movement_force)
+            vertical_force = (0, MOVEMENT_FORCE)
         elif self.down_pressed and not self.up_pressed:
-            vertical_force = (0, -self.player.entity_type.movement_force)
+            vertical_force = (0, -MOVEMENT_FORCE)
         if vertical_force:
             # Apply the vertical force
             self.physics_engine.apply_force(self.player, vertical_force)
@@ -326,9 +333,9 @@ class Game(arcade.View):
         # Calculate the horizontal velocity of the player based on the keys pressed
         horizontal_force = None
         if self.left_pressed and not self.right_pressed:
-            horizontal_force = (-self.player.entity_type.movement_force, 0)
+            horizontal_force = (-MOVEMENT_FORCE, 0)
         elif self.right_pressed and not self.left_pressed:
-            horizontal_force = (self.player.entity_type.movement_force, 0)
+            horizontal_force = (MOVEMENT_FORCE, 0)
         if horizontal_force:
             # Apply the horizontal force
             self.physics_engine.apply_force(self.player, horizontal_force)
