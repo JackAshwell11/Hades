@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+from enum import IntEnum
 from typing import NamedTuple
 
 # Pip
@@ -8,6 +9,15 @@ import arcade
 
 # Custom
 from textures import moving_textures
+
+
+# Entity IDs
+class EntityID(IntEnum):
+    """Stores the ID of each enemy to make collision checking more efficient."""
+
+    ENTITY = 0
+    PLAYER = 1
+    ENEMY = 2
 
 
 # Base player type

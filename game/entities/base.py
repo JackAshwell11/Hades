@@ -2,14 +2,19 @@ from __future__ import annotations
 
 # Builtin
 import math
-from enum import IntEnum
 from typing import TYPE_CHECKING
 
 # Pip
 import arcade
 
 # Custom
-from constants.entity import BULLET_OFFSET, BULLET_VELOCITY, EnemyType, PlayerType
+from constants.entity import (
+    BULLET_OFFSET,
+    BULLET_VELOCITY,
+    EnemyType,
+    EntityID,
+    PlayerType,
+)
 from constants.general import SPRITE_SCALE
 from constants.generation import TileType
 from textures import pos_to_pixel
@@ -18,14 +23,6 @@ if TYPE_CHECKING:
     from entities.player import Player
     from physics import PhysicsEngine
     from views.game import Game
-
-
-class EntityID(IntEnum):
-    """Stores the ID of each enemy to make collision checking more efficient."""
-
-    ENTITY = 0
-    PLAYER = 1
-    ENEMY = 2
 
 
 class Bullet(arcade.SpriteSolidColor):
