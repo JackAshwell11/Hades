@@ -6,7 +6,7 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
-from constants import SPRITE_SIZE
+from constants.general import SPRITE_SIZE
 
 if TYPE_CHECKING:
     from arcade import ArcadeContext

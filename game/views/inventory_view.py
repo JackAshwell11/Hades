@@ -8,7 +8,7 @@ import arcade
 import arcade.gui
 
 # Custom
-from constants import CONSUMABLES
+from constants.general import CONSUMABLES
 
 if TYPE_CHECKING:
     from entities.base import Item

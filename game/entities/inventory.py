@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from constants import INVENTORY_HEIGHT, INVENTORY_WIDTH
+from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 
 if TYPE_CHECKING:
     from entities.base import Item

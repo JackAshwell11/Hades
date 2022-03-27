@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from constants import PlayerType
+from constants.entity import PlayerType
 from entities.base import Entity, EntityID
 from entities.inventory import Inventory
 from shaders.melee import MeleeShader

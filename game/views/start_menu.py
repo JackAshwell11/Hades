@@ -8,7 +8,7 @@ import arcade
 import arcade.gui
 
 # Custom
-from constants import DEBUG_GAME
+from constants.general import DEBUG_GAME
 from views.game import Game
 
 if TYPE_CHECKING:

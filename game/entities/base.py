@@ -9,14 +9,9 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import (
-    BULLET_OFFSET,
-    BULLET_VELOCITY,
-    SPRITE_SCALE,
-    EnemyType,
-    PlayerType,
-    TileType,
-)
+from constants.entity import BULLET_OFFSET, BULLET_VELOCITY, EnemyType, PlayerType
+from constants.general import SPRITE_SCALE
+from constants.generation import TileType
 from textures import pos_to_pixel
 
 if TYPE_CHECKING:

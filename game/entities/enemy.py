@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import ATTACK_COOLDOWN, SPRITE_SIZE, EnemyType
+from constants.entity import ATTACK_COOLDOWN, EnemyType
+from constants.general import SPRITE_SIZE
 from entities.ai import FollowLineOfSight
 from entities.base import Entity, EntityID
 

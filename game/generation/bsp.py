@@ -7,7 +7,12 @@ import random
 import numpy as np
 
 # Custom
-from constants import HALLWAY_SIZE, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, TileType
+from constants.generation import (
+    HALLWAY_SIZE,
+    MIN_CONTAINER_SIZE,
+    MIN_ROOM_SIZE,
+    TileType,
+)
 
 
 class Rect:

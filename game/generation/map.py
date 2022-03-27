@@ -5,22 +5,22 @@ from typing import TYPE_CHECKING
 
 # Pip
 import numpy as np
-from constants import (
+
+# Custom
+from constants.general import DEBUG_LINES
+from constants.generation import (
     BASE_ENEMY_COUNT,
     BASE_ITEM_COUNT,
     BASE_MAP_HEIGHT,
     BASE_MAP_WIDTH,
     BASE_ROOM,
     BASE_SPLIT_COUNT,
-    DEBUG_LINES,
     ENEMY_DISTRIBUTION,
     ITEM_DISTRIBUTION,
     LARGE_ROOM,
     SMALL_ROOM,
     TileType,
 )
-
-# Custom
 from generation.bsp import Leaf
 
 if TYPE_CHECKING:

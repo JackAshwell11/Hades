@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import HEALTH_POTION_INCREASE, TileType
+from constants.general import HEALTH_POTION_INCREASE
+from constants.generation import TileType
 from entities.base import Item
 from textures import non_moving_textures
 

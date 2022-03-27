@@ -8,18 +8,14 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants import (
-    ATTACK_COOLDOWN,
+from constants.entity import ATTACK_COOLDOWN, ENEMY1, FACING_LEFT, FACING_RIGHT, PLAYER
+from constants.general import (
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
     DEBUG_VIEW_DISTANCE,
-    ENEMY1,
-    FACING_LEFT,
-    FACING_RIGHT,
-    PLAYER,
     SPRITE_SIZE,
-    TileType,
 )
+from constants.generation import TileType
 from entities.ai import FollowLineOfSight
 from entities.enemy import Enemy
 from entities.item import HealthPotion, Shop
