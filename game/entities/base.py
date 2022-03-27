@@ -148,7 +148,6 @@ class Entity(arcade.Sprite):
         bullet_list: arcade.SpriteList
             The sprite list to add the bullet to.
         """
-
         # Reset the time counter
         self.time_since_last_attack = 0
 
