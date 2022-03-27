@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 # Custom
-from constants.general import DEBUG_LINES
+from constants.general import DEBUG_LINES, ENEMIES
 from constants.generation import (
     BASE_ENEMY_COUNT,
     BASE_ITEM_COUNT,
@@ -18,6 +18,7 @@ from constants.generation import (
     ENEMY_DISTRIBUTION,
     ITEM_DISTRIBUTION,
     LARGE_ROOM,
+    SAFE_SPAWN_RADIUS,
     SMALL_ROOM,
     TileType,
 )
@@ -53,6 +54,8 @@ class Map:
     probabilities: dict[str, float]
         The current probabilities used to determine if we should split on each iteration
         or not.
+    player_pos: tuple[int, int]
+        The player's position in the grid. This is set to -1 to avoid typing errors.
     """
 
     def __init__(self, level: int) -> None:
@@ -63,6 +66,7 @@ class Map:
         self.player_spawn: tuple[int, int] | None = None
         self.enemy_spawns: list[tuple[int, int]] = []
         self.probabilities: dict[str, float] = BASE_ROOM
+        self.player_pos: tuple[int, int] = (-1, -1)
         self.make_map()
 
     def __repr__(self) -> str:
@@ -262,6 +266,16 @@ class Map:
             np.random.randint(rect.y1 + 1, rect.y2 - 1),
         )
 
+        # Check if the entity is an enemy. If so, we need to make sure they are not
+        # within the spawn radius
+        if entity in ENEMIES:
+            distance_to_player = np.hypot(
+                self.player_pos[0] - position_x, self.player_pos[1] - position_y
+            )
+            if distance_to_player < SAFE_SPAWN_RADIUS:
+                # Enemy is within spawn radius so don't place them
+                return False
+
         # Check if the chosen position is already taken
         if self.grid[position_y, position_x] != TileType.FLOOR.value:
             # Already taken
@@ -269,6 +283,10 @@ class Map:
 
         # Place the entity in the random position
         self.grid[position_y, position_x] = entity.value
+
+        # Check if the entity is the player. If so, save the position
+        if entity is TileType.PLAYER:
+            self.player_pos = (position_x, position_y)
 
         # Return true so we know an enemy has been placed
         return True
