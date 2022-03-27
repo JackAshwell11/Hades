@@ -8,7 +8,13 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import ATTACK_COOLDOWN, EnemyType, EntityID
+from constants.entity import (
+    ATTACK_COOLDOWN,
+    FACING_LEFT,
+    FACING_RIGHT,
+    EnemyType,
+    EntityID,
+)
 from constants.general import SPRITE_SIZE
 from entities.ai import FollowLineOfSight
 from entities.base import Entity
@@ -68,11 +74,6 @@ class Enemy(Entity):
         delta_time: float
             Time interval since the last time the function was called.
         """
-        # Check if the enemy should be killed
-        if self.health <= 0:
-            self.remove_from_sprite_lists()
-            return
-
         # Update the enemy's time since last attack
         self.time_since_last_attack += delta_time
 
@@ -86,7 +87,7 @@ class Enemy(Entity):
         )
 
         # Set the needed internal variables
-        self.facing = 1 if horizontal < 0 else 0
+        self.facing = FACING_LEFT if horizontal < 0 else FACING_RIGHT
         self.direction = math.degrees(math.atan2(vertical, horizontal))
 
         # Apply the force
@@ -104,8 +105,15 @@ class Enemy(Entity):
             self.time_since_last_attack: float = 0  # Mypy is annoying
             self.ranged_attack(self.game.bullet_sprites)
 
-    def check_line_of_sight(self) -> None:
-        """Checks if the enemy has line of sight with the player"""
+    def check_line_of_sight(self) -> bool:
+        """
+        Checks if the enemy has line of sight with the player.
+
+        Returns
+        -------
+        bool
+            Whether the enemy has line of sight with the player or not.
+        """
         # Check for line of sight
         self.line_of_sight = arcade.has_line_of_sight(
             (self.center_x, self.center_y),
@@ -113,3 +121,6 @@ class Enemy(Entity):
             self.game.wall_sprites,
             self.entity_type.view_distance * SPRITE_SIZE,
         )
+
+        # Return the result
+        return self.line_of_sight

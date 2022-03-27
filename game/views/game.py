@@ -306,7 +306,7 @@ class Game(arcade.View):
         assert self.player is not None
 
         # Check if the game should end
-        if self.player.health == 0 or not self.enemies:
+        if self.player.health <= 0 or not self.enemies:
             arcade.exit()
 
         # Calculate the vertical velocity of the player based on the keys pressed
@@ -449,6 +449,8 @@ class Game(arcade.View):
         ):
             # Reset the player's counter
             self.player.time_since_last_attack = 0
+
+            # Attack
             self.player.ranged_attack(self.bullet_sprites)
             # self.player.run_melee_shader()
 

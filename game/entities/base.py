@@ -137,7 +137,21 @@ class Entity(arcade.Sprite):
         damage: int
             The amount of health to take away from the entity.
         """
-        self.health -= damage
+        # Check if the entity still has armour
+        if self.armour > 0:
+            # Damage the armour
+            self.armour -= damage
+            if self.armour < 0:
+                # Damage exceeds armour so damage health
+                self.health += self.armour
+                self.armour = 0
+        else:
+            # Damage the health
+            self.health -= damage
+
+        # Check if the entity should be killed
+        if self.health <= 0:
+            self.remove_from_sprite_lists()
 
     def ranged_attack(self, bullet_list: arcade.SpriteList) -> None:
         """
