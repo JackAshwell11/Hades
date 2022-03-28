@@ -272,12 +272,26 @@ class Item(Tile):
         """Returns the player object for ease of access."""
         return self.game.player
 
-    def item_activate(self) -> None:
-        """Called when the item is activated by the player. Override this to add item
-        activate functionality."""
-        return
+    def item_activate(self) -> bool:
+        """
+        Called when the item is activated by the player. Override this to add item
+        activate functionality.
 
-    def item_use(self) -> None:
-        """Called when the item is ued by the player. Override this to add item use
-        functionality."""
-        return
+        Returns
+        -------
+        bool
+            Whether the item activation was successful or not.
+        """
+        return False
+
+    def item_use(self) -> bool:
+        """
+        Called when the item is used by the player. Override this to add item
+        use functionality.
+
+        Returns
+        -------
+        bool
+            Whether the item use was successful or not.
+        """
+        return False

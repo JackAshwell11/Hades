@@ -45,20 +45,41 @@ class HealthPotion(Item):
     def __repr__(self) -> str:
         return f"<HealthPotion (Position=({self.center_x}, {self.center_y}))>"
 
-    def item_activate(self) -> None:
-        """Called when the item is activated by the player."""
+    def item_activate(self) -> bool:
+        """
+        Called when the item is activated by the player.
+
+        Returns
+        -------
+        bool
+            Whether the item activation was successful or not.
+        """
         try:
             # Try and add the item to the player's inventory
             self.player.inventory_obj.add_item(self)
 
             # Add successful
             self.remove_from_sprite_lists()
+
+            # Activate was successful
+            return True
         except IndexError:
             # Add not successful. TO DO: Probably give message to user
-            pass
+            return False
 
-    def item_use(self) -> None:
-        """Called when the item is ued by the player.""" ""
+    def item_use(self) -> bool:
+        """
+        Called when the item is used by the player.
+
+        Returns
+        -------
+
+        """
+        # Check if the potion can be used
+        if self.player.health == self.player.entity_type.health:
+            # Can't be used
+            return False
+
         # Add health to the player
         self.player.health += HEALTH_POTION_INCREASE
         if self.player.health > self.player.entity_type.health:
@@ -66,6 +87,9 @@ class HealthPotion(Item):
 
         # Health increase successful
         self.remove_from_sprite_lists()
+
+        # Use was successful
+        return True
 
 
 class Shop(Item):
@@ -98,6 +122,14 @@ class Shop(Item):
     def __repr__(self) -> str:
         return f"<Shop (Position=({self.center_x}, {self.center_y}))>"
 
-    def item_activate(self) -> None:
-        """Called when the item is activated by the player."""
-        print("shop")
+    def item_activate(self) -> bool:
+        """
+        Called when the item is activated by the player.
+
+        Returns
+        -------
+        bool
+            Whether the item activation was successful or not.
+        """
+        print("shop activate")
+        return False

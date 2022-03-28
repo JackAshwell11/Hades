@@ -38,7 +38,9 @@ class InventoryBox(arcade.gui.UITextureButton):
         # Check if the item is a consumable
         if self.item_ref.item_id in CONSUMABLES:
             # Use it
-            self.item_ref.item_use()
+            if not self.item_ref.item_use():
+                # Use was not successful
+                return
 
             # Get the current window, current view and game view
             window: Window = arcade.get_window()
