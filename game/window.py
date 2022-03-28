@@ -41,5 +41,6 @@ def main() -> None:
     window.run()
 
 
+# Only make sure the game is run from this file
 if __name__ == "__main__":
     main()
