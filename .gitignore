@@ -8,5 +8,10 @@ venv/
 # Mypy cache
 .mypy_cache/
 
+# Pyinstaller files
+*.spec
+build/
+dist/
+
 # Temp files
 game/resources-TEMP/
