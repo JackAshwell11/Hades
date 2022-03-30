@@ -16,9 +16,7 @@ if TYPE_CHECKING:
 
 # Create the paths to the shader scripts
 base_path = (
-    pathlib.Path(__file__)
-    .parent.parent.joinpath("resources")
-    .joinpath("shader scripts")
+    pathlib.Path(__file__).parent.joinpath("resources").joinpath("shader scripts")
 )
 vertex_path = base_path.joinpath("melee_vertex.glsl")
 geometry_path = base_path.joinpath("melee_geometry.glsl")
