@@ -12,7 +12,7 @@ from constants.general import CONSUMABLES
 
 if TYPE_CHECKING:
     from entities.base import Item
-    from entities.inventory import Inventory
+    from entities.player import Player
     from views.game import Game
     from window import Window
 
@@ -44,11 +44,11 @@ class InventoryBox(arcade.gui.UITextureButton):
 
             # Get the current window, current view and game view
             window: Window = arcade.get_window()
-            game_view: Game = window.views["Game"]  # noqa
+            current_view: InventoryView = window.current_view  # noqa
 
             # Remove the item from the player's inventory and clear the texture and item
             # ref
-            game_view.player.inventory.remove(self.item_ref)
+            current_view.player.inventory.remove(self.item_ref)
             self.item_ref = self.texture = None
 
             # Update the button
@@ -84,8 +84,8 @@ class InventoryView(arcade.View):
 
     Parameters
     ----------
-    inventory: Inventory
-        The inventory object for the player.
+    player: Player
+        The player object used for accessing the inventory.
 
     Attributes
     ----------
@@ -93,16 +93,16 @@ class InventoryView(arcade.View):
         Manages all the different UI elements.
     """
 
-    def __init__(self, inventory: Inventory) -> None:
+    def __init__(self, player: Player) -> None:
         super().__init__()
         self.manager: arcade.gui.UIManager = arcade.gui.UIManager()
         self.vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
-        self.inventory: Inventory = inventory
+        self.player: Player = player
 
         # Create the inventory grid
-        for i in range(self.inventory.height):
+        for i in range(self.player.inventory_shape[1]):
             horizontal_box = arcade.gui.UIBoxLayout(vertical=False)
-            for j in range(self.inventory.width):
+            for j in range(self.player.inventory_shape[0]):
                 horizontal_box.add(
                     InventoryBox(width=128, height=128).with_border(width=4)
                 )
@@ -138,13 +138,13 @@ class InventoryView(arcade.View):
                 array_pos = column_count + row_count * 3
 
                 # Check if there actually exists an item at the given position
-                if len(self.inventory.array) - 1 < array_pos:
+                if len(self.player.inventory) - 1 < array_pos:
                     continue
 
                 # Set the inventory box item reference and its texture
                 inventory_box_obj: InventoryBox = ui_border_obj.children[0]  # noqa
-                inventory_box_obj.item_ref = self.inventory.array[array_pos]
-                inventory_box_obj.texture = self.inventory.array[array_pos].texture
+                inventory_box_obj.item_ref = self.player.inventory[array_pos]
+                inventory_box_obj.texture = self.player.inventory[array_pos].texture
 
     def on_draw(self) -> None:
         """Render the screen."""

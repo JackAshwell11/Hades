@@ -18,6 +18,7 @@ from constants.generation import (
     ENEMY_DISTRIBUTION,
     ITEM_DISTRIBUTION,
     LARGE_ROOM,
+    PLACE_TRIES,
     SAFE_SPAWN_RADIUS,
     SMALL_ROOM,
     TileType,
@@ -205,10 +206,11 @@ class Map:
         # Repeatedly place an enemy type. If they are placed, we can increment the
         # counter. Otherwise, continue
         for enemy in ENEMY_DISTRIBUTION.keys():
-            # Get the count for this enemy type
+            # Set up the counters for this enemy type
             count = self.map_constants[enemy]
             enemies_placed = 0
-            while enemies_placed < count:
+            tries = PLACE_TRIES
+            while enemies_placed < count and tries != 0:
                 if self.place_tile(
                     enemy,
                     np.random.choice(
@@ -217,6 +219,9 @@ class Map:
                 ):
                     # Enemy placed
                     enemies_placed += 1
+                else:
+                    # Enemy not placed
+                    tries -= 1
 
     def place_items(self, rect_areas: list[tuple[Rect, int]]) -> None:
         """
@@ -231,15 +236,19 @@ class Map:
         # Repeatedly place an item type. If they are placed, we can increment the
         # counter. Otherwise, continue
         for item in ITEM_DISTRIBUTION.keys():
-            # Get the count for this item type
+            # Set up the counters for this item type
             count = self.map_constants[item]
             items_placed = 0
-            while items_placed < count:
+            tries = PLACE_TRIES
+            while items_placed < count and tries != 0:
                 if self.place_tile(
                     item, np.random.choice([rect[0] for rect in rect_areas])
                 ):
                     # Item placed
                     items_placed += 1
+                else:
+                    # Item not placed
+                    tries -= 1
 
     def place_tile(self, entity: TileType, rect: Rect) -> bool:
         """

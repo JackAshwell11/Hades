@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 
 # Custom
 from constants.entity import EntityID, PlayerType
+from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
-from entities.inventory import Inventory
 from melee_shader import MeleeShader
 
 if TYPE_CHECKING:
@@ -34,8 +34,12 @@ class Player(Entity):
     melee_shader: MeleeShader
         The OpenGL shader used to find and attack any enemies within a specific distance
         around the player based on their direction.
-    inventory_obj: Inventory
-        The inventory object which represents this player's inventory.
+    inventory: list[Item]
+        The list which stores the player's inventory.
+    inventory_shape: tuple[int, int]
+        The width and height of the inventory. This may change at a later date.
+    inventory_capacity: int
+        The total capacity of the inventory.
     """
 
     # Class variables
@@ -44,15 +48,12 @@ class Player(Entity):
     def __init__(self, game: Game, x: int, y: int, player_type: PlayerType) -> None:
         super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
-        self.inventory_obj: Inventory = Inventory(self)
+        self.inventory: list[Item] = []
+        self.inventory_shape: tuple[int, int] = (INVENTORY_WIDTH, INVENTORY_HEIGHT)
+        self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
-
-    @property
-    def inventory(self) -> list[Item]:
-        """Returns the player's inventory."""
-        return self.inventory_obj.array
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
@@ -65,6 +66,27 @@ class Player(Entity):
         """
         # Update the player's time since last attack
         self.time_since_last_attack += delta_time
+
+    def add_item_to_inventory(self, item: Item) -> None:
+        """
+        Adds an item to the player's inventory.
+
+        Parameters
+        ----------
+        item: Item
+            The item to add to the player's inventory.
+
+        Raises
+        -------
+        IndexError
+            The player's inventory is full.
+        """
+        # Check if the array is full
+        if len(self.inventory) == self.inventory_capacity:
+            raise IndexError("Inventory is full.")
+
+        # Add the item to the array
+        self.inventory.append(item)
 
     def run_melee_shader(self) -> None:
         """Runs the melee shader to get all enemies within melee range of the player."""

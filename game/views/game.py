@@ -93,10 +93,8 @@ class Game(arcade.View):
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
-        self.bullet_sprites: arcade.SpriteList = arcade.SpriteList(
-            use_spatial_hash=True
-        )
-        self.enemies: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
+        self.bullet_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.enemies: arcade.SpriteList = arcade.SpriteList()
         self.physics_engine: PhysicsEngine | None = None
         self.camera: arcade.Camera | None = None
         self.gui_camera: arcade.Camera | None = None
@@ -196,7 +194,7 @@ class Game(arcade.View):
             enemy.check_line_of_sight()  # noqa
 
         # Set up the inventory view
-        inventory_view = InventoryView(self.player.inventory_obj)
+        inventory_view = InventoryView(self.player)
         self.window.views["InventoryView"] = inventory_view
 
     def on_show(self) -> None:
