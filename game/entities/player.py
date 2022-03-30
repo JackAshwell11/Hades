@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from constants.entity import EntityID, PlayerType
 from entities.base import Entity
 from entities.inventory import Inventory
-from shaders.melee import MeleeShader
+from melee_shader import MeleeShader
 
 if TYPE_CHECKING:
     from entities.base import Item
