@@ -8,7 +8,7 @@ import arcade
 import arcade.gui
 
 # Custom
-from constants.general import CONSUMABLES
+from constants.general import CONSUMABLES, INVENTORY_HEIGHT, INVENTORY_WIDTH
 
 if TYPE_CHECKING:
     from entities.base import Item
@@ -100,11 +100,11 @@ class InventoryView(arcade.View):
         self.player: Player = player
 
         # Create the inventory grid
-        for i in range(self.player.inventory_shape[1]):
+        for i in range(INVENTORY_HEIGHT):
             horizontal_box = arcade.gui.UIBoxLayout(vertical=False)
-            for j in range(self.player.inventory_shape[0]):
+            for j in range(INVENTORY_WIDTH):
                 horizontal_box.add(
-                    InventoryBox(width=128, height=128).with_border(width=4)
+                    InventoryBox(width=64, height=64).with_border(width=4)
                 )
             self.vertical_box.add(horizontal_box)
 

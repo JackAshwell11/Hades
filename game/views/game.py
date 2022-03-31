@@ -8,14 +8,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import (
-    ATTACK_COOLDOWN,
-    ENEMY1,
-    FACING_LEFT,
-    FACING_RIGHT,
-    MOVEMENT_FORCE,
-    PLAYER,
-)
+from constants.entity import ENEMY1, FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, PLAYER
 from constants.general import (
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
@@ -456,7 +449,8 @@ class Game(arcade.View):
         # Test if the player can attack
         if (
             button == arcade.MOUSE_BUTTON_LEFT
-            and self.player.time_since_last_attack >= ATTACK_COOLDOWN
+            and self.player.time_since_last_attack
+            >= self.player.entity_type.attack_cooldown
         ):
             # Reset the player's counter
             self.player.time_since_last_attack = 0

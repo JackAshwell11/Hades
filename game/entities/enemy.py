@@ -8,13 +8,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import (
-    ATTACK_COOLDOWN,
-    FACING_LEFT,
-    FACING_RIGHT,
-    EnemyType,
-    EntityID,
-)
+from constants.entity import FACING_LEFT, FACING_RIGHT, EnemyType, EntityID
 from constants.general import SPRITE_SIZE
 from entities.ai import FollowLineOfSight
 from entities.base import Entity
@@ -99,7 +93,7 @@ class Enemy(Entity):
         hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
         if (
             hypot_distance <= self.entity_type.attack_range * SPRITE_SIZE
-            and self.time_since_last_attack >= ATTACK_COOLDOWN
+            and self.time_since_last_attack >= self.entity_type.attack_cooldown
         ):
             # Enemy can attack so reset the counter and attack
             self.time_since_last_attack: float = 0  # Mypy is annoying

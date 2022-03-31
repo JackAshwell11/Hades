@@ -37,8 +37,6 @@ class Player(Entity):
         around the player based on their direction.
     inventory: list[Item]
         The list which stores the player's inventory.
-    inventory_shape: tuple[int, int]
-        The width and height of the inventory. This may change at a later date.
     inventory_capacity: int
         The total capacity of the inventory.
     applied_effects:: list[StatusEffect]
@@ -52,7 +50,6 @@ class Player(Entity):
         super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.inventory: list[Item] = []
-        self.inventory_shape: tuple[int, int] = (INVENTORY_WIDTH, INVENTORY_HEIGHT)
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.applied_effects: list[StatusEffect] = []
 
