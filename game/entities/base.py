@@ -254,6 +254,7 @@ class Item(Tile):
 
     # Class variables
     item_id: TileType = TileType.NONE
+    item_text: str = "Press E to activate"
 
     def __init__(
         self,
@@ -298,6 +299,9 @@ class Collectible(Item):
     y: int
         The y position of the item in the game map.
     """
+
+    # Class variables
+    item_text: str = "Press E to pick up and R to activate"
 
     def __init__(
         self,

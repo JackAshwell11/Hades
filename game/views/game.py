@@ -107,7 +107,7 @@ class Game(arcade.View):
         )
         self.nearest_item: Item | Collectible | None = None
         self.item_text: arcade.Text = arcade.Text(
-            "Press E to activate",
+            "",
             self.window.width / 2 - 150,
             self.window.height / 2 - 200,
             arcade.color.BLACK,
@@ -300,6 +300,7 @@ class Game(arcade.View):
         self.health_text.value = f"Health: {self.player.health}"
         self.health_text.draw()
         if self.nearest_item:
+            self.item_text.text = self.nearest_item.item_text
             self.item_text.draw()
 
     def on_update(self, delta_time: float) -> None:
