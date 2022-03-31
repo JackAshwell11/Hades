@@ -15,7 +15,8 @@ class TileType(IntEnum):
     PLAYER = 3
     ENEMY = 4
     HEALTH_POTION = 5
-    SHOP = 6
+    HEALTH_BOOST_POTION = 6
+    SHOP = 7
     DEBUG_WALL = 9
 
 
@@ -38,8 +39,9 @@ ENEMY_DISTRIBUTION = {
     TileType.ENEMY: 1,
 }
 ITEM_DISTRIBUTION = {
-    TileType.HEALTH_POTION: 0.8,
-    TileType.SHOP: 0.2,
+    TileType.HEALTH_POTION: 0.6,
+    TileType.HEALTH_BOOST_POTION: 0.3,
+    TileType.SHOP: 0.1,
 }
 
 # Other map generation constants

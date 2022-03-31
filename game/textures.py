@@ -46,6 +46,7 @@ non_moving_filenames = {
     ],
     "items": [
         "health_potion.png",
+        "health_boost_potion.png",
         "shop.png",
     ],
 }

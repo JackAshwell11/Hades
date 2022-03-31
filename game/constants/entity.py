@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 # Builtin
-from enum import IntEnum
+from enum import Enum, IntEnum
 from typing import NamedTuple
 
 # Pip
@@ -18,6 +18,16 @@ class EntityID(IntEnum):
     ENTITY = 0
     PLAYER = 1
     ENEMY = 2
+
+
+# Status effect types
+class StatusEffectType(Enum):
+    """Stores the type of status effects that can be applied to the player."""
+
+    HEALTH = "health"
+    ARMOUR = "armour"
+    SPEED = "speed"
+    FIRE_RATE = "fire rate"
 
 
 # Base player type
@@ -91,6 +101,10 @@ PLAYER = PlayerType(100, 20, moving_textures["player"], 200, 3, 60, 10)
 # Enemy characters
 ENEMY1 = EnemyType("enemy1", 10, 10, moving_textures["enemy"], 50, 5, 3, 5)
 ENEMY2 = EnemyType("enemy2", 10, 10, moving_textures["enemy"], 50, 5, 3, 5)
+
+# Status effect constants
+HEALTH_BOOST_POTION_INCREASE = 50
+HEALTH_BOOST_POTION_DURATION = 10
 
 # Other entity constants
 FACING_RIGHT = 0

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from constants.entity import EntityID, PlayerType
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
+from entities.status_effect import StatusEffect
 from melee_shader import MeleeShader
 
 if TYPE_CHECKING:
@@ -40,6 +41,8 @@ class Player(Entity):
         The width and height of the inventory. This may change at a later date.
     inventory_capacity: int
         The total capacity of the inventory.
+    applied_effects:: list[StatusEffect]
+        The currently applied status effects.
     """
 
     # Class variables
@@ -51,6 +54,7 @@ class Player(Entity):
         self.inventory: list[Item] = []
         self.inventory_shape: tuple[int, int] = (INVENTORY_WIDTH, INVENTORY_HEIGHT)
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
+        self.applied_effects: list[StatusEffect] = []
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
@@ -67,7 +71,11 @@ class Player(Entity):
         # Update the player's time since last attack
         self.time_since_last_attack += delta_time
 
-    def add_item_to_inventory(self, item: Item) -> None:
+        # Update any status effects
+        for status_effect in self.applied_effects:
+            status_effect.update(delta_time)
+
+    def add_item_to_inventory(self, item: Item) -> bool:
         """
         Adds an item to the player's inventory.
 
@@ -76,17 +84,30 @@ class Player(Entity):
         item: Item
             The item to add to the player's inventory.
 
-        Raises
+        Returns
         -------
-        IndexError
-            The player's inventory is full.
+        bool
+            Whether the add was successful or not.
         """
         # Check if the array is full
         if len(self.inventory) == self.inventory_capacity:
-            raise IndexError("Inventory is full.")
+            return False
 
         # Add the item to the array
         self.inventory.append(item)
+        return True
+
+    def add_status_effect(self, effect: StatusEffect) -> None:
+        """
+        Adds a status effect to the player
+
+        Parameters
+        ----------
+        effect: StatusEffect
+            The status effect to add to the player.
+        """
+        self.applied_effects.append(effect)
+        effect.apply_effect()
 
     def run_melee_shader(self) -> None:
         """Runs the melee shader to get all enemies within melee range of the player."""

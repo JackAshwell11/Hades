@@ -284,14 +284,45 @@ class Item(Tile):
         """
         return False
 
-    def item_use(self) -> bool:
+
+class Collectible(Item):
+    """
+    Represents a collectible item in the game.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the item can have a reference to it.
+    x: int
+        The x position of the item in the game map.
+    y: int
+        The y position of the item in the game map.
+    """
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
+
+    def item_pick_up(self) -> bool:
         """
-        Called when the item is used by the player. Override this to add item
-        use functionality.
+        Called when the item is picked up by the player.
 
         Returns
         -------
         bool
-            Whether the item use was successful or not.
+            Whether the item pickup was successful or not.
         """
-        return False
+        # Try and add the item to the player's inventory
+        if self.player.add_item_to_inventory(self):
+            # Add successful
+            self.remove_from_sprite_lists()
+
+            # Activate was successful
+            return True
+        else:
+            # Add not successful. TO DO: Probably give message to user
+            return False

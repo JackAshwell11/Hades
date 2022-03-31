@@ -25,7 +25,7 @@ from constants.general import (
 from constants.generation import TileType
 from entities.ai import FollowLineOfSight
 from entities.enemy import Enemy
-from entities.item import HealthPotion, Shop
+from entities.item import HealthBoostPotion, HealthPotion, Shop
 from entities.player import Player
 from entities.tile import Floor, Wall
 from generation.map import Map
@@ -34,7 +34,7 @@ from textures import pos_to_pixel
 from views.inventory_view import InventoryView
 
 if TYPE_CHECKING:
-    from entities.base import Item
+    from entities.base import Collectible, Item
 
 
 class Game(arcade.View):
@@ -73,7 +73,7 @@ class Game(arcade.View):
         The camera used for visualising the GUI elements.
     health_text: arcade.Text
         The text object used for displaying the player's health.
-    nearest_item: Item | None
+    nearest_item: Item | Collectible | None
         Stores the nearest item so the player can activate it.
     left_pressed: bool
         Whether the left key is pressed or not.
@@ -105,7 +105,7 @@ class Game(arcade.View):
             arcade.color.WHITE,
             20,
         )
-        self.nearest_item: Item | None = None
+        self.nearest_item: Item | Collectible | None = None
         self.item_text: arcade.Text = arcade.Text(
             "Press E to activate",
             self.window.width / 2 - 150,
@@ -169,6 +169,11 @@ class Game(arcade.View):
                         health_potion = HealthPotion(self, count_x, count_y)
                         self.tile_sprites.append(health_potion)
                         self.item_sprites.append(health_potion)
+                    case TileType.HEALTH_BOOST_POTION.value:
+                        self.tile_sprites.append(Floor(count_x, count_y))
+                        health_boost_potion = HealthBoostPotion(self, count_x, count_y)
+                        self.tile_sprites.append(health_boost_potion)
+                        self.item_sprites.append(health_boost_potion)
                     case TileType.SHOP.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
                         shop = Shop(self, count_x, count_y)
@@ -398,10 +403,10 @@ class Game(arcade.View):
                 self.right_pressed = True
             case arcade.key.E:
                 if self.nearest_item:
-                    self.nearest_item.item_activate()
+                    self.nearest_item.item_pick_up()
             case arcade.key.R:
                 if self.nearest_item:
-                    self.nearest_item.item_use()
+                    self.nearest_item.item_activate()
             case arcade.key.F:
                 self.window.show_view(self.window.views["InventoryView"])
                 self.window.views["InventoryView"].manager.enable()
