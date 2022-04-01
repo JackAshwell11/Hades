@@ -8,13 +8,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import (
-    ARMOUR_REGEN_AMOUNT,
-    FACING_LEFT,
-    FACING_RIGHT,
-    EnemyType,
-    EntityID,
-)
+from constants.entity import FACING_LEFT, FACING_RIGHT, EnemyType, EntityID
 from constants.general import SPRITE_SIZE
 from entities.ai import FollowLineOfSight
 from entities.base import Entity
@@ -77,8 +71,11 @@ class Enemy(Entity):
         # Update the enemy's time since last attack
         self.time_since_last_attack += delta_time
 
-        # Check if the player is not within the max view distance
+        # Check if the enemy is not in combat
         if not self.line_of_sight:
+            # Enemy not in combat so check if they can regenerate armour
+            if self.entity_type.armour_regen:
+                self.check_armour_regen(delta_time)
             return
 
         # Player is within line of sight so get the force needed to move the enemy
@@ -105,13 +102,6 @@ class Enemy(Entity):
             self.time_since_last_attack: float = 0  # Mypy is annoying
             self.ranged_attack(self.game.bullet_sprites)
 
-    def regen_armour(self) -> None:
-        """Regenerates the enemy's armour."""
-        # Regenerate the armour
-        self.armour: int = self.armour + ARMOUR_REGEN_AMOUNT  # TODO: Fix mypy error
-        if self.armour > self.entity_type.armour:
-            self.armour = self.entity_type.armour
-
     def check_line_of_sight(self) -> bool:
         """
         Checks if the enemy has line of sight with the player.
@@ -128,6 +118,8 @@ class Enemy(Entity):
             self.game.wall_sprites,
             self.entity_type.view_distance * SPRITE_SIZE,
         )
+        if self.line_of_sight:
+            self.time_out_of_combat = 0
 
         # Return the result
         return self.line_of_sight

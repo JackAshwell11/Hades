@@ -344,9 +344,13 @@ class Game(arcade.View):
 
         # Check if we need to update the enemy's line of sight
         if update_enemies:
-            # Update the enemy's line of sight check
-            for enemy in self.enemies:
-                enemy.check_line_of_sight()  # noqa
+            # Update the enemy's line of sight check. We can also use this to check if
+            # the player is now in combat
+            self.player.in_combat = any(
+                [enemy.check_line_of_sight() for enemy in self.enemies]  # noqa
+            )
+            if self.player.in_combat:
+                self.player.time_out_of_combat = 0
 
         # Position the camera
         self.center_camera_on_player()

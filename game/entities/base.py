@@ -9,6 +9,8 @@ import arcade
 
 # Custom
 from constants.entity import (
+    ARMOUR_REGEN_AMOUNT,
+    ARMOUR_REGEN_WAIT,
     BULLET_OFFSET,
     BULLET_VELOCITY,
     EnemyType,
@@ -91,6 +93,10 @@ class Entity(arcade.Sprite):
         The direction the entity is facing. 0 is right and 1 is left.
     time_since_last_attack: float
         The time since the last attack.
+    time_out_of_combat: float
+        The time since the entity was last in combat.
+    time_since_armour_regen: float
+        The time since the entity last regenerated armour.
     """
 
     # Class variables
@@ -113,6 +119,8 @@ class Entity(arcade.Sprite):
         self.direction: float = 0
         self.facing: int = 0
         self.time_since_last_attack: float = 0
+        self.time_out_of_combat: float = 0
+        self.time_since_armour_regen: float = self.entity_type.armour_regen_cooldown
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
@@ -125,17 +133,6 @@ class Entity(arcade.Sprite):
         ----------
         delta_time: float
             Time interval since the last time the function was called.
-
-        Raises
-        ------
-        NotImplementedError
-            The function is not implemented.
-        """
-        raise NotImplementedError
-
-    def regen_armour(self) -> None:
-        """
-        Regenerates the entity's armour.
 
         Raises
         ------
@@ -169,26 +166,27 @@ class Entity(arcade.Sprite):
         if self.health <= 0:
             self.remove_from_sprite_lists()
 
-    # def check_armour_regen(self, delta_time: float) -> None:
-    #     """
-    #     Checks if the entity can regenerate armour.
-    #
-    #     Parameters
-    #     ----------
-    #     delta_time:
-    #         Time interval since the last time the function was called.
-    #     """
-    #     # Check if the entity has been out of combat for ARMOUR_REGEN_WAIT seconds
-    #     if self.time_since_last_attack >= self.entity_type.attack_cooldown + ARMOUR_
-    #     REGEN_WAIT:
-    #         # Check if enough has passed since the last armour regen
-    #         if self.time_since_armour_regen >= self.entity_type.armour_regen_cooldown:
-    #             # Regen armour
-    #             self.regen_armour()
-    #             self.time_since_armour_regen = 0
-    #         else:
-    #             # Increment the counter since not enough time has passed
-    #             self.time_since_armour_regen += delta_time
+    def check_armour_regen(self, delta_time: float) -> None:
+        """
+        Checks if the entity can regenerate armour.
+
+        Parameters
+        ----------
+        delta_time:
+            Time interval since the last time the function was called.
+        """
+        # Check if the entity has been out of combat for ARMOUR_REGEN_WAIT seconds
+        if self.time_out_of_combat >= ARMOUR_REGEN_WAIT:
+            # Check if enough has passed since the last armour regen
+            if self.time_since_armour_regen >= self.entity_type.armour_regen_cooldown:
+                # Regen armour
+                self.armour += ARMOUR_REGEN_AMOUNT
+                self.time_since_armour_regen = 0
+            else:
+                # Increment the counter since not enough time has passed
+                self.time_since_armour_regen += delta_time
+        else:
+            self.time_out_of_combat += delta_time
 
     def ranged_attack(self, bullet_list: arcade.SpriteList) -> None:
         """

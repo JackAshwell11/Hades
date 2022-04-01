@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity import ARMOUR_REGEN_AMOUNT, EntityID, PlayerType
+from constants.entity import EntityID, PlayerType
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
 from entities.status_effect import StatusEffect, StatusEffectType
@@ -56,6 +56,7 @@ class Player(Entity):
             "bonus health": 0,
             "bonus armour": 0,
         }
+        self.in_combat: bool = False
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
@@ -72,17 +73,19 @@ class Player(Entity):
         # Update the player's time since last attack
         self.time_since_last_attack += delta_time
 
+        # Check if the player can regenerate health
+        if not self.in_combat:
+            self.check_armour_regen(delta_time)
+            armour_limit = (
+                self.entity_type.armour + self.state_modifiers["bonus armour"]
+            )
+            self.armour: int  # TODO: Fix this mypy error about undetermined type
+            if self.armour > armour_limit:
+                self.armour = armour_limit
+
         # Update any status effects
         for status_effect in self.applied_effects:
             status_effect.update(delta_time)
-
-    def regen_armour(self) -> None:
-        """Regenerates the player's armour."""
-        # Regenerate the armour
-        self.armour: int = self.armour + ARMOUR_REGEN_AMOUNT  # TODO: Fix mypy error
-        armour_limit = self.entity_type.armour + self.state_modifiers["bonus armour"]
-        if self.armour > armour_limit:
-            self.armour = armour_limit
 
     def add_item_to_inventory(self, item: Item) -> bool:
         """

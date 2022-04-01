@@ -47,6 +47,10 @@ class PlayerType(NamedTuple):
         The time duration between attacks.
     damage: int
         The damage the player deals.
+    armour_regen: bool
+        Whether the player regenerates armour or not.
+    armour_regen_cooldown: int
+        The time between armour regenerations.
     melee_range: int
         The amount of tiles the player can attack within using a melee attack.
     melee_degree: int
@@ -59,6 +63,8 @@ class PlayerType(NamedTuple):
     max_velocity: int
     attack_cooldown: int
     damage: int
+    armour_regen: bool
+    armour_regen_cooldown: int
     melee_range: int
     melee_degree: int
 
@@ -82,6 +88,10 @@ class EnemyType(NamedTuple):
         The time duration between attacks.
     damage: int
         The damage the enemy deals.
+    armour_regen: bool
+        Whether the enemy regenerates armour or not.
+    armour_regen_cooldown: int
+        The time between armour regenerations.
     view_distance: int
         The amount of tiles the enemy can see too.
     attack_range: int
@@ -95,16 +105,18 @@ class EnemyType(NamedTuple):
     max_velocity: int
     attack_cooldown: int
     damage: int
+    armour_regen: bool
+    armour_regen_cooldown: int
     view_distance: int
     attack_range: int
 
 
 # Player characters
-PLAYER = PlayerType(100, 20, moving_textures["player"], 200, 1, 10, 3, 60)
+PLAYER = PlayerType(100, 20, moving_textures["player"], 200, 1, 10, True, 1, 3, 60)
 
 # Enemy characters
-ENEMY1 = EnemyType("enemy1", 10, 10, moving_textures["enemy"], 50, 1, 5, 5, 3)
-ENEMY2 = EnemyType("enemy2", 10, 10, moving_textures["enemy"], 50, 1, 5, 5, 3)
+ENEMY1 = EnemyType("enemy1", 10, 10, moving_textures["enemy"], 50, 1, 5, True, 3, 5, 3)
+ENEMY2 = EnemyType("enemy2", 10, 10, moving_textures["enemy"], 50, 1, 5, True, 3, 5, 3)
 
 # Status effect constants
 HEALTH_BOOST_POTION_INCREASE = 50
@@ -114,6 +126,7 @@ HEALTH_BOOST_POTION_DURATION = 10
 FACING_RIGHT = 0
 FACING_LEFT = 1
 MOVEMENT_FORCE = 1000000
+ARMOUR_REGEN_WAIT = 5
 ARMOUR_REGEN_AMOUNT = 1
 BULLET_VELOCITY = 300
 BULLET_OFFSET = 30
