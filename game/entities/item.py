@@ -61,14 +61,21 @@ class HealthPotion(Collectible):
             Whether the item activation was successful or not.
         """
         # Check if the potion can be used
-        if self.player.health == self.player.entity_type.health:
+        if (
+            self.player.health
+            == self.player.entity_type.health
+            + self.player.state_modifiers["bonus health"]
+        ):
             # Can't be used
             return False
 
         # Add health to the player
         self.player.health += HEALTH_POTION_INCREASE
-        if self.player.health > self.player.entity_type.health:
-            self.player.health = self.player.entity_type.health
+        health_limit = (
+            self.player.entity_type.health + self.player.state_modifiers["bonus health"]
+        )
+        if self.player.health > health_limit:
+            self.player.health = health_limit
 
         # Health increase successful
         self.remove_from_sprite_lists()

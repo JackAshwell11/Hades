@@ -52,6 +52,10 @@ class Player(Entity):
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.applied_effects: list[StatusEffect] = []
+        self.state_modifiers: dict[str, int] = {
+            "bonus health": 0,
+            "bonus armour": 0,
+        }
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"

@@ -310,14 +310,14 @@ class Leaf:
         # Create hallway intersection point. This will be used to determine which
         # orientation the hallway is out of 8 orientations. We also have the is_left and
         # split_vertical bools to help determine the orientation. The matches are:
-        #   RIGHT-UP split_vertical=True
-        #   RIGHT-DOWN split_vertical=True
-        #   LEFT-UP split_vertical=True
-        #   LEFT-DOWN split_vertical=True
-        #   UP-LEFT split_vertical=False
-        #   UP-RIGHT split_vertical=False
-        #   DOWN-LEFT split_vertical=False
-        #   DOWN-RIGHT split_vertical=False
+        #   RIGHT-UP = split_vertical=True
+        #   RIGHT-DOWN = split_vertical=True
+        #   LEFT-UP = split_vertical=True
+        #   LEFT-DOWN = split_vertical=True
+        #   UP-LEFT = split_vertical=False
+        #   UP-RIGHT = split_vertical=False
+        #   DOWN-LEFT = split_vertical=False
+        #   DOWN-RIGHT = split_vertical=False
         if self.split_vertical:
             hallway_intersection_x, hallway_intersection_y = (
                 right_room.center_x,
