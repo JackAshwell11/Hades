@@ -8,7 +8,13 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import FACING_LEFT, FACING_RIGHT, EnemyType, EntityID
+from constants.entity import (
+    ARMOUR_REGEN_AMOUNT,
+    FACING_LEFT,
+    FACING_RIGHT,
+    EnemyType,
+    EntityID,
+)
 from constants.general import SPRITE_SIZE
 from entities.ai import FollowLineOfSight
 from entities.base import Entity
@@ -98,6 +104,13 @@ class Enemy(Entity):
             # Enemy can attack so reset the counter and attack
             self.time_since_last_attack: float = 0  # Mypy is annoying
             self.ranged_attack(self.game.bullet_sprites)
+
+    def regen_armour(self) -> None:
+        """Regenerates the enemy's armour."""
+        # Regenerate the armour
+        self.armour: int = self.armour + ARMOUR_REGEN_AMOUNT  # TODO: Fix mypy error
+        if self.armour > self.entity_type.armour:
+            self.armour = self.entity_type.armour
 
     def check_line_of_sight(self) -> bool:
         """

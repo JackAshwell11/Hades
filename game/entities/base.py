@@ -125,6 +125,22 @@ class Entity(arcade.Sprite):
         ----------
         delta_time: float
             Time interval since the last time the function was called.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
+        raise NotImplementedError
+
+    def regen_armour(self) -> None:
+        """
+        Regenerates the entity's armour.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
         """
         raise NotImplementedError
 
@@ -152,6 +168,27 @@ class Entity(arcade.Sprite):
         # Check if the entity should be killed
         if self.health <= 0:
             self.remove_from_sprite_lists()
+
+    # def check_armour_regen(self, delta_time: float) -> None:
+    #     """
+    #     Checks if the entity can regenerate armour.
+    #
+    #     Parameters
+    #     ----------
+    #     delta_time:
+    #         Time interval since the last time the function was called.
+    #     """
+    #     # Check if the entity has been out of combat for ARMOUR_REGEN_WAIT seconds
+    #     if self.time_since_last_attack >= self.entity_type.attack_cooldown + ARMOUR_
+    #     REGEN_WAIT:
+    #         # Check if enough has passed since the last armour regen
+    #         if self.time_since_armour_regen >= self.entity_type.armour_regen_cooldown:
+    #             # Regen armour
+    #             self.regen_armour()
+    #             self.time_since_armour_regen = 0
+    #         else:
+    #             # Increment the counter since not enough time has passed
+    #             self.time_since_armour_regen += delta_time
 
     def ranged_attack(self, bullet_list: arcade.SpriteList) -> None:
         """

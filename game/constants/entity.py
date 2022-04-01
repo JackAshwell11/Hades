@@ -45,12 +45,12 @@ class PlayerType(NamedTuple):
         The max speed that the player can go.
     attack_cooldown: int
         The time duration between attacks.
+    damage: int
+        The damage the player deals.
     melee_range: int
         The amount of tiles the player can attack within using a melee attack.
     melee_degree: int
         The degree that the player's melee attack is limited to.
-    damage: int
-        The damage the entity deals.
     """
 
     health: int
@@ -58,9 +58,9 @@ class PlayerType(NamedTuple):
     textures: dict[str, list[list[arcade.Texture]]]
     max_velocity: int
     attack_cooldown: int
+    damage: int
     melee_range: int
     melee_degree: int
-    damage: int
 
 
 # Base enemy type
@@ -80,12 +80,12 @@ class EnemyType(NamedTuple):
         The max speed that the enemy can go.
     attack_cooldown: int
         The time duration between attacks.
+    damage: int
+        The damage the enemy deals.
     view_distance: int
         The amount of tiles the enemy can see too.
     attack_range: int
         The amount of tiles the enemy can attack within.
-    damage: int
-        The damage the enemy deals.
     """
 
     name: str
@@ -94,17 +94,17 @@ class EnemyType(NamedTuple):
     textures: dict[str, list[list[arcade.Texture]]]
     max_velocity: int
     attack_cooldown: int
+    damage: int
     view_distance: int
     attack_range: int
-    damage: int
 
 
 # Player characters
-PLAYER = PlayerType(100, 20, moving_textures["player"], 200, 1, 3, 60, 10)
+PLAYER = PlayerType(100, 20, moving_textures["player"], 200, 1, 10, 3, 60)
 
 # Enemy characters
-ENEMY1 = EnemyType("enemy1", 10, 10, moving_textures["enemy"], 50, 1, 5, 3, 5)
-ENEMY2 = EnemyType("enemy2", 10, 10, moving_textures["enemy"], 50, 1, 5, 3, 5)
+ENEMY1 = EnemyType("enemy1", 10, 10, moving_textures["enemy"], 50, 1, 5, 5, 3)
+ENEMY2 = EnemyType("enemy2", 10, 10, moving_textures["enemy"], 50, 1, 5, 5, 3)
 
 # Status effect constants
 HEALTH_BOOST_POTION_INCREASE = 50
@@ -114,5 +114,6 @@ HEALTH_BOOST_POTION_DURATION = 10
 FACING_RIGHT = 0
 FACING_LEFT = 1
 MOVEMENT_FORCE = 1000000
+ARMOUR_REGEN_AMOUNT = 1
 BULLET_VELOCITY = 300
 BULLET_OFFSET = 30

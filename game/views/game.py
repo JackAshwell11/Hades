@@ -64,8 +64,8 @@ class Game(arcade.View):
         The camera used for moving the viewport around the screen.
     gui_camera: arcade.Camera | None
         The camera used for visualising the GUI elements.
-    health_text: arcade.Text
-        The text object used for displaying the player's health.
+    player_status_text: arcade.Text
+        The text object used for displaying the player's health and armour.
     nearest_item: Item | Collectible | None
         Stores the nearest item so the player can activate it.
     left_pressed: bool
@@ -91,8 +91,8 @@ class Game(arcade.View):
         self.physics_engine: PhysicsEngine | None = None
         self.camera: arcade.Camera | None = None
         self.gui_camera: arcade.Camera | None = None
-        self.health_text: arcade.Text = arcade.Text(
-            "Score: 0  Health: 0",
+        self.player_status_text: arcade.Text = arcade.Text(
+            "Health: 0  Armour: 0",
             10,
             10,
             arcade.color.WHITE,
@@ -290,8 +290,10 @@ class Game(arcade.View):
 
         # Draw the gui on the screen
         self.gui_camera.use()
-        self.health_text.value = f"Health: {self.player.health}"
-        self.health_text.draw()
+        self.player_status_text.value = (
+            f"Health: {self.player.health}  Armour: {self.player.armour}"
+        )
+        self.player_status_text.draw()
         if self.nearest_item:
             self.item_text.text = self.nearest_item.item_text
             self.item_text.draw()

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity import EntityID, PlayerType
+from constants.entity import ARMOUR_REGEN_AMOUNT, EntityID, PlayerType
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
 from entities.status_effect import StatusEffect, StatusEffectType
@@ -75,6 +75,14 @@ class Player(Entity):
         # Update any status effects
         for status_effect in self.applied_effects:
             status_effect.update(delta_time)
+
+    def regen_armour(self) -> None:
+        """Regenerates the player's armour."""
+        # Regenerate the armour
+        self.armour: int = self.armour + ARMOUR_REGEN_AMOUNT  # TODO: Fix mypy error
+        armour_limit = self.entity_type.armour + self.state_modifiers["bonus armour"]
+        if self.armour > armour_limit:
+            self.armour = armour_limit
 
     def add_item_to_inventory(self, item: Item) -> bool:
         """
