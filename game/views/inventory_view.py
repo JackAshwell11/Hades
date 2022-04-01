@@ -46,12 +46,15 @@ class InventoryBox(arcade.gui.UITextureButton):
             window: Window = arcade.get_window()
             current_view: InventoryView = window.current_view  # noqa
 
-            # Remove the item from the player's inventory and clear the texture and item
-            # ref
+            # Remove the item from the player's inventory and clear the item ref
             current_view.player.inventory.remove(self.item_ref)
             self.item_ref = self.texture = None
 
-            # Update the button
+            # Update the grid
+            current_view.update_grid()
+
+            # Render the changes. This is needed because the view is only updated when
+            # the user exits
             self.trigger_full_render()
 
 
@@ -128,6 +131,18 @@ class InventoryView(arcade.View):
         self.window.background_color = arcade.color.BABY_BLUE
 
         # Update each box to show the player's inventory
+        self.update_grid()
+
+    def on_draw(self) -> None:
+        """Render the screen."""
+        # Clear the screen
+        self.clear()
+
+        # Draw the UI elements
+        self.manager.draw()
+
+    def update_grid(self) -> None:
+        """Updates the inventory grid."""
         for row_count, box_layout in enumerate(self.vertical_box.children):
             for column_count, ui_border_obj in enumerate(box_layout.children):
                 # Check if the current object is the back button
@@ -137,19 +152,11 @@ class InventoryView(arcade.View):
                 # Get the inventory array position
                 array_pos = column_count + row_count * 3
 
-                # Check if there actually exists an item at the given position
-                if len(self.player.inventory) - 1 < array_pos:
-                    continue
-
-                # Set the inventory box item reference and its texture
+                # Set the inventory box object to the inventory item
                 inventory_box_obj: InventoryBox = ui_border_obj.children[0]  # noqa
-                inventory_box_obj.item_ref = self.player.inventory[array_pos]
-                inventory_box_obj.texture = self.player.inventory[array_pos].texture
-
-    def on_draw(self) -> None:
-        """Render the screen."""
-        # Clear the screen
-        self.clear()
-
-        # Draw the UI elements
-        self.manager.draw()
+                try:
+                    item = self.player.inventory[array_pos]
+                    inventory_box_obj.item_ref = item
+                    inventory_box_obj.texture = item.texture
+                except IndexError:
+                    inventory_box_obj.texture = None

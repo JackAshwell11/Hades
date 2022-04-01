@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from constants.entity import EntityID, PlayerType
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
-from entities.status_effect import StatusEffect
+from entities.status_effect import StatusEffect, StatusEffectType
 from melee_shader import MeleeShader
 
 if TYPE_CHECKING:
@@ -96,6 +96,11 @@ class Player(Entity):
 
         # Add the item to the array
         self.inventory.append(item)
+
+        # Update the inventory grid
+        self.game.window.views["InventoryView"].update_grid()
+
+        # Add successful
         return True
 
     def add_status_effect(self, effect: StatusEffect) -> None:
@@ -109,6 +114,17 @@ class Player(Entity):
         """
         self.applied_effects.append(effect)
         effect.apply_effect()
+
+    def get_applied_effects_type(self) -> list[StatusEffectType]:
+        """
+        Gets all the applied status effect types.
+
+        Returns
+        -------
+        list[StatusEffectType]
+            A list of status effect types.
+        """
+        return [effect.effect_type for effect in self.applied_effects]
 
     def run_melee_shader(self) -> None:
         """Runs the melee shader to get all enemies within melee range of the player."""

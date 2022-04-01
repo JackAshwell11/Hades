@@ -122,6 +122,10 @@ class HealthBoostPotion(Collectible):
         bool
             Whether the item activation was successful or not.
         """
+        # Check if the status effect can be applied
+        if StatusEffectType.HEALTH in self.player.get_applied_effects_type():
+            return False
+
         # Apply the health status effect
         self.player.add_status_effect(
             StatusEffect(
