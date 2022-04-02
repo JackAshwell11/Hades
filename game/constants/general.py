@@ -11,6 +11,11 @@ DEBUG_LINES = False
 DEBUG_GAME = True
 DEBUG_VIEW_DISTANCE = arcade.color.RED
 DEBUG_ATTACK_DISTANCE = arcade.color.BLUE
+LOGGING_FORMAT = (
+    "[%(asctime)s  %(levelname)s] [%(filename)s:%(lineno)d:%(funcName)s()] -"
+    " %(message)s"
+)
+DO_LOGGING = True
 
 # Sprite sizes
 SPRITE_SCALE = 2.5
