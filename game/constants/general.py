@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+# Builtin
+import pathlib
+
 # Pip
 import arcade
 
@@ -11,11 +14,40 @@ DEBUG_LINES = False
 DEBUG_GAME = True
 DEBUG_VIEW_DISTANCE = arcade.color.RED
 DEBUG_ATTACK_DISTANCE = arcade.color.BLUE
-LOGGING_FORMAT = (
-    "[%(asctime)s  %(levelname)s] [%(filename)s:%(lineno)d:%(funcName)s()] -"
-    " %(message)s"
+
+# Logging constants
+LOG_PATH = (
+    pathlib.Path(__file__)
+    .resolve()
+    .parent.parent.joinpath("saves")
+    .joinpath("game.log")
 )
-DO_LOGGING = True
+LOGGING_DICT = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": (
+                "[%(asctime)s  %(levelname)s] [%(filename)s:%(lineno)d:%(funcName)s()]"
+                " - %(message)s"
+            ),
+        }
+    },
+    "handlers": {
+        "default": {
+            "level": "INFO",
+            "formatter": "default",
+            "class": "logging.FileHandler",
+            "filename": LOG_PATH,
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["default"],
+            "level": "INFO",
+        }
+    },
+}
 
 # Sprite sizes
 SPRITE_SCALE = 2.5

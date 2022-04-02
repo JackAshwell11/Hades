@@ -13,5 +13,8 @@ venv/
 build/
 dist/
 
+# Save files
+saves/
+
 # Temp files
 game/resources-TEMP/

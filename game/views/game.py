@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 import math
 from typing import TYPE_CHECKING
 
@@ -28,6 +29,9 @@ from views.inventory_view import InventoryView
 
 if TYPE_CHECKING:
     from entities.base import Collectible, Item
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class Game(arcade.View):
