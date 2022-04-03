@@ -132,5 +132,4 @@ class Enemy(Entity):
             self.time_out_of_combat = 0
 
         # Return the result
-        logger.debug(f"{self} line of sight={self.line_of_sight}")
         return self.line_of_sight

@@ -518,10 +518,6 @@ class Game(arcade.View):
             angle += 360
         self.player.direction = angle
         self.player.facing = FACING_LEFT if 90 <= angle <= 270 else FACING_RIGHT
-        logger.debug(
-            f"Set player direction to {angle} facing"
-            f" {'left' if self.player.facing else 'right'}"
-        )
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
