@@ -83,6 +83,24 @@ class Map:
             f" count={self.map_constants['item count']})>"
         )
 
+    @property
+    def width(self) -> int:
+        """Returns the width of the grid."""
+        # Make sure variables needed are valid
+        assert self.grid is not None
+
+        # Return the shape
+        return self.grid.shape[1]
+
+    @property
+    def height(self) -> int:
+        """Returns the height of the grid."""
+        # Make sure variables needed are valid
+        assert self.grid is not None
+
+        # Return the shape
+        return self.grid.shape[0]
+
     def generate_constants(self) -> dict[TileType | str, int]:
         """
         Generates the needed constants based on a given level.

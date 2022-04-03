@@ -2,7 +2,7 @@ from __future__ import annotations
 
 # Builtin
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 # Custom
 from constants.entity import MOVEMENT_FORCE
@@ -17,15 +17,14 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class AIBase:
-    """The base class for all AI algorithms. These could either be movement or attacking
-    algorithms (or both)."""
+class AIMovementBase:
+    """The base class for all AI movement algorithms."""
 
     def __init__(self) -> None:
         self.owner: Entity | None = None
 
     def __repr__(self) -> str:
-        return f"<AIBase (Owner={self.owner})>"
+        return f"<AIMovementBase (Owner={self.owner})>"
 
     def calculate_movement(
         self, player: Player, walls: arcade.SpriteList
@@ -48,7 +47,28 @@ class AIBase:
         raise NotImplementedError
 
 
-class FollowLineOfSight(AIBase):
+class AIAttackBase:
+    """The base class for all AI attacking algorithms."""
+
+    def __init__(self) -> None:
+        self.owner: Entity | None = None
+
+    def __repr__(self) -> str:
+        return f"<AIAttackBase (Owner={self.owner})>"
+
+    def process_attack(self, *args: tuple[Any, ...]) -> None:
+        """
+        Processes an attack for an enemy.
+
+        Parameters
+        ----------
+        args: tuple[any, ...]
+            A tuple with any number of parameters of any value.
+        """
+        raise NotImplementedError
+
+
+class FollowLineOfSight(AIMovementBase):
     """An algorithm which moves the enemy towards the target if the enemy has line of
     sight with the target, and the target is within the enemy's view distance."""
 
