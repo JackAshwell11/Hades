@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 from typing import TYPE_CHECKING
 
 # Custom
@@ -13,6 +14,9 @@ from melee_shader import MeleeShader
 if TYPE_CHECKING:
     from entities.base import Item
     from views.game import Game
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class Player(Entity):
@@ -79,7 +83,7 @@ class Player(Entity):
             armour_limit = (
                 self.entity_type.armour + self.state_modifiers["bonus armour"]
             )
-            self.armour: int  # TODO: Fix this mypy error about undetermined type
+            self.armour: int  # Mypy gives self.armour an undetermined type error
             if self.armour > armour_limit:
                 self.armour = armour_limit
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 import random
 
 # Pip
@@ -13,6 +14,9 @@ from constants.generation import (
     MIN_ROOM_SIZE,
     TileType,
 )
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class Rect:

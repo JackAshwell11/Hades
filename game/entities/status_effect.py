@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 from typing import TYPE_CHECKING
 
 # Custom
@@ -8,6 +9,9 @@ from constants.entity import StatusEffectType
 
 if TYPE_CHECKING:
     from entities.player import Player
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class StatusEffect:

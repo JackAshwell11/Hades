@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+# Builtin
+import logging
+
 # Pip
 import arcade
 
 # Custom
 from entities.base import Tile
 from textures import non_moving_textures
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class Floor(Tile):

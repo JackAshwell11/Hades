@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 import pathlib
 
 # Pip
 import arcade
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 def pos_to_pixel(x: int, y: int) -> tuple[float, float]:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 from typing import TYPE_CHECKING
 
 # Pip
@@ -27,6 +28,9 @@ from generation.bsp import Leaf
 
 if TYPE_CHECKING:
     from generation.bsp import Rect
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class Map:

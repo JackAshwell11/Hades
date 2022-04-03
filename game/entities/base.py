@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 import math
 from typing import TYPE_CHECKING
 
@@ -25,6 +26,9 @@ if TYPE_CHECKING:
     from entities.player import Player
     from physics import PhysicsEngine
     from views.game import Game
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class Bullet(arcade.SpriteSolidColor):
@@ -186,6 +190,7 @@ class Entity(arcade.Sprite):
                 # Increment the counter since not enough time has passed
                 self.time_since_armour_regen += delta_time
         else:
+            # Increment the counter since not enough time has passed
             self.time_out_of_combat += delta_time
 
     def ranged_attack(self, bullet_list: arcade.SpriteList) -> None:

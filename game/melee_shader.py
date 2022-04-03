@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 import pathlib
 import struct
 from typing import TYPE_CHECKING
@@ -13,6 +14,9 @@ if TYPE_CHECKING:
     from arcade.gl import Buffer, Framebuffer, Program, Query
     from entities.enemy import Enemy
     from views.game import Game
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 # Create the paths to the shader scripts
 base_path = (

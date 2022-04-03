@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 from typing import TYPE_CHECKING
 
 # Pip
@@ -15,6 +16,9 @@ if TYPE_CHECKING:
     from entities.player import Player
     from views.game import Game
     from window import Window
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class InventoryBox(arcade.gui.UITextureButton):

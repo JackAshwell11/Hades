@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 import math
 from typing import TYPE_CHECKING
 
@@ -15,6 +16,9 @@ from entities.base import Entity
 
 if TYPE_CHECKING:
     from views.game import Game
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class Enemy(Entity):
@@ -77,6 +81,10 @@ class Enemy(Entity):
             if self.entity_type.armour_regen:
                 self.check_armour_regen(delta_time)
             return
+
+        # Enemy in combat so reset their combat counter
+        self.time_out_of_combat = 0
+        self.time_since_armour_regen = self.entity_type.armour_regen_cooldown
 
         # Player is within line of sight so get the force needed to move the enemy
         horizontal, vertical = self.ai.calculate_movement(

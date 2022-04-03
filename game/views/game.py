@@ -348,16 +348,19 @@ class Game(arcade.View):
 
         # Check if we need to update the enemy's line of sight
         if update_enemies:
-            # Update the enemy's line of sight check. We can also use this to check if
-            # the player is now in combat
-            self.player.in_combat = any(
-                [enemy.check_line_of_sight() for enemy in self.enemies]  # noqa
-            )
-            if self.player.in_combat:
-                self.player.time_out_of_combat = 0
+            # Update the enemy's line of sight check
+            for enemy in self.enemies:
+                enemy.check_line_of_sight()  # noqa
 
         # Position the camera
         self.center_camera_on_player()
+
+        # Check if the player is in combat
+        self.player.in_combat = any(
+            [enemy.line_of_sight for enemy in self.enemies]  # noqa
+        )  # noqa
+        if self.player.in_combat:
+            self.player.time_out_of_combat = 0
 
         # Process logic for the enemies
         self.enemies.on_update()
@@ -462,8 +465,13 @@ class Game(arcade.View):
             and self.player.time_since_last_attack
             >= self.player.entity_type.attack_cooldown
         ):
-            # Reset the player's counter
+            # Reset the player's combat variables
+            self.player.time_since_armour_regen = (
+                self.player.entity_type.armour_regen_cooldown
+            )
             self.player.time_since_last_attack = 0
+            self.player.time_out_of_combat = 0
+            self.player.in_combat = True
 
             # Attack
             self.player.ranged_attack(self.bullet_sprites)

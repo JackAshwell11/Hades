@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 from typing import TYPE_CHECKING
 
 # Pip
@@ -13,6 +14,9 @@ from views.game import Game
 
 if TYPE_CHECKING:
     from window import Window
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class StartButton(arcade.gui.UIFlatButton):

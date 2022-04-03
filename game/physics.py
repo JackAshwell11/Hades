@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 from typing import TYPE_CHECKING
 
 # Pip
@@ -13,6 +14,9 @@ if TYPE_CHECKING:
     from entities.base import Bullet, Entity
     from entities.player import Player
     from entities.tile import Tile
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
