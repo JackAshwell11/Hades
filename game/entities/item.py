@@ -4,9 +4,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-# Pip
-import arcade
-
 # Custom
 from constants.entity import (
     HEALTH_BOOST_POTION_DURATION,
@@ -20,6 +17,7 @@ from entities.status_effect import StatusEffect
 from textures import non_moving_textures
 
 if TYPE_CHECKING:
+    import arcade
     from views.game import Game
 
 # Get the logger

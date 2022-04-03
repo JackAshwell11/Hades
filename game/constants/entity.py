@@ -2,13 +2,13 @@ from __future__ import annotations
 
 # Builtin
 from enum import Enum, IntEnum
-from typing import NamedTuple
-
-# Pip
-import arcade
+from typing import TYPE_CHECKING, NamedTuple
 
 # Custom
 from textures import moving_textures
+
+if TYPE_CHECKING:
+    import arcade
 
 
 # Entity IDs

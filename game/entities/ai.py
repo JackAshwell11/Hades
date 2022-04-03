@@ -4,13 +4,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-# Pip
-import arcade
-
 # Custom
 from constants.entity import MOVEMENT_FORCE
 
 if TYPE_CHECKING:
+    import arcade
     from entities.base import Entity
     from entities.player import Player
 
