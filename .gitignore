@@ -13,7 +13,8 @@ venv/
 build/
 dist/
 
-# Save files
+# Log and save files
+logs/
 saves/
 
 # Temp files
