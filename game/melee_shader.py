@@ -106,6 +106,11 @@ class MeleeShader:
             ]
         )
         self.update_collision()
+        logger.info(
+            "Initialised melee shader with a result buffer size of"
+            f" {self.result_buffer.size} and a walls framebuffer size of"
+            f" {self.walls_framebuffer.size}"
+        )
 
     def update_collision(self) -> None:
         """Updates the wall framebuffer to ensure collision detection is accurate."""
@@ -116,6 +121,9 @@ class MeleeShader:
         with self.walls_framebuffer.activate() as fbo:
             fbo.clear()
             self.view.wall_sprites.draw()
+        logger.debug(
+            f"Updated the walls framebuffer with size {self.walls_framebuffer.size}"
+        )
 
     def run_shader(self) -> list[Enemy]:
         """
@@ -167,6 +175,7 @@ class MeleeShader:
 
         # Store the number of primitives/sprites found
         num_sprites_found = self.query.primitives_generated
+        logger.debug(f"Found {num_sprites_found} sprites in the melee shader")
         if num_sprites_found > 0:
             # Transfer the data from the shader into python and decode the value into
             # python objects. To do this, we unpack the result buffer from the VRAM and

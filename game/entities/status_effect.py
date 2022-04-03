@@ -63,6 +63,10 @@ class StatusEffect:
         """Applies the status effect to the player."""
         # Get the new value
         new_value = self.original + self.increase_amount
+        logger.info(
+            f"Applying effect {self.effect_type} with amount {self.increase_amount} for"
+            f" {self.duration} seconds"
+        )
 
         # Apply the effect
         match self.effect_type:
@@ -122,3 +126,6 @@ class StatusEffect:
 
             # Remove the status effect
             self.player.applied_effects.remove(self)
+            logger.info(
+                f"Removed effect {self.effect_type} setting value to {current_value}"
+            )

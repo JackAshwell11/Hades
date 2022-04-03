@@ -86,9 +86,11 @@ class Player(Entity):
             self.armour: int  # Mypy gives self.armour an undetermined type error
             if self.armour > armour_limit:
                 self.armour = armour_limit
+                logger.debug("Set player armour to max")
 
         # Update any status effects
         for status_effect in self.applied_effects:
+            logger.debug(f"Updating status effect {status_effect}")
             status_effect.update(delta_time)
 
     def add_item_to_inventory(self, item: Item) -> bool:
@@ -107,6 +109,7 @@ class Player(Entity):
         """
         # Check if the array is full
         if len(self.inventory) == self.inventory_capacity:
+            logger.info(f"Cannot add item {item} to full inventory")
             return False
 
         # Add the item to the array
@@ -116,6 +119,7 @@ class Player(Entity):
         self.game.window.views["InventoryView"].update_grid()
 
         # Add successful
+        logger.info(f"Adding item {item} to inventory")
         return True
 
     def add_status_effect(self, effect: StatusEffect) -> None:
@@ -129,6 +133,7 @@ class Player(Entity):
         """
         self.applied_effects.append(effect)
         effect.apply_effect()
+        logger.info(f"Adding effect {effect} to player")
 
     def get_applied_effects_type(self) -> list[StatusEffectType]:
         """
@@ -145,4 +150,5 @@ class Player(Entity):
         """Runs the melee shader to get all enemies within melee range of the player."""
         # Deal melee damage to any entity that the player can attack. This is determined
         # by the melee shader
+        logger.info("Running melee shader")
         self.melee_attack(self.melee_shader.run_shader())

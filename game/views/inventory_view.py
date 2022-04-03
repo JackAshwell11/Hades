@@ -44,6 +44,7 @@ class InventoryBox(arcade.gui.UITextureButton):
             # Use it
             if not self.item_ref.item_activate():
                 # Use was not successful
+                logger.info(f"Item use for {self.item_ref} not successful")
                 return
 
             # Get the current window, current view and game view
@@ -60,6 +61,8 @@ class InventoryBox(arcade.gui.UITextureButton):
             # Render the changes. This is needed because the view is only updated when
             # the user exits
             self.trigger_full_render()
+
+            logger.info(f"Removing item {self.item_ref} from inventory grid")
 
 
 class BackButton(arcade.gui.UIFlatButton):
@@ -83,6 +86,8 @@ class BackButton(arcade.gui.UIFlatButton):
         # Show the game view
         game_view: Game = window.views["Game"]  # noqa
         window.show_view(game_view)
+
+        logger.info("Switching from inventory view to game view")
 
 
 class InventoryView(arcade.View):
@@ -137,6 +142,8 @@ class InventoryView(arcade.View):
         # Update each box to show the player's inventory
         self.update_grid()
 
+        logger.info("Shown inventory view")
+
     def on_draw(self) -> None:
         """Render the screen."""
         # Clear the screen
@@ -147,6 +154,7 @@ class InventoryView(arcade.View):
 
     def update_grid(self) -> None:
         """Updates the inventory grid."""
+        result = [0, 0]
         for row_count, box_layout in enumerate(self.vertical_box.children):
             for column_count, ui_border_obj in enumerate(box_layout.children):
                 # Check if the current object is the back button
@@ -162,5 +170,11 @@ class InventoryView(arcade.View):
                     item = self.player.inventory[array_pos]
                     inventory_box_obj.item_ref = item
                     inventory_box_obj.texture = item.texture
+                    result[0] += 1
                 except IndexError:
                     inventory_box_obj.texture = None
+                    result[1] += 1
+        logger.debug(
+            f"Updated inventory grid with {result[0]} item textures and"
+            f" {result[1]} empty textures"
+        )

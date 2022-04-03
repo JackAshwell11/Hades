@@ -200,6 +200,10 @@ class Leaf:
                 self.container.y2,
                 self.grid,
             )
+            logger.debug(
+                f"Split map vertically at {pos} making child leafs {self.left} and"
+                f" {self.right}"
+            )
         else:
             # Split horizontally making sure to adjust pos, so it can be within range of
             # the actual container
@@ -223,6 +227,10 @@ class Leaf:
                 self.container.x2,
                 self.container.y2,
                 self.grid,
+            )
+            logger.debug(
+                f"Split map horizontally at {pos} making child leafs {self.left} and"
+                f" {self.right}"
             )
 
         # Set the leaf's split direction
@@ -262,6 +270,7 @@ class Leaf:
 
         # Create the room rect
         self.room = Rect(x_pos, y_pos, x_pos + width - 1, y_pos + height - 1)
+        logger.debug(f"Created room {self.room}")
 
         # Place the room rect in the 2D grid
         rooms.append(self.room)
@@ -332,6 +341,10 @@ class Leaf:
                 left_room.center_x,
                 right_room.center_y,
             )
+        logger.debug(
+            f"Hallway intersection created at({hallway_intersection_x},"
+            f" {hallway_intersection_y})"
+        )
 
         # Determine hallway width/height
         half_hallway_size = HALLWAY_SIZE // 2
@@ -420,6 +433,9 @@ class Leaf:
         )
         hallways.append(first_hallway)
         self.place_rect(first_hallway)
+        logger.debug(
+            f"First hallway placed at ({first_top_left}, {first_bottom_right})"
+        )
         if valid:
             second_hallway = Rect(
                 *second_top_left,
@@ -427,6 +443,14 @@ class Leaf:
             )
             hallways.append(second_hallway)
             self.place_rect(second_hallway)
+            logger.debug(
+                f"Second hallway placed at ({second_top_left}, {second_bottom_right})"
+            )
+        else:
+            logger.debug(
+                f"Second hallway not placed at ({second_top_left},"
+                f" {second_bottom_right})"
+            )
 
         # Return a room, so it can be connected on the next level
         if self.split_vertical:
@@ -459,3 +483,4 @@ class Leaf:
             rect.y1 + 1 : min(rect.y2, height - 1),
             rect.x1 + 1 : min(rect.x2, width - 1),
         ] = TileType.FLOOR.value
+        logger.debug(f"Placed rect {rect}")

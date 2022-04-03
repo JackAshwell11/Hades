@@ -41,8 +41,12 @@ def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
     try:
         # Remove the bullet
         bullet.remove_from_sprite_lists()
+        logger.debug(f"Removed {bullet} after hitting {wall}")
     except AttributeError:
         # An error randomly occurs here so just ignore it
+        logger.warning(
+            f"An error occurred while removing {bullet} after hitting {wall}"
+        )
         pass
     # Stop collision processing
     return False
@@ -75,8 +79,12 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
         if bullet.owner.ID is EntityID.PLAYER:
             # Deal damage to the enemy
             enemy.deal_damage(bullet.owner.entity_type.damage)
+            logger.debug(f"Removed {bullet} after hitting {enemy}")
     except AttributeError:
         # An error randomly occurs here so just ignore it
+        logger.warning(
+            f"An error occurred while removing {bullet} after hitting {enemy}"
+        )
         pass
     # Stop collision processing
     return False
@@ -109,8 +117,12 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
         if bullet.owner.ID is EntityID.ENEMY:
             # Deal damage to the player
             player.deal_damage(bullet.owner.entity_type.damage)
+            logger.debug(f"Removed {bullet} after hitting {player}")
     except AttributeError:
         # An error randomly occurs here so just ignore it
+        logger.warning(
+            f"An error occurred while removing {bullet} after hitting {player}"
+        )
         pass
     # Stop collision processing
     return False
@@ -187,6 +199,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         self.add_collision_handler(
             "player", "bullet", begin_handler=player_bullet_begin_handler
         )
+        logger.info(f"Initialised physics engine with {len(self.sprites.keys())} items")
 
     def __repr__(self) -> str:
         return (
@@ -209,3 +222,4 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             body_type=self.KINEMATIC,
             collision_type="bullet",
         )
+        logger.info(f"Added bullet {bullet} to physics engine")

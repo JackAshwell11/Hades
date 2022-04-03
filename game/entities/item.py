@@ -71,6 +71,7 @@ class HealthPotion(Collectible):
             + self.player.state_modifiers["bonus health"]
         ):
             # Can't be used
+            logger.info("Can't use health potion since player health is full")
             return False
 
         # Add health to the player
@@ -80,11 +81,13 @@ class HealthPotion(Collectible):
         )
         if self.player.health > health_limit:
             self.player.health = health_limit
+            logger.debug("Set player health to max")
 
         # Health increase successful
         self.remove_from_sprite_lists()
 
         # Use was successful
+        logger.info("Used health potion")
         return True
 
 
@@ -128,6 +131,7 @@ class HealthBoostPotion(Collectible):
         """
         # Check if the status effect can be applied
         if StatusEffectType.HEALTH in self.player.get_applied_effects_type():
+            logger.info("Can't use health boost potion since it is already applied")
             return False
 
         # Apply the health status effect
@@ -145,6 +149,7 @@ class HealthBoostPotion(Collectible):
         self.remove_from_sprite_lists()
 
         # Effect was successful
+        logger.info("Used health boost potion")
         return True
 
 

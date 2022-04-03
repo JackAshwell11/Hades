@@ -116,6 +116,7 @@ class Map:
             "enemy count": enemy_count,
             "item count": item_count,
         }
+        logger.info(f"Generated map constants {generation_constants}")
 
         # Merge the enemy/item dict and generation constants dict then return the result
         return generation_constants | enemy_dict
@@ -151,10 +152,14 @@ class Map:
                 # Multiply the probabilities by SMALL_ROOM
                 self.probabilities["SMALL"] *= SMALL_ROOM["SMALL"]
                 self.probabilities["LARGE"] *= SMALL_ROOM["LARGE"]
+                logger.debug(f"Split bsp. New probabilities are {self.probabilities}")
             else:
                 # Multiply the probabilities by LARGE_ROOM
                 self.probabilities["SMALL"] *= LARGE_ROOM["SMALL"]
                 self.probabilities["LARGE"] *= LARGE_ROOM["LARGE"]
+                logger.debug(
+                    f"Didn't split bsp. New probabilities are {self.probabilities}"
+                )
 
             # Normalise the probabilities so they add up to 1
             probabilities_sum = 1 / sum(self.probabilities.values())  # type: ignore
@@ -179,6 +184,7 @@ class Map:
             key=lambda x: x[1],
         )
         total_area = sum(area[1] for area in rect_areas)
+        logger.debug(f"Created {rect_areas} with total area {total_area}")
 
         # Place the player spawn in the smallest room
         self.place_tile(TileType.PLAYER, rect_areas[0][0])
@@ -191,6 +197,7 @@ class Map:
 
         # Place the items
         self.place_items(rect_areas)
+        logger.debug(f"Generated map {self.grid}")
 
     def place_enemies(
         self,
@@ -223,9 +230,11 @@ class Map:
                 ):
                     # Enemy placed
                     enemies_placed += 1
+                    logger.debug(f"Placed {enemy}")
                 else:
                     # Enemy not placed
                     tries -= 1
+                    logger.debug(f"Didn't place {enemy}")
 
     def place_items(self, rect_areas: list[tuple[Rect, int]]) -> None:
         """
@@ -250,9 +259,11 @@ class Map:
                 ):
                     # Item placed
                     items_placed += 1
+                    logger.debug(f"Placed {item}")
                 else:
                     # Item not placed
                     tries -= 1
+                    logger.debug(f"Didn't place {item}")
 
     def place_tile(self, entity: TileType, rect: Rect) -> bool:
         """
@@ -278,6 +289,7 @@ class Map:
             np.random.randint(rect.x1 + 1, rect.x2 - 1),
             np.random.randint(rect.y1 + 1, rect.y2 - 1),
         )
+        logger.debug(f"Generated random position ({position_x}, {position_y})")
 
         # Check if the entity is an enemy. If so, we need to make sure they are not
         # within the spawn radius

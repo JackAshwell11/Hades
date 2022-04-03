@@ -165,10 +165,12 @@ class Entity(arcade.Sprite):
         else:
             # Damage the health
             self.health -= damage
+        logger.debug(f"Dealing {damage} to {self}")
 
         # Check if the entity should be killed
         if self.health <= 0:
             self.remove_from_sprite_lists()
+            logger.info(f"Killed {self}")
 
     def check_armour_regen(self, delta_time: float) -> None:
         """
@@ -186,6 +188,7 @@ class Entity(arcade.Sprite):
                 # Regen armour
                 self.armour += ARMOUR_REGEN_AMOUNT
                 self.time_since_armour_regen = 0
+                logger.debug(f"Regenerated armour for {self}")
             else:
                 # Increment the counter since not enough time has passed
                 self.time_since_armour_regen += delta_time
@@ -226,6 +229,10 @@ class Entity(arcade.Sprite):
             math.sin(angle_radians) * BULLET_VELOCITY,
         )
         physics.set_velocity(new_bullet, (change_x, change_y))
+        logger.info(
+            f"Created bullet with owner {self} at position ({new_bullet.center_x},"
+            f" {new_bullet.center_y}) with velocity ({change_x}, {change_y})"
+        )
 
     def melee_attack(self, target: list[Entity]) -> None:
         """
@@ -366,7 +373,9 @@ class Collectible(Item):
             self.remove_from_sprite_lists()
 
             # Activate was successful
+            logger.info(f"Picked up item {self}")
             return True
         else:
             # Add not successful. TO DO: Probably give message to user
+            logger.info(f"Can't pick up item {self}")
             return False

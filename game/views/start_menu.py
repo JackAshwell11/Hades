@@ -35,6 +35,9 @@ class StartButton(arcade.gui.UIFlatButton):
         new_game = Game(DEBUG_GAME)
         window.views["Game"] = new_game
         new_game.setup(1)
+        logger.info(
+            f"Initialised game view with at level {1} with DEBUG_GAME={DEBUG_GAME}"
+        )
 
         # Show the new game
         window.show_view(new_game)
@@ -51,6 +54,7 @@ class QuitButton(arcade.gui.UIFlatButton):
 
     def on_click(self, event: arcade.gui.UIOnClickEvent) -> None:
         """Called when the button is clicked."""
+        logger.info("Exiting game")
         arcade.exit()
 
     def __repr__(self) -> str:
@@ -93,6 +97,10 @@ class StartMenu(arcade.View):
 
     def __repr__(self) -> str:
         return f"<StartMenu (Current window={self.window})>"
+
+    def on_show(self) -> None:
+        """Called when the view loads."""
+        logger.info("Shown start menu view")
 
     def on_draw(self) -> None:
         """Render the screen."""

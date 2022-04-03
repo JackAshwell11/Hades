@@ -97,6 +97,7 @@ class Enemy(Entity):
 
         # Apply the force
         self.physics_engines[0].apply_force(self, (horizontal, vertical))
+        logger.debug(f"Applied force ({horizontal}, {vertical}) to {self}")
 
         # Check if the player is within the attack range and can attack
         x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
@@ -107,6 +108,7 @@ class Enemy(Entity):
             and self.time_since_last_attack >= self.entity_type.attack_cooldown
         ):
             # Enemy can attack so reset the counter and attack
+            logger.info(f"{self} attacking player with distance {hypot_distance}")
             self.time_since_last_attack: float = 0  # Mypy is annoying
             self.ranged_attack(self.game.bullet_sprites)
 
@@ -130,4 +132,5 @@ class Enemy(Entity):
             self.time_out_of_combat = 0
 
         # Return the result
+        logger.debug(f"{self} line of sight={self.line_of_sight}")
         return self.line_of_sight

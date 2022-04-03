@@ -32,9 +32,6 @@ def get_log_path() -> pathlib.Path:
 class ArcadeFilter(logging.Filter):
     """A logging filter which removes all arcade debug logs."""
 
-    def __init__(self) -> None:
-        super().__init__("arcade")
-
     def filter(self, record: logging.LogRecord) -> bool:
         """
         Filters out arcade debug logs to stop crowding of the log file.
@@ -42,14 +39,20 @@ class ArcadeFilter(logging.Filter):
         Parameters
         ----------
         record: logging.LogRecord
-            The log record from the arcade logger.
+            The log record from the root logger.
 
         Returns
         -------
         bool
             Whether to keep the log record or not.
         """
-        return record.levelname != "DEBUG"
+        if "pymunk" in record.pathname:
+            return False
+        elif "arcade" in record.pathname:
+            return False
+        elif "pyglet" in record.pathname:
+            return False
+        return True
 
 
 class Window(arcade.Window):
@@ -89,6 +92,7 @@ def main() -> None:
     window.views["StartMenu"] = new_view
     window.show_view(window.views["StartMenu"])
     new_view.manager.enable()
+    logging.info("Initialised start menu view")
 
     # Run the game
     window.run()

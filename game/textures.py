@@ -70,6 +70,7 @@ non_moving_textures: dict[str, list[arcade.Texture]] = {
     key: [arcade.load_texture(texture_path.joinpath(filename)) for filename in value]
     for key, value in non_moving_filenames.items()
 }
+logger.info(f"Created non moving texture dict with {len(non_moving_textures)} sections")
 
 # Create the moving textures
 moving_textures: dict[str, dict[str, list[list[arcade.Texture]]]] = {
@@ -82,3 +83,4 @@ moving_textures: dict[str, dict[str, list[list[arcade.Texture]]]] = {
     }
     for key, value in moving_filenames.items()
 }
+logger.info(f"Created moving texture dict with {len(moving_textures)} sections")

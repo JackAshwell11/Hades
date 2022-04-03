@@ -176,6 +176,10 @@ class Game(arcade.View):
                         shop = Shop(self, count_x, count_y)
                         self.tile_sprites.append(shop)
                         self.item_sprites.append(shop)
+        logger.debug(
+            f"Created grid with height {len(self.game_map.grid)} and width"
+            f" {len(self.game_map.grid[0])}"
+        )
 
         # Make sure the player was actually created
         assert self.player is not None
@@ -198,11 +202,13 @@ class Game(arcade.View):
         # Set up the inventory view
         inventory_view = InventoryView(self.player)
         self.window.views["InventoryView"] = inventory_view
+        logger.info("Initialised inventory view")
 
     def on_show(self) -> None:
         """Called when the view loads."""
         # Set the background color
         self.window.background_color = arcade.color.BLACK
+        logger.info("Shown game view")
 
     def on_draw(self) -> None:
         """Render the screen."""
@@ -329,6 +335,7 @@ class Game(arcade.View):
         if vertical_force:
             # Apply the vertical force
             self.physics_engine.apply_force(self.player, vertical_force)
+            logger.debug(f"Applied vertical force {vertical_force} to player")
 
             # Set update_enemies
             update_enemies = True
@@ -342,6 +349,7 @@ class Game(arcade.View):
         if horizontal_force:
             # Apply the horizontal force
             self.physics_engine.apply_force(self.player, horizontal_force)
+            logger.debug(f"Applied horizontal force {horizontal_force} to player")
 
             # Set update_enemies
             update_enemies = True
@@ -378,6 +386,7 @@ class Game(arcade.View):
         if item_collision:
             # Set nearest_item since we are colliding with an item
             self.nearest_item = item_collision[0]
+            logger.debug(f"Grabbed nearest item {self.nearest_item}")
         else:
             # Reset nearest_item since we don't want to activate an item that the player
             # is not colliding with
@@ -399,6 +408,7 @@ class Game(arcade.View):
         assert self.player is not None
 
         # Find out what key was pressed
+        logger.debug(f"Received key press with key {key}")
         match key:
             case arcade.key.W:
                 self.up_pressed = True
@@ -430,6 +440,7 @@ class Game(arcade.View):
             Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
             event.
         """
+        logger.debug(f"Received key release with key {key}")
         match key:
             case arcade.key.W:
                 self.up_pressed = False
@@ -507,6 +518,10 @@ class Game(arcade.View):
             angle += 360
         self.player.direction = angle
         self.player.facing = FACING_LEFT if 90 <= angle <= 270 else FACING_RIGHT
+        logger.debug(
+            f"Set player direction to {angle} facing"
+            f" {'left' if self.player.facing else 'right'}"
+        )
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
@@ -554,3 +569,6 @@ class Game(arcade.View):
             self.camera.move_to((screen_center_x, screen_center_y))  # noqa
             # Update the melee shader collision framebuffer
             self.player.melee_shader.update_collision()
+            logger.debug(
+                f"Changed camera position from {old_position} to {new_position}"
+            )
