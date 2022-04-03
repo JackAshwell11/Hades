@@ -63,7 +63,8 @@ class AIAttackBase:
         Parameters
         ----------
         args: tuple[any, ...]
-            A tuple with any number of parameters of any value.
+            A tuple with any number of parameters of any value. This means we could have
+            any number of parameters (or even zero).
         """
         raise NotImplementedError
 
