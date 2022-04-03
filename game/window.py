@@ -46,12 +46,13 @@ class ArcadeFilter(logging.Filter):
         bool
             Whether to keep the log record or not.
         """
-        if "pymunk" in record.pathname:
-            return False
-        elif "arcade" in record.pathname:
-            return False
-        elif "pyglet" in record.pathname:
-            return False
+        if record.levelname == "DEBUG":
+            if "pymunk" in record.pathname:
+                return False
+            elif "arcade" in record.pathname:
+                return False
+            elif "pyglet" in record.pathname:
+                return False
         return True
 
 
