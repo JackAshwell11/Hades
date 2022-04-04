@@ -5,7 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity import EntityID, PlayerType
+from constants.entity import BaseType, EntityID
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
 from entities.status_effect import StatusEffect, StatusEffectType
@@ -31,7 +31,7 @@ class Player(Entity):
         The x position of the player in the game map.
     y: int
         The y position of the player in the game map.
-    player_type: PlayerType
+    player_type: BaseType
         The constant data about this specific player.
 
     Attributes
@@ -43,14 +43,14 @@ class Player(Entity):
         The list which stores the player's inventory.
     inventory_capacity: int
         The total capacity of the inventory.
-    applied_effects:: list[StatusEffect]
+    applied_effects: list[StatusEffect]
         The currently applied status effects.
     """
 
     # Class variables
     ID: EntityID = EntityID.PLAYER
 
-    def __init__(self, game: Game, x: int, y: int, player_type: PlayerType) -> None:
+    def __init__(self, game: Game, x: int, y: int, player_type: BaseType) -> None:
         super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.inventory: list[Item] = []

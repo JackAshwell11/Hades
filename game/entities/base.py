@@ -14,8 +14,10 @@ from constants.entity import (
     ARMOUR_REGEN_WAIT,
     BULLET_OFFSET,
     BULLET_VELOCITY,
+    BaseType,
     EnemyType,
     EntityID,
+    EntityType,
     PlayerType,
 )
 from constants.general import SPRITE_SCALE
@@ -81,9 +83,9 @@ class Entity(arcade.Sprite):
         The x position of the entity in the game map.
     y: int
         The y position of the entity in the game map.
-    entity_type: PlayerType | EnemyType
+    entity_type: BaseType
         The constant data about this specific entity. This allows me to support multiple
-        player types later on when I add different characters.
+        player and enemy types later on.
 
     Attributes
     ----------
@@ -111,12 +113,12 @@ class Entity(arcade.Sprite):
         game: Game,
         x: int,
         y: int,
-        entity_type: PlayerType | EnemyType,
+        entity_type: BaseType,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.game: Game = game
         self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.entity_type: PlayerType | EnemyType = entity_type
+        self.entity_data: BaseType = entity_type
         self.texture: arcade.Texture = self.entity_type.textures["idle"][0][0]
         self.health: int = self.entity_type.health
         self.armour: int = self.entity_type.armour
@@ -128,6 +130,16 @@ class Entity(arcade.Sprite):
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def entity_type(self) -> EntityType:
+        """Returns the general entity data."""
+        return self.entity_data.entity_type
+
+    @property
+    def custom_data(self) -> PlayerType | EnemyType:
+        """Returns the specific data about this entity"""
+        return self.entity_data.custom_data
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """

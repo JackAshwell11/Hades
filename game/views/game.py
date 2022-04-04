@@ -236,40 +236,40 @@ class Game(arcade.View):
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.entity_type.view_distance * SPRITE_SIZE,  # noqa
+                    enemy.custom_data.view_distance * SPRITE_SIZE,  # noqa
                     DEBUG_VIEW_DISTANCE,
                 )
                 # Draw the enemy's attack distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.entity_type.attack_range * SPRITE_SIZE,  # noqa
+                    enemy.custom_data.attack_range * SPRITE_SIZE,  # noqa
                     DEBUG_ATTACK_DISTANCE,
                 )
 
             # Calculate the two boundary points for the player fov
-            half_angle = self.player.entity_type.melee_degree // 2
+            half_angle = self.player.custom_data.melee_degree // 2
             low_angle = math.radians(self.player.direction - half_angle)
             high_angle = math.radians(self.player.direction + half_angle)
             point_low = (
                 self.player.center_x
                 + math.cos(low_angle)
                 * SPRITE_SIZE
-                * self.player.entity_type.melee_range,
+                * self.player.custom_data.melee_range,
                 self.player.center_y
                 + math.sin(low_angle)
                 * SPRITE_SIZE
-                * self.player.entity_type.melee_range,
+                * self.player.custom_data.melee_range,
             )
             point_high = (
                 self.player.center_x
                 + math.cos(high_angle)
                 * SPRITE_SIZE
-                * self.player.entity_type.melee_range,
+                * self.player.custom_data.melee_range,
                 self.player.center_y
                 + math.sin(high_angle)
                 * SPRITE_SIZE
-                * self.player.entity_type.melee_range,
+                * self.player.custom_data.melee_range,
             )
             # Draw both boundary lines for the player fov
             arcade.draw_line(
@@ -291,7 +291,7 @@ class Game(arcade.View):
                 self.player.center_y,
                 math.hypot(point_high[0] - point_low[0], point_high[1] - point_low[1])
                 * 2,
-                self.player.entity_type.melee_range * SPRITE_SIZE * 2,
+                self.player.custom_data.melee_range * SPRITE_SIZE * 2,
                 DEBUG_ATTACK_DISTANCE,
                 math.degrees(low_angle),
                 math.degrees(high_angle),

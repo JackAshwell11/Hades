@@ -78,10 +78,10 @@ class MeleeShader:
 
         # Configure program with the maximum distance and the angle range
         self.program["max_distance"] = (
-            self.view.player.entity_type.melee_range * SPRITE_SIZE
+            self.view.player.custom_data.melee_range * SPRITE_SIZE
         )
         self.program["half_angle_range"] = (
-            self.view.player.entity_type.melee_degree // 2
+            self.view.player.custom_data.melee_degree // 2
         )
 
         # We now need a buffer that can capture the result from the shader and process

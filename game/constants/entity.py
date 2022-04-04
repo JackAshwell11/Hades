@@ -30,41 +30,53 @@ class StatusEffectType(Enum):
     FIRE_RATE = "fire rate"
 
 
+# Base entity type
+class EntityType(NamedTuple):
+    """
+    Stores general data about an entity type.
+
+    name: str
+        The name of the entity.
+    health: int
+        The entity's health.
+    armour: int
+        The entity's armour.
+    textures: dict[str, list[list[arcade.Texture]]]
+        The textures which represent this entity.
+    max_velocity: int
+        The max speed that the entity can go.
+    attack_cooldown: int
+        The time duration between attacks.
+    damage: int
+        The damage the entity deals.
+    armour_regen: bool
+        Whether the entity regenerates armour or not.
+    armour_regen_cooldown: int
+        The time between armour regenerations.
+    """
+
+    name: str
+    health: int
+    armour: int
+    textures: dict[str, list[list[arcade.Texture]]]
+    max_velocity: int
+    attack_cooldown: int
+    damage: int
+    armour_regen: bool
+    armour_regen_cooldown: int
+
+
 # Base player type
 class PlayerType(NamedTuple):
     """
     Stores data about a specific player type.
 
-    health: int
-        The player's health.
-    armour: int
-        The player's armour.
-    textures: dict[str, list[list[arcade.Texture]]]
-        The textures which represent this player.
-    max_velocity: int
-        The max speed that the player can go.
-    attack_cooldown: int
-        The time duration between attacks.
-    damage: int
-        The damage the player deals.
-    armour_regen: bool
-        Whether the player regenerates armour or not.
-    armour_regen_cooldown: int
-        The time between armour regenerations.
     melee_range: int
         The amount of tiles the player can attack within using a melee attack.
     melee_degree: int
         The degree that the player's melee attack is limited to.
     """
 
-    health: int
-    armour: int
-    textures: dict[str, list[list[arcade.Texture]]]
-    max_velocity: int
-    attack_cooldown: int
-    damage: int
-    armour_regen: bool
-    armour_regen_cooldown: int
     melee_range: int
     melee_degree: int
 
@@ -74,49 +86,46 @@ class EnemyType(NamedTuple):
     """
     Stores data about a specific enemy type.
 
-    name: str
-        The name of the enemy.
-    health: int
-        The enemy's health.
-    armour: int
-        The enemy's armour.
-    textures: dict[str, list[list[arcade.Texture]]]
-        The textures which represent this enemy.
-    max_velocity: int
-        The max speed that the enemy can go.
-    attack_cooldown: int
-        The time duration between attacks.
-    damage: int
-        The damage the enemy deals.
-    armour_regen: bool
-        Whether the enemy regenerates armour or not.
-    armour_regen_cooldown: int
-        The time between armour regenerations.
     view_distance: int
         The amount of tiles the enemy can see too.
     attack_range: int
         The amount of tiles the enemy can attack within.
     """
 
-    name: str
-    health: int
-    armour: int
-    textures: dict[str, list[list[arcade.Texture]]]
-    max_velocity: int
-    attack_cooldown: int
-    damage: int
-    armour_regen: bool
-    armour_regen_cooldown: int
     view_distance: int
     attack_range: int
 
 
+# Base entity constructor
+class BaseType(NamedTuple):
+    """
+    The base class for constructing an entity.
+
+    entity_type: EntityType
+        The general data about this entity.
+    custom_data: PlayerType | EnemyType
+        The specific data related to this entity
+    """
+
+    entity_type: EntityType
+    custom_data: PlayerType | EnemyType
+
+
 # Player characters
-PLAYER = PlayerType(100, 20, moving_textures["player"], 200, 1, 10, True, 1, 3, 60)
+PLAYER = BaseType(
+    EntityType("player", 100, 20, moving_textures["player"], 200, 1, 10, True, 1),
+    PlayerType(3, 60),
+)
 
 # Enemy characters
-ENEMY1 = EnemyType("enemy1", 10, 10, moving_textures["enemy"], 50, 1, 5, True, 3, 5, 3)
-ENEMY2 = EnemyType("enemy2", 10, 10, moving_textures["enemy"], 50, 1, 5, True, 3, 5, 3)
+ENEMY1 = BaseType(
+    EntityType("enemy1", 10, 10, moving_textures["enemy"], 50, 1, 5, True, 3),
+    EnemyType(5, 3),
+)
+ENEMY2 = BaseType(
+    EntityType("enemy2", 10, 10, moving_textures["enemy"], 50, 1, 5, True, 3),
+    EnemyType(5, 3),
+)
 
 # Status effect constants
 HEALTH_BOOST_POTION_INCREASE = 50

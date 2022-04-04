@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import FACING_LEFT, FACING_RIGHT, EnemyType, EntityID
+from constants.entity import FACING_LEFT, FACING_RIGHT, BaseType, EntityID
 from constants.general import SPRITE_SIZE
 from entities.ai import FollowLineOfSight
 from entities.base import Entity
@@ -33,7 +33,7 @@ class Enemy(Entity):
         The x position of the enemy in the game map.
     y: int
         The y position of the enemy in the game map.
-    enemy_type: EnemyType
+    enemy_type: BaseType
         The constant data about this specific enemy.
     ai: FollowLineOfSight
         The AI which this entity uses.
@@ -52,7 +52,7 @@ class Enemy(Entity):
         game: Game,
         x: int,
         y: int,
-        enemy_type: EnemyType,
+        enemy_type: BaseType,
         ai: FollowLineOfSight,
     ) -> None:
         super().__init__(game, x, y, enemy_type)
@@ -104,7 +104,7 @@ class Enemy(Entity):
         y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
         hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
         if (
-            hypot_distance <= self.entity_type.attack_range * SPRITE_SIZE
+            hypot_distance <= self.custom_data.attack_range * SPRITE_SIZE
             and self.time_since_last_attack >= self.entity_type.attack_cooldown
         ):
             # Enemy can attack so reset the counter and attack
@@ -126,7 +126,7 @@ class Enemy(Entity):
             (self.center_x, self.center_y),
             (self.game.player.center_x, self.game.player.center_y),
             self.game.wall_sprites,
-            self.entity_type.view_distance * SPRITE_SIZE,
+            self.custom_data.view_distance * SPRITE_SIZE,
         )
         if self.line_of_sight:
             self.time_out_of_combat = 0
