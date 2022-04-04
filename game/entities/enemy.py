@@ -9,12 +9,13 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import FACING_LEFT, FACING_RIGHT, BaseType, EntityID
+from constants.entity import FACING_LEFT, FACING_RIGHT, EntityID
 from constants.general import SPRITE_SIZE
-from entities.ai import FollowLineOfSight
 from entities.base import Entity
 
 if TYPE_CHECKING:
+    from constants.entity import BaseType
+    from entities.ai import AIMovementBase
     from views.game import Game
 
 # Get the logger
@@ -35,7 +36,7 @@ class Enemy(Entity):
         The y position of the enemy in the game map.
     enemy_type: BaseType
         The constant data about this specific enemy.
-    ai: FollowLineOfSight
+    ai: AIMovementBase
         The AI which this entity uses.
 
     Attributes
@@ -53,10 +54,10 @@ class Enemy(Entity):
         x: int,
         y: int,
         enemy_type: BaseType,
-        ai: FollowLineOfSight,
+        ai: AIMovementBase,
     ) -> None:
         super().__init__(game, x, y, enemy_type)
-        self.ai: FollowLineOfSight = ai
+        self.ai: AIMovementBase = ai
         self.ai.owner = self
         self.line_of_sight: bool = False
 

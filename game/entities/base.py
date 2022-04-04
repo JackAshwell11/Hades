@@ -14,17 +14,14 @@ from constants.entity import (
     ARMOUR_REGEN_WAIT,
     BULLET_OFFSET,
     BULLET_VELOCITY,
-    BaseType,
-    EnemyType,
     EntityID,
-    EntityType,
-    PlayerType,
 )
 from constants.general import SPRITE_SCALE
 from constants.generation import TileType
 from textures import pos_to_pixel
 
 if TYPE_CHECKING:
+    from constants.entity import BaseType, EnemyType, EntityType, PlayerType
     from entities.player import Player
     from physics import PhysicsEngine
     from views.game import Game

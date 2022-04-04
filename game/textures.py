@@ -7,9 +7,6 @@ import pathlib
 # Pip
 import arcade
 
-# Get the logger
-logger = logging.getLogger(__name__)
-
 
 def pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     """
@@ -36,6 +33,9 @@ def pos_to_pixel(x: int, y: int) -> tuple[float, float]:
         y * SPRITE_SIZE + SPRITE_SIZE / 2,
     )
 
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 # Create the texture path
 texture_path = (

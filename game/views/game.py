@@ -22,13 +22,13 @@ from entities.enemy import Enemy
 from entities.item import HealthBoostPotion, HealthPotion, Shop
 from entities.player import Player
 from entities.tile import Floor, Wall
-from generation.map import Map
 from physics import PhysicsEngine
 from textures import pos_to_pixel
 from views.inventory_view import InventoryView
 
 if TYPE_CHECKING:
     from entities.base import Collectible, Item
+    from generation.map import Map
 
 # Get the logger
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 # Builtin
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 # Custom
 from constants.entity import MOVEMENT_FORCE
@@ -30,19 +30,19 @@ class AIMovementBase:
         self, player: Player, walls: arcade.SpriteList
     ) -> tuple[float, float]:
         """
-        Calculates the new position for an enemy.
+        Calculates the force to apply to an enemy.
 
         Parameters
         ----------
         player: Player
-            The player object to move towards.
+            The player object.
         walls: arcade.SpriteList
             The wall tiles which block the enemy's vision.
 
         Returns
         -------
         tuple[float, float]
-            The calculated force to apply to the enemy to move it towards the target.
+            The calculated force to apply to the enemy.
         """
         raise NotImplementedError
 
@@ -56,35 +56,35 @@ class AIAttackBase:
     def __repr__(self) -> str:
         return f"<AIAttackBase (Owner={self.owner})>"
 
-    def process_attack(self, *args: tuple[Any, ...]) -> None:
+    def process_attack(self, *args) -> None:
         """
         Processes an attack for an enemy.
 
         Parameters
         ----------
-        args: tuple[any, ...]
-            A tuple with any number of parameters of any value. This means we could have
-            any number of parameters (or even zero).
+        args
+            A tuple with any number of parameters of any value. This should be changed
+            when subclasses are created.
         """
         raise NotImplementedError
 
 
 class FollowLineOfSight(AIMovementBase):
-    """An algorithm which moves the enemy towards the target if the enemy has line of
-    sight with the target, and the target is within the enemy's view distance."""
+    """An algorithm which moves the enemy towards the player if the enemy has line of
+    sight with the player, and the player is within the enemy's view distance."""
 
     def __repr__(self) -> str:
         return f"<FollowLineOfSight (Owner={self.owner})>"
 
     def calculate_movement(
-        self, target: Entity, walls: arcade.SpriteList
+        self, player: Player, walls: arcade.SpriteList
     ) -> tuple[float, float]:
         """
         Calculates the new position for an enemy.
 
         Parameters
         ----------
-        target: Entity
+        player: Player
             The player target to move towards.
         walls: arcade.SpriteList
             The wall tiles which block the enemy's vision.
@@ -99,6 +99,6 @@ class FollowLineOfSight(AIMovementBase):
 
         # Calculate the velocity for the enemy to move towards the player
         return (
-            -(self.owner.center_x - target.center_x) * MOVEMENT_FORCE,
-            -(self.owner.center_y - target.center_y) * MOVEMENT_FORCE,
+            -(self.owner.center_x - player.center_x) * MOVEMENT_FORCE,
+            -(self.owner.center_y - player.center_y) * MOVEMENT_FORCE,
         )
