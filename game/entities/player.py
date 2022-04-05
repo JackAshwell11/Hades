@@ -2,7 +2,7 @@ from __future__ import annotations
 
 # Builtin
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 # Custom
 from constants.entity import EntityID
@@ -61,6 +61,8 @@ class Player(Entity):
             "bonus health": 0,
             "bonus armour": 0,
         }
+        self.attacks: list[Callable] = [self.run_melee_shader, self.ranged_attack]
+        self.current_attack_index: int = 0
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
@@ -149,7 +151,9 @@ class Player(Entity):
 
     def run_melee_shader(self) -> None:
         """Runs the melee shader to get all enemies within melee range of the player."""
+        logger.info("Running melee shader")
+        # Update the framebuffer to ensure collision detection is accurate
+        self.melee_shader.update_collision()
         # Deal melee damage to any entity that the player can attack. This is determined
         # by the melee shader
-        logger.info("Running melee shader")
         self.melee_attack(self.melee_shader.run_shader())

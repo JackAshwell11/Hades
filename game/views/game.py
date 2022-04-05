@@ -427,6 +427,14 @@ class Game(arcade.View):
             case arcade.key.F:
                 self.window.show_view(self.window.views["InventoryView"])
                 self.window.views["InventoryView"].manager.enable()
+            case arcade.key.C:
+                self.player.current_attack_index += 1
+                if self.player.current_attack_index == len(self.player.attacks):
+                    self.player.current_attack_index -= 1
+            case arcade.key.Z:
+                self.player.current_attack_index -= 1
+                if self.player.current_attack_index == -1:
+                    self.player.current_attack_index = 0
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         """
@@ -485,8 +493,16 @@ class Game(arcade.View):
             self.player.in_combat = True
 
             # Attack
-            self.player.ranged_attack(self.bullet_sprites)
-            # self.player.run_melee_shader()
+            if (
+                self.player.attacks[self.player.current_attack_index]
+                == self.player.ranged_attack
+            ):
+                self.player.ranged_attack(self.bullet_sprites)
+            elif (
+                self.player.attacks[self.player.current_attack_index]
+                == self.player.run_melee_shader
+            ):
+                self.player.run_melee_shader()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """
@@ -563,8 +579,6 @@ class Game(arcade.View):
         if old_position != new_position:
             # Move the camera to the new position
             self.camera.move_to((screen_center_x, screen_center_y))  # noqa
-            # Update the melee shader collision framebuffer
-            self.player.melee_shader.update_collision()
             logger.debug(
                 f"Changed camera position from {old_position} to {new_position}"
             )

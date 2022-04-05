@@ -7,6 +7,7 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
+from constants.entity import MELEE_RESOLUTION
 from constants.general import SPRITE_SIZE
 
 if TYPE_CHECKING:
@@ -76,13 +77,15 @@ class MeleeShader:
             geometry_shader=open(geometry_path).read(),
         )
 
-        # Configure program with the maximum distance and the angle range
+        # Configure the program with the maximum distance, the angle range and the
+        # resolution
         self.program["max_distance"] = (
             self.view.player.custom_data.melee_range * SPRITE_SIZE
         )
         self.program["half_angle_range"] = (
             self.view.player.custom_data.melee_degree // 2
         )
+        self.program["resolution"] = MELEE_RESOLUTION
 
         # We now need a buffer that can capture the result from the shader and process
         # it. But we need to make sure there is room for len(self.view.enemies) 32-bit
@@ -194,7 +197,5 @@ class MeleeShader:
 
 # TODO:
 #
-# There definitely seems to be a bug with this. Looks like it only occurs when attacking
-# an enemy from the side, need to find the cause of this.
-#
-# Also try to improve parts of the geometry shader so it is easier to work with.
+# Seems like running the collision updating when the player calls the melee shader fixes
+# the bug. However, more testing is needed
