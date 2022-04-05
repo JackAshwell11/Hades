@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 # Custom
+from constants.enums import TileType
 from constants.general import DEBUG_LINES, ENEMIES
 from constants.generation import (
     BASE_ENEMY_COUNT,
@@ -22,7 +23,6 @@ from constants.generation import (
     PLACE_TRIES,
     SAFE_SPAWN_RADIUS,
     SMALL_ROOM,
-    TileType,
 )
 from generation.bsp import Leaf
 

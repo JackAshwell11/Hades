@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 # Builtin
-from enum import Enum, IntEnum
 from typing import TYPE_CHECKING, NamedTuple
 
 # Custom
@@ -9,25 +8,6 @@ from textures import moving_textures
 
 if TYPE_CHECKING:
     import arcade
-
-
-# Entity IDs
-class EntityID(IntEnum):
-    """Stores the ID of each enemy to make collision checking more efficient."""
-
-    ENTITY = 0
-    PLAYER = 1
-    ENEMY = 2
-
-
-# Status effect types
-class StatusEffectType(Enum):
-    """Stores the type of status effects that can be applied to the player."""
-
-    HEALTH = "health"
-    ARMOUR = "armour"
-    SPEED = "speed"
-    FIRE_RATE = "fire rate"
 
 
 # Base entity type

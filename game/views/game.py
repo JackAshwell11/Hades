@@ -10,13 +10,13 @@ import arcade
 
 # Custom
 from constants.entity import ENEMY1, FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, PLAYER
+from constants.enums import TileType
 from constants.general import (
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
     DEBUG_VIEW_DISTANCE,
     SPRITE_SIZE,
 )
-from constants.generation import TileType
 from entities.ai import FollowLineOfSight
 from entities.enemy import Enemy
 from entities.item import HealthBoostPotion, HealthPotion, Shop

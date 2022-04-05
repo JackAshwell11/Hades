@@ -14,10 +14,9 @@ from constants.entity import (
     ARMOUR_REGEN_WAIT,
     BULLET_OFFSET,
     BULLET_VELOCITY,
-    EntityID,
 )
+from constants.enums import EntityID, TileType
 from constants.general import SPRITE_SCALE
-from constants.generation import TileType
 from textures import pos_to_pixel
 
 if TYPE_CHECKING:

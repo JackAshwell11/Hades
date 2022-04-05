@@ -5,7 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity import StatusEffectType
+from constants.enums import StatusEffectType
 
 if TYPE_CHECKING:
     from entities.player import Player

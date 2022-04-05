@@ -5,10 +5,10 @@ import logging
 from typing import TYPE_CHECKING, Callable
 
 # Custom
-from constants.entity import EntityID
+from constants.enums import EntityID, StatusEffectType
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
-from entities.status_effect import StatusEffect, StatusEffectType
+from entities.status_effect import StatusEffect
 from melee_shader import MeleeShader
 
 if TYPE_CHECKING:

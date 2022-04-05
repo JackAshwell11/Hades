@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import FACING_LEFT, FACING_RIGHT, EntityID
+from constants.entity import FACING_LEFT, FACING_RIGHT
+from constants.enums import EntityID
 from constants.general import SPRITE_SIZE
 from entities.base import Entity
 
