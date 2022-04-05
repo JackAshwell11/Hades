@@ -197,5 +197,4 @@ class MeleeShader:
 
 # TODO:
 #
-# Seems like running the collision updating when the player calls the melee shader fixes
-# the bug. However, more testing is needed
+# Still seems like there is a bug and that it sometimes works and sometimes doesn't

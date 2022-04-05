@@ -61,7 +61,7 @@ class Player(Entity):
             "bonus health": 0,
             "bonus armour": 0,
         }
-        self.attacks: list[Callable] = [self.run_melee_shader, self.ranged_attack]
+        self.attacks: list[Callable] = [self.ranged_attack, self.run_melee_shader]
         self.current_attack_index: int = 0
         self.in_combat: bool = False
 

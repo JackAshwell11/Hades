@@ -253,7 +253,8 @@ class Entity(arcade.Sprite):
             The entities to deal damage to.
         """
         # Deal damage to every entity in the target list
-        print(target)
+        for entity in target:
+            entity.deal_damage(self.entity_type.damage)
 
 
 class Tile(arcade.Sprite):
