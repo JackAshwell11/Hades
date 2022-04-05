@@ -110,34 +110,29 @@ class Map:
         dict[TileType | str, int]
             The generated constants.
         """
-        # Create the counts for the enemies and items
-        enemy_count = int(np.round(BASE_ENEMY_COUNT * 1.1**self.level))
-        item_count = int(np.round(BASE_ITEM_COUNT * 1.1**self.level))
-
-        # Create the dictionary to hold the counts for each enemy and item
-        enemy_dict: dict[TileType | str, int] = {
-            key: int(np.ceil(value * enemy_count))
-            for key, value in ENEMY_DISTRIBUTION.items()
-        }
-        enemy_dict.update(
-            {
-                key: int(np.ceil(value * item_count))
-                for key, value in ITEM_DISTRIBUTION.items()
-            }
-        )
-
-        # Create the generation constants dict
+        # Create the generation constants
         generation_constants: dict[TileType | str, int] = {
             "width": int(np.round(BASE_MAP_WIDTH * 1.2**self.level)),
             "height": int(np.round(BASE_MAP_HEIGHT * 1.2**self.level)),
             "split count": int(np.round(BASE_SPLIT_COUNT * 1.5**self.level)),
-            "enemy count": enemy_count,
-            "item count": item_count,
+            "enemy count": int(np.round(BASE_ENEMY_COUNT * 1.1**self.level)),
+            "item count": int(np.round(BASE_ITEM_COUNT * 1.1**self.level)),
         }
-        logger.info(f"Generated map constants {generation_constants}")
 
-        # Merge the enemy/item dict and generation constants dict then return the result
-        return generation_constants | enemy_dict
+        # Create the dictionary which will hold the counts for each enemy and item type
+        type_dict: dict[TileType, int] = {
+            key: int(np.ceil(value * generation_constants["enemy count"]))
+            for key, value in ENEMY_DISTRIBUTION.items()
+        } | {
+            key: int(np.ceil(value * generation_constants["item count"]))
+            for key, value in ITEM_DISTRIBUTION.items()
+        }
+
+        # Merge the enemy/item type count dict and the generation constants dict
+        # together and then return the result
+        result = generation_constants | type_dict
+        logger.info(f"Generated map constants {result}")
+        return result
 
     def make_map(self) -> None:
         """Function which manages the map generation for a specified level."""
