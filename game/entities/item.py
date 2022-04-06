@@ -124,7 +124,9 @@ class HealthBoostPotion(Collectible):
             Whether the item activation was successful or not.
         """
         # Check if the status effect can be applied
-        if StatusEffectType.HEALTH in self.player.get_applied_effects_type():
+        if StatusEffectType.HEALTH in [
+            effect.effect_type for effect in self.player.applied_effects
+        ]:
             logger.info("Can't use health boost potion since it is already applied")
             return False
 

@@ -17,7 +17,6 @@ from constants.general import (
     DEBUG_VIEW_DISTANCE,
     SPRITE_SIZE,
 )
-from entities.ai import FollowLineOfSight
 from entities.enemy import Enemy
 from entities.item import HealthBoostPotion, HealthPotion, Shop
 from entities.player import Player
@@ -157,7 +156,6 @@ class Game(arcade.View):
                                 count_x,
                                 count_y,
                                 ENEMY1,
-                                FollowLineOfSight(),
                             )
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))
@@ -429,7 +427,9 @@ class Game(arcade.View):
                 self.window.views["InventoryView"].manager.enable()
             case arcade.key.C:
                 self.player.current_attack_index += 1
-                if self.player.current_attack_index == len(self.player.attacks):
+                if self.player.current_attack_index == len(
+                    self.player.attack_algorithms
+                ):
                     self.player.current_attack_index -= 1
             case arcade.key.Z:
                 self.player.current_attack_index -= 1
@@ -493,16 +493,7 @@ class Game(arcade.View):
             self.player.in_combat = True
 
             # Attack
-            if (
-                self.player.attacks[self.player.current_attack_index]
-                == self.player.ranged_attack
-            ):
-                self.player.ranged_attack(self.bullet_sprites)
-            elif (
-                self.player.attacks[self.player.current_attack_index]
-                == self.player.run_melee_shader
-            ):
-                self.player.run_melee_shader()
+            self.player.current_attack.process_attack(self.bullet_sprites)
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """

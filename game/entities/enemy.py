@@ -16,7 +16,7 @@ from entities.base import Entity
 
 if TYPE_CHECKING:
     from constants.entity import BaseType
-    from entities.ai import AIMovementBase
+    from entities.movement import AIMovementBase
     from views.game import Game
 
 # Get the logger
@@ -37,11 +37,11 @@ class Enemy(Entity):
         The y position of the enemy in the game map.
     enemy_type: BaseType
         The constant data about this specific enemy.
-    ai: AIMovementBase
-        The AI which this entity uses.
 
     Attributes
     ----------
+    ai: AIMovementBase
+        The AI movement algorithm which this entity uses.
     line_of_sight: bool
         Whether the enemy has line of sight with the player or not
     """
@@ -55,11 +55,9 @@ class Enemy(Entity):
         x: int,
         y: int,
         enemy_type: BaseType,
-        ai: AIMovementBase,
     ) -> None:
         super().__init__(game, x, y, enemy_type)
-        self.ai: AIMovementBase = ai
-        self.ai.owner = self
+        self.ai: AIMovementBase = self.custom_data.movement_algorithm.value(self)
         self.line_of_sight: bool = False
 
     def __repr__(self) -> str:
@@ -112,7 +110,7 @@ class Enemy(Entity):
             # Enemy can attack so reset the counter and attack
             logger.info(f"{self} attacking player with distance {hypot_distance}")
             self.time_since_last_attack: float = 0  # Mypy is annoying
-            self.ranged_attack(self.game.bullet_sprites)
+            self.attack_algorithms[0].process_attack(self.game.bullet_sprites)
 
     def check_line_of_sight(self) -> bool:
         """

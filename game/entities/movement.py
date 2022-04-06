@@ -4,9 +4,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-# Custom
-from constants.entity import MOVEMENT_FORCE
-
 if TYPE_CHECKING:
     import arcade
     from entities.base import Entity
@@ -18,13 +15,39 @@ logger = logging.getLogger(__name__)
 
 
 class AIMovementBase:
-    """The base class for all AI movement algorithms."""
+    """
+    The base class for all AI enemy movement algorithms.
 
-    def __init__(self) -> None:
-        self.owner: Entity | None = None
+    Parameters
+    ----------
+    owner: Entity
+        The owner of this AI algorithm.
+    """
+
+    def __init__(self, owner: Entity) -> None:
+        self.owner: Entity = owner
 
     def __repr__(self) -> str:
         return f"<AIMovementBase (Owner={self.owner})>"
+
+    def distance_to_player(self, player: Player) -> tuple[float, float]:
+        """
+        Calculates the distance between the enemy and the player
+
+        Parameters
+        ----------
+        player: Player
+            The player target to calculate the distance to.
+
+        Returns
+        -------
+        tuple[float, float]
+            The distance to the player.
+        """
+        return (
+            self.owner.center_x - player.center_x,
+            self.owner.center_y - player.center_y,
+        )
 
     def calculate_movement(
         self, player: Player, walls: arcade.SpriteList
@@ -43,28 +66,6 @@ class AIMovementBase:
         -------
         tuple[float, float]
             The calculated force to apply to the enemy.
-        """
-        raise NotImplementedError
-
-
-class AIAttackBase:
-    """The base class for all AI attacking algorithms."""
-
-    def __init__(self) -> None:
-        self.owner: Entity | None = None
-
-    def __repr__(self) -> str:
-        return f"<AIAttackBase (Owner={self.owner})>"
-
-    def process_attack(self, *args) -> None:
-        """
-        Processes an attack for an enemy.
-
-        Parameters
-        ----------
-        args
-            A tuple with any number of parameters of any value. This should be changed
-            when subclasses are created.
         """
         raise NotImplementedError
 
@@ -94,11 +95,39 @@ class FollowLineOfSight(AIMovementBase):
         tuple[float, float]
             The calculated force to apply to the enemy to move it towards the target.
         """
-        # Make sure variables needed are valid
-        assert self.owner is not None
+        # Make sure we have the movement force. This avoids a circular import
+        from constants.entity import MOVEMENT_FORCE
 
         # Calculate the velocity for the enemy to move towards the player
+        distance: tuple[float, float] = self.distance_to_player(player)
         return (
-            -(self.owner.center_x - player.center_x) * MOVEMENT_FORCE,
-            -(self.owner.center_y - player.center_y) * MOVEMENT_FORCE,
+            -distance[0] * MOVEMENT_FORCE,
+            -distance[1] * MOVEMENT_FORCE,
         )
+        # TODO: CLEAN THIS UP AND FIX THE MYPY ERROR
+
+
+class Jitter(AIMovementBase):
+    """"""
+
+    def __repr__(self) -> str:
+        return f"<Jitter (Owner={self.owner})>"
+
+    def calculate_movement(
+        self, player: Player, walls: arcade.SpriteList
+    ) -> tuple[float, float]:
+        """"""
+        raise NotImplementedError
+
+
+class MoveAway(AIMovementBase):
+    """"""
+
+    def __repr__(self) -> str:
+        return f"<MoveAway (Owner={self.owner})>"
+
+    def calculate_movement(
+        self, player: Player, walls: arcade.SpriteList
+    ) -> tuple[float, float]:
+        """"""
+        raise NotImplementedError

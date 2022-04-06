@@ -2,10 +2,10 @@ from __future__ import annotations
 
 # Builtin
 import logging
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 # Custom
-from constants.enums import EntityID, StatusEffectType
+from constants.enums import EntityID
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
 from entities.status_effect import StatusEffect
@@ -13,6 +13,7 @@ from melee_shader import MeleeShader
 
 if TYPE_CHECKING:
     from constants.entity import BaseType
+    from entities.attack import AttackBase
     from entities.base import Item
     from views.game import Game
 
@@ -46,6 +47,10 @@ class Player(Entity):
         The total capacity of the inventory.
     applied_effects: list[StatusEffect]
         The currently applied status effects.
+    current_attack_index: int
+        The index of the currently selected attack.
+    in_combat: bool
+        Whether the player is in combat or not.
     """
 
     # Class variables
@@ -61,12 +66,16 @@ class Player(Entity):
             "bonus health": 0,
             "bonus armour": 0,
         }
-        self.attacks: list[Callable] = [self.ranged_attack, self.run_melee_shader]
         self.current_attack_index: int = 0
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def current_attack(self) -> AttackBase:
+        """Returns the currently selected attack algorithm."""
+        return self.attack_algorithms[self.current_attack_index]
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
@@ -138,17 +147,6 @@ class Player(Entity):
         effect.apply_effect()
         logger.info(f"Adding effect {effect} to player")
 
-    def get_applied_effects_type(self) -> list[StatusEffectType]:
-        """
-        Gets all the applied status effect types.
-
-        Returns
-        -------
-        list[StatusEffectType]
-            A list of status effect types.
-        """
-        return [effect.effect_type for effect in self.applied_effects]
-
     def run_melee_shader(self) -> None:
         """Runs the melee shader to get all enemies within melee range of the player."""
         logger.info("Running melee shader")
@@ -156,4 +154,4 @@ class Player(Entity):
         self.melee_shader.update_collision()
         # Deal melee damage to any entity that the player can attack. This is determined
         # by the melee shader
-        self.melee_attack(self.melee_shader.run_shader())
+        # self.melee_attack(self.melee_shader.run_shader())
