@@ -34,6 +34,9 @@ class EntityType(NamedTuple):
         Whether the entity regenerates armour or not.
     armour_regen_cooldown: int
         The time between armour regenerations.
+    area_of_effect_range: int
+        The range an area of effect attack deals has. This is the radius of the circle,
+        not the diameter.
     attack_algorithms: list[AttackAlgorithmType]
         The attack algorithms that this player has.
     """
@@ -47,6 +50,7 @@ class EntityType(NamedTuple):
     damage: int
     armour_regen: bool
     armour_regen_cooldown: int
+    area_of_effect_range: int
     attack_algorithms: list[AttackAlgorithmType]
 
 
@@ -110,6 +114,7 @@ PLAYER = BaseType(
         10,
         True,
         1,
+        3,
         [
             AttackAlgorithmType.RANGED,
             AttackAlgorithmType.MELEE,
@@ -131,6 +136,7 @@ ENEMY1 = BaseType(
         5,
         True,
         3,
+        3,
         [AttackAlgorithmType.RANGED],
     ),
     EnemyType(5, 3, AIMovementType.FOLLOW),
@@ -145,6 +151,7 @@ ENEMY2 = BaseType(
         1,
         5,
         True,
+        3,
         3,
         [AttackAlgorithmType.RANGED],
     ),

@@ -295,6 +295,13 @@ class Game(arcade.View):
                 math.degrees(high_angle),
                 2,
             )
+            # Draw the player's area of effect range
+            arcade.draw_circle_outline(
+                self.player.center_x,
+                self.player.center_y,
+                self.player.entity_type.area_of_effect_range * SPRITE_SIZE,
+                DEBUG_ATTACK_DISTANCE,
+            )
 
         # Draw the gui on the screen
         self.gui_camera.use()

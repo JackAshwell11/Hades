@@ -148,4 +148,4 @@ class Enemy(Entity):
             case AttackAlgorithmType.MELEE.value:
                 print("enemy melee")
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
-                print("enemy aoe")
+                self.current_attack.process_attack(self.game.player)

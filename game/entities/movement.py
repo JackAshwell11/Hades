@@ -76,8 +76,18 @@ class AIMovementBase:
 
 
 class FollowLineOfSight(AIMovementBase):
-    """An algorithm which moves the enemy towards the player if the enemy has line of
-    sight with the player, and the player is within the enemy's view distance."""
+    """
+    An algorithm which moves the enemy towards the player if the enemy has line of
+    sight with the player, and the player is within the enemy's view distance.
+
+    Parameters
+    ----------
+    owner: Entity
+        The owner of this AI algorithm.
+    """
+
+    def __init__(self, owner: Entity) -> None:
+        super().__init__(owner)
 
     def __repr__(self) -> str:
         return f"<FollowLineOfSight (Owner={self.owner})>"
@@ -115,6 +125,9 @@ class FollowLineOfSight(AIMovementBase):
 class Jitter(AIMovementBase):
     """"""
 
+    def __init__(self, owner: Entity) -> None:
+        super().__init__(owner)
+
     def __repr__(self) -> str:
         return f"<Jitter (Owner={self.owner})>"
 
@@ -127,6 +140,9 @@ class Jitter(AIMovementBase):
 
 class MoveAway(AIMovementBase):
     """"""
+
+    def __init__(self, owner: Entity) -> None:
+        super().__init__(owner)
 
     def __repr__(self) -> str:
         return f"<MoveAway (Owner={self.owner})>"

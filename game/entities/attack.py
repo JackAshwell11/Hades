@@ -62,7 +62,7 @@ class AttackBase:
     Parameters
     ----------
     owner: Entity
-        The owner of this AI algorithm.
+        The owner of this attack algorithm.
     """
 
     def __init__(self, owner: Entity) -> None:
@@ -89,8 +89,18 @@ class AttackBase:
 
 
 class RangedAttack(AttackBase):
-    """An algorithm which creates a bullet with a set velocity in the direction the
-    entity is facing."""
+    """
+    An algorithm which creates a bullet with a set velocity in the direction the
+    entity is facing.
+
+    Parameters
+    ----------
+    owner: Entity
+        The owner of this attack algorithm.
+    """
+
+    def __init__(self, owner: Entity) -> None:
+        super().__init__(owner)
 
     def __repr__(self) -> str:
         return f"<RangedAttack (Owner={self.owner})>"
@@ -149,7 +159,17 @@ class RangedAttack(AttackBase):
 
 
 class MeleeAttack(AttackBase):
-    """"""
+    """
+    DO
+
+    Parameters
+    ----------
+    owner: Entity
+        The owner of this attack algorithm.
+    """
+
+    def __init__(self, owner: Entity) -> None:
+        super().__init__(owner)
 
     def __repr__(self) -> str:
         return f"<MeleeAttack (Owner={self.owner})>"
@@ -160,11 +180,53 @@ class MeleeAttack(AttackBase):
 
 
 class AreaOfEffectAttack(AttackBase):
-    """"""
+    """
+    An algorithm which creates an area around the entity with a set radius and deals
+    damage to any entities that are within that range.
+
+    Parameters
+    ----------
+    owner: Entity
+        The owner of this attack algorithm.
+    """
+
+    def __init__(self, owner: Entity) -> None:
+        super().__init__(owner)
 
     def __repr__(self) -> str:
         return f"<AreaOfEffectAttack (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:
         """"""
-        raise NotImplementedError
+        # Make sure we have the sprite size. This avoids a circular import
+        from constants.general import SPRITE_SIZE
+
+        # Make sure the needed parameters are valid
+        target_entity: arcade.SpriteList | arcade.Sprite = args[0]
+
+        # Create a sprite with an empty texture
+        empty_texture = arcade.Texture.create_empty(
+            "",
+            (
+                int(self.owner.entity_type.area_of_effect_range * 2 * SPRITE_SIZE),
+                int(self.owner.entity_type.area_of_effect_range * 2 * SPRITE_SIZE),
+            ),
+        )
+        area_of_effect_sprite = arcade.Sprite(
+            center_x=self.owner.center_x,
+            center_y=self.owner.center_y,
+            texture=empty_texture,
+        )
+
+        # Detect a collision/collisions between the area_of_effect_sprite and the target
+        try:
+            if arcade.check_for_collision(area_of_effect_sprite, target_entity):
+                # Target is the player so deal damage
+                target_entity.deal_damage(self.owner.entity_type.damage)  # noqa
+            return
+        except TypeError:
+            for entity in arcade.check_for_collision_with_list(
+                area_of_effect_sprite, target_entity
+            ):
+                # Deal damage to all the enemies within range
+                entity.deal_damage(self.owner.entity_type.damage)  # noqa

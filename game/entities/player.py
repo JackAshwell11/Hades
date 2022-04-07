@@ -149,4 +149,4 @@ class Player(Entity):
                 self.melee_shader.update_collision()
                 self.current_attack.process_attack(self.melee_shader.run_shader())
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
-                print("player aoe")
+                self.current_attack.process_attack(self.game.enemies)
