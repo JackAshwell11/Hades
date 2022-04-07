@@ -62,6 +62,11 @@ class AIMovementBase:
         walls: arcade.SpriteList
             The wall tiles which block the enemy's vision.
 
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+
         Returns
         -------
         tuple[float, float]

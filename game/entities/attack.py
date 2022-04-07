@@ -79,6 +79,11 @@ class AttackBase:
         ----------
         bullet_list: arcade.SpriteList
             The sprite list to add the bullets to.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
         """
         raise NotImplementedError
 

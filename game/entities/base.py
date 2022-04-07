@@ -163,6 +163,17 @@ class Entity(arcade.Sprite):
             # Increment the counter since not enough time has passed
             self.time_out_of_combat += delta_time
 
+    def attack(self) -> None:
+        """
+        Runs the entity's attack algorithm.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
+        raise NotImplementedError
+
 
 class Tile(arcade.Sprite):
     """
