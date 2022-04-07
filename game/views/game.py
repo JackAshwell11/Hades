@@ -484,16 +484,14 @@ class Game(arcade.View):
             and self.player.time_since_last_attack
             >= self.player.entity_type.attack_cooldown
         ):
-            # Reset the player's combat variables
+            # Reset the player's combat variables and attack
             self.player.time_since_armour_regen = (
                 self.player.entity_type.armour_regen_cooldown
             )
             self.player.time_since_last_attack = 0
             self.player.time_out_of_combat = 0
             self.player.in_combat = True
-
-            # Attack
-            self.player.current_attack.process_attack(self.bullet_sprites)
+            self.player.attack()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """

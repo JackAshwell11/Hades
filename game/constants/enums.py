@@ -44,7 +44,7 @@ class AIMovementType(Enum):
 
 # Attack algorithms
 class AttackAlgorithmType(Enum):
-    """Stores the different type of attack algorithms that exist."""
+    """Stores the different types of attack algorithms that exist."""
 
     RANGED = RangedAttack
     MELEE = MeleeAttack

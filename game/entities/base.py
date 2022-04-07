@@ -45,6 +45,10 @@ class Entity(arcade.Sprite):
         The health of this entity.
     armour: int
         The armour of this entity.
+    attack_algorithms: list[AttackBase]
+        A list of the entity's attack algorithms.
+    current_attack_index: int
+        The index of the currently selected attack.
     direction: float
         The angle the entity is facing.
     facing: int
@@ -77,6 +81,7 @@ class Entity(arcade.Sprite):
         self.attack_algorithms: list[AttackBase] = [
             algorithm.value(self) for algorithm in self.entity_type.attack_algorithms
         ]
+        self.current_attack_index: int = 0
         self.direction: float = 0
         self.facing: int = 0
         self.time_since_last_attack: float = 0
@@ -95,6 +100,11 @@ class Entity(arcade.Sprite):
     def custom_data(self) -> PlayerType | EnemyType:
         """Returns the specific data about this entity"""
         return self.entity_data.custom_data
+
+    @property
+    def current_attack(self) -> AttackBase:
+        """Returns the currently selected attack algorithm."""
+        return self.attack_algorithms[self.current_attack_index]
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
@@ -165,7 +175,7 @@ class Entity(arcade.Sprite):
 
     def attack(self) -> None:
         """
-        Runs the entity's attack algorithm.
+        Runs the entity's current attack algorithm.
 
         Raises
         ------

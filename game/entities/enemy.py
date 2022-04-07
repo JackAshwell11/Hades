@@ -10,7 +10,7 @@ import arcade
 
 # Custom
 from constants.entity import FACING_LEFT, FACING_RIGHT
-from constants.enums import EntityID
+from constants.enums import AttackAlgorithmType, EntityID
 from constants.general import SPRITE_SIZE
 from entities.base import Entity
 
@@ -80,6 +80,11 @@ class Enemy(Entity):
             # Enemy not in combat so check if they can regenerate armour
             if self.entity_type.armour_regen:
                 self.check_armour_regen(delta_time)
+
+                # Make sure the enemy's armour does not go over the maximum
+                self.armour: int  # Mypy gives self.armour an undetermined type error
+                if self.armour > self.entity_type.armour:
+                    self.armour = self.entity_type.armour
             return
 
         # Enemy in combat so reset their combat counter
@@ -110,7 +115,7 @@ class Enemy(Entity):
             # Enemy can attack so reset the counter and attack
             logger.info(f"{self} attacking player with distance {hypot_distance}")
             self.time_since_last_attack: float = 0  # Mypy is annoying
-            self.attack_algorithms[0].process_attack(self.game.bullet_sprites)
+            self.attack()
 
     def check_line_of_sight(self) -> bool:
         """
@@ -133,3 +138,14 @@ class Enemy(Entity):
 
         # Return the result
         return self.line_of_sight
+
+    def attack(self) -> None:
+        """Runs the enemy's current attack algorithm."""
+        # Find out what attack algorithm is selected
+        match type(self.current_attack):
+            case AttackAlgorithmType.RANGED.value:
+                self.current_attack.process_attack(self.game.bullet_sprites)
+            case AttackAlgorithmType.MELEE.value:
+                print("enemy melee")
+            case AttackAlgorithmType.AREA_OF_EFFECT.value:
+                print("enemy aoe")

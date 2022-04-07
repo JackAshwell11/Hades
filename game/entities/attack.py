@@ -3,7 +3,7 @@ from __future__ import annotations
 # Builtin
 import logging
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 # Pip
 import arcade
@@ -71,14 +71,14 @@ class AttackBase:
     def __repr__(self) -> str:
         return f"<AttackBase (Owner={self.owner})>"
 
-    def process_attack(self, bullet_list: arcade.SpriteList = None) -> None:
+    def process_attack(self, *args: Any) -> None:
         """
         Performs an attack by the owner entity.
 
         Parameters
         ----------
-        bullet_list: arcade.SpriteList
-            The sprite list to add the bullets to.
+        args: Any
+            A tuple containing the parameters needed for the attack.
 
         Raises
         ------
@@ -95,20 +95,20 @@ class RangedAttack(AttackBase):
     def __repr__(self) -> str:
         return f"<RangedAttack (Owner={self.owner})>"
 
-    def process_attack(self, bullet_list: arcade.SpriteList = None) -> None:
+    def process_attack(self, *args: Any) -> None:
         """
         Performs a ranged attack in the direction the entity is facing.
 
         Parameters
         ----------
-        bullet_list: arcade.SpriteList
-            The sprite list to add the bullet to.
+        args: Any
+            A tuple containing the parameters needed for the attack.
         """
         # Make sure we have the bullet constants. This avoids a circular import
         from constants.entity import BULLET_OFFSET, BULLET_VELOCITY
 
         # Make sure the needed parameters are valid
-        assert bullet_list is not None
+        bullet_list: arcade.SpriteList = args[0]
 
         # Reset the time counter
         self.owner.time_since_last_attack = 0
@@ -154,7 +154,7 @@ class MeleeAttack(AttackBase):
     def __repr__(self) -> str:
         return f"<MeleeAttack (Owner={self.owner})>"
 
-    def process_attack(self, bullet_list: arcade.SpriteList = None) -> None:
+    def process_attack(self, *args: Any) -> None:
         """"""
         raise NotImplementedError
 
@@ -165,6 +165,6 @@ class AreaOfEffectAttack(AttackBase):
     def __repr__(self) -> str:
         return f"<AreaOfEffectAttack (Owner={self.owner})>"
 
-    def process_attack(self, bullet_list: arcade.SpriteList = None) -> None:
+    def process_attack(self, *args: Any) -> None:
         """"""
         raise NotImplementedError
