@@ -5,7 +5,6 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import arcade
     from entities.base import Entity
     from entities.player import Player
 
@@ -49,9 +48,7 @@ class AIMovementBase:
             self.owner.center_y - player.center_y,
         )
 
-    def calculate_movement(
-        self, player: Player, walls: arcade.SpriteList
-    ) -> tuple[float, float]:
+    def calculate_movement(self, player: Player) -> tuple[float, float]:
         """
         Calculates the force to apply to an enemy.
 
@@ -59,8 +56,6 @@ class AIMovementBase:
         ----------
         player: Player
             The player object.
-        walls: arcade.SpriteList
-            The wall tiles which block the enemy's vision.
 
         Raises
         ------
@@ -92,9 +87,7 @@ class FollowLineOfSight(AIMovementBase):
     def __repr__(self) -> str:
         return f"<FollowLineOfSight (Owner={self.owner})>"
 
-    def calculate_movement(
-        self, player: Player, walls: arcade.SpriteList
-    ) -> tuple[float, float]:
+    def calculate_movement(self, player: Player) -> tuple[float, float]:
         """
         Calculates the new position for an enemy.
 
@@ -102,8 +95,6 @@ class FollowLineOfSight(AIMovementBase):
         ----------
         player: Player
             The player target to move towards.
-        walls: arcade.SpriteList
-            The wall tiles which block the enemy's vision.
 
         Returns
         -------
@@ -119,7 +110,6 @@ class FollowLineOfSight(AIMovementBase):
             -distance[0] * MOVEMENT_FORCE,
             -distance[1] * MOVEMENT_FORCE,
         )
-        # TODO: CLEAN THIS UP AND FIX THE MYPY ERROR
 
 
 class Jitter(AIMovementBase):
@@ -131,9 +121,7 @@ class Jitter(AIMovementBase):
     def __repr__(self) -> str:
         return f"<Jitter (Owner={self.owner})>"
 
-    def calculate_movement(
-        self, player: Player, walls: arcade.SpriteList
-    ) -> tuple[float, float]:
+    def calculate_movement(self, player: Player) -> tuple[float, float]:
         """"""
         raise NotImplementedError
 
@@ -147,8 +135,6 @@ class MoveAway(AIMovementBase):
     def __repr__(self) -> str:
         return f"<MoveAway (Owner={self.owner})>"
 
-    def calculate_movement(
-        self, player: Player, walls: arcade.SpriteList
-    ) -> tuple[float, float]:
+    def calculate_movement(self, player: Player) -> tuple[float, float]:
         """"""
         raise NotImplementedError
