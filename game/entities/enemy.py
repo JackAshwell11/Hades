@@ -104,18 +104,8 @@ class Enemy(Entity):
         self.physics_engines[0].apply_force(self, (horizontal, vertical))
         logger.debug(f"Applied force ({horizontal}, {vertical}) to {self}")
 
-        # Check if the player is within the attack range and can attack
-        x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
-        y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
-        hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
-        if (
-            hypot_distance <= self.custom_data.attack_range * SPRITE_SIZE
-            and self.time_since_last_attack >= self.entity_type.attack_cooldown
-        ):
-            # Enemy can attack so reset the counter and attack
-            logger.info(f"{self} attacking player with distance {hypot_distance}")
-            self.time_since_last_attack: float = 0  # Mypy is annoying
-            self.attack()
+        # Make the enemy attack (they may not if the player is not within range)
+        self.attack()
 
     def check_line_of_sight(self) -> bool:
         """
@@ -139,9 +129,33 @@ class Enemy(Entity):
         # Return the result
         return self.line_of_sight
 
+    def check_distance(self) -> bool:
+        """
+        Checks if the player is within a certain distance of the enemy.
+
+        Returns
+        -------
+        bool
+            Whether the player is within distance of the enemy or not.
+        """
+        x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
+        y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
+        hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
+        logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
+        return (
+            hypot_distance <= self.custom_data.attack_range * SPRITE_SIZE
+            and self.time_since_last_attack >= self.entity_type.attack_cooldown
+        )
+
     def attack(self) -> None:
         """Runs the enemy's current attack algorithm."""
-        # Find out what attack algorithm is selected
+        # Check if the player is within range of the enemy
+        if not self.check_distance():
+            return
+
+        # Enemy can attack so reset the counter and determine what attack algorithm is
+        # selected
+        self.time_since_last_attack: float = 0
         match type(self.current_attack):
             case AttackAlgorithmType.RANGED.value:
                 self.current_attack.process_attack(self.game.bullet_sprites)
