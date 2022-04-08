@@ -92,9 +92,7 @@ class Enemy(Entity):
         self.time_since_armour_regen = self.entity_type.armour_regen_cooldown
 
         # Player is within line of sight so get the force needed to move the enemy
-        horizontal, vertical = self.ai.calculate_movement(
-            self.game.player, self.game.wall_sprites
-        )
+        horizontal, vertical = self.ai.calculate_movement(self.game.player)
 
         # Set the needed internal variables
         self.facing = FACING_LEFT if horizontal < 0 else FACING_RIGHT

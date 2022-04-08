@@ -36,7 +36,7 @@ class AIMovementBase:
         Parameters
         ----------
         player: Player
-            The player target to calculate the distance to.
+            The player to calculate the distance to.
 
         Returns
         -------
@@ -73,7 +73,7 @@ class AIMovementBase:
 class FollowLineOfSight(AIMovementBase):
     """
     An algorithm which moves the enemy towards the player if the enemy has line of
-    sight with the player, and the player is within the enemy's view distance.
+    sight with the player and the player is within the enemy's view distance.
 
     Parameters
     ----------
@@ -89,17 +89,17 @@ class FollowLineOfSight(AIMovementBase):
 
     def calculate_movement(self, player: Player) -> tuple[float, float]:
         """
-        Calculates the new position for an enemy.
+        Calculates the new position for an enemy based on the
 
         Parameters
         ----------
         player: Player
-            The player target to move towards.
+            The player to move towards.
 
         Returns
         -------
         tuple[float, float]
-            The calculated force to apply to the enemy to move it towards the target.
+            The calculated force to apply to the enemy to move it towards the player.
         """
         # Make sure we have the movement force. This avoids a circular import
         from constants.entity import MOVEMENT_FORCE
@@ -126,8 +126,16 @@ class Jitter(AIMovementBase):
         raise NotImplementedError
 
 
-class MoveAway(AIMovementBase):
-    """"""
+class MoveAwayLineOfSight(AIMovementBase):
+    """
+    An algorithm which moves the enemy away from the player if the enemy has line of
+    sight with the player and the player is within the enemy's view distance.
+
+    Parameters
+    ----------
+    owner: Entity
+        The owner of this AI algorithm.
+    """
 
     def __init__(self, owner: Entity) -> None:
         super().__init__(owner)
@@ -136,5 +144,25 @@ class MoveAway(AIMovementBase):
         return f"<MoveAway (Owner={self.owner})>"
 
     def calculate_movement(self, player: Player) -> tuple[float, float]:
-        """"""
-        raise NotImplementedError
+        """
+        Calculates the new position for an enemy.
+
+        Parameters
+        ----------
+        player: Player
+            The player to move away from.
+
+        Returns
+        -------
+        tuple[float, float]
+            The calculated force to apply to the enemy to move it away from the player.
+        """
+        # Make sure we have the movement force. This avoids a circular import
+        from constants.entity import MOVEMENT_FORCE
+
+        # Calculate the velocity for the enemy to move towards the player
+        distance: tuple[float, float] = self.distance_to_player(player)
+        return (
+            distance[0] * MOVEMENT_FORCE,
+            distance[1] * MOVEMENT_FORCE,
+        )

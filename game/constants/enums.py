@@ -5,7 +5,7 @@ from enum import Enum, IntEnum
 
 # Custom
 from entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
-from entities.movement import FollowLineOfSight, Jitter, MoveAway
+from entities.movement import FollowLineOfSight, Jitter, MoveAwayLineOfSight
 
 
 # Tile types
@@ -39,7 +39,7 @@ class AIMovementType(Enum):
 
     FOLLOW = FollowLineOfSight
     JITTER = Jitter
-    MOVE_AWAY = MoveAway
+    MOVE_AWAY = MoveAwayLineOfSight
 
 
 # Attack algorithms
