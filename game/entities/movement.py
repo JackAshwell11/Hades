@@ -113,7 +113,14 @@ class FollowLineOfSight(AIMovementBase):
 
 
 class Jitter(AIMovementBase):
-    """"""
+    """
+    An algorithm which .
+
+    Parameters
+    ----------
+    owner: Entity
+        The owner of this AI algorithm.
+    """
 
     def __init__(self, owner: Entity) -> None:
         super().__init__(owner)
@@ -122,7 +129,19 @@ class Jitter(AIMovementBase):
         return f"<Jitter (Owner={self.owner})>"
 
     def calculate_movement(self, player: Player) -> tuple[float, float]:
-        """"""
+        """
+        Calculates the new position for an enemy.
+
+        Parameters
+        ----------
+        player: Player
+            The player object. This is not used for this algorithm.
+
+        Returns
+        -------
+        tuple[float, float]
+            The calculated force to apply to the enemy.
+        """
         raise NotImplementedError
 
 
