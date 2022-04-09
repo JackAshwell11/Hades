@@ -48,7 +48,6 @@ def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
         logger.warning(
             f"An error occurred while removing {bullet} after hitting {wall}"
         )
-        pass
     # Stop collision processing
     return False
 
@@ -86,7 +85,6 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
         logger.warning(
             f"An error occurred while removing {bullet} after hitting {enemy}"
         )
-        pass
     # Stop collision processing
     return False
 
@@ -124,7 +122,6 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
         logger.warning(
             f"An error occurred while removing {bullet} after hitting {player}"
         )
-        pass
     # Stop collision processing
     return False
 
