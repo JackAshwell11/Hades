@@ -81,9 +81,6 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
             # Deal damage to the enemy
             enemy.deal_damage(bullet.owner.entity_type.damage)
             logger.debug(f"Removed {bullet} after hitting {enemy}")
-
-        enemy.time_out_of_combat = 0
-        enemy.time_since_armour_regen = enemy.entity_type.armour_regen_cooldown
     except AttributeError:
         # An error randomly occurs here so just ignore it
         logger.warning(
