@@ -2,69 +2,25 @@ from __future__ import annotations
 
 # Builtin
 import logging
-import math
 from typing import TYPE_CHECKING
 
 # Pip
 import arcade
 
 # Custom
-from constants.entity import (
-    ARMOUR_REGEN_AMOUNT,
-    ARMOUR_REGEN_WAIT,
-    BULLET_OFFSET,
-    BULLET_VELOCITY,
-)
+from constants.entity import ARMOUR_REGEN_AMOUNT, ARMOUR_REGEN_WAIT
 from constants.enums import EntityID, TileType
 from constants.general import SPRITE_SCALE
+from entities.attack import AttackBase
 from textures import pos_to_pixel
 
 if TYPE_CHECKING:
     from constants.entity import BaseType, EnemyType, EntityType, PlayerType
     from entities.player import Player
-    from physics import PhysicsEngine
     from views.game import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)
-
-
-class Bullet(arcade.SpriteSolidColor):
-    """
-    Represents a bullet in the game.
-
-    Parameters
-    ----------
-    x: float
-        The starting x position of the bullet.
-    y: float
-        The starting y position of the bullet.
-    width: int
-        Width of the bullet.
-    height: int
-        Height of the bullet.
-    color: tuple[int, int, int]
-        The color of the bullet.
-    owner: Entity
-        The entity which shot the bullet.
-    """
-
-    def __init__(
-        self,
-        x: float,
-        y: float,
-        width: int,
-        height: int,
-        color: tuple[int, int, int],
-        owner: Entity,
-    ) -> None:
-        super().__init__(width, height, color)
-        self.center_x: float = x
-        self.center_y: float = y
-        self.owner: Entity = owner
-
-    def __repr__(self) -> str:
-        return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
 
 
 class Entity(arcade.Sprite):
@@ -89,6 +45,10 @@ class Entity(arcade.Sprite):
         The health of this entity.
     armour: int
         The armour of this entity.
+    attack_algorithms: list[AttackBase]
+        A list of the entity's attack algorithms.
+    current_attack_index: int
+        The index of the currently selected attack.
     direction: float
         The angle the entity is facing.
     facing: int
@@ -118,6 +78,10 @@ class Entity(arcade.Sprite):
         self.texture: arcade.Texture = self.entity_type.textures["idle"][0][0]
         self.health: int = self.entity_type.health
         self.armour: int = self.entity_type.armour
+        self.attack_algorithms: list[AttackBase] = [
+            algorithm.value(self) for algorithm in self.entity_type.attack_algorithms
+        ]
+        self.current_attack_index: int = 0
         self.direction: float = 0
         self.facing: int = 0
         self.time_since_last_attack: float = 0
@@ -136,6 +100,11 @@ class Entity(arcade.Sprite):
     def custom_data(self) -> PlayerType | EnemyType:
         """Returns the specific data about this entity"""
         return self.entity_data.custom_data
+
+    @property
+    def current_attack(self) -> AttackBase:
+        """Returns the currently selected attack algorithm."""
+        return self.attack_algorithms[self.current_attack_index]
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
@@ -204,56 +173,16 @@ class Entity(arcade.Sprite):
             # Increment the counter since not enough time has passed
             self.time_out_of_combat += delta_time
 
-    def ranged_attack(self, bullet_list: arcade.SpriteList) -> None:
+    def attack(self) -> None:
         """
-        Performs a ranged attack in the direction the entity is facing.
+        Runs the entity's current attack algorithm.
 
-        Parameters
-        ----------
-        bullet_list: arcade.SpriteList
-            The sprite list to add the bullet to.
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
         """
-        # Reset the time counter
-        self.time_since_last_attack = 0
-
-        # Create and add the new bullet to the physics engine
-        new_bullet = Bullet(self.center_x, self.center_y, 25, 5, arcade.color.RED, self)
-        new_bullet.angle = self.direction
-        physics: PhysicsEngine = self.physics_engines[0]
-        physics.add_bullet(new_bullet)
-        bullet_list.append(new_bullet)
-
-        # Move the bullet away from the entity a bit to stop its colliding with them
-        angle_radians = self.direction * math.pi / 180
-        new_x, new_y = (
-            new_bullet.center_x + math.cos(angle_radians) * BULLET_OFFSET,
-            new_bullet.center_y + math.sin(angle_radians) * BULLET_OFFSET,
-        )
-        physics.set_position(new_bullet, (new_x, new_y))
-
-        # Calculate its velocity
-        change_x, change_y = (
-            math.cos(angle_radians) * BULLET_VELOCITY,
-            math.sin(angle_radians) * BULLET_VELOCITY,
-        )
-        physics.set_velocity(new_bullet, (change_x, change_y))
-        logger.info(
-            f"Created bullet with owner {self} at position ({new_bullet.center_x},"
-            f" {new_bullet.center_y}) with velocity ({change_x}, {change_y})"
-        )
-
-    def melee_attack(self, target: list[Entity]) -> None:
-        """
-        Performs a melee attack in the direction the entity is facing.
-
-        Parameters
-        ----------
-        target: list[Entity]
-            The entities to deal damage to.
-        """
-        # Deal damage to every entity in the target list
-        for entity in target:
-            entity.deal_damage(self.entity_type.damage)
+        raise NotImplementedError
 
 
 class Tile(arcade.Sprite):

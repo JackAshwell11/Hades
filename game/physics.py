@@ -11,7 +11,8 @@ import arcade
 from constants.enums import EntityID
 
 if TYPE_CHECKING:
-    from entities.base import Bullet, Entity
+    from entities.attack import Bullet
+    from entities.base import Entity
     from entities.player import Player
     from entities.tile import Tile
 

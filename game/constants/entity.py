@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, NamedTuple
 
 # Custom
+from constants.enums import AIMovementType, AttackAlgorithmType
 from textures import moving_textures
 
 if TYPE_CHECKING:
@@ -33,6 +34,11 @@ class EntityType(NamedTuple):
         Whether the entity regenerates armour or not.
     armour_regen_cooldown: int
         The time between armour regenerations.
+    area_of_effect_range: int
+        The range an area of effect attack deals has. This is the radius of the circle,
+        not the diameter.
+    attack_algorithms: list[AttackAlgorithmType]
+        The attack algorithms that this player has.
     """
 
     name: str
@@ -44,6 +50,8 @@ class EntityType(NamedTuple):
     damage: int
     armour_regen: bool
     armour_regen_cooldown: int
+    area_of_effect_range: int
+    attack_algorithms: list[AttackAlgorithmType]
 
 
 # Base player type
@@ -70,10 +78,13 @@ class EnemyType(NamedTuple):
         The amount of tiles the enemy can see too.
     attack_range: int
         The amount of tiles the enemy can attack within.
+    movement_algorithm: AIMovementType
+        The movement algorithm that this enemy has.
     """
 
     view_distance: int
     attack_range: int
+    movement_algorithm: AIMovementType
 
 
 # Base entity constructor
@@ -93,18 +104,58 @@ class BaseType(NamedTuple):
 
 # Player characters
 PLAYER = BaseType(
-    EntityType("player", 100, 20, moving_textures["player"], 200, 1, 10, True, 1),
+    EntityType(
+        "player",
+        100,
+        20,
+        moving_textures["player"],
+        200,
+        1,
+        10,
+        True,
+        1,
+        3,
+        [
+            AttackAlgorithmType.RANGED,
+            AttackAlgorithmType.MELEE,
+            AttackAlgorithmType.AREA_OF_EFFECT,
+        ],
+    ),
     PlayerType(3, 60),
 )
 
 # Enemy characters
 ENEMY1 = BaseType(
-    EntityType("enemy1", 10, 10, moving_textures["enemy"], 50, 1, 5, True, 3),
-    EnemyType(5, 3),
+    EntityType(
+        "enemy1",
+        10,
+        10,
+        moving_textures["enemy"],
+        50,
+        1,
+        5,
+        True,
+        3,
+        3,
+        [AttackAlgorithmType.RANGED],
+    ),
+    EnemyType(5, 3, AIMovementType.FOLLOW),
 )
 ENEMY2 = BaseType(
-    EntityType("enemy2", 10, 10, moving_textures["enemy"], 50, 1, 5, True, 3),
-    EnemyType(5, 3),
+    EntityType(
+        "enemy2",
+        10,
+        10,
+        moving_textures["enemy"],
+        50,
+        1,
+        5,
+        True,
+        3,
+        3,
+        [AttackAlgorithmType.RANGED],
+    ),
+    EnemyType(5, 3, AIMovementType.FOLLOW),
 )
 
 # Status effect constants

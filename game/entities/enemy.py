@@ -10,13 +10,13 @@ import arcade
 
 # Custom
 from constants.entity import FACING_LEFT, FACING_RIGHT
-from constants.enums import EntityID
+from constants.enums import AttackAlgorithmType, EntityID
 from constants.general import SPRITE_SIZE
 from entities.base import Entity
 
 if TYPE_CHECKING:
     from constants.entity import BaseType
-    from entities.ai import AIMovementBase
+    from entities.movement import AIMovementBase
     from views.game import Game
 
 # Get the logger
@@ -37,11 +37,11 @@ class Enemy(Entity):
         The y position of the enemy in the game map.
     enemy_type: BaseType
         The constant data about this specific enemy.
-    ai: AIMovementBase
-        The AI which this entity uses.
 
     Attributes
     ----------
+    ai: AIMovementBase
+        The AI movement algorithm which this entity uses.
     line_of_sight: bool
         Whether the enemy has line of sight with the player or not
     """
@@ -55,11 +55,9 @@ class Enemy(Entity):
         x: int,
         y: int,
         enemy_type: BaseType,
-        ai: AIMovementBase,
     ) -> None:
         super().__init__(game, x, y, enemy_type)
-        self.ai: AIMovementBase = ai
-        self.ai.owner = self
+        self.ai: AIMovementBase = self.custom_data.movement_algorithm.value(self)
         self.line_of_sight: bool = False
 
     def __repr__(self) -> str:
@@ -82,6 +80,11 @@ class Enemy(Entity):
             # Enemy not in combat so check if they can regenerate armour
             if self.entity_type.armour_regen:
                 self.check_armour_regen(delta_time)
+
+                # Make sure the enemy's armour does not go over the maximum
+                self.armour: int  # Mypy gives self.armour an undetermined type error
+                if self.armour > self.entity_type.armour:
+                    self.armour = self.entity_type.armour
             return
 
         # Enemy in combat so reset their combat counter
@@ -89,9 +92,7 @@ class Enemy(Entity):
         self.time_since_armour_regen = self.entity_type.armour_regen_cooldown
 
         # Player is within line of sight so get the force needed to move the enemy
-        horizontal, vertical = self.ai.calculate_movement(
-            self.game.player, self.game.wall_sprites
-        )
+        horizontal, vertical = self.ai.calculate_movement(self.game.player)
 
         # Set the needed internal variables
         self.facing = FACING_LEFT if horizontal < 0 else FACING_RIGHT
@@ -101,18 +102,8 @@ class Enemy(Entity):
         self.physics_engines[0].apply_force(self, (horizontal, vertical))
         logger.debug(f"Applied force ({horizontal}, {vertical}) to {self}")
 
-        # Check if the player is within the attack range and can attack
-        x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
-        y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
-        hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
-        if (
-            hypot_distance <= self.custom_data.attack_range * SPRITE_SIZE
-            and self.time_since_last_attack >= self.entity_type.attack_cooldown
-        ):
-            # Enemy can attack so reset the counter and attack
-            logger.info(f"{self} attacking player with distance {hypot_distance}")
-            self.time_since_last_attack: float = 0  # Mypy is annoying
-            self.ranged_attack(self.game.bullet_sprites)
+        # Make the enemy attack (they may not if the player is not within range)
+        self.attack()
 
     def check_line_of_sight(self) -> bool:
         """
@@ -135,3 +126,38 @@ class Enemy(Entity):
 
         # Return the result
         return self.line_of_sight
+
+    def check_distance(self) -> bool:
+        """
+        Checks if the player is within a certain distance of the enemy.
+
+        Returns
+        -------
+        bool
+            Whether the player is within distance of the enemy or not.
+        """
+        x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
+        y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
+        hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
+        logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
+        return (
+            hypot_distance <= self.custom_data.attack_range * SPRITE_SIZE
+            and self.time_since_last_attack >= self.entity_type.attack_cooldown
+        )
+
+    def attack(self) -> None:
+        """Runs the enemy's current attack algorithm."""
+        # Check if the player is within range of the enemy
+        if not self.check_distance():
+            return
+
+        # Enemy can attack so reset the counter and determine what attack algorithm is
+        # selected
+        self.time_since_last_attack: float = 0
+        match type(self.current_attack):
+            case AttackAlgorithmType.RANGED.value:
+                self.current_attack.process_attack(self.game.bullet_sprites)
+            case AttackAlgorithmType.MELEE.value:
+                print("enemy melee")
+            case AttackAlgorithmType.AREA_OF_EFFECT.value:
+                self.current_attack.process_attack(self.game.player)

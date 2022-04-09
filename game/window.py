@@ -12,6 +12,12 @@ import arcade
 from constants.general import LOGGING_FORMAT
 from views.start_menu import StartMenu
 
+# Create paths
+log_path = pathlib.Path(__file__).resolve().parent / "logs"
+
+# Make sure the directories exist
+log_path.mkdir(parents=True, exist_ok=True)
+
 
 def get_log_path() -> pathlib.Path:
     """
@@ -23,10 +29,9 @@ def get_log_path() -> pathlib.Path:
     pathlib.Path
         The path to use for the logging output.
     """
-    base_path = pathlib.Path(__file__).resolve().parent / "logs"
     base_filename = datetime.now().strftime("%Y-%m-%d")
-    file_count = len(list(base_path.glob(f"{base_filename}*.log")))
-    return base_path / f"{base_filename}-{file_count+1}.log"
+    file_count = len(list(log_path.glob(f"{base_filename}*.log")))
+    return log_path / f"{base_filename}-{file_count+1}.log"
 
 
 class ArcadeFilter(logging.Filter):

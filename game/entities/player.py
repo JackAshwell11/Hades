@@ -2,10 +2,10 @@ from __future__ import annotations
 
 # Builtin
 import logging
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 # Custom
-from constants.enums import EntityID, StatusEffectType
+from constants.enums import AttackAlgorithmType, EntityID
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
 from entities.status_effect import StatusEffect
@@ -46,6 +46,8 @@ class Player(Entity):
         The total capacity of the inventory.
     applied_effects: list[StatusEffect]
         The currently applied status effects.
+    in_combat: bool
+        Whether the player is in combat or not.
     """
 
     # Class variables
@@ -61,8 +63,6 @@ class Player(Entity):
             "bonus health": 0,
             "bonus armour": 0,
         }
-        self.attacks: list[Callable] = [self.ranged_attack, self.run_melee_shader]
-        self.current_attack_index: int = 0
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
@@ -138,22 +138,15 @@ class Player(Entity):
         effect.apply_effect()
         logger.info(f"Adding effect {effect} to player")
 
-    def get_applied_effects_type(self) -> list[StatusEffectType]:
-        """
-        Gets all the applied status effect types.
-
-        Returns
-        -------
-        list[StatusEffectType]
-            A list of status effect types.
-        """
-        return [effect.effect_type for effect in self.applied_effects]
-
-    def run_melee_shader(self) -> None:
-        """Runs the melee shader to get all enemies within melee range of the player."""
-        logger.info("Running melee shader")
-        # Update the framebuffer to ensure collision detection is accurate
-        self.melee_shader.update_collision()
-        # Deal melee damage to any entity that the player can attack. This is determined
-        # by the melee shader
-        self.melee_attack(self.melee_shader.run_shader())
+    def attack(self) -> None:
+        """Runs the player's current attack algorithm."""
+        # Find out what attack algorithm is selected
+        match type(self.current_attack):
+            case AttackAlgorithmType.RANGED.value:
+                self.current_attack.process_attack(self.game.bullet_sprites)
+            case AttackAlgorithmType.MELEE.value:
+                # Update the framebuffer to ensure collision detection is accurate
+                self.melee_shader.update_collision()
+                self.current_attack.process_attack(self.melee_shader.run_shader())
+            case AttackAlgorithmType.AREA_OF_EFFECT.value:
+                self.current_attack.process_attack(self.game.enemies)
