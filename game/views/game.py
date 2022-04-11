@@ -17,7 +17,7 @@ from constants.general import (
     SPRITE_SIZE,
 )
 from constants.generation import TileType
-from entities.enemy import Enemy
+from entities.enemy import Enemy1
 from entities.item import HealthBoostPotion, HealthPotion, Shop
 from entities.player import Player
 from entities.tile import Floor, Wall
@@ -150,7 +150,7 @@ class Game(arcade.View):
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.ENEMY.value:
                         self.enemies.append(
-                            Enemy(
+                            Enemy1(
                                 self,
                                 count_x,
                                 count_y,

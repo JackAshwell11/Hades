@@ -44,6 +44,8 @@ class Player(Entity):
         The total capacity of the inventory.
     applied_effects: list[StatusEffect]
         The currently applied status effects.
+    state_modifiers: dict[str, int]
+        The current bonuses applied to the player's state.
     in_combat: bool
         Whether the player is in combat or not.
     """
@@ -61,6 +63,8 @@ class Player(Entity):
         self.state_modifiers: dict[str, int] = {
             "bonus health": 0,
             "bonus armour": 0,
+            "bonus speed": 0,
+            "bonus fire rate": 0,
         }
         self.in_combat: bool = False
 

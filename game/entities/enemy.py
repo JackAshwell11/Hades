@@ -27,10 +27,6 @@ if TYPE_CHECKING:
 # Get the logger
 logger = logging.getLogger(__name__)
 
-# TODO:
-#   Make Enemy a base class with no entity_data. Then subclass the resulting Enemy class
-#   and give each subclass the enemy named tuples. This will make it much more flexible.
-
 
 class Enemy(Entity):
     """
@@ -55,7 +51,6 @@ class Enemy(Entity):
 
     # Class variables
     entity_id: EntityID = EntityID.ENEMY
-    entity_data: BaseType = ENEMY1
 
     def __init__(
         self,
@@ -168,3 +163,29 @@ class Enemy(Entity):
                 print("enemy melee")
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
                 self.current_attack.process_attack(self.game.player)
+
+
+class Enemy1(Enemy):
+    """
+    Represents the first enemy type in the game.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the enemy can have a reference to it.
+    x: int
+        The x position of the enemy in the game map.
+    y: int
+        The y position of the enemy in the game map.
+    """
+
+    # Class variables
+    entity_data: BaseType = ENEMY1
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
