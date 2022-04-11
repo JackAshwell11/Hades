@@ -5,9 +5,13 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity import HEALTH_BOOST_POTION_DURATION, HEALTH_BOOST_POTION_INCREASE
-from constants.enums import StatusEffectType, TileType
+from constants.entity import (
+    HEALTH_BOOST_POTION_DURATION,
+    HEALTH_BOOST_POTION_INCREASE,
+    StatusEffectType,
+)
 from constants.general import HEALTH_POTION_INCREASE
+from constants.generation import TileType
 from entities.base import Collectible, Item
 from entities.status_effect import StatusEffect
 from textures import non_moving_textures

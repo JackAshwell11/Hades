@@ -1,7 +1,24 @@
 from __future__ import annotations
 
 # Custom
-from constants.enums import TileType
+from enum import IntEnum
+
+
+# Tile types
+class TileType(IntEnum):
+    """Stores the ID of each tile in the game map."""
+
+    NONE = -1
+    EMPTY = 0
+    FLOOR = 1
+    WALL = 2
+    PLAYER = 3
+    ENEMY = 4
+    HEALTH_POTION = 5
+    HEALTH_BOOST_POTION = 6
+    SHOP = 7
+    DEBUG_WALL = 9
+
 
 # Room probabilities
 BASE_ROOM = {

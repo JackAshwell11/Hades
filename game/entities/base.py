@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import ARMOUR_REGEN_AMOUNT, ARMOUR_REGEN_WAIT
-from constants.enums import EntityID, TileType
+from constants.entity import ARMOUR_REGEN_AMOUNT, ARMOUR_REGEN_WAIT, EntityID
 from constants.general import SPRITE_SCALE
+from constants.generation import TileType
 from entities.attack import AttackBase
 from textures import pos_to_pixel
 
@@ -35,9 +35,6 @@ class Entity(arcade.Sprite):
         The x position of the entity in the game map.
     y: int
         The y position of the entity in the game map.
-    entity_type: BaseType
-        The constant data about this specific entity. This allows me to support multiple
-        player and enemy types later on.
 
     Attributes
     ----------
@@ -62,19 +59,18 @@ class Entity(arcade.Sprite):
     """
 
     # Class variables
-    ID: EntityID = EntityID.ENTITY
+    entity_id: EntityID = EntityID.ENTITY
+    entity_data: BaseType | None = None
 
     def __init__(
         self,
         game: Game,
         x: int,
         y: int,
-        entity_type: BaseType,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.game: Game = game
         self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.entity_data: BaseType = entity_type
         self.texture: arcade.Texture = self.entity_type.textures["idle"][0][0]
         self.health: int = self.entity_type.health
         self.armour: int = self.entity_type.armour
@@ -94,11 +90,19 @@ class Entity(arcade.Sprite):
     @property
     def entity_type(self) -> EntityType:
         """Returns the general entity data."""
+        # Make sure the entity data is valid
+        assert self.entity_data is not None
+
+        # Return the entity type named tuple
         return self.entity_data.entity_type
 
     @property
     def custom_data(self) -> PlayerType | EnemyType:
-        """Returns the specific data about this entity"""
+        """Returns the specific data about this entity."""
+        # Make sure the entity data is valid
+        assert self.entity_data is not None
+
+        # Return the custom data named tuple
         return self.entity_data.custom_data
 
     @property
@@ -273,16 +277,16 @@ class Item(Tile):
 
 class Collectible(Item):
     """
-    Represents a collectible item in the game.
+    Represents a collectible in the game.
 
     Parameters
     ----------
     game: Game
-        The game view. This is passed so the item can have a reference to it.
+        The game view. This is passed so the collectible can have a reference to it.
     x: int
-        The x position of the item in the game map.
+        The x position of the collectible in the game map.
     y: int
-        The y position of the item in the game map.
+        The y position of the collectible in the game map.
     """
 
     # Class variables
@@ -298,12 +302,12 @@ class Collectible(Item):
 
     def item_pick_up(self) -> bool:
         """
-        Called when the item is picked up by the player.
+        Called when the collectible is picked up by the player.
 
         Returns
         -------
         bool
-            Whether the item pickup was successful or not.
+            Whether the collectible pickup was successful or not.
         """
         # Try and add the item to the player's inventory
         if self.player.add_item_to_inventory(self):
@@ -311,9 +315,9 @@ class Collectible(Item):
             self.remove_from_sprite_lists()
 
             # Activate was successful
-            logger.info(f"Picked up item {self}")
+            logger.info(f"Picked up collectible {self}")
             return True
         else:
-            # Add not successful. TO DO: Probably give message to user
-            logger.info(f"Can't pick up item {self}")
+            # Add not successful. TODO: Probably give message to user
+            logger.info(f"Can't pick up collectible {self}")
             return False

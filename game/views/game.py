@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import ENEMY1, FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, PLAYER
-from constants.enums import TileType
+from constants.entity import FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE
 from constants.general import (
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
     DEBUG_VIEW_DISTANCE,
     SPRITE_SIZE,
 )
+from constants.generation import TileType
 from entities.enemy import Enemy
 from entities.item import HealthBoostPotion, HealthPotion, Shop
 from entities.player import Player
@@ -146,7 +146,6 @@ class Game(arcade.View):
                             self,
                             count_x,
                             count_y,
-                            PLAYER,
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.ENEMY.value:
@@ -155,7 +154,6 @@ class Game(arcade.View):
                                 self,
                                 count_x,
                                 count_y,
-                                ENEMY1,
                             )
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))

@@ -9,8 +9,13 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import FACING_LEFT, FACING_RIGHT
-from constants.enums import AttackAlgorithmType, EntityID
+from constants.entity import (
+    ENEMY1,
+    FACING_LEFT,
+    FACING_RIGHT,
+    AttackAlgorithmType,
+    EntityID,
+)
 from constants.general import SPRITE_SIZE
 from entities.base import Entity
 
@@ -35,8 +40,6 @@ class Enemy(Entity):
         The x position of the enemy in the game map.
     y: int
         The y position of the enemy in the game map.
-    enemy_type: BaseType
-        The constant data about this specific enemy.
 
     Attributes
     ----------
@@ -47,16 +50,16 @@ class Enemy(Entity):
     """
 
     # Class variables
-    ID: EntityID = EntityID.ENEMY
+    entity_id: EntityID = EntityID.ENEMY
+    entity_data: BaseType = ENEMY1
 
     def __init__(
         self,
         game: Game,
         x: int,
         y: int,
-        enemy_type: BaseType,
     ) -> None:
-        super().__init__(game, x, y, enemy_type)
+        super().__init__(game, x, y)
         self.ai: AIMovementBase = self.custom_data.movement_algorithm.value(self)
         self.line_of_sight: bool = False
 

@@ -5,7 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.enums import AttackAlgorithmType, EntityID
+from constants.entity import PLAYER, AttackAlgorithmType, EntityID
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
 from entities.status_effect import StatusEffect
@@ -32,8 +32,6 @@ class Player(Entity):
         The x position of the player in the game map.
     y: int
         The y position of the player in the game map.
-    player_type: BaseType
-        The constant data about this specific player.
 
     Attributes
     ----------
@@ -51,10 +49,11 @@ class Player(Entity):
     """
 
     # Class variables
-    ID: EntityID = EntityID.PLAYER
+    entity_id: EntityID = EntityID.PLAYER
+    entity_data: BaseType = PLAYER
 
-    def __init__(self, game: Game, x: int, y: int, player_type: BaseType) -> None:
-        super().__init__(game, x, y, player_type)
+    def __init__(self, game: Game, x: int, y: int) -> None:
+        super().__init__(game, x, y)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT

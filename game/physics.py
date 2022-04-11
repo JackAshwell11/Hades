@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.enums import EntityID
+from constants.entity import EntityID
 
 if TYPE_CHECKING:
     from entities.attack import Bullet
@@ -76,7 +76,7 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
         bullet.remove_from_sprite_lists()
 
         # Check if the owner is the player
-        if bullet.owner.ID is EntityID.PLAYER:
+        if bullet.owner.entity_id is EntityID.PLAYER:
             # Deal damage to the enemy
             enemy.deal_damage(bullet.owner.entity_type.damage)
             logger.debug(f"Removed {bullet} after hitting {enemy}")
@@ -113,7 +113,7 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
         bullet.remove_from_sprite_lists()
 
         # Check if the owner is an enemy
-        if bullet.owner.ID is EntityID.ENEMY:
+        if bullet.owner.entity_id is EntityID.ENEMY:
             # Deal damage to the player
             player.deal_damage(bullet.owner.entity_type.damage)
             logger.debug(f"Removed {bullet} after hitting {player}")

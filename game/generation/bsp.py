@@ -8,8 +8,12 @@ import random
 import numpy as np
 
 # Custom
-from constants.enums import TileType
-from constants.generation import HALLWAY_SIZE, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE
+from constants.generation import (
+    HALLWAY_SIZE,
+    MIN_CONTAINER_SIZE,
+    MIN_ROOM_SIZE,
+    TileType,
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)

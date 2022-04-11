@@ -4,7 +4,7 @@ from __future__ import annotations
 import arcade
 
 # Custom
-from constants.enums import TileType
+from constants.generation import TileType
 
 # Debug constants
 DEBUG_LINES = False
