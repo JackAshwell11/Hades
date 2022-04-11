@@ -27,6 +27,10 @@ if TYPE_CHECKING:
 # Get the logger
 logger = logging.getLogger(__name__)
 
+# TODO:
+#   Make Enemy a base class with no entity_data. Then subclass the resulting Enemy class
+#   and give each subclass the enemy named tuples. This will make it much more flexible.
+
 
 class Enemy(Entity):
     """
