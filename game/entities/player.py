@@ -44,8 +44,12 @@ class Player(Entity):
         The total capacity of the inventory.
     applied_effects: list[StatusEffect]
         The currently applied status effects.
-    state_modifiers: dict[str, int]
-        The current bonuses applied to the player's state.
+    max_health: int
+        The maximum health of the player.
+    max_armour: int
+        The maximum armour of the player.
+    attack_cooldown: int
+        The attack cooldown of the player
     in_combat: bool
         Whether the player is in combat or not.
     """
@@ -60,12 +64,9 @@ class Player(Entity):
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.applied_effects: list[StatusEffect] = []
-        self.state_modifiers: dict[str, int] = {
-            "bonus health": 0,
-            "bonus armour": 0,
-            "bonus speed": 0,
-            "bonus fire rate": 0,
-        }
+        self.max_health: int = self.entity_type.health
+        self.max_armour: int = self.entity_type.armour
+        self.attack_cooldown: int = self.entity_type.attack_cooldown
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
@@ -86,12 +87,9 @@ class Player(Entity):
         # Check if the player can regenerate health
         if not self.in_combat:
             self.check_armour_regen(delta_time)
-            armour_limit = (
-                self.entity_type.armour + self.state_modifiers["bonus armour"]
-            )
             self.armour: int  # Mypy gives self.armour an undetermined type error
-            if self.armour > armour_limit:
-                self.armour = armour_limit
+            if self.armour > self.max_armour:
+                self.armour = self.max_armour
                 logger.debug("Set player armour to max")
 
         # Update any status effects

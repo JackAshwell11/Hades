@@ -72,14 +72,14 @@ class StatusEffect:
         match self.effect_type:
             case StatusEffectType.HEALTH:
                 self.player.health = new_value
-                self.player.state_modifiers["bonus health"] = self.increase_amount
+                self.player.max_health = new_value
             case StatusEffectType.ARMOUR:
                 self.player.armour = new_value
-                self.player.state_modifiers["bonus armour"] = self.increase_amount
+                self.player.max_armour = new_value
             case StatusEffectType.SPEED:
-                pass
+                self.player.pymunk.max_velocity = new_value
             case StatusEffectType.FIRE_RATE:
-                pass
+                self.player.attack_cooldown = new_value
 
     def update(self, delta_time: float) -> None:
         """
@@ -95,34 +95,39 @@ class StatusEffect:
 
         # Check if we need to remove the status effect
         if self.time_counter >= self.duration:
-            # Get the current value
-            current_value: float = -1
-            match self.effect_type:
-                case StatusEffectType.HEALTH:
-                    current_value = self.player.health
-                case StatusEffectType.ARMOUR:
-                    current_value = self.player.armour
-                case StatusEffectType.SPEED:
-                    pass
-                case StatusEffectType.FIRE_RATE:
-                    pass
+            # Check if the status effect is a health or armour one
+            if (
+                self.effect_type is StatusEffectType.HEALTH
+                or self.effect_type is StatusEffectType.ARMOUR
+            ):
+                # Get the current value
+                current_value: float = -1
+                match self.effect_type:
+                    case StatusEffectType.HEALTH:
+                        current_value = self.player.health
+                    case StatusEffectType.ARMOUR:
+                        current_value = self.player.armour
 
-            # Check if the player needs to change at all
-            if current_value > self.original:
-                current_value = self.original
+                # Check if the player needs to change at all
+                if current_value > self.original:
+                    current_value = self.original
+            else:
+                # Status effect is a speed or fire rate one so current_value isn't
+                # needed
+                current_value = -1
 
             # Apply the new change to the player
             match self.effect_type:
                 case StatusEffectType.HEALTH:
-                    self.player.state_modifiers["bonus health"] = 0
                     self.player.health = current_value
+                    self.player.max_health = self.player.entity_type.health
                 case StatusEffectType.ARMOUR:
-                    self.player.state_modifiers["bonus armour"] = 0
                     self.player.armour = current_value
+                    self.player.max_armour = self.player.entity_type.armour
                 case StatusEffectType.SPEED:
-                    pass
+                    self.player.pymunk.max_velocity = self.original
                 case StatusEffectType.FIRE_RATE:
-                    pass
+                    self.player.attack_cooldown = self.original
 
             # Remove the status effect
             self.player.applied_effects.remove(self)

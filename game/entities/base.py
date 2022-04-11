@@ -243,7 +243,7 @@ class Item(Tile):
 
     # Class variables
     item_id: TileType = TileType.NONE
-    item_text: str = "Press E to activate"
+    item_text: str = "Press R to activate"
 
     def __init__(
         self,

@@ -6,11 +6,17 @@ from typing import TYPE_CHECKING
 
 # Custom
 from constants.entity import (
+    ARMOUR_BOOST_POTION_DURATION,
+    ARMOUR_BOOST_POTION_INCREASE,
+    FIRE_RATE_BOOST_POTION_DURATION,
+    FIRE_RATE_BOOST_POTION_INCREASE,
     HEALTH_BOOST_POTION_DURATION,
     HEALTH_BOOST_POTION_INCREASE,
+    SPEED_BOOST_POTION_DURATION,
+    SPEED_BOOST_POTION_INCREASE,
     StatusEffectType,
 )
-from constants.general import HEALTH_POTION_INCREASE
+from constants.general import ARMOUR_POTION_INCREASE, HEALTH_POTION_INCREASE
 from constants.generation import TileType
 from entities.base import Collectible, Item
 from entities.status_effect import StatusEffect
@@ -63,22 +69,15 @@ class HealthPotion(Collectible):
             Whether the health potion activation was successful or not.
         """
         # Check if the potion can be used
-        if (
-            self.player.health
-            == self.player.entity_type.health
-            + self.player.state_modifiers["bonus health"]
-        ):
+        if self.player.health == self.player.max_health:
             # Can't be used
             logger.info("Can't use health potion since player health is full")
             return False
 
         # Add health to the player
         self.player.health += HEALTH_POTION_INCREASE
-        health_limit = (
-            self.player.entity_type.health + self.player.state_modifiers["bonus health"]
-        )
-        if self.player.health > health_limit:
-            self.player.health = health_limit
+        if self.player.health > self.player.max_health:
+            self.player.health = self.player.max_health
             logger.debug("Set player health to max")
 
         # Health increase successful
@@ -127,7 +126,23 @@ class ArmourPotion(Collectible):
         bool
             Whether the armour potion activation was successful or not.
         """
-        print(self)
+        # Check if the potion can be used
+        if self.player.armour == self.player.max_armour:
+            # Can't be used
+            logger.info("Can't use armour potion since player armour is full")
+            return False
+
+        # Add armour to the player
+        self.player.armour += ARMOUR_POTION_INCREASE
+        if self.player.armour > self.player.max_armour:
+            self.player.armour = self.player.max_armour
+            logger.debug("Set player armour to max")
+
+        # Armour increase successful
+        self.remove_from_sprite_lists()
+
+        # Use was successful
+        logger.info("Used armour potion")
         return True
 
 
@@ -235,7 +250,29 @@ class ArmourBoostPotion(Collectible):
         bool
             Whether the armour boost potion activation was successful or not.
         """
-        print(self)
+        # Check if the status effect can be applied
+        if StatusEffectType.ARMOUR in [
+            effect.effect_type for effect in self.player.applied_effects
+        ]:
+            logger.info("Can't use armour boost potion since it is already applied")
+            return False
+
+        # Apply the armour status effect
+        self.player.add_status_effect(
+            StatusEffect(
+                self.player,
+                StatusEffectType.ARMOUR,
+                ARMOUR_BOOST_POTION_INCREASE,
+                ARMOUR_BOOST_POTION_DURATION,
+                self.player.armour,
+            )
+        )
+
+        # Remove the item
+        self.remove_from_sprite_lists()
+
+        # Effect was successful
+        logger.info("Used armour boost potion")
         return True
 
 
@@ -278,7 +315,29 @@ class SpeedBoostPotion(Collectible):
         bool
             Whether the speed boost potion activation was successful or not.
         """
-        print(self)
+        # Check if the status effect can be applied
+        if StatusEffectType.SPEED in [
+            effect.effect_type for effect in self.player.applied_effects
+        ]:
+            logger.info("Can't use speed boost potion since it is already applied")
+            return False
+
+        # Apply the speed status effect
+        self.player.add_status_effect(
+            StatusEffect(
+                self.player,
+                StatusEffectType.SPEED,
+                SPEED_BOOST_POTION_INCREASE,
+                SPEED_BOOST_POTION_DURATION,
+                self.player.entity_type.max_velocity,
+            )
+        )
+
+        # Remove the item
+        self.remove_from_sprite_lists()
+
+        # Effect was successful
+        logger.info("Used speed boost potion")
         return True
 
 
@@ -321,7 +380,29 @@ class FireRateBoostPotion(Collectible):
         bool
             Whether the fire rate boost potion activation was successful or not.
         """
-        print(self)
+        # Check if the status effect can be applied
+        if StatusEffectType.FIRE_RATE in [
+            effect.effect_type for effect in self.player.applied_effects
+        ]:
+            logger.info("Can't use fire rate boost potion since it is already applied")
+            return False
+
+        # Apply the fire rate status effect
+        self.player.add_status_effect(
+            StatusEffect(
+                self.player,
+                StatusEffectType.FIRE_RATE,
+                FIRE_RATE_BOOST_POTION_INCREASE,
+                FIRE_RATE_BOOST_POTION_DURATION,
+                self.player.attack_cooldown,
+            )
+        )
+
+        # Remove the item
+        self.remove_from_sprite_lists()
+
+        # Effect was successful
+        logger.info("Used fire rate boost potion")
         return True
 
 

@@ -451,7 +451,12 @@ class Game(arcade.View):
                 self.right_pressed = True
             case arcade.key.E:
                 if self.nearest_item:
-                    self.nearest_item.item_pick_up()
+                    try:
+                        # Nearest item is a collectible
+                        self.nearest_item.item_pick_up()
+                    except AttributeError:
+                        # Nearest item is an item
+                        pass
             case arcade.key.R:
                 if self.nearest_item:
                     self.nearest_item.item_activate()
@@ -514,8 +519,7 @@ class Game(arcade.View):
         # Test if the player can attack
         if (
             button == arcade.MOUSE_BUTTON_LEFT
-            and self.player.time_since_last_attack
-            >= self.player.entity_type.attack_cooldown
+            and self.player.time_since_last_attack >= self.player.attack_cooldown
         ):
             # Reset the player's combat variables and attack
             self.player.time_since_armour_regen = (
