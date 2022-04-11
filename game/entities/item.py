@@ -31,7 +31,7 @@ class HealthPotion(Collectible):
     Parameters
     ----------
     game: Game
-        The game view. This is passed so the item can have a reference to it.
+        The game view. This is passed so the health potion can have a reference to it.
     x: int
         The x position of the health potion in the game map.
     y: int
@@ -55,12 +55,12 @@ class HealthPotion(Collectible):
 
     def item_activate(self) -> bool:
         """
-        Called when the item is activated by the player.
+        Called when the health potion is activated by the player.
 
         Returns
         -------
         bool
-            Whether the item activation was successful or not.
+            Whether the health potion activation was successful or not.
         """
         # Check if the potion can be used
         if (
@@ -89,6 +89,48 @@ class HealthPotion(Collectible):
         return True
 
 
+class ArmourPotion(Collectible):
+    """
+    Represents an armour potion in the game.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the armour potion can have a reference to it.
+    x: int
+        The x position of the armour potion in the game map.
+    y: int
+        The y position of the armour potion in the game map.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture = non_moving_textures["items"][1]
+    item_id: TileType = TileType.ARMOUR_POTION
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
+
+    def __repr__(self) -> str:
+        return f"<ArmourPotion (Position=({self.center_x}, {self.center_y}))>"
+
+    def item_activate(self) -> bool:
+        """
+        Called when the armour potion is activated by the player.
+
+        Returns
+        -------
+        bool
+            Whether the armour potion activation was successful or not.
+        """
+        print(self)
+        return True
+
+
 class HealthBoostPotion(Collectible):
     """
     Represents a health boost potion in the game.
@@ -96,15 +138,16 @@ class HealthBoostPotion(Collectible):
     Parameters
     ----------
     game: Game
-        The game view. This is passed so the item can have a reference to it.
+        The game view. This is passed so the health boost potion can have a reference to
+        it.
     x: int
-        The x position of the health potion in the game map.
+        The x position of the health boost potion in the game map.
     y: int
-        The y position of the health potion in the game map.
+        The y position of the health boost potion in the game map.
     """
 
     # Class variables
-    raw_texture: arcade.Texture = non_moving_textures["items"][1]
+    raw_texture: arcade.Texture = non_moving_textures["items"][2]
     item_id: TileType = TileType.HEALTH_BOOST_POTION
 
     def __init__(
@@ -120,12 +163,12 @@ class HealthBoostPotion(Collectible):
 
     def item_activate(self) -> bool:
         """
-        Called when the item is activated by the player.
+        Called when the health boost potion is activated by the player.
 
         Returns
         -------
         bool
-            Whether the item activation was successful or not.
+            Whether the health boost potion activation was successful or not.
         """
         # Check if the status effect can be applied
         if StatusEffectType.HEALTH in [
@@ -153,6 +196,135 @@ class HealthBoostPotion(Collectible):
         return True
 
 
+class ArmourBoostPotion(Collectible):
+    """
+    Represents an armour boost potion in the game.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the armour boost potion can have a reference to
+        it.
+    x: int
+        The x position of the armour boost potion in the game map.
+    y: int
+        The y position of the armour boost potion in the game map.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture = non_moving_textures["items"][3]
+    item_id: TileType = TileType.ARMOUR_BOOST_POTION
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
+
+    def __repr__(self) -> str:
+        return f"<ArmourBoostPotion (Position=({self.center_x}, {self.center_y}))>"
+
+    def item_activate(self) -> bool:
+        """
+        Called when the armour boost potion is activated by the player.
+
+        Returns
+        -------
+        bool
+            Whether the armour boost potion activation was successful or not.
+        """
+        print(self)
+        return True
+
+
+class SpeedBoostPotion(Collectible):
+    """
+    Represents a speed potion in the game.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the speed boost potion can have a reference to
+        it.
+    x: int
+        The x position of the speed boost potion in the game map.
+    y: int
+        The y position of the speed boost potion in the game map.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture = non_moving_textures["items"][4]
+    item_id: TileType = TileType.SPEED_BOOST_POTION
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
+
+    def __repr__(self) -> str:
+        return f"<SpeedBoostPotion (Position=({self.center_x}, {self.center_y}))>"
+
+    def item_activate(self) -> bool:
+        """
+        Called when the speed boost potion is activated by the player.
+
+        Returns
+        -------
+        bool
+            Whether the speed boost potion activation was successful or not.
+        """
+        print(self)
+        return True
+
+
+class FireRateBoostPotion(Collectible):
+    """
+    Represents a fire rate boost potion in the game.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the fire rate boost potion can have a reference
+        to it.
+    x: int
+        The x position of the fire rate boost potion in the game map.
+    y: int
+        The y position of the fire rate boost potion in the game map.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture = non_moving_textures["items"][5]
+    item_id: TileType = TileType.FIRE_RATE_BOOST_POTION
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
+
+    def __repr__(self) -> str:
+        return f"<FireRateBoostPotion (Position=({self.center_x}, {self.center_y}))>"
+
+    def item_activate(self) -> bool:
+        """
+        Called when the fire rate boost potion is activated by the player.
+
+        Returns
+        -------
+        bool
+            Whether the fire rate boost potion activation was successful or not.
+        """
+        print(self)
+        return True
+
+
 class Shop(Item):
     """
     Represents a shop item in the game.
@@ -168,7 +340,7 @@ class Shop(Item):
     """
 
     # Class variables
-    raw_texture: arcade.Texture = non_moving_textures["items"][2]
+    raw_texture: arcade.Texture = non_moving_textures["items"][6]
     is_static: bool = True
     item_id: TileType = TileType.HEALTH_POTION
 

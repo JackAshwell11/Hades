@@ -15,9 +15,13 @@ class TileType(IntEnum):
     PLAYER = 3
     ENEMY = 4
     HEALTH_POTION = 5
-    HEALTH_BOOST_POTION = 6
-    SHOP = 7
-    DEBUG_WALL = 9
+    ARMOUR_POTION = 6
+    HEALTH_BOOST_POTION = 7
+    ARMOUR_BOOST_POTION = 8
+    SPEED_BOOST_POTION = 9
+    FIRE_RATE_BOOST_POTION = 10
+    SHOP = 11
+    DEBUG_WALL = 12
 
 
 # Room probabilities
@@ -39,9 +43,13 @@ ENEMY_DISTRIBUTION = {
     TileType.ENEMY: 1,
 }
 ITEM_DISTRIBUTION = {
-    TileType.HEALTH_POTION: 0.6,
-    TileType.HEALTH_BOOST_POTION: 0.3,
-    TileType.SHOP: 0.1,
+    TileType.HEALTH_POTION: 0.3,
+    TileType.ARMOUR_POTION: 0.3,
+    TileType.HEALTH_BOOST_POTION: 0.1,
+    TileType.ARMOUR_BOOST_POTION: 0.1,
+    TileType.SPEED_BOOST_POTION: 0.075,
+    TileType.FIRE_RATE_BOOST_POTION: 0.075,
+    TileType.SHOP: 0.05,
 }
 
 # Other map generation constants

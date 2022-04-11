@@ -50,7 +50,11 @@ non_moving_filenames = {
     ],
     "items": [
         "health_potion.png",
+        "armour_potion.png",
         "health_boost_potion.png",
+        "armour_boost_potion.png",
+        "speed_boost_potion.png",
+        "fire_rate_boost_potion.png",
         "shop.png",
     ],
 }
