@@ -9,13 +9,8 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE
-from constants.general import (
-    DAMPING,
-    DEBUG_ATTACK_DISTANCE,
-    DEBUG_VIEW_DISTANCE,
-    SPRITE_SIZE,
-)
+from constants.entity import FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, SPRITE_SIZE
+from constants.general import DAMPING, DEBUG_ATTACK_DISTANCE, DEBUG_VIEW_DISTANCE
 from constants.generation import TileType
 from entities.enemy import Enemy1
 from entities.item import (
@@ -69,6 +64,8 @@ class Game(arcade.View):
         The sprite list for the bullet sprites.
     enemies: arcade.SpriteList
         The sprite list for the enemy sprites.
+    indicator_bar_sprites: arcade.SpriteList
+        The sprite list for drawing the indicator bars.
     physics_engine: PhysicsEngine | None
         The physics engine which processes wall collision.
     camera: arcade.Camera | None
@@ -99,6 +96,7 @@ class Game(arcade.View):
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList()
         self.enemies: arcade.SpriteList = arcade.SpriteList()
+        self.indicator_bar_sprites: arcade.SpriteList = arcade.SpriteList()
         self.physics_engine: PhysicsEngine | None = None
         self.camera: arcade.Camera | None = None
         self.gui_camera: arcade.Camera | None = None
@@ -252,6 +250,9 @@ class Game(arcade.View):
         self.bullet_sprites.draw(pixelated=True)
         self.enemies.draw(pixelated=True)
         self.player.draw(pixelated=True)
+
+        # Draw the indicator bars
+        self.indicator_bar_sprites.draw()
 
         # Draw the debug items
         if self.debug_mode:

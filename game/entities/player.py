@@ -139,6 +139,14 @@ class Player(Entity):
         effect.apply_effect()
         logger.info(f"Adding effect {effect} to player")
 
+    def update_indicator_bars(self) -> None:
+        """Performs actions that should happen after the player takes damage."""
+        return None
+
+    def remove_indicator_bars(self) -> None:
+        """Performs actions that should happen after the player is killed."""
+        return None
+
     def attack(self) -> None:
         """Runs the player's current attack algorithm."""
         # Find out what attack algorithm is selected

@@ -199,7 +199,7 @@ class AreaOfEffectAttack(AttackBase):
     def process_attack(self, *args: Any) -> None:
         """"""
         # Make sure we have the sprite size. This avoids a circular import
-        from constants.general import SPRITE_SIZE
+        from constants.entity import SPRITE_SIZE
 
         # Make sure the needed parameters are valid
         target_entity: arcade.SpriteList | arcade.Sprite = args[0]

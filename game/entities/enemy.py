@@ -10,14 +10,16 @@ import arcade
 
 # Custom
 from constants.entity import (
+    ARMOUR_BAR_OFFSET,
     ENEMY1,
     FACING_LEFT,
     FACING_RIGHT,
+    HEALTH_BAR_OFFSET,
+    SPRITE_SIZE,
     AttackAlgorithmType,
     EntityID,
 )
-from constants.general import SPRITE_SIZE
-from entities.base import Entity
+from entities.base import Entity, IndicatorBar
 
 if TYPE_CHECKING:
     from constants.entity import BaseType
@@ -45,6 +47,10 @@ class Enemy(Entity):
     ----------
     ai: AIMovementBase
         The AI movement algorithm which this entity uses.
+    health_bar: IndicatorBar
+        An indicator bar object which displays the enemy's health visually.
+    armour_bar: IndicatorBar
+        An indicator bar object which displays the enemy's armour visually.
     line_of_sight: bool
         Whether the enemy has line of sight with the player or not
     """
@@ -60,6 +66,14 @@ class Enemy(Entity):
     ) -> None:
         super().__init__(game, x, y)
         self.ai: AIMovementBase = self.custom_data.movement_algorithm.value(self)
+        self.health_bar: IndicatorBar = IndicatorBar(
+            self, (self.center_x, self.center_y + HEALTH_BAR_OFFSET), arcade.color.RED
+        )
+        self.armour_bar: IndicatorBar = IndicatorBar(
+            self,
+            (self.center_x, self.center_y + ARMOUR_BAR_OFFSET),
+            arcade.color.SILVER,
+        )
         self.line_of_sight: bool = False
 
     def __repr__(self) -> str:
@@ -104,6 +118,10 @@ class Enemy(Entity):
         self.physics_engines[0].apply_force(self, (horizontal, vertical))
         logger.debug(f"Applied force ({horizontal}, {vertical}) to {self}")
 
+        # Update the health and armour bar's position
+        self.health_bar.position = self.center_x, self.center_y + HEALTH_BAR_OFFSET
+        self.armour_bar.position = self.center_x, self.center_y + ARMOUR_BAR_OFFSET
+
         # Make the enemy attack (they may not if the player is not within range)
         self.attack()
 
@@ -146,6 +164,24 @@ class Enemy(Entity):
             hypot_distance <= self.custom_data.attack_range * SPRITE_SIZE
             and self.time_since_last_attack >= self.entity_type.attack_cooldown
         )
+
+    def update_indicator_bars(self) -> None:
+        """Performs actions that should happen after the enemy takes damage."""
+        # Update the health and armour bar
+        try:
+            self.health_bar.fullness = self.health / self.entity_type.health
+            self.armour_bar.fullness = self.armour / self.entity_type.armour
+        except ValueError:
+            # Enemy is already dead
+            pass
+
+    def remove_indicator_bars(self) -> None:
+        """Removes the indicator bars after the entity is killed."""
+        # Remove the health and armour bar
+        self.health_bar.background_box.remove_from_sprite_lists()
+        self.health_bar.full_box.remove_from_sprite_lists()
+        self.armour_bar.background_box.remove_from_sprite_lists()
+        self.armour_bar.full_box.remove_from_sprite_lists()
 
     def attack(self) -> None:
         """Runs the enemy's current attack algorithm."""

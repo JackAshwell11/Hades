@@ -16,10 +16,6 @@ LOGGING_FORMAT = (
     " %(message)s"
 )
 
-# Sprite sizes
-SPRITE_SCALE = 2.5
-SPRITE_SIZE = 16 * SPRITE_SCALE
-
 # Physics constants
 DAMPING = 0
 
