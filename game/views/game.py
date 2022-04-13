@@ -47,8 +47,8 @@ class Game(arcade.View):
 
     Attributes
     ----------
-    game_map: Map | None
-        The game map for the current level.
+    game_map_shape: tuple[int, int] | None
+        The height and width of the game map.
     player: Player | None
         The sprite for the playable character in the game.
     wall_sprites: arcade.SpriteList
@@ -89,7 +89,7 @@ class Game(arcade.View):
     def __init__(self, debug_mode: bool = False) -> None:
         super().__init__()
         self.debug_mode: bool = debug_mode
-        self.game_map: Map | None = None
+        self.game_map_shape: tuple[int, int] | None = None
         self.player: Player | None = None
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
@@ -133,11 +133,12 @@ class Game(arcade.View):
             The level to create a generation for. Each level should be more difficult
             than the last.
         """
-        # Create the game map
-        self.game_map = Map(level)
+        # Create the game map and store its width and height
+        game_map = Map(level)
+        self.game_map_shape = game_map.grid.shape
 
         # Assign sprites to the game map
-        for count_y, y in enumerate(self.game_map.grid):
+        for count_y, y in enumerate(game_map.grid):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
                 match x:
@@ -199,8 +200,8 @@ class Game(arcade.View):
                         self.tile_sprites.append(shop)
                         self.item_sprites.append(shop)
         logger.debug(
-            f"Created grid with height {len(self.game_map.grid)} and width"
-            f" {len(self.game_map.grid[0])}"
+            f"Created grid with height {len(game_map.grid)} and width"
+            f" {len(game_map.grid[0])}"
         )
 
         # Make sure the player was actually created
@@ -565,8 +566,8 @@ class Game(arcade.View):
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
         # Make sure variables needed are valid
+        assert self.game_map_shape is not None
         assert self.camera is not None
-        assert self.game_map is not None
         assert self.player is not None
 
         # Calculate the screen position centered on the player
@@ -575,7 +576,7 @@ class Game(arcade.View):
 
         # Calculate the maximum width and height a sprite can be
         upper_x, upper_y = pos_to_pixel(
-            len(self.game_map.grid[0]) - 1, len(self.game_map.grid) - 1
+            self.game_map_shape[1] - 1, self.game_map_shape[0] - 1
         )
 
         # Calculate the maximum width and height the camera can be

@@ -128,8 +128,12 @@ class IndicatorBar:
             )
 
         # Set the size of the bar
-        self._full_box.width = self._box_width * new_fullness
-        self._full_box.left = self._center_x - (self._box_width // 2)
+        if new_fullness == 0.0:
+            # Set new_fullness to a really smaller number to make sure full_box still
+            # has a width
+            new_fullness = 0.000001
+        self.full_box.width = self._box_width * new_fullness
+        self.full_box.left = self._center_x - (self._box_width // 2)
         self._fullness = new_fullness
 
     @property
@@ -149,9 +153,12 @@ class IndicatorBar:
         """
         # Check if the position has changed. If so, change the bar's position
         if new_position != self.position:
-            self._background_box.position = new_position
-            self._full_box.position = new_position
             self._center_x, self._center_y = new_position
+            self.background_box.position = new_position
+            self.full_box.position = new_position
+
+            # Make sure full_box is to the left of the bar instead of the middle
+            self.full_box.left = self._center_x - (self._box_width // 2)
 
 
 class Entity(arcade.Sprite):
