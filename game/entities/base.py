@@ -128,13 +128,15 @@ class IndicatorBar:
             )
 
         # Set the size of the bar
-        if new_fullness == 0.0:
-            # Set new_fullness to a really smaller number to make sure full_box still
-            # has a width
-            new_fullness = 0.000001
-        self.full_box.width = self._box_width * new_fullness
-        self.full_box.left = self._center_x - (self._box_width // 2)
         self._fullness = new_fullness
+        if new_fullness == 0.0:
+            # Set the full_box to not be visible since it is not full anymore
+            self.full_box.visible = False
+        else:
+            # Set the full_box to be visible incase it wasn't then update the bar
+            self.full_box.visible = True
+            self.full_box.width = self._box_width * new_fullness
+            self.full_box.left = self._center_x - (self._box_width // 2)
 
     @property
     def position(self) -> tuple[float, float]:
