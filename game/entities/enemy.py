@@ -9,13 +9,15 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity_old import ENEMY1, AttackAlgorithmType, EntityID
-from constants.general import (
+from constants.entity_old import (
     ARMOUR_BAR_OFFSET,
+    ENEMY1,
     FACING_LEFT,
     FACING_RIGHT,
     HEALTH_BAR_OFFSET,
     SPRITE_SIZE,
+    AttackAlgorithmType,
+    EntityID,
 )
 from entities.base import Entity, IndicatorBar
 

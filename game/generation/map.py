@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 # Custom
-from constants.general import DEBUG_LINES, ENEMIES
+from constants.entity_old import ENEMIES
+from constants.general import DEBUG_LINES
 from constants.generation import (
     BASE_ENEMY_COUNT,
     BASE_ITEM_COUNT,

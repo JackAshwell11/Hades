@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 # Builtin
-from enum import Enum, IntEnum
+from enum import Enum
 from typing import TYPE_CHECKING, NamedTuple
 
 # Custom
+from constants.generation import TileType
 from textures import moving_textures
 
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
@@ -15,12 +16,12 @@ if TYPE_CHECKING:
 
 
 # Entity IDs
-class EntityID(IntEnum):
+class EntityID(Enum):
     """Stores the ID of each enemy to make collision checking more efficient."""
 
-    ENTITY = 0
-    PLAYER = 1
-    ENEMY = 2
+    ENTITY = "entity"
+    PLAYER = "player"
+    ENEMY = "enemy"
 
 
 # Movement algorithms
@@ -197,3 +198,20 @@ ENEMY2 = BaseType(
     ),
     EnemyType(5, 3, AIMovementType.FOLLOW),
 )
+
+# Sprite sizes
+SPRITE_SCALE = 2.5
+SPRITE_SIZE = 16 * SPRITE_SCALE
+
+# Other entity constants
+ENEMIES = [TileType.ENEMY]
+MOVEMENT_FORCE = 1000000
+FACING_RIGHT = 0
+FACING_LEFT = 1
+ARMOUR_REGEN_WAIT = 5
+ARMOUR_REGEN_AMOUNT = 1
+BULLET_VELOCITY = 300
+BULLET_OFFSET = 30
+MELEE_RESOLUTION = 10
+HEALTH_BAR_OFFSET = 40
+ARMOUR_BAR_OFFSET = 32

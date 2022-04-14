@@ -8,8 +8,12 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity_old import EntityID
-from constants.general import ARMOUR_REGEN_AMOUNT, ARMOUR_REGEN_WAIT, SPRITE_SCALE
+from constants.entity_old import (
+    ARMOUR_REGEN_AMOUNT,
+    ARMOUR_REGEN_WAIT,
+    SPRITE_SCALE,
+    EntityID,
+)
 from constants.generation import TileType
 from entities.attack import AttackBase
 from textures import pos_to_pixel

@@ -102,7 +102,7 @@ class FollowLineOfSight(AIMovementBase):
             The calculated force to apply to the enemy to move it towards the player.
         """
         # Make sure we have the movement force. This avoids a circular import
-        from constants.general import MOVEMENT_FORCE
+        from constants.entity_old import MOVEMENT_FORCE
 
         # Calculate the velocity for the enemy to move towards the player
         distance: tuple[float, float] = self.distance_to_player(player)
@@ -177,7 +177,7 @@ class MoveAwayLineOfSight(AIMovementBase):
             The calculated force to apply to the enemy to move it away from the player.
         """
         # Make sure we have the movement force. This avoids a circular import
-        from constants.general import MOVEMENT_FORCE
+        from constants.entity_old import MOVEMENT_FORCE
 
         # Calculate the velocity for the enemy to move towards the player
         distance: tuple[float, float] = self.distance_to_player(player)

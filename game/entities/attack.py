@@ -115,7 +115,7 @@ class RangedAttack(AttackBase):
             A tuple containing the parameters needed for the attack.
         """
         # Make sure we have the bullet constants. This avoids a circular import
-        from constants.general import BULLET_OFFSET, BULLET_VELOCITY
+        from constants.entity_old import BULLET_OFFSET, BULLET_VELOCITY
 
         # Make sure the needed parameters are valid
         bullet_list: arcade.SpriteList = args[0]
@@ -199,7 +199,7 @@ class AreaOfEffectAttack(AttackBase):
     def process_attack(self, *args: Any) -> None:
         """"""
         # Make sure we have the sprite size. This avoids a circular import
-        from constants.general import SPRITE_SIZE
+        from constants.entity_old import SPRITE_SIZE
 
         # Make sure the needed parameters are valid
         target_entity: arcade.SpriteList | arcade.Sprite = args[0]

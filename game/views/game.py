@@ -9,15 +9,8 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.general import (
-    DAMPING,
-    DEBUG_ATTACK_DISTANCE,
-    DEBUG_VIEW_DISTANCE,
-    FACING_LEFT,
-    FACING_RIGHT,
-    MOVEMENT_FORCE,
-    SPRITE_SIZE,
-)
+from constants.entity_old import FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, SPRITE_SIZE
+from constants.general import DAMPING, DEBUG_ATTACK_DISTANCE, DEBUG_VIEW_DISTANCE
 from constants.generation import TileType
 from entities.enemy import Enemy1
 from entities.item import (

@@ -7,7 +7,7 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.general import MELEE_RESOLUTION, SPRITE_SIZE
+from constants.entity_old import MELEE_RESOLUTION, SPRITE_SIZE
 
 if TYPE_CHECKING:
     from arcade import ArcadeContext
