@@ -12,8 +12,7 @@ DEBUG_GAME = True
 DEBUG_VIEW_DISTANCE = arcade.color.RED
 DEBUG_ATTACK_DISTANCE = arcade.color.BLUE
 LOGGING_FORMAT = (
-    "[%(asctime)s  %(levelname)s] [%(filename)s:%(lineno)d:%(funcName)s()] -"
-    " %(message)s"
+    "[%(asctime)s %(levelname)s] [%(filename)s:%(funcName)s():%(lineno)d] - %(message)s"
 )
 
 # Physics constants
