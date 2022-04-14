@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity import EntityID
+from constants.entity_old import EntityID
 
 if TYPE_CHECKING:
     from entities.attack import Bullet

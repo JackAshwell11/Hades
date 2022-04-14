@@ -5,18 +5,19 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity import (
+from constants.entity_old import StatusEffectType
+from constants.general import (
     ARMOUR_BOOST_POTION_DURATION,
     ARMOUR_BOOST_POTION_INCREASE,
+    ARMOUR_POTION_INCREASE,
     FIRE_RATE_BOOST_POTION_DURATION,
     FIRE_RATE_BOOST_POTION_INCREASE,
     HEALTH_BOOST_POTION_DURATION,
     HEALTH_BOOST_POTION_INCREASE,
+    HEALTH_POTION_INCREASE,
     SPEED_BOOST_POTION_DURATION,
     SPEED_BOOST_POTION_INCREASE,
-    StatusEffectType,
 )
-from constants.general import ARMOUR_POTION_INCREASE, HEALTH_POTION_INCREASE
 from constants.generation import TileType
 from entities.base import Collectible, Item
 from entities.status_effect import StatusEffect

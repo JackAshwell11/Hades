@@ -5,14 +5,14 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity import PLAYER, AttackAlgorithmType, EntityID
+from constants.entity_old import PLAYER, AttackAlgorithmType, EntityID
 from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from entities.base import Entity
 from entities.status_effect import StatusEffect
 from melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from constants.entity import BaseType
+    from constants.entity_old import BaseType
     from entities.base import Item
     from views.game import Game
 

@@ -5,9 +5,10 @@ from enum import Enum, IntEnum
 from typing import TYPE_CHECKING, NamedTuple
 
 # Custom
-from entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
-from entities.movement import FollowLineOfSight, Jitter, MoveAwayLineOfSight
 from textures import moving_textures
+
+from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
+from game.entities.movement import FollowLineOfSight, Jitter, MoveAwayLineOfSight
 
 if TYPE_CHECKING:
     import arcade
@@ -196,29 +197,3 @@ ENEMY2 = BaseType(
     ),
     EnemyType(5, 3, AIMovementType.FOLLOW),
 )
-
-# Sprite sizes
-SPRITE_SCALE = 2.5
-SPRITE_SIZE = 16 * SPRITE_SCALE
-
-# Status effect constants
-HEALTH_BOOST_POTION_INCREASE = 50
-HEALTH_BOOST_POTION_DURATION = 10
-ARMOUR_BOOST_POTION_INCREASE = 10
-ARMOUR_BOOST_POTION_DURATION = 10
-SPEED_BOOST_POTION_INCREASE = 200
-SPEED_BOOST_POTION_DURATION = 5
-FIRE_RATE_BOOST_POTION_INCREASE = -0.5
-FIRE_RATE_BOOST_POTION_DURATION = 5
-
-# Other entity constants
-FACING_RIGHT = 0
-FACING_LEFT = 1
-MOVEMENT_FORCE = 1000000
-ARMOUR_REGEN_WAIT = 5
-ARMOUR_REGEN_AMOUNT = 1
-BULLET_VELOCITY = 300
-BULLET_OFFSET = 30
-MELEE_RESOLUTION = 10
-HEALTH_BAR_OFFSET = 40  # TODO: Change this based on sprite_size
-ARMOUR_BAR_OFFSET = 32  # TODO: Change this based on sprite_size
