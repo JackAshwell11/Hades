@@ -243,9 +243,7 @@ class Entity(arcade.Sprite):
         return self.entity_type.entity_data
 
     @property
-    def attack_data(
-        self,
-    ) -> dict[AttackAlgorithmType, AttackData]:
+    def attack_data(self) -> dict[AttackAlgorithmType, AttackData]:
         """Returns the data about this entity's attacks."""
         # Make sure the entity type is valid
         assert self.entity_type is not None
