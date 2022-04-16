@@ -222,7 +222,7 @@ class Entity(arcade.Sprite):
         self.health: int = self.entity_data.health
         self.armour: int = self.entity_data.armour
         self.attack_algorithms: list[AttackBase] = [
-            algorithm.attack_type.value(self, algorithm) for algorithm in self.attacks
+            algorithm.attack_type.value(self) for algorithm in self.attacks
         ]
         self.current_attack_index: int = 0
         self.direction: float = 0
