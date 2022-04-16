@@ -129,7 +129,7 @@ class RangedAttack(AttackBase):
             A tuple containing the parameters needed for the attack.
         """
         # Make sure we have the bullet constants. This avoids a circular import
-        from game.constants.entity import BULLET_OFFSET, BULLET_VELOCITY
+        from game.constants.entity import BULLET_VELOCITY
 
         # Make sure the needed parameters are valid
         bullet_list: arcade.SpriteList = args[0]
@@ -152,15 +152,8 @@ class RangedAttack(AttackBase):
         physics.add_bullet(new_bullet)
         bullet_list.append(new_bullet)
 
-        # Move the bullet away from the entity a bit to stop its colliding with them
-        angle_radians = self.owner.direction * math.pi / 180
-        new_x, new_y = (
-            new_bullet.center_x + math.cos(angle_radians) * BULLET_OFFSET,
-            new_bullet.center_y + math.sin(angle_radians) * BULLET_OFFSET,
-        )
-        physics.set_position(new_bullet, (new_x, new_y))
-
         # Calculate its velocity
+        angle_radians = self.owner.direction * math.pi / 180
         change_x, change_y = (
             math.cos(angle_radians) * BULLET_VELOCITY,
             math.sin(angle_radians) * BULLET_VELOCITY,

@@ -72,11 +72,11 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
         since we just want to remove the bullet and not process collision.
     """
     try:
-        # Remove the bullet
-        bullet.remove_from_sprite_lists()
-
         # Check if the owner is the player
         if bullet.owner.entity_id is EntityID.PLAYER:
+            # Remove the bullet
+            bullet.remove_from_sprite_lists()
+
             # Deal damage to the enemy
             enemy.deal_damage(bullet.damage)
             logger.debug(f"Removed {bullet} after hitting {enemy}")
@@ -109,11 +109,12 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
         since we just want to remove the bullet and not process collision.
     """
     try:
-        # Remove the bullet
-        bullet.remove_from_sprite_lists()
 
         # Check if the owner is an enemy
         if bullet.owner.entity_id is EntityID.ENEMY:
+            # Remove the bullet
+            bullet.remove_from_sprite_lists()
+
             # Deal damage to the player
             player.deal_damage(bullet.damage)
             logger.debug(f"Removed {bullet} after hitting {player}")
