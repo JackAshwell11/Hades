@@ -20,10 +20,12 @@ from game.textures import pos_to_pixel
 
 if TYPE_CHECKING:
     from game.constants.entity import (
-        AttackAlgorithmType,
+        AreaOfEffectAttackData,
         AttackData,
         BaseData,
+        EnemyData,
         EntityData,
+        PlayerData,
     )
     from game.entities.player import Player
     from game.views.game import Game
@@ -220,8 +222,7 @@ class Entity(arcade.Sprite):
         self.health: int = self.entity_data.health
         self.armour: int = self.entity_data.armour
         self.attack_algorithms: list[AttackBase] = [
-            algorithm_type.value(self, algorithm_data)
-            for algorithm_type, algorithm_data in self.attack_data.items()
+            algorithm.attack_type.value(self, algorithm) for algorithm in self.attacks
         ]
         self.current_attack_index: int = 0
         self.direction: float = 0
@@ -239,17 +240,67 @@ class Entity(arcade.Sprite):
         # Make sure the entity type is valid
         assert self.entity_type is not None
 
-        # Return the entity data named tuple
+        # Return the entity data
         return self.entity_type.entity_data
 
     @property
-    def attack_data(self) -> dict[AttackAlgorithmType, AttackData]:
-        """Returns the data about this entity's attacks."""
+    def player_data(self) -> PlayerData:
+        """Returns the player data if it exists."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.player_data is not None
+
+        # Return the player data
+        return self.entity_type.player_data
+
+    @property
+    def enemy_data(self) -> EnemyData:
+        """Returns the enemy data if it exists."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.enemy_data is not None
+
+        # Return the enemy data
+        return self.entity_type.enemy_data
+
+    @property
+    def attacks(self) -> list[AttackData]:
+        """Returns all the attacks the entity has."""
         # Make sure the entity type is valid
         assert self.entity_type is not None
 
-        # Return the attack data named tuple
-        return self.entity_type.attack_data
+        # Return the enemy data
+        return self.entity_type.get_all_attacks()
+
+    @property
+    def ranged_attack_data(self) -> AttackData:
+        """Returns the ranged attack data if the entity has the attack."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.ranged_attack_data is not None
+
+        # Return the ranged attack data
+        return self.entity_type.ranged_attack_data
+
+    @property
+    def melee_attack_data(self) -> AttackData:
+        """Returns the melee attack data if the entity has the attack."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.melee_attack_data is not None
+
+        # Return the melee attack data
+        return self.entity_type.melee_attack_data
+
+    @property
+    def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
+        """Returns the area of effect attack data if the entity has the attack."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.area_of_effect_attack_data is not None
+
+        # Return the area of effect attack data
+        return self.entity_type.area_of_effect_attack_data
 
     @property
     def current_attack(self) -> AttackBase:

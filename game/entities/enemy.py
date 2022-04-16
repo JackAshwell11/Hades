@@ -65,7 +65,7 @@ class Enemy(Entity):
         y: int,
     ) -> None:
         super().__init__(game, x, y)
-        self.ai: AIMovementBase = self.entity_data.movement_algorithm.value(self)
+        self.ai: AIMovementBase = self.enemy_data.movement_algorithm.value(self)
         self.health_bar: IndicatorBar = IndicatorBar(
             self, (self.center_x, self.center_y + HEALTH_BAR_OFFSET), arcade.color.RED
         )
@@ -145,7 +145,7 @@ class Enemy(Entity):
             (self.center_x, self.center_y),
             (self.game.player.center_x, self.game.player.center_y),
             self.game.wall_sprites,
-            self.entity_data.view_distance * SPRITE_SIZE,
+            self.enemy_data.view_distance * SPRITE_SIZE,
         )
         if self.line_of_sight:
             self.time_out_of_combat = 0
@@ -170,7 +170,7 @@ class Enemy(Entity):
         hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
         logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
         return (
-            hypot_distance <= self.entity_data.attack_range * SPRITE_SIZE
+            hypot_distance <= self.enemy_data.attack_range * SPRITE_SIZE
             and self.time_since_last_attack >= self.entity_data.attack_cooldown
         )
 

@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any
 import arcade
 
 if TYPE_CHECKING:
-    from game.constants.entity import AreaOfEffectAttackData, AttackData
     from game.entities.base import Entity
     from game.physics import PhysicsEngine
 
@@ -68,17 +67,13 @@ class AttackBase:
     ----------
     owner: Entity
         The owner of this attack algorithm.
-    attack_data: AttackData
-        The entity data about this attack.
     """
 
     def __init__(
         self,
         owner: Entity,
-        attack_data: AttackData,
     ) -> None:
         self.owner: Entity = owner
-        self.attack_data: AttackData = attack_data
 
     def __repr__(self) -> str:
         return f"<AttackBase (Owner={self.owner})>"
@@ -109,12 +104,10 @@ class RangedAttack(AttackBase):
     ----------
     owner: Entity
         The owner of this attack algorithm.
-    attack_data: AttackData
-        The entity data about this attack.
     """
 
-    def __init__(self, owner: Entity, attack_data: AttackData) -> None:
-        super().__init__(owner, attack_data)
+    def __init__(self, owner: Entity) -> None:
+        super().__init__(owner)
 
     def __repr__(self) -> str:
         return f"<RangedAttack (Owner={self.owner})>"
@@ -145,7 +138,7 @@ class RangedAttack(AttackBase):
             5,
             arcade.color.RED,
             self.owner,
-            self.attack_data.damage,
+            self.owner.ranged_attack_data.damage,
         )
         new_bullet.angle = self.owner.direction
         physics: PhysicsEngine = self.owner.physics_engines[0]
@@ -174,12 +167,10 @@ class MeleeAttack(AttackBase):
     ----------
     owner: Entity
         The owner of this attack algorithm.
-    attack_data: AttackData
-        The entity data about this attack.
     """
 
-    def __init__(self, owner: Entity, attack_data: AttackData) -> None:
-        super().__init__(owner, attack_data)
+    def __init__(self, owner: Entity) -> None:
+        super().__init__(owner)
 
     def __repr__(self) -> str:
         return f"<MeleeAttack (Owner={self.owner})>"
@@ -198,18 +189,23 @@ class AreaOfEffectAttack(AttackBase):
     ----------
     owner: Entity
         The owner of this attack algorithm.
-    attack_data: AreaOfEffectAttackData
-        The entity data about this attack.
     """
 
-    def __init__(self, owner: Entity, attack_data: AreaOfEffectAttackData) -> None:
-        super().__init__(owner, attack_data)
+    def __init__(self, owner: Entity) -> None:
+        super().__init__(owner)
 
     def __repr__(self) -> str:
         return f"<AreaOfEffectAttack (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:
-        """"""
+        """
+        Performs an area of effect attack around the player.
+
+        Parameters
+        ----------
+        args: Any
+            A tuple containing the parameters needed for the attack.
+        """
         # Make sure we have the sprite size. This avoids a circular import
         from game.constants.entity import SPRITE_SIZE
 
@@ -220,8 +216,8 @@ class AreaOfEffectAttack(AttackBase):
         empty_texture = arcade.Texture.create_empty(
             "",
             (
-                int(self.attack_data.area_of_effect_range * 2 * SPRITE_SIZE),
-                int(self.attack_data.area_of_effect_range * 2 * SPRITE_SIZE),
+                int(self.owner.area_of_effect_attack_data.range * 2 * SPRITE_SIZE),
+                int(self.owner.area_of_effect_attack_data.range * 2 * SPRITE_SIZE),
             ),
         )
         area_of_effect_sprite = arcade.Sprite(
@@ -234,11 +230,13 @@ class AreaOfEffectAttack(AttackBase):
         try:
             if arcade.check_for_collision(area_of_effect_sprite, target_entity):
                 # Target is the player so deal damage
-                target_entity.deal_damage(self.attack_data.damage)  # noqa
+                target_entity.deal_damage(  # noqa
+                    self.owner.area_of_effect_attack_data.damage
+                )
             return
         except TypeError:
             for entity in arcade.check_for_collision_with_list(
                 area_of_effect_sprite, target_entity
             ):
                 # Deal damage to all the enemies within range
-                entity.deal_damage(self.attack_data.damage)  # noqa
+                entity.deal_damage(self.owner.area_of_effect_attack_data.damage)  # noqa

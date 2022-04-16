@@ -56,16 +56,42 @@ class AttackAlgorithmType(Enum):
 @dataclass
 class BaseData:
     """
-    The base class for constructing an entity.
+    The base class for constructing an entity. Only fill out some keyword arguments
+    since not all of them are needed.
 
     entity_type: EntityType
         The data specifying the entity's attributes.
-    attack_data: dict[AttackAlgorithmType, AttackData]
-        The data about the entity's attacks.
+    player_data: PlayerData | None
+        The data about the player entity.
+    enemy_data: EnemyData | None
+        The data about the enemy entity.
+    ranged_attack_data: AttackData | None
+        The data about the entity's ranged attack.
+    melee_attack_data: AttackData | None
+        The data about the entity's melee attack.
+    area_of_effect_attack_data: AreaOfEffectAttackData | None
+        The data about the entity's area of effect attack.
     """
 
     entity_data: EntityData
-    attack_data: dict[AttackAlgorithmType, AttackData]
+    player_data: PlayerData | None = None
+    enemy_data: EnemyData | None = None
+    ranged_attack_data: AttackData | None = None
+    melee_attack_data: AttackData | None = None
+    area_of_effect_attack_data: AreaOfEffectAttackData | None = None
+
+    def get_all_attacks(self) -> list[AttackData]:
+        """Returns all the attacks the entity has."""
+        return list(
+            filter(
+                None,
+                [
+                    self.ranged_attack_data,
+                    self.melee_attack_data,
+                    self.area_of_effect_attack_data,
+                ],
+            )
+        )
 
 
 @dataclass
@@ -102,26 +128,10 @@ class EntityData:
 
 
 @dataclass
-class PlayerData(EntityData):
+class PlayerData:
     """
     Stores data about a specific player type.
 
-    name: str
-        The name of the player.
-    health: int
-        The player's health.
-    armour: int
-        The player's armour.
-    textures: dict[str, list[list[arcade.Texture]]]
-        The textures which represent this player.
-    max_velocity: int
-        The max speed that the player can go.
-    attack_cooldown: int
-        The time duration between attacks.
-    armour_regen: bool
-        Whether the player regenerates armour or not.
-    armour_regen_cooldown: int
-        The time between armour regenerations.
     melee_range: int
         The amount of tiles the player can attack within using a melee attack.
     melee_degree: int
@@ -133,26 +143,10 @@ class PlayerData(EntityData):
 
 
 @dataclass
-class EnemyData(EntityData):
+class EnemyData:
     """
     Stores data about a specific enemy type.
 
-    name: str
-        The name of the enemy.
-    health: int
-        The enemy's health.
-    armour: int
-        The enemy's armour.
-    textures: dict[str, list[list[arcade.Texture]]]
-        The textures which represent this enemy.
-    max_velocity: int
-        The max speed that the enemy can go.
-    attack_cooldown: int
-        The time duration between attacks.
-    armour_regen: bool
-        Whether the enemy regenerates armour or not.
-    armour_regen_cooldown: int
-        The time between armour regenerations.
     view_distance: int
         The amount of tiles the enemy can see too.
     attack_range: int
@@ -171,10 +165,13 @@ class AttackData:
     """
     Stores general data about an entity's attack.
 
+    attack_type: AttackAlgorithmType
+        The attack algorithm type that this dataclass describes.
     damage: int
         The damage the entity deals.
     """
 
+    attack_type: AttackAlgorithmType
     damage: int
 
 
@@ -185,17 +182,17 @@ class AreaOfEffectAttackData(AttackData):
 
     damage: int
         The damage the entity deals.
-    area_of_effect_range: int
+    range: int
         The range an area of effect attack deals has. This is the radius of the circle,
         not the diameter.
     """
 
-    area_of_effect_range: int
+    range: int
 
 
 # Player characters
 PLAYER = BaseData(
-    PlayerData(
+    EntityData(
         "player",
         100,
         20,
@@ -204,19 +201,21 @@ PLAYER = BaseData(
         1,
         True,
         1,
+    ),
+    player_data=PlayerData(
         3,
         60,
     ),
-    {
-        AttackAlgorithmType.RANGED: AttackData(10),
-        AttackAlgorithmType.MELEE: AttackData(10),
-        AttackAlgorithmType.AREA_OF_EFFECT: AreaOfEffectAttackData(10, 3),
-    },
+    ranged_attack_data=AttackData(AttackAlgorithmType.RANGED, 10),
+    melee_attack_data=AttackData(AttackAlgorithmType.MELEE, 10),
+    area_of_effect_attack_data=AreaOfEffectAttackData(
+        AttackAlgorithmType.AREA_OF_EFFECT, 10, 3
+    ),
 )
 
 # Enemy characters
 ENEMY1 = BaseData(
-    EnemyData(
+    EntityData(
         "enemy1",
         10,
         10,
@@ -225,13 +224,13 @@ ENEMY1 = BaseData(
         1,
         True,
         3,
+    ),
+    enemy_data=EnemyData(
         5,
         3,
         AIMovementType.FOLLOW,
     ),
-    {
-        AttackAlgorithmType.RANGED: AttackData(5),
-    },
+    ranged_attack_data=AttackData(AttackAlgorithmType.RANGED, 5),
 )
 
 

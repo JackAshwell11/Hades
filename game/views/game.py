@@ -9,13 +9,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import (
-    FACING_LEFT,
-    FACING_RIGHT,
-    MOVEMENT_FORCE,
-    SPRITE_SIZE,
-    AttackAlgorithmType,
-)
+from game.constants.entity import FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, SPRITE_SIZE
 from game.constants.general import DAMPING, DEBUG_ATTACK_DISTANCE, DEBUG_VIEW_DISTANCE
 from game.constants.generation import TileType
 from game.entities.enemy import Enemy1
@@ -271,77 +265,79 @@ class Game(arcade.View):
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.entity_data.view_distance * SPRITE_SIZE,  # noqa
+                    enemy.enemy_data.view_distance * SPRITE_SIZE,  # noqa
                     DEBUG_VIEW_DISTANCE,
                 )
                 # Draw the enemy's attack distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.entity_data.attack_range * SPRITE_SIZE,  # noqa
+                    enemy.enemy_data.attack_range * SPRITE_SIZE,  # noqa
                     DEBUG_ATTACK_DISTANCE,
                 )
 
-            # Calculate the two boundary points for the player fov
-            half_angle = self.player.entity_data.melee_degree // 2
-            low_angle = math.radians(self.player.direction - half_angle)
-            high_angle = math.radians(self.player.direction + half_angle)
-            point_low = (
-                self.player.center_x
-                + math.cos(low_angle)
-                * SPRITE_SIZE
-                * self.player.entity_data.melee_range,
-                self.player.center_y
-                + math.sin(low_angle)
-                * SPRITE_SIZE
-                * self.player.entity_data.melee_range,
-            )
-            point_high = (
-                self.player.center_x
-                + math.cos(high_angle)
-                * SPRITE_SIZE
-                * self.player.entity_data.melee_range,
-                self.player.center_y
-                + math.sin(high_angle)
-                * SPRITE_SIZE
-                * self.player.entity_data.melee_range,
-            )
-            # Draw both boundary lines for the player fov
-            arcade.draw_line(
-                self.player.center_x,
-                self.player.center_y,
-                *point_low,
-                DEBUG_ATTACK_DISTANCE,
-            )
-            arcade.draw_line(
-                self.player.center_x,
-                self.player.center_y,
-                *point_high,
-                DEBUG_ATTACK_DISTANCE,
-            )
-            # Draw the arc between the two making sure to double the width and height
-            # since the radius is calculated, but we want the diameter
-            arcade.draw_arc_outline(
-                self.player.center_x,
-                self.player.center_y,
-                math.hypot(point_high[0] - point_low[0], point_high[1] - point_low[1])
-                * 2,
-                self.player.entity_data.melee_range * SPRITE_SIZE * 2,
-                DEBUG_ATTACK_DISTANCE,
-                math.degrees(low_angle),
-                math.degrees(high_angle),
-                2,
-            )
-            # Draw the player's area of effect range
-            arcade.draw_circle_outline(
-                self.player.center_x,
-                self.player.center_y,
-                self.player.attack_data[
-                    AttackAlgorithmType.AREA_OF_EFFECT
-                ].area_of_effect_range
-                * SPRITE_SIZE,
-                DEBUG_ATTACK_DISTANCE,
-            )
+            # Check if the player has an area of effect attack
+            if self.player.entity_type.area_of_effect_attack_data is not None:
+                # Calculate the two boundary points for the player fov
+                half_angle = self.player.player_data.melee_degree // 2
+                low_angle = math.radians(self.player.direction - half_angle)
+                high_angle = math.radians(self.player.direction + half_angle)
+                point_low = (
+                    self.player.center_x
+                    + math.cos(low_angle)
+                    * SPRITE_SIZE
+                    * self.player.player_data.melee_range,
+                    self.player.center_y
+                    + math.sin(low_angle)
+                    * SPRITE_SIZE
+                    * self.player.player_data.melee_range,
+                )
+                point_high = (
+                    self.player.center_x
+                    + math.cos(high_angle)
+                    * SPRITE_SIZE
+                    * self.player.player_data.melee_range,
+                    self.player.center_y
+                    + math.sin(high_angle)
+                    * SPRITE_SIZE
+                    * self.player.player_data.melee_range,
+                )
+                # Draw both boundary lines for the player fov
+                arcade.draw_line(
+                    self.player.center_x,
+                    self.player.center_y,
+                    *point_low,
+                    DEBUG_ATTACK_DISTANCE,
+                )
+                arcade.draw_line(
+                    self.player.center_x,
+                    self.player.center_y,
+                    *point_high,
+                    DEBUG_ATTACK_DISTANCE,
+                )
+                # Draw the arc between the two making sure to double the width and
+                # height since the radius is calculated, but we want the diameter
+                arcade.draw_arc_outline(
+                    self.player.center_x,
+                    self.player.center_y,
+                    math.hypot(
+                        point_high[0] - point_low[0], point_high[1] - point_low[1]
+                    )
+                    * 2,
+                    self.player.player_data.melee_range * SPRITE_SIZE * 2,
+                    DEBUG_ATTACK_DISTANCE,
+                    math.degrees(low_angle),
+                    math.degrees(high_angle),
+                    2,
+                )
+                # Draw the player's area of effect range
+                arcade.draw_circle_outline(
+                    self.player.center_x,
+                    self.player.center_y,
+                    self.player.entity_type.area_of_effect_attack_data.range
+                    * SPRITE_SIZE,
+                    DEBUG_ATTACK_DISTANCE,
+                )
 
         # Draw the gui on the screen
         self.gui_camera.use()
