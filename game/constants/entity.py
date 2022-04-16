@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 # Builtin
 from enum import Enum
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING
 
 # Custom
 from game.constants.generation import TileType
@@ -23,6 +25,16 @@ class EntityID(Enum):
     ENEMY = "enemy"
 
 
+# Status effect types
+class StatusEffectType(Enum):
+    """Stores the type of status effects that can be applied to the player."""
+
+    HEALTH = "health"
+    ARMOUR = "armour"
+    SPEED = "speed"
+    FIRE_RATE = "fire rate"
+
+
 # Movement algorithms
 class AIMovementType(Enum):
     """Stores the different type of enemy movement algorithms that exist."""
@@ -41,18 +53,23 @@ class AttackAlgorithmType(Enum):
     AREA_OF_EFFECT = AreaOfEffectAttack
 
 
-# Status effect types
-class StatusEffectType(Enum):
-    """Stores the type of status effects that can be applied to the player."""
+@dataclass
+class BaseData:
+    """
+    The base class for constructing an entity.
 
-    HEALTH = "health"
-    ARMOUR = "armour"
-    SPEED = "speed"
-    FIRE_RATE = "fire rate"
+    entity_type: EntityType
+        The data specifying the entity's attributes.
+    attack_data: dict[AttackAlgorithmType, AttackData]
+        The data about the entity's attacks.
+    """
+
+    entity_data: EntityData
+    attack_data: dict[AttackAlgorithmType, AttackData]
 
 
-# Base entity data
-class EntityData(NamedTuple):
+@dataclass
+class EntityData:
     """
     Stores general data about an entity.
 
@@ -84,11 +101,27 @@ class EntityData(NamedTuple):
     armour_regen_cooldown: int
 
 
-# Base player data
-class PlayerData(NamedTuple):
+@dataclass
+class PlayerData(EntityData):
     """
     Stores data about a specific player type.
 
+    name: str
+        The name of the player.
+    health: int
+        The player's health.
+    armour: int
+        The player's armour.
+    textures: dict[str, list[list[arcade.Texture]]]
+        The textures which represent this player.
+    max_velocity: int
+        The max speed that the player can go.
+    attack_cooldown: int
+        The time duration between attacks.
+    armour_regen: bool
+        Whether the player regenerates armour or not.
+    armour_regen_cooldown: int
+        The time between armour regenerations.
     melee_range: int
         The amount of tiles the player can attack within using a melee attack.
     melee_degree: int
@@ -99,11 +132,27 @@ class PlayerData(NamedTuple):
     melee_degree: int
 
 
-# Base enemy data
-class EnemyData(NamedTuple):
+@dataclass
+class EnemyData(EntityData):
     """
     Stores data about a specific enemy type.
 
+    name: str
+        The name of the enemy.
+    health: int
+        The enemy's health.
+    armour: int
+        The enemy's armour.
+    textures: dict[str, list[list[arcade.Texture]]]
+        The textures which represent this enemy.
+    max_velocity: int
+        The max speed that the enemy can go.
+    attack_cooldown: int
+        The time duration between attacks.
+    armour_regen: bool
+        Whether the enemy regenerates armour or not.
+    armour_regen_cooldown: int
+        The time between armour regenerations.
     view_distance: int
         The amount of tiles the enemy can see too.
     attack_range: int
@@ -117,13 +166,11 @@ class EnemyData(NamedTuple):
     movement_algorithm: AIMovementType
 
 
-# Base ranged attack data
-class RangedAttackData(NamedTuple):
+@dataclass
+class AttackData:
     """
-    Stores data about an entity's ranged attack.
+    Stores general data about an entity's attack.
 
-    attack_type: AttackAlgorithmType
-        The attack algorithm type.
     damage: int
         The damage the entity deals.
     """
@@ -131,27 +178,11 @@ class RangedAttackData(NamedTuple):
     damage: int
 
 
-# Base melee attack data
-class MeleeAttackData(NamedTuple):
-    """
-    Stores data about an entity's ranged attack.
-
-    attack_type: AttackAlgorithmType
-        The attack algorithm type.
-    damage: int
-        The damage the entity deals.
-    """
-
-    damage: int
-
-
-# Base area of effect attack data
-class AreaOfEffectAttackData(NamedTuple):
+@dataclass
+class AreaOfEffectAttackData(AttackData):
     """
     Stores data about an entity's area of effect attack.
 
-    attack_type: AttackAlgorithmType
-        The attack algorithm type.
     damage: int
         The damage the entity deals.
     area_of_effect_range: int
@@ -159,33 +190,12 @@ class AreaOfEffectAttackData(NamedTuple):
         not the diameter.
     """
 
-    damage: int
     area_of_effect_range: int
-
-
-# Base entity constructor
-class BaseData(NamedTuple):
-    """
-    The base class for constructing an entity.
-
-    entity_type: EntityType
-        The general data about this entity.
-    custom_data: PlayerType | EnemyType
-        The specific data related to this entity
-    attack_data: dict[AttackAlgorithmType, AttackData]
-        The data about the entity's attacks.
-    """
-
-    entity_data: EntityData
-    custom_data: PlayerData | EnemyData
-    attack_data: dict[
-        AttackAlgorithmType, RangedAttackData | MeleeAttackData | AreaOfEffectAttackData
-    ]
 
 
 # Player characters
 PLAYER = BaseData(
-    EntityData(
+    PlayerData(
         "player",
         100,
         20,
@@ -194,18 +204,19 @@ PLAYER = BaseData(
         1,
         True,
         1,
+        3,
+        60,
     ),
-    PlayerData(3, 60),
     {
-        AttackAlgorithmType.RANGED: RangedAttackData(10),
-        AttackAlgorithmType.MELEE: MeleeAttackData(10),
+        AttackAlgorithmType.RANGED: AttackData(10),
+        AttackAlgorithmType.MELEE: AttackData(10),
         AttackAlgorithmType.AREA_OF_EFFECT: AreaOfEffectAttackData(10, 3),
     },
 )
 
 # Enemy characters
 ENEMY1 = BaseData(
-    EntityData(
+    EnemyData(
         "enemy1",
         10,
         10,
@@ -214,10 +225,15 @@ ENEMY1 = BaseData(
         1,
         True,
         3,
+        5,
+        3,
+        AIMovementType.FOLLOW,
     ),
-    EnemyData(5, 3, AIMovementType.FOLLOW),
-    {AttackAlgorithmType.RANGED: RangedAttackData(5)},
+    {
+        AttackAlgorithmType.RANGED: AttackData(5),
+    },
 )
+
 
 # Sprite sizes
 SPRITE_SCALE = 2.5

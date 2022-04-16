@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity_old import EntityID
+from game.constants.entity import EntityID
 
 if TYPE_CHECKING:
-    from entities.attack import Bullet
-    from entities.base import Entity
-    from entities.player import Player
-    from entities.tile import Tile
+    from game.entities.attack import Bullet
+    from game.entities.base import Entity
+    from game.entities.player import Player
+    from game.entities.tile import Tile
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
         # Check if the owner is the player
         if bullet.owner.entity_id is EntityID.PLAYER:
             # Deal damage to the enemy
-            enemy.deal_damage(bullet.owner.entity_type.damage)
+            enemy.deal_damage(bullet.damage)
             logger.debug(f"Removed {bullet} after hitting {enemy}")
     except AttributeError:
         # An error randomly occurs here so just ignore it
@@ -115,7 +115,7 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
         # Check if the owner is an enemy
         if bullet.owner.entity_id is EntityID.ENEMY:
             # Deal damage to the player
-            player.deal_damage(bullet.owner.entity_type.damage)
+            player.deal_damage(bullet.damage)
             logger.debug(f"Removed {bullet} after hitting {player}")
     except AttributeError:
         # An error randomly occurs here so just ignore it
@@ -166,7 +166,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             player,
             moment_of_inertia=self.MOMENT_INF,
             collision_type="player",
-            max_velocity=player.entity_type.max_velocity,
+            max_velocity=player.entity_data.max_velocity,
         )
 
         # Add the static tile sprites to the physics engine
@@ -184,7 +184,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                 enemy,
                 moment_of_inertia=self.MOMENT_INF,
                 collision_type="enemy",
-                max_velocity=enemy.entity_type.max_velocity,  # noqa
+                max_velocity=enemy.entity_data.max_velocity,  # noqa
             )
 
         # Add collision handlers

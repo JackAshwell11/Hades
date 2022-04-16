@@ -5,8 +5,8 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from entities.base import Entity
-    from entities.player import Player
+    from game.entities.base import Entity
+    from game.entities.player import Player
 
 
 # Get the logger
@@ -102,7 +102,7 @@ class FollowLineOfSight(AIMovementBase):
             The calculated force to apply to the enemy to move it towards the player.
         """
         # Make sure we have the movement force. This avoids a circular import
-        from constants.entity_old import MOVEMENT_FORCE
+        from game.constants.entity import MOVEMENT_FORCE
 
         # Calculate the velocity for the enemy to move towards the player
         distance: tuple[float, float] = self.distance_to_player(player)
@@ -177,7 +177,7 @@ class MoveAwayLineOfSight(AIMovementBase):
             The calculated force to apply to the enemy to move it away from the player.
         """
         # Make sure we have the movement force. This avoids a circular import
-        from constants.entity_old import MOVEMENT_FORCE
+        from game.constants.entity import MOVEMENT_FORCE
 
         # Calculate the velocity for the enemy to move towards the player
         distance: tuple[float, float] = self.distance_to_player(player)

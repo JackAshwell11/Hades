@@ -5,8 +5,8 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity_old import StatusEffectType
-from constants.general import (
+from game.constants.entity import StatusEffectType
+from game.constants.general import (
     ARMOUR_BOOST_POTION_DURATION,
     ARMOUR_BOOST_POTION_INCREASE,
     ARMOUR_POTION_INCREASE,
@@ -18,14 +18,15 @@ from constants.general import (
     SPEED_BOOST_POTION_DURATION,
     SPEED_BOOST_POTION_INCREASE,
 )
-from constants.generation import TileType
-from entities.base import Collectible, Item
-from entities.status_effect import StatusEffect
-from textures import non_moving_textures
+from game.constants.generation import TileType
+from game.entities.base import Collectible, Item
+from game.entities.status_effect import StatusEffect
+from game.textures import non_moving_textures
 
 if TYPE_CHECKING:
     import arcade
-    from views.game import Game
+
+    from game.views.game import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -330,7 +331,7 @@ class SpeedBoostPotion(Collectible):
                 StatusEffectType.SPEED,
                 SPEED_BOOST_POTION_INCREASE,
                 SPEED_BOOST_POTION_DURATION,
-                self.player.entity_type.max_velocity,
+                self.player.entity_data.max_velocity,
             )
         )
 

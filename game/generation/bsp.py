@@ -8,7 +8,7 @@ import random
 import numpy as np
 
 # Custom
-from constants.generation import (
+from game.constants.generation import (
     HALLWAY_SIZE,
     MIN_CONTAINER_SIZE,
     MIN_ROOM_SIZE,

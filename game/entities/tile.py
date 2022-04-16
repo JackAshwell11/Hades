@@ -5,8 +5,8 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from entities.base import Tile
-from textures import non_moving_textures
+from game.entities.base import Tile
+from game.textures import non_moving_textures
 
 if TYPE_CHECKING:
     import arcade

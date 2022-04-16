@@ -9,8 +9,9 @@ from typing import TYPE_CHECKING, Any
 import arcade
 
 if TYPE_CHECKING:
-    from entities.base import Entity
-    from physics import PhysicsEngine
+    from game.constants.entity import AreaOfEffectAttackData, AttackData
+    from game.entities.base import Entity
+    from game.physics import PhysicsEngine
 
 
 # Get the logger
@@ -35,6 +36,8 @@ class Bullet(arcade.SpriteSolidColor):
         The color of the bullet.
     owner: Entity
         The entity which shot the bullet.
+    damage: int
+        The damage this bullet deals.
     """
 
     def __init__(
@@ -45,11 +48,13 @@ class Bullet(arcade.SpriteSolidColor):
         height: int,
         color: tuple[int, int, int],
         owner: Entity,
+        damage: int,
     ) -> None:
         super().__init__(width, height, color)
         self.center_x: float = x
         self.center_y: float = y
         self.owner: Entity = owner
+        self.damage: int = damage
 
     def __repr__(self) -> str:
         return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
@@ -63,10 +68,17 @@ class AttackBase:
     ----------
     owner: Entity
         The owner of this attack algorithm.
+    attack_data: AttackData
+        The entity data about this attack.
     """
 
-    def __init__(self, owner: Entity) -> None:
+    def __init__(
+        self,
+        owner: Entity,
+        attack_data: AttackData,
+    ) -> None:
         self.owner: Entity = owner
+        self.attack_data: AttackData = attack_data
 
     def __repr__(self) -> str:
         return f"<AttackBase (Owner={self.owner})>"
@@ -97,10 +109,12 @@ class RangedAttack(AttackBase):
     ----------
     owner: Entity
         The owner of this attack algorithm.
+    attack_data: AttackData
+        The entity data about this attack.
     """
 
-    def __init__(self, owner: Entity) -> None:
-        super().__init__(owner)
+    def __init__(self, owner: Entity, attack_data: AttackData) -> None:
+        super().__init__(owner, attack_data)
 
     def __repr__(self) -> str:
         return f"<RangedAttack (Owner={self.owner})>"
@@ -115,7 +129,7 @@ class RangedAttack(AttackBase):
             A tuple containing the parameters needed for the attack.
         """
         # Make sure we have the bullet constants. This avoids a circular import
-        from constants.entity_old import BULLET_OFFSET, BULLET_VELOCITY
+        from game.constants.entity import BULLET_OFFSET, BULLET_VELOCITY
 
         # Make sure the needed parameters are valid
         bullet_list: arcade.SpriteList = args[0]
@@ -131,6 +145,7 @@ class RangedAttack(AttackBase):
             5,
             arcade.color.RED,
             self.owner,
+            self.attack_data.damage,
         )
         new_bullet.angle = self.owner.direction
         physics: PhysicsEngine = self.owner.physics_engines[0]
@@ -166,10 +181,12 @@ class MeleeAttack(AttackBase):
     ----------
     owner: Entity
         The owner of this attack algorithm.
+    attack_data: AttackData
+        The entity data about this attack.
     """
 
-    def __init__(self, owner: Entity) -> None:
-        super().__init__(owner)
+    def __init__(self, owner: Entity, attack_data: AttackData) -> None:
+        super().__init__(owner, attack_data)
 
     def __repr__(self) -> str:
         return f"<MeleeAttack (Owner={self.owner})>"
@@ -188,10 +205,12 @@ class AreaOfEffectAttack(AttackBase):
     ----------
     owner: Entity
         The owner of this attack algorithm.
+    attack_data: AreaOfEffectAttackData
+        The entity data about this attack.
     """
 
-    def __init__(self, owner: Entity) -> None:
-        super().__init__(owner)
+    def __init__(self, owner: Entity, attack_data: AreaOfEffectAttackData) -> None:
+        super().__init__(owner, attack_data)
 
     def __repr__(self) -> str:
         return f"<AreaOfEffectAttack (Owner={self.owner})>"
@@ -199,7 +218,7 @@ class AreaOfEffectAttack(AttackBase):
     def process_attack(self, *args: Any) -> None:
         """"""
         # Make sure we have the sprite size. This avoids a circular import
-        from constants.entity_old import SPRITE_SIZE
+        from game.constants.entity import SPRITE_SIZE
 
         # Make sure the needed parameters are valid
         target_entity: arcade.SpriteList | arcade.Sprite = args[0]
@@ -208,8 +227,8 @@ class AreaOfEffectAttack(AttackBase):
         empty_texture = arcade.Texture.create_empty(
             "",
             (
-                int(self.owner.entity_type.area_of_effect_range * 2 * SPRITE_SIZE),
-                int(self.owner.entity_type.area_of_effect_range * 2 * SPRITE_SIZE),
+                int(self.attack_data.area_of_effect_range * 2 * SPRITE_SIZE),
+                int(self.attack_data.area_of_effect_range * 2 * SPRITE_SIZE),
             ),
         )
         area_of_effect_sprite = arcade.Sprite(
@@ -222,11 +241,11 @@ class AreaOfEffectAttack(AttackBase):
         try:
             if arcade.check_for_collision(area_of_effect_sprite, target_entity):
                 # Target is the player so deal damage
-                target_entity.deal_damage(self.owner.entity_type.damage)  # noqa
+                target_entity.deal_damage(self.attack_data.damage)  # noqa
             return
         except TypeError:
             for entity in arcade.check_for_collision_with_list(
                 area_of_effect_sprite, target_entity
             ):
                 # Deal damage to all the enemies within range
-                entity.deal_damage(self.owner.entity_type.damage)  # noqa
+                entity.deal_damage(self.attack_data.damage)  # noqa

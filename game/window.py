@@ -9,8 +9,8 @@ from datetime import datetime
 import arcade
 
 # Custom
-from constants.general import LOGGING_FORMAT
-from views.start_menu import StartMenu
+from game.constants.general import LOGGING_FORMAT
+from game.views.start_menu import StartMenu
 
 # Create paths
 log_path = pathlib.Path(__file__).resolve().parent / "logs"

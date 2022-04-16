@@ -5,16 +5,16 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity_old import PLAYER, AttackAlgorithmType, EntityID
-from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from entities.base import Entity
-from entities.status_effect import StatusEffect
-from melee_shader import MeleeShader
+from game.constants.entity import PLAYER, AttackAlgorithmType, EntityID
+from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
+from game.entities.base import Entity
+from game.entities.status_effect import StatusEffect
+from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from constants.entity_old import BaseType
-    from entities.base import Item
-    from views.game import Game
+    from game.constants.entity import BaseData
+    from game.entities.base import Item
+    from game.views.game import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class Player(Entity):
 
     # Class variables
     entity_id: EntityID = EntityID.PLAYER
-    entity_data: BaseType = PLAYER
+    entity_type: BaseData = PLAYER
 
     def __init__(self, game: Game, x: int, y: int) -> None:
         super().__init__(game, x, y)
@@ -64,9 +64,9 @@ class Player(Entity):
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.applied_effects: list[StatusEffect] = []
-        self.max_health: int = self.entity_type.health
-        self.max_armour: int = self.entity_type.armour
-        self.attack_cooldown: int = self.entity_type.attack_cooldown
+        self.max_health: int = self.entity_data.health
+        self.max_armour: int = self.entity_data.armour
+        self.attack_cooldown: int = self.entity_data.attack_cooldown
         self.in_combat: bool = False
 
     def __repr__(self) -> str:

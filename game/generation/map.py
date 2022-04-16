@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 # Custom
-from constants.entity_old import ENEMIES
-from constants.general import DEBUG_LINES
-from constants.generation import (
+from game.constants.entity import ENEMIES
+from game.constants.general import DEBUG_LINES
+from game.constants.generation import (
     BASE_ENEMY_COUNT,
     BASE_ITEM_COUNT,
     BASE_MAP_HEIGHT,
@@ -25,10 +25,10 @@ from constants.generation import (
     SMALL_ROOM,
     TileType,
 )
-from generation.bsp import Leaf
+from game.generation.bsp import Leaf
 
 if TYPE_CHECKING:
-    from generation.bsp import Rect
+    from game.generation.bsp import Rect
 
 # Get the logger
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ from __future__ import annotations
 import arcade
 
 # Custom
-from constants.generation import TileType
+from game.constants.generation import TileType
 
 # Debug constants
 DEBUG_LINES = False
@@ -39,5 +39,5 @@ ARMOUR_BOOST_POTION_INCREASE = 10
 ARMOUR_BOOST_POTION_DURATION = 10
 SPEED_BOOST_POTION_INCREASE = 200
 SPEED_BOOST_POTION_DURATION = 5
-FIRE_RATE_BOOST_POTION_INCREASE = -0.5
+FIRE_RATE_BOOST_POTION_INCREASE = -1
 FIRE_RATE_BOOST_POTION_DURATION = 5
