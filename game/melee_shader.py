@@ -7,13 +7,14 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity_old import MELEE_RESOLUTION, SPRITE_SIZE
+from game.constants.entity import MELEE_RESOLUTION, SPRITE_SIZE
 
 if TYPE_CHECKING:
     from arcade import ArcadeContext
     from arcade.gl import Buffer, Framebuffer, Program, Query
-    from entities.enemy import Enemy
-    from views.game import Game
+
+    from game.entities.enemy import Enemy
+    from game.views.game import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -68,6 +69,9 @@ class MeleeShader:
 
     def setup_shader(self) -> None:
         """Sets up the shader and it's needed attributes."""
+        # Make sure variables needed are valid
+        assert self.view.player is not None
+
         # Create the shader program. This draws lines from the player to each enemy
         # which is within a specific distance. It then checks if the player has line of
         # sight with each enemy that has a line drawn to them
@@ -79,10 +83,10 @@ class MeleeShader:
         # Configure the program with the maximum distance, the angle range and the
         # resolution
         self.program["max_distance"] = (
-            self.view.player.custom_data.melee_range * SPRITE_SIZE
+            self.view.player.player_data.melee_range * SPRITE_SIZE
         )
         self.program["half_angle_range"] = (
-            self.view.player.custom_data.melee_degree // 2
+            self.view.player.player_data.melee_degree // 2
         )
         self.program["resolution"] = MELEE_RESOLUTION
 
@@ -142,6 +146,8 @@ class MeleeShader:
         assert self.result_buffer is not None
         assert self.query is not None
         assert self.walls_framebuffer is not None
+        assert self.view.player is not None
+        assert self.view.camera is not None
 
         # Update the shader's origin point, so we can draw the rays from the correct
         # position

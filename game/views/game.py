@@ -9,11 +9,11 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity_old import FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, SPRITE_SIZE
-from constants.general import DAMPING, DEBUG_ATTACK_DISTANCE, DEBUG_VIEW_DISTANCE
-from constants.generation import TileType
-from entities.enemy import Enemy1
-from entities.item import (
+from game.constants.entity import FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, SPRITE_SIZE
+from game.constants.general import DAMPING, DEBUG_ATTACK_DISTANCE, DEBUG_VIEW_DISTANCE
+from game.constants.generation import TileType
+from game.entities.enemy import Enemy1
+from game.entities.item import (
     ArmourBoostPotion,
     ArmourPotion,
     FireRateBoostPotion,
@@ -22,15 +22,15 @@ from entities.item import (
     Shop,
     SpeedBoostPotion,
 )
-from entities.player import Player
-from entities.tile import Floor, Wall
-from generation.map import Map
-from physics import PhysicsEngine
-from textures import pos_to_pixel
-from views.inventory_view import InventoryView
+from game.entities.player import Player
+from game.entities.tile import Floor, Wall
+from game.generation.map import Map
+from game.physics import PhysicsEngine
+from game.textures import pos_to_pixel
+from game.views.inventory_view import InventoryView
 
 if TYPE_CHECKING:
-    from entities.base import Collectible, Item
+    from game.entities.base import Collectible, Item
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -133,8 +133,11 @@ class Game(arcade.View):
             The level to create a generation for. Each level should be more difficult
             than the last.
         """
-        # Create the game map and store its width and height
+        # Create the game map and check that it is valid
         game_map = Map(level)
+        assert game_map.grid is not None
+
+        # Store the game map's width and height
         self.game_map_shape = game_map.grid.shape
 
         # Assign sprites to the game map
@@ -262,74 +265,79 @@ class Game(arcade.View):
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.custom_data.view_distance * SPRITE_SIZE,  # noqa
+                    enemy.enemy_data.view_distance * SPRITE_SIZE,  # noqa
                     DEBUG_VIEW_DISTANCE,
                 )
                 # Draw the enemy's attack distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.custom_data.attack_range * SPRITE_SIZE,  # noqa
+                    enemy.enemy_data.attack_range * SPRITE_SIZE,  # noqa
                     DEBUG_ATTACK_DISTANCE,
                 )
 
-            # Calculate the two boundary points for the player fov
-            half_angle = self.player.custom_data.melee_degree // 2
-            low_angle = math.radians(self.player.direction - half_angle)
-            high_angle = math.radians(self.player.direction + half_angle)
-            point_low = (
-                self.player.center_x
-                + math.cos(low_angle)
-                * SPRITE_SIZE
-                * self.player.custom_data.melee_range,
-                self.player.center_y
-                + math.sin(low_angle)
-                * SPRITE_SIZE
-                * self.player.custom_data.melee_range,
-            )
-            point_high = (
-                self.player.center_x
-                + math.cos(high_angle)
-                * SPRITE_SIZE
-                * self.player.custom_data.melee_range,
-                self.player.center_y
-                + math.sin(high_angle)
-                * SPRITE_SIZE
-                * self.player.custom_data.melee_range,
-            )
-            # Draw both boundary lines for the player fov
-            arcade.draw_line(
-                self.player.center_x,
-                self.player.center_y,
-                *point_low,
-                DEBUG_ATTACK_DISTANCE,
-            )
-            arcade.draw_line(
-                self.player.center_x,
-                self.player.center_y,
-                *point_high,
-                DEBUG_ATTACK_DISTANCE,
-            )
-            # Draw the arc between the two making sure to double the width and height
-            # since the radius is calculated, but we want the diameter
-            arcade.draw_arc_outline(
-                self.player.center_x,
-                self.player.center_y,
-                math.hypot(point_high[0] - point_low[0], point_high[1] - point_low[1])
-                * 2,
-                self.player.custom_data.melee_range * SPRITE_SIZE * 2,
-                DEBUG_ATTACK_DISTANCE,
-                math.degrees(low_angle),
-                math.degrees(high_angle),
-                2,
-            )
-            # Draw the player's area of effect range
-            arcade.draw_circle_outline(
-                self.player.center_x,
-                self.player.center_y,
-                self.player.entity_type.area_of_effect_range * SPRITE_SIZE,
-                DEBUG_ATTACK_DISTANCE,
-            )
+            # Check if the player has an area of effect attack
+            if self.player.entity_type.area_of_effect_attack_data is not None:
+                # Calculate the two boundary points for the player fov
+                half_angle = self.player.player_data.melee_degree // 2
+                low_angle = math.radians(self.player.direction - half_angle)
+                high_angle = math.radians(self.player.direction + half_angle)
+                point_low = (
+                    self.player.center_x
+                    + math.cos(low_angle)
+                    * SPRITE_SIZE
+                    * self.player.player_data.melee_range,
+                    self.player.center_y
+                    + math.sin(low_angle)
+                    * SPRITE_SIZE
+                    * self.player.player_data.melee_range,
+                )
+                point_high = (
+                    self.player.center_x
+                    + math.cos(high_angle)
+                    * SPRITE_SIZE
+                    * self.player.player_data.melee_range,
+                    self.player.center_y
+                    + math.sin(high_angle)
+                    * SPRITE_SIZE
+                    * self.player.player_data.melee_range,
+                )
+                # Draw both boundary lines for the player fov
+                arcade.draw_line(
+                    self.player.center_x,
+                    self.player.center_y,
+                    *point_low,
+                    DEBUG_ATTACK_DISTANCE,
+                )
+                arcade.draw_line(
+                    self.player.center_x,
+                    self.player.center_y,
+                    *point_high,
+                    DEBUG_ATTACK_DISTANCE,
+                )
+                # Draw the arc between the two making sure to double the width and
+                # height since the radius is calculated, but we want the diameter
+                arcade.draw_arc_outline(
+                    self.player.center_x,
+                    self.player.center_y,
+                    math.hypot(
+                        point_high[0] - point_low[0], point_high[1] - point_low[1]
+                    )
+                    * 2,
+                    self.player.player_data.melee_range * SPRITE_SIZE * 2,
+                    DEBUG_ATTACK_DISTANCE,
+                    math.degrees(low_angle),
+                    math.degrees(high_angle),
+                    2,
+                )
+                # Draw the player's area of effect range
+                arcade.draw_circle_outline(
+                    self.player.center_x,
+                    self.player.center_y,
+                    self.player.entity_type.area_of_effect_attack_data.attack_range
+                    * SPRITE_SIZE,
+                    DEBUG_ATTACK_DISTANCE,
+                )
 
         # Draw the gui on the screen
         self.gui_camera.use()
@@ -408,6 +416,9 @@ class Game(arcade.View):
 
         # Process logic for the player
         self.player.on_update()
+
+        # Process logic for the bullets
+        self.bullet_sprites.on_update()
 
         # Update the physics engine
         self.physics_engine.step()
@@ -519,18 +530,10 @@ class Game(arcade.View):
         assert self.player is not None
 
         # Test if the player can attack
-        if (
-            button == arcade.MOUSE_BUTTON_LEFT
-            and self.player.time_since_last_attack >= self.player.attack_cooldown
-        ):
-            # Reset the player's combat variables and attack
-            self.player.time_since_armour_regen = (
-                self.player.entity_type.armour_regen_cooldown
-            )
-            self.player.time_since_last_attack = 0
-            self.player.time_out_of_combat = 0
-            self.player.in_combat = True
-            self.player.attack()
+        match button:
+            case arcade.MOUSE_BUTTON_LEFT:
+                # Make the player attack
+                self.player.attack()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """

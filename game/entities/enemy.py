@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity_old import (
+from game.constants.entity import (
     ARMOUR_BAR_OFFSET,
     ENEMY1,
     FACING_LEFT,
@@ -19,12 +19,12 @@ from constants.entity_old import (
     AttackAlgorithmType,
     EntityID,
 )
-from entities.base import Entity, IndicatorBar
+from game.entities.base import Entity, IndicatorBar
 
 if TYPE_CHECKING:
-    from constants.entity_old import BaseType
-    from entities.movement import AIMovementBase
-    from views.game import Game
+    from game.constants.entity import BaseData
+    from game.entities.movement import AIMovementBase
+    from game.views.game import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class Enemy(Entity):
         y: int,
     ) -> None:
         super().__init__(game, x, y)
-        self.ai: AIMovementBase = self.custom_data.movement_algorithm.value(self)
+        self.ai: AIMovementBase = self.enemy_data.movement_algorithm.value(self)
         self.health_bar: IndicatorBar = IndicatorBar(
             self, (self.center_x, self.center_y + HEALTH_BAR_OFFSET), arcade.color.RED
         )
@@ -88,24 +88,27 @@ class Enemy(Entity):
         delta_time: float
             Time interval since the last time the function was called.
         """
+        # Make sure variables needed are valid
+        assert self.game.player is not None
+
         # Update the enemy's time since last attack
         self.time_since_last_attack += delta_time
 
         # Check if the enemy is not in combat
         if not self.line_of_sight:
             # Enemy not in combat so check if they can regenerate armour
-            if self.entity_type.armour_regen:
+            if self.entity_data.armour_regen:
                 self.check_armour_regen(delta_time)
 
                 # Make sure the enemy's armour does not go over the maximum
                 self.armour: int  # Mypy gives self.armour an undetermined type error
-                if self.armour > self.entity_type.armour:
-                    self.armour = self.entity_type.armour
+                if self.armour > self.entity_data.armour:
+                    self.armour = self.entity_data.armour
             return
 
         # Enemy in combat so reset their combat counter
         self.time_out_of_combat = 0
-        self.time_since_armour_regen = self.entity_type.armour_regen_cooldown
+        self.time_since_armour_regen = self.entity_data.armour_regen_cooldown
 
         # Player is within line of sight so get the force needed to move the enemy
         horizontal, vertical = self.ai.calculate_movement(self.game.player)
@@ -134,12 +137,15 @@ class Enemy(Entity):
         bool
             Whether the enemy has line of sight with the player or not.
         """
+        # Make sure variables needed are valid
+        assert self.game.player is not None
+
         # Check for line of sight
         self.line_of_sight = arcade.has_line_of_sight(
             (self.center_x, self.center_y),
             (self.game.player.center_x, self.game.player.center_y),
             self.game.wall_sprites,
-            self.custom_data.view_distance * SPRITE_SIZE,
+            self.enemy_data.view_distance * SPRITE_SIZE,
         )
         if self.line_of_sight:
             self.time_out_of_combat = 0
@@ -147,30 +153,34 @@ class Enemy(Entity):
         # Return the result
         return self.line_of_sight
 
-    def check_distance(self) -> bool:
+    def check_attack(self) -> bool:
         """
-        Checks if the player is within a certain distance of the enemy.
+        Checks if the player is within a certain distance of the enemy and that the
+        enemy can attack.
 
         Returns
         -------
         bool
             Whether the player is within distance of the enemy or not.
         """
+        # Make sure variables needed are valid
+        assert self.game.player is not None
+
         x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
         y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
         hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
         logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
         return (
-            hypot_distance <= self.custom_data.attack_range * SPRITE_SIZE
-            and self.time_since_last_attack >= self.entity_type.attack_cooldown
+            hypot_distance <= self.enemy_data.attack_range * SPRITE_SIZE
+            and self.time_since_last_attack >= self.current_attack.attack_cooldown
         )
 
     def update_indicator_bars(self) -> None:
         """Performs actions that should happen after the enemy takes damage."""
         # Update the health and armour bar
         try:
-            self.health_bar.fullness = self.health / self.entity_type.health
-            self.armour_bar.fullness = self.armour / self.entity_type.armour
+            self.health_bar.fullness = self.health / self.entity_data.health
+            self.armour_bar.fullness = self.armour / self.entity_data.armour
         except ValueError:
             # Enemy is already dead
             pass
@@ -186,12 +196,12 @@ class Enemy(Entity):
     def attack(self) -> None:
         """Runs the enemy's current attack algorithm."""
         # Check if the player is within range of the enemy
-        if not self.check_distance():
+        if not self.check_attack():
             return
 
-        # Enemy can attack so reset the counter and determine what attack algorithm is
+        # Enemy can attack so reset the counters and determine what attack algorithm is
         # selected
-        self.time_since_last_attack: float = 0
+        self.time_since_last_attack = 0
         match type(self.current_attack):
             case AttackAlgorithmType.RANGED.value:
                 self.current_attack.process_attack(self.game.bullet_sprites)
@@ -216,7 +226,7 @@ class Enemy1(Enemy):
     """
 
     # Class variables
-    entity_data: BaseType = ENEMY1
+    entity_type: BaseData = ENEMY1
 
     def __init__(
         self,

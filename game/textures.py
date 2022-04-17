@@ -25,7 +25,7 @@ def pos_to_pixel(x: int, y: int) -> tuple[float, float]:
         The x and y position of a sprite on the screen.
     """
     # Avoid a circular import
-    from constants.entity_old import SPRITE_SIZE
+    from game.constants.entity import SPRITE_SIZE
 
     # Calculate the position on screen
     return (

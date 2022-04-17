@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from constants.general import DEBUG_GAME
-from views.game import Game
+from game.constants.general import DEBUG_GAME
+from game.views.game import Game
 
 if TYPE_CHECKING:
-    from window import Window
+    from game.window import Window
 
 # Get the logger
 logger = logging.getLogger(__name__)

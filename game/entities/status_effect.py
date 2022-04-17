@@ -5,10 +5,10 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity_old import StatusEffectType
+from game.constants.entity import StatusEffectType
 
 if TYPE_CHECKING:
-    from entities.player import Player
+    from game.entities.player import Player
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class StatusEffect:
         The status effect type that is being applied to the player.
     increase_amount: int
         The amount of increase that should be applied to the player temporarily.
-    duration: float
+    duration: int
         The duration the status effect should be applied for.
     original: int
         The original value of the variable which is being changed.
@@ -42,13 +42,13 @@ class StatusEffect:
         player: Player,
         effect_type: StatusEffectType,
         increase_amount: int,
-        duration: float,
+        duration: int,
         original: int,
     ) -> None:
         self.player: Player = player
         self.effect_type: StatusEffectType = effect_type
         self.increase_amount: int = increase_amount
-        self.duration: float = duration
+        self.duration: int = duration
         self.original: int = original
         self.time_counter: float = 0
 
@@ -120,10 +120,10 @@ class StatusEffect:
             match self.effect_type:
                 case StatusEffectType.HEALTH:
                     self.player.health = current_value
-                    self.player.max_health = self.player.entity_type.health
+                    self.player.max_health = self.player.entity_data.health
                 case StatusEffectType.ARMOUR:
                     self.player.armour = current_value
-                    self.player.max_armour = self.player.entity_type.armour
+                    self.player.max_armour = self.player.entity_data.armour
                 case StatusEffectType.SPEED:
                     self.player.pymunk.max_velocity = self.original
                 case StatusEffectType.FIRE_RATE:

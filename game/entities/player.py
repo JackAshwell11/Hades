@@ -5,16 +5,16 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from constants.entity_old import PLAYER, AttackAlgorithmType, EntityID
-from constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from entities.base import Entity
-from entities.status_effect import StatusEffect
-from melee_shader import MeleeShader
+from game.constants.entity import PLAYER, AttackAlgorithmType, EntityID
+from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
+from game.entities.base import Entity
+from game.entities.status_effect import StatusEffect
+from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from constants.entity_old import BaseType
-    from entities.base import Item
-    from views.game import Game
+    from game.constants.entity import BaseData
+    from game.entities.base import Item
+    from game.views.game import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -48,15 +48,13 @@ class Player(Entity):
         The maximum health of the player.
     max_armour: int
         The maximum armour of the player.
-    attack_cooldown: int
-        The attack cooldown of the player
     in_combat: bool
         Whether the player is in combat or not.
     """
 
     # Class variables
     entity_id: EntityID = EntityID.PLAYER
-    entity_data: BaseType = PLAYER
+    entity_type: BaseData = PLAYER
 
     def __init__(self, game: Game, x: int, y: int) -> None:
         super().__init__(game, x, y)
@@ -64,9 +62,8 @@ class Player(Entity):
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.applied_effects: list[StatusEffect] = []
-        self.max_health: int = self.entity_type.health
-        self.max_armour: int = self.entity_type.armour
-        self.attack_cooldown: int = self.entity_type.attack_cooldown
+        self.max_health: int = self.entity_data.health
+        self.max_armour: int = self.entity_data.armour
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
@@ -149,7 +146,18 @@ class Player(Entity):
 
     def attack(self) -> None:
         """Runs the player's current attack algorithm."""
-        # Find out what attack algorithm is selected
+        # Check if the player can attack
+        if self.time_since_last_attack < self.current_attack.attack_cooldown:
+            return
+
+        # Reset the player's combat variables and attack
+        self.time_since_armour_regen = self.entity_data.armour_regen_cooldown
+        self.time_since_last_attack = 0
+        self.time_out_of_combat = 0
+        self.in_combat = True
+
+        # Find out what attack algorithm is selected. We also need to check if the
+        # player can attack
         match type(self.current_attack):
             case AttackAlgorithmType.RANGED.value:
                 self.current_attack.process_attack(self.game.bullet_sprites)

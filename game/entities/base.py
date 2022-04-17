@@ -8,20 +8,29 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from constants.entity_old import (
+from game.constants.entity import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
     EntityID,
 )
-from constants.generation import TileType
-from entities.attack import AttackBase
-from textures import pos_to_pixel
+from game.constants.generation import TileType
+from game.entities.attack import AttackBase
+from game.textures import pos_to_pixel
 
 if TYPE_CHECKING:
-    from constants.entity_old import BaseType, EnemyType, EntityType, PlayerType
-    from entities.player import Player
-    from views.game import Game
+    from game.constants.entity import (
+        AreaOfEffectAttackData,
+        AttackData,
+        BaseData,
+        EnemyData,
+        EntityData,
+        MeleeAttackData,
+        PlayerData,
+        RangedAttackData,
+    )
+    from game.entities.player import Player
+    from game.views.game import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -200,7 +209,7 @@ class Entity(arcade.Sprite):
 
     # Class variables
     entity_id: EntityID = EntityID.ENTITY
-    entity_data: BaseType | None = None
+    entity_type: BaseData | None = None
 
     def __init__(
         self,
@@ -211,39 +220,90 @@ class Entity(arcade.Sprite):
         super().__init__(scale=SPRITE_SCALE)
         self.game: Game = game
         self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.texture: arcade.Texture = self.entity_type.textures["idle"][0][0]
-        self.health: int = self.entity_type.health
-        self.armour: int = self.entity_type.armour
+        self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
+        self.health: int = self.entity_data.health
+        self.armour: int = self.entity_data.armour
         self.attack_algorithms: list[AttackBase] = [
-            algorithm.value(self) for algorithm in self.entity_type.attack_algorithms
+            algorithm.attack_type.value(self, algorithm.attack_cooldown)
+            for algorithm in self.attacks
         ]
         self.current_attack_index: int = 0
         self.direction: float = 0
         self.facing: int = 0
         self.time_since_last_attack: float = 0
         self.time_out_of_combat: float = 0
-        self.time_since_armour_regen: float = self.entity_type.armour_regen_cooldown
+        self.time_since_armour_regen: float = self.entity_data.armour_regen_cooldown
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
 
     @property
-    def entity_type(self) -> EntityType:
+    def entity_data(self) -> EntityData:
         """Returns the general entity data."""
-        # Make sure the entity data is valid
-        assert self.entity_data is not None
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
 
-        # Return the entity type named tuple
-        return self.entity_data.entity_type
+        # Return the entity data
+        return self.entity_type.entity_data
 
     @property
-    def custom_data(self) -> PlayerType | EnemyType:
-        """Returns the specific data about this entity."""
-        # Make sure the entity data is valid
-        assert self.entity_data is not None
+    def player_data(self) -> PlayerData:
+        """Returns the player data if it exists."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.player_data is not None
 
-        # Return the custom data named tuple
-        return self.entity_data.custom_data
+        # Return the player data
+        return self.entity_type.player_data
+
+    @property
+    def enemy_data(self) -> EnemyData:
+        """Returns the enemy data if it exists."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.enemy_data is not None
+
+        # Return the enemy data
+        return self.entity_type.enemy_data
+
+    @property
+    def attacks(self) -> list[AttackData]:
+        """Returns all the attacks the entity has."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+
+        # Return the enemy data
+        return self.entity_type.get_all_attacks()
+
+    @property
+    def ranged_attack_data(self) -> RangedAttackData:
+        """Returns the ranged attack data if the entity has the attack."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.ranged_attack_data is not None
+
+        # Return the ranged attack data
+        return self.entity_type.ranged_attack_data
+
+    @property
+    def melee_attack_data(self) -> MeleeAttackData:
+        """Returns the melee attack data if the entity has the attack."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.melee_attack_data is not None
+
+        # Return the melee attack data
+        return self.entity_type.melee_attack_data
+
+    @property
+    def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
+        """Returns the area of effect attack data if the entity has the attack."""
+        # Make sure the entity type is valid
+        assert self.entity_type is not None
+        assert self.entity_type.area_of_effect_attack_data is not None
+
+        # Return the area of effect attack data
+        return self.entity_type.area_of_effect_attack_data
 
     @property
     def current_attack(self) -> AttackBase:
@@ -307,7 +367,7 @@ class Entity(arcade.Sprite):
         # Check if the entity has been out of combat for ARMOUR_REGEN_WAIT seconds
         if self.time_out_of_combat >= ARMOUR_REGEN_WAIT:
             # Check if enough has passed since the last armour regen
-            if self.time_since_armour_regen >= self.entity_type.armour_regen_cooldown:
+            if self.time_since_armour_regen >= self.entity_data.armour_regen_cooldown:
                 # Regen armour
                 self.armour += ARMOUR_REGEN_AMOUNT
                 self.time_since_armour_regen = 0
@@ -411,6 +471,10 @@ class Item(Tile):
     @property
     def player(self) -> Player:
         """Returns the player object for ease of access."""
+        # Make sure the player object is valid
+        assert self.game.player is not None
+
+        # Return the player object
         return self.game.player
 
     def item_activate(self) -> bool:

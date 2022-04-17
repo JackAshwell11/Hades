@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from constants.general import CONSUMABLES, INVENTORY_HEIGHT, INVENTORY_WIDTH
+from game.constants.general import CONSUMABLES, INVENTORY_HEIGHT, INVENTORY_WIDTH
 
 if TYPE_CHECKING:
-    from entities.base import Item
-    from entities.player import Player
-    from views.game import Game
-    from window import Window
+    from game.entities.base import Item
+    from game.entities.player import Player
+    from game.views.game import Game
+    from game.window import Window
 
 # Get the logger
 logger = logging.getLogger(__name__)
