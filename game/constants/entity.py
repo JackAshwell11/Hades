@@ -183,8 +183,11 @@ class RangedAttackData(AttackData):
         The damage the entity deals.
     attack_cooldown: int
         The time duration between attacks.
+    max_range: int
+        The max range of the bullet.
     """
 
+    max_range: int = field(kw_only=True)
     attack_type: AttackAlgorithmType = AttackAlgorithmType.RANGED
 
 
@@ -211,12 +214,12 @@ class AreaOfEffectAttackData(AttackData):
         The damage the entity deals.
     attack_cooldown: int
         The time duration between attacks.
-    range: int
+    attack_range: int
         The range an area of effect attack deals has. This is the radius of the circle,
         not the diameter.
     """
 
-    range: int = field(kw_only=True)
+    attack_range: int = field(kw_only=True)
     attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
 
 
@@ -232,10 +235,10 @@ PLAYER = BaseData(
         armour_regen_cooldown=1,
     ),
     player_data=PlayerData(melee_range=3, melee_degree=60),
-    ranged_attack_data=RangedAttackData(damage=10, attack_cooldown=1),
+    ranged_attack_data=RangedAttackData(damage=10, attack_cooldown=1, max_range=10),
     melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1),
     area_of_effect_attack_data=AreaOfEffectAttackData(
-        damage=10, attack_cooldown=1, range=3
+        damage=10, attack_cooldown=1, attack_range=3
     ),
 )
 
@@ -253,7 +256,7 @@ ENEMY1 = BaseData(
     enemy_data=EnemyData(
         view_distance=5, attack_range=3, movement_algorithm=AIMovementType.FOLLOW
     ),
-    ranged_attack_data=RangedAttackData(damage=5, attack_cooldown=1),
+    ranged_attack_data=RangedAttackData(damage=5, attack_cooldown=1, max_range=10),
 )
 
 

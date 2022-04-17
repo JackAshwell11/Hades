@@ -334,7 +334,7 @@ class Game(arcade.View):
                 arcade.draw_circle_outline(
                     self.player.center_x,
                     self.player.center_y,
-                    self.player.entity_type.area_of_effect_attack_data.range
+                    self.player.entity_type.area_of_effect_attack_data.attack_range
                     * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
@@ -416,6 +416,9 @@ class Game(arcade.View):
 
         # Process logic for the player
         self.player.on_update()
+
+        # Process logic for the bullets
+        self.bullet_sprites.on_update()
 
         # Update the physics engine
         self.physics_engine.step()
