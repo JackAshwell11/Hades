@@ -527,9 +527,10 @@ class Game(arcade.View):
         assert self.player is not None
 
         # Test if the player can attack
-        if button == arcade.MOUSE_BUTTON_LEFT:
-            # Make the player attack
-            self.player.attack()
+        match button:
+            case arcade.MOUSE_BUTTON_LEFT:
+                # Make the player attack
+                self.player.attack()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
         """
