@@ -28,6 +28,7 @@ if TYPE_CHECKING:
         MeleeAttackData,
         PlayerData,
         RangedAttackData,
+        UpgradeData,
     )
     from game.entities.player import Player
     from game.views.game import Game
@@ -187,10 +188,6 @@ class Entity(arcade.Sprite):
 
     Attributes
     ----------
-    health: int
-        The health of this entity.
-    armour: int
-        The armour of this entity.
     attack_algorithms: list[AttackBase]
         A list of the entity's attack algorithms.
     current_attack_index: int
@@ -221,12 +218,14 @@ class Entity(arcade.Sprite):
         self.game: Game = game
         self.center_x, self.center_y = pos_to_pixel(x, y)
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
-        self.health: int = self.entity_data.health
-        self.armour: int = self.entity_data.armour
         self.attack_algorithms: list[AttackBase] = [
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
+        self._entity_state: dict[str, int] = {
+            "health": self.entity_data.health,
+            "armour": self.entity_data.armour,
+        }
         self.current_attack_index: int = 0
         self.direction: float = 0
         self.facing: int = 0
@@ -239,7 +238,14 @@ class Entity(arcade.Sprite):
 
     @property
     def entity_data(self) -> EntityData:
-        """Returns the general entity data."""
+        """
+        Gets the general entity data.
+
+        Returns
+        -------
+        EntityData
+            The general entity data.
+        """
         # Make sure the entity type is valid
         assert self.entity_type is not None
 
@@ -248,7 +254,14 @@ class Entity(arcade.Sprite):
 
     @property
     def player_data(self) -> PlayerData:
-        """Returns the player data if it exists."""
+        """
+        Gets the player data if it exists.
+
+        Returns
+        -------
+        PlayerData
+            The player data.
+        """
         # Make sure the entity type is valid
         assert self.entity_type is not None
         assert self.entity_type.player_data is not None
@@ -258,7 +271,14 @@ class Entity(arcade.Sprite):
 
     @property
     def enemy_data(self) -> EnemyData:
-        """Returns the enemy data if it exists."""
+        """
+        Gets the enemy data if it exists.
+
+        Returns
+        -------
+        EnemyData
+            The enemy data.
+        """
         # Make sure the entity type is valid
         assert self.entity_type is not None
         assert self.entity_type.enemy_data is not None
@@ -268,7 +288,14 @@ class Entity(arcade.Sprite):
 
     @property
     def attacks(self) -> list[AttackData]:
-        """Returns all the attacks the entity has."""
+        """
+        Gets all the attacks the entity has.
+
+        Returns
+        -------
+        list[AttackData]
+            The entity's attacks.
+        """
         # Make sure the entity type is valid
         assert self.entity_type is not None
 
@@ -277,7 +304,14 @@ class Entity(arcade.Sprite):
 
     @property
     def ranged_attack_data(self) -> RangedAttackData:
-        """Returns the ranged attack data if the entity has the attack."""
+        """
+        Gets the ranged attack data if the entity has the attack.
+
+        Returns
+        -------
+        RangedAttackData
+            The ranged attack data.
+        """
         # Make sure the entity type is valid
         assert self.entity_type is not None
         assert self.entity_type.ranged_attack_data is not None
@@ -287,7 +321,14 @@ class Entity(arcade.Sprite):
 
     @property
     def melee_attack_data(self) -> MeleeAttackData:
-        """Returns the melee attack data if the entity has the attack."""
+        """
+        Gets the melee attack data if the entity has the attack.
+
+        Returns
+        -------
+        MeleeAttackData
+            The melee attack data.
+        """
         # Make sure the entity type is valid
         assert self.entity_type is not None
         assert self.entity_type.melee_attack_data is not None
@@ -297,7 +338,14 @@ class Entity(arcade.Sprite):
 
     @property
     def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
-        """Returns the area of effect attack data if the entity has the attack."""
+        """
+        Gets the area of effect attack data if the entity has the attack.
+
+        Returns
+        -------
+        AreaOfEffectAttackData
+            The area of effect attack data.
+        """
         # Make sure the entity type is valid
         assert self.entity_type is not None
         assert self.entity_type.area_of_effect_attack_data is not None
@@ -307,8 +355,75 @@ class Entity(arcade.Sprite):
 
     @property
     def current_attack(self) -> AttackBase:
-        """Returns the currently selected attack algorithm."""
+        """
+        Gets the currently selected attack algorithm.
+
+        Returns
+        -------
+        AttackBase
+            The currently selected attack algorithm.
+        """
         return self.attack_algorithms[self.current_attack_index]
+
+    @property
+    def upgrade_data(self) -> list[UpgradeData]:
+        """
+        Gets the upgrades that are available to the entity.
+
+        Returns
+        -------
+        list[UpgradeData]
+            The upgrades that are available to the entity.
+        """
+        return list(self.entity_data.upgrade_data)
+
+    @property
+    def health(self) -> int:
+        """
+        Gets the entity's health.
+
+        Returns
+        -------
+        int
+            The entity's health
+        """
+        return self._entity_state["health"]
+
+    @health.setter
+    def health(self, value: int) -> None:
+        """
+        Sets the entity's health.
+
+        Parameters
+        ----------
+        value: int
+            The new health value.
+        """
+        self._entity_state["health"] = value
+
+    @property
+    def armour(self) -> int:
+        """
+        Gets the entity's armour.
+
+        Returns
+        -------
+        int
+            The entity's armour.
+        """
+        return self._entity_state["armour"]
+
+    @armour.setter
+    def armour(self, value: int) -> None:
+        """
+        Sets the entity's armour.
+
+        Parameters
+        ----------
+        value: int
+            The new armour value.
+        """
+        self._entity_state["armour"] = value
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
@@ -470,7 +585,14 @@ class Item(Tile):
 
     @property
     def player(self) -> Player:
-        """Returns the player object for ease of access."""
+        """
+        Gets the player object for ease of access.
+
+        Returns
+        -------
+        Player
+            The player object.
+        """
         # Make sure the player object is valid
         assert self.game.player is not None
 

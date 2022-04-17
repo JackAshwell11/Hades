@@ -122,6 +122,8 @@ class EntityData:
         Whether the entity regenerates armour or not.
     armour_regen_cooldown: int
         The time between armour regenerations.
+    upgrade_data: Sequence[UpgradeData]
+        The upgrades that are available to the player.
     """
 
     name: str = field(kw_only=True)
@@ -131,6 +133,9 @@ class EntityData:
     max_velocity: int = field(kw_only=True)
     armour_regen: bool = field(kw_only=True)
     armour_regen_cooldown: int = field(kw_only=True)
+    upgrade_data: Sequence[UpgradeData] = field(
+        kw_only=True, default_factory=lambda: [].copy()
+    )
 
 
 @dataclass
@@ -142,15 +147,10 @@ class PlayerData:
         The amount of tiles the player can attack within using a melee attack.
     melee_degree: int
         The degree that the player's melee attack is limited to.
-    upgrade_data: Sequence[UpgradeData]
-        The upgrades that are available to the player.
     """
 
     melee_range: int = field(kw_only=True)
     melee_degree: int = field(kw_only=True)
-    upgrade_data: Sequence[UpgradeData] = field(
-        kw_only=True, default_factory=lambda: [].copy()
-    )
 
 
 @dataclass
@@ -267,15 +267,15 @@ PLAYER = BaseData(
         max_velocity=200,
         armour_regen=True,
         armour_regen_cooldown=1,
-    ),
-    player_data=PlayerData(
-        melee_range=3,
-        melee_degree=60,
         upgrade_data=[
             UpgradeData(
                 PlayerUpgradeType.HEALTH, level_one=5, level_two=10, level_three=15
             )
         ],
+    ),
+    player_data=PlayerData(
+        melee_range=3,
+        melee_degree=60,
     ),
     ranged_attack_data=RangedAttackData(damage=10, attack_cooldown=1, max_range=10),
     melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1),

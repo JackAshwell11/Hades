@@ -24,3 +24,7 @@ PyInstaller.__main__.run(
         f"--add-data={resources_path};{resources_folder_name}",
     ]
 )
+
+# CHANGE TO NUITKA, COMMAND:
+#   nuitka .\game\window.py --standalone --follow-imports
+#   --include-data-dir=/game/resources=/game/resources

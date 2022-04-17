@@ -86,7 +86,14 @@ class Map:
 
     @property
     def width(self) -> int:
-        """Returns the width of the grid."""
+        """
+        Gets the width of the grid.
+
+        Returns
+        -------
+        int
+            The width of the grid.
+        """
         # Make sure variables needed are valid
         assert self.grid is not None
 
@@ -95,7 +102,14 @@ class Map:
 
     @property
     def height(self) -> int:
-        """Returns the height of the grid."""
+        """
+        Gets the height of the grid.
+
+        Returns
+        -------
+        int
+            The height of the grid.
+        """
         # Make sure variables needed are valid
         assert self.grid is not None
 

@@ -51,22 +51,50 @@ class Rect:
 
     @property
     def width(self) -> int:
-        """Returns the width of the rect."""
+        """
+        Gets the width of the rect.
+
+        Returns
+        -------
+        int
+            The width of the rect.
+        """
         return abs(self.x2 - self.x1 + 1)
 
     @property
     def height(self) -> int:
-        """Returns the height of the rect."""
+        """
+        Gets the height of the rect.
+
+        Returns
+        -------
+        int
+            The height of the rect.
+        """
         return abs(self.y2 - self.y1 + 1)
 
     @property
     def center_x(self) -> int:
-        """Returns the x coordinate of the center position."""
+        """
+        Gets the x coordinate of the center position.
+
+        Returns
+        -------
+        int
+            The x coordinate of the center position.
+        """
         return int((self.x1 + self.x2) / 2)
 
     @property
     def center_y(self) -> int:
-        """Returns the y coordinate of the center position."""
+        """
+        Gets the y coordinate of the center position.
+
+        Returns
+        -------
+        int
+            The y coordinate of the center position.
+        """
         return int((self.y1 + self.y2) / 2)
 
 

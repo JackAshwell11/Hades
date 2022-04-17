@@ -72,10 +72,14 @@ class StatusEffect:
         match self.effect_type:
             case StatusEffectType.HEALTH:
                 self.player.health = new_value
-                self.player.max_health = new_value
+                self.player.max_health = (
+                    self.player.entity_data.health + self.increase_amount
+                )
             case StatusEffectType.ARMOUR:
                 self.player.armour = new_value
-                self.player.max_armour = new_value
+                self.player.max_armour = (
+                    self.player.entity_data.armour + self.increase_amount
+                )
             case StatusEffectType.SPEED:
                 self.player.pymunk.max_velocity = new_value
             case StatusEffectType.FIRE_RATE:

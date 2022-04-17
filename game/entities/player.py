@@ -12,7 +12,7 @@ from game.entities.status_effect import StatusEffect
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from game.constants.entity import BaseData, UpgradeData
+    from game.constants.entity import BaseData
     from game.entities.base import Item
     from game.views.game import Game
 
@@ -44,10 +44,6 @@ class Player(Entity):
         The total capacity of the inventory.
     applied_effects: list[StatusEffect]
         The currently applied status effects.
-    max_health: int
-        The maximum health of the player.
-    max_armour: int
-        The maximum armour of the player.
     in_combat: bool
         Whether the player is in combat or not.
     """
@@ -62,17 +58,65 @@ class Player(Entity):
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.applied_effects: list[StatusEffect] = []
-        self.max_health: int = self.entity_data.health
-        self.max_armour: int = self.entity_data.armour
         self.in_combat: bool = False
+        self._entity_state.update(
+            {
+                "max health": self.entity_data.health,
+                "max armour": self.entity_data.armour,
+            }
+        )
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
 
     @property
-    def upgrade_data(self) -> list[UpgradeData]:
-        """Returns the upgrades that are available to the player."""
-        return list(self.player_data.upgrade_data)
+    def max_health(self) -> int:
+        """
+        Gets the player's maximum health.
+
+        Returns
+        -------
+        int
+            The player's maximum health.
+        """
+        return self._entity_state["max health"]
+
+    @max_health.setter
+    def max_health(self, value: int) -> None:
+        """
+        Sets the player's maximum health.
+
+
+        Parameters
+        ----------
+        value: int
+            The new maximum health value.
+        """
+        self._entity_state["max health"] = value
+
+    @property
+    def max_armour(self) -> int:
+        """
+        Gets the player's maximum armour.
+
+        Returns
+        -------
+        int
+            The player's maximum armour
+        """
+        return self._entity_state["max armour"]
+
+    @max_armour.setter
+    def max_armour(self, value: int) -> None:
+        """
+        Sets the player's maximum armour.
+
+        Parameters
+        ----------
+        value: int
+            The new maximum armour value.
+        """
+        self._entity_state["max armour"] = value
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """

@@ -152,7 +152,14 @@ class RangedAttack(AttackBase):
 
     @property
     def ranged_attack_data(self) -> RangedAttackData:
-        """Returns the ranged attack data."""
+        """
+        Gets the ranged attack data.
+
+        Returns
+        -------
+        RangedAttackData
+            The ranged attack data.
+        """
         return self.owner.ranged_attack_data
 
     def process_attack(self, *args: Any) -> None:
@@ -223,7 +230,14 @@ class MeleeAttack(AttackBase):
 
     @property
     def melee_attack_data(self) -> MeleeAttackData:
-        """Returns the melee attack data."""
+        """
+        Gets the melee attack data.
+
+        Returns
+        -------
+        MeleeAttackData
+            The melee attack data.
+        """
         return self.owner.melee_attack_data
 
     def process_attack(self, *args: Any) -> None:
@@ -252,7 +266,14 @@ class AreaOfEffectAttack(AttackBase):
 
     @property
     def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
-        """Returns the area of effect attack data."""
+        """
+        Gets the area of effect attack data.
+
+        Returns
+        -------
+        AreaOfEffectAttackData
+            The area of effect attack data.
+        """
         return self.owner.area_of_effect_attack_data
 
     def process_attack(self, *args: Any) -> None:

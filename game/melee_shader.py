@@ -64,7 +64,14 @@ class MeleeShader:
 
     @property
     def ctx(self) -> ArcadeContext:
-        """Returns the arcade context object for running OpenGL programs."""
+        """
+        Gets the arcade context object for running OpenGL programs.
+
+        Returns
+        -------
+        ArcadeContext
+            The arcade context object.
+        """
         return self.view.window.ctx
 
     def setup_shader(self) -> None:
