@@ -3,7 +3,7 @@ from __future__ import annotations
 # Builtin
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 # Custom
 from game.constants.generation import TileType
@@ -32,6 +32,13 @@ class StatusEffectType(Enum):
     ARMOUR = "armour"
     SPEED = "speed"
     FIRE_RATE = "fire rate"
+
+
+# Player upgrades types
+class PlayerUpgradeType(Enum):
+    """Stores the types of upgrades that can be applied to the player."""
+
+    HEALTH = "health"
 
 
 # Movement algorithms
@@ -98,7 +105,8 @@ class BaseData:
 @dataclass
 class EntityData:
     """
-    The base class for storing general data about an entity.
+    The base class for storing general data about an entity. This stuff should not
+    change between entity levels.
 
     name: str
         The name of the entity.
@@ -134,10 +142,36 @@ class PlayerData:
         The amount of tiles the player can attack within using a melee attack.
     melee_degree: int
         The degree that the player's melee attack is limited to.
+    upgrade_data: Sequence[UpgradeData]
+        The upgrades that are available to the player.
     """
 
     melee_range: int = field(kw_only=True)
     melee_degree: int = field(kw_only=True)
+    upgrade_data: Sequence[UpgradeData] = field(
+        kw_only=True, default_factory=lambda: [].copy()
+    )
+
+
+@dataclass
+class UpgradeData:
+    """
+    Stores an upgrade that is available to the player.
+
+    level_type: PlayerUpgradeType
+        The type of upgrade this instance represents.
+    level_one: int | None
+        The first upgrade available for this type.
+    level_two: int | None
+        The second upgrade available for this type.
+    level_three: int | None
+        The third upgrade available for this type.
+    """
+
+    level_type: PlayerUpgradeType
+    level_one: int | None = field(kw_only=True, default=None)
+    level_two: int | None = field(kw_only=True, default=None)
+    level_three: int | None = field(kw_only=True, default=None)
 
 
 @dataclass
@@ -234,7 +268,15 @@ PLAYER = BaseData(
         armour_regen=True,
         armour_regen_cooldown=1,
     ),
-    player_data=PlayerData(melee_range=3, melee_degree=60),
+    player_data=PlayerData(
+        melee_range=3,
+        melee_degree=60,
+        upgrade_data=[
+            UpgradeData(
+                PlayerUpgradeType.HEALTH, level_one=5, level_two=10, level_three=15
+            )
+        ],
+    ),
     ranged_attack_data=RangedAttackData(damage=10, attack_cooldown=1, max_range=10),
     melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1),
     area_of_effect_attack_data=AreaOfEffectAttackData(

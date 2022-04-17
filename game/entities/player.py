@@ -12,7 +12,7 @@ from game.entities.status_effect import StatusEffect
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from game.constants.entity import BaseData
+    from game.constants.entity import BaseData, UpgradeData
     from game.entities.base import Item
     from game.views.game import Game
 
@@ -68,6 +68,11 @@ class Player(Entity):
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def upgrade_data(self) -> list[UpgradeData]:
+        """Returns the upgrades that are available to the player."""
+        return list(self.player_data.upgrade_data)
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
