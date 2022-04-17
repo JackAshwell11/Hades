@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 # Builtin
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -74,11 +73,13 @@ class BaseData:
     """
 
     entity_data: EntityData
-    player_data: PlayerData | None = None
-    enemy_data: EnemyData | None = None
-    ranged_attack_data: AttackData | None = None
-    melee_attack_data: AttackData | None = None
-    area_of_effect_attack_data: AreaOfEffectAttackData | None = None
+    player_data: PlayerData | None = field(kw_only=True, default=None)
+    enemy_data: EnemyData | None = field(kw_only=True, default=None)
+    ranged_attack_data: RangedAttackData | None = field(kw_only=True, default=None)
+    melee_attack_data: MeleeAttackData | None = field(kw_only=True, default=None)
+    area_of_effect_attack_data: AreaOfEffectAttackData | None = field(
+        kw_only=True, default=None
+    )
 
     def get_all_attacks(self) -> list[AttackData]:
         """Returns all the attacks the entity has."""
@@ -117,14 +118,14 @@ class EntityData:
         The time between armour regenerations.
     """
 
-    name: str
-    health: int
-    armour: int
-    textures: dict[str, list[list[arcade.Texture]]]
-    max_velocity: int
-    attack_cooldown: int
-    armour_regen: bool
-    armour_regen_cooldown: int
+    name: str = field(kw_only=True)
+    health: int = field(kw_only=True)
+    armour: int = field(kw_only=True)
+    textures: dict[str, list[list[arcade.Texture]]] = field(kw_only=True)
+    max_velocity: int = field(kw_only=True)
+    attack_cooldown: int = field(kw_only=True)
+    armour_regen: bool = field(kw_only=True)
+    armour_regen_cooldown: int = field(kw_only=True)
 
 
 @dataclass
@@ -138,8 +139,8 @@ class PlayerData:
         The degree that the player's melee attack is limited to.
     """
 
-    melee_range: int
-    melee_degree: int
+    melee_range: int = field(kw_only=True)
+    melee_degree: int = field(kw_only=True)
 
 
 @dataclass
@@ -155,9 +156,9 @@ class EnemyData:
         The movement algorithm that this enemy has.
     """
 
-    view_distance: int
-    attack_range: int
-    movement_algorithm: AIMovementType
+    view_distance: int = field(kw_only=True)
+    attack_range: int = field(kw_only=True)
+    movement_algorithm: AIMovementType = field(kw_only=True)
 
 
 @dataclass
@@ -165,14 +166,36 @@ class AttackData:
     """
     Stores general data about an entity's attack.
 
-    attack_type: AttackAlgorithmType
-        The attack algorithm type that this dataclass describes.
     damage: int
         The damage the entity deals.
     """
 
+    damage: int = field(kw_only=True)
     attack_type: AttackAlgorithmType
+
+
+@dataclass
+class RangedAttackData(AttackData):
+    """
+    Stores data about an entity's ranged attack.
+
     damage: int
+        The damage the entity deals.
+    """
+
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.RANGED
+
+
+@dataclass
+class MeleeAttackData(AttackData):
+    """
+    Stores data about an entity's melee attack.
+
+    damage: int
+        The damage the entity deals.
+    """
+
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.MELEE
 
 
 @dataclass
@@ -187,50 +210,44 @@ class AreaOfEffectAttackData(AttackData):
         not the diameter.
     """
 
-    range: int
+    range: int = field(kw_only=True)
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
 
 
 # Player characters
 PLAYER = BaseData(
     EntityData(
-        "player",
-        100,
-        20,
-        moving_textures["player"],
-        200,
-        1,
-        True,
-        1,
+        name="player",
+        health=100,
+        armour=20,
+        textures=moving_textures["player"],
+        max_velocity=200,
+        attack_cooldown=1,
+        armour_regen=True,
+        armour_regen_cooldown=1,
     ),
-    player_data=PlayerData(
-        3,
-        60,
-    ),
-    ranged_attack_data=AttackData(AttackAlgorithmType.RANGED, 10),
-    melee_attack_data=AttackData(AttackAlgorithmType.MELEE, 10),
-    area_of_effect_attack_data=AreaOfEffectAttackData(
-        AttackAlgorithmType.AREA_OF_EFFECT, 10, 3
-    ),
+    player_data=PlayerData(melee_range=3, melee_degree=60),
+    ranged_attack_data=RangedAttackData(damage=10),
+    melee_attack_data=MeleeAttackData(damage=10),
+    area_of_effect_attack_data=AreaOfEffectAttackData(damage=10, range=3),
 )
 
 # Enemy characters
 ENEMY1 = BaseData(
     EntityData(
-        "enemy1",
-        10,
-        10,
-        moving_textures["enemy"],
-        50,
-        1,
-        True,
-        3,
+        name="enemy1",
+        health=10,
+        armour=10,
+        textures=moving_textures["enemy"],
+        max_velocity=50,
+        attack_cooldown=1,
+        armour_regen=True,
+        armour_regen_cooldown=3,
     ),
     enemy_data=EnemyData(
-        5,
-        3,
-        AIMovementType.FOLLOW,
+        view_distance=5, attack_range=3, movement_algorithm=AIMovementType.FOLLOW
     ),
-    ranged_attack_data=AttackData(AttackAlgorithmType.RANGED, 5),
+    ranged_attack_data=RangedAttackData(damage=5),
 )
 
 

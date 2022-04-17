@@ -25,7 +25,9 @@ if TYPE_CHECKING:
         BaseData,
         EnemyData,
         EntityData,
+        MeleeAttackData,
         PlayerData,
+        RangedAttackData,
     )
     from game.entities.player import Player
     from game.views.game import Game
@@ -273,7 +275,7 @@ class Entity(arcade.Sprite):
         return self.entity_type.get_all_attacks()
 
     @property
-    def ranged_attack_data(self) -> AttackData:
+    def ranged_attack_data(self) -> RangedAttackData:
         """Returns the ranged attack data if the entity has the attack."""
         # Make sure the entity type is valid
         assert self.entity_type is not None
@@ -283,7 +285,7 @@ class Entity(arcade.Sprite):
         return self.entity_type.ranged_attack_data
 
     @property
-    def melee_attack_data(self) -> AttackData:
+    def melee_attack_data(self) -> MeleeAttackData:
         """Returns the melee attack data if the entity has the attack."""
         # Make sure the entity type is valid
         assert self.entity_type is not None
