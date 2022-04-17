@@ -48,8 +48,6 @@ class Player(Entity):
         The maximum health of the player.
     max_armour: int
         The maximum armour of the player.
-    attack_cooldown: int
-        The attack cooldown of the player
     in_combat: bool
         Whether the player is in combat or not.
     """
@@ -66,7 +64,6 @@ class Player(Entity):
         self.applied_effects: list[StatusEffect] = []
         self.max_health: int = self.entity_data.health
         self.max_armour: int = self.entity_data.armour
-        self.attack_cooldown: int = self.entity_data.attack_cooldown
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
@@ -149,7 +146,18 @@ class Player(Entity):
 
     def attack(self) -> None:
         """Runs the player's current attack algorithm."""
-        # Find out what attack algorithm is selected
+        # Check if the player can attack
+        if self.time_since_last_attack < self.current_attack.attack_cooldown:
+            return
+
+        # Reset the player's combat variables and attack
+        self.time_since_armour_regen = self.entity_data.armour_regen_cooldown
+        self.time_since_last_attack = 0
+        self.time_out_of_combat = 0
+        self.in_combat = True
+
+        # Find out what attack algorithm is selected. We also need to check if the
+        # player can attack
         match type(self.current_attack):
             case AttackAlgorithmType.RANGED.value:
                 self.current_attack.process_attack(self.game.bullet_sprites)

@@ -67,13 +67,13 @@ class AttackBase:
     ----------
     owner: Entity
         The owner of this attack algorithm.
+    attack_cooldown: int
+        The cooldown for this attack.
     """
 
-    def __init__(
-        self,
-        owner: Entity,
-    ) -> None:
+    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
         self.owner: Entity = owner
+        self.attack_cooldown: int = attack_cooldown
 
     def __repr__(self) -> str:
         return f"<AttackBase (Owner={self.owner})>"
@@ -104,10 +104,12 @@ class RangedAttack(AttackBase):
     ----------
     owner: Entity
         The owner of this attack algorithm.
+    attack_cooldown: int
+        The cooldown for this attack.
     """
 
-    def __init__(self, owner: Entity) -> None:
-        super().__init__(owner)
+    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
+        super().__init__(owner, attack_cooldown)
 
     def __repr__(self) -> str:
         return f"<RangedAttack (Owner={self.owner})>"
@@ -167,10 +169,12 @@ class MeleeAttack(AttackBase):
     ----------
     owner: Entity
         The owner of this attack algorithm.
+    attack_cooldown: int
+        The cooldown for this attack.
     """
 
-    def __init__(self, owner: Entity) -> None:
-        super().__init__(owner)
+    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
+        super().__init__(owner, attack_cooldown)
 
     def __repr__(self) -> str:
         return f"<MeleeAttack (Owner={self.owner})>"
@@ -189,10 +193,12 @@ class AreaOfEffectAttack(AttackBase):
     ----------
     owner: Entity
         The owner of this attack algorithm.
+    attack_cooldown: int
+        The cooldown for this attack.
     """
 
-    def __init__(self, owner: Entity) -> None:
-        super().__init__(owner)
+    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
+        super().__init__(owner, attack_cooldown)
 
     def __repr__(self) -> str:
         return f"<AreaOfEffectAttack (Owner={self.owner})>"

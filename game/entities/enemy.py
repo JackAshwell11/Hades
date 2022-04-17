@@ -153,9 +153,10 @@ class Enemy(Entity):
         # Return the result
         return self.line_of_sight
 
-    def check_distance(self) -> bool:
+    def check_attack(self) -> bool:
         """
-        Checks if the player is within a certain distance of the enemy.
+        Checks if the player is within a certain distance of the enemy and that the
+        enemy can attack.
 
         Returns
         -------
@@ -171,7 +172,7 @@ class Enemy(Entity):
         logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
         return (
             hypot_distance <= self.enemy_data.attack_range * SPRITE_SIZE
-            and self.time_since_last_attack >= self.entity_data.attack_cooldown
+            and self.time_since_last_attack >= self.current_attack.attack_cooldown
         )
 
     def update_indicator_bars(self) -> None:
@@ -195,12 +196,12 @@ class Enemy(Entity):
     def attack(self) -> None:
         """Runs the enemy's current attack algorithm."""
         # Check if the player is within range of the enemy
-        if not self.check_distance():
+        if not self.check_attack():
             return
 
-        # Enemy can attack so reset the counter and determine what attack algorithm is
+        # Enemy can attack so reset the counters and determine what attack algorithm is
         # selected
-        self.time_since_last_attack: float = 0
+        self.time_since_last_attack = 0
         match type(self.current_attack):
             case AttackAlgorithmType.RANGED.value:
                 self.current_attack.process_attack(self.game.bullet_sprites)

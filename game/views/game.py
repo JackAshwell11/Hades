@@ -527,17 +527,8 @@ class Game(arcade.View):
         assert self.player is not None
 
         # Test if the player can attack
-        if (
-            button == arcade.MOUSE_BUTTON_LEFT
-            and self.player.time_since_last_attack >= self.player.attack_cooldown
-        ):
-            # Reset the player's combat variables and attack
-            self.player.time_since_armour_regen = (
-                self.player.entity_data.armour_regen_cooldown
-            )
-            self.player.time_since_last_attack = 0
-            self.player.time_out_of_combat = 0
-            self.player.in_combat = True
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            # Make the player attack
             self.player.attack()
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:

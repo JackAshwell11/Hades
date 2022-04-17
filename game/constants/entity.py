@@ -98,7 +98,7 @@ class BaseData:
 @dataclass
 class EntityData:
     """
-    Stores general data about an entity.
+    The base class for storing general data about an entity.
 
     name: str
         The name of the entity.
@@ -110,8 +110,6 @@ class EntityData:
         The textures which represent this entity.
     max_velocity: int
         The max speed that the entity can go.
-    attack_cooldown: int
-        The time duration between attacks.
     armour_regen: bool
         Whether the entity regenerates armour or not.
     armour_regen_cooldown: int
@@ -123,7 +121,6 @@ class EntityData:
     armour: int = field(kw_only=True)
     textures: dict[str, list[list[arcade.Texture]]] = field(kw_only=True)
     max_velocity: int = field(kw_only=True)
-    attack_cooldown: int = field(kw_only=True)
     armour_regen: bool = field(kw_only=True)
     armour_regen_cooldown: int = field(kw_only=True)
 
@@ -164,13 +161,16 @@ class EnemyData:
 @dataclass
 class AttackData:
     """
-    Stores general data about an entity's attack.
+    The base class for storing data about an entity's attack.
 
     damage: int
         The damage the entity deals.
+    attack_cooldown: int
+        The time duration between attacks.
     """
 
     damage: int = field(kw_only=True)
+    attack_cooldown: int = field(kw_only=True)
     attack_type: AttackAlgorithmType
 
 
@@ -181,6 +181,8 @@ class RangedAttackData(AttackData):
 
     damage: int
         The damage the entity deals.
+    attack_cooldown: int
+        The time duration between attacks.
     """
 
     attack_type: AttackAlgorithmType = AttackAlgorithmType.RANGED
@@ -193,6 +195,8 @@ class MeleeAttackData(AttackData):
 
     damage: int
         The damage the entity deals.
+    attack_cooldown: int
+        The time duration between attacks.
     """
 
     attack_type: AttackAlgorithmType = AttackAlgorithmType.MELEE
@@ -205,6 +209,8 @@ class AreaOfEffectAttackData(AttackData):
 
     damage: int
         The damage the entity deals.
+    attack_cooldown: int
+        The time duration between attacks.
     range: int
         The range an area of effect attack deals has. This is the radius of the circle,
         not the diameter.
@@ -222,14 +228,15 @@ PLAYER = BaseData(
         armour=20,
         textures=moving_textures["player"],
         max_velocity=200,
-        attack_cooldown=1,
         armour_regen=True,
         armour_regen_cooldown=1,
     ),
     player_data=PlayerData(melee_range=3, melee_degree=60),
-    ranged_attack_data=RangedAttackData(damage=10),
-    melee_attack_data=MeleeAttackData(damage=10),
-    area_of_effect_attack_data=AreaOfEffectAttackData(damage=10, range=3),
+    ranged_attack_data=RangedAttackData(damage=10, attack_cooldown=1),
+    melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1),
+    area_of_effect_attack_data=AreaOfEffectAttackData(
+        damage=10, attack_cooldown=1, range=3
+    ),
 )
 
 # Enemy characters
@@ -240,14 +247,13 @@ ENEMY1 = BaseData(
         armour=10,
         textures=moving_textures["enemy"],
         max_velocity=50,
-        attack_cooldown=1,
         armour_regen=True,
         armour_regen_cooldown=3,
     ),
     enemy_data=EnemyData(
         view_distance=5, attack_range=3, movement_algorithm=AIMovementType.FOLLOW
     ),
-    ranged_attack_data=RangedAttackData(damage=5),
+    ranged_attack_data=RangedAttackData(damage=5, attack_cooldown=1),
 )
 
 
