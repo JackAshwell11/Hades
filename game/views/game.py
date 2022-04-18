@@ -407,7 +407,7 @@ class Game(arcade.View):
         # Check if the player is in combat
         self.player.in_combat = any(
             [enemy.line_of_sight for enemy in self.enemies]  # noqa
-        )  # noqa
+        )
         if self.player.in_combat:
             self.player.time_out_of_combat = 0
 

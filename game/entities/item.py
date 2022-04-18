@@ -331,7 +331,7 @@ class SpeedBoostPotion(Collectible):
                 StatusEffectType.SPEED,
                 SPEED_BOOST_POTION_INCREASE,
                 SPEED_BOOST_POTION_DURATION,
-                self.player.entity_data.max_velocity,
+                self.player.max_velocity,
             )
         )
 
@@ -396,7 +396,7 @@ class FireRateBoostPotion(Collectible):
                 StatusEffectType.FIRE_RATE,
                 FIRE_RATE_BOOST_POTION_INCREASE,
                 FIRE_RATE_BOOST_POTION_DURATION,
-                self.player.attack_cooldown,
+                self.player.bonus_attack_cooldown,
             )
         )
 

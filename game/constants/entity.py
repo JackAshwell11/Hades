@@ -35,10 +35,13 @@ class StatusEffectType(Enum):
 
 
 # Player upgrades types
-class PlayerUpgradeType(Enum):
-    """Stores the types of upgrades that can be applied to the player."""
+class UpgradeType(Enum):
+    """Stores the types of upgrades that can be applied to the entity."""
 
     HEALTH = "health"
+    ARMOUR = "armour"
+    SPEED = "speed"
+    REGEN_COOLDOWN = "regen cooldown"
 
 
 # Movement algorithms
@@ -127,12 +130,8 @@ class EntityData:
     """
 
     name: str = field(kw_only=True)
-    health: int = field(kw_only=True)
-    armour: int = field(kw_only=True)
     textures: dict[str, list[list[arcade.Texture]]] = field(kw_only=True)
-    max_velocity: int = field(kw_only=True)
     armour_regen: bool = field(kw_only=True)
-    armour_regen_cooldown: int = field(kw_only=True)
     upgrade_data: Sequence[UpgradeData] = field(
         kw_only=True, default_factory=lambda: [].copy()
     )
@@ -156,22 +155,22 @@ class PlayerData:
 @dataclass
 class UpgradeData:
     """
-    Stores an upgrade that is available to the player.
+    Stores an upgrade that is available to the entity.
 
-    level_type: PlayerUpgradeType
+    level_type: UpgradeType
         The type of upgrade this instance represents.
-    level_one: int | None
+    level_one: float
         The first upgrade available for this type.
-    level_two: int | None
+    level_two: float
         The second upgrade available for this type.
-    level_three: int | None
+    level_three: float
         The third upgrade available for this type.
     """
 
-    level_type: PlayerUpgradeType
-    level_one: int | None = field(kw_only=True, default=None)
-    level_two: int | None = field(kw_only=True, default=None)
-    level_three: int | None = field(kw_only=True, default=None)
+    level_type: UpgradeType
+    level_one: float = field(kw_only=True)
+    level_two: float = field(kw_only=True)
+    level_three: float = field(kw_only=True)
 
 
 @dataclass
@@ -261,16 +260,19 @@ class AreaOfEffectAttackData(AttackData):
 PLAYER = BaseData(
     EntityData(
         name="player",
-        health=100,
-        armour=20,
         textures=moving_textures["player"],
-        max_velocity=200,
         armour_regen=True,
-        armour_regen_cooldown=1,
         upgrade_data=[
             UpgradeData(
-                PlayerUpgradeType.HEALTH, level_one=5, level_two=10, level_three=15
-            )
+                UpgradeType.HEALTH, level_one=100, level_two=150, level_three=200
+            ),
+            UpgradeData(UpgradeType.ARMOUR, level_one=20, level_two=25, level_three=30),
+            UpgradeData(
+                UpgradeType.SPEED, level_one=200, level_two=250, level_three=300
+            ),
+            UpgradeData(
+                UpgradeType.REGEN_COOLDOWN, level_one=2, level_two=1, level_three=0.5
+            ),
         ],
     ),
     player_data=PlayerData(
@@ -288,12 +290,18 @@ PLAYER = BaseData(
 ENEMY1 = BaseData(
     EntityData(
         name="enemy1",
-        health=10,
-        armour=10,
         textures=moving_textures["enemy"],
-        max_velocity=50,
         armour_regen=True,
-        armour_regen_cooldown=3,
+        upgrade_data=[
+            UpgradeData(UpgradeType.HEALTH, level_one=10, level_two=15, level_three=20),
+            UpgradeData(UpgradeType.ARMOUR, level_one=10, level_two=15, level_three=20),
+            UpgradeData(
+                UpgradeType.SPEED, level_one=50, level_two=100, level_three=150
+            ),
+            UpgradeData(
+                UpgradeType.REGEN_COOLDOWN, level_one=3, level_two=2, level_three=1
+            ),
+        ],
     ),
     enemy_data=EnemyData(
         view_distance=5, attack_range=3, movement_algorithm=AIMovementType.FOLLOW

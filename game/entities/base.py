@@ -222,16 +222,21 @@ class Entity(arcade.Sprite):
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
-        self._entity_state: dict[str, int] = {
-            "health": self.entity_data.health,
-            "armour": self.entity_data.armour,
+        self._entity_state: dict[str, int | float] = {
+            "health": self.upgrade_data[0].level_one,
+            "max health": self.upgrade_data[0].level_one,
+            "armour": self.upgrade_data[1].level_one,
+            "max armour": self.upgrade_data[1].level_one,
+            "max velocity": self.upgrade_data[2].level_one,
+            "armour regen cooldown": self.upgrade_data[3].level_one,
+            "bonus attack cooldown": 0,
         }
         self.current_attack_index: int = 0
         self.direction: float = 0
         self.facing: int = 0
         self.time_since_last_attack: float = 0
         self.time_out_of_combat: float = 0
-        self.time_since_armour_regen: float = self.entity_data.armour_regen_cooldown
+        self.time_since_armour_regen: float = self.armour_regen_cooldown
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
@@ -387,7 +392,7 @@ class Entity(arcade.Sprite):
         int
             The entity's health
         """
-        return self._entity_state["health"]
+        return int(self._entity_state["health"])
 
     @health.setter
     def health(self, value: int) -> None:
@@ -402,6 +407,31 @@ class Entity(arcade.Sprite):
         self._entity_state["health"] = value
 
     @property
+    def max_health(self) -> int:
+        """
+        Gets the player's maximum health.
+
+        Returns
+        -------
+        int
+            The player's maximum health.
+        """
+        return int(self._entity_state["max health"])
+
+    @max_health.setter
+    def max_health(self, value: int) -> None:
+        """
+        Sets the player's maximum health.
+
+
+        Parameters
+        ----------
+        value: int
+            The new maximum health value.
+        """
+        self._entity_state["max health"] = value
+
+    @property
     def armour(self) -> int:
         """
         Gets the entity's armour.
@@ -411,7 +441,7 @@ class Entity(arcade.Sprite):
         int
             The entity's armour.
         """
-        return self._entity_state["armour"]
+        return int(self._entity_state["armour"])
 
     @armour.setter
     def armour(self, value: int) -> None:
@@ -424,6 +454,103 @@ class Entity(arcade.Sprite):
             The new armour value.
         """
         self._entity_state["armour"] = value
+
+    @property
+    def max_armour(self) -> int:
+        """
+        Gets the player's maximum armour.
+
+        Returns
+        -------
+        int
+            The player's maximum armour
+        """
+        return int(self._entity_state["max armour"])
+
+    @max_armour.setter
+    def max_armour(self, value: int) -> None:
+        """
+        Sets the player's maximum armour.
+
+        Parameters
+        ----------
+        value: int
+            The new maximum armour value.
+        """
+        self._entity_state["max armour"] = value
+
+    @property
+    def max_velocity(self) -> float:
+        """
+        Gets the entity's max velocity.
+
+        Returns
+        -------
+        float
+            The entity's max velocity.
+        """
+        return self._entity_state["max velocity"]
+
+    @max_velocity.setter
+    def max_velocity(self, value: float) -> None:
+        """
+        Sets the entity's max velocity.
+
+        Parameters
+        ----------
+        value: float
+            The new max velocity value.
+        """
+        self._entity_state["max velocity"] = value
+        self.pymunk.max_velocity = value
+
+    @property
+    def armour_regen_cooldown(self) -> float:
+        """
+        Gets the entity's armour regen cooldown
+
+        Returns
+        -------
+        float
+            The entity's armour regen cooldown.
+        """
+        return self._entity_state["armour regen cooldown"]
+
+    @armour_regen_cooldown.setter
+    def armour_regen_cooldown(self, value: float) -> None:
+        """
+        Sets the entity's armour regen cooldown.
+
+        Parameters
+        ----------
+        value: float
+            The new armour regen cooldown value.
+        """
+        self._entity_state["armour regen cooldown"] = value
+
+    @property
+    def bonus_attack_cooldown(self) -> float:
+        """
+        Gets the entity's bonus attack cooldown
+
+        Returns
+        -------
+        float
+            The entity's bonus attack cooldown.
+        """
+        return self._entity_state["bonus attack cooldown"]
+
+    @bonus_attack_cooldown.setter
+    def bonus_attack_cooldown(self, value: float) -> None:
+        """
+        Sets the entity's bonus attack cooldown.
+
+        Parameters
+        ----------
+        value: float
+            The new bonus attack cooldown.
+        """
+        self._entity_state["bonus attack cooldown"] = value
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
@@ -482,7 +609,7 @@ class Entity(arcade.Sprite):
         # Check if the entity has been out of combat for ARMOUR_REGEN_WAIT seconds
         if self.time_out_of_combat >= ARMOUR_REGEN_WAIT:
             # Check if enough has passed since the last armour regen
-            if self.time_since_armour_regen >= self.entity_data.armour_regen_cooldown:
+            if self.time_since_armour_regen >= self.armour_regen_cooldown:
                 # Regen armour
                 self.armour += ARMOUR_REGEN_AMOUNT
                 self.time_since_armour_regen = 0

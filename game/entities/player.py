@@ -59,64 +59,9 @@ class Player(Entity):
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.applied_effects: list[StatusEffect] = []
         self.in_combat: bool = False
-        self._entity_state.update(
-            {
-                "max health": self.entity_data.health,
-                "max armour": self.entity_data.armour,
-            }
-        )
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
-
-    @property
-    def max_health(self) -> int:
-        """
-        Gets the player's maximum health.
-
-        Returns
-        -------
-        int
-            The player's maximum health.
-        """
-        return self._entity_state["max health"]
-
-    @max_health.setter
-    def max_health(self, value: int) -> None:
-        """
-        Sets the player's maximum health.
-
-
-        Parameters
-        ----------
-        value: int
-            The new maximum health value.
-        """
-        self._entity_state["max health"] = value
-
-    @property
-    def max_armour(self) -> int:
-        """
-        Gets the player's maximum armour.
-
-        Returns
-        -------
-        int
-            The player's maximum armour
-        """
-        return self._entity_state["max armour"]
-
-    @max_armour.setter
-    def max_armour(self, value: int) -> None:
-        """
-        Sets the player's maximum armour.
-
-        Parameters
-        ----------
-        value: int
-            The new maximum armour value.
-        """
-        self._entity_state["max armour"] = value
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
@@ -196,11 +141,13 @@ class Player(Entity):
     def attack(self) -> None:
         """Runs the player's current attack algorithm."""
         # Check if the player can attack
-        if self.time_since_last_attack < self.current_attack.attack_cooldown:
+        if self.time_since_last_attack < (
+            self.current_attack.attack_cooldown + self.bonus_attack_cooldown
+        ):
             return
 
         # Reset the player's combat variables and attack
-        self.time_since_armour_regen = self.entity_data.armour_regen_cooldown
+        self.time_since_armour_regen = self.armour_regen_cooldown
         self.time_since_last_attack = 0
         self.time_out_of_combat = 0
         self.in_combat = True

@@ -57,6 +57,7 @@ class Enemy(Entity):
 
     # Class variables
     entity_id: EntityID = EntityID.ENEMY
+    enemy_level: int = 1
 
     def __init__(
         self,
@@ -102,13 +103,13 @@ class Enemy(Entity):
 
                 # Make sure the enemy's armour does not go over the maximum
                 self.armour: int  # Mypy gives self.armour an undetermined type error
-                if self.armour > self.entity_data.armour:
-                    self.armour = self.entity_data.armour
+                if self.armour > self.max_armour:
+                    self.armour = self.max_armour
             return
 
         # Enemy in combat so reset their combat counter
         self.time_out_of_combat = 0
-        self.time_since_armour_regen = self.entity_data.armour_regen_cooldown
+        self.time_since_armour_regen = self.armour_regen_cooldown
 
         # Player is within line of sight so get the force needed to move the enemy
         horizontal, vertical = self.ai.calculate_movement(self.game.player)
@@ -172,15 +173,16 @@ class Enemy(Entity):
         logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
         return (
             hypot_distance <= self.enemy_data.attack_range * SPRITE_SIZE
-            and self.time_since_last_attack >= self.current_attack.attack_cooldown
+            and self.time_since_last_attack
+            >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown)
         )
 
     def update_indicator_bars(self) -> None:
         """Performs actions that should happen after the enemy takes damage."""
         # Update the health and armour bar
         try:
-            self.health_bar.fullness = self.health / self.entity_data.health
-            self.armour_bar.fullness = self.armour / self.entity_data.armour
+            self.health_bar.fullness = self.health / self.max_health
+            self.armour_bar.fullness = self.armour / self.max_armour
         except ValueError:
             # Enemy is already dead
             pass

@@ -167,7 +167,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             player,
             moment_of_inertia=self.MOMENT_INF,
             collision_type="player",
-            max_velocity=player.entity_data.max_velocity,
+            max_velocity=player.max_velocity,
         )
 
         # Add the static tile sprites to the physics engine
@@ -185,7 +185,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                 enemy,
                 moment_of_inertia=self.MOMENT_INF,
                 collision_type="enemy",
-                max_velocity=enemy.entity_data.max_velocity,  # noqa
+                max_velocity=enemy.max_velocity,  # noqa
             )
 
         # Add collision handlers

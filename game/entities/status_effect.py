@@ -24,11 +24,11 @@ class StatusEffect:
         The reference to the player object
     effect_type: StatusEffectType
         The status effect type that is being applied to the player.
-    increase_amount: int
+    increase_amount: float
         The amount of increase that should be applied to the player temporarily.
     duration: int
         The duration the status effect should be applied for.
-    original: int
+    original: float
         The original value of the variable which is being changed.
 
     Attributes
@@ -41,15 +41,15 @@ class StatusEffect:
         self,
         player: Player,
         effect_type: StatusEffectType,
-        increase_amount: int,
+        increase_amount: float,
         duration: int,
-        original: int,
+        original: float,
     ) -> None:
         self.player: Player = player
         self.effect_type: StatusEffectType = effect_type
-        self.increase_amount: int = increase_amount
+        self.increase_amount: float = increase_amount
         self.duration: int = duration
-        self.original: int = original
+        self.original: float = original
         self.time_counter: float = 0
 
     def __repr__(self) -> str:
@@ -71,19 +71,19 @@ class StatusEffect:
         # Apply the effect
         match self.effect_type:
             case StatusEffectType.HEALTH:
-                self.player.health = new_value
-                self.player.max_health = (
-                    self.player.entity_data.health + self.increase_amount
+                self.player.health = int(new_value)
+                self.player.max_health = int(
+                    self.player.max_health + self.increase_amount
                 )
             case StatusEffectType.ARMOUR:
-                self.player.armour = new_value
-                self.player.max_armour = (
-                    self.player.entity_data.armour + self.increase_amount
+                self.player.armour = int(new_value)
+                self.player.max_armour = int(
+                    self.player.max_armour + self.increase_amount
                 )
             case StatusEffectType.SPEED:
                 self.player.pymunk.max_velocity = new_value
             case StatusEffectType.FIRE_RATE:
-                self.player.attack_cooldown = new_value
+                self.player.bonus_attack_cooldown = new_value
 
     def update(self, delta_time: float) -> None:
         """
@@ -123,15 +123,19 @@ class StatusEffect:
             # Apply the new change to the player
             match self.effect_type:
                 case StatusEffectType.HEALTH:
-                    self.player.health = current_value
-                    self.player.max_health = self.player.entity_data.health
+                    self.player.health = int(current_value)
+                    self.player.max_health = int(
+                        self.player.max_health - self.increase_amount
+                    )
                 case StatusEffectType.ARMOUR:
-                    self.player.armour = current_value
-                    self.player.max_armour = self.player.entity_data.armour
+                    self.player.armour = int(current_value)
+                    self.player.max_armour = int(
+                        self.player.max_armour - self.increase_amount
+                    )
                 case StatusEffectType.SPEED:
                     self.player.pymunk.max_velocity = self.original
                 case StatusEffectType.FIRE_RATE:
-                    self.player.attack_cooldown = self.original
+                    self.player.bonus_attack_cooldown = self.original
 
             # Remove the status effect
             self.player.applied_effects.remove(self)
