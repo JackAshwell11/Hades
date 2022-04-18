@@ -78,7 +78,6 @@ class Player(Entity):
         # Check if the player can regenerate health
         if not self.in_combat:
             self.check_armour_regen(delta_time)
-            self.armour: int  # Mypy gives self.armour an undetermined type error
             if self.armour > self.max_armour:
                 self.armour = self.max_armour
                 logger.debug("Set player armour to max")

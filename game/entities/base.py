@@ -222,7 +222,7 @@ class Entity(arcade.Sprite):
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
-        self._entity_state: dict[str, int | float] = {
+        self._entity_state: dict[str, float] = {
             "health": self.upgrade_data[0].level_one,
             "max health": self.upgrade_data[0].level_one,
             "armour": self.upgrade_data[1].level_one,
@@ -383,98 +383,98 @@ class Entity(arcade.Sprite):
         return list(self.entity_data.upgrade_data)
 
     @property
-    def health(self) -> int:
+    def health(self) -> float:
         """
         Gets the entity's health.
 
         Returns
         -------
-        int
+        float
             The entity's health
         """
-        return int(self._entity_state["health"])
+        return self._entity_state["health"]
 
     @health.setter
-    def health(self, value: int) -> None:
+    def health(self, value: float) -> None:
         """
         Sets the entity's health.
 
         Parameters
         ----------
-        value: int
+        value: float
             The new health value.
         """
         self._entity_state["health"] = value
 
     @property
-    def max_health(self) -> int:
+    def max_health(self) -> float:
         """
         Gets the player's maximum health.
 
         Returns
         -------
-        int
+        float
             The player's maximum health.
         """
-        return int(self._entity_state["max health"])
+        return self._entity_state["max health"]
 
     @max_health.setter
-    def max_health(self, value: int) -> None:
+    def max_health(self, value: float) -> None:
         """
         Sets the player's maximum health.
 
 
         Parameters
         ----------
-        value: int
+        value: float
             The new maximum health value.
         """
         self._entity_state["max health"] = value
 
     @property
-    def armour(self) -> int:
+    def armour(self) -> float:
         """
         Gets the entity's armour.
 
         Returns
         -------
-        int
+        float
             The entity's armour.
         """
-        return int(self._entity_state["armour"])
+        return self._entity_state["armour"]
 
     @armour.setter
-    def armour(self, value: int) -> None:
+    def armour(self, value: float) -> None:
         """
         Sets the entity's armour.
 
         Parameters
         ----------
-        value: int
+        value: float
             The new armour value.
         """
         self._entity_state["armour"] = value
 
     @property
-    def max_armour(self) -> int:
+    def max_armour(self) -> float:
         """
         Gets the player's maximum armour.
 
         Returns
         -------
-        int
+        float
             The player's maximum armour
         """
-        return int(self._entity_state["max armour"])
+        return self._entity_state["max armour"]
 
     @max_armour.setter
-    def max_armour(self, value: int) -> None:
+    def max_armour(self, value: float) -> None:
         """
         Sets the player's maximum armour.
 
         Parameters
         ----------
-        value: int
+        value: float
             The new maximum armour value.
         """
         self._entity_state["max armour"] = value
