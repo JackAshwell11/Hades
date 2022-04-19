@@ -28,6 +28,7 @@ from game.generation.map import Map
 from game.physics import PhysicsEngine
 from game.textures import pos_to_pixel
 from game.views.inventory_view import InventoryView
+from game.views.shop import ShopView
 
 if TYPE_CHECKING:
     from game.entities.base import Collectible, Item
@@ -229,6 +230,11 @@ class Game(arcade.View):
         inventory_view = InventoryView(self.player)
         self.window.views["InventoryView"] = inventory_view
         logger.info("Initialised inventory view")
+
+        # Set up the shop view
+        shop_view = ShopView()
+        self.window.views["ShopView"] = shop_view
+        logger.info("Initialised shop view")
 
     def on_show(self) -> None:
         """Called when the view loads."""
