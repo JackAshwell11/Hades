@@ -138,6 +138,43 @@ class EntityData:
 
 
 @dataclass
+class UpgradeData:
+    """
+    Stores an upgrade that is available to the entity. If a level's cost is set to -1,
+    then the upgrade does not exist for the entity.
+
+    level_type: UpgradeType
+        The type of upgrade this instance represents.
+    level_one: UpgradeLevelData
+        The first upgrade available for this type.
+    level_two: UpgradeLevelData
+        The second upgrade available for this type.
+    level_three: UpgradeLevelData
+        The third upgrade available for this type.
+    """
+
+    level_type: UpgradeType
+    level_one: UpgradeLevelData = field(kw_only=True)
+    level_two: UpgradeLevelData = field(kw_only=True)
+    level_three: UpgradeLevelData = field(kw_only=True)
+
+
+@dataclass
+class UpgradeLevelData:
+    """
+    Stores the value and cost for a specific level upgrade.
+
+    value: float
+        The value of this upgrade.
+    cost: float
+        The cost of this upgrade.
+    """
+
+    value: float = field(kw_only=True)
+    cost: float = field(kw_only=True)
+
+
+@dataclass
 class PlayerData:
     """
     Stores data about a specific player type.
@@ -150,27 +187,6 @@ class PlayerData:
 
     melee_range: int = field(kw_only=True)
     melee_degree: int = field(kw_only=True)
-
-
-@dataclass
-class UpgradeData:
-    """
-    Stores an upgrade that is available to the entity.
-
-    level_type: UpgradeType
-        The type of upgrade this instance represents.
-    level_one: float
-        The first upgrade available for this type.
-    level_two: float
-        The second upgrade available for this type.
-    level_three: float
-        The third upgrade available for this type.
-    """
-
-    level_type: UpgradeType
-    level_one: float = field(kw_only=True)
-    level_two: float = field(kw_only=True)
-    level_three: float = field(kw_only=True)
 
 
 @dataclass
@@ -264,14 +280,28 @@ PLAYER = BaseData(
         armour_regen=True,
         upgrade_data=[
             UpgradeData(
-                UpgradeType.HEALTH, level_one=100, level_two=150, level_three=200
+                UpgradeType.HEALTH,
+                level_one=UpgradeLevelData(value=100, cost=0),
+                level_two=UpgradeLevelData(value=150, cost=10),
+                level_three=UpgradeLevelData(value=200, cost=20),
             ),
-            UpgradeData(UpgradeType.ARMOUR, level_one=20, level_two=25, level_three=30),
             UpgradeData(
-                UpgradeType.SPEED, level_one=200, level_two=250, level_three=300
+                UpgradeType.ARMOUR,
+                level_one=UpgradeLevelData(value=20, cost=0),
+                level_two=UpgradeLevelData(value=25, cost=10),
+                level_three=UpgradeLevelData(value=30, cost=20),
             ),
             UpgradeData(
-                UpgradeType.REGEN_COOLDOWN, level_one=2, level_two=1, level_three=0.5
+                UpgradeType.SPEED,
+                level_one=UpgradeLevelData(value=200, cost=0),
+                level_two=UpgradeLevelData(value=250, cost=10),
+                level_three=UpgradeLevelData(value=300, cost=20),
+            ),
+            UpgradeData(
+                UpgradeType.REGEN_COOLDOWN,
+                level_one=UpgradeLevelData(value=2, cost=0),
+                level_two=UpgradeLevelData(value=1, cost=10),
+                level_three=UpgradeLevelData(value=0.5, cost=20),
             ),
         ],
     ),
@@ -293,13 +323,29 @@ ENEMY1 = BaseData(
         textures=moving_textures["enemy"],
         armour_regen=True,
         upgrade_data=[
-            UpgradeData(UpgradeType.HEALTH, level_one=10, level_two=15, level_three=20),
-            UpgradeData(UpgradeType.ARMOUR, level_one=10, level_two=15, level_three=20),
             UpgradeData(
-                UpgradeType.SPEED, level_one=50, level_two=100, level_three=150
+                UpgradeType.HEALTH,
+                level_one=UpgradeLevelData(value=10, cost=-1),
+                level_two=UpgradeLevelData(value=15, cost=-1),
+                level_three=UpgradeLevelData(value=20, cost=-1),
             ),
             UpgradeData(
-                UpgradeType.REGEN_COOLDOWN, level_one=3, level_two=2, level_three=1
+                UpgradeType.ARMOUR,
+                level_one=UpgradeLevelData(value=10, cost=-1),
+                level_two=UpgradeLevelData(value=15, cost=-1),
+                level_three=UpgradeLevelData(value=20, cost=-1),
+            ),
+            UpgradeData(
+                UpgradeType.SPEED,
+                level_one=UpgradeLevelData(value=50, cost=-1),
+                level_two=UpgradeLevelData(value=100, cost=-1),
+                level_three=UpgradeLevelData(value=150, cost=-1),
+            ),
+            UpgradeData(
+                UpgradeType.REGEN_COOLDOWN,
+                level_one=UpgradeLevelData(value=3, cost=-1),
+                level_two=UpgradeLevelData(value=2, cost=-1),
+                level_three=UpgradeLevelData(value=1, cost=-1),
             ),
         ],
     ),
