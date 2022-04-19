@@ -5,8 +5,8 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.entity import StatusEffectType
-from game.constants.general import (
+from game.constants.generation import TileType
+from game.constants.item import (
     ARMOUR_BOOST_POTION_DURATION,
     ARMOUR_BOOST_POTION_INCREASE,
     ARMOUR_POTION_INCREASE,
@@ -17,8 +17,8 @@ from game.constants.general import (
     HEALTH_POTION_INCREASE,
     SPEED_BOOST_POTION_DURATION,
     SPEED_BOOST_POTION_INCREASE,
+    StatusEffectType,
 )
-from game.constants.generation import TileType
 from game.entities.base import Collectible, Item
 from game.entities.status_effect import StatusEffect
 from game.textures import non_moving_textures

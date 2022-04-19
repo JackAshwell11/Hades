@@ -24,16 +24,6 @@ class EntityID(Enum):
     ENEMY = "enemy"
 
 
-# Status effect types
-class StatusEffectType(Enum):
-    """Stores the type of status effects that can be applied to the player."""
-
-    HEALTH = "health"
-    ARMOUR = "armour"
-    SPEED = "speed"
-    FIRE_RATE = "fire rate"
-
-
 # Player upgrades types
 class UpgradeType(Enum):
     """Stores the types of upgrades that can be applied to the entity."""

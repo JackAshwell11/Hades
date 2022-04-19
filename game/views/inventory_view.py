@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from game.constants.general import CONSUMABLES, INVENTORY_HEIGHT, INVENTORY_WIDTH
+from game.constants.consumable import CONSUMABLES
+from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 
 if TYPE_CHECKING:
     from game.entities.base import Item

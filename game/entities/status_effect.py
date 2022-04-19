@@ -5,7 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.entity import StatusEffectType
+from game.constants.consumable import StatusEffectType
 
 if TYPE_CHECKING:
     from game.entities.player import Player
@@ -42,13 +42,13 @@ class StatusEffect:
         player: Player,
         effect_type: StatusEffectType,
         increase_amount: float,
-        duration: int,
+        duration: float,
         original: float,
     ) -> None:
         self.player: Player = player
         self.effect_type: StatusEffectType = effect_type
         self.increase_amount: float = increase_amount
-        self.duration: int = duration
+        self.duration: float = duration
         self.original: float = original
         self.time_counter: float = 0
 
