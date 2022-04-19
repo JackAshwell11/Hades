@@ -26,5 +26,5 @@ PyInstaller.__main__.run(
 )
 
 # CHANGE TO NUITKA, COMMAND:
-#   nuitka .\game\window.py --standalone --follow-imports
-#   --include-data-dir=/game/resources=/game/resources
+#   nuitka game/window.py --standalone --follow-imports
+#   --include-data-dir=./game/resources=resources --enable-plugin=numpy
