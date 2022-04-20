@@ -299,10 +299,10 @@ PLAYER = BaseData(
         melee_range=3,
         melee_degree=60,
     ),
-    ranged_attack_data=RangedAttackData(damage=10, attack_cooldown=1, max_range=10),
+    ranged_attack_data=RangedAttackData(damage=10, attack_cooldown=3, max_range=10),
     melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1),
     area_of_effect_attack_data=AreaOfEffectAttackData(
-        damage=10, attack_cooldown=1, attack_range=3
+        damage=10, attack_cooldown=10, attack_range=3
     ),
 )
 
@@ -342,13 +342,13 @@ ENEMY1 = BaseData(
     enemy_data=EnemyData(
         view_distance=5, attack_range=3, movement_algorithm=AIMovementType.FOLLOW
     ),
-    ranged_attack_data=RangedAttackData(damage=5, attack_cooldown=1, max_range=10),
+    ranged_attack_data=RangedAttackData(damage=5, attack_cooldown=2, max_range=10),
 )
 
 
 # Sprite sizes
-SPRITE_SCALE = 2.5
-SPRITE_SIZE = 16 * SPRITE_SCALE
+SPRITE_SCALE = 0.4375
+SPRITE_SIZE = 128 * SPRITE_SCALE
 
 # Other entity constants
 ENEMIES = [TileType.ENEMY]

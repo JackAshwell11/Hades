@@ -17,5 +17,8 @@ dist/
 logs/
 saves/
 
+# Aseprite project
+aseprite/
+
 # Temp files
 game/resources-TEMP/
