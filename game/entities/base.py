@@ -19,6 +19,7 @@ from game.entities.attack import AttackBase
 from game.textures import pos_to_pixel
 
 if TYPE_CHECKING:
+    from game.constants.consumable import ConsumableData, ConsumableLevelData
     from game.constants.entity import (
         AreaOfEffectAttackData,
         AttackData,
@@ -755,6 +756,7 @@ class Collectible(Item):
 
     # Class variables
     item_text: str = "Press E to pick up and R to activate"
+    consumable_type: ConsumableData | None = None
 
     def __init__(
         self,
@@ -763,6 +765,72 @@ class Collectible(Item):
         y: int,
     ) -> None:
         super().__init__(game, x, y)
+
+    @property
+    def name(self) -> str:
+        """
+        Gets the name of this consumable.
+
+        Returns
+        -------
+        str
+            The name of this consumable.
+        """
+        # Make sure the consumable type is valid
+        assert self.consumable_type is not None
+
+        # Return the name
+        return self.consumable_type.name
+
+    @property
+    def level_one(self) -> ConsumableLevelData:
+        """
+        Gets the first level of the consumable.
+
+        Returns
+        -------
+        ConsumableLevelData
+            The first level of the consumable.
+        """
+        # Make sure the consumable type is valid
+        assert self.consumable_type is not None
+
+        # Return the first level
+        return self.consumable_type.level_one
+
+    @property
+    def level_two(self) -> ConsumableLevelData:
+        """
+        Gets the second level of the consumable if it exists.
+
+        Returns
+        -------
+        ConsumableLevelData
+            The second level of the consumable.
+        """
+        # Make sure the consumable type is valid
+        assert self.consumable_type is not None
+        assert self.consumable_type.level_two is not None
+
+        # Return the second level
+        return self.consumable_type.level_two
+
+    @property
+    def level_three(self) -> ConsumableLevelData:
+        """
+        Gets the third level of the consumable if it exists.
+
+        Returns
+        -------
+        ConsumableLevelData
+            The third level of the consumable.
+        """
+        # Make sure the consumable type is valid
+        assert self.consumable_type is not None
+        assert self.consumable_type.level_three is not None
+
+        # Return the third level
+        return self.consumable_type.level_three
 
     def item_pick_up(self) -> bool:
         """

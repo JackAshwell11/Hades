@@ -5,20 +5,26 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.generation import TileType
-from game.constants.item import (
+from game.constants.consumable import (
+    ARMOUR_BOOST_POTION,
     ARMOUR_BOOST_POTION_DURATION,
     ARMOUR_BOOST_POTION_INCREASE,
+    ARMOUR_POTION,
     ARMOUR_POTION_INCREASE,
+    FIRE_RATE_BOOST_POTION,
     FIRE_RATE_BOOST_POTION_DURATION,
     FIRE_RATE_BOOST_POTION_INCREASE,
+    HEALTH_BOOST_POTION,
     HEALTH_BOOST_POTION_DURATION,
     HEALTH_BOOST_POTION_INCREASE,
+    HEALTH_POTION,
     HEALTH_POTION_INCREASE,
+    SPEED_BOOST_POTION,
     SPEED_BOOST_POTION_DURATION,
     SPEED_BOOST_POTION_INCREASE,
     StatusEffectType,
 )
+from game.constants.generation import TileType
 from game.entities.base import Collectible, Item
 from game.entities.status_effect import StatusEffect
 from game.textures import non_moving_textures
@@ -26,6 +32,7 @@ from game.textures import non_moving_textures
 if TYPE_CHECKING:
     import arcade
 
+    from game.constants.consumable import ConsumableData
     from game.views.game import Game
 
 # Get the logger
@@ -47,8 +54,8 @@ class HealthPotion(Collectible):
     """
 
     # Class variables
-    raw_texture: arcade.Texture = non_moving_textures["items"][0]
     item_id: TileType = TileType.HEALTH_POTION
+    consumable_type: ConsumableData = HEALTH_POTION
 
     def __init__(
         self,
@@ -105,8 +112,8 @@ class ArmourPotion(Collectible):
     """
 
     # Class variables
-    raw_texture: arcade.Texture = non_moving_textures["items"][1]
     item_id: TileType = TileType.ARMOUR_POTION
+    consumable_type: ConsumableData = ARMOUR_POTION
 
     def __init__(
         self,
@@ -164,8 +171,8 @@ class HealthBoostPotion(Collectible):
     """
 
     # Class variables
-    raw_texture: arcade.Texture = non_moving_textures["items"][2]
     item_id: TileType = TileType.HEALTH_BOOST_POTION
+    consumable_type: ConsumableData = HEALTH_BOOST_POTION
 
     def __init__(
         self,
@@ -229,8 +236,8 @@ class ArmourBoostPotion(Collectible):
     """
 
     # Class variables
-    raw_texture: arcade.Texture = non_moving_textures["items"][3]
     item_id: TileType = TileType.ARMOUR_BOOST_POTION
+    consumable_type: ConsumableData = ARMOUR_BOOST_POTION
 
     def __init__(
         self,
@@ -294,8 +301,8 @@ class SpeedBoostPotion(Collectible):
     """
 
     # Class variables
-    raw_texture: arcade.Texture = non_moving_textures["items"][4]
     item_id: TileType = TileType.SPEED_BOOST_POTION
+    consumable_type: ConsumableData = SPEED_BOOST_POTION
 
     def __init__(
         self,
@@ -359,8 +366,8 @@ class FireRateBoostPotion(Collectible):
     """
 
     # Class variables
-    raw_texture: arcade.Texture = non_moving_textures["items"][5]
     item_id: TileType = TileType.FIRE_RATE_BOOST_POTION
+    consumable_type: ConsumableData = FIRE_RATE_BOOST_POTION
 
     def __init__(
         self,

@@ -33,16 +33,16 @@ class ConsumableData:
         The name of the consumable.
     level_one: ConsumableLevelData
         The data for the first level of the consumable.
-    level_two: ConsumableLevelData
-        The data for the second level of the consumable.
-    level_three: ConsumableLevelData
-        The data for the third level of the consumable.
+    level_two: ConsumableLevelData | None
+        The data for the second level of the consumable. This level is optional.
+    level_three: ConsumableLevelData | None
+        The data for the third level of the consumable. This level is optional.
     """
 
     name: str = field(kw_only=True)
     level_one: ConsumableLevelData = field(kw_only=True)
-    level_two: ConsumableLevelData = field(kw_only=True)
-    level_three: ConsumableLevelData = field(kw_only=True)
+    level_two: ConsumableLevelData | None = field(kw_only=True, default=None)
+    level_three: ConsumableLevelData | None = field(kw_only=True, default=None)
 
 
 @dataclass
