@@ -114,7 +114,10 @@ class Enemy(Entity):
 
         # Set the needed internal variables
         self.facing = FACING_LEFT if horizontal < 0 else FACING_RIGHT
-        self.direction = math.degrees(math.atan2(vertical, horizontal))
+        angle = math.degrees(math.atan2(vertical, horizontal))
+        if angle < 0:
+            angle += 360
+        self.direction = angle
 
         # Apply the force
         self.physics_engines[0].apply_force(self, (horizontal, vertical))
@@ -152,29 +155,6 @@ class Enemy(Entity):
         # Return the result
         return self.line_of_sight
 
-    def check_attack(self) -> bool:
-        """
-        Checks if the player is within a certain distance of the enemy and that the
-        enemy can attack.
-
-        Returns
-        -------
-        bool
-            Whether the player is within distance of the enemy or not.
-        """
-        # Make sure variables needed are valid
-        assert self.game.player is not None
-
-        x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
-        y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
-        hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
-        logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
-        return (
-            hypot_distance <= self.enemy_data.attack_range * SPRITE_SIZE
-            and self.time_since_last_attack
-            >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown)
-        )
-
     def update_indicator_bars(self) -> None:
         """Performs actions that should happen after the enemy takes damage."""
         # Update the health and armour bar
@@ -195,8 +175,20 @@ class Enemy(Entity):
 
     def attack(self) -> None:
         """Runs the enemy's current attack algorithm."""
-        # Check if the player is within range of the enemy
-        if not self.check_attack():
+        # Make sure variables needed are valid
+        assert self.game.player is not None
+
+        # Check if the player is within range and line of sight of the enemy
+        x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
+        y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
+        hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
+        logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
+        if not (
+            hypot_distance <= self.enemy_data.attack_range * SPRITE_SIZE
+            and self.line_of_sight
+            and self.time_since_last_attack
+            >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown)
+        ):
             return
 
         # Enemy can attack so reset the counters and determine what attack algorithm is
@@ -206,7 +198,7 @@ class Enemy(Entity):
             case AttackAlgorithmType.RANGED.value:
                 self.current_attack.process_attack(self.game.bullet_sprites)
             case AttackAlgorithmType.MELEE.value:
-                print("enemy melee")
+                self.current_attack.process_attack([self.game.player])
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
                 self.current_attack.process_attack(self.game.player)
 

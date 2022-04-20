@@ -212,7 +212,11 @@ class RangedAttack(AttackBase):
 
 class MeleeAttack(AttackBase):
     """
-    DO
+    An algorithm which performs a melee attack in the direction the entity is looking
+    dealing damage to any entity that is within a specific angle range of the entity's
+    direction and are within the attack distance. Since when the enemy is attacking,
+    they are always facing the player, we don't need to do the angle range check for
+    enemies.
 
     Parameters
     ----------
@@ -241,8 +245,20 @@ class MeleeAttack(AttackBase):
         return self.owner.melee_attack_data
 
     def process_attack(self, *args: Any) -> None:
-        """"""
-        raise NotImplementedError
+        """
+        Performs a melee attack in the direction the entity is facing.
+
+        Parameters
+        ----------
+        args: Any
+            A tuple containing the parameters needed for the attack.
+        """
+        # Make sure the needed parameters are valid
+        targets: list[Entity] = args[0]
+
+        # Deal damage to all entities within range
+        for entity in targets:
+            entity.deal_damage(self.melee_attack_data.damage)
 
 
 class AreaOfEffectAttack(AttackBase):
@@ -278,7 +294,7 @@ class AreaOfEffectAttack(AttackBase):
 
     def process_attack(self, *args: Any) -> None:
         """
-        Performs an area of effect attack around the player.
+        Performs an area of effect attack around the entity.
 
         Parameters
         ----------
