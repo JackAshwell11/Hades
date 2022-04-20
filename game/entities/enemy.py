@@ -104,13 +104,12 @@ class Enemy(Entity):
                 # Make sure the enemy's armour does not go over the maximum
                 if self.armour > self.max_armour:
                     self.armour = self.max_armour
-            return
+        else:
+            # Enemy in combat so reset their combat counter
+            self.time_out_of_combat = 0
+            self.time_since_armour_regen = self.armour_regen_cooldown
 
-        # Enemy in combat so reset their combat counter
-        self.time_out_of_combat = 0
-        self.time_since_armour_regen = self.armour_regen_cooldown
-
-        # Player is within line of sight so get the force needed to move the enemy
+        # Process the enemy's movement and get the force needed to move the enemy
         horizontal, vertical = self.ai.calculate_movement(self.game.player)
 
         # Set the needed internal variables

@@ -5,7 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from game.entities.base import Entity
+    from game.entities.enemy import Enemy
     from game.entities.player import Player
 
 
@@ -19,12 +19,12 @@ class AIMovementBase:
 
     Parameters
     ----------
-    owner: Entity
+    owner: Enemy
         The owner of this AI algorithm.
     """
 
-    def __init__(self, owner: Entity) -> None:
-        self.owner: Entity = owner
+    def __init__(self, owner: Enemy) -> None:
+        self.owner: Enemy = owner
 
     def __repr__(self) -> str:
         return f"<AIMovementBase (Owner={self.owner})>"
@@ -77,11 +77,11 @@ class FollowLineOfSight(AIMovementBase):
 
     Parameters
     ----------
-    owner: Entity
+    owner: Enemy
         The owner of this AI algorithm.
     """
 
-    def __init__(self, owner: Entity) -> None:
+    def __init__(self, owner: Enemy) -> None:
         super().__init__(owner)
 
     def __repr__(self) -> str:
@@ -104,12 +104,15 @@ class FollowLineOfSight(AIMovementBase):
         # Make sure we have the movement force. This avoids a circular import
         from game.constants.entity import MOVEMENT_FORCE
 
-        # Calculate the velocity for the enemy to move towards the player
-        distance: tuple[float, float] = self.distance_to_player(player)
-        return (
-            -distance[0] * MOVEMENT_FORCE,
-            -distance[1] * MOVEMENT_FORCE,
-        )
+        # Check if the enemy can actually move
+        if self.owner.line_of_sight:
+            # Calculate the velocity for the enemy to move towards the player
+            distance: tuple[float, float] = self.distance_to_player(player)
+            return (
+                -distance[0] * MOVEMENT_FORCE,
+                -distance[1] * MOVEMENT_FORCE,
+            )
+        return 0, 0
 
 
 class Jitter(AIMovementBase):
@@ -118,11 +121,11 @@ class Jitter(AIMovementBase):
 
     Parameters
     ----------
-    owner: Entity
+    owner: Enemy
         The owner of this AI algorithm.
     """
 
-    def __init__(self, owner: Entity) -> None:
+    def __init__(self, owner: Enemy) -> None:
         super().__init__(owner)
 
     def __repr__(self) -> str:
@@ -152,11 +155,11 @@ class MoveAwayLineOfSight(AIMovementBase):
 
     Parameters
     ----------
-    owner: Entity
+    owner: Enemy
         The owner of this AI algorithm.
     """
 
-    def __init__(self, owner: Entity) -> None:
+    def __init__(self, owner: Enemy) -> None:
         super().__init__(owner)
 
     def __repr__(self) -> str:

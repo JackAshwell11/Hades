@@ -765,6 +765,7 @@ class Collectible(Item):
         y: int,
     ) -> None:
         super().__init__(game, x, y)
+        self.texture: arcade.Texture = self.level_one.texture
 
     @property
     def name(self) -> str:
