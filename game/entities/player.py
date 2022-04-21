@@ -2,10 +2,14 @@ from __future__ import annotations
 
 # Builtin
 import logging
+import math
 from typing import TYPE_CHECKING
 
+# Pip
+import arcade
+
 # Custom
-from game.constants.entity import PLAYER, AttackAlgorithmType, EntityID
+from game.constants.entity import PLAYER, SPRITE_SIZE, AttackAlgorithmType, EntityID
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from game.entities.base import Entity
 from game.entities.status_effect import StatusEffect
@@ -157,8 +161,29 @@ class Player(Entity):
             case AttackAlgorithmType.RANGED.value:
                 self.current_attack.process_attack(self.game.bullet_sprites)
             case AttackAlgorithmType.MELEE.value:
-                # Update the framebuffer to ensure collision detection is accurate
-                self.melee_shader.update_collision()
-                self.current_attack.process_attack(self.melee_shader.run_shader())
+                # # Update the framebuffer to ensure collision detection is accurate
+                # self.melee_shader.update_collision()
+                # result = self.melee_shader.run_shader()
+                result = []
+                for enemy in self.game.enemies:
+                    vec_x, vec_y = (
+                        enemy.center_x - self.center_x,
+                        enemy.center_y - self.center_y,
+                    )
+                    angle = math.degrees(math.atan2(vec_y, vec_x))
+                    if angle < 0:
+                        angle += 360
+                    if arcade.has_line_of_sight(
+                        self.position,
+                        enemy.position,
+                        self.game.wall_sprites,
+                        self.player_data.melee_range * SPRITE_SIZE,
+                    ) and (
+                        self.direction - self.player_data.melee_degree // 2
+                    ) <= angle <= (
+                        self.direction + self.player_data.melee_degree // 2
+                    ):
+                        result.append(enemy)
+                self.current_attack.process_attack(result)
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
                 self.current_attack.process_attack(self.game.enemies)
