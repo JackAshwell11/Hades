@@ -114,6 +114,18 @@ class AttackBase:
     def __repr__(self) -> str:
         return f"<AttackBase (Owner={self.owner})>"
 
+    @property
+    def attack_range(self) -> int:
+        """
+        Gets the attack range for this attack.
+
+        Returns
+        -------
+        int
+            The attack range for this attack.
+        """
+        raise NotImplementedError
+
     def process_attack(self, *args: Any) -> None:
         """
         Performs an attack by the owner entity.
@@ -161,6 +173,18 @@ class RangedAttack(AttackBase):
             The ranged attack data.
         """
         return self.owner.ranged_attack_data
+
+    @property
+    def attack_range(self) -> int:
+        """
+        Gets the attack range for this attack.
+
+        Returns
+        -------
+        int
+            The attack range for this attack.
+        """
+        return self.ranged_attack_data.attack_range
 
     def process_attack(self, *args: Any) -> None:
         """
@@ -244,6 +268,18 @@ class MeleeAttack(AttackBase):
         """
         return self.owner.melee_attack_data
 
+    @property
+    def attack_range(self) -> int:
+        """
+        Gets the attack range for this attack.
+
+        Returns
+        -------
+        int
+            The attack range for this attack.
+        """
+        return self.melee_attack_data.attack_range
+
     def process_attack(self, *args: Any) -> None:
         """
         Performs a melee attack in the direction the entity is facing.
@@ -292,6 +328,18 @@ class AreaOfEffectAttack(AttackBase):
         """
         return self.owner.area_of_effect_attack_data
 
+    @property
+    def attack_range(self) -> int:
+        """
+        Gets the attack range for this attack.
+
+        Returns
+        -------
+        int
+            The attack range for this attack.
+        """
+        return self.area_of_effect_attack_data.attack_range
+
     def process_attack(self, *args: Any) -> None:
         """
         Performs an area of effect attack around the entity.
@@ -305,14 +353,14 @@ class AreaOfEffectAttack(AttackBase):
         from game.constants.entity import SPRITE_SIZE
 
         # Make sure the needed parameters are valid
-        target_entity: arcade.SpriteList | arcade.Sprite = args[0]
+        target_entity: arcade.SpriteList | Entity = args[0]
 
         # Create a sprite with an empty texture
         empty_texture = arcade.Texture.create_empty(
             "",
             (
-                int(self.area_of_effect_attack_data.attack_range * 2 * SPRITE_SIZE),
-                int(self.area_of_effect_attack_data.attack_range * 2 * SPRITE_SIZE),
+                int(self.attack_range * 2 * SPRITE_SIZE),
+                int(self.attack_range * 2 * SPRITE_SIZE),
             ),
         )
         area_of_effect_sprite = arcade.Sprite(
@@ -325,9 +373,7 @@ class AreaOfEffectAttack(AttackBase):
         try:
             if arcade.check_for_collision(area_of_effect_sprite, target_entity):
                 # Target is the player so deal damage
-                target_entity.deal_damage(  # noqa
-                    self.area_of_effect_attack_data.damage
-                )
+                target_entity.deal_damage(self.area_of_effect_attack_data.damage)
             return
         except TypeError:
             for entity in arcade.check_for_collision_with_list(

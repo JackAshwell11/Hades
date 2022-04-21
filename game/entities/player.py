@@ -177,7 +177,7 @@ class Player(Entity):
                         self.position,
                         enemy.position,
                         self.game.wall_sprites,
-                        self.player_data.melee_range * SPRITE_SIZE,
+                        self.current_attack.attack_range * SPRITE_SIZE,
                     ) and (
                         self.direction - self.player_data.melee_degree // 2
                     ) <= angle <= (

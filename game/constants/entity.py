@@ -169,13 +169,10 @@ class PlayerData:
     """
     Stores data about a specific player type.
 
-    melee_range: int
-        The amount of tiles the player can attack within using a melee attack.
     melee_degree: int
         The degree that the player's melee attack is limited to.
     """
 
-    melee_range: int = field(kw_only=True)
     melee_degree: int = field(kw_only=True)
 
 
@@ -186,14 +183,11 @@ class EnemyData:
 
     view_distance: int
         The amount of tiles the enemy can see too.
-    attack_range: int
-        The amount of tiles the enemy can attack within.
     movement_algorithm: AIMovementType
         The movement algorithm that this enemy has.
     """
 
     view_distance: int = field(kw_only=True)
-    attack_range: int = field(kw_only=True)
     movement_algorithm: AIMovementType = field(kw_only=True)
 
 
@@ -206,10 +200,13 @@ class AttackData:
         The damage the entity deals.
     attack_cooldown: int
         The time duration between attacks.
+    attack_range: int
+        The range this attack has. This is the radius of the circle, not the diameter.
     """
 
     damage: int = field(kw_only=True)
     attack_cooldown: int = field(kw_only=True)
+    attack_range: int = field(kw_only=True)
     attack_type: AttackAlgorithmType
 
 
@@ -253,12 +250,8 @@ class AreaOfEffectAttackData(AttackData):
         The damage the entity deals.
     attack_cooldown: int
         The time duration between attacks.
-    attack_range: int
-        The range an area of effect attack deals has. This is the radius of the circle,
-        not the diameter.
     """
 
-    attack_range: int = field(kw_only=True)
     attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
 
 
@@ -296,11 +289,12 @@ PLAYER = BaseData(
         ],
     ),
     player_data=PlayerData(
-        melee_range=3,
         melee_degree=60,
     ),
-    ranged_attack_data=RangedAttackData(damage=10, attack_cooldown=3, max_range=10),
-    melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1),
+    ranged_attack_data=RangedAttackData(
+        damage=10, attack_cooldown=3, attack_range=0, max_range=10
+    ),
+    melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1, attack_range=3),
     area_of_effect_attack_data=AreaOfEffectAttackData(
         damage=10, attack_cooldown=10, attack_range=3
     ),
@@ -339,10 +333,8 @@ ENEMY1 = BaseData(
             ),
         ],
     ),
-    enemy_data=EnemyData(
-        view_distance=5, attack_range=3, movement_algorithm=AIMovementType.FOLLOW
-    ),
-    melee_attack_data=MeleeAttackData(damage=5, attack_cooldown=2),
+    enemy_data=EnemyData(view_distance=5, movement_algorithm=AIMovementType.FOLLOW),
+    melee_attack_data=MeleeAttackData(damage=5, attack_cooldown=2, attack_range=3),
 )
 
 

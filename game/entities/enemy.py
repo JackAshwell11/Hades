@@ -184,7 +184,7 @@ class Enemy(Entity):
         hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
         logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
         if not (
-            hypot_distance <= self.enemy_data.attack_range * SPRITE_SIZE
+            hypot_distance <= self.current_attack.attack_range * SPRITE_SIZE
             and self.line_of_sight
             and self.time_since_last_attack
             >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown)

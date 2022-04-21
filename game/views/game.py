@@ -12,6 +12,7 @@ import arcade
 from game.constants.entity import FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, SPRITE_SIZE
 from game.constants.general import DAMPING, DEBUG_ATTACK_DISTANCE, DEBUG_VIEW_DISTANCE
 from game.constants.generation import TileType
+from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy1
 from game.entities.item import (
     ArmourBoostPotion,
@@ -278,12 +279,13 @@ class Game(arcade.View):
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.enemy_data.attack_range * SPRITE_SIZE,  # noqa
+                    enemy.current_attack.attack_range * SPRITE_SIZE,  # noqa
                     DEBUG_ATTACK_DISTANCE,
                 )
 
-            # Check if the player has an area of effect attack
-            if self.player.entity_type.area_of_effect_attack_data is not None:
+            # Check if the player's current attack is a melee attack or an area of
+            # effect attack
+            if isinstance(self.player.current_attack, MeleeAttack):
                 # Calculate the two boundary points for the player fov
                 half_angle = self.player.player_data.melee_degree // 2
                 low_angle = math.radians(self.player.direction - half_angle)
@@ -292,21 +294,21 @@ class Game(arcade.View):
                     self.player.center_x
                     + math.cos(low_angle)
                     * SPRITE_SIZE
-                    * self.player.player_data.melee_range,
+                    * self.player.current_attack.attack_range,
                     self.player.center_y
                     + math.sin(low_angle)
                     * SPRITE_SIZE
-                    * self.player.player_data.melee_range,
+                    * self.player.current_attack.attack_range,
                 )
                 point_high = (
                     self.player.center_x
                     + math.cos(high_angle)
                     * SPRITE_SIZE
-                    * self.player.player_data.melee_range,
+                    * self.player.current_attack.attack_range,
                     self.player.center_y
                     + math.sin(high_angle)
                     * SPRITE_SIZE
-                    * self.player.player_data.melee_range,
+                    * self.player.current_attack.attack_range,
                 )
                 # Draw both boundary lines for the player fov
                 arcade.draw_line(
@@ -330,18 +332,18 @@ class Game(arcade.View):
                         point_high[0] - point_low[0], point_high[1] - point_low[1]
                     )
                     * 2,
-                    self.player.player_data.melee_range * SPRITE_SIZE * 2,
+                    self.player.current_attack.attack_range * SPRITE_SIZE * 2,
                     DEBUG_ATTACK_DISTANCE,
                     math.degrees(low_angle),
                     math.degrees(high_angle),
                     2,
                 )
-                # Draw the player's area of effect range
+            elif isinstance(self.player.current_attack, AreaOfEffectAttack):
+                # Draw the player's attack range
                 arcade.draw_circle_outline(
                     self.player.center_x,
                     self.player.center_y,
-                    self.player.entity_type.area_of_effect_attack_data.attack_range
-                    * SPRITE_SIZE,
+                    self.player.current_attack.attack_range * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
 
