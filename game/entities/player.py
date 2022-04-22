@@ -12,7 +12,6 @@ import arcade
 from game.constants.entity import PLAYER, SPRITE_SIZE, AttackAlgorithmType, EntityID
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from game.entities.base import Entity
-from game.entities.status_effect import StatusEffect
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
@@ -46,8 +45,6 @@ class Player(Entity):
         The list which stores the player's inventory.
     inventory_capacity: int
         The total capacity of the inventory.
-    applied_effects: list[StatusEffect]
-        The currently applied status effects.
     in_combat: bool
         Whether the player is in combat or not.
     """
@@ -61,7 +58,6 @@ class Player(Entity):
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
-        self.applied_effects: list[StatusEffect] = []
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
@@ -119,19 +115,6 @@ class Player(Entity):
         # Add successful
         logger.info(f"Adding item {item} to inventory")
         return True
-
-    def add_status_effect(self, effect: StatusEffect) -> None:
-        """
-        Adds a status effect to the player
-
-        Parameters
-        ----------
-        effect: StatusEffect
-            The status effect to add to the player.
-        """
-        self.applied_effects.append(effect)
-        effect.apply_effect()
-        logger.info(f"Adding effect {effect} to player")
 
     def update_indicator_bars(self) -> None:
         """Performs actions that should happen after the player takes damage."""

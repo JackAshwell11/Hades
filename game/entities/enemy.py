@@ -109,6 +109,11 @@ class Enemy(Entity):
             self.time_out_of_combat = 0
             self.time_since_armour_regen = self.armour_regen_cooldown
 
+        # Update any status effects
+        for status_effect in self.applied_effects:
+            logger.debug(f"Updating status effect {status_effect} for entity {self}")
+            status_effect.update(delta_time)
+
         # Process the enemy's movement and get the force needed to move the enemy
         horizontal, vertical = self.ai.calculate_movement(self.game.player)
 

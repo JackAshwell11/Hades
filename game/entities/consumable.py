@@ -144,14 +144,14 @@ class Collectible(Item):
                 return False
 
             # Apply the status effect
-            self.player.add_status_effect(
-                StatusEffect(
-                    self.player,
-                    effect.status_type,
-                    effect.value,
-                    effect.duration,
-                )
+            new_effect = StatusEffect(
+                self.player,
+                effect.status_type,
+                effect.value,
+                effect.duration,
             )
+            self.player.applied_effects.append(new_effect)
+            new_effect.apply_effect()
 
         # Remove the item
         self.remove_from_sprite_lists()

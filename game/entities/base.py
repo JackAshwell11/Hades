@@ -16,6 +16,7 @@ from game.constants.entity import (
 )
 from game.constants.generation import TileType
 from game.entities.attack import AttackBase
+from game.entities.status_effect import StatusEffect
 from game.textures import pos_to_pixel
 
 if TYPE_CHECKING:
@@ -190,6 +191,8 @@ class Entity(arcade.Sprite):
     ----------
     attack_algorithms: list[AttackBase]
         A list of the entity's attack algorithms.
+    applied_effects: list[StatusEffect]
+        The currently applied status effects.
     current_attack_index: int
         The index of the currently selected attack.
     direction: float
@@ -231,6 +234,7 @@ class Entity(arcade.Sprite):
             "armour regen cooldown": self.upgrade_data[3].level_one.value,
             "bonus attack cooldown": 0,
         }
+        self.applied_effects: list[StatusEffect] = []
         self.current_attack_index: int = 0
         self.direction: float = 0
         self.facing: int = 0

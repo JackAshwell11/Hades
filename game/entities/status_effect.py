@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from game.constants.consumable import StatusEffectType
 
 if TYPE_CHECKING:
-    from game.entities.player import Player
+    from game.entities.base import Entity
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -16,16 +16,16 @@ logger = logging.getLogger(__name__)
 
 class StatusEffect:
     """
-    Stores the state of a currently applied status effect.
+    Stores the state of a currently applied status effect on an entity.
 
     Parameters
     ----------
-    player: Player
-        The reference to the player object
+    target: Entity
+        The reference to the target entity object
     effect_type: StatusEffectType
-        The status effect type that is being applied to the player.
-    increase_amount: float
-        The amount of increase that should be applied to the player temporarily.
+        The status effect type that is being applied to the entity.
+    value: float
+        The value that should be applied to the entity temporarily.
     duration: int
         The duration the status effect should be applied for.
 
@@ -39,57 +39,50 @@ class StatusEffect:
 
     def __init__(
         self,
-        player: Player,
+        target: Entity,
         effect_type: StatusEffectType,
-        increase_amount: float,
+        value: float,
         duration: float,
     ) -> None:
-        self.player: Player = player
+        self.target: Entity = target
         self.effect_type: StatusEffectType = effect_type
-        self.increase_amount: float = increase_amount
+        self.value: float = value
         self.duration: float = duration
         self.original: float = -1
         self.time_counter: float = 0
 
     def __repr__(self) -> str:
         return (
-            f"<StatusEffect (Effect type={self.effect_type.name}) (Increase"
-            f" amount={self.increase_amount}) (Duration={self.duration})"
+            f"<StatusEffect (Effect type={self.effect_type.name}) (Value={self.value})"
+            f" (Duration={self.duration})"
         )
 
     def apply_effect(self) -> None:
-        """Applies the status effect to the player."""
-        # Get the new value
-        new_value = self.original + self.increase_amount
-        logger.info(
-            f"Applying effect {self.effect_type} with amount {self.increase_amount} for"
-            f" {self.duration} seconds"
-        )
-
+        """Applies the status effect to the entity."""
         # Apply the effect
         match self.effect_type:
             case StatusEffectType.HEALTH:
-                self.original = self.player.health
-                self.player.health = int(new_value)
-                self.player.max_health = int(
-                    self.player.max_health + self.increase_amount
-                )
+                self.original = self.target.health
+                self.target.health = self.original + self.value
+                self.target.max_health = self.target.max_health + self.value
             case StatusEffectType.ARMOUR:
-                self.original = self.player.armour
-                self.player.armour = int(new_value)
-                self.player.max_armour = int(
-                    self.player.max_armour + self.increase_amount
-                )
+                self.original = self.target.armour
+                self.target.armour = self.original + self.value
+                self.target.max_armour = self.target.max_armour + self.value
             case StatusEffectType.SPEED:
-                self.original = self.player.max_velocity
-                self.player.pymunk.max_velocity = new_value
+                self.original = self.target.max_velocity
+                self.target.pymunk.max_velocity = self.original + self.value
             case StatusEffectType.FIRE_RATE:
-                self.original = self.player.bonus_attack_cooldown
-                self.player.bonus_attack_cooldown = new_value
+                self.original = self.target.bonus_attack_cooldown
+                self.target.bonus_attack_cooldown = self.original + self.value
+        logger.info(
+            f"Applying effect {self.effect_type} with amount {self.value} for"
+            f" {self.duration} seconds to entity {self.target}"
+        )
 
     def update(self, delta_time: float) -> None:
         """
-        Updates a status effect checking if it has run out.
+        Updates a status effect while checking if it has run out or not.
 
         Parameters
         ----------
@@ -102,45 +95,35 @@ class StatusEffect:
         # Check if we need to remove the status effect
         if self.time_counter >= self.duration:
             # Check if the status effect is a health or armour one
-            if (
-                self.effect_type is StatusEffectType.HEALTH
-                or self.effect_type is StatusEffectType.ARMOUR
-            ):
+            current_value: float = -1
+            if self.effect_type in [StatusEffectType.HEALTH, StatusEffectType.ARMOUR]:
                 # Get the current value
-                current_value: float = -1
                 match self.effect_type:
                     case StatusEffectType.HEALTH:
-                        current_value = self.player.health
+                        current_value = self.target.health
                     case StatusEffectType.ARMOUR:
-                        current_value = self.player.armour
+                        current_value = self.target.armour
 
-                # Check if the player needs to change at all
+                # Check if the target needs to change it's state
                 if current_value > self.original:
                     current_value = self.original
-            else:
-                # Status effect is a speed or fire rate one so current_value isn't
-                # needed
-                current_value = -1
 
-            # Apply the new change to the player
+            # Apply the new change to the target
             match self.effect_type:
                 case StatusEffectType.HEALTH:
-                    self.player.health = int(current_value)
-                    self.player.max_health = int(
-                        self.player.max_health - self.increase_amount
-                    )
+                    self.target.health = current_value
+                    self.target.max_health = self.target.max_health - self.value
                 case StatusEffectType.ARMOUR:
-                    self.player.armour = int(current_value)
-                    self.player.max_armour = int(
-                        self.player.max_armour - self.increase_amount
-                    )
+                    self.target.armour = current_value
+                    self.target.max_armour = self.target.max_armour - self.value
                 case StatusEffectType.SPEED:
-                    self.player.pymunk.max_velocity = self.original
+                    self.target.pymunk.max_velocity = self.original
                 case StatusEffectType.FIRE_RATE:
-                    self.player.bonus_attack_cooldown = self.original
+                    self.target.bonus_attack_cooldown = self.original
 
             # Remove the status effect
-            self.player.applied_effects.remove(self)
+            self.target.applied_effects.remove(self)
             logger.info(
-                f"Removed effect {self.effect_type} setting value to {current_value}"
+                f"Removed effect {self.effect_type} from entity {self.target} setting"
+                f" value to {current_value}"
             )
