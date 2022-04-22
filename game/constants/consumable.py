@@ -3,7 +3,7 @@ from __future__ import annotations
 # Builtin
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 # Custom
 from game.constants.generation import TileType
@@ -11,6 +11,14 @@ from game.textures import non_moving_textures
 
 if TYPE_CHECKING:
     import arcade
+
+
+# Instant effects
+class InstantEffectType(Enum):
+    """Stores the type of instant effects that can be applied to an entity."""
+
+    HEALTH = "health"
+    ARMOUR = "armour"
 
 
 # Status effect types
@@ -31,18 +39,13 @@ class ConsumableData:
 
     name: str
         The name of the consumable.
-    level_one: ConsumableLevelData
-        The data for the first level of the consumable.
-    level_two: ConsumableLevelData | None
-        The data for the second level of the consumable. This level is optional.
-    level_three: ConsumableLevelData | None
-        The data for the third level of the consumable. This level is optional.
+    levels: dict[int, ConsumableLevelData]
+        A mapping of level number to consumable level data. Level 1 is mandatory, but
+        other levels are optional.
     """
 
     name: str = field(kw_only=True)
-    level_one: ConsumableLevelData = field(kw_only=True)
-    level_two: ConsumableLevelData | None = field(kw_only=True, default=None)
-    level_three: ConsumableLevelData | None = field(kw_only=True, default=None)
+    levels: dict[int, ConsumableLevelData] = field(kw_only=True)
 
 
 @dataclass
@@ -53,15 +56,34 @@ class ConsumableLevelData:
 
     texture: arcade.Texture
         The texture for this consumable level.
-    instant: int | None
-        The instant effect that this level gives.
-    status_effects: list[StatusEffectData] | None
+    instant: Sequence[InstantData]
+        The instant effects that this level gives.
+    status_effects: Sequence[StatusEffectData]
         The status effects that this level gives.
     """
 
     texture: arcade.Texture = field(kw_only=True)
-    instant: int | None = field(kw_only=True, default=None)
-    status_effects: list[StatusEffectData] | None = field(kw_only=True, default=None)
+    instant: Sequence[InstantData] = field(
+        kw_only=True, default_factory=lambda: [].copy()
+    )
+    status_effects: Sequence[StatusEffectData] = field(
+        kw_only=True, default_factory=lambda: [].copy()
+    )
+
+
+@dataclass
+class InstantData:
+    """
+    Stores the data for an individual instant effect applied by a consumable.
+
+    instant_type: InstantEffect
+        The type of instant effect that is applied.
+    value: float
+        The value that is applied with this instant effect.
+    """
+
+    instant_type: InstantEffectType = field(kw_only=True)
+    value: float = field(kw_only=True)
 
 
 @dataclass
@@ -85,171 +107,183 @@ class StatusEffectData:
 # Base instant consumables
 HEALTH_POTION = ConsumableData(
     name="health potion",
-    level_one=ConsumableLevelData(
-        texture=non_moving_textures["items"][0],
-        instant=10,
-    ),
-    level_two=ConsumableLevelData(
-        texture=non_moving_textures["items"][0],
-        instant=20,
-    ),
-    level_three=ConsumableLevelData(
-        texture=non_moving_textures["items"][0],
-        instant=30,
-    ),
+    levels={
+        1: ConsumableLevelData(
+            texture=non_moving_textures["items"][0],
+            instant=[InstantData(instant_type=InstantEffectType.HEALTH, value=10)],
+        ),
+        2: ConsumableLevelData(
+            texture=non_moving_textures["items"][0],
+            instant=[InstantData(instant_type=InstantEffectType.HEALTH, value=20)],
+        ),
+        3: ConsumableLevelData(
+            texture=non_moving_textures["items"][0],
+            instant=[InstantData(instant_type=InstantEffectType.HEALTH, value=30)],
+        ),
+    },
 )
 
 ARMOUR_POTION = ConsumableData(
     name="armour potion",
-    level_one=ConsumableLevelData(
-        texture=non_moving_textures["items"][1],
-        instant=5,
-    ),
-    level_two=ConsumableLevelData(
-        texture=non_moving_textures["items"][1],
-        instant=10,
-    ),
-    level_three=ConsumableLevelData(
-        texture=non_moving_textures["items"][1],
-        instant=20,
-    ),
+    levels={
+        1: ConsumableLevelData(
+            texture=non_moving_textures["items"][1],
+            instant=[InstantData(instant_type=InstantEffectType.ARMOUR, value=5)],
+        ),
+        2: ConsumableLevelData(
+            texture=non_moving_textures["items"][1],
+            instant=[InstantData(instant_type=InstantEffectType.ARMOUR, value=10)],
+        ),
+        3: ConsumableLevelData(
+            texture=non_moving_textures["items"][1],
+            instant=[InstantData(instant_type=InstantEffectType.ARMOUR, value=20)],
+        ),
+    },
 )
 
 # Base status effect consumables
 HEALTH_BOOST_POTION = ConsumableData(
     name="health boost potion",
-    level_one=ConsumableLevelData(
-        texture=non_moving_textures["items"][2],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.HEALTH,
-                value=25,
-                duration=5,
-            ),
-        ],
-    ),
-    level_two=ConsumableLevelData(
-        texture=non_moving_textures["items"][2],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.HEALTH,
-                value=50,
-                duration=10,
-            ),
-        ],
-    ),
-    level_three=ConsumableLevelData(
-        texture=non_moving_textures["items"][2],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.HEALTH,
-                value=75,
-                duration=15,
-            ),
-        ],
-    ),
+    levels={
+        1: ConsumableLevelData(
+            texture=non_moving_textures["items"][2],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.HEALTH,
+                    value=25,
+                    duration=5,
+                ),
+            ],
+        ),
+        2: ConsumableLevelData(
+            texture=non_moving_textures["items"][2],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.HEALTH,
+                    value=50,
+                    duration=10,
+                ),
+            ],
+        ),
+        3: ConsumableLevelData(
+            texture=non_moving_textures["items"][2],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.HEALTH,
+                    value=75,
+                    duration=15,
+                ),
+            ],
+        ),
+    },
 )
 
 ARMOUR_BOOST_POTION = ConsumableData(
     name="armour boost potion",
-    level_one=ConsumableLevelData(
-        texture=non_moving_textures["items"][3],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.ARMOUR,
-                value=5,
-                duration=5,
-            ),
-        ],
-    ),
-    level_two=ConsumableLevelData(
-        texture=non_moving_textures["items"][3],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.ARMOUR,
-                value=10,
-                duration=10,
-            ),
-        ],
-    ),
-    level_three=ConsumableLevelData(
-        texture=non_moving_textures["items"][3],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.ARMOUR,
-                value=20,
-                duration=15,
-            ),
-        ],
-    ),
+    levels={
+        1: ConsumableLevelData(
+            texture=non_moving_textures["items"][3],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.ARMOUR,
+                    value=5,
+                    duration=5,
+                ),
+            ],
+        ),
+        2: ConsumableLevelData(
+            texture=non_moving_textures["items"][3],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.ARMOUR,
+                    value=10,
+                    duration=10,
+                ),
+            ],
+        ),
+        3: ConsumableLevelData(
+            texture=non_moving_textures["items"][3],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.ARMOUR,
+                    value=20,
+                    duration=15,
+                ),
+            ],
+        ),
+    },
 )
 
 SPEED_BOOST_POTION = ConsumableData(
     name="speed boost potion",
-    level_one=ConsumableLevelData(
-        texture=non_moving_textures["items"][4],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.SPEED,
-                value=25,
-                duration=2,
-            ),
-        ],
-    ),
-    level_two=ConsumableLevelData(
-        texture=non_moving_textures["items"][4],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.SPEED,
-                value=50,
-                duration=5,
-            ),
-        ],
-    ),
-    level_three=ConsumableLevelData(
-        texture=non_moving_textures["items"][4],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.SPEED,
-                value=100,
-                duration=10,
-            ),
-        ],
-    ),
+    levels={
+        1: ConsumableLevelData(
+            texture=non_moving_textures["items"][4],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.SPEED,
+                    value=25,
+                    duration=2,
+                ),
+            ],
+        ),
+        2: ConsumableLevelData(
+            texture=non_moving_textures["items"][4],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.SPEED,
+                    value=50,
+                    duration=5,
+                ),
+            ],
+        ),
+        3: ConsumableLevelData(
+            texture=non_moving_textures["items"][4],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.SPEED,
+                    value=100,
+                    duration=10,
+                ),
+            ],
+        ),
+    },
 )
 
 FIRE_RATE_BOOST_POTION = ConsumableData(
     name="fire rate boost potion",
-    level_one=ConsumableLevelData(
-        texture=non_moving_textures["items"][5],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.FIRE_RATE,
-                value=-0.5,
-                duration=2,
-            ),
-        ],
-    ),
-    level_two=ConsumableLevelData(
-        texture=non_moving_textures["items"][5],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.FIRE_RATE,
-                value=-0.5,
-                duration=5,
-            ),
-        ],
-    ),
-    level_three=ConsumableLevelData(
-        texture=non_moving_textures["items"][5],
-        status_effects=[
-            StatusEffectData(
-                status_type=StatusEffectType.FIRE_RATE,
-                value=-0.5,
-                duration=10,
-            ),
-        ],
-    ),
+    levels={
+        1: ConsumableLevelData(
+            texture=non_moving_textures["items"][5],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.FIRE_RATE,
+                    value=-0.5,
+                    duration=2,
+                ),
+            ],
+        ),
+        2: ConsumableLevelData(
+            texture=non_moving_textures["items"][5],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.FIRE_RATE,
+                    value=-0.5,
+                    duration=5,
+                ),
+            ],
+        ),
+        3: ConsumableLevelData(
+            texture=non_moving_textures["items"][5],
+            status_effects=[
+                StatusEffectData(
+                    status_type=StatusEffectType.FIRE_RATE,
+                    value=-0.5,
+                    duration=10,
+                ),
+            ],
+        ),
+    },
 )
 
 

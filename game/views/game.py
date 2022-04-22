@@ -13,16 +13,16 @@ from game.constants.entity import FACING_LEFT, FACING_RIGHT, MOVEMENT_FORCE, SPR
 from game.constants.general import DAMPING, DEBUG_ATTACK_DISTANCE, DEBUG_VIEW_DISTANCE
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
-from game.entities.enemy import Enemy1
-from game.entities.item import (
+from game.entities.consumable import (
     ArmourBoostPotion,
     ArmourPotion,
     FireRateBoostPotion,
     HealthBoostPotion,
     HealthPotion,
-    Shop,
     SpeedBoostPotion,
 )
+from game.entities.enemy import Enemy1
+from game.entities.item import Shop
 from game.entities.player import Player
 from game.entities.tile import Floor, Wall
 from game.generation.map import Map
@@ -32,7 +32,8 @@ from game.views.inventory_view import InventoryView
 from game.views.shop import ShopView
 
 if TYPE_CHECKING:
-    from game.entities.base import Collectible, Item
+    from game.entities.base import Item
+    from game.entities.consumable import Collectible
 
 # Get the logger
 logger = logging.getLogger(__name__)
