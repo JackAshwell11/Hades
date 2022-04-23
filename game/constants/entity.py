@@ -135,18 +135,13 @@ class UpgradeData:
 
     level_type: UpgradeType
         The type of upgrade this instance represents.
-    level_one: UpgradeLevelData
-        The first upgrade available for this type.
-    level_two: UpgradeLevelData
-        The second upgrade available for this type.
-    level_three: UpgradeLevelData
-        The third upgrade available for this type.
+    levels: dict[int, UpgradeLevelData]
+        A mapping of level number to upgrade level data. Level 1 is mandatory, but other
+        levels are optional.
     """
 
     level_type: UpgradeType
-    level_one: UpgradeLevelData = field(kw_only=True)
-    level_two: UpgradeLevelData = field(kw_only=True)
-    level_three: UpgradeLevelData = field(kw_only=True)
+    levels: dict[int, UpgradeLevelData] = field(kw_only=True)
 
 
 @dataclass
@@ -264,27 +259,35 @@ PLAYER = BaseData(
         upgrade_data=[
             UpgradeData(
                 UpgradeType.HEALTH,
-                level_one=UpgradeLevelData(value=100, cost=0),
-                level_two=UpgradeLevelData(value=150, cost=10),
-                level_three=UpgradeLevelData(value=200, cost=20),
+                levels={
+                    1: UpgradeLevelData(value=100, cost=0),
+                    2: UpgradeLevelData(value=150, cost=10),
+                    3: UpgradeLevelData(value=200, cost=20),
+                },
             ),
             UpgradeData(
                 UpgradeType.ARMOUR,
-                level_one=UpgradeLevelData(value=20, cost=0),
-                level_two=UpgradeLevelData(value=25, cost=10),
-                level_three=UpgradeLevelData(value=30, cost=20),
+                levels={
+                    1: UpgradeLevelData(value=20, cost=0),
+                    2: UpgradeLevelData(value=25, cost=10),
+                    3: UpgradeLevelData(value=30, cost=20),
+                },
             ),
             UpgradeData(
                 UpgradeType.SPEED,
-                level_one=UpgradeLevelData(value=200, cost=0),
-                level_two=UpgradeLevelData(value=250, cost=10),
-                level_three=UpgradeLevelData(value=300, cost=20),
+                levels={
+                    1: UpgradeLevelData(value=200, cost=0),
+                    2: UpgradeLevelData(value=250, cost=10),
+                    3: UpgradeLevelData(value=300, cost=20),
+                },
             ),
             UpgradeData(
                 UpgradeType.REGEN_COOLDOWN,
-                level_one=UpgradeLevelData(value=2, cost=0),
-                level_two=UpgradeLevelData(value=1, cost=10),
-                level_three=UpgradeLevelData(value=0.5, cost=20),
+                levels={
+                    1: UpgradeLevelData(value=2, cost=0),
+                    2: UpgradeLevelData(value=1, cost=10),
+                    3: UpgradeLevelData(value=0.5, cost=20),
+                },
             ),
         ],
     ),
@@ -309,32 +312,42 @@ ENEMY1 = BaseData(
         upgrade_data=[
             UpgradeData(
                 UpgradeType.HEALTH,
-                level_one=UpgradeLevelData(value=10, cost=-1),
-                level_two=UpgradeLevelData(value=15, cost=-1),
-                level_three=UpgradeLevelData(value=20, cost=-1),
+                levels={
+                    1: UpgradeLevelData(value=10, cost=-1),
+                    2: UpgradeLevelData(value=15, cost=-1),
+                    3: UpgradeLevelData(value=20, cost=-1),
+                },
             ),
             UpgradeData(
                 UpgradeType.ARMOUR,
-                level_one=UpgradeLevelData(value=10, cost=-1),
-                level_two=UpgradeLevelData(value=15, cost=-1),
-                level_three=UpgradeLevelData(value=20, cost=-1),
+                levels={
+                    1: UpgradeLevelData(value=10, cost=-1),
+                    2: UpgradeLevelData(value=15, cost=-1),
+                    3: UpgradeLevelData(value=20, cost=-1),
+                },
             ),
             UpgradeData(
                 UpgradeType.SPEED,
-                level_one=UpgradeLevelData(value=50, cost=-1),
-                level_two=UpgradeLevelData(value=100, cost=-1),
-                level_three=UpgradeLevelData(value=150, cost=-1),
+                levels={
+                    1: UpgradeLevelData(value=50, cost=-1),
+                    2: UpgradeLevelData(value=100, cost=-1),
+                    3: UpgradeLevelData(value=150, cost=-1),
+                },
             ),
             UpgradeData(
                 UpgradeType.REGEN_COOLDOWN,
-                level_one=UpgradeLevelData(value=3, cost=-1),
-                level_two=UpgradeLevelData(value=2, cost=-1),
-                level_three=UpgradeLevelData(value=1, cost=-1),
+                levels={
+                    1: UpgradeLevelData(value=3, cost=-1),
+                    2: UpgradeLevelData(value=2, cost=-1),
+                    3: UpgradeLevelData(value=1, cost=-1),
+                },
             ),
         ],
     ),
     enemy_data=EnemyData(view_distance=5, movement_algorithm=AIMovementType.FOLLOW),
-    melee_attack_data=MeleeAttackData(damage=5, attack_cooldown=2, attack_range=3),
+    ranged_attack_data=RangedAttackData(
+        damage=5, attack_cooldown=5, attack_range=3, max_range=10
+    ),
 )
 
 
