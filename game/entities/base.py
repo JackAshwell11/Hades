@@ -226,12 +226,12 @@ class Entity(arcade.Sprite):
             for algorithm in self.attacks
         ]
         self._entity_state: dict[str, float] = {
-            "health": self.upgrade_data[0].levels[1].value,
-            "max health": self.upgrade_data[0].levels[1].value,
-            "armour": self.upgrade_data[1].levels[1].value,
-            "max armour": self.upgrade_data[1].levels[1].value,
-            "max velocity": self.upgrade_data[2].levels[1].value,
-            "armour regen cooldown": self.upgrade_data[3].levels[1].value,
+            "health": self.upgrade_data[0].value_increase_function(0),
+            "max health": self.upgrade_data[0].value_increase_function(0),
+            "armour": self.upgrade_data[1].value_increase_function(0),
+            "max armour": self.upgrade_data[1].value_increase_function(0),
+            "max velocity": self.upgrade_data[2].value_increase_function(0),
+            "armour regen cooldown": self.upgrade_data[3].value_increase_function(0),
             "bonus attack cooldown": 0,
         }
         self.applied_effects: list[StatusEffect] = []

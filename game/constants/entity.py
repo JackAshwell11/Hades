@@ -3,7 +3,7 @@ from __future__ import annotations
 # Builtin
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Callable, Sequence
 
 # Custom
 from game.constants.generation import TileType
@@ -24,7 +24,18 @@ class EntityID(Enum):
     ENEMY = "enemy"
 
 
-# Player upgrades types
+# Player upgrade sections
+class UpgradeSection(Enum):
+    """Stores the sections that can be upgraded by the player improving various
+    attributes."""
+
+    ENDURANCE = "endurance"
+    DEFENCE = "defence"
+    STRENGTH = "strength"
+    INTELLIGENCE = "intelligence"
+
+
+# Entity upgrade types
 class UpgradeType(Enum):
     """Stores the types of upgrades that can be applied to the entity."""
 
@@ -32,6 +43,11 @@ class UpgradeType(Enum):
     ARMOUR = "armour"
     SPEED = "speed"
     REGEN_COOLDOWN = "regen cooldown"
+    MELEE_DAMAGE = "melee damage"
+    AREA_OF_EFFECT_DAMAGE = "area of effect damage"
+    RANGED_DAMAGE = "ranged damage"
+    FIRE_RATE = "fire rate"
+    POTION_DURATION = "potion duration"
 
 
 # Movement algorithms
@@ -135,28 +151,17 @@ class UpgradeData:
 
     level_type: UpgradeType
         The type of upgrade this instance represents.
-    levels: dict[int, UpgradeLevelData]
-        A mapping of level number to upgrade level data. Level 1 is mandatory, but other
-        levels are optional.
+    value_increase_function: Callable[[int], float]
+        The exponential lambda function which calculates the next level's value based on
+        the current level.
+    cost_increase_function: Callable[[int], float]
+        The exponential lambda function which calculates the next level's cost based on
+        the current level.
     """
 
     level_type: UpgradeType
-    levels: dict[int, UpgradeLevelData] = field(kw_only=True)
-
-
-@dataclass
-class UpgradeLevelData:
-    """
-    Stores the value and cost for a specific level upgrade.
-
-    value: float
-        The value of this upgrade.
-    cost: float
-        The cost of this upgrade.
-    """
-
-    value: float = field(kw_only=True)
-    cost: float = field(kw_only=True)
+    value_increase_function: Callable[[int], float] = field(kw_only=True)
+    cost_increase_function: Callable[[int], float] = field(kw_only=True)
 
 
 @dataclass
@@ -259,35 +264,25 @@ PLAYER = BaseData(
         upgrade_data=[
             UpgradeData(
                 UpgradeType.HEALTH,
-                levels={
-                    1: UpgradeLevelData(value=100, cost=0),
-                    2: UpgradeLevelData(value=150, cost=10),
-                    3: UpgradeLevelData(value=200, cost=20),
-                },
+                value_increase_function=lambda current_level: 100
+                * 1.4**current_level,
+                cost_increase_function=lambda current_level: 1 * 3**current_level,
             ),
             UpgradeData(
                 UpgradeType.ARMOUR,
-                levels={
-                    1: UpgradeLevelData(value=20, cost=0),
-                    2: UpgradeLevelData(value=25, cost=10),
-                    3: UpgradeLevelData(value=30, cost=20),
-                },
+                value_increase_function=lambda current_level: 20 * 1.4**current_level,
+                cost_increase_function=lambda current_level: 1 * 3**current_level,
             ),
             UpgradeData(
                 UpgradeType.SPEED,
-                levels={
-                    1: UpgradeLevelData(value=200, cost=0),
-                    2: UpgradeLevelData(value=250, cost=10),
-                    3: UpgradeLevelData(value=300, cost=20),
-                },
+                value_increase_function=lambda current_level: 200
+                * 1.4**current_level,
+                cost_increase_function=lambda current_level: 1 * 3**current_level,
             ),
             UpgradeData(
                 UpgradeType.REGEN_COOLDOWN,
-                levels={
-                    1: UpgradeLevelData(value=2, cost=0),
-                    2: UpgradeLevelData(value=1, cost=10),
-                    3: UpgradeLevelData(value=0.5, cost=20),
-                },
+                value_increase_function=lambda current_level: 2 * 0.5**current_level,
+                cost_increase_function=lambda current_level: 1 * 3**current_level,
             ),
         ],
     ),
@@ -312,35 +307,23 @@ ENEMY1 = BaseData(
         upgrade_data=[
             UpgradeData(
                 UpgradeType.HEALTH,
-                levels={
-                    1: UpgradeLevelData(value=10, cost=-1),
-                    2: UpgradeLevelData(value=15, cost=-1),
-                    3: UpgradeLevelData(value=20, cost=-1),
-                },
+                value_increase_function=lambda current_level: 10 * 1.4**current_level,
+                cost_increase_function=lambda current_level: -1,
             ),
             UpgradeData(
                 UpgradeType.ARMOUR,
-                levels={
-                    1: UpgradeLevelData(value=10, cost=-1),
-                    2: UpgradeLevelData(value=15, cost=-1),
-                    3: UpgradeLevelData(value=20, cost=-1),
-                },
+                value_increase_function=lambda current_level: 10 * 1.4**current_level,
+                cost_increase_function=lambda current_level: -1,
             ),
             UpgradeData(
                 UpgradeType.SPEED,
-                levels={
-                    1: UpgradeLevelData(value=50, cost=-1),
-                    2: UpgradeLevelData(value=100, cost=-1),
-                    3: UpgradeLevelData(value=150, cost=-1),
-                },
+                value_increase_function=lambda current_level: 50 * 1.4**current_level,
+                cost_increase_function=lambda current_level: -1,
             ),
             UpgradeData(
                 UpgradeType.REGEN_COOLDOWN,
-                levels={
-                    1: UpgradeLevelData(value=3, cost=-1),
-                    2: UpgradeLevelData(value=2, cost=-1),
-                    3: UpgradeLevelData(value=1, cost=-1),
-                },
+                value_increase_function=lambda current_level: 3 * 0.6**current_level,
+                cost_increase_function=lambda current_level: -1,
             ),
         ],
     ),
@@ -366,3 +349,5 @@ BULLET_VELOCITY = 300
 MELEE_RESOLUTION = 10
 HEALTH_BAR_OFFSET = 40
 ARMOUR_BAR_OFFSET = 32
+
+# TODO: USE https://notes.io/WUtN
