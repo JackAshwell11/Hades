@@ -24,20 +24,9 @@ class EntityID(Enum):
     ENEMY = "enemy"
 
 
-# Player upgrade sections
-class UpgradeSection(Enum):
-    """Stores the sections that can be upgraded by the player improving various
-    attributes."""
-
-    ENDURANCE = "endurance"
-    DEFENCE = "defence"
-    STRENGTH = "strength"
-    INTELLIGENCE = "intelligence"
-
-
-# Entity upgrade types
-class UpgradeType(Enum):
-    """Stores the types of upgrades that can be applied to the entity."""
+# Entity level types
+class LevelType(Enum):
+    """Stores the types of attributes for the entity which can have different levels."""
 
     HEALTH = "health"
     ARMOUR = "armour"
@@ -48,6 +37,21 @@ class UpgradeType(Enum):
     RANGED_DAMAGE = "ranged damage"
     FIRE_RATE = "fire rate"
     POTION_DURATION = "potion duration"
+
+
+# Player upgrade sections
+class UpgradeSection(Enum):
+    """Stores the sections that can be upgraded by the player improving various
+    attributes."""
+
+    ENDURANCE = [LevelType.HEALTH, LevelType.SPEED]
+    DEFENCE = [LevelType.ARMOUR, LevelType.REGEN_COOLDOWN]
+    STRENGTH = [LevelType.MELEE_DAMAGE, LevelType.AREA_OF_EFFECT_DAMAGE]
+    INTELLIGENCE = [
+        LevelType.RANGED_DAMAGE,
+        LevelType.FIRE_RATE,
+        LevelType.POTION_DURATION,
+    ]
 
 
 # Movement algorithms
@@ -149,7 +153,7 @@ class UpgradeData:
     Stores an upgrade that is available to the entity. If a level's cost is set to -1,
     then the upgrade does not exist for the entity.
 
-    level_type: UpgradeType
+    level_type: LevelType
         The type of upgrade this instance represents.
     value_increase_function: Callable[[int], float]
         The exponential lambda function which calculates the next level's value based on
@@ -159,7 +163,7 @@ class UpgradeData:
         the current level.
     """
 
-    level_type: UpgradeType
+    level_type: LevelType
     value_increase_function: Callable[[int], float] = field(kw_only=True)
     cost_increase_function: Callable[[int], float] = field(kw_only=True)
 
@@ -263,24 +267,24 @@ PLAYER = BaseData(
         armour_regen=True,
         upgrade_data=[
             UpgradeData(
-                UpgradeType.HEALTH,
+                LevelType.HEALTH,
                 value_increase_function=lambda current_level: 100
                 * 1.4**current_level,
                 cost_increase_function=lambda current_level: 1 * 3**current_level,
             ),
             UpgradeData(
-                UpgradeType.ARMOUR,
+                LevelType.ARMOUR,
                 value_increase_function=lambda current_level: 20 * 1.4**current_level,
                 cost_increase_function=lambda current_level: 1 * 3**current_level,
             ),
             UpgradeData(
-                UpgradeType.SPEED,
+                LevelType.SPEED,
                 value_increase_function=lambda current_level: 200
                 * 1.4**current_level,
                 cost_increase_function=lambda current_level: 1 * 3**current_level,
             ),
             UpgradeData(
-                UpgradeType.REGEN_COOLDOWN,
+                LevelType.REGEN_COOLDOWN,
                 value_increase_function=lambda current_level: 2 * 0.5**current_level,
                 cost_increase_function=lambda current_level: 1 * 3**current_level,
             ),
@@ -306,22 +310,22 @@ ENEMY1 = BaseData(
         armour_regen=True,
         upgrade_data=[
             UpgradeData(
-                UpgradeType.HEALTH,
+                LevelType.HEALTH,
                 value_increase_function=lambda current_level: 10 * 1.4**current_level,
                 cost_increase_function=lambda current_level: -1,
             ),
             UpgradeData(
-                UpgradeType.ARMOUR,
+                LevelType.ARMOUR,
                 value_increase_function=lambda current_level: 10 * 1.4**current_level,
                 cost_increase_function=lambda current_level: -1,
             ),
             UpgradeData(
-                UpgradeType.SPEED,
+                LevelType.SPEED,
                 value_increase_function=lambda current_level: 50 * 1.4**current_level,
                 cost_increase_function=lambda current_level: -1,
             ),
             UpgradeData(
-                UpgradeType.REGEN_COOLDOWN,
+                LevelType.REGEN_COOLDOWN,
                 value_increase_function=lambda current_level: 3 * 0.6**current_level,
                 cost_increase_function=lambda current_level: -1,
             ),

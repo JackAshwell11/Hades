@@ -225,15 +225,7 @@ class Entity(arcade.Sprite):
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
-        self._entity_state: dict[str, float] = {
-            "health": self.upgrade_data[0].value_increase_function(0),
-            "max health": self.upgrade_data[0].value_increase_function(0),
-            "armour": self.upgrade_data[1].value_increase_function(0),
-            "max armour": self.upgrade_data[1].value_increase_function(0),
-            "max velocity": self.upgrade_data[2].value_increase_function(0),
-            "armour regen cooldown": self.upgrade_data[3].value_increase_function(0),
-            "bonus attack cooldown": 0,
-        }
+        self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.applied_effects: list[StatusEffect] = []
         self.current_attack_index: int = 0
         self.direction: float = 0
@@ -555,6 +547,17 @@ class Entity(arcade.Sprite):
             The new bonus attack cooldown.
         """
         self._entity_state["bonus attack cooldown"] = value
+
+    def _initialise_entity_state(self) -> dict[str, float]:
+        """
+        Initialises the entity's state dict.
+
+        Returns
+        -------
+        dict[str, float]
+            The initialised entity state.
+        """
+        raise NotImplementedError
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """

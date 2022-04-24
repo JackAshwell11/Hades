@@ -9,7 +9,14 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import PLAYER, SPRITE_SIZE, AttackAlgorithmType, EntityID
+from game.constants.entity import (
+    PLAYER,
+    SPRITE_SIZE,
+    AttackAlgorithmType,
+    EntityID,
+    LevelType,
+    UpgradeData,
+)
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from game.entities.base import Entity
 from game.melee_shader import MeleeShader
@@ -21,6 +28,26 @@ if TYPE_CHECKING:
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+
+class UpgradableAttribute:
+    """
+    Represents a player attribute that can be upgraded.
+
+    Parameters
+    ----------
+    owner: Player
+        The reference to the player object.
+    upgrade_data: UpgradeData
+        The upgrade data for this attribute
+    """
+
+    def __init__(self, owner: Player, upgrade_data: UpgradeData) -> None:
+        self.owner: Player = owner
+        self.upgrade_data: UpgradeData = upgrade_data
+
+    def test(self):
+        print("test")
 
 
 class Player(Entity):
@@ -41,6 +68,8 @@ class Player(Entity):
     melee_shader: MeleeShader
         The OpenGL shader used to find and attack any enemies within a specific distance
         around the player based on their direction.
+    levels: dict[LevelType, UpgradableAttribute]
+        TODO: DO THIS
     inventory: list[Item]
         The list which stores the player's inventory.
     inventory_capacity: int
@@ -56,12 +85,34 @@ class Player(Entity):
     def __init__(self, game: Game, x: int, y: int) -> None:
         super().__init__(game, x, y)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
+        self.levels: dict[LevelType, UpgradeData] = {
+            item.level_type: item for item in self.upgrade_data
+        }
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
+
+    def _initialise_entity_state(self) -> dict[str, float]:
+        """
+        Initialises the entity's state dict.
+
+        Returns
+        -------
+        dict[str, float]
+            The initialised entity state.
+        """
+        return {
+            "health": self.upgrade_data[0].value_increase_function(0),
+            "max health": self.upgrade_data[0].value_increase_function(0),
+            "armour": self.upgrade_data[1].value_increase_function(0),
+            "max armour": self.upgrade_data[1].value_increase_function(0),
+            "max velocity": self.upgrade_data[2].value_increase_function(0),
+            "armour regen cooldown": self.upgrade_data[3].value_increase_function(0),
+            "bonus attack cooldown": 0,
+        }
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """

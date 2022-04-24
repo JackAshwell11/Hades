@@ -7,12 +7,22 @@ from typing import TYPE_CHECKING
 # Pip
 import arcade.gui
 
+# Custom
+from game.constants.entity import LevelType
+
 if TYPE_CHECKING:
     from game.views.game import Game
     from game.window import Window
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+
+class Test(arcade.gui.UIFlatButton):
+    def on_click(self, event):
+        window: Window = arcade.get_window()
+        current_view: Game = window.views["Game"]  # noqa
+        current_view.player.levels[LevelType.HEALTH].test()
 
 
 class BackButton(arcade.gui.UIFlatButton):
@@ -54,6 +64,9 @@ class ShopView(arcade.View):
         super().__init__()
         self.manager: arcade.gui.UIManager = arcade.gui.UIManager()
         self.vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
+
+        mj = Test(text="health", width=200)
+        self.vertical_box.add(mj.with_space_around(top=20))
 
         # Create the back button
         back_button = BackButton(text="Back", width=200)
