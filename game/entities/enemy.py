@@ -88,24 +88,20 @@ class Enemy(Entity):
             The initialised entity state.
         """
         return {
-            "health": self.upgrade_data[0].value_increase_function(
-                self.enemy_level - 1
-            ),
-            "max health": self.upgrade_data[0].value_increase_function(
-                self.enemy_level - 1
-            ),
-            "armour": self.upgrade_data[1].value_increase_function(
-                self.enemy_level - 1
-            ),
-            "max armour": self.upgrade_data[1].value_increase_function(
-                self.enemy_level - 1
-            ),
-            "max velocity": self.upgrade_data[2].value_increase_function(
-                self.enemy_level - 1
-            ),
-            "armour regen cooldown": self.upgrade_data[3].value_increase_function(
-                self.enemy_level - 1
-            ),
+            "health": self.upgrade_data[0].upgrades[0].increase(self.enemy_level - 1),
+            "max health": self.upgrade_data[0]
+            .upgrades[0]
+            .increase(self.enemy_level - 1),
+            "armour": self.upgrade_data[1].upgrades[0].increase(self.enemy_level - 1),
+            "max armour": self.upgrade_data[1]
+            .upgrades[0]
+            .increase(self.enemy_level - 1),
+            "max velocity": self.upgrade_data[0]
+            .upgrades[1]
+            .increase(self.enemy_level - 1),
+            "armour regen cooldown": self.upgrade_data[1]
+            .upgrades[1]
+            .increase(self.enemy_level - 1),
             "bonus attack cooldown": 0,
         }
 

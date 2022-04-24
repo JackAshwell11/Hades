@@ -3,7 +3,7 @@ from __future__ import annotations
 # Builtin
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Callable, Sequence
+from typing import TYPE_CHECKING, Callable
 
 # Custom
 from game.constants.generation import TileType
@@ -24,9 +24,9 @@ class EntityID(Enum):
     ENEMY = "enemy"
 
 
-# Entity level types
-class LevelType(Enum):
-    """Stores the types of attributes for the entity which can have different levels."""
+# Entity attribute upgrades
+class UpgradeAttribute(Enum):
+    """Stores the types of attributes for the entity which can be upgraded."""
 
     HEALTH = "health"
     ARMOUR = "armour"
@@ -44,14 +44,10 @@ class UpgradeSection(Enum):
     """Stores the sections that can be upgraded by the player improving various
     attributes."""
 
-    ENDURANCE = [LevelType.HEALTH, LevelType.SPEED]
-    DEFENCE = [LevelType.ARMOUR, LevelType.REGEN_COOLDOWN]
-    STRENGTH = [LevelType.MELEE_DAMAGE, LevelType.AREA_OF_EFFECT_DAMAGE]
-    INTELLIGENCE = [
-        LevelType.RANGED_DAMAGE,
-        LevelType.FIRE_RATE,
-        LevelType.POTION_DURATION,
-    ]
+    ENDURANCE = "endurance"
+    DEFENCE = "defence"
+    STRENGTH = "strength"
+    INTELLIGENCE = "intelligence"
 
 
 # Movement algorithms
@@ -92,7 +88,7 @@ class BaseData:
         The data about the entity's area of effect attack.
     """
 
-    entity_data: EntityData
+    entity_data: EntityData = field(kw_only=True)
     player_data: PlayerData | None = field(kw_only=True, default=None)
     enemy_data: EnemyData | None = field(kw_only=True, default=None)
     ranged_attack_data: RangedAttackData | None = field(kw_only=True, default=None)
@@ -135,37 +131,50 @@ class EntityData:
         Whether the entity regenerates armour or not.
     armour_regen_cooldown: int
         The time between armour regenerations.
-    upgrade_data: Sequence[UpgradeData]
-        The upgrades that are available to the player.
+    upgrade_data: list[UpgradeData]
+        The upgrades that are available to the entity.
     """
 
     name: str = field(kw_only=True)
     textures: dict[str, list[list[arcade.Texture]]] = field(kw_only=True)
     armour_regen: bool = field(kw_only=True)
-    upgrade_data: Sequence[UpgradeData] = field(
-        kw_only=True, default_factory=lambda: [].copy()
-    )
+    upgrade_data: list[UpgradeData] = field(kw_only=True)
 
 
 @dataclass
 class UpgradeData:
     """
-    Stores an upgrade that is available to the entity. If a level's cost is set to -1,
-    then the upgrade does not exist for the entity.
+    Stores an upgrade that is available to the entity. If the cost function is set to
+    -1, then the upgrade does not exist for the entity.
 
-    level_type: LevelType
+    section_type: UpgradeSection
         The type of upgrade this instance represents.
-    value_increase_function: Callable[[int], float]
-        The exponential lambda function which calculates the next level's value based on
-        the current level.
-    cost_increase_function: Callable[[int], float]
+    cost: Callable[[int], float]
         The exponential lambda function which calculates the next level's cost based on
+        the current level.
+    upgrades: list[AttributeUpgrade]
+        The list of attribute upgrades which are included in this instance.
+    """
+
+    section_type: UpgradeSection = field(kw_only=True)
+    cost: Callable[[int], float] = field(kw_only=True)
+    upgrades: list[AttributeUpgrade] = field(kw_only=True)
+
+
+@dataclass
+class AttributeUpgrade:
+    """
+    Stores an attribute upgrade that is available to the entity.
+
+    attribute_type: UpgradeAttribute
+        The type of attribute which this upgrade targets.
+    increase: Callable[[int], float]
+        The exponential lambda function which calculates the next level's value based on
         the current level.
     """
 
-    level_type: LevelType
-    value_increase_function: Callable[[int], float] = field(kw_only=True)
-    cost_increase_function: Callable[[int], float] = field(kw_only=True)
+    attribute_type: UpgradeAttribute = field(kw_only=True)
+    increase: Callable[[int], float] = field(kw_only=True)
 
 
 @dataclass
@@ -261,32 +270,38 @@ class AreaOfEffectAttackData(AttackData):
 
 # Player characters
 PLAYER = BaseData(
-    EntityData(
+    entity_data=EntityData(
         name="player",
         textures=moving_textures["player"],
         armour_regen=True,
         upgrade_data=[
             UpgradeData(
-                LevelType.HEALTH,
-                value_increase_function=lambda current_level: 100
-                * 1.4**current_level,
-                cost_increase_function=lambda current_level: 1 * 3**current_level,
+                section_type=UpgradeSection.ENDURANCE,
+                cost=lambda current_level: 1 * 3**current_level,
+                upgrades=[
+                    AttributeUpgrade(
+                        attribute_type=UpgradeAttribute.HEALTH,
+                        increase=lambda current_level: 100 * 1.4**current_level,
+                    ),
+                    AttributeUpgrade(
+                        attribute_type=UpgradeAttribute.SPEED,
+                        increase=lambda current_level: 200 * 1.4**current_level,
+                    ),
+                ],
             ),
             UpgradeData(
-                LevelType.ARMOUR,
-                value_increase_function=lambda current_level: 20 * 1.4**current_level,
-                cost_increase_function=lambda current_level: 1 * 3**current_level,
-            ),
-            UpgradeData(
-                LevelType.SPEED,
-                value_increase_function=lambda current_level: 200
-                * 1.4**current_level,
-                cost_increase_function=lambda current_level: 1 * 3**current_level,
-            ),
-            UpgradeData(
-                LevelType.REGEN_COOLDOWN,
-                value_increase_function=lambda current_level: 2 * 0.5**current_level,
-                cost_increase_function=lambda current_level: 1 * 3**current_level,
+                section_type=UpgradeSection.DEFENCE,
+                cost=lambda current_level: 1 * 3**current_level,
+                upgrades=[
+                    AttributeUpgrade(
+                        attribute_type=UpgradeAttribute.ARMOUR,
+                        increase=lambda current_level: 20 * 1.4**current_level,
+                    ),
+                    AttributeUpgrade(
+                        attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
+                        increase=lambda current_level: 2 * 0.5**current_level,
+                    ),
+                ],
             ),
         ],
     ),
@@ -304,30 +319,38 @@ PLAYER = BaseData(
 
 # Enemy characters
 ENEMY1 = BaseData(
-    EntityData(
+    entity_data=EntityData(
         name="enemy1",
         textures=moving_textures["enemy"],
         armour_regen=True,
         upgrade_data=[
             UpgradeData(
-                LevelType.HEALTH,
-                value_increase_function=lambda current_level: 10 * 1.4**current_level,
-                cost_increase_function=lambda current_level: -1,
+                section_type=UpgradeSection.ENDURANCE,
+                cost=lambda current_level: -1,
+                upgrades=[
+                    AttributeUpgrade(
+                        attribute_type=UpgradeAttribute.HEALTH,
+                        increase=lambda current_level: 10 * 1.4**current_level,
+                    ),
+                    AttributeUpgrade(
+                        attribute_type=UpgradeAttribute.SPEED,
+                        increase=lambda current_level: 50 * 1.4**current_level,
+                    ),
+                ],
             ),
             UpgradeData(
-                LevelType.ARMOUR,
-                value_increase_function=lambda current_level: 10 * 1.4**current_level,
-                cost_increase_function=lambda current_level: -1,
-            ),
-            UpgradeData(
-                LevelType.SPEED,
-                value_increase_function=lambda current_level: 50 * 1.4**current_level,
-                cost_increase_function=lambda current_level: -1,
-            ),
-            UpgradeData(
-                LevelType.REGEN_COOLDOWN,
-                value_increase_function=lambda current_level: 3 * 0.6**current_level,
-                cost_increase_function=lambda current_level: -1,
+                section_type=UpgradeSection.DEFENCE,
+                cost=lambda current_level: -1,
+                upgrades=[
+                    AttributeUpgrade(
+                        attribute_type=UpgradeAttribute.ARMOUR,
+                        increase=lambda current_level: 10 * 1.4**current_level,
+                    ),
+                    AttributeUpgrade(
+                        attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
+                        increase=lambda current_level: 3 * 0.6**current_level,
+                    ),
+                ],
             ),
         ],
     ),

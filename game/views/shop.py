@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from game.constants.entity import LevelType
+from game.constants.entity import UpgradeSection
 
 if TYPE_CHECKING:
     from game.views.game import Game
@@ -22,7 +22,7 @@ class Test(arcade.gui.UIFlatButton):
     def on_click(self, event):
         window: Window = arcade.get_window()
         current_view: Game = window.views["Game"]  # noqa
-        current_view.player.levels[LevelType.HEALTH].test()
+        current_view.player.levels[UpgradeSection.ENDURANCE].test()
 
 
 class BackButton(arcade.gui.UIFlatButton):

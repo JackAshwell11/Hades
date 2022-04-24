@@ -376,7 +376,7 @@ class Entity(arcade.Sprite):
         list[UpgradeData]
             The upgrades that are available to the entity.
         """
-        return list(self.entity_data.upgrade_data)
+        return self.entity_data.upgrade_data
 
     @property
     def health(self) -> float:
