@@ -3,8 +3,6 @@ from __future__ import annotations
 # Pip
 import arcade
 
-# Custom
-
 # Debug constants
 DEBUG_LINES = False
 DEBUG_GAME = True

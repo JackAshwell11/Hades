@@ -104,7 +104,7 @@ class Game(arcade.View):
         self.camera: arcade.Camera | None = None
         self.gui_camera: arcade.Camera | None = None
         self.player_status_text: arcade.Text = arcade.Text(
-            "Health: 0  Armour: 0",
+            "Health: 0  Armour: 0  Money: 0",
             10,
             10,
             arcade.color.WHITE,
@@ -234,7 +234,7 @@ class Game(arcade.View):
         logger.info("Initialised inventory view")
 
         # Set up the shop view
-        shop_view = ShopView()
+        shop_view = ShopView(self.player)
         self.window.views["ShopView"] = shop_view
         logger.info("Initialised shop view")
 
@@ -351,7 +351,8 @@ class Game(arcade.View):
         # Draw the gui on the screen
         self.gui_camera.use()
         self.player_status_text.value = (
-            f"Health: {self.player.health}  Armour: {self.player.armour}"
+            f"Health: {self.player.health}  Armour: {self.player.armour}  Money:"
+            f" {self.player.money}"
         )
         self.player_status_text.draw()
         if self.nearest_item:

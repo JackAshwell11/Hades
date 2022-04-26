@@ -152,12 +152,15 @@ class UpgradeData:
     cost: Callable[[int], float]
         The exponential lambda function which calculates the next level's cost based on
         the current level.
+    level_limit: int
+        The maximum level this upgrade can go to.
     upgrades: list[AttributeUpgrade]
         The list of attribute upgrades which are included in this instance.
     """
 
     section_type: UpgradeSection = field(kw_only=True)
     cost: Callable[[int], float] = field(kw_only=True)
+    level_limit: int = field(kw_only=True)
     upgrades: list[AttributeUpgrade] = field(kw_only=True)
 
 
@@ -278,6 +281,7 @@ PLAYER = BaseData(
             UpgradeData(
                 section_type=UpgradeSection.ENDURANCE,
                 cost=lambda current_level: 1 * 3**current_level,
+                level_limit=5,
                 upgrades=[
                     AttributeUpgrade(
                         attribute_type=UpgradeAttribute.HEALTH,
@@ -292,6 +296,7 @@ PLAYER = BaseData(
             UpgradeData(
                 section_type=UpgradeSection.DEFENCE,
                 cost=lambda current_level: 1 * 3**current_level,
+                level_limit=5,
                 upgrades=[
                     AttributeUpgrade(
                         attribute_type=UpgradeAttribute.ARMOUR,
@@ -327,6 +332,7 @@ ENEMY1 = BaseData(
             UpgradeData(
                 section_type=UpgradeSection.ENDURANCE,
                 cost=lambda current_level: -1,
+                level_limit=5,
                 upgrades=[
                     AttributeUpgrade(
                         attribute_type=UpgradeAttribute.HEALTH,
@@ -341,6 +347,7 @@ ENEMY1 = BaseData(
             UpgradeData(
                 section_type=UpgradeSection.DEFENCE,
                 cost=lambda current_level: -1,
+                level_limit=5,
                 upgrades=[
                     AttributeUpgrade(
                         attribute_type=UpgradeAttribute.ARMOUR,

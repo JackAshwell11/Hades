@@ -14,6 +14,7 @@ from game.constants.entity import (
     SPRITE_SIZE,
     AttackAlgorithmType,
     EntityID,
+    UpgradeAttribute,
     UpgradeData,
     UpgradeSection,
 )
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
     from game.constants.entity import BaseData
     from game.entities.base import Item
     from game.views.game import Game
+    from game.views.shop import SectionUpgradeButton
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -40,17 +42,74 @@ class UpgradableSection:
         The reference to the player object.
     upgrade_data: UpgradeData
         The upgrade data for this section.
+    current_level: int
+        The current level of this section.
     """
 
-    def __init__(self, owner: Player, upgrade_data: UpgradeData) -> None:
+    def __init__(
+        self, owner: Player, upgrade_data: UpgradeData, current_level: int
+    ) -> None:
         self.owner: Player = owner
         self.upgrade_data: UpgradeData = upgrade_data
+        self.current_level: int = current_level
 
     def __repr__(self) -> str:
         return f"<UpgradableSection (Owner={self.owner})>"
 
-    def test(self):
-        print(self.upgrade_data)
+    @property
+    def next_level_cost(self) -> int:
+        """
+        Gets the cost for the next level.
+
+        Returns
+        -------
+        int
+            The next level cost.
+        """
+        return round(self.upgrade_data.cost(self.current_level))
+
+    def upgrade(self, shop_button: SectionUpgradeButton) -> None:
+        """
+        Upgrades the stored player section if the player has enough money.
+
+        Parameters
+        ----------
+        shop_button: SectionUpgradeButton
+            The shop section upgrade button which called this function.
+        """
+        # Check if the player has enough money
+        if (
+            self.owner.money >= self.next_level_cost
+            and self.current_level < self.upgrade_data.level_limit
+        ):
+            # Subtract the cost and upgrade each attribute this section manages.
+            self.owner.money -= self.next_level_cost
+            for attribute_upgrade in self.upgrade_data.upgrades:
+                match attribute_upgrade.attribute_type:
+                    case UpgradeAttribute.HEALTH:
+                        self.owner.max_health += round(
+                            attribute_upgrade.increase(self.current_level)
+                            - self.owner.max_health
+                        )
+                    case UpgradeAttribute.SPEED:
+                        self.owner.max_velocity = round(
+                            attribute_upgrade.increase(self.current_level)
+                        )
+                    case UpgradeAttribute.ARMOUR:
+                        self.owner.max_armour += round(
+                            attribute_upgrade.increase(self.current_level)
+                            - self.owner.max_armour
+                        )
+                    case UpgradeAttribute.REGEN_COOLDOWN:
+                        self.owner.armour_regen_cooldown = round(
+                            attribute_upgrade.increase(self.current_level)
+                        )
+            self.current_level += 1
+
+            # Update the shop button text
+            shop_button.text = (
+                f"{self.upgrade_data.section_type.value} - {self.next_level_cost}"
+            )
 
 
 class Player(Entity):
@@ -89,15 +148,40 @@ class Player(Entity):
         super().__init__(game, x, y)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.levels: dict[UpgradeSection, UpgradableSection] = {
-            upgrade_data.section_type: UpgradableSection(self, upgrade_data)
+            upgrade_data.section_type: UpgradableSection(self, upgrade_data, 1)
             for upgrade_data in self.upgrade_data
         }
+        self._entity_state.update({"money": 0.0})
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def money(self) -> float:
+        """
+        Gets the player's money.
+
+        Returns
+        -------
+        float
+            The player's money
+        """
+        return self._entity_state["money"]
+
+    @money.setter
+    def money(self, value: float) -> None:
+        """
+        Sets the player's money.
+
+        Parameters
+        ----------
+        value: float
+            The new money value.
+        """
+        self._entity_state["money"] = value
 
     def _initialise_entity_state(self) -> dict[str, float]:
         """
