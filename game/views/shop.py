@@ -78,7 +78,10 @@ class ShopView(arcade.View):
 
         # Create all the section upgrade buttons based on the amount of sections the
         # player has
-        for upgrade_type, upgradable_section_obj in self.player.levels.items():
+        for (
+            upgrade_type,
+            upgradable_section_obj,
+        ) in self.player.upgrade_sections.items():
             upgrade_section_button = SectionUpgradeButton(
                 text=f"{upgrade_type.value} - {upgradable_section_obj.next_level_cost}",
                 width=200,

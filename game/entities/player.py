@@ -130,7 +130,7 @@ class Player(Entity):
     melee_shader: MeleeShader
         The OpenGL shader used to find and attack any enemies within a specific distance
         around the player based on their direction.
-    levels: dict[UpgradeSection, UpgradableSection]
+    upgrade_sections: dict[UpgradeSection, UpgradableSection]
         A mapping of an upgrade section enum to an upgradable section object.
     inventory: list[Item]
         The list which stores the player's inventory.
@@ -147,7 +147,7 @@ class Player(Entity):
     def __init__(self, game: Game, x: int, y: int) -> None:
         super().__init__(game, x, y)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
-        self.levels: dict[UpgradeSection, UpgradableSection] = {
+        self.upgrade_sections: dict[UpgradeSection, UpgradableSection] = {
             upgrade_data.section_type: UpgradableSection(self, upgrade_data, 1)
             for upgrade_data in self.upgrade_data
         }
