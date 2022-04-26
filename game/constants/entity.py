@@ -32,11 +32,10 @@ class UpgradeAttribute(Enum):
     ARMOUR = "armour"
     SPEED = "speed"
     REGEN_COOLDOWN = "regen cooldown"
-    MELEE_DAMAGE = "melee damage"
-    AREA_OF_EFFECT_DAMAGE = "area of effect damage"
-    RANGED_DAMAGE = "ranged damage"
-    FIRE_RATE = "fire rate"
+    MELEE_ATTACK = "melee attack"
+    AREA_OF_EFFECT_ATTACK = "area of effect attack"
     POTION_DURATION = "potion duration"
+    RANGED_ATTACK = "ranged attack"
 
 
 # Player upgrade sections
@@ -384,4 +383,4 @@ MELEE_RESOLUTION = 10
 HEALTH_BAR_OFFSET = 40
 ARMOUR_BAR_OFFSET = 32
 
-# TODO: USE https://notes.io/WUtN
+# TODO: USE https://notes.io/QfAH

@@ -19,15 +19,15 @@ logger = logging.getLogger(__name__)
 class SectionUpgradeButton(arcade.gui.UIFlatButton):
     """A button which will upgrade a player section if the player has enough money."""
 
-    upgradable_section: UpgradableSection | None = None
+    section_ref: UpgradableSection | None = None
 
     def on_click(self, _) -> None:
         """Called when the button is clicked."""
         # Make sure variables needed are valid
-        assert self.upgradable_section is not None
+        assert self.section_ref is not None
 
         # Upgrade the section if it is possible
-        self.upgradable_section.upgrade(self)
+        self.section_ref.upgrade(self)
 
 
 class BackButton(arcade.gui.UIFlatButton):
@@ -86,7 +86,7 @@ class ShopView(arcade.View):
                 text=f"{upgrade_type.value} - {upgradable_section_obj.next_level_cost}",
                 width=200,
             )
-            upgrade_section_button.upgradable_section = upgradable_section_obj
+            upgrade_section_button.section_ref = upgradable_section_obj
             vertical_box.add(upgrade_section_button.with_space_around(bottom=20))
 
         # Create the back button

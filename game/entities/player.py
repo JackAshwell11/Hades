@@ -82,28 +82,43 @@ class UpgradableSection:
             self.owner.money >= self.next_level_cost
             and self.current_level < self.upgrade_data.level_limit
         ):
-            # Subtract the cost and upgrade each attribute this section manages.
+            # Subtract the cost from the player's money and upgrade each attribute this
+            # section manages
             self.owner.money -= self.next_level_cost
             for attribute_upgrade in self.upgrade_data.upgrades:
                 match attribute_upgrade.attribute_type:
                     case UpgradeAttribute.HEALTH:
-                        self.owner.max_health += round(
+                        diff = (
                             attribute_upgrade.increase(self.current_level)
                             - self.owner.max_health
                         )
-                    case UpgradeAttribute.SPEED:
-                        self.owner.max_velocity = round(
-                            attribute_upgrade.increase(self.current_level)
-                        )
+                        self.owner.health += diff
+                        self.owner.max_health += diff
                     case UpgradeAttribute.ARMOUR:
-                        self.owner.max_armour += round(
+                        diff = (
                             attribute_upgrade.increase(self.current_level)
                             - self.owner.max_armour
                         )
-                    case UpgradeAttribute.REGEN_COOLDOWN:
-                        self.owner.armour_regen_cooldown = round(
-                            attribute_upgrade.increase(self.current_level)
+                        self.owner.armour += diff
+                        self.owner.max_armour += diff
+                    case UpgradeAttribute.SPEED:
+                        self.owner.max_velocity = attribute_upgrade.increase(
+                            self.current_level
                         )
+                    case UpgradeAttribute.REGEN_COOLDOWN:
+                        self.owner.armour_regen_cooldown = attribute_upgrade.increase(
+                            self.current_level
+                        )
+                    case UpgradeAttribute.RANGED_ATTACK:
+                        pass
+                    case UpgradeAttribute.MELEE_ATTACK:
+                        pass
+                    case UpgradeAttribute.AREA_OF_EFFECT_ATTACK:
+                        pass
+                    case UpgradeAttribute.POTION_DURATION:
+                        pass
+
+            # Increase this section's level
             self.current_level += 1
 
             # Update the shop button text
