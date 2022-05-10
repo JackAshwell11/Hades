@@ -185,8 +185,8 @@ class Enemy(Entity):
         # Return the result
         return self.line_of_sight
 
-    def update_indicator_bars(self) -> None:
-        """Performs actions that should happen after the enemy takes damage."""
+    def post_state_update(self) -> None:
+        """Runs after the enemy's health/armour changes."""
         # Update the health and armour bar
         try:
             self.health_bar.fullness = self.health / self.max_health
@@ -195,8 +195,8 @@ class Enemy(Entity):
             # Enemy is already dead
             pass
 
-    def remove_indicator_bars(self) -> None:
-        """Removes the indicator bars after the entity is killed."""
+    def post_death_update(self) -> None:
+        """Runs after the enemy is killed."""
         # Remove the health and armour bar
         self.health_bar.background_box.remove_from_sprite_lists()
         self.health_bar.full_box.remove_from_sprite_lists()

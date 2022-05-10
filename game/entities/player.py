@@ -270,12 +270,12 @@ class Player(Entity):
         logger.info(f"Adding item {item} to inventory")
         return True
 
-    def update_indicator_bars(self) -> None:
-        """Performs actions that should happen after the player takes damage."""
+    def post_state_update(self) -> None:
+        """Runs after the player's health/armour changes."""
         return None
 
-    def remove_indicator_bars(self) -> None:
-        """Performs actions that should happen after the player is killed."""
+    def post_death_update(self) -> None:
+        """Runs after the player is killed."""
         return None
 
     def attack(self) -> None:
