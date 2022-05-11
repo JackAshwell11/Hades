@@ -186,6 +186,8 @@ class Entity(arcade.Sprite):
         The x position of the entity in the game map.
     y: int
         The y position of the entity in the game map.
+    entity_type: BaseData
+        The raw data for this entity.
 
     Attributes
     ----------
@@ -209,17 +211,18 @@ class Entity(arcade.Sprite):
 
     # Class variables
     entity_id: EntityID = EntityID.ENTITY
-    entity_type: BaseData | None = None
 
     def __init__(
         self,
         game: Game,
         x: int,
         y: int,
+        entity_type: BaseData,
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.game: Game = game
         self.center_x, self.center_y = pos_to_pixel(x, y)
+        self.entity_type: BaseData = entity_type
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
         self.attack_algorithms: list[AttackBase] = [
             algorithm.attack_type.value(self, algorithm.attack_cooldown)

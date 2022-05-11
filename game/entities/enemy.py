@@ -11,7 +11,6 @@ import arcade
 # Custom
 from game.constants.entity import (
     ARMOUR_BAR_OFFSET,
-    ENEMY1,
     FACING_LEFT,
     FACING_RIGHT,
     HEALTH_BAR_OFFSET,
@@ -44,6 +43,8 @@ class Enemy(Entity):
         The y position of the enemy in the game map.
     enemy_level: int
         The level of this enemy.
+    enemy_type: BaseData
+        The raw data for this enemy.
 
     Attributes
     ----------
@@ -60,9 +61,11 @@ class Enemy(Entity):
     # Class variables
     entity_id: EntityID = EntityID.ENEMY
 
-    def __init__(self, game: Game, x: int, y: int, enemy_level: int) -> None:
-        super().__init__(game, x, y)
+    def __init__(
+        self, game: Game, x: int, y: int, enemy_type: BaseData, enemy_level: int
+    ) -> None:
         self.enemy_level: int = enemy_level
+        super().__init__(game, x, y, enemy_type)
         self.ai: AIMovementBase = self.enemy_data.movement_algorithm.value(self)
         self.health_bar: IndicatorBar = IndicatorBar(
             self, (self.center_x, self.center_y + HEALTH_BAR_OFFSET), arcade.color.RED
@@ -75,7 +78,10 @@ class Enemy(Entity):
         self.line_of_sight: bool = False
 
     def __repr__(self) -> str:
-        return f"<Enemy (Position=({self.center_x}, {self.center_y}))>"
+        return (
+            f"<Enemy (Position=({self.center_x}, {self.center_y})) (Enemy"
+            f" level={self.enemy_level})>"
+        )
 
     def _initialise_entity_state(self) -> dict[str, float]:
         """
@@ -230,26 +236,3 @@ class Enemy(Entity):
                 self.current_attack.process_attack([self.game.player])
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
                 self.current_attack.process_attack(self.game.player)
-
-
-class Enemy1(Enemy):
-    """
-    Represents the first enemy type in the game.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the enemy can have a reference to it.
-    x: int
-        The x position of the enemy in the game map.
-    y: int
-        The y position of the enemy in the game map.
-    enemy_level: int
-        The level of this enemy.
-    """
-
-    # Class variables
-    entity_type: BaseData = ENEMY1
-
-    def __init__(self, game: Game, x: int, y: int, enemy_level: int) -> None:
-        super().__init__(game, x, y, enemy_level)

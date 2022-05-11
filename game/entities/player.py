@@ -10,7 +10,6 @@ import arcade
 
 # Custom
 from game.constants.entity import (
-    PLAYER,
     SPRITE_SIZE,
     AttackAlgorithmType,
     EntityID,
@@ -139,6 +138,8 @@ class Player(Entity):
         The x position of the player in the game map.
     y: int
         The y position of the player in the game map.
+    player_type: BaseData
+        The raw data for this player.
 
     Attributes
     ----------
@@ -157,10 +158,9 @@ class Player(Entity):
 
     # Class variables
     entity_id: EntityID = EntityID.PLAYER
-    entity_type: BaseData = PLAYER
 
-    def __init__(self, game: Game, x: int, y: int) -> None:
-        super().__init__(game, x, y)
+    def __init__(self, game: Game, x: int, y: int, player_type: BaseData) -> None:
+        super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.upgrade_sections: dict[UpgradeSection, UpgradableSection] = {
             upgrade_data.section_type: UpgradableSection(self, upgrade_data, 1)
