@@ -9,20 +9,18 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import (
-    SPRITE_SIZE,
-    AttackAlgorithmType,
-    EntityID,
-    UpgradeAttribute,
-    UpgradeData,
-    UpgradeSection,
-)
+from game.constants.entity import SPRITE_SIZE, AttackAlgorithmType, EntityID
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from game.entities.base import Entity
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
+    from game.constants.levels import (
+        EntityUpgradeData,
+        UpgradeAttribute,
+        UpgradeSection,
+    )
     from game.entities.base import Item
     from game.views.game import Game
     from game.views.shop import SectionUpgradeButton
@@ -39,17 +37,17 @@ class UpgradableSection:
     ----------
     owner: Player
         The reference to the player object.
-    upgrade_data: UpgradeData
+    upgrade_data: EntityUpgradeData
         The upgrade data for this section.
     current_level: int
         The current level of this section.
     """
 
     def __init__(
-        self, owner: Player, upgrade_data: UpgradeData, current_level: int
+        self, owner: Player, upgrade_data: EntityUpgradeData, current_level: int
     ) -> None:
         self.owner: Player = owner
-        self.upgrade_data: UpgradeData = upgrade_data
+        self.upgrade_data: EntityUpgradeData = upgrade_data
         self.current_level: int = current_level
 
     def __repr__(self) -> str:

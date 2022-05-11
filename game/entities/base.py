@@ -29,8 +29,8 @@ if TYPE_CHECKING:
         MeleeAttackData,
         PlayerData,
         RangedAttackData,
-        UpgradeData,
     )
+    from game.constants.levels import EntityUpgradeData
     from game.entities.player import Player
     from game.views.game import Game
 
@@ -370,13 +370,13 @@ class Entity(arcade.Sprite):
         return self.attack_algorithms[self.current_attack_index]
 
     @property
-    def upgrade_data(self) -> list[UpgradeData]:
+    def upgrade_data(self) -> list[EntityUpgradeData]:
         """
         Gets the upgrades that are available to the entity.
 
         Returns
         -------
-        list[UpgradeData]
+        list[EntityUpgradeData]
             The upgrades that are available to the entity.
         """
         return self.entity_data.upgrade_data
