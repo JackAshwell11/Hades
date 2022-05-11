@@ -92,21 +92,19 @@ class Enemy(Entity):
         dict[str, float]
             The initialised entity state.
         """
+        # Get the enemy level adjusted for an array index
+        adjusted_level = self.enemy_level - 1
+
+        # Create the entity state dict
         return {
-            "health": self.upgrade_data[0].upgrades[0].increase(self.enemy_level - 1),
-            "max health": self.upgrade_data[0]
-            .upgrades[0]
-            .increase(self.enemy_level - 1),
-            "armour": self.upgrade_data[1].upgrades[0].increase(self.enemy_level - 1),
-            "max armour": self.upgrade_data[1]
-            .upgrades[0]
-            .increase(self.enemy_level - 1),
-            "max velocity": self.upgrade_data[0]
-            .upgrades[1]
-            .increase(self.enemy_level - 1),
+            "health": self.upgrade_data[0].upgrades[0].increase(adjusted_level),
+            "max health": self.upgrade_data[0].upgrades[0].increase(adjusted_level),
+            "armour": self.upgrade_data[1].upgrades[0].increase(adjusted_level),
+            "max armour": self.upgrade_data[1].upgrades[0].increase(adjusted_level),
+            "max velocity": self.upgrade_data[0].upgrades[1].increase(adjusted_level),
             "armour regen cooldown": self.upgrade_data[1]
             .upgrades[1]
-            .increase(self.enemy_level - 1),
+            .increase(adjusted_level),
             "bonus attack cooldown": 0,
         }
 
