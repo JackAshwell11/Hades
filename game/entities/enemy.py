@@ -59,9 +59,8 @@ class Enemy(Entity):
 
     # Class variables
     entity_id: EntityID = EntityID.ENEMY
-    enemy_level: int = 1
 
-    def __init__(self, game: Game, x: int, y: int, enemy_level: int = 1) -> None:
+    def __init__(self, game: Game, x: int, y: int, enemy_level: int) -> None:
         super().__init__(game, x, y)
         self.enemy_level: int = enemy_level
         self.ai: AIMovementBase = self.enemy_data.movement_algorithm.value(self)
@@ -245,15 +244,12 @@ class Enemy1(Enemy):
         The x position of the enemy in the game map.
     y: int
         The y position of the enemy in the game map.
+    enemy_level: int
+        The level of this enemy.
     """
 
     # Class variables
     entity_type: BaseData = ENEMY1
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
+    def __init__(self, game: Game, x: int, y: int, enemy_level: int) -> None:
+        super().__init__(game, x, y, enemy_level)

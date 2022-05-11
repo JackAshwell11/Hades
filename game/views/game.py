@@ -3,6 +3,7 @@ from __future__ import annotations
 # Builtin
 import logging
 import math
+import random
 from typing import TYPE_CHECKING
 
 # Pip
@@ -163,41 +164,49 @@ class Game(arcade.View):
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.ENEMY.value:
                         self.enemies.append(
-                            Enemy1(
-                                self,
-                                count_x,
-                                count_y,
-                            )
+                            Enemy1(self, count_x, count_y, random.randint(1, 10))
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.HEALTH_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
-                        health_potion = HealthPotion(self, count_x, count_y)
+                        health_potion = HealthPotion(
+                            self, count_x, count_y, random.randint(1, 10)
+                        )
                         self.tile_sprites.append(health_potion)
                         self.item_sprites.append(health_potion)
                     case TileType.ARMOUR_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
-                        armour_potion = ArmourPotion(self, count_x, count_y)
+                        armour_potion = ArmourPotion(
+                            self, count_x, count_y, random.randint(1, 10)
+                        )
                         self.tile_sprites.append(armour_potion)
                         self.item_sprites.append(armour_potion)
                     case TileType.HEALTH_BOOST_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
-                        health_boost_potion = HealthBoostPotion(self, count_x, count_y)
+                        health_boost_potion = HealthBoostPotion(
+                            self, count_x, count_y, random.randint(1, 10)
+                        )
                         self.tile_sprites.append(health_boost_potion)
                         self.item_sprites.append(health_boost_potion)
                     case TileType.ARMOUR_BOOST_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
-                        armour_boost_potion = ArmourBoostPotion(self, count_x, count_y)
+                        armour_boost_potion = ArmourBoostPotion(
+                            self, count_x, count_y, random.randint(1, 10)
+                        )
                         self.tile_sprites.append(armour_boost_potion)
                         self.item_sprites.append(armour_boost_potion)
                     case TileType.SPEED_BOOST_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
-                        speed_boost_potion = SpeedBoostPotion(self, count_x, count_y)
+                        speed_boost_potion = SpeedBoostPotion(
+                            self, count_x, count_y, random.randint(1, 10)
+                        )
                         self.tile_sprites.append(speed_boost_potion)
                         self.item_sprites.append(speed_boost_potion)
                     case TileType.FIRE_RATE_BOOST_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
-                        fire_rate_potion = FireRateBoostPotion(self, count_x, count_y)
+                        fire_rate_potion = FireRateBoostPotion(
+                            self, count_x, count_y, random.randint(1, 10)
+                        )
                         self.tile_sprites.append(fire_rate_potion)
                         self.item_sprites.append(fire_rate_potion)
                     case TileType.SHOP.value:
