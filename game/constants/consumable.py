@@ -30,6 +30,7 @@ class StatusEffectType(Enum):
     SPEED = "speed"
     FIRE_RATE = "fire rate"
     # BURN = "burn"
+    # THORNS = "thorns"
 
 
 @dataclass

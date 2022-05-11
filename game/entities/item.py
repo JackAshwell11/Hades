@@ -89,20 +89,23 @@ class Consumable(Item):
         The x position of the consumable in the game map.
     y: int
         The y position of the consumable in the game map.
+    consumable_level: int
+        The level of this consumable.
     """
 
     # Class variables
     item_text: str = "Press E to pick up and R to activate"
     consumable_type: ConsumableData | None = None
-    consumable_level: int = 1
 
     def __init__(
         self,
         game: Game,
         x: int,
         y: int,
+        consumable_level: int,
     ) -> None:
         super().__init__(game, x, y)
+        self.consumable_level: int = consumable_level
         if self.consumable_type is not None:
             self.texture: arcade.Texture = self.consumable_type.levels[
                 self.consumable_level
@@ -246,19 +249,16 @@ class HealthPotion(Consumable):
         The x position of the health potion in the game map.
     y: int
         The y position of the health potion in the game map.
+    consumable_level: int
+        The level of this consumable.
     """
 
     # Class variables
     item_id: TileType = TileType.HEALTH_POTION
     consumable_type: ConsumableData = HEALTH_POTION
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
+    def __init__(self, game: Game, x: int, y: int, consumable_level: int) -> None:
+        super().__init__(game, x, y, consumable_level)
 
     def __repr__(self) -> str:
         return f"<HealthPotion (Position=({self.center_x}, {self.center_y}))>"
@@ -276,19 +276,16 @@ class ArmourPotion(Consumable):
         The x position of the armour potion in the game map.
     y: int
         The y position of the armour potion in the game map.
+    consumable_level: int
+        The level of this consumable.
     """
 
     # Class variables
     item_id: TileType = TileType.ARMOUR_POTION
     consumable_type: ConsumableData = ARMOUR_POTION
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
+    def __init__(self, game: Game, x: int, y: int, consumable_level: int) -> None:
+        super().__init__(game, x, y, consumable_level)
 
     def __repr__(self) -> str:
         return f"<ArmourPotion (Position=({self.center_x}, {self.center_y}))>"
@@ -307,19 +304,16 @@ class HealthBoostPotion(Consumable):
         The x position of the health boost potion in the game map.
     y: int
         The y position of the health boost potion in the game map.
+    consumable_level: int
+        The level of this consumable.
     """
 
     # Class variables
     item_id: TileType = TileType.HEALTH_BOOST_POTION
     consumable_type: ConsumableData = HEALTH_BOOST_POTION
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
+    def __init__(self, game: Game, x: int, y: int, consumable_level: int) -> None:
+        super().__init__(game, x, y, consumable_level)
 
     def __repr__(self) -> str:
         return f"<HealthBoostPotion (Position=({self.center_x}, {self.center_y}))>"
@@ -338,19 +332,16 @@ class ArmourBoostPotion(Consumable):
         The x position of the armour boost potion in the game map.
     y: int
         The y position of the armour boost potion in the game map.
+    consumable_level: int
+        The level of this consumable.
     """
 
     # Class variables
     item_id: TileType = TileType.ARMOUR_BOOST_POTION
     consumable_type: ConsumableData = ARMOUR_BOOST_POTION
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
+    def __init__(self, game: Game, x: int, y: int, consumable_level: int) -> None:
+        super().__init__(game, x, y, consumable_level)
 
     def __repr__(self) -> str:
         return f"<ArmourBoostPotion (Position=({self.center_x}, {self.center_y}))>"
@@ -369,19 +360,16 @@ class SpeedBoostPotion(Consumable):
         The x position of the speed boost potion in the game map.
     y: int
         The y position of the speed boost potion in the game map.
+    consumable_level: int
+        The level of this consumable.
     """
 
     # Class variables
     item_id: TileType = TileType.SPEED_BOOST_POTION
     consumable_type: ConsumableData = SPEED_BOOST_POTION
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
+    def __init__(self, game: Game, x: int, y: int, consumable_level: int) -> None:
+        super().__init__(game, x, y, consumable_level)
 
     def __repr__(self) -> str:
         return f"<SpeedBoostPotion (Position=({self.center_x}, {self.center_y}))>"
@@ -400,19 +388,16 @@ class FireRateBoostPotion(Consumable):
         The x position of the fire rate boost potion in the game map.
     y: int
         The y position of the fire rate boost potion in the game map.
+    consumable_level: int
+        The level of this consumable.
     """
 
     # Class variables
     item_id: TileType = TileType.FIRE_RATE_BOOST_POTION
     consumable_type: ConsumableData = FIRE_RATE_BOOST_POTION
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
+    def __init__(self, game: Game, x: int, y: int, consumable_level: int) -> None:
+        super().__init__(game, x, y, consumable_level)
 
     def __repr__(self) -> str:
         return f"<FireRateBoostPotion (Position=({self.center_x}, {self.center_y}))>"

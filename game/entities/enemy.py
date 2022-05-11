@@ -42,6 +42,8 @@ class Enemy(Entity):
         The x position of the enemy in the game map.
     y: int
         The y position of the enemy in the game map.
+    enemy_level: int
+        The level of this enemy.
 
     Attributes
     ----------
@@ -57,15 +59,10 @@ class Enemy(Entity):
 
     # Class variables
     entity_id: EntityID = EntityID.ENEMY
-    enemy_level: int = 1
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
+    def __init__(self, game: Game, x: int, y: int, enemy_level: int) -> None:
         super().__init__(game, x, y)
+        self.enemy_level: int = enemy_level
         self.ai: AIMovementBase = self.enemy_data.movement_algorithm.value(self)
         self.health_bar: IndicatorBar = IndicatorBar(
             self, (self.center_x, self.center_y + HEALTH_BAR_OFFSET), arcade.color.RED
@@ -79,6 +76,33 @@ class Enemy(Entity):
 
     def __repr__(self) -> str:
         return f"<Enemy (Position=({self.center_x}, {self.center_y}))>"
+
+    def _initialise_entity_state(self) -> dict[str, float]:
+        """
+        Initialises the entity's state dict.
+
+        Returns
+        -------
+        dict[str, float]
+            The initialised entity state.
+        """
+        return {
+            "health": self.upgrade_data[0].upgrades[0].increase(self.enemy_level - 1),
+            "max health": self.upgrade_data[0]
+            .upgrades[0]
+            .increase(self.enemy_level - 1),
+            "armour": self.upgrade_data[1].upgrades[0].increase(self.enemy_level - 1),
+            "max armour": self.upgrade_data[1]
+            .upgrades[0]
+            .increase(self.enemy_level - 1),
+            "max velocity": self.upgrade_data[0]
+            .upgrades[1]
+            .increase(self.enemy_level - 1),
+            "armour regen cooldown": self.upgrade_data[1]
+            .upgrades[1]
+            .increase(self.enemy_level - 1),
+            "bonus attack cooldown": 0,
+        }
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
@@ -160,8 +184,8 @@ class Enemy(Entity):
         # Return the result
         return self.line_of_sight
 
-    def update_indicator_bars(self) -> None:
-        """Performs actions that should happen after the enemy takes damage."""
+    def post_state_update(self) -> None:
+        """Runs after the enemy's health/armour changes."""
         # Update the health and armour bar
         try:
             self.health_bar.fullness = self.health / self.max_health
@@ -170,8 +194,8 @@ class Enemy(Entity):
             # Enemy is already dead
             pass
 
-    def remove_indicator_bars(self) -> None:
-        """Removes the indicator bars after the entity is killed."""
+    def post_death_update(self) -> None:
+        """Runs after the enemy is killed."""
         # Remove the health and armour bar
         self.health_bar.background_box.remove_from_sprite_lists()
         self.health_bar.full_box.remove_from_sprite_lists()
@@ -220,15 +244,12 @@ class Enemy1(Enemy):
         The x position of the enemy in the game map.
     y: int
         The y position of the enemy in the game map.
+    enemy_level: int
+        The level of this enemy.
     """
 
     # Class variables
     entity_type: BaseData = ENEMY1
 
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
+    def __init__(self, game: Game, x: int, y: int, enemy_level: int) -> None:
+        super().__init__(game, x, y, enemy_level)

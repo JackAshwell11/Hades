@@ -8,11 +8,26 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 if TYPE_CHECKING:
+    from game.entities.player import Player, UpgradableSection
     from game.views.game import Game
     from game.window import Window
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+
+class SectionUpgradeButton(arcade.gui.UIFlatButton):
+    """A button which will upgrade a player section if the player has enough money."""
+
+    section_ref: UpgradableSection | None = None
+
+    def on_click(self, _) -> None:
+        """Called when the button is clicked."""
+        # Make sure variables needed are valid
+        assert self.section_ref is not None
+
+        # Upgrade the section if it is possible
+        self.section_ref.upgrade(self)
 
 
 class BackButton(arcade.gui.UIFlatButton):
@@ -44,25 +59,44 @@ class ShopView(arcade.View):
     """
     Displays the shop UI so the player can upgrade their attributes
 
+    Parameters
+    ----------
+    player: Player
+        The player object used for accessing the inventory.
+
     Attributes
     ----------
     manager: arcade.gui.UIManager
         Manages all the different UI elements.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, player: Player) -> None:
         super().__init__()
+        self.player: Player = player
         self.manager: arcade.gui.UIManager = arcade.gui.UIManager()
-        self.vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
+        vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
+
+        # Create all the section upgrade buttons based on the amount of sections the
+        # player has
+        for (
+            upgrade_type,
+            upgradable_section_obj,
+        ) in self.player.upgrade_sections.items():
+            upgrade_section_button = SectionUpgradeButton(
+                text=f"{upgrade_type.value} - {upgradable_section_obj.next_level_cost}",
+                width=200,
+            )
+            upgrade_section_button.section_ref = upgradable_section_obj
+            vertical_box.add(upgrade_section_button.with_space_around(bottom=20))
 
         # Create the back button
         back_button = BackButton(text="Back", width=200)
-        self.vertical_box.add(back_button.with_space_around(top=20))
+        vertical_box.add(back_button)
 
         # Register the UI elements
         self.manager.add(
             arcade.gui.UIAnchorWidget(
-                anchor_x="center_x", anchor_y="center_y", child=self.vertical_box
+                anchor_x="center_x", anchor_y="center_y", child=vertical_box
             )
         )
 

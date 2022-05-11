@@ -103,13 +103,15 @@ class InventoryView(arcade.View):
     ----------
     manager: arcade.gui.UIManager
         Manages all the different UI elements.
+    vertical_box: arcade.gui.UIBoxLayout
+        The arcade box layout responsible for organising the different ui elements.
     """
 
     def __init__(self, player: Player) -> None:
         super().__init__()
+        self.player: Player = player
         self.manager: arcade.gui.UIManager = arcade.gui.UIManager()
         self.vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
-        self.player: Player = player
 
         # Create the inventory grid
         for i in range(INVENTORY_HEIGHT):

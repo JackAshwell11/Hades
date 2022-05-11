@@ -225,15 +225,7 @@ class Entity(arcade.Sprite):
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
-        self._entity_state: dict[str, float] = {
-            "health": self.upgrade_data[0].level_one.value,
-            "max health": self.upgrade_data[0].level_one.value,
-            "armour": self.upgrade_data[1].level_one.value,
-            "max armour": self.upgrade_data[1].level_one.value,
-            "max velocity": self.upgrade_data[2].level_one.value,
-            "armour regen cooldown": self.upgrade_data[3].level_one.value,
-            "bonus attack cooldown": 0,
-        }
+        self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.applied_effects: list[StatusEffect] = []
         self.current_attack_index: int = 0
         self.direction: float = 0
@@ -384,7 +376,7 @@ class Entity(arcade.Sprite):
         list[UpgradeData]
             The upgrades that are available to the entity.
         """
-        return list(self.entity_data.upgrade_data)
+        return self.entity_data.upgrade_data
 
     @property
     def health(self) -> float:
@@ -556,6 +548,17 @@ class Entity(arcade.Sprite):
         """
         self._entity_state["bonus attack cooldown"] = value
 
+    def _initialise_entity_state(self) -> dict[str, float]:
+        """
+        Initialises the entity's state dict.
+
+        Returns
+        -------
+        dict[str, float]
+            The initialised entity state.
+        """
+        raise NotImplementedError
+
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
         Processes movement and game logic.
@@ -592,13 +595,13 @@ class Entity(arcade.Sprite):
         else:
             # Damage the health
             self.health -= damage
-        self.update_indicator_bars()
+        self.post_state_update()
         logger.debug(f"Dealing {damage} to {self}")
 
         # Check if the entity should be killed
         if self.health <= 0:
             self.remove_from_sprite_lists()
-            self.remove_indicator_bars()
+            self.post_death_update()
             logger.info(f"Killed {self}")
 
     def check_armour_regen(self, delta_time: float) -> None:
@@ -617,7 +620,7 @@ class Entity(arcade.Sprite):
                 # Regen armour
                 self.armour += ARMOUR_REGEN_AMOUNT
                 self.time_since_armour_regen = 0
-                self.update_indicator_bars()
+                self.post_state_update()
                 logger.debug(f"Regenerated armour for {self}")
             else:
                 # Increment the counter since not enough time has passed
@@ -626,12 +629,26 @@ class Entity(arcade.Sprite):
             # Increment the counter since not enough time has passed
             self.time_out_of_combat += delta_time
 
-    def update_indicator_bars(self) -> None:
-        """Updates the entity's indicator bars."""
+    def post_state_update(self) -> None:
+        """
+        Runs after the entity's health/armour changes.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
         raise NotImplementedError
 
-    def remove_indicator_bars(self) -> None:
-        """Removes the indicator bars after the entity is killed."""
+    def post_death_update(self) -> None:
+        """
+        Runs after the entity is killed.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
         raise NotImplementedError
 
     def attack(self) -> None:

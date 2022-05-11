@@ -9,7 +9,15 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import PLAYER, SPRITE_SIZE, AttackAlgorithmType, EntityID
+from game.constants.entity import (
+    PLAYER,
+    SPRITE_SIZE,
+    AttackAlgorithmType,
+    EntityID,
+    UpgradeAttribute,
+    UpgradeData,
+    UpgradeSection,
+)
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from game.entities.base import Entity
 from game.melee_shader import MeleeShader
@@ -18,9 +26,105 @@ if TYPE_CHECKING:
     from game.constants.entity import BaseData
     from game.entities.base import Item
     from game.views.game import Game
+    from game.views.shop import SectionUpgradeButton
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+
+class UpgradableSection:
+    """
+    Represents a player section that can be upgraded.
+
+    Parameters
+    ----------
+    owner: Player
+        The reference to the player object.
+    upgrade_data: UpgradeData
+        The upgrade data for this section.
+    current_level: int
+        The current level of this section.
+    """
+
+    def __init__(
+        self, owner: Player, upgrade_data: UpgradeData, current_level: int
+    ) -> None:
+        self.owner: Player = owner
+        self.upgrade_data: UpgradeData = upgrade_data
+        self.current_level: int = current_level
+
+    def __repr__(self) -> str:
+        return f"<UpgradableSection (Owner={self.owner})>"
+
+    @property
+    def next_level_cost(self) -> int:
+        """
+        Gets the cost for the next level.
+
+        Returns
+        -------
+        int
+            The next level cost.
+        """
+        return round(self.upgrade_data.cost(self.current_level))
+
+    def upgrade(self, shop_button: SectionUpgradeButton) -> None:
+        """
+        Upgrades the stored player section if the player has enough money.
+
+        Parameters
+        ----------
+        shop_button: SectionUpgradeButton
+            The shop section upgrade button which called this function.
+        """
+        # Check if the player has enough money
+        if (
+            self.owner.money >= self.next_level_cost
+            and self.current_level < self.upgrade_data.level_limit
+        ):
+            # Subtract the cost from the player's money and upgrade each attribute this
+            # section manages
+            self.owner.money -= self.next_level_cost
+            for attribute_upgrade in self.upgrade_data.upgrades:
+                match attribute_upgrade.attribute_type:
+                    case UpgradeAttribute.HEALTH:
+                        diff = (
+                            attribute_upgrade.increase(self.current_level)
+                            - self.owner.max_health
+                        )
+                        self.owner.health += diff
+                        self.owner.max_health += diff
+                    case UpgradeAttribute.ARMOUR:
+                        diff = (
+                            attribute_upgrade.increase(self.current_level)
+                            - self.owner.max_armour
+                        )
+                        self.owner.armour += diff
+                        self.owner.max_armour += diff
+                    case UpgradeAttribute.SPEED:
+                        self.owner.max_velocity = attribute_upgrade.increase(
+                            self.current_level
+                        )
+                    case UpgradeAttribute.REGEN_COOLDOWN:
+                        self.owner.armour_regen_cooldown = attribute_upgrade.increase(
+                            self.current_level
+                        )
+                    case UpgradeAttribute.RANGED_ATTACK:
+                        pass
+                    case UpgradeAttribute.MELEE_ATTACK:
+                        pass
+                    case UpgradeAttribute.AREA_OF_EFFECT_ATTACK:
+                        pass
+                    case UpgradeAttribute.POTION_DURATION:
+                        pass
+
+            # Increase this section's level
+            self.current_level += 1
+
+            # Update the shop button text
+            shop_button.text = (
+                f"{self.upgrade_data.section_type.value} - {self.next_level_cost}"
+            )
 
 
 class Player(Entity):
@@ -41,6 +145,8 @@ class Player(Entity):
     melee_shader: MeleeShader
         The OpenGL shader used to find and attack any enemies within a specific distance
         around the player based on their direction.
+    upgrade_sections: dict[UpgradeSection, UpgradableSection]
+        A mapping of an upgrade section enum to an upgradable section object.
     inventory: list[Item]
         The list which stores the player's inventory.
     inventory_capacity: int
@@ -56,12 +162,60 @@ class Player(Entity):
     def __init__(self, game: Game, x: int, y: int) -> None:
         super().__init__(game, x, y)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
+        self.upgrade_sections: dict[UpgradeSection, UpgradableSection] = {
+            upgrade_data.section_type: UpgradableSection(self, upgrade_data, 1)
+            for upgrade_data in self.upgrade_data
+        }
+        self._entity_state.update({"money": 0.0})
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.in_combat: bool = False
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def money(self) -> float:
+        """
+        Gets the player's money.
+
+        Returns
+        -------
+        float
+            The player's money
+        """
+        return self._entity_state["money"]
+
+    @money.setter
+    def money(self, value: float) -> None:
+        """
+        Sets the player's money.
+
+        Parameters
+        ----------
+        value: float
+            The new money value.
+        """
+        self._entity_state["money"] = value
+
+    def _initialise_entity_state(self) -> dict[str, float]:
+        """
+        Initialises the entity's state dict.
+
+        Returns
+        -------
+        dict[str, float]
+            The initialised entity state.
+        """
+        return {
+            "health": self.upgrade_data[0].upgrades[0].increase(0),
+            "max health": self.upgrade_data[0].upgrades[0].increase(0),
+            "armour": self.upgrade_data[1].upgrades[0].increase(0),
+            "max armour": self.upgrade_data[1].upgrades[0].increase(0),
+            "max velocity": self.upgrade_data[0].upgrades[1].increase(0),
+            "armour regen cooldown": self.upgrade_data[1].upgrades[1].increase(0),
+            "bonus attack cooldown": 0,
+        }
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
@@ -116,12 +270,12 @@ class Player(Entity):
         logger.info(f"Adding item {item} to inventory")
         return True
 
-    def update_indicator_bars(self) -> None:
-        """Performs actions that should happen after the player takes damage."""
+    def post_state_update(self) -> None:
+        """Runs after the player's health/armour changes."""
         return None
 
-    def remove_indicator_bars(self) -> None:
-        """Performs actions that should happen after the player is killed."""
+    def post_death_update(self) -> None:
+        """Runs after the player is killed."""
         return None
 
     def attack(self) -> None:
