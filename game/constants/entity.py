@@ -160,11 +160,11 @@ class EntityUpgradeData:
     section_type: UpgradeSection = field(kw_only=True)
     cost: Callable[[int], float] = field(kw_only=True)
     level_limit: int = field(kw_only=True)
-    upgrades: list[AttributeUpgrade] = field(kw_only=True)
+    upgrades: list[AttributeUpgradeData] = field(kw_only=True)
 
 
 @dataclass
-class AttributeUpgrade:
+class AttributeUpgradeData:
     """
     Stores an attribute upgrade that is available to the entity.
 
@@ -282,11 +282,11 @@ PLAYER = BaseData(
                 cost=lambda current_level: 1 * 3**current_level,
                 level_limit=5,
                 upgrades=[
-                    AttributeUpgrade(
+                    AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.HEALTH,
                         increase=lambda current_level: 100 * 1.4**current_level,
                     ),
-                    AttributeUpgrade(
+                    AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.SPEED,
                         increase=lambda current_level: 200 * 1.4**current_level,
                     ),
@@ -297,11 +297,11 @@ PLAYER = BaseData(
                 cost=lambda current_level: 1 * 3**current_level,
                 level_limit=5,
                 upgrades=[
-                    AttributeUpgrade(
+                    AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.ARMOUR,
                         increase=lambda current_level: 20 * 1.4**current_level,
                     ),
-                    AttributeUpgrade(
+                    AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
                         increase=lambda current_level: 2 * 0.5**current_level,
                     ),
@@ -333,11 +333,11 @@ ENEMY1 = BaseData(
                 cost=lambda current_level: -1,
                 level_limit=5,
                 upgrades=[
-                    AttributeUpgrade(
+                    AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.HEALTH,
                         increase=lambda current_level: 10 * 1.4**current_level,
                     ),
-                    AttributeUpgrade(
+                    AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.SPEED,
                         increase=lambda current_level: 50 * 1.4**current_level,
                     ),
@@ -348,11 +348,11 @@ ENEMY1 = BaseData(
                 cost=lambda current_level: -1,
                 level_limit=5,
                 upgrades=[
-                    AttributeUpgrade(
+                    AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.ARMOUR,
                         increase=lambda current_level: 10 * 1.4**current_level,
                     ),
-                    AttributeUpgrade(
+                    AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
                         increase=lambda current_level: 3 * 0.6**current_level,
                     ),
