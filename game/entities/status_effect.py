@@ -37,6 +37,15 @@ class StatusEffect:
         The time counter for the status effect.
     """
 
+    __slots__ = (
+        "target",
+        "effect_type",
+        "value",
+        "duration",
+        "original",
+        "time_counter",
+    )
+
     def __init__(
         self,
         target: Entity,

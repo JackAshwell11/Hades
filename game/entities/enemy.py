@@ -48,7 +48,7 @@ class Enemy(Entity):
 
     Attributes
     ----------
-    ai: AIMovementBase
+    movement_ai: AIMovementBase
         The AI movement algorithm which this entity uses.
     health_bar: IndicatorBar
         An indicator bar object which displays the enemy's health visually.
@@ -66,7 +66,9 @@ class Enemy(Entity):
     ) -> None:
         self.enemy_level: int = enemy_level
         super().__init__(game, x, y, enemy_type)
-        self.ai: AIMovementBase = self.enemy_data.movement_algorithm.value(self)
+        self.movement_ai: AIMovementBase = self.enemy_data.movement_algorithm.value(
+            self
+        )
         self.health_bar: IndicatorBar = IndicatorBar(
             self, (self.center_x, self.center_y + HEALTH_BAR_OFFSET), arcade.color.RED
         )
@@ -143,7 +145,7 @@ class Enemy(Entity):
             status_effect.update(delta_time)
 
         # Process the enemy's movement and get the force needed to move the enemy
-        horizontal, vertical = self.ai.calculate_movement(self.game.player)
+        horizontal, vertical = self.movement_ai.calculate_movement(self.game.player)
 
         # Set the needed internal variables
         self.facing = FACING_LEFT if horizontal < 0 else FACING_RIGHT

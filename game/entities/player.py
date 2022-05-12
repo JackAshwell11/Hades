@@ -45,6 +45,8 @@ class UpgradableSection:
         The current level of this section.
     """
 
+    __slots__ = ("owner", "upgrade_data", "current_level")
+
     def __init__(
         self, owner: Player, upgrade_data: EntityUpgradeData, current_level: int
     ) -> None:

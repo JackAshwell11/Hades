@@ -64,6 +64,17 @@ class Map:
         The player's position in the grid. This is set to -1 to avoid typing errors.
     """
 
+    __slots__ = (
+        "level",
+        "map_constants",
+        "grid",
+        "bsp",
+        "player_spawn",
+        "enemy_spawns",
+        "probabilities",
+        "player_pos",
+    )
+
     def __init__(self, level: int) -> None:
         self.level: int = level
         self.map_constants: dict[TileType | str, int] = self.generate_constants()

@@ -52,6 +52,14 @@ class MeleeShader:
         can check for collisions.
     """
 
+    __slots__ = (
+        "view",
+        "program",
+        "result_buffer",
+        "query",
+        "walls_framebuffer",
+    )
+
     def __init__(self, view: Game) -> None:
         self.view: Game = view
         self.program: Program | None = None

@@ -37,6 +37,13 @@ class Rect:
         The bottom-right y position.
     """
 
+    __slots__ = (
+        "x1",
+        "y1",
+        "x2",
+        "y2",
+    )
+
     def __init__(self, x1: int, y1: int, x2: int, y2: int) -> None:
         self.x1: int = x1
         self.y1: int = y1
@@ -131,6 +138,15 @@ class Leaf:
         Whether or not the leaf was split vertically. By default, this is None
         (not split).
     """
+
+    __slots__ = (
+        "left",
+        "right",
+        "container",
+        "room",
+        "grid",
+        "split_vertical",
+    )
 
     def __init__(
         self,
