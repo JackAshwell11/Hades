@@ -60,6 +60,18 @@ class IndicatorBar:
         The size of the bar's border.
     """
 
+    __slots__ = (
+        "owner",
+        "_box_width",
+        "_box_height",
+        "_half_box_width",
+        "_center_x",
+        "_center_y",
+        "_fullness",
+        "_background_box",
+        "_full_box",
+    )
+
     def __init__(
         self,
         owner: Entity,

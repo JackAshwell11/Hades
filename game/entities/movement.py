@@ -23,6 +23,8 @@ class AIMovementBase:
         The owner of this AI algorithm.
     """
 
+    __slots__ = ("owner",)
+
     def __init__(self, owner: Enemy) -> None:
         self.owner: Enemy = owner
 
