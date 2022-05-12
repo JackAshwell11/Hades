@@ -13,6 +13,7 @@ from game.constants.entity import (
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
     EntityID,
+    EntityUpgradeData,
 )
 from game.constants.generation import TileType
 from game.entities.attack import AttackBase
@@ -30,7 +31,6 @@ if TYPE_CHECKING:
         PlayerData,
         RangedAttackData,
     )
-    from game.constants.levels import EntityUpgradeData
     from game.entities.player import Player
     from game.views.game import Game
 
@@ -376,7 +376,7 @@ class Entity(arcade.Sprite):
 
         Returns
         -------
-        list[EntityUpgradeData]
+        list[game.constants.entity.EntityUpgradeData]
             The upgrades that are available to the entity.
         """
         return self.entity_data.upgrade_data
