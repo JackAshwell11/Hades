@@ -3,11 +3,11 @@ from __future__ import annotations
 # Builtin
 import logging
 import math
-import random
 from typing import TYPE_CHECKING
 
 # Pip
 import arcade
+import numpy.random
 
 # Custom
 from game.constants.consumable import (
@@ -26,7 +26,14 @@ from game.constants.entity import (
     PLAYER,
     SPRITE_SIZE,
 )
-from game.constants.general import DAMPING, DEBUG_ATTACK_DISTANCE, DEBUG_VIEW_DISTANCE
+from game.constants.general import (
+    CONSUMABLE_NORMAL_MAX_RANGE,
+    DAMPING,
+    DEBUG_ATTACK_DISTANCE,
+    DEBUG_VIEW_DISTANCE,
+    DISTRIBUTION_GENERATOR_INTERVAL,
+    ENEMY_NORMAL_MAX_RANGE,
+)
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
@@ -43,6 +50,98 @@ if TYPE_CHECKING:
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+
+class NormalDistributionGenerator:
+    """
+    Represents a normal distribution that can be used to determine what level an enemy
+    or consumable should be based on the current game level.
+
+    Parameters
+    ----------
+    lower_bound: int
+        The lower bound of the normal distribution function.
+    upper_bound: int
+        The upper bound of the normal distribution function.
+
+    Attributes
+    ----------
+    random: numpy.random.Generator
+        The numpy normal distribution generator.
+    """
+
+    __slots__ = (
+        "lower_bound",
+        "upper_bound",
+        "random",
+    )
+
+    def __init__(
+        self,
+        lower_bound: int,
+        upper_bound: int,
+    ) -> None:
+        self.lower_bound: int = lower_bound
+        self.upper_bound: int = upper_bound
+        self.random: numpy.random.Generator = numpy.random.default_rng()
+
+    def __repr__(self) -> str:
+        return (
+            f"<NormalDistributionGenerator (Lower bound={self.lower_bound}) (Upper"
+            f" bound={self.upper_bound})>"
+        )
+
+    @classmethod
+    def create_distribution(
+        cls, game_level: int, max_range: int
+    ) -> NormalDistributionGenerator:
+        """
+        Creates the boundaries and initialises the distribution.
+
+        Parameters
+        ----------
+        game_level: int
+            The current level for the game.
+        max_range: int
+            The maximum difference between the lower and upper bounds.
+
+        Returns
+        -------
+        NormalDistributionGenerator
+            The initialised distribution.
+        """
+        # Create the upper and lower bounds. They should both start at 1 then every
+        # DISTRIBUTION_GENERATOR_INTERVAL levels, the upper bound should increase by 1.
+        # Once the difference between the lower and upper bounds reaches max_range, then
+        # we instead shift both of them along by 1
+        upper = (game_level // DISTRIBUTION_GENERATOR_INTERVAL) + 1
+        lower = 1 if upper - 1 < max_range else upper - max_range
+
+        # Initialise the distribution
+        return cls(lower, upper)
+
+    def get_level(self, level_limit: int) -> int:
+        """
+        Gets the level an enemy/consumable should be based on the current game level.
+
+        Parameters
+        ----------
+        level_limit: int
+            The maximum value that the level can be.
+
+        Returns
+        -------
+        int
+            The enemy/consumable level.
+        """
+        # Generate a random value using the normal distribution
+        normal_value = self.random.normal((self.lower_bound + self.upper_bound) / 2)
+
+        # Make sure the value is within the lower and upper bounds
+        adjusted_value = min(max(normal_value, self.upper_bound), self.lower_bound)
+
+        # Make sure the value is not over the level limit
+        return min(adjusted_value, level_limit)
 
 
 class Game(arcade.View):
@@ -142,6 +241,16 @@ class Game(arcade.View):
             The level to create a generation for. Each level should be more difficult
             than the last.
         """
+
+        # Initialise the distribution generators that will determine the enemy and
+        # consumable levels
+        enemy_distribution = NormalDistributionGenerator.create_distribution(
+            level, ENEMY_NORMAL_MAX_RANGE
+        )
+        consumable_distribution = NormalDistributionGenerator.create_distribution(
+            level, CONSUMABLE_NORMAL_MAX_RANGE
+        )
+
         # Create the game map and check that it is valid
         game_map = Map(level)
         assert game_map.grid is not None
@@ -170,20 +279,40 @@ class Game(arcade.View):
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.ENEMY.value:
                         self.enemy_sprites.append(
-                            Enemy(self, count_x, count_y, ENEMY1, random.randint(1, 2))
+                            Enemy(
+                                self,
+                                count_x,
+                                count_y,
+                                ENEMY1,
+                                enemy_distribution.get_level(
+                                    ENEMY1.entity_data.upgrade_level_limit
+                                ),
+                            )
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.HEALTH_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
                         health_potion = Consumable(
-                            self, count_x, count_y, HEALTH_POTION, random.randint(1, 3)
+                            self,
+                            count_x,
+                            count_y,
+                            HEALTH_POTION,
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(health_potion)
                         self.item_sprites.append(health_potion)
                     case TileType.ARMOUR_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
                         armour_potion = Consumable(
-                            self, count_x, count_y, ARMOUR_POTION, random.randint(1, 3)
+                            self,
+                            count_x,
+                            count_y,
+                            ARMOUR_POTION,
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(armour_potion)
                         self.item_sprites.append(armour_potion)
@@ -194,7 +323,9 @@ class Game(arcade.View):
                             count_x,
                             count_y,
                             HEALTH_BOOST_POTION,
-                            random.randint(1, 3),
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(health_boost_potion)
                         self.item_sprites.append(health_boost_potion)
@@ -205,7 +336,9 @@ class Game(arcade.View):
                             count_x,
                             count_y,
                             ARMOUR_BOOST_POTION,
-                            random.randint(1, 3),
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(armour_boost_potion)
                         self.item_sprites.append(armour_boost_potion)
@@ -216,7 +349,9 @@ class Game(arcade.View):
                             count_x,
                             count_y,
                             SPEED_BOOST_POTION,
-                            random.randint(1, 3),
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(speed_boost_potion)
                         self.item_sprites.append(speed_boost_potion)
@@ -227,7 +362,9 @@ class Game(arcade.View):
                             count_x,
                             count_y,
                             FIRE_RATE_BOOST_POTION,
-                            random.randint(1, 3),
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(fire_rate_potion)
                         self.item_sprites.append(fire_rate_potion)

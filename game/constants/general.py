@@ -18,3 +18,8 @@ DAMPING = 0
 # Inventory constants
 INVENTORY_WIDTH = 6
 INVENTORY_HEIGHT = 5
+
+# Enemy and consumable normal distribution constants
+DISTRIBUTION_GENERATOR_INTERVAL = 10
+ENEMY_NORMAL_MAX_RANGE = 3
+CONSUMABLE_NORMAL_MAX_RANGE = 3
