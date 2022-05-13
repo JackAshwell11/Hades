@@ -304,7 +304,7 @@ class Player(Entity):
                 # self.melee_shader.update_collision()
                 # result = self.melee_shader.run_shader()
                 result = []
-                for enemy in self.game.enemies:
+                for enemy in self.game.enemy_sprites:
                     vec_x, vec_y = (
                         enemy.center_x - self.center_x,
                         enemy.center_y - self.center_y,
@@ -325,4 +325,4 @@ class Player(Entity):
                         result.append(enemy)
                 self.current_attack.process_attack(result)
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
-                self.current_attack.process_attack(self.game.enemies)
+                self.current_attack.process_attack(self.game.enemy_sprites)

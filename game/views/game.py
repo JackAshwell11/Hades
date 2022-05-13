@@ -71,13 +71,13 @@ class Game(arcade.View):
         activity around the item.
     bullet_sprites: arcade.SpriteList
         The sprite list for the bullet sprites.
-    enemies: arcade.SpriteList
+    enemy_sprites: arcade.SpriteList
         The sprite list for the enemy sprites.
     indicator_bar_sprites: arcade.SpriteList
         The sprite list for drawing the indicator bars.
     physics_engine: PhysicsEngine | None
         The physics engine which processes wall collision.
-    camera: arcade.Camera | None
+    game_camera: arcade.Camera | None
         The camera used for moving the viewport around the screen.
     gui_camera: arcade.Camera | None
         The camera used for visualising the GUI elements.
@@ -104,10 +104,10 @@ class Game(arcade.View):
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.enemies: arcade.SpriteList = arcade.SpriteList()
+        self.enemy_sprites: arcade.SpriteList = arcade.SpriteList()
         self.indicator_bar_sprites: arcade.SpriteList = arcade.SpriteList()
         self.physics_engine: PhysicsEngine | None = None
-        self.camera: arcade.Camera | None = None
+        self.game_camera: arcade.Camera | None = None
         self.gui_camera: arcade.Camera | None = None
         self.player_status_text: arcade.Text = arcade.Text(
             "Health: 0  Armour: 0  Money: 0",
@@ -169,7 +169,7 @@ class Game(arcade.View):
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.ENEMY.value:
-                        self.enemies.append(
+                        self.enemy_sprites.append(
                             Enemy(self, count_x, count_y, ENEMY1, random.randint(1, 2))
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))
@@ -246,17 +246,17 @@ class Game(arcade.View):
 
         # Create the physics engine
         self.physics_engine = PhysicsEngine(DAMPING)
-        self.physics_engine.setup(self.player, self.tile_sprites, self.enemies)
+        self.physics_engine.setup(self.player, self.tile_sprites, self.enemy_sprites)
 
         # Set up the Camera
-        self.camera = arcade.Camera(self.window.width, self.window.height)
+        self.game_camera = arcade.Camera(self.window.width, self.window.height)
         self.gui_camera = arcade.Camera(self.window.width, self.window.height)
 
         # Set up the melee shader
         self.player.melee_shader.setup_shader()
 
         # Check if any enemy has line of sight
-        for enemy in self.enemies:
+        for enemy in self.enemy_sprites:
             enemy.check_line_of_sight()  # noqa
 
         # Set up the inventory view
@@ -278,7 +278,7 @@ class Game(arcade.View):
     def on_draw(self) -> None:
         """Render the screen."""
         # Make sure variables needed are valid
-        assert self.camera is not None
+        assert self.game_camera is not None
         assert self.player is not None
         assert self.gui_camera is not None
 
@@ -286,12 +286,12 @@ class Game(arcade.View):
         self.clear()
 
         # Activate our Camera
-        self.camera.use()
+        self.game_camera.use()
 
         # Draw the game map
         self.tile_sprites.draw(pixelated=True)
         self.bullet_sprites.draw(pixelated=True)
-        self.enemies.draw(pixelated=True)
+        self.enemy_sprites.draw(pixelated=True)
         self.player.draw(pixelated=True)
 
         # Draw the indicator bars
@@ -299,7 +299,7 @@ class Game(arcade.View):
 
         # Draw the debug items
         if self.debug_mode:
-            for enemy in self.enemies:
+            for enemy in self.enemy_sprites:
                 # Draw the enemy's view distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
@@ -404,7 +404,7 @@ class Game(arcade.View):
         assert self.player is not None
 
         # Check if the game should end
-        if self.player.health <= 0 or not self.enemies:
+        if self.player.health <= 0 or not self.enemy_sprites:
             arcade.exit()
 
         # Calculate the vertical velocity of the player based on the keys pressed
@@ -439,7 +439,7 @@ class Game(arcade.View):
         # Check if we need to update the enemy's line of sight
         if update_enemies:
             # Update the enemy's line of sight check
-            for enemy in self.enemies:
+            for enemy in self.enemy_sprites:
                 enemy.check_line_of_sight()  # noqa
 
         # Position the camera
@@ -447,13 +447,13 @@ class Game(arcade.View):
 
         # Check if the player is in combat
         self.player.in_combat = any(
-            [enemy.line_of_sight for enemy in self.enemies]  # noqa
+            [enemy.line_of_sight for enemy in self.enemy_sprites]  # noqa
         )
         if self.player.in_combat:
             self.player.time_out_of_combat = 0
 
         # Process logic for the enemies
-        self.enemies.on_update()
+        self.enemy_sprites.on_update()
 
         # Process logic for the player
         self.player.on_update()
@@ -593,10 +593,10 @@ class Game(arcade.View):
         """
         # Make sure variables needed are valid
         assert self.player is not None
-        assert self.camera is not None
+        assert self.game_camera is not None
 
         # Calculate the new angle in degrees
-        camera_x, camera_y = self.camera.position
+        camera_x, camera_y = self.game_camera.position
         vec_x, vec_y = (
             x - self.player.center_x + camera_x,
             y - self.player.center_y + camera_y,
@@ -611,12 +611,12 @@ class Game(arcade.View):
         """Centers the camera on the player."""
         # Make sure variables needed are valid
         assert self.game_map_shape is not None
-        assert self.camera is not None
+        assert self.game_camera is not None
         assert self.player is not None
 
         # Calculate the screen position centered on the player
-        screen_center_x = self.player.center_x - (self.camera.viewport_width / 2)
-        screen_center_y = self.player.center_y - (self.camera.viewport_height / 2)
+        screen_center_x = self.player.center_x - (self.game_camera.viewport_width / 2)
+        screen_center_y = self.player.center_y - (self.game_camera.viewport_height / 2)
 
         # Calculate the maximum width and height a sprite can be
         upper_x, upper_y = pos_to_pixel(
@@ -626,15 +626,15 @@ class Game(arcade.View):
         # Calculate the maximum width and height the camera can be
         upper_camera_x, upper_camera_y = (
             upper_x
-            - self.camera.viewport_width
-            + (self.camera.viewport_width / SPRITE_SIZE),
+            - self.game_camera.viewport_width
+            + (self.game_camera.viewport_width / SPRITE_SIZE),
             upper_y
-            - self.camera.viewport_height
-            + (self.camera.viewport_height / SPRITE_SIZE),
+            - self.game_camera.viewport_height
+            + (self.game_camera.viewport_height / SPRITE_SIZE),
         )
 
         # Store the old position, so we can check if it has changed
-        old_position = (self.camera.position[0], self.camera.position[1])
+        old_position = (self.game_camera.position[0], self.game_camera.position[1])
 
         # Make sure the camera doesn't extend beyond the boundaries
         if screen_center_x < 0:
@@ -650,7 +650,7 @@ class Game(arcade.View):
         # Check if the camera position has changed
         if old_position != new_position:
             # Move the camera to the new position
-            self.camera.move_to((screen_center_x, screen_center_y))  # noqa
+            self.game_camera.move_to((screen_center_x, screen_center_y))  # noqa
             logger.debug(
                 f"Changed camera position from {old_position} to {new_position}"
             )
