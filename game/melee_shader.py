@@ -110,8 +110,8 @@ class MeleeShader:
         # floats. To do this, since each enemy is 8-bit, we can multiply them by 4 to
         # get 32-bit and therefore multiply len(self.view.enemies) by 4 to get multiple
         # 32-bit floats
-        self.view.enemies.write_sprite_buffers_to_gpu()
-        self.result_buffer = self.ctx.buffer(reserve=len(self.view.enemies) * 4)
+        self.view.enemy_sprites.write_sprite_buffers_to_gpu()
+        self.result_buffer = self.ctx.buffer(reserve=len(self.view.enemy_sprites) * 4)
 
         # We also need a query to count how many sprites the shader gave us. To do this
         # we make a sampler that counts the number of primitives (the enemy locations in
@@ -162,7 +162,7 @@ class MeleeShader:
         assert self.query is not None
         assert self.walls_framebuffer is not None
         assert self.view.player is not None
-        assert self.view.camera is not None
+        assert self.view.game_camera is not None
 
         # Update the shader's origin point, so we can draw the rays from the correct
         # position
@@ -171,15 +171,15 @@ class MeleeShader:
         # Update the shader's relative origin point. This is the player's position
         # accounting for the camera scroll
         self.program["origin_relative"] = (
-            self.view.player.center_x - self.view.camera.position[0],
-            self.view.player.center_y - self.view.camera.position[1],
+            self.view.player.center_x - self.view.game_camera.position[0],
+            self.view.player.center_y - self.view.game_camera.position[1],
         )
 
         # Update the shader's direction, so we can attack in specific directions
         self.program["direction"] = self.view.player.direction
 
         # Ensure the internal sprite buffers are up-to-date
-        self.view.enemies.write_sprite_buffers_to_gpu()
+        self.view.enemy_sprites.write_sprite_buffers_to_gpu()
 
         # Bind the wall textures to channel 0 so the shader can read them
         self.walls_framebuffer.color_attachments[0].use(0)
@@ -190,10 +190,10 @@ class MeleeShader:
             # run the shader. This only requires the correct input names (in_pos in this
             # case) which will automatically map the enemy position in the position
             # buffer to the vertex shader
-            self.view.enemies.geometry.transform(
+            self.view.enemy_sprites.geometry.transform(
                 self.program,
                 self.result_buffer,
-                vertices=len(self.view.enemies),
+                vertices=len(self.view.enemy_sprites),
             )
 
         # Store the number of primitives/sprites found
@@ -205,7 +205,7 @@ class MeleeShader:
             # convert each item into 32-bit floats which can then be searched for in the
             # enemies list
             return [
-                self.view.enemies[int(i)]
+                self.view.enemy_sprites[int(i)]
                 for i in struct.unpack(
                     f"{num_sprites_found}f",
                     self.result_buffer.read(size=num_sprites_found * 4),

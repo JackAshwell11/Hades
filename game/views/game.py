@@ -3,11 +3,11 @@ from __future__ import annotations
 # Builtin
 import logging
 import math
-import random
 from typing import TYPE_CHECKING
 
 # Pip
 import arcade
+import numpy.random
 
 # Custom
 from game.constants.consumable import (
@@ -26,7 +26,14 @@ from game.constants.entity import (
     PLAYER,
     SPRITE_SIZE,
 )
-from game.constants.general import DAMPING, DEBUG_ATTACK_DISTANCE, DEBUG_VIEW_DISTANCE
+from game.constants.general import (
+    CONSUMABLE_NORMAL_MAX_RANGE,
+    DAMPING,
+    DEBUG_ATTACK_DISTANCE,
+    DEBUG_VIEW_DISTANCE,
+    DISTRIBUTION_GENERATOR_INTERVAL,
+    ENEMY_NORMAL_MAX_RANGE,
+)
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
@@ -43,6 +50,98 @@ if TYPE_CHECKING:
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+
+class NormalDistributionGenerator:
+    """
+    Represents a normal distribution that can be used to determine what level an enemy
+    or consumable should be based on the current game level.
+
+    Parameters
+    ----------
+    lower_bound: int
+        The lower bound of the normal distribution function.
+    upper_bound: int
+        The upper bound of the normal distribution function.
+
+    Attributes
+    ----------
+    random: numpy.random.Generator
+        The numpy normal distribution generator.
+    """
+
+    __slots__ = (
+        "lower_bound",
+        "upper_bound",
+        "random",
+    )
+
+    def __init__(
+        self,
+        lower_bound: int,
+        upper_bound: int,
+    ) -> None:
+        self.lower_bound: int = lower_bound
+        self.upper_bound: int = upper_bound
+        self.random: numpy.random.Generator = numpy.random.default_rng()
+
+    def __repr__(self) -> str:
+        return (
+            f"<NormalDistributionGenerator (Lower bound={self.lower_bound}) (Upper"
+            f" bound={self.upper_bound})>"
+        )
+
+    @classmethod
+    def create_distribution(
+        cls, game_level: int, max_range: int
+    ) -> NormalDistributionGenerator:
+        """
+        Creates the boundaries and initialises the distribution.
+
+        Parameters
+        ----------
+        game_level: int
+            The current level for the game.
+        max_range: int
+            The maximum difference between the lower and upper bounds.
+
+        Returns
+        -------
+        NormalDistributionGenerator
+            The initialised distribution.
+        """
+        # Create the upper and lower bounds. They should both start at 1 then every
+        # DISTRIBUTION_GENERATOR_INTERVAL levels, the upper bound should increase by 1.
+        # Once the difference between the lower and upper bounds reaches max_range, then
+        # we instead shift both of them along by 1
+        upper = (game_level // DISTRIBUTION_GENERATOR_INTERVAL) + 1
+        lower = 1 if upper - 1 < max_range else upper - max_range
+
+        # Initialise the distribution
+        return cls(lower, upper)
+
+    def get_level(self, level_limit: int) -> int:
+        """
+        Gets the level an enemy/consumable should be based on the current game level.
+
+        Parameters
+        ----------
+        level_limit: int
+            The maximum value that the level can be.
+
+        Returns
+        -------
+        int
+            The enemy/consumable level.
+        """
+        # Generate a random value using the normal distribution
+        normal_value = self.random.normal((self.lower_bound + self.upper_bound) / 2)
+
+        # Make sure the value is within the lower and upper bounds
+        adjusted_value = min(max(normal_value, self.upper_bound), self.lower_bound)
+
+        # Make sure the value is not over the level limit
+        return min(adjusted_value, level_limit)
 
 
 class Game(arcade.View):
@@ -71,13 +170,13 @@ class Game(arcade.View):
         activity around the item.
     bullet_sprites: arcade.SpriteList
         The sprite list for the bullet sprites.
-    enemies: arcade.SpriteList
+    enemy_sprites: arcade.SpriteList
         The sprite list for the enemy sprites.
     indicator_bar_sprites: arcade.SpriteList
         The sprite list for drawing the indicator bars.
     physics_engine: PhysicsEngine | None
         The physics engine which processes wall collision.
-    camera: arcade.Camera | None
+    game_camera: arcade.Camera | None
         The camera used for moving the viewport around the screen.
     gui_camera: arcade.Camera | None
         The camera used for visualising the GUI elements.
@@ -104,10 +203,10 @@ class Game(arcade.View):
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.enemies: arcade.SpriteList = arcade.SpriteList()
+        self.enemy_sprites: arcade.SpriteList = arcade.SpriteList()
         self.indicator_bar_sprites: arcade.SpriteList = arcade.SpriteList()
         self.physics_engine: PhysicsEngine | None = None
-        self.camera: arcade.Camera | None = None
+        self.game_camera: arcade.Camera | None = None
         self.gui_camera: arcade.Camera | None = None
         self.player_status_text: arcade.Text = arcade.Text(
             "Health: 0  Armour: 0  Money: 0",
@@ -142,6 +241,16 @@ class Game(arcade.View):
             The level to create a generation for. Each level should be more difficult
             than the last.
         """
+
+        # Initialise the distribution generators that will determine the enemy and
+        # consumable levels
+        enemy_distribution = NormalDistributionGenerator.create_distribution(
+            level, ENEMY_NORMAL_MAX_RANGE
+        )
+        consumable_distribution = NormalDistributionGenerator.create_distribution(
+            level, CONSUMABLE_NORMAL_MAX_RANGE
+        )
+
         # Create the game map and check that it is valid
         game_map = Map(level)
         assert game_map.grid is not None
@@ -169,21 +278,41 @@ class Game(arcade.View):
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.ENEMY.value:
-                        self.enemies.append(
-                            Enemy(self, count_x, count_y, ENEMY1, random.randint(1, 2))
+                        self.enemy_sprites.append(
+                            Enemy(
+                                self,
+                                count_x,
+                                count_y,
+                                ENEMY1,
+                                enemy_distribution.get_level(
+                                    ENEMY1.entity_data.upgrade_level_limit
+                                ),
+                            )
                         )
                         self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.HEALTH_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
                         health_potion = Consumable(
-                            self, count_x, count_y, HEALTH_POTION, random.randint(1, 3)
+                            self,
+                            count_x,
+                            count_y,
+                            HEALTH_POTION,
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(health_potion)
                         self.item_sprites.append(health_potion)
                     case TileType.ARMOUR_POTION.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
                         armour_potion = Consumable(
-                            self, count_x, count_y, ARMOUR_POTION, random.randint(1, 3)
+                            self,
+                            count_x,
+                            count_y,
+                            ARMOUR_POTION,
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(armour_potion)
                         self.item_sprites.append(armour_potion)
@@ -194,7 +323,9 @@ class Game(arcade.View):
                             count_x,
                             count_y,
                             HEALTH_BOOST_POTION,
-                            random.randint(1, 3),
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(health_boost_potion)
                         self.item_sprites.append(health_boost_potion)
@@ -205,7 +336,9 @@ class Game(arcade.View):
                             count_x,
                             count_y,
                             ARMOUR_BOOST_POTION,
-                            random.randint(1, 3),
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(armour_boost_potion)
                         self.item_sprites.append(armour_boost_potion)
@@ -216,7 +349,9 @@ class Game(arcade.View):
                             count_x,
                             count_y,
                             SPEED_BOOST_POTION,
-                            random.randint(1, 3),
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(speed_boost_potion)
                         self.item_sprites.append(speed_boost_potion)
@@ -227,7 +362,9 @@ class Game(arcade.View):
                             count_x,
                             count_y,
                             FIRE_RATE_BOOST_POTION,
-                            random.randint(1, 3),
+                            consumable_distribution.get_level(
+                                HEALTH_POTION.level_limit
+                            ),
                         )
                         self.tile_sprites.append(fire_rate_potion)
                         self.item_sprites.append(fire_rate_potion)
@@ -246,17 +383,17 @@ class Game(arcade.View):
 
         # Create the physics engine
         self.physics_engine = PhysicsEngine(DAMPING)
-        self.physics_engine.setup(self.player, self.tile_sprites, self.enemies)
+        self.physics_engine.setup(self.player, self.tile_sprites, self.enemy_sprites)
 
         # Set up the Camera
-        self.camera = arcade.Camera(self.window.width, self.window.height)
+        self.game_camera = arcade.Camera(self.window.width, self.window.height)
         self.gui_camera = arcade.Camera(self.window.width, self.window.height)
 
         # Set up the melee shader
         self.player.melee_shader.setup_shader()
 
         # Check if any enemy has line of sight
-        for enemy in self.enemies:
+        for enemy in self.enemy_sprites:
             enemy.check_line_of_sight()  # noqa
 
         # Set up the inventory view
@@ -278,7 +415,7 @@ class Game(arcade.View):
     def on_draw(self) -> None:
         """Render the screen."""
         # Make sure variables needed are valid
-        assert self.camera is not None
+        assert self.game_camera is not None
         assert self.player is not None
         assert self.gui_camera is not None
 
@@ -286,12 +423,12 @@ class Game(arcade.View):
         self.clear()
 
         # Activate our Camera
-        self.camera.use()
+        self.game_camera.use()
 
         # Draw the game map
         self.tile_sprites.draw(pixelated=True)
         self.bullet_sprites.draw(pixelated=True)
-        self.enemies.draw(pixelated=True)
+        self.enemy_sprites.draw(pixelated=True)
         self.player.draw(pixelated=True)
 
         # Draw the indicator bars
@@ -299,7 +436,7 @@ class Game(arcade.View):
 
         # Draw the debug items
         if self.debug_mode:
-            for enemy in self.enemies:
+            for enemy in self.enemy_sprites:
                 # Draw the enemy's view distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
@@ -404,7 +541,7 @@ class Game(arcade.View):
         assert self.player is not None
 
         # Check if the game should end
-        if self.player.health <= 0 or not self.enemies:
+        if self.player.health <= 0 or not self.enemy_sprites:
             arcade.exit()
 
         # Calculate the vertical velocity of the player based on the keys pressed
@@ -439,7 +576,7 @@ class Game(arcade.View):
         # Check if we need to update the enemy's line of sight
         if update_enemies:
             # Update the enemy's line of sight check
-            for enemy in self.enemies:
+            for enemy in self.enemy_sprites:
                 enemy.check_line_of_sight()  # noqa
 
         # Position the camera
@@ -447,13 +584,13 @@ class Game(arcade.View):
 
         # Check if the player is in combat
         self.player.in_combat = any(
-            [enemy.line_of_sight for enemy in self.enemies]  # noqa
+            [enemy.line_of_sight for enemy in self.enemy_sprites]  # noqa
         )
         if self.player.in_combat:
             self.player.time_out_of_combat = 0
 
         # Process logic for the enemies
-        self.enemies.on_update()
+        self.enemy_sprites.on_update()
 
         # Process logic for the player
         self.player.on_update()
@@ -593,10 +730,10 @@ class Game(arcade.View):
         """
         # Make sure variables needed are valid
         assert self.player is not None
-        assert self.camera is not None
+        assert self.game_camera is not None
 
         # Calculate the new angle in degrees
-        camera_x, camera_y = self.camera.position
+        camera_x, camera_y = self.game_camera.position
         vec_x, vec_y = (
             x - self.player.center_x + camera_x,
             y - self.player.center_y + camera_y,
@@ -611,12 +748,12 @@ class Game(arcade.View):
         """Centers the camera on the player."""
         # Make sure variables needed are valid
         assert self.game_map_shape is not None
-        assert self.camera is not None
+        assert self.game_camera is not None
         assert self.player is not None
 
         # Calculate the screen position centered on the player
-        screen_center_x = self.player.center_x - (self.camera.viewport_width / 2)
-        screen_center_y = self.player.center_y - (self.camera.viewport_height / 2)
+        screen_center_x = self.player.center_x - (self.game_camera.viewport_width / 2)
+        screen_center_y = self.player.center_y - (self.game_camera.viewport_height / 2)
 
         # Calculate the maximum width and height a sprite can be
         upper_x, upper_y = pos_to_pixel(
@@ -626,15 +763,15 @@ class Game(arcade.View):
         # Calculate the maximum width and height the camera can be
         upper_camera_x, upper_camera_y = (
             upper_x
-            - self.camera.viewport_width
-            + (self.camera.viewport_width / SPRITE_SIZE),
+            - self.game_camera.viewport_width
+            + (self.game_camera.viewport_width / SPRITE_SIZE),
             upper_y
-            - self.camera.viewport_height
-            + (self.camera.viewport_height / SPRITE_SIZE),
+            - self.game_camera.viewport_height
+            + (self.game_camera.viewport_height / SPRITE_SIZE),
         )
 
         # Store the old position, so we can check if it has changed
-        old_position = (self.camera.position[0], self.camera.position[1])
+        old_position = (self.game_camera.position[0], self.game_camera.position[1])
 
         # Make sure the camera doesn't extend beyond the boundaries
         if screen_center_x < 0:
@@ -650,7 +787,7 @@ class Game(arcade.View):
         # Check if the camera position has changed
         if old_position != new_position:
             # Move the camera to the new position
-            self.camera.move_to((screen_center_x, screen_center_y))  # noqa
+            self.game_camera.move_to((screen_center_x, screen_center_y))  # noqa
             logger.debug(
                 f"Changed camera position from {old_position} to {new_position}"
             )

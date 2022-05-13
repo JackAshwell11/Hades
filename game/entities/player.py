@@ -13,8 +13,8 @@ from game.constants.entity import (
     SPRITE_SIZE,
     AttackAlgorithmType,
     EntityID,
+    EntityUpgradeData,
     UpgradeAttribute,
-    UpgradeData,
     UpgradeSection,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
@@ -37,25 +37,25 @@ class UpgradableSection:
 
     Parameters
     ----------
-    owner: Player
+    player: Player
         The reference to the player object.
-    upgrade_data: UpgradeData
+    upgrade_data: EntityUpgradeData
         The upgrade data for this section.
     current_level: int
         The current level of this section.
     """
 
-    __slots__ = ("owner", "upgrade_data", "current_level")
+    __slots__ = ("player", "upgrade_data", "current_level")
 
     def __init__(
-        self, owner: Player, upgrade_data: UpgradeData, current_level: int
+        self, player: Player, upgrade_data: EntityUpgradeData, current_level: int
     ) -> None:
-        self.owner: Player = owner
-        self.upgrade_data: UpgradeData = upgrade_data
+        self.player: Player = player
+        self.upgrade_data: EntityUpgradeData = upgrade_data
         self.current_level: int = current_level
 
     def __repr__(self) -> str:
-        return f"<UpgradableSection (Owner={self.owner})>"
+        return f"<UpgradableSection (Owner={self.player})>"
 
     @property
     def next_level_cost(self) -> int:
@@ -69,6 +69,18 @@ class UpgradableSection:
         """
         return round(self.upgrade_data.cost(self.current_level))
 
+    @property
+    def level_limit(self) -> int:
+        """
+        Gets the maximum level for the player's upgrades.
+
+        Returns
+        -------
+        int
+            The maximum level for the player's upgrades.
+        """
+        return self.player.entity_data.upgrade_level_limit
+
     def upgrade(self, shop_button: SectionUpgradeButton) -> None:
         """
         Upgrades the stored player section if the player has enough money.
@@ -80,34 +92,34 @@ class UpgradableSection:
         """
         # Check if the player has enough money
         if (
-            self.owner.money >= self.next_level_cost
-            and self.current_level < self.upgrade_data.level_limit
+            self.player.money >= self.next_level_cost
+            and self.current_level < self.level_limit
         ):
             # Subtract the cost from the player's money and upgrade each attribute this
             # section manages
-            self.owner.money -= self.next_level_cost
+            self.player.money -= self.next_level_cost
             for attribute_upgrade in self.upgrade_data.upgrades:
                 match attribute_upgrade.attribute_type:
                     case UpgradeAttribute.HEALTH:
                         diff = (
                             attribute_upgrade.increase(self.current_level)
-                            - self.owner.max_health
+                            - self.player.max_health
                         )
-                        self.owner.health += diff
-                        self.owner.max_health += diff
+                        self.player.health += diff
+                        self.player.max_health += diff
                     case UpgradeAttribute.ARMOUR:
                         diff = (
                             attribute_upgrade.increase(self.current_level)
-                            - self.owner.max_armour
+                            - self.player.max_armour
                         )
-                        self.owner.armour += diff
-                        self.owner.max_armour += diff
+                        self.player.armour += diff
+                        self.player.max_armour += diff
                     case UpgradeAttribute.SPEED:
-                        self.owner.max_velocity = attribute_upgrade.increase(
+                        self.player.max_velocity = attribute_upgrade.increase(
                             self.current_level
                         )
                     case UpgradeAttribute.REGEN_COOLDOWN:
-                        self.owner.armour_regen_cooldown = attribute_upgrade.increase(
+                        self.player.armour_regen_cooldown = attribute_upgrade.increase(
                             self.current_level
                         )
                     case UpgradeAttribute.RANGED_ATTACK:
@@ -304,7 +316,7 @@ class Player(Entity):
                 # self.melee_shader.update_collision()
                 # result = self.melee_shader.run_shader()
                 result = []
-                for enemy in self.game.enemies:
+                for enemy in self.game.enemy_sprites:
                     vec_x, vec_y = (
                         enemy.center_x - self.center_x,
                         enemy.center_y - self.center_y,
@@ -325,4 +337,4 @@ class Player(Entity):
                         result.append(enemy)
                 self.current_attack.process_attack(result)
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
-                self.current_attack.process_attack(self.game.enemies)
+                self.current_attack.process_attack(self.game.enemy_sprites)

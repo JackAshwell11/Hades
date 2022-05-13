@@ -5,7 +5,7 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.consumable import ConsumableLevelData, InstantEffectType
+from game.constants.consumable import InstantEffectType
 from game.constants.generation import TileType
 from game.entities.base import Item, Tile
 from game.entities.status_effect import StatusEffect
@@ -151,9 +151,7 @@ class Consumable(Item):
         self.consumable_level: int = consumable_level
         super().__init__(game, x, y)
         self.consumable_type: ConsumableData = consumable_type
-        self.texture: arcade.Texture = self.consumable_type.levels[
-            self.consumable_level
-        ].texture
+        self.texture: arcade.Texture = self.consumable_type.texture
 
     def __repr__(self) -> str:
         return f"<Consumable (Position=({self.center_x}, {self.center_y}))>"
@@ -171,23 +169,6 @@ class Consumable(Item):
         # Return the name
         return self.consumable_type.name
 
-    def get_level(self, level: int) -> ConsumableLevelData | None:
-        """
-        Gets a specific level for this consumable.
-
-        Parameters
-        ----------
-        level: int
-            The level to get data for.
-
-        Returns
-        -------
-        ConsumableLevelData | None
-            The level data if it exists.
-        """
-        # Return the level if it exists
-        return self.consumable_type.levels.get(level, None)
-
     def item_activate(self) -> bool:
         """
         Called when the health boost potion is activated by the player.
@@ -197,8 +178,11 @@ class Consumable(Item):
         bool
             Whether the health boost potion activation was successful or not.
         """
+        # Get the adjusted level for this consumable
+        adjusted_level = self.consumable_level - 1
+
         # Apply all the instant effects linked to this consumable
-        for instant in self.consumable_type.levels[self.consumable_level].instant:
+        for instant in self.consumable_type.instant:
             match instant.instant_type:
                 case InstantEffectType.HEALTH:
                     if self.player.health == self.player.max_health:
@@ -206,7 +190,7 @@ class Consumable(Item):
                         return False
 
                     # Add health to the player
-                    self.player.health += instant.value
+                    self.player.health += instant.increase(adjusted_level)
                     if self.player.health > self.player.max_health:
                         self.player.health = self.player.max_health
                         logger.debug("Set player health to max")
@@ -216,13 +200,13 @@ class Consumable(Item):
                         return False
 
                     # Add armour to the player
-                    self.player.armour += instant.value
+                    self.player.armour += instant.increase(adjusted_level)
                     if self.player.armour > self.player.max_armour:
                         self.player.armour = self.player.max_armour
                         logger.debug("Set player armour to max")
 
         # Apply all the status effects linked to this consumable
-        for effect in self.consumable_type.levels[self.consumable_level].status_effects:
+        for effect in self.consumable_type.status_effects:
             # Check if the status effect can be applied
             if effect.status_type in [
                 player_effect.effect_type
@@ -234,8 +218,8 @@ class Consumable(Item):
             new_effect = StatusEffect(
                 self.player,
                 effect.status_type,
-                effect.value,
-                effect.duration,
+                effect.increase(adjusted_level),
+                effect.duration(adjusted_level),
             )
             self.player.applied_effects.append(new_effect)
             new_effect.apply_effect()
