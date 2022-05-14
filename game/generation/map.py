@@ -2,6 +2,8 @@ from __future__ import annotations
 
 # Builtin
 import logging
+from collections import deque
+from itertools import pairwise
 from typing import TYPE_CHECKING
 
 # Pip
@@ -20,6 +22,11 @@ from game.constants.generation import (
     ENEMY_DISTRIBUTION,
     ITEM_DISTRIBUTION,
     LARGE_ROOM,
+    MAX_ENEMY_COUNT,
+    MAX_ITEM_COUNT,
+    MAX_MAP_HEIGHT,
+    MAX_MAP_WIDTH,
+    MAX_SPLIT_COUNT,
     PLACE_TRIES,
     SAFE_SPAWN_RADIUS,
     SMALL_ROOM,
@@ -138,11 +145,21 @@ class Map:
         """
         # Create the generation constants
         generation_constants: dict[TileType | str, int] = {
-            "width": int(np.round(BASE_MAP_WIDTH * 1.2**self.level)),
-            "height": int(np.round(BASE_MAP_HEIGHT * 1.2**self.level)),
-            "split count": int(np.round(BASE_SPLIT_COUNT * 1.5**self.level)),
-            "enemy count": int(np.round(BASE_ENEMY_COUNT * 1.1**self.level)),
-            "item count": int(np.round(BASE_ITEM_COUNT * 1.1**self.level)),
+            "width": np.minimum(
+                int(np.round(BASE_MAP_WIDTH * 1.2**self.level)), MAX_MAP_WIDTH
+            ),
+            "height": np.minimum(
+                int(np.round(BASE_MAP_HEIGHT * 1.2**self.level)), MAX_MAP_HEIGHT
+            ),
+            "split count": np.minimum(
+                int(np.round(BASE_SPLIT_COUNT * 1.5**self.level)), MAX_SPLIT_COUNT
+            ),
+            "enemy count": np.minimum(
+                int(np.round(BASE_ENEMY_COUNT * 1.1**self.level)), MAX_ENEMY_COUNT
+            ),
+            "item count": np.minimum(
+                int(np.round(BASE_ITEM_COUNT * 1.1**self.level)), MAX_ITEM_COUNT
+            ),
         }
 
         # Create the dictionary which will hold the counts for each enemy and item type
@@ -178,20 +195,37 @@ class Map:
             0,
             self.map_constants["width"] - 1,
             self.map_constants["height"] - 1,
+            None,
             self.grid,
         )
 
-        # Start the recursive splitting
-        for count in range(self.map_constants["split count"]):
+        # Start the splitting using a stack
+        stack = deque["Leaf"]()
+        stack.append(self.bsp)
+        split_count = self.map_constants["split count"]
+        while split_count != 0:
+            # Test if the stack is empty
+            if not stack:
+                break
+
             # Use the probabilities to check if we should split
             if np.random.choice([True, False], p=list(self.probabilities.values())):
+                # Get the current leaf from the stack
+                current = stack.pop()
+
                 # Split the bsp
-                self.bsp.split(DEBUG_LINES)
+                if current.split(DEBUG_LINES) and current.left and current.right:
+                    # Add the child leafs so they can be split
+                    stack.append(current.left)
+                    stack.append(current.right)
 
                 # Multiply the probabilities by SMALL_ROOM
                 self.probabilities["SMALL"] *= SMALL_ROOM["SMALL"]
                 self.probabilities["LARGE"] *= SMALL_ROOM["LARGE"]
                 logger.debug(f"Split bsp. New probabilities are {self.probabilities}")
+
+                # Decrement the split count
+                split_count -= 1
             else:
                 # Multiply the probabilities by LARGE_ROOM
                 self.probabilities["SMALL"] *= LARGE_ROOM["SMALL"]
@@ -200,22 +234,41 @@ class Map:
                     f"Didn't split bsp. New probabilities are {self.probabilities}"
                 )
 
-            # Normalise the probabilities so they add up to 1
+            # Normalise the probabilities, so they add up to 1
             probabilities_sum = 1 / sum(self.probabilities.values())  # type: ignore
             self.probabilities = {
                 key: value * probabilities_sum
                 for key, value in self.probabilities.items()
             }
 
-        # Create a list which will hold all the created rects. Since mutable data
-        # structures in Python don't create new objects when passed as parameters,
-        # modifying the list in each recursive call will modify this original list
-        # simplifying the code
-        rects: list[Rect] = []
+        # Create the rooms. We can use the same stack since it is currently empty
+        leafs: list[Leaf] = []
+        stack.append(self.bsp)
+        while stack:
+            # Get the current leaf from the stack
+            current = stack.pop()
 
-        # Create the rooms and hallways recursively
-        self.bsp.create_room(rects)
-        self.bsp.create_hallway(rects)
+            # Create the room
+            result = current.create_room()
+            if result:
+                # Room creation successful so save the rect
+                leafs.append(current)
+            elif current.left and current.right:
+                # Room creation not successful meaning there are child leafs so try
+                # again on the child leafs
+                stack.append(current.left)
+                stack.append(current.right)
+
+        # Get all the rooms objects from the leafs list, so we can store the hallways
+        # too. To make the hallways, we can connect each pair of leaves in the leafs
+        # list using itertools.pairwise
+        rects: list[Rect] = [leaf.room for leaf in leafs if leaf.room]
+        for pair in list(pairwise(leafs)):
+            first_hallway, second_hallway = pair[0].create_hallway(pair[1])
+            if first_hallway:
+                rects.append(first_hallway)
+            if second_hallway:
+                rects.append(second_hallway)
 
         # Create a sorted list of tuples based on the rect areas
         rect_areas = sorted(
