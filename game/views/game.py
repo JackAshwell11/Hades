@@ -3,11 +3,11 @@ from __future__ import annotations
 # Builtin
 import logging
 import math
+import random
 from typing import TYPE_CHECKING
 
 # Pip
 import arcade
-import numpy.random
 
 # Custom
 from game.constants.consumable import (
@@ -29,12 +29,12 @@ from game.constants.entity import (
     SPRITE_SIZE,
 )
 from game.constants.general import (
-    CONSUMABLE_NORMAL_MAX_RANGE,
+    CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
     DEBUG_VIEW_DISTANCE,
-    DISTRIBUTION_GENERATOR_INTERVAL,
-    ENEMY_NORMAL_MAX_RANGE,
+    ENEMY_LEVEL_MAX_RANGE,
+    LEVEL_GENERATOR_INTERVAL,
 )
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
@@ -54,10 +54,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class NormalDistributionGenerator:
+class EnemyConsumableLevelGenerator:
     """
-    Represents a normal distribution that can be used to determine what level an enemy
-    or consumable should be based on the current game level.
+    Represents generator that can be used to determine what level an enemy or consumable
+    should be based on the current game level.
 
     Parameters
     ----------
@@ -65,11 +65,6 @@ class NormalDistributionGenerator:
         The lower bound of the normal distribution function.
     upper_bound: int
         The upper bound of the normal distribution function.
-
-    Attributes
-    ----------
-    random: numpy.random.Generator
-        The numpy normal distribution generator.
     """
 
     __slots__ = (
@@ -85,20 +80,19 @@ class NormalDistributionGenerator:
     ) -> None:
         self.lower_bound: int = lower_bound
         self.upper_bound: int = upper_bound
-        self.random: numpy.random.Generator = numpy.random.default_rng()
 
     def __repr__(self) -> str:
         return (
-            f"<NormalDistributionGenerator (Lower bound={self.lower_bound}) (Upper"
+            f"<EnemyConsumableLevelGenerator (Lower bound={self.lower_bound}) (Upper"
             f" bound={self.upper_bound})>"
         )
 
     @classmethod
     def create_distribution(
         cls, game_level: int, max_range: int
-    ) -> NormalDistributionGenerator:
+    ) -> EnemyConsumableLevelGenerator:
         """
-        Creates the boundaries and initialises the distribution.
+        Creates the boundaries and initialises the generator.
 
         Parameters
         ----------
@@ -109,17 +103,17 @@ class NormalDistributionGenerator:
 
         Returns
         -------
-        NormalDistributionGenerator
-            The initialised distribution.
+        EnemyConsumableLevelGenerator
+            The initialised generator.
         """
         # Create the upper and lower bounds. They should both start at 1 then every
-        # DISTRIBUTION_GENERATOR_INTERVAL levels, the upper bound should increase by 1.
+        # LEVEL_GENERATOR_INTERVAL levels, the upper bound should increase by 1.
         # Once the difference between the lower and upper bounds reaches max_range, then
         # we instead shift both of them along by 1
-        upper = (game_level // DISTRIBUTION_GENERATOR_INTERVAL) + 1
+        upper = (game_level // LEVEL_GENERATOR_INTERVAL) + 1
         lower = 1 if upper - 1 < max_range else upper - max_range
 
-        # Initialise the distribution
+        # Initialise the generator
         return cls(lower, upper)
 
     def get_level(self, level_limit: int) -> int:
@@ -136,14 +130,11 @@ class NormalDistributionGenerator:
         int
             The enemy/consumable level.
         """
-        # Generate a random value using the normal distribution
-        normal_value = self.random.normal((self.lower_bound + self.upper_bound) / 2)
-
-        # Make sure the value is within the lower and upper bounds
-        adjusted_value = min(max(normal_value, self.upper_bound), self.lower_bound)
+        # Generate a random value using the generator
+        random_level = random.randint(self.lower_bound, self.upper_bound)
 
         # Make sure the value is not over the level limit
-        return min(adjusted_value, level_limit)
+        return min(random_level, level_limit)
 
 
 class Game(arcade.View):
@@ -246,11 +237,11 @@ class Game(arcade.View):
 
         # Initialise the distribution generators that will determine the enemy and
         # consumable levels
-        enemy_distribution = NormalDistributionGenerator.create_distribution(
-            level, ENEMY_NORMAL_MAX_RANGE
+        enemy_distribution = EnemyConsumableLevelGenerator.create_distribution(
+            level, ENEMY_LEVEL_MAX_RANGE
         )
-        consumable_distribution = NormalDistributionGenerator.create_distribution(
-            level, CONSUMABLE_NORMAL_MAX_RANGE
+        consumable_distribution = EnemyConsumableLevelGenerator.create_distribution(
+            level, CONSUMABLE_LEVEL_MAX_RANGE
         )
 
         # Create the game map and check that it is valid
