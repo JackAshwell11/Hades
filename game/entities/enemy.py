@@ -119,7 +119,7 @@ class Enemy(Entity):
         if not self.line_of_sight:
             # Enemy not in combat so check if they can regenerate armour
             if self.entity_data.armour_regen:
-                self.check_armour_regen(delta_time)
+                self.regenerate_armour(delta_time)
 
                 # Make sure the enemy's armour does not go over the maximum
                 if self.armour > self.max_armour:

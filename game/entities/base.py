@@ -736,9 +736,9 @@ class Entity(arcade.Sprite):
             self.armour_bar.full_box.remove_from_sprite_lists()
             logger.info(f"Killed {self}")
 
-    def check_armour_regen(self, delta_time: float) -> None:
+    def regenerate_armour(self, delta_time: float) -> None:
         """
-        Checks if the entity can regenerate armour.
+        Regenerates the entity's armour if they are able to do so.
 
         Parameters
         ----------
@@ -749,11 +749,13 @@ class Entity(arcade.Sprite):
         if self.time_out_of_combat >= ARMOUR_REGEN_WAIT:
             # Check if enough has passed since the last armour regen
             if self.time_since_armour_regen >= self.armour_regen_cooldown:
-                # Regen armour
-                self.armour += ARMOUR_REGEN_AMOUNT
-                self.time_since_armour_regen = 0
-                self.update_indicator_bars()
-                logger.debug(f"Regenerated armour for {self}")
+                # Check if the entity's armour is below the max value
+                if self.armour < self.max_armour:
+                    # Regen armour
+                    self.armour += ARMOUR_REGEN_AMOUNT
+                    self.time_since_armour_regen = 0
+                    self.update_indicator_bars()
+                    logger.debug(f"Regenerated armour for {self}")
             else:
                 # Increment the counter since not enough time has passed
                 self.time_since_armour_regen += delta_time
