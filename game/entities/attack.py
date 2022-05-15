@@ -158,6 +158,8 @@ class RangedAttack(AttackBase):
         The cooldown for this attack.
     """
 
+    __slots__ = ()
+
     def __init__(self, owner: Entity, attack_cooldown: int) -> None:
         super().__init__(owner, attack_cooldown)
 
@@ -252,6 +254,8 @@ class MeleeAttack(AttackBase):
         The cooldown for this attack.
     """
 
+    __slots__ = ()
+
     def __init__(self, owner: Entity, attack_cooldown: int) -> None:
         super().__init__(owner, attack_cooldown)
 
@@ -311,6 +315,8 @@ class AreaOfEffectAttack(AttackBase):
     attack_cooldown: int
         The cooldown for this attack.
     """
+
+    __slots__ = ()
 
     def __init__(self, owner: Entity, attack_cooldown: int) -> None:
         super().__init__(owner, attack_cooldown)

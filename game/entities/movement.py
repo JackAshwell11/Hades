@@ -83,6 +83,8 @@ class FollowLineOfSight(AIMovementBase):
         The owner of this AI algorithm.
     """
 
+    __slots__ = ()
+
     def __init__(self, owner: Enemy) -> None:
         super().__init__(owner)
 
@@ -127,6 +129,8 @@ class Jitter(AIMovementBase):
         The owner of this AI algorithm.
     """
 
+    __slots__ = ()
+
     def __init__(self, owner: Enemy) -> None:
         super().__init__(owner)
 
@@ -160,6 +164,8 @@ class MoveAwayLineOfSight(AIMovementBase):
     owner: Enemy
         The owner of this AI algorithm.
     """
+
+    __slots__ = ()
 
     def __init__(self, owner: Enemy) -> None:
         super().__init__(owner)
