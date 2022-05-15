@@ -259,6 +259,16 @@ class Player(Entity):
             logger.debug(f"Updating status effect {status_effect}")
             status_effect.update(delta_time)
 
+        # Update the player's indicator bars
+        self.health_bar.position = (
+            self.center_x,
+            self.center_y + HEALTH_BAR_OFFSET,
+        )
+        self.armour_bar.position = (
+            self.center_x,
+            self.center_y + ARMOUR_BAR_OFFSET,
+        )
+
     def add_item_to_inventory(self, item: Item) -> bool:
         """
         Adds an item to the player's inventory.
