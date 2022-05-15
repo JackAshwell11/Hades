@@ -62,9 +62,10 @@ class IndicatorBar:
 
     __slots__ = (
         "owner",
-        "_box_width",
-        "_box_height",
-        "_half_box_width",
+        "_bar_width",
+        "_bar_height",
+        "_half_bar_width",
+        "_half_bar_height",
         "_center_x",
         "_center_y",
         "_fullness",
@@ -86,26 +87,27 @@ class IndicatorBar:
         self.owner: Entity = owner
 
         # Set the needed size variables
-        self._box_width: int = width
-        self._box_height: int = height
-        self._half_box_width: int = self._box_width // 2
+        self._bar_width: int = width
+        self._bar_height: int = height
+        self._half_bar_width: float = self.bar_width / 2
+        self._half_bar_height: float = self.bar_height / 2
         self._center_x: float = 0.0
         self._center_y: float = 0.0
         self._fullness: float = 0.0
 
         # Create the boxes needed to represent the indicator bar
         self._background_box: arcade.SpriteSolidColor = arcade.SpriteSolidColor(
-            self._box_width + border_size,
-            self._box_height + border_size,
+            self.bar_width + border_size,
+            self.bar_height + border_size,
             background_color,
         )
         self._full_box: arcade.SpriteSolidColor = arcade.SpriteSolidColor(
-            self._box_width,
-            self._box_height,
+            self.bar_width,
+            self.bar_height,
             full_color,
         )
-        self.owner.game.indicator_bar_sprites.append(self._background_box)
-        self.owner.game.indicator_bar_sprites.append(self._full_box)
+        self.owner.game.indicator_bar_sprites.append(self.background_box)
+        self.owner.game.indicator_bar_sprites.append(self.full_box)
 
         # Set the fullness and position of the bar
         self.fullness: float = 1.0
@@ -116,17 +118,110 @@ class IndicatorBar:
 
     @property
     def background_box(self) -> arcade.SpriteSolidColor:
-        """Returns the background box of the indicator bar."""
+        """
+        Gets the background box object of the indicator bar.
+
+        Returns
+        -------
+        arcade.SpriteSolidColor
+            The background box object.
+        """
         return self._background_box
 
     @property
     def full_box(self) -> arcade.SpriteSolidColor:
-        """Returns the full box of the indicator bar."""
+        """
+        Gets the full box of the indicator bar.
+
+        Returns
+        -------
+        arcade.SpriteSolidColor
+            The full box object.
+        """
         return self._full_box
 
     @property
+    def bar_width(self) -> int:
+        """
+        Gets the width of the bar.
+
+        Returns
+        -------
+        int
+            The width of the bar.
+        """
+        return self._bar_width
+
+    @property
+    def half_bar_width(self) -> float:
+        """
+        Gets the value that is half of the bar's width.
+
+        Returns
+        -------
+        float
+            The half bar width.
+        """
+        return self._half_bar_width
+
+    @property
+    def bar_height(self) -> int:
+        """
+        Gets the height of the bar.
+
+        Returns
+        -------
+        int
+            The height of the bar.
+        """
+        return self._bar_height
+
+    @property
+    def half_bar_height(self) -> float:
+        """
+        Gets the value that is half of the bar's height.
+
+        Returns
+        -------
+        float
+            The half bar height.
+        """
+        return self._half_bar_height
+
+    @property
+    def center_x(self) -> float:
+        """
+        Gets the x position of the bar.
+
+        Returns
+        -------
+        float
+            The x position of the bar.
+        """
+        return self._center_x
+
+    @property
+    def center_y(self) -> float:
+        """
+        Gets the y position of the bar.
+
+        Returns
+        -------
+        float
+            The y position of the bar.
+        """
+        return self._center_y
+
+    @property
     def fullness(self) -> float:
-        """Returns the fullness of the bar."""
+        """
+        Gets the fullness of the bar.
+
+        Returns
+        -------
+        float
+            The fullness of the bar.
+        """
         return self._fullness
 
     @fullness.setter
@@ -158,13 +253,20 @@ class IndicatorBar:
         else:
             # Set the full_box to be visible incase it wasn't then update the bar
             self.full_box.visible = True
-            self.full_box.width = self._box_width * new_fullness
-            self.full_box.left = self._center_x - (self._box_width // 2)
+            self.full_box.width = self.bar_width * new_fullness
+            self.full_box.left = self.center_x - (self.bar_width // 2)
 
     @property
     def position(self) -> tuple[float, float]:
-        """Returns the current position of the bar."""
-        return self._center_x, self._center_y
+        """
+        Gets the current position of the bar.
+
+        Returns
+        -------
+        tuple[float, float]
+            The current position of the bar.
+        """
+        return self.center_x, self.center_y
 
     @position.setter
     def position(self, new_position: tuple[float, float]) -> None:
@@ -183,7 +285,7 @@ class IndicatorBar:
             self.full_box.position = new_position
 
             # Make sure full_box is to the left of the bar instead of the middle
-            self.full_box.left = self._center_x - (self._box_width // 2)
+            self.full_box.left = self.center_x - (self.bar_width // 2)
 
 
 class Entity(arcade.Sprite):
@@ -205,6 +307,10 @@ class Entity(arcade.Sprite):
     ----------
     attack_algorithms: list[AttackBase]
         A list of the entity's attack algorithms.
+    health_bar: IndicatorBar
+        An indicator bar object which displays the entity's health visually.
+    armour_bar: IndicatorBar
+        An indicator bar object which displays the entity's armour visually.
     applied_effects: list[StatusEffect]
         The currently applied status effects.
     current_attack_index: int
@@ -240,6 +346,12 @@ class Entity(arcade.Sprite):
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
+        self.health_bar: IndicatorBar = IndicatorBar(self, (0, 0), arcade.color.RED)
+        self.armour_bar: IndicatorBar = IndicatorBar(
+            self,
+            (0, 0),
+            arcade.color.SILVER,
+        )
         self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.applied_effects: list[StatusEffect] = []
         self.current_attack_index: int = 0
@@ -610,13 +722,18 @@ class Entity(arcade.Sprite):
         else:
             # Damage the health
             self.health -= damage
-        self.post_state_update()
+        self.update_indicator_bars()
         logger.debug(f"Dealing {damage} to {self}")
 
         # Check if the entity should be killed
         if self.health <= 0:
             self.remove_from_sprite_lists()
-            self.post_death_update()
+
+            # Remove the health and armour bar
+            self.health_bar.background_box.remove_from_sprite_lists()
+            self.health_bar.full_box.remove_from_sprite_lists()
+            self.armour_bar.background_box.remove_from_sprite_lists()
+            self.armour_bar.full_box.remove_from_sprite_lists()
             logger.info(f"Killed {self}")
 
     def check_armour_regen(self, delta_time: float) -> None:
@@ -635,7 +752,7 @@ class Entity(arcade.Sprite):
                 # Regen armour
                 self.armour += ARMOUR_REGEN_AMOUNT
                 self.time_since_armour_regen = 0
-                self.post_state_update()
+                self.update_indicator_bars()
                 logger.debug(f"Regenerated armour for {self}")
             else:
                 # Increment the counter since not enough time has passed
@@ -644,27 +761,14 @@ class Entity(arcade.Sprite):
             # Increment the counter since not enough time has passed
             self.time_out_of_combat += delta_time
 
-    def post_state_update(self) -> None:
-        """
-        Runs after the entity's health/armour changes.
-
-        Raises
-        ------
-        NotImplementedError
-            The function is not implemented.
-        """
-        raise NotImplementedError
-
-    def post_death_update(self) -> None:
-        """
-        Runs after the entity is killed.
-
-        Raises
-        ------
-        NotImplementedError
-            The function is not implemented.
-        """
-        raise NotImplementedError
+    def update_indicator_bars(self) -> None:
+        """Updates the entity's indicator bars."""
+        try:
+            self.health_bar.fullness = self.health / self.max_health
+            self.armour_bar.fullness = self.armour / self.max_armour
+        except ValueError:
+            # Entity is already dead
+            pass
 
     def attack(self) -> None:
         """

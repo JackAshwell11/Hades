@@ -10,6 +10,8 @@ import arcade
 
 # Custom
 from game.constants.entity import (
+    ARMOUR_BAR_OFFSET,
+    HEALTH_BAR_OFFSET,
     SPRITE_SIZE,
     AttackAlgorithmType,
     EntityID,
@@ -184,6 +186,8 @@ class Player(Entity):
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.in_combat: bool = False
+        self.health_bar.position = self.center_x, self.center_y + HEALTH_BAR_OFFSET
+        self.armour_bar.position = self.center_x, self.center_y + ARMOUR_BAR_OFFSET
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
@@ -283,14 +287,6 @@ class Player(Entity):
         # Add successful
         logger.info(f"Adding item {item} to inventory")
         return True
-
-    def post_state_update(self) -> None:
-        """Runs after the player's health/armour changes."""
-        return None
-
-    def post_death_update(self) -> None:
-        """Runs after the player is killed."""
-        return None
 
     def attack(self) -> None:
         """Runs the player's current attack algorithm."""

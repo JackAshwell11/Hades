@@ -18,7 +18,7 @@ from game.constants.entity import (
     AttackAlgorithmType,
     EntityID,
 )
-from game.entities.base import Entity, IndicatorBar
+from game.entities.base import Entity
 
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
@@ -50,10 +50,6 @@ class Enemy(Entity):
     ----------
     movement_ai: AIMovementBase
         The AI movement algorithm which this entity uses.
-    health_bar: IndicatorBar
-        An indicator bar object which displays the enemy's health visually.
-    armour_bar: IndicatorBar
-        An indicator bar object which displays the enemy's armour visually.
     line_of_sight: bool
         Whether the enemy has line of sight with the player or not
     """
@@ -69,15 +65,9 @@ class Enemy(Entity):
         self.movement_ai: AIMovementBase = self.enemy_data.movement_algorithm.value(
             self
         )
-        self.health_bar: IndicatorBar = IndicatorBar(
-            self, (self.center_x, self.center_y + HEALTH_BAR_OFFSET), arcade.color.RED
-        )
-        self.armour_bar: IndicatorBar = IndicatorBar(
-            self,
-            (self.center_x, self.center_y + ARMOUR_BAR_OFFSET),
-            arcade.color.SILVER,
-        )
         self.line_of_sight: bool = False
+        self.health_bar.position = (self.center_x, self.center_y + HEALTH_BAR_OFFSET)
+        self.armour_bar.position = (self.center_x, self.center_y + ARMOUR_BAR_OFFSET)
 
     def __repr__(self) -> str:
         return (
@@ -189,24 +179,6 @@ class Enemy(Entity):
 
         # Return the result
         return self.line_of_sight
-
-    def post_state_update(self) -> None:
-        """Runs after the enemy's health/armour changes."""
-        # Update the health and armour bar
-        try:
-            self.health_bar.fullness = self.health / self.max_health
-            self.armour_bar.fullness = self.armour / self.max_armour
-        except ValueError:
-            # Enemy is already dead
-            pass
-
-    def post_death_update(self) -> None:
-        """Runs after the enemy is killed."""
-        # Remove the health and armour bar
-        self.health_bar.background_box.remove_from_sprite_lists()
-        self.health_bar.full_box.remove_from_sprite_lists()
-        self.armour_bar.background_box.remove_from_sprite_lists()
-        self.armour_bar.full_box.remove_from_sprite_lists()
 
     def attack(self) -> None:
         """Runs the enemy's current attack algorithm."""

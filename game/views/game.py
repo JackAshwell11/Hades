@@ -19,9 +19,11 @@ from game.constants.consumable import (
     SPEED_BOOST_POTION,
 )
 from game.constants.entity import (
+    ARMOUR_BAR_OFFSET,
     ENEMY1,
     FACING_LEFT,
     FACING_RIGHT,
+    HEALTH_BAR_OFFSET,
     MOVEMENT_FORCE,
     PLAYER,
     SPRITE_SIZE,
@@ -572,6 +574,16 @@ class Game(arcade.View):
 
             # Set update_enemies
             update_enemies = True
+
+        # Update the player's indicator bars
+        self.player.health_bar.position = (
+            self.player.center_x,
+            self.player.center_y + HEALTH_BAR_OFFSET,
+        )
+        self.player.armour_bar.position = (
+            self.player.center_x,
+            self.player.center_y + ARMOUR_BAR_OFFSET,
+        )
 
         # Check if we need to update the enemy's line of sight
         if update_enemies:
