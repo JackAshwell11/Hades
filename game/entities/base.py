@@ -16,8 +16,6 @@ from game.constants.entity import (
     EntityUpgradeData,
 )
 from game.constants.generation import TileType
-from game.entities.attack import AttackBase
-from game.entities.status_effect import StatusEffect
 from game.textures import pos_to_pixel
 
 if TYPE_CHECKING:
@@ -31,7 +29,9 @@ if TYPE_CHECKING:
         PlayerData,
         RangedAttackData,
     )
+    from game.entities.attack import AttackBase
     from game.entities.player import Player
+    from game.entities.status_effect import StatusEffect
     from game.views.game import Game
 
 # Get the logger
