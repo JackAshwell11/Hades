@@ -269,6 +269,8 @@ class Map:
                 rects.append(first_hallway)
             if second_hallway:
                 rects.append(second_hallway)
+        print(self.grid)
+        print(rects)
 
         # Create a sorted list of tuples based on the rect areas
         rect_areas = sorted(

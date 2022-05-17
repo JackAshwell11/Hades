@@ -486,8 +486,8 @@ class Leaf:
 
         # Place the walls
         temp = self.grid[
-            rect.y1 : min(rect.y2 + 1, height),
-            rect.x1 : min(rect.x2 + 1, width),
+            max(rect.y1, 0) : min(rect.y2 + 1, height),
+            max(rect.x1, 0) : min(rect.x2 + 1, width),
         ]
         temp[temp == TileType.EMPTY.value] = TileType.WALL.value
 
@@ -495,7 +495,7 @@ class Leaf:
         # to overwrite the walls keeping the player in, but we still want to overwrite
         # walls that block the path for hallways
         self.grid[
-            rect.y1 + 1 : min(rect.y2, height - 1),
-            rect.x1 + 1 : min(rect.x2, width - 1),
+            max(rect.y1 + 1, 1) : min(rect.y2, height - 1),
+            max(rect.x1 + 1, 1) : min(rect.x2, width - 1),
         ] = TileType.FLOOR.value
         logger.debug(f"Placed rect {rect}")
