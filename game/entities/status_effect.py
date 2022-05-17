@@ -76,7 +76,7 @@ class StatusEffectBase:
             self.remove_effect()
 
     def remove_effect(self) -> None:
-        """Removes the status effect from the enemy."""
+        """Removes the status effect from the entity."""
         raise NotImplementedError
 
 
@@ -127,7 +127,7 @@ class HealthStatusEffect(StatusEffectBase):
             self.remove_effect()
 
     def remove_effect(self) -> None:
-        """Removes the status effect from the enemy."""
+        """Removes the status effect from the entity."""
         # Get the target's current value to determine if its state needs to change
         current_value: float = self.target.health
         if current_value > self.original:
@@ -186,7 +186,7 @@ class ArmourStatusEffect(StatusEffectBase):
             self.remove_effect()
 
     def remove_effect(self) -> None:
-        """Removes the status effect from the enemy."""
+        """Removes the status effect from the entity."""
         # Get the target's current value to determine if its state needs to change
         current_value: float = self.target.armour
         if current_value > self.original:
@@ -244,7 +244,7 @@ class SpeedStatusEffect(StatusEffectBase):
             self.remove_effect()
 
     def remove_effect(self) -> None:
-        """Removes the status effect from the enemy."""
+        """Removes the status effect from the entity."""
         # Restore the original value and remove the status effect
         self.target.pymunk.max_velocity = self.original
         self.target.applied_effects.remove(self)
@@ -296,7 +296,7 @@ class FireRateStatusEffect(StatusEffectBase):
             self.remove_effect()
 
     def remove_effect(self) -> None:
-        """Removes the status effect from the enemy."""
+        """Removes the status effect from the entity."""
         # Restore the original value and remove the status effect
         self.target.bonus_attack_cooldown = self.original
         self.target.applied_effects.remove(self)
