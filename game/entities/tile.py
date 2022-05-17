@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING
 # Custom
 from game.constants.consumable import InstantEffectType
 from game.constants.generation import TileType
-from game.entities.base import Item, Tile
+from game.entities.base import Tile
+from game.entities.player import Player
 from game.entities.status_effect import StatusEffectBase, create_status_effect
 from game.textures import non_moving_textures
 
@@ -74,6 +75,65 @@ class Wall(Tile):
         return f"<Wall (Position=({self.center_x}, {self.center_y}))>"
 
 
+class Item(Tile):
+    """
+    Represents an item in the game.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the item can have a reference to it.
+    x: int
+        The x position of the item in the game map.
+    y: int
+        The y position of the item in the game map.
+    """
+
+    # Class variables
+    item_id: TileType = TileType.NONE
+    item_text: str = "Press R to activate"
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(x, y)
+        self.game: Game = game
+
+    def __repr__(self) -> str:
+        return f"<Item (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def player(self) -> Player:
+        """
+        Gets the player object for ease of access.
+
+        Returns
+        -------
+        Player
+            The player object.
+        """
+        # Make sure the player object is valid
+        assert self.game.player is not None
+
+        # Return the player object
+        return self.game.player
+
+    def item_activate(self) -> bool:
+        """
+        Called when the item is activated by the player. Override this to add item
+        activate functionality.
+
+        Returns
+        -------
+        bool
+            Whether the item activation was successful or not.
+        """
+        return False
+
+
 class Shop(Item):
     """
     Represents a shop item in the game.
@@ -121,7 +181,55 @@ class Shop(Item):
         return True
 
 
-class Consumable(Item):
+class Collectible(Item):
+    """
+    Represents an item the player can pick up in the game.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the item can have a reference to it.
+    x: int
+        The x position of the shop item in the game map.
+    y: int
+        The y position of the shop item in the game map.
+    """
+
+    # Class variables
+    item_text: str = "Press E to pick up and R to activate"
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
+
+    def item_pick_up(self) -> bool:
+        """
+        Called when the collectible is picked up by the player.
+
+        Returns
+        -------
+        bool
+            Whether the collectible pickup was successful or not.
+        """
+        # Try and add the item to the player's inventory
+        if self.player.add_item_to_inventory(self):
+            # Add successful
+            self.remove_from_sprite_lists()
+
+            # Activate was successful
+            logger.info(f"Picked up collectible {self}")
+            return True
+        else:
+            # Add not successful. TODO: Probably give message to user
+            logger.info(f"Can't pick up collectible {self}")
+            return False
+
+
+class Consumable(Collectible):
     """
     Represents a consumable in the game.
 
@@ -133,12 +241,11 @@ class Consumable(Item):
         The x position of the consumable in the game map.
     y: int
         The y position of the consumable in the game map.
+    consumable_type: ConsumableData
+        The type of this consumable.
     consumable_level: int
         The level of this consumable.
     """
-
-    # Class variables
-    item_text: str = "Press E to pick up and R to activate"
 
     def __init__(
         self,
@@ -230,25 +337,3 @@ class Consumable(Item):
         # Effect was successful
         logger.info(f"Used {self.consumable_type.name} potion")
         return True
-
-    def item_pick_up(self) -> bool:
-        """
-        Called when the consumable is picked up by the player.
-
-        Returns
-        -------
-        bool
-            Whether the consumable pickup was successful or not.
-        """
-        # Try and add the item to the player's inventory
-        if self.player.add_item_to_inventory(self):
-            # Add successful
-            self.remove_from_sprite_lists()
-
-            # Activate was successful
-            logger.info(f"Picked up consumable {self}")
-            return True
-        else:
-            # Add not successful. TODO: Probably give message to user
-            logger.info(f"Can't pick up consumable {self}")
-            return False

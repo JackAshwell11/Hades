@@ -13,8 +13,8 @@ from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from game.views.base import BaseView
 
 if TYPE_CHECKING:
-    from game.entities.base import Item
     from game.entities.player import Player
+    from game.entities.tile import Item
     from game.views.game import Game
     from game.window import Window
 

@@ -38,7 +38,7 @@ from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
 from game.entities.player import Player
-from game.entities.tile import Consumable, Floor, Shop, Wall
+from game.entities.tile import Consumable, Floor, Item, Shop, Wall
 from game.generation.map import Map
 from game.physics import PhysicsEngine
 from game.textures import pos_to_pixel
@@ -47,7 +47,7 @@ from game.views.inventory_view import InventoryView
 from game.views.shop import ShopView
 
 if TYPE_CHECKING:
-    from game.entities.base import Item
+    pass
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -174,7 +174,7 @@ class Game(BaseView):
         The camera used for visualising the GUI elements.
     player_status_text: arcade.Text
         The text object used for displaying the player's health and armour.
-    nearest_item: Item | Consumable | None
+    nearest_item: game.entities.tile.Item | Consumable | None
         Stores the nearest item so the player can activate it.
     left_pressed: bool
         Whether the left key is pressed or not.

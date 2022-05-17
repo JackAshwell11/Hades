@@ -25,7 +25,7 @@ from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
-    from game.entities.base import Item
+    from game.entities.tile import Item
     from game.views.game import Game
     from game.views.shop import SectionUpgradeButton
 
@@ -164,7 +164,7 @@ class Player(Entity):
         around the player based on their direction.
     upgrade_sections: dict[UpgradeSection, UpgradableSection]
         A mapping of an upgrade section enum to an upgradable section object.
-    inventory: list[Item]
+    inventory: list[game.entities.tile.Item]
         The list which stores the player's inventory.
     inventory_capacity: int
         The total capacity of the inventory.
@@ -275,7 +275,7 @@ class Player(Entity):
 
         Parameters
         ----------
-        item: Item
+        item: game.entities.tile.Item
             The item to add to the player's inventory.
 
         Returns
