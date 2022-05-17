@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from game.constants.consumable import InstantEffectType
 from game.constants.generation import TileType
 from game.entities.base import Item, Tile
-from game.entities.status_effect import StatusEffect
+from game.entities.status_effect import StatusEffectBase, create_status_effect
 from game.textures import non_moving_textures
 
 if TYPE_CHECKING:
@@ -209,15 +209,15 @@ class Consumable(Item):
         for effect in self.consumable_type.status_effects:
             # Check if the status effect can be applied
             if effect.status_type in [
-                player_effect.effect_type
+                player_effect.status_effect_type
                 for player_effect in self.player.applied_effects
             ]:
                 return False
 
             # Apply the status effect
-            new_effect = StatusEffect(
-                self.player,
+            new_effect: StatusEffectBase = create_status_effect(
                 effect.status_type,
+                self.player,
                 effect.increase(adjusted_level),
                 effect.duration(adjusted_level),
             )

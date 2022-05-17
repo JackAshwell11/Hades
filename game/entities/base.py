@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     )
     from game.entities.attack import AttackBase
     from game.entities.player import Player
-    from game.entities.status_effect import StatusEffect
+    from game.entities.status_effect import StatusEffectBase
     from game.views.game import Game
 
 # Get the logger
@@ -311,7 +311,7 @@ class Entity(arcade.Sprite):
         An indicator bar object which displays the entity's health visually.
     armour_bar: IndicatorBar
         An indicator bar object which displays the entity's armour visually.
-    applied_effects: list[StatusEffect]
+    applied_effects: list[StatusEffectBase]
         The currently applied status effects.
     current_attack_index: int
         The index of the currently selected attack.
@@ -353,7 +353,7 @@ class Entity(arcade.Sprite):
             arcade.color.SILVER,
         )
         self._entity_state: dict[str, float] = self._initialise_entity_state()
-        self.applied_effects: list[StatusEffect] = []
+        self.applied_effects: list[StatusEffectBase] = []
         self.current_attack_index: int = 0
         self.direction: float = 0
         self.facing: int = 0
