@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING
 # Pip
 import arcade.gui
 
+# Custom
+from game.views.base import BaseView
+
 if TYPE_CHECKING:
     from game.entities.player import Player, UpgradableSection
     from game.views.game import Game
@@ -45,9 +48,6 @@ class BackButton(arcade.gui.UIFlatButton):
         window: Window = arcade.get_window()
         current_view: ShopView = window.current_view  # noqa
 
-        # Deactivate the UI manager so the buttons can't be clicked
-        current_view.manager.disable()
-
         # Show the game view
         game_view: Game = window.views["Game"]  # noqa
         window.show_view(game_view)
@@ -55,7 +55,7 @@ class BackButton(arcade.gui.UIFlatButton):
         logger.info("Switching from shop view to game view")
 
 
-class ShopView(arcade.View):
+class ShopView(BaseView):
     """
     Displays the shop UI so the player can upgrade their attributes
 
@@ -63,17 +63,11 @@ class ShopView(arcade.View):
     ----------
     player: Player
         The player object used for accessing the inventory.
-
-    Attributes
-    ----------
-    manager: arcade.gui.UIManager
-        Manages all the different UI elements.
     """
 
     def __init__(self, player: Player) -> None:
         super().__init__()
         self.player: Player = player
-        self.manager: arcade.gui.UIManager = arcade.gui.UIManager()
         vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
 
         # Create all the section upgrade buttons based on the amount of sections the
@@ -94,7 +88,7 @@ class ShopView(arcade.View):
         vertical_box.add(back_button)
 
         # Register the UI elements
-        self.manager.add(
+        self.ui_manager.add(
             arcade.gui.UIAnchorWidget(
                 anchor_x="center_x", anchor_y="center_y", child=vertical_box
             )
@@ -116,4 +110,4 @@ class ShopView(arcade.View):
         self.clear()
 
         # Draw the UI elements
-        self.manager.draw()
+        self.ui_manager.draw()

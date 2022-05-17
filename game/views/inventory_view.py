@@ -10,6 +10,7 @@ import arcade.gui
 # Custom
 from game.constants.consumable import CONSUMABLES
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
+from game.views.base import BaseView
 
 if TYPE_CHECKING:
     from game.entities.base import Item
@@ -80,9 +81,6 @@ class BackButton(arcade.gui.UIFlatButton):
         window: Window = arcade.get_window()
         current_view: InventoryView = window.current_view  # noqa
 
-        # Deactivate the UI manager so the buttons can't be clicked
-        current_view.manager.disable()
-
         # Show the game view
         game_view: Game = window.views["Game"]  # noqa
         window.show_view(game_view)
@@ -90,7 +88,7 @@ class BackButton(arcade.gui.UIFlatButton):
         logger.info("Switching from inventory view to game view")
 
 
-class InventoryView(arcade.View):
+class InventoryView(BaseView):
     """
     Displays the player's inventory allowing them to manage it and equip items.
 
@@ -101,8 +99,6 @@ class InventoryView(arcade.View):
 
     Attributes
     ----------
-    manager: arcade.gui.UIManager
-        Manages all the different UI elements.
     vertical_box: arcade.gui.UIBoxLayout
         The arcade box layout responsible for organising the different ui elements.
     """
@@ -110,7 +106,6 @@ class InventoryView(arcade.View):
     def __init__(self, player: Player) -> None:
         super().__init__()
         self.player: Player = player
-        self.manager: arcade.gui.UIManager = arcade.gui.UIManager()
         self.vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
 
         # Create the inventory grid
@@ -127,7 +122,7 @@ class InventoryView(arcade.View):
         self.vertical_box.add(back_button.with_space_around(top=20))
 
         # Register the UI elements
-        self.manager.add(
+        self.ui_manager.add(
             arcade.gui.UIAnchorWidget(
                 anchor_x="center_x", anchor_y="center_y", child=self.vertical_box
             )
@@ -136,15 +131,10 @@ class InventoryView(arcade.View):
     def __repr__(self) -> str:
         return f"<InventoryView (Current window={self.window})>"
 
-    def on_show(self) -> None:
+    def post_show_view(self) -> None:
         """Called when the view loads."""
-        # Set the background color
-        self.window.background_color = arcade.color.BABY_BLUE
-
         # Update each box to show the player's inventory
         self.update_grid()
-
-        logger.info("Shown inventory view")
 
     def on_draw(self) -> None:
         """Render the screen."""
@@ -152,7 +142,7 @@ class InventoryView(arcade.View):
         self.clear()
 
         # Draw the UI elements
-        self.manager.draw()
+        self.ui_manager.draw()
 
     def update_grid(self) -> None:
         """Updates the inventory grid."""

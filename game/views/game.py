@@ -42,6 +42,7 @@ from game.entities.tile import Consumable, Floor, Shop, Wall
 from game.generation.map import Map
 from game.physics import PhysicsEngine
 from game.textures import pos_to_pixel
+from game.views.base import BaseView
 from game.views.inventory_view import InventoryView
 from game.views.shop import ShopView
 
@@ -135,7 +136,7 @@ class EnemyConsumableLevelGenerator:
         return min(random_level, level_limit)
 
 
-class Game(arcade.View):
+class Game(BaseView):
     """
     Manages the game and its actions.
 
@@ -188,7 +189,8 @@ class Game(arcade.View):
     def __init__(self, debug_mode: bool = False) -> None:
         super().__init__()
         self.debug_mode: bool = debug_mode
-        self.game_map_shape: tuple[int, int] | None = None
+        self.background_color = arcade.color.BLACK
+        self.game_map_shape: tuple[int, int] = (-1, -1)
         self.player: Player | None = None
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
@@ -396,12 +398,6 @@ class Game(arcade.View):
         shop_view = ShopView(self.player)
         self.window.views["ShopView"] = shop_view
         logger.info("Initialised shop view")
-
-    def on_show(self) -> None:
-        """Called when the view loads."""
-        # Set the background color
-        self.window.background_color = arcade.color.BLACK
-        logger.info("Shown game view")
 
     def on_draw(self) -> None:
         """Render the screen."""
@@ -644,7 +640,7 @@ class Game(arcade.View):
                     self.nearest_item.item_activate()
             case arcade.key.F:
                 self.window.show_view(self.window.views["InventoryView"])
-                self.window.views["InventoryView"].manager.enable()
+                self.window.views["InventoryView"].ui_manager.enable()
             case arcade.key.C:
                 self.player.current_attack_index += 1
                 if self.player.current_attack_index == len(
@@ -738,7 +734,6 @@ class Game(arcade.View):
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
         # Make sure variables needed are valid
-        assert self.game_map_shape is not None
         assert self.game_camera is not None
         assert self.player is not None
 

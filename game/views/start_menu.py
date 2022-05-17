@@ -9,6 +9,7 @@ import arcade.gui
 
 # Custom
 from game.constants.general import DEBUG_GAME
+from game.views.base import BaseView
 from game.views.game import Game
 
 if TYPE_CHECKING:
@@ -26,9 +27,6 @@ class StartButton(arcade.gui.UIFlatButton):
         # Get the current window and view
         window: Window = arcade.get_window()
         current_view: StartMenu = window.current_view  # noqa
-
-        # Deactivate the UI manager so the buttons can't be clicked
-        current_view.manager.disable()
 
         # Set up the new game
         new_game = Game(DEBUG_GAME)
@@ -63,20 +61,12 @@ class QuitButton(arcade.gui.UIFlatButton):
         )
 
 
-class StartMenu(arcade.View):
-    """
-    Creates a start menu allowing the player to pick which game mode and options they
-    want.
-
-    Attributes
-    ----------
-    manager: arcade.gui.UIManager
-        Manages all the different UI elements.
-    """
+class StartMenu(BaseView):
+    """Creates a start menu allowing the player to pick which game mode and options they
+    want."""
 
     def __init__(self) -> None:
         super().__init__()
-        self.manager: arcade.gui.UIManager = arcade.gui.UIManager()
         vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
 
         # Create the start button
@@ -88,7 +78,7 @@ class StartMenu(arcade.View):
         vertical_box.add(quit_button.with_space_around(bottom=20))
 
         # Register the UI elements
-        self.manager.add(
+        self.ui_manager.add(
             arcade.gui.UIAnchorWidget(
                 anchor_x="center_x", anchor_y="center_y", child=vertical_box
             )
@@ -110,4 +100,4 @@ class StartMenu(arcade.View):
         self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
 
         # Draw the UI elements
-        self.manager.draw()
+        self.ui_manager.draw()
