@@ -10,7 +10,7 @@ import arcade
 
 # Custom
 from game.constants.general import LOGGING_FORMAT
-from game.views.start_menu import StartMenu
+from game.views.start_menu_view import StartMenu
 
 # Create paths
 log_path = pathlib.Path(__file__).resolve().parent / "logs"

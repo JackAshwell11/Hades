@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from arcade.gl import Buffer, Framebuffer, Program, Query
 
     from game.entities.enemy import Enemy
-    from game.views.game import Game
+    from game.views.game_view import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)

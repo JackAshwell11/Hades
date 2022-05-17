@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     )
     from game.entities.attack import AttackBase
     from game.entities.status_effect import StatusEffectBase
-    from game.views.game import Game
+    from game.views.game_view import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)

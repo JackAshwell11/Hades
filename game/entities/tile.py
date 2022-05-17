@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     import arcade
 
     from game.constants.consumable import ConsumableData
-    from game.views.game import Game
+    from game.views.game_view import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)

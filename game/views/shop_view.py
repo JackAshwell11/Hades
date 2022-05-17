@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from game.views.base import BaseView
+from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
     from game.entities.player import Player, UpgradableSection
-    from game.views.game import Game
+    from game.views.game_view import Game
     from game.window import Window
 
 # Get the logger

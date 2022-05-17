@@ -10,12 +10,12 @@ import arcade.gui
 # Custom
 from game.constants.consumable import CONSUMABLES
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.views.base import BaseView
+from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
     from game.entities.player import Player
     from game.entities.tile import Item
-    from game.views.game import Game
+    from game.views.game_view import Game
     from game.window import Window
 
 # Get the logger

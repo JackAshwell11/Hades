@@ -26,8 +26,8 @@ from game.melee_shader import MeleeShader
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
     from game.entities.tile import Item
-    from game.views.game import Game
-    from game.views.shop import SectionUpgradeButton
+    from game.views.game_view import Game
+    from game.views.shop_view import SectionUpgradeButton
 
 # Get the logger
 logger = logging.getLogger(__name__)

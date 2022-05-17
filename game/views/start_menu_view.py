@@ -9,8 +9,8 @@ import arcade.gui
 
 # Custom
 from game.constants.general import DEBUG_GAME
-from game.views.base import BaseView
-from game.views.game import Game
+from game.views.base_view import BaseView
+from game.views.game_view import Game
 
 if TYPE_CHECKING:
     from game.window import Window

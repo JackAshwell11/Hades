@@ -42,9 +42,9 @@ from game.entities.tile import Consumable, Floor, Item, Shop, Wall
 from game.generation.map import Map
 from game.physics import PhysicsEngine
 from game.textures import pos_to_pixel
-from game.views.base import BaseView
+from game.views.base_view import BaseView
 from game.views.inventory_view import InventoryView
-from game.views.shop import ShopView
+from game.views.shop_view import ShopView
 
 if TYPE_CHECKING:
     pass

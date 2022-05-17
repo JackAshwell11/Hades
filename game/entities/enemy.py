@@ -23,7 +23,7 @@ from game.entities.base import Entity
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
     from game.entities.movement import AIMovementBase
-    from game.views.game import Game
+    from game.views.game_view import Game
 
 # Get the logger
 logger = logging.getLogger(__name__)
