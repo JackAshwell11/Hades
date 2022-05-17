@@ -784,7 +784,7 @@ class Entity(arcade.Sprite):
 
 class Tile(arcade.Sprite):
     """
-    Represents a tile in the game.
+    Represents a tile that does not move in the game.
 
     Parameters
     ----------
@@ -805,7 +805,7 @@ class Tile(arcade.Sprite):
 
     # Class variables
     raw_texture: arcade.Texture | None = None
-    is_static: bool = False
+    is_blocking: bool = False
 
     def __init__(
         self,

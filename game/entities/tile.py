@@ -62,7 +62,7 @@ class Wall(Tile):
 
     # Class variables
     raw_texture: arcade.Texture = non_moving_textures["tiles"][1]
-    is_static: bool = True
+    is_blocking: bool = True
 
     def __init__(
         self,
@@ -77,7 +77,7 @@ class Wall(Tile):
 
 class Item(Tile):
     """
-    Represents an item in the game.
+    Represents an item that can be activated in the game.
 
     Parameters
     ----------
@@ -136,7 +136,7 @@ class Item(Tile):
 
 class Shop(Item):
     """
-    Represents a shop item in the game.
+    Represents a shop tile in the game.
 
     Parameters
     ----------
@@ -150,8 +150,7 @@ class Shop(Item):
 
     # Class variables
     raw_texture: arcade.Texture = non_moving_textures["items"][6]
-    is_static: bool = True
-    item_id: TileType = TileType.HEALTH_POTION
+    is_blocking: bool = True
 
     def __init__(
         self,
@@ -183,7 +182,7 @@ class Shop(Item):
 
 class Collectible(Item):
     """
-    Represents an item the player can pick up in the game.
+    Represents a collectible the player can pick up in the game.
 
     Parameters
     ----------
@@ -231,7 +230,7 @@ class Collectible(Item):
 
 class Consumable(Collectible):
     """
-    Represents a consumable in the game.
+    Represents a consumable that can be consumed by the player in the game.
 
     Parameters
     ----------
