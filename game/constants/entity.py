@@ -354,7 +354,7 @@ ENEMY1 = BaseData(
     ),
     enemy_data=EnemyData(view_distance=5, movement_algorithm=AIMovementType.FOLLOW),
     ranged_attack_data=RangedAttackData(
-        damage=5, attack_cooldown=5, attack_range=3, max_range=10
+        damage=5, attack_cooldown=5, attack_range=5, max_range=10
     ),
 )
 

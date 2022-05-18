@@ -174,7 +174,6 @@ class Shop(Item):
         """
         # Show the shop view and enable it's UIManager
         self.game.window.show_view(self.game.window.views["ShopView"])
-        self.game.window.views["ShopView"].manager.enable()
 
         # Return true since activation will always be successful
         return True

@@ -640,7 +640,6 @@ class Game(BaseView):
                     self.nearest_item.item_activate()
             case arcade.key.F:
                 self.window.show_view(self.window.views["InventoryView"])
-                self.window.views["InventoryView"].ui_manager.enable()
             case arcade.key.C:
                 self.player.current_attack_index += 1
                 if self.player.current_attack_index == len(

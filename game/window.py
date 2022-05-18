@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 import pathlib
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 # Pip
 import arcade
@@ -11,6 +12,9 @@ import arcade
 # Custom
 from game.constants.general import LOGGING_FORMAT
 from game.views.start_menu_view import StartMenu
+
+if TYPE_CHECKING:
+    from game.views.base_view import BaseView
 
 # Create paths
 log_path = pathlib.Path(__file__).resolve().parent / "logs"
@@ -67,13 +71,13 @@ class Window(arcade.Window):
 
      Attributes
     ----------
-    views: dict[str, arcade.View]
+    views: dict[str, BaseView]
         Holds all the views used by the game.
     """
 
     def __init__(self) -> None:
         super().__init__()
-        self.views: dict[str, arcade.View] = {}
+        self.views: dict[str, BaseView] = {}
 
     def __repr__(self) -> str:
         return f"<Window (Width={self.width}) (Height={self.height})>"
