@@ -32,10 +32,10 @@ class UpgradeAttribute(Enum):
     ARMOUR = "armour"
     SPEED = "speed"
     REGEN_COOLDOWN = "regen cooldown"
-    MELEE_ATTACK = "melee attack"
-    AREA_OF_EFFECT_ATTACK = "area of effect attack"
-    POTION_DURATION = "potion duration"
-    RANGED_ATTACK = "ranged attack"
+    # POTION_DURATION = "potion duration"
+    # MELEE_ATTACK = "melee attack"
+    # AREA_OF_EFFECT_ATTACK = "area of effect attack"
+    # RANGED_ATTACK = "ranged attack"
 
 
 # Entity upgrade sections

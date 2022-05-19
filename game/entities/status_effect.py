@@ -56,7 +56,14 @@ class StatusEffectBase:
         return f"<StatusEffectBase (Value={self.value}) (Duration={self.duration})"
 
     def apply_effect(self) -> None:
-        """Applies the status effect to the entity."""
+        """
+        Applies the status effect to the entity.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
         raise NotImplementedError
 
     def update(self, delta_time: float) -> None:
@@ -76,7 +83,14 @@ class StatusEffectBase:
             self.remove_effect()
 
     def remove_effect(self) -> None:
-        """Removes the status effect from the entity."""
+        """
+        Removes the status effect from the entity.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
         raise NotImplementedError
 
 
@@ -320,7 +334,7 @@ def create_status_effect(
     Parameters
     ----------
     status_effect_type: StatusEffectType
-        The status effect tp create.
+        The status effect to create.
     target: Entity
         The reference to the target entity object.
     value: float
