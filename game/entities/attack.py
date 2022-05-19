@@ -107,7 +107,10 @@ class AttackBase:
         The cooldown for this attack.
     """
 
-    __slots__ = ("owner", "attack_cooldown")
+    __slots__ = (
+        "owner",
+        "attack_cooldown",
+    )
 
     def __init__(self, owner: Entity, attack_cooldown: int) -> None:
         self.owner: Entity = owner

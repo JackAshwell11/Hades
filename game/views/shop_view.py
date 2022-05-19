@@ -11,7 +11,8 @@ import arcade.gui
 from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
-    from game.entities.player import Player, UpgradableSection
+    from game.entities.player import Player
+    from game.entities.upgrades import UpgradableSection
     from game.views.game_view import Game
     from game.window import Window
 
@@ -30,7 +31,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
         assert self.section_ref is not None
 
         # Upgrade the section if it is possible
-        self.section_ref.upgrade(self)
+        self.section_ref.upgrade_section(self)
 
 
 class BackButton(arcade.gui.UIFlatButton):
