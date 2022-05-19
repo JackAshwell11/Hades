@@ -398,6 +398,7 @@ class Game(BaseView):
         shop_view = ShopView(self.player)
         self.window.views["ShopView"] = shop_view
         logger.info("Initialised shop view")
+        self.player.money = 10000000
 
     def on_draw(self) -> None:
         """Render the screen."""

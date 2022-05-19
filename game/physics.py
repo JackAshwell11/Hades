@@ -172,7 +172,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
 
         # Add the static tile sprites to the physics engine
         for tile in tile_list:
-            if tile.is_static:  # noqa
+            if tile.is_blocking:  # noqa
                 self.add_sprite(
                     tile,
                     body_type=self.STATIC,
