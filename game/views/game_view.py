@@ -151,27 +151,29 @@ class Game(BaseView):
         The height and width of the game map.
     player: Player | None
         The sprite for the playable character in the game.
+    item_sprites: arcade.SpriteList
+        The sprite list for the item sprites. This is only used for detecting player
+        activity around the item.
     wall_sprites: arcade.SpriteList
         The sprite list for the wall sprites. This is only used for updating the melee
         shader.
     tile_sprites: arcade.SpriteList
         The sprite list for the tile sprites. This is used for drawing the different
         tiles.
-    item_sprites: arcade.SpriteList
-        The sprite list for the item sprites. This is only used for detecting player
-        activity around the item.
     bullet_sprites: arcade.SpriteList
         The sprite list for the bullet sprites.
     enemy_sprites: arcade.SpriteList
         The sprite list for the enemy sprites.
-    indicator_bar_sprites: arcade.SpriteList
-        The sprite list for drawing the indicator bars.
+    enemy_indicator_bar_sprites: arcade.SpriteList
+        The sprite list for drawing the enemy indicator bars.
+    player_gui_sprites: arcade.SpriteList
+        The sprite list for drawing the player's GUI.
+    game_camera: arcade.Camera
+        The camera used for moving the viewport around the screen.
+    gui_camera: arcade.Camera
+        The camera used for visualising the GUI elements.
     physics_engine: PhysicsEngine | None
         The physics engine which processes wall collision.
-    game_camera: arcade.Camera | None
-        The camera used for moving the viewport around the screen.
-    gui_camera: arcade.Camera | None
-        The camera used for visualising the GUI elements.
     player_status_text: arcade.Text
         The text object used for displaying the player's health and armour.
     nearest_item: game.entities.tile.Item | Consumable | None
@@ -192,15 +194,20 @@ class Game(BaseView):
         self.background_color = arcade.color.BLACK
         self.game_map_shape: tuple[int, int] = (-1, -1)
         self.player: Player | None = None
-        self.wall_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
-        self.tile_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
+        self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
         self.bullet_sprites: arcade.SpriteList = arcade.SpriteList()
         self.enemy_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.indicator_bar_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.enemy_indicator_bar_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.player_gui_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.game_camera: arcade.Camera = arcade.Camera(
+            self.window.width, self.window.height
+        )
+        self.gui_camera: arcade.Camera = arcade.Camera(
+            self.window.width, self.window.height
+        )
         self.physics_engine: PhysicsEngine | None = None
-        self.game_camera: arcade.Camera | None = None
-        self.gui_camera: arcade.Camera | None = None
         self.player_status_text: arcade.Text = arcade.Text(
             "Health: 0  Armour: 0  Money: 0",
             10,
@@ -223,6 +230,13 @@ class Game(BaseView):
 
     def __repr__(self) -> str:
         return f"<Game (Current window={self.window})>"
+
+    def post_hide_view(self) -> None:
+        """Called after the view is hidden allowing for extra functionality to be
+        added."""
+        self.left_pressed = (
+            self.right_pressed
+        ) = self.up_pressed = self.down_pressed = False
 
     def setup(self, level: int) -> None:
         """
@@ -378,10 +392,6 @@ class Game(BaseView):
         self.physics_engine = PhysicsEngine(DAMPING)
         self.physics_engine.setup(self.player, self.tile_sprites, self.enemy_sprites)
 
-        # Set up the Camera
-        self.game_camera = arcade.Camera(self.window.width, self.window.height)
-        self.gui_camera = arcade.Camera(self.window.width, self.window.height)
-
         # Set up the melee shader
         self.player.melee_shader.setup_shader()
 
@@ -402,9 +412,7 @@ class Game(BaseView):
     def on_draw(self) -> None:
         """Render the screen."""
         # Make sure variables needed are valid
-        assert self.game_camera is not None
         assert self.player is not None
-        assert self.gui_camera is not None
 
         # Clear the screen
         self.clear()
@@ -419,7 +427,7 @@ class Game(BaseView):
         self.player.draw(pixelated=True)
 
         # Draw the indicator bars
-        self.indicator_bar_sprites.draw()
+        self.enemy_indicator_bar_sprites.draw()
 
         # Draw the debug items
         if self.debug_mode:
@@ -505,6 +513,7 @@ class Game(BaseView):
 
         # Draw the gui on the screen
         self.gui_camera.use()
+        self.player_gui_sprites.draw()
         self.player_status_text.value = (
             f"Health: {self.player.health}  Armour: {self.player.armour}  Money:"
             f" {self.player.money}"
@@ -716,7 +725,6 @@ class Game(BaseView):
         """
         # Make sure variables needed are valid
         assert self.player is not None
-        assert self.game_camera is not None
 
         # Calculate the new angle in degrees
         camera_x, camera_y = self.game_camera.position
@@ -733,7 +741,6 @@ class Game(BaseView):
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
         # Make sure variables needed are valid
-        assert self.game_camera is not None
         assert self.player is not None
 
         # Calculate the screen position centered on the player

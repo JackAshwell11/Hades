@@ -44,6 +44,8 @@ class IndicatorBar:
     ----------
     owner: Entity
         The owner of this indicator bar.
+    target_spritelist: arcade.SpriteList
+        The spritelist that the indicator bar sprites should be added too.
     position: tuple[float, float]
         The initial position of the bar.
     full_color: arcade.Color
@@ -56,17 +58,19 @@ class IndicatorBar:
         The height of the bar.
     border_size: int
         The size of the bar's border.
+    scale: float
+        The scale of the indicator bar.
     """
 
     __slots__ = (
         "owner",
+        "target_spritelist",
         "_bar_width",
         "_bar_height",
-        "_half_bar_width",
-        "_half_bar_height",
         "_center_x",
         "_center_y",
         "_fullness",
+        "_scale",
         "_background_box",
         "_full_box",
     )
@@ -74,24 +78,26 @@ class IndicatorBar:
     def __init__(
         self,
         owner: Entity,
+        target_spritelist: arcade.SpriteList,
         position: tuple[float, float] = (0, 0),
         full_color: arcade.Color = arcade.color.GREEN,
         background_color: arcade.Color = arcade.color.BLACK,
         width: int = 50,
         height: int = 4,
         border_size: int = 4,
+        scale: float = 1.0,
     ) -> None:
-        # Store the reference to the owner
+        # Store the reference to the owner and the target spritelist
         self.owner: Entity = owner
+        self.target_spritelist: arcade.SpriteList = target_spritelist
 
         # Set the needed size variables
         self._bar_width: int = width
         self._bar_height: int = height
-        self._half_bar_width: float = self.bar_width / 2
-        self._half_bar_height: float = self.bar_height / 2
         self._center_x: float = 0.0
         self._center_y: float = 0.0
         self._fullness: float = 0.0
+        self._scale: float = 1.0
 
         # Create the boxes needed to represent the indicator bar
         self._background_box: arcade.SpriteSolidColor = arcade.SpriteSolidColor(
@@ -104,12 +110,13 @@ class IndicatorBar:
             self.bar_height,
             full_color,
         )
-        self.owner.game.indicator_bar_sprites.append(self.background_box)
-        self.owner.game.indicator_bar_sprites.append(self.full_box)
+        self.target_spritelist.append(self.background_box)
+        self.target_spritelist.append(self.full_box)
 
-        # Set the fullness and position of the bar
-        self.fullness: float = 1.0
-        self.position: tuple[float, float] = position
+        # Set the fullness, position and scale of the bar
+        self.fullness = 1.0
+        self.position = position
+        self.scale = scale
 
     def __repr__(self) -> str:
         return f"<IndicatorBar (Owner={self.owner})>"
@@ -158,9 +165,9 @@ class IndicatorBar:
         Returns
         -------
         float
-            The half bar width.
+            The value that is half of the bar's width.
         """
-        return self._half_bar_width
+        return self.bar_width // 2
 
     @property
     def bar_height(self) -> int:
@@ -182,9 +189,9 @@ class IndicatorBar:
         Returns
         -------
         float
-            The half bar height.
+            The value that is half of the bar's height.
         """
-        return self._half_bar_height
+        return self.bar_height // 2
 
     @property
     def center_x(self) -> float:
@@ -209,6 +216,54 @@ class IndicatorBar:
             The y position of the bar.
         """
         return self._center_y
+
+    @property
+    def top(self) -> float:
+        """
+        Gets the y coordinate of the top of the bar.
+
+        Returns
+        -------
+        float
+            The y coordinate of the top of the bar.
+        """
+        return self.background_box.top
+
+    @property
+    def bottom(self) -> float:
+        """
+        Gets the y coordinate of the bottom of the bar.
+
+        Returns
+        -------
+        float
+            The y coordinate of the bottom of the bar.
+        """
+        return self.background_box.bottom
+
+    @property
+    def left(self) -> float:
+        """
+        Gets the x coordinate of the left of the bar.
+
+        Returns
+        -------
+        float
+            The x coordinate of the left of the bar.
+        """
+        return self.background_box.left
+
+    @property
+    def right(self) -> float:
+        """
+        Gets the x coordinate of the right of the bar.
+
+        Returns
+        -------
+        float
+            The x coordinate of the right of the bar.
+        """
+        return self.background_box.right
 
     @property
     def fullness(self) -> float:
@@ -251,8 +306,8 @@ class IndicatorBar:
         else:
             # Set the full_box to be visible incase it wasn't then update the bar
             self.full_box.visible = True
-            self.full_box.width = self.bar_width * new_fullness
-            self.full_box.left = self.center_x - (self.bar_width // 2)
+            self.full_box.width = self.bar_width * new_fullness * self.scale
+            self.full_box.left = self.center_x - self.half_bar_width * self.scale
 
     @property
     def position(self) -> tuple[float, float]:
@@ -283,7 +338,35 @@ class IndicatorBar:
             self.full_box.position = new_position
 
             # Make sure full_box is to the left of the bar instead of the middle
-            self.full_box.left = self.center_x - (self.bar_width // 2)
+            self.full_box.left = self.center_x - self.half_bar_width * self.scale
+
+    @property
+    def scale(self) -> float:
+        """
+        Gets the scale of the bar.
+
+        Returns
+        -------
+        float
+            The scale of the bar.
+        """
+        return self._scale
+
+    @scale.setter
+    def scale(self, value: float) -> None:
+        """
+        Sets the new scale of the bar.
+
+        Parameters
+        ----------
+        value: float
+            The new scale of the bar.
+        """
+        # Check if the scale has changed. If so, change the bar's scale
+        if value != self.scale:
+            self._scale = value
+            self.background_box.scale = value
+            self.full_box.scale = value
 
 
 class Entity(arcade.Sprite):
@@ -305,12 +388,12 @@ class Entity(arcade.Sprite):
     ----------
     attack_algorithms: list[AttackBase]
         A list of the entity's attack algorithms.
-    health_bar: IndicatorBar
-        An indicator bar object which displays the entity's health visually.
-    armour_bar: IndicatorBar
-        An indicator bar object which displays the entity's armour visually.
     applied_effects: list[StatusEffectBase]
         The currently applied status effects.
+    health_bar: IndicatorBar | None
+        An indicator bar object which displays the entity's health visually.
+    armour_bar: IndicatorBar | None
+        An indicator bar object which displays the entity's armour visually.
     current_attack_index: int
         The index of the currently selected attack.
     direction: float
@@ -344,14 +427,10 @@ class Entity(arcade.Sprite):
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
-        self.health_bar: IndicatorBar = IndicatorBar(self, (0, 0), arcade.color.RED)
-        self.armour_bar: IndicatorBar = IndicatorBar(
-            self,
-            (0, 0),
-            arcade.color.SILVER,
-        )
         self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.applied_effects: list[StatusEffectBase] = []
+        self.health_bar: IndicatorBar | None = None
+        self.armour_bar: IndicatorBar | None = None
         self.current_attack_index: int = 0
         self.direction: float = 0
         self.facing: int = 0
@@ -709,6 +788,10 @@ class Entity(arcade.Sprite):
         damage: int
             The amount of health to take away from the entity.
         """
+        # Make sure variables needed are valid
+        assert self.health_bar is not None
+        assert self.armour_bar is not None
+
         # Check if the entity still has armour
         if self.armour > 0:
             # Damage the armour
@@ -763,6 +846,10 @@ class Entity(arcade.Sprite):
 
     def update_indicator_bars(self) -> None:
         """Updates the entity's indicator bars."""
+        # Make sure variables needed are valid
+        assert self.health_bar is not None
+        assert self.armour_bar is not None
+
         try:
             self.health_bar.fullness = self.health / self.max_health
             self.armour_bar.fullness = self.armour / self.max_armour

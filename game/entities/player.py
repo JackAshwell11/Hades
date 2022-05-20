@@ -10,15 +10,16 @@ import arcade
 
 # Custom
 from game.constants.entity import (
-    ARMOUR_BAR_OFFSET,
-    HEALTH_BAR_OFFSET,
+    ARMOUR_INDICATOR_BAR_COLOR,
+    HEALTH_INDICATOR_BAR_COLOR,
+    INDICATOR_BAR_BORDER_SIZE,
     SPRITE_SIZE,
     AttackAlgorithmType,
     EntityID,
     UpgradeSection,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.entities.base import Entity
+from game.entities.base import Entity, IndicatorBar
 from game.entities.upgrades import UpgradableSection
 from game.melee_shader import MeleeShader
 
@@ -71,12 +72,37 @@ class Player(Entity):
             upgrade_data.section_type: UpgradableSection(self, upgrade_data, 1)
             for upgrade_data in self.upgrade_data
         }
+        self.health_bar: IndicatorBar = IndicatorBar(
+            self,
+            self.game.player_gui_sprites,
+            (0, 0),
+            HEALTH_INDICATOR_BAR_COLOR,
+            border_size=INDICATOR_BAR_BORDER_SIZE,
+            scale=4,
+        )
+        self.health_bar.position = (
+            self.health_bar.half_bar_width * self.health_bar.scale
+            + 2 * INDICATOR_BAR_BORDER_SIZE,
+            self.game.gui_camera.viewport_height
+            - self.health_bar.half_bar_height * self.health_bar.scale
+            - 2 * INDICATOR_BAR_BORDER_SIZE,
+        )
+        self.armour_bar: IndicatorBar = IndicatorBar(
+            self,
+            self.game.player_gui_sprites,
+            (0, 0),
+            ARMOUR_INDICATOR_BAR_COLOR,
+            scale=4,
+        )
+        self.armour_bar.position = (
+            self.health_bar.center_x,
+            self.health_bar.bottom
+            - self.armour_bar.half_bar_height * self.armour_bar.scale,
+        )
         self._entity_state.update({"money": 0.0})
         self.inventory: list[Item] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.in_combat: bool = False
-        self.health_bar.position = self.center_x, self.center_y + HEALTH_BAR_OFFSET
-        self.armour_bar.position = self.center_x, self.center_y + ARMOUR_BAR_OFFSET
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
@@ -147,16 +173,6 @@ class Player(Entity):
         for status_effect in self.applied_effects:
             logger.debug(f"Updating status effect {status_effect}")
             status_effect.update(delta_time)
-
-        # Update the player's indicator bars
-        self.health_bar.position = (
-            self.center_x,
-            self.center_y + HEALTH_BAR_OFFSET,
-        )
-        self.armour_bar.position = (
-            self.center_x,
-            self.center_y + ARMOUR_BAR_OFFSET,
-        )
 
     def add_item_to_inventory(self, item: Item) -> bool:
         """

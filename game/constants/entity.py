@@ -3,16 +3,16 @@ from __future__ import annotations
 # Builtin
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Callable
+from typing import Callable
+
+# Pip
+import arcade
 
 # Custom
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
 from game.entities.movement import FollowLineOfSight, Jitter, MoveAwayLineOfSight
 from game.textures import moving_textures
-
-if TYPE_CHECKING:
-    import arcade
 
 
 # Entity IDs
@@ -372,7 +372,9 @@ ARMOUR_REGEN_WAIT = 5
 ARMOUR_REGEN_AMOUNT = 1
 BULLET_VELOCITY = 300
 MELEE_RESOLUTION = 10
-HEALTH_BAR_OFFSET = 40
-ARMOUR_BAR_OFFSET = 32
+INDICATOR_BAR_BORDER_SIZE = 4
+ENEMY_INDICATOR_BAR_OFFSET = 32
+HEALTH_INDICATOR_BAR_COLOR = arcade.color.RED
+ARMOUR_INDICATOR_BAR_COLOR = arcade.color.SILVER
 
 # TODO: USE https://notes.io/QfAH

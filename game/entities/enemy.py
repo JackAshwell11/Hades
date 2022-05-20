@@ -10,15 +10,16 @@ import arcade
 
 # Custom
 from game.constants.entity import (
-    ARMOUR_BAR_OFFSET,
+    ARMOUR_INDICATOR_BAR_COLOR,
+    ENEMY_INDICATOR_BAR_OFFSET,
     FACING_LEFT,
     FACING_RIGHT,
-    HEALTH_BAR_OFFSET,
+    HEALTH_INDICATOR_BAR_COLOR,
     SPRITE_SIZE,
     AttackAlgorithmType,
     EntityID,
 )
-from game.entities.base import Entity
+from game.entities.base import Entity, IndicatorBar
 
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
@@ -65,9 +66,19 @@ class Enemy(Entity):
         self.movement_ai: AIMovementBase = self.enemy_data.movement_algorithm.value(
             self
         )
+        self.health_bar: IndicatorBar = IndicatorBar(
+            self,
+            self.game.enemy_indicator_bar_sprites,
+            (0, 0),
+            HEALTH_INDICATOR_BAR_COLOR,
+        )
+        self.armour_bar: IndicatorBar = IndicatorBar(
+            self,
+            self.game.enemy_indicator_bar_sprites,
+            (0, 0),
+            ARMOUR_INDICATOR_BAR_COLOR,
+        )
         self.line_of_sight: bool = False
-        self.health_bar.position = (self.center_x, self.center_y + HEALTH_BAR_OFFSET)
-        self.armour_bar.position = (self.center_x, self.center_y + ARMOUR_BAR_OFFSET)
 
     def __repr__(self) -> str:
         return (
@@ -111,6 +122,8 @@ class Enemy(Entity):
         """
         # Make sure variables needed are valid
         assert self.game.player is not None
+        assert self.armour_bar is not None
+        assert self.health_bar is not None
 
         # Update the enemy's time since last attack
         self.time_since_last_attack += delta_time
@@ -149,8 +162,14 @@ class Enemy(Entity):
         logger.debug(f"Applied force ({horizontal}, {vertical}) to {self}")
 
         # Update the health and armour bar's position
-        self.health_bar.position = self.center_x, self.center_y + HEALTH_BAR_OFFSET
-        self.armour_bar.position = self.center_x, self.center_y + ARMOUR_BAR_OFFSET
+        self.armour_bar.position = (
+            self.center_x,
+            self.center_y + ENEMY_INDICATOR_BAR_OFFSET,
+        )
+        self.health_bar.position = (
+            self.center_x,
+            self.armour_bar.top + self.health_bar.half_bar_height,
+        )
 
         # Make the enemy attack (they may not if the player is not within range)
         self.attack()
