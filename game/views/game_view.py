@@ -420,13 +420,11 @@ class Game(BaseView):
         # Activate our Camera
         self.game_camera.use()
 
-        # Draw the game map
+        # Draw the various spritelist
         self.tile_sprites.draw(pixelated=True)
         self.bullet_sprites.draw(pixelated=True)
         self.enemy_sprites.draw(pixelated=True)
         self.player.draw(pixelated=True)
-
-        # Draw the indicator bars
         self.enemy_indicator_bar_sprites.draw()
 
         # Draw the debug items
@@ -522,6 +520,9 @@ class Game(BaseView):
         if self.nearest_item:
             self.item_text.text = self.nearest_item.item_text
             self.item_text.draw()
+
+        # Draw the UI elements
+        self.ui_manager.draw()
 
     def on_update(self, delta_time: float) -> None:
         """
@@ -659,6 +660,8 @@ class Game(BaseView):
                 self.player.current_attack_index -= 1
                 if self.player.current_attack_index == -1:
                     self.player.current_attack_index = 0
+            case arcade.key.P:
+                self.display_info_box("test123")
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         """
