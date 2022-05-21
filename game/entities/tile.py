@@ -292,6 +292,7 @@ class Consumable(Collectible):
                 case InstantEffectType.HEALTH:
                     if self.player.health == self.player.max_health:
                         # Can't be used
+                        self.game.display_info_box("Your health is already at max")
                         return False
 
                     # Add health to the player
@@ -302,6 +303,7 @@ class Consumable(Collectible):
                 case InstantEffectType.ARMOUR:
                     if self.player.armour == self.player.max_armour:
                         # Can't be used
+                        self.game.display_info_box("Your armour is already at max")
                         return False
 
                     # Add armour to the player
@@ -317,6 +319,9 @@ class Consumable(Collectible):
                 player_effect.status_effect_type
                 for player_effect in self.player.applied_effects
             ]:
+                self.game.display_info_box(
+                    f"A {effect.status_type.value} status effect is already applied"
+                )
                 return False
 
             # Apply the status effect
