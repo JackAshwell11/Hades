@@ -3,6 +3,7 @@ from __future__ import annotations
 # Builtin
 import logging
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 # Pip
 import arcade
@@ -15,6 +16,9 @@ from arcade.gui import (
     UIMouseFilterMixin,
     UITextArea,
 )
+
+if TYPE_CHECKING:
+    from game.window import Window
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -109,8 +113,6 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
             )
         )
 
-        print("f")
-
         super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)
 
     def on_update(self, delta_time: float) -> None:
@@ -154,6 +156,7 @@ class BaseView(arcade.View):
 
     def __init__(self) -> None:
         super().__init__()
+        self.window: Window = self.window
         self.ui_manager: UIManager = UIManager()
         self.background_color: arcade.Color = arcade.color.BABY_BLUE
         self.current_info_box: DisappearingInfoBox | None = None
