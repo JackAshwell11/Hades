@@ -62,6 +62,9 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         button_text: str = "Ok",
         disappear_time: float = 5,
     ) -> None:
+        # The offset used for the anchoring
+        anchor_offset = 10
+
         # Store various variables needed for this box to function
         self._parent_view: BaseView = parent_view
         self._button_text: str = button_text
@@ -69,8 +72,8 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
 
         # Set up the text box
         self._text_area = UITextArea(
-            width=width,
-            height=height,
+            width=width - anchor_offset,
+            height=height - anchor_offset,
             text=message_text,
             font_size=18,
             text_color=text_color,
@@ -106,7 +109,9 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
             )
         )
 
-        super().__init__(width=width, height=height, child=group)
+        print("f")
+
+        super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)
 
     def on_update(self, delta_time: float) -> None:
         """
