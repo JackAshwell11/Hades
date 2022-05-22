@@ -541,31 +541,25 @@ class Game(BaseView):
         if self.player.health <= 0 or not self.enemy_sprites:
             arcade.exit()
 
-        # Calculate the vertical velocity of the player based on the keys pressed
+        # Calculate the new velocity of the player based on the keys pressed
         update_enemies = False
-        vertical_force = None
+        force = [0, 0]
+        if self.right_pressed and not self.left_pressed:
+            force[0] = MOVEMENT_FORCE
+        elif self.left_pressed and not self.right_pressed:
+            force[0] = -MOVEMENT_FORCE
         if self.up_pressed and not self.down_pressed:
-            vertical_force = (0, MOVEMENT_FORCE)
+            force[1] = MOVEMENT_FORCE
         elif self.down_pressed and not self.up_pressed:
-            vertical_force = (0, -MOVEMENT_FORCE)
-        if vertical_force:
-            # Apply the vertical force
-            self.physics_engine.apply_force(self.player, vertical_force)
-            logger.debug(f"Applied vertical force {vertical_force} to player")
-
-            # Set update_enemies
-            update_enemies = True
-
-        # Calculate the horizontal velocity of the player based on the keys pressed
-        horizontal_force = None
-        if self.left_pressed and not self.right_pressed:
-            horizontal_force = (-MOVEMENT_FORCE, 0)
-        elif self.right_pressed and not self.left_pressed:
-            horizontal_force = (MOVEMENT_FORCE, 0)
-        if horizontal_force:
-            # Apply the horizontal force
-            self.physics_engine.apply_force(self.player, horizontal_force)
-            logger.debug(f"Applied horizontal force {horizontal_force} to player")
+            force[1] = -MOVEMENT_FORCE
+        if force != [0, 0]:
+            # Apply the force
+            resultant_force = (
+                force[0],
+                force[1],
+            )
+            self.physics_engine.apply_force(self.player, resultant_force)
+            logger.debug(f"Applied force {resultant_force} to player")
 
             # Set update_enemies
             update_enemies = True

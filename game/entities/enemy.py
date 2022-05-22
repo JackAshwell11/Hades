@@ -137,6 +137,7 @@ class Enemy(Entity):
                 # Make sure the enemy's armour does not go over the maximum
                 if self.armour > self.max_armour:
                     self.armour = self.max_armour
+                    logger.debug(f"Set {self} armour to max")
         else:
             # Enemy in combat so reset their combat counter
             self.time_out_of_combat = 0
