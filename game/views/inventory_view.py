@@ -8,13 +8,12 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from game.constants.consumable import CONSUMABLES
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
+from game.entities.base import CollectibleTile, UsableTile
 from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
     from game.entities.player import Player
-    from game.entities.tile import Item
     from game.views.game_view import Game
     from game.window import Window
 
@@ -26,7 +25,7 @@ class InventoryBox(arcade.gui.UITextureButton):
     """Represents an individual box showing an item in the player's inventory."""
 
     # Class variables
-    item_ref: Item | None = None
+    item_ref: CollectibleTile | UsableTile | None = None
 
     def __repr__(self) -> str:
         return (
@@ -40,10 +39,10 @@ class InventoryBox(arcade.gui.UITextureButton):
         if not self.item_ref:
             return
 
-        # Check if the item is a consumable
-        if self.item_ref.item_id in CONSUMABLES:
+        # Check if the item can be used or not
+        if issubclass(type(self.item_ref), UsableTile):
             # Use it
-            if not self.item_ref.item_activate():
+            if not self.item_ref.item_use():
                 # Use was not successful
                 logger.info(f"Item use for {self.item_ref} not successful")
                 return
@@ -52,7 +51,8 @@ class InventoryBox(arcade.gui.UITextureButton):
             window: Window = arcade.get_window()
             current_view: InventoryView = window.current_view  # noqa
 
-            # Remove the item from the player's inventory and clear the item ref
+            # Remove the item from the player's inventory and clear the item ref and the
+            # inventory box texture
             current_view.player.inventory.remove(self.item_ref)
             self.item_ref = self.texture = None
 

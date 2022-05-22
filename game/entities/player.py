@@ -25,7 +25,7 @@ from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
-    from game.entities.tile import Item
+    from game.entities.base import CollectibleTile
     from game.views.game_view import Game
 
 # Get the logger
@@ -100,7 +100,7 @@ class Player(Entity):
             - self.armour_bar.half_bar_height * self.armour_bar.scale,
         )
         self._entity_state.update({"money": 0.0})
-        self.inventory: list[Item] = []
+        self.inventory: list[CollectibleTile] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.in_combat: bool = False
 
@@ -174,13 +174,13 @@ class Player(Entity):
             logger.debug(f"Updating status effect {status_effect}")
             status_effect.update(delta_time)
 
-    def add_item_to_inventory(self, item: Item) -> bool:
+    def add_item_to_inventory(self, item: CollectibleTile) -> bool:
         """
         Adds an item to the player's inventory.
 
         Parameters
         ----------
-        item: game.entities.tile.Item
+        item: CollectibleTile
             The item to add to the player's inventory.
 
         Returns
@@ -197,7 +197,7 @@ class Player(Entity):
         self.inventory.append(item)
 
         # Update the inventory grid
-        self.game.window.views["InventoryView"].update_grid()
+        self.game.window.views["InventoryView"].update_grid()  # type: ignore
 
         # Add successful
         logger.info(f"Adding item {item} to inventory")

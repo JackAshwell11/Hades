@@ -29,6 +29,7 @@ if TYPE_CHECKING:
         RangedAttackData,
     )
     from game.entities.attack import AttackBase
+    from game.entities.player import Player
     from game.entities.status_effect import StatusEffectBase
     from game.views.game_view import Game
 
@@ -905,3 +906,147 @@ class Tile(arcade.Sprite):
 
     def __repr__(self) -> str:
         return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
+
+
+class InteractiveTile(Tile):
+    """
+    Represents a tile that can be interacted with by the player. This is only meant to
+    be inherited from and should not be initialised on its own.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the tile can have a reference to it.
+    x: int
+        The x position of the tile in the game map.
+    y: int
+        The y position of the tile in the game map.
+    """
+
+    # Class variables
+    item_text: str = ""
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(x, y)
+        self.game: Game = game
+
+    def __repr__(self) -> str:
+        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def player(self) -> Player:
+        """
+        Gets the player object for ease of access.
+
+        Returns
+        -------
+        Player
+            The player object.
+        """
+        # Make sure the player object is valid
+        assert self.game.player is not None
+
+        # Return the player object
+        return self.game.player
+
+
+class UsableTile(InteractiveTile):
+    """
+    Represents a tile that can be used/activated by the player.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the tile can have a reference to it.
+    x: int
+        The x position of the tile in the game map.
+    y: int
+        The y position of the tile in the game map.
+    """
+
+    # Class variables
+    item_text: str = "Press R to activate"
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
+
+    def __repr__(self) -> str:
+        return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
+
+    def item_use(self) -> bool:
+        """
+        Called when the item is used by the player. Override this to add item use
+        functionality.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+
+        Returns
+        -------
+        bool
+            Whether the item use was successful or not.
+        """
+        raise NotImplementedError
+
+
+class CollectibleTile(InteractiveTile):
+    """
+    Represents a tile that can be picked up by the player.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the tile can have a reference to it.
+    x: int
+        The x position of the tile in the game map.
+    y: int
+        The y position of the tile in the game map.
+    """
+
+    # Class variables
+    item_text: str = "Press E to pick up"
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
+
+    def __repr__(self) -> str:
+        return f"<CollectibleTile (Position=({self.center_x}, {self.center_y}))>"
+
+    def item_pick_up(self) -> bool:
+        """
+        Called when the collectible is picked up by the player.
+
+        Returns
+        -------
+        bool
+            Whether the collectible pickup was successful or not.
+        """
+        # Try and add the item to the player's inventory
+        if self.player.add_item_to_inventory(self):
+            # Add successful
+            self.remove_from_sprite_lists()
+
+            # Activate was successful
+            logger.info(f"Picked up collectible {self}")
+            return True
+        else:
+            # Add not successful. TODO: Probably give message to user
+            logger.info(f"Can't pick up collectible {self}")
+            return False

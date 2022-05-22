@@ -38,7 +38,7 @@ from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
 from game.entities.player import Player
-from game.entities.tile import Consumable, Floor, Item, Shop, Wall
+from game.entities.tile import Consumable, Floor, Shop, Wall
 from game.generation.map import Map
 from game.physics import PhysicsEngine
 from game.textures import pos_to_pixel
@@ -47,7 +47,7 @@ from game.views.inventory_view import InventoryView
 from game.views.shop_view import ShopView
 
 if TYPE_CHECKING:
-    pass
+    from game.entities.base import CollectibleTile, UsableTile
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -176,7 +176,7 @@ class Game(BaseView):
         The physics engine which processes wall collision.
     player_status_text: arcade.Text
         The text object used for displaying the player's health and armour.
-    nearest_item: game.entities.tile.Item | Consumable | None
+    nearest_item: CollectibleTile | UsableTile | None
         Stores the nearest item so the player can activate it.
     left_pressed: bool
         Whether the left key is pressed or not.
@@ -215,7 +215,7 @@ class Game(BaseView):
             arcade.color.WHITE,
             20,
         )
-        self.nearest_item: Item | Consumable | None = None
+        self.nearest_item: CollectibleTile | UsableTile | None = None
         self.item_text: arcade.Text = arcade.Text(
             "",
             self.window.width / 2 - 150,
@@ -647,7 +647,7 @@ class Game(BaseView):
                         pass
             case arcade.key.R:
                 if self.nearest_item:
-                    self.nearest_item.item_activate()
+                    self.nearest_item.item_use()
             case arcade.key.F:
                 self.window.show_view(self.window.views["InventoryView"])
             case arcade.key.C:
