@@ -209,7 +209,7 @@ class Game(BaseView):
         )
         self.physics_engine: PhysicsEngine | None = None
         self.player_status_text: arcade.Text = arcade.Text(
-            "Health: 0  Armour: 0  Money: 0",
+            "Money: 0",
             10,
             10,
             arcade.color.WHITE,
@@ -512,10 +512,7 @@ class Game(BaseView):
         # Draw the gui on the screen
         self.gui_camera.use()
         self.player_gui_sprites.draw()
-        self.player_status_text.value = (
-            f"Health: {self.player.health}  Armour: {self.player.armour}  Money:"
-            f" {self.player.money}"
-        )
+        self.player_status_text.value = f"Money: {self.player.money}"
         self.player_status_text.draw()
         if self.nearest_item:
             self.item_text.text = self.nearest_item.item_text
