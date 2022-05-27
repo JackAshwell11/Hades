@@ -23,6 +23,7 @@ from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
+    DEBUG_DIJKSTRA_DISTANCES,
     DEBUG_VIEW_DISTANCE,
     ENEMY_LEVEL_MAX_RANGE,
     LEVEL_GENERATOR_INTERVAL,
@@ -35,6 +36,7 @@ from game.entities.tile import Consumable, Floor, Shop, Wall
 from game.generation.map import Map
 from game.physics import PhysicsEngine
 from game.textures import pos_to_pixel
+from game.vector_field import VectorField
 from game.views.base_view import BaseView
 from game.views.inventory_view import InventoryView
 from game.views.shop_view import ShopView
@@ -144,6 +146,8 @@ class Game(BaseView):
         The height and width of the game map.
     player: Player | None
         The sprite for the playable character in the game.
+    vector_field: VectorField | None
+        The vector field which allows for easy pathfinding for the enemy AI.
     item_sprites: arcade.SpriteList
         The sprite list for the item sprites. This is only used for detecting player
         activity around the item.
@@ -179,6 +183,7 @@ class Game(BaseView):
         self.background_color = arcade.color.BLACK
         self.game_map_shape: tuple[int, int] = (-1, -1)
         self.player: Player | None = None
+        self.vector_field: VectorField | None = None
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
@@ -245,10 +250,14 @@ class Game(BaseView):
 
         # Create the game map and store the width and height
         game_map = Map.create_map(level)
-        self.game_map_shape = game_map.shape
+        assert game_map.grid is not None
+        self.game_map_shape = game_map.grid.shape
+
+        # Initialise the vector field
+        self.vector_field = VectorField(game_map, DEBUG_DIJKSTRA_DISTANCES)
 
         # Assign sprites to the game map
-        for count_y, y in enumerate(game_map):
+        for count_y, y in enumerate(game_map.grid):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
                 match x:

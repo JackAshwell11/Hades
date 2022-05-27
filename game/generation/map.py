@@ -139,9 +139,9 @@ class Map:
         return self.grid.shape[0]
 
     @classmethod
-    def create_map(cls, level: int) -> np.ndarray:
+    def create_map(cls, level: int) -> Map:
         """
-        Generates the game map and returns the numpy array representing the map.
+        Initialises and generates the game map.
 
         Parameters
         ----------
@@ -150,15 +150,15 @@ class Map:
 
         Returns
         -------
-        np.ndarray
-            The
+        Map
+            The generated map object.
         """
         # Initialise the class and generate the map
         game_map = cls(level)
         game_map.make_map()
 
-        # Return the numpy array
-        return game_map.grid
+        # Return the map object
+        return game_map
 
     def _generate_constants(self) -> dict[TileType | str, int]:
         """
