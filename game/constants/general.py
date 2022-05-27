@@ -6,6 +6,7 @@ import arcade
 # Debug constants
 DEBUG_LINES = False
 DEBUG_GAME = True
+DEBUG_ARROWS = True
 DEBUG_VIEW_DISTANCE = arcade.color.RED
 DEBUG_ATTACK_DISTANCE = arcade.color.BLUE
 LOGGING_FORMAT = (

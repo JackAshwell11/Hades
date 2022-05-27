@@ -243,15 +243,12 @@ class Game(BaseView):
             level, CONSUMABLE_LEVEL_MAX_RANGE
         )
 
-        # Create the game map and check that it is valid
-        game_map = Map(level)
-        assert game_map.grid is not None
-
-        # Store the game map's width and height
-        self.game_map_shape = game_map.grid.shape
+        # Create the game map and store the width and height
+        game_map = Map.create_map(level)
+        self.game_map_shape = game_map.shape
 
         # Assign sprites to the game map
-        for count_y, y in enumerate(game_map.grid):
+        for count_y, y in enumerate(game_map):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
                 match x:
@@ -366,8 +363,8 @@ class Game(BaseView):
                         self.tile_sprites.append(shop)
                         self.item_sprites.append(shop)
         logger.debug(
-            f"Created grid with height {len(game_map.grid)} and width"
-            f" {len(game_map.grid[0])}"
+            f"Created grid with height {self.game_map_shape[0]} and width"
+            f" {self.game_map_shape[1]}"
         )
 
         # Make sure the player was actually created
