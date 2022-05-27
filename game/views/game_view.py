@@ -257,7 +257,7 @@ class Game(BaseView):
         self.vector_field = VectorField(game_map, DEBUG_DIJKSTRA_DISTANCES)
 
         # Assign sprites to the game map
-        for count_y, y in enumerate(game_map.grid):
+        for count_y, y in enumerate(reversed(game_map.grid)):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
                 match x:
