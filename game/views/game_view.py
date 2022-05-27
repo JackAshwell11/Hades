@@ -18,14 +18,7 @@ from game.constants.consumable import (
     HEALTH_POTION,
     SPEED_BOOST_POTION,
 )
-from game.constants.entity import (
-    ENEMY1,
-    FACING_LEFT,
-    FACING_RIGHT,
-    MOVEMENT_FORCE,
-    PLAYER,
-    SPRITE_SIZE,
-)
+from game.constants.entity import ENEMY1, FACING_LEFT, FACING_RIGHT, PLAYER, SPRITE_SIZE
 from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
@@ -178,14 +171,6 @@ class Game(BaseView):
         The text object used for displaying the player's health and armour.
     nearest_item: CollectibleTile | UsableTile | None
         Stores the nearest item so the player can activate it.
-    left_pressed: bool
-        Whether the left key is pressed or not.
-    right_pressed: bool
-        Whether the right key is pressed or not.
-    up_pressed: bool
-        Whether the up key is pressed or not.
-    down_pressed: bool
-        Whether the down key is pressed or not.
     """
 
     def __init__(self, debug_mode: bool = False) -> None:
@@ -223,10 +208,6 @@ class Game(BaseView):
             arcade.color.BLACK,
             20,
         )
-        self.left_pressed: bool = False
-        self.right_pressed: bool = False
-        self.up_pressed: bool = False
-        self.down_pressed: bool = False
 
     def __repr__(self) -> str:
         return f"<Game (Current window={self.window})>"
@@ -234,9 +215,13 @@ class Game(BaseView):
     def post_hide_view(self) -> None:
         """Called after the view is hidden allowing for extra functionality to be
         added."""
-        self.left_pressed = (
-            self.right_pressed
-        ) = self.up_pressed = self.down_pressed = False
+        # Make sure variables needed are valid
+        assert self.player is not None
+
+        # Stop the player from moving after the game view is shown again
+        self.player.left_pressed = (
+            self.player.right_pressed
+        ) = self.player.up_pressed = self.player.down_pressed = False
 
     def setup(self, level: int) -> None:
         """
@@ -538,56 +523,20 @@ class Game(BaseView):
         if self.player.health <= 0 or not self.enemy_sprites:
             arcade.exit()
 
-        # Calculate the new velocity of the player based on the keys pressed
-        update_enemies = False
-        force = [0, 0]
-        if self.right_pressed and not self.left_pressed:
-            force[0] = MOVEMENT_FORCE
-        elif self.left_pressed and not self.right_pressed:
-            force[0] = -MOVEMENT_FORCE
-        if self.up_pressed and not self.down_pressed:
-            force[1] = MOVEMENT_FORCE
-        elif self.down_pressed and not self.up_pressed:
-            force[1] = -MOVEMENT_FORCE
-        if force != [0, 0]:
-            # Apply the force
-            resultant_force = (
-                force[0],
-                force[1],
-            )
-            self.physics_engine.apply_force(self.player, resultant_force)
-            logger.debug(f"Applied force {resultant_force} to player")
-
-            # Set update_enemies
-            update_enemies = True
-
-        # Check if we need to update the enemy's line of sight
-        if update_enemies:
-            # Update the enemy's line of sight check
-            for enemy in self.enemy_sprites:
-                enemy.check_line_of_sight()  # noqa
-
-        # Position the camera
-        self.center_camera_on_player()
-
-        # Check if the player is in combat
-        self.player.in_combat = any(
-            [enemy.line_of_sight for enemy in self.enemy_sprites]  # noqa
-        )
-        if self.player.in_combat:
-            self.player.time_out_of_combat = 0
+        # Process logic for the player
+        self.player.on_update()
 
         # Process logic for the enemies
         self.enemy_sprites.on_update()
-
-        # Process logic for the player
-        self.player.on_update()
 
         # Process logic for the bullets
         self.bullet_sprites.on_update()
 
         # Update the physics engine
         self.physics_engine.step()
+
+        # Position the camera
+        self.center_camera_on_player()
 
         # Check for any nearby items
         item_collision = arcade.check_for_collision_with_list(
@@ -621,13 +570,13 @@ class Game(BaseView):
         logger.debug(f"Received key press with key {key}")
         match key:
             case arcade.key.W:
-                self.up_pressed = True
+                self.player.up_pressed = True
             case arcade.key.S:
-                self.down_pressed = True
+                self.player.down_pressed = True
             case arcade.key.A:
-                self.left_pressed = True
+                self.player.left_pressed = True
             case arcade.key.D:
-                self.right_pressed = True
+                self.player.right_pressed = True
             case arcade.key.E:
                 if self.nearest_item:
                     try:
@@ -666,16 +615,19 @@ class Game(BaseView):
             Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
             event.
         """
+        # Make sure variables needed are valid
+        assert self.player is not None
+
         logger.debug(f"Received key release with key {key}")
         match key:
             case arcade.key.W:
-                self.up_pressed = False
+                self.player.up_pressed = False
             case arcade.key.S:
-                self.down_pressed = False
+                self.player.down_pressed = False
             case arcade.key.A:
-                self.left_pressed = False
+                self.player.left_pressed = False
             case arcade.key.D:
-                self.right_pressed = False
+                self.player.right_pressed = False
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         """

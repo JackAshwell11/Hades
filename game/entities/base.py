@@ -858,6 +858,17 @@ class Entity(arcade.Sprite):
             # Entity is already dead
             pass
 
+    def move(self) -> None:
+        """
+        Processes the needed actions for the entity to move.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
+        raise NotImplementedError
+
     def attack(self) -> None:
         """
         Runs the entity's current attack algorithm.

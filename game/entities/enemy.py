@@ -148,6 +148,17 @@ class Enemy(Entity):
             logger.debug(f"Updating status effect {status_effect} for entity {self}")
             status_effect.update(delta_time)
 
+        # Make the enemy move
+        self.move()
+
+        # Make the enemy attack (they may not if the player is not within range)
+        self.attack()
+
+    def move(self) -> None:
+        """Processes the needed actions for the enemy to move."""
+        # Make sure variables needed are valid
+        assert self.game.player is not None
+
         # Process the enemy's movement and get the force needed to move the enemy
         horizontal, vertical = self.movement_ai.calculate_movement(self.game.player)
 
@@ -171,34 +182,6 @@ class Enemy(Entity):
             self.center_x,
             self.armour_bar.top + self.health_bar.half_bar_height,
         )
-
-        # Make the enemy attack (they may not if the player is not within range)
-        self.attack()
-
-    def check_line_of_sight(self) -> bool:
-        """
-        Checks if the enemy has line of sight with the player.
-
-        Returns
-        -------
-        bool
-            Whether the enemy has line of sight with the player or not.
-        """
-        # Make sure variables needed are valid
-        assert self.game.player is not None
-
-        # Check for line of sight
-        self.line_of_sight = arcade.has_line_of_sight(
-            (self.center_x, self.center_y),
-            (self.game.player.center_x, self.game.player.center_y),
-            self.game.wall_sprites,
-            self.enemy_data.view_distance * SPRITE_SIZE,
-        )
-        if self.line_of_sight:
-            self.time_out_of_combat = 0
-
-        # Return the result
-        return self.line_of_sight
 
     def attack(self) -> None:
         """Runs the enemy's current attack algorithm."""
@@ -228,3 +211,28 @@ class Enemy(Entity):
                 self.current_attack.process_attack([self.game.player])
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
                 self.current_attack.process_attack(self.game.player)
+
+    def check_line_of_sight(self) -> bool:
+        """
+        Checks if the enemy has line of sight with the player.
+
+        Returns
+        -------
+        bool
+            Whether the enemy has line of sight with the player or not.
+        """
+        # Make sure variables needed are valid
+        assert self.game.player is not None
+
+        # Check for line of sight
+        self.line_of_sight = arcade.has_line_of_sight(
+            (self.center_x, self.center_y),
+            (self.game.player.center_x, self.game.player.center_y),
+            self.game.wall_sprites,
+            self.enemy_data.view_distance * SPRITE_SIZE,
+        )
+        if self.line_of_sight:
+            self.time_out_of_combat = 0
+
+        # Return the result
+        return self.line_of_sight
