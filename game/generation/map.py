@@ -204,7 +204,7 @@ class Map:
         return result
 
     def make_map(self) -> None:
-        """Function which manages the map generation for a specified instance."""
+        """Generates the map for a specified instance with a given level."""
         # Create the 2D grid used for representing the dungeon
         self.grid = np.full(
             (self.map_constants["height"], self.map_constants["width"]), 0, np.int8
