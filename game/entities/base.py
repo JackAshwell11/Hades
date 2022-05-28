@@ -387,6 +387,12 @@ class Entity(arcade.Sprite):
 
     Attributes
     ----------
+    tile_pos: tuple[int, int]
+        The current grid position of the entity.
+    center_x: float
+        The x position of the entity on the screen.
+    center_y: float
+        The y position of the entity on the screen.
     attack_algorithms: list[AttackBase]
         A list of the entity's attack algorithms.
     applied_effects: list[StatusEffectBase]
@@ -421,6 +427,7 @@ class Entity(arcade.Sprite):
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.game: Game = game
+        self.tile_pos: tuple[int, int] = (x, y)
         self.center_x, self.center_y = pos_to_pixel(x, y)
         self.entity_type: BaseData = entity_type
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]

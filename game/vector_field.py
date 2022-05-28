@@ -4,6 +4,22 @@ from __future__ import annotations
 import numpy as np
 
 
+class Point:
+    """"""
+
+    __slots__ = (
+        "tile_pos",
+        "parent",
+    )
+
+    def __init__(self, tile_pos: tuple[int, int], parent: Point | None) -> None:
+        self.tile_pos: tuple[int, int] = tile_pos
+        self.parent: Point | None = parent
+
+    def __repr__(self) -> str:
+        return f"<Point (Tile pos={self.tile_pos}) (Parent={self.parent})>"
+
+
 class VectorField:
     """
     Represents a vector flow field (or optionally a Dijkstra map) that allows for
@@ -38,9 +54,30 @@ class VectorField:
 
     __slots__ = (
         "game_map",
+        "destination_tile",
         "draw_distances",
+        "vector_field",
     )
 
-    def __init__(self, game_map: np.ndarray, draw_distances: bool = False) -> None:
+    def __init__(
+        self,
+        game_map: np.ndarray,
+        destination_tile: tuple[int, int],
+        draw_distances: bool = False,
+    ) -> None:
         self.game_map: np.ndarray = game_map
+        self.destination_tile: tuple[int, int] = destination_tile
         self.draw_distances: bool = draw_distances
+        self.vector_field: np.ndarray = np.empty(self.game_map.shape, dtype=Point)
+        self.recalculate_map()
+
+    def __repr__(self) -> str:
+        return (
+            "<VectorField (Width=-1) (Height=-1)"
+            f" (Destination={self.destination_tile})>"
+        )
+
+    def recalculate_map(self) -> None:
+        """"""
+        print(self.vector_field)
+        print(self.destination_tile)

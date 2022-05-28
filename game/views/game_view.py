@@ -252,11 +252,8 @@ class Game(BaseView):
         game_map = create_map(level)
         self.game_map_shape = game_map.shape
 
-        # Initialise the vector field
-        self.vector_field = VectorField(game_map, DEBUG_DIJKSTRA_DISTANCES)
-
         # Assign sprites to the game map
-        for count_y, y in enumerate(reversed(game_map.grid)):
+        for count_y, y in enumerate(reversed(game_map)):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
                 match x:
@@ -377,6 +374,11 @@ class Game(BaseView):
 
         # Make sure the player was actually created
         assert self.player is not None
+
+        # Initialise the vector field
+        self.vector_field = VectorField(
+            game_map, self.player.tile_pos, DEBUG_DIJKSTRA_DISTANCES
+        )
 
         # Create the physics engine
         self.physics_engine = PhysicsEngine(DAMPING)
