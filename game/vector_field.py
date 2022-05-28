@@ -1,23 +1,88 @@
 from __future__ import annotations
 
+# Builtin
+from collections import deque
+
 # Pip
 import numpy as np
 
 
-class Point:
-    """"""
+class Tile:
+    """
+    Represents a tile in the game map
+
+    Parameters
+    ----------
+    tile_pos: tuple[int, int]
+        The position of the tile in the game map.
+    is_blocking: bool
+        Whether the tile is blocking or not.
+    parent: Tile | None
+        The tile object that discovered this tile.
+    """
 
     __slots__ = (
         "tile_pos",
+        "is_blocking",
         "parent",
     )
 
-    def __init__(self, tile_pos: tuple[int, int], parent: Point | None) -> None:
+    def __init__(self, tile_pos: tuple[int, int], is_blocking: bool = False) -> None:
         self.tile_pos: tuple[int, int] = tile_pos
-        self.parent: Point | None = parent
+        self.is_blocking: bool = is_blocking
+        self.parent: Tile | None = None
 
     def __repr__(self) -> str:
-        return f"<Point (Tile pos={self.tile_pos}) (Parent={self.parent})>"
+        return (
+            f"<Tile (Tile pos={self.tile_pos}) (Is blocking={self.is_blocking})"
+            f" (Parent={self.parent})>"
+        )
+
+
+class Queue:
+    """Provides an abstraction over the deque object making access much easier."""
+
+    __slots__ = ("_queue",)
+
+    def __init__(self) -> None:
+        self._queue: deque[Tile] = deque["Tile"]()
+
+    def __repr__(self) -> str:
+        return f"<Queue (Size={self.size})>"
+
+    @property
+    def size(self) -> int:
+        """
+        Gets the size of the queue.
+
+        Returns
+        -------
+        int
+            The size of the queue
+        """
+        return len(self._queue)
+
+    def append(self, tile: Tile) -> None:
+        """
+        Adds a tile to the queue.
+
+        Parameters
+        ----------
+        tile: Tile
+            The tile to add to the queue
+        """
+        self._queue.append(tile)
+
+    def remove(self) -> Tile:
+        """
+        Removes a tile from the queue.
+
+        Returns
+        -------
+        Tile
+            The tile that was removed from the queue.
+        """
+        return self._queue.popleft()
 
 
 class VectorField:
@@ -46,38 +111,41 @@ class VectorField:
 
     Parameters
     ----------
-    game_map: np.ndarray
-        The generated game map used to create the vector field.
+    vector_grid: np.ndarray
+        The generated game map which has the vector tiles already initialised.
+    destination_tile: tuple[int, int]
+        The destination tile which every tile will point towards.
     draw_distances: bool
         Whether to draw the Dijkstra map distances or not.
     """
 
     __slots__ = (
-        "game_map",
+        "vector_grid",
         "destination_tile",
         "draw_distances",
-        "vector_field",
     )
 
     def __init__(
         self,
-        game_map: np.ndarray,
+        vector_grid: np.ndarray,
         destination_tile: tuple[int, int],
         draw_distances: bool = False,
     ) -> None:
-        self.game_map: np.ndarray = game_map
+        self.vector_grid: np.ndarray = vector_grid
         self.destination_tile: tuple[int, int] = destination_tile
         self.draw_distances: bool = draw_distances
-        self.vector_field: np.ndarray = np.empty(self.game_map.shape, dtype=Point)
         self.recalculate_map()
 
     def __repr__(self) -> str:
         return (
-            "<VectorField (Width=-1) (Height=-1)"
+            f"<VectorField (Width={self.vector_grid.shape[1]})"
+            f" (Height={self.vector_grid.shape[0]})"
             f" (Destination={self.destination_tile})>"
         )
 
     def recalculate_map(self) -> None:
-        """"""
-        print(self.vector_field)
+        """Recalculates the Dijkstra map and generates the vector field."""
+        # Create a queue object so we can explore the grid
+        queue = Queue()
         print(self.destination_tile)
+        print(queue)

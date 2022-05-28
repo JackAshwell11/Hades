@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 # Pip
 import arcade
+import numpy as np
 
 # Custom
 from game.constants.consumable import (
@@ -36,7 +37,7 @@ from game.entities.tile import Consumable, Floor, Shop, Wall
 from game.generation.map import create_map
 from game.physics import PhysicsEngine
 from game.textures import pos_to_pixel
-from game.vector_field import VectorField
+from game.vector_field import Tile, VectorField
 from game.views.base_view import BaseView
 from game.views.inventory_view import InventoryView
 from game.views.shop_view import ShopView
@@ -252,17 +253,20 @@ class Game(BaseView):
         game_map = create_map(level)
         self.game_map_shape = game_map.shape
 
-        # Assign sprites to the game map
+        # Assign sprites to the game map and initialise the vector grid
+        vector_grid = np.empty(self.game_map_shape, dtype=Tile)
         for count_y, y in enumerate(reversed(game_map)):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
                 match x:
                     case TileType.FLOOR.value:
                         self.tile_sprites.append(Floor(count_x, count_y))
+                        vector_grid[count_y][count_x] = Tile((count_x, count_y))
                     case TileType.WALL.value:
                         wall = Wall(count_x, count_y)
                         self.wall_sprites.append(wall)
                         self.tile_sprites.append(wall)
+                        vector_grid[count_y][count_x] = Tile((count_x, count_y), True)
                     case TileType.PLAYER.value:
                         self.player = Player(
                             self,
@@ -367,6 +371,9 @@ class Game(BaseView):
                         shop = Shop(self, count_x, count_y)
                         self.tile_sprites.append(shop)
                         self.item_sprites.append(shop)
+                        vector_grid[count_y][count_x] = Tile(
+                            (count_x, count_y), shop.is_blocking
+                        )
         logger.debug(
             f"Created grid with height {self.game_map_shape[0]} and width"
             f" {self.game_map_shape[1]}"
@@ -377,7 +384,7 @@ class Game(BaseView):
 
         # Initialise the vector field
         self.vector_field = VectorField(
-            game_map, self.player.tile_pos, DEBUG_DIJKSTRA_DISTANCES
+            vector_grid, self.player.tile_pos, DEBUG_DIJKSTRA_DISTANCES
         )
 
         # Create the physics engine
