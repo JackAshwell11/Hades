@@ -46,6 +46,23 @@ np.set_printoptions(
 )
 
 
+def create_map(level: int) -> np.ndarray:
+    """
+    Initialises and generates the game map.
+
+    Parameters
+    ----------
+    level: int
+        The game level to generate a map for.
+
+    Returns
+    -------
+    np.ndarray
+        The generated map.
+    """
+    return Map(level).grid
+
+
 class Map:
     """
     Procedurally generates a game generation based on a given game level.
@@ -96,6 +113,7 @@ class Map:
         self.enemy_spawns: list[tuple[int, int]] = []
         self.probabilities: dict[str, float] = BASE_ROOM
         self.player_pos: tuple[int, int] = (-1, -1)
+        self.make_map()
 
     def __repr__(self) -> str:
         return (
@@ -137,28 +155,6 @@ class Map:
 
         # Return the shape
         return self.grid.shape[0]
-
-    @classmethod
-    def create_map(cls, level: int) -> Map:
-        """
-        Initialises and generates the game map.
-
-        Parameters
-        ----------
-        level: int
-            The game level to generate a map for.
-
-        Returns
-        -------
-        Map
-            The generated map object.
-        """
-        # Initialise the class and generate the map
-        game_map = cls(level)
-        game_map.make_map()
-
-        # Return the map object
-        return game_map
 
     def _generate_constants(self) -> dict[TileType | str, int]:
         """

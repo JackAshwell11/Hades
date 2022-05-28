@@ -33,7 +33,7 @@ from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
 from game.entities.player import Player
 from game.entities.tile import Consumable, Floor, Shop, Wall
-from game.generation.map import Map
+from game.generation.map import create_map
 from game.physics import PhysicsEngine
 from game.textures import pos_to_pixel
 from game.vector_field import VectorField
@@ -249,9 +249,8 @@ class Game(BaseView):
         )
 
         # Create the game map and store the width and height
-        game_map = Map.create_map(level)
-        assert game_map.grid is not None
-        self.game_map_shape = game_map.grid.shape
+        game_map = create_map(level)
+        self.game_map_shape = game_map.shape
 
         # Initialise the vector field
         self.vector_field = VectorField(game_map, DEBUG_DIJKSTRA_DISTANCES)

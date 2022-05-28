@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-# Builtin
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from game.generation.map import Map
+# Pip
+import numpy as np
 
 
 class VectorField:
@@ -33,7 +30,7 @@ class VectorField:
 
     Parameters
     ----------
-    game_map: Map
+    game_map: np.ndarray
         The generated game map used to create the vector field.
     draw_distances: bool
         Whether to draw the Dijkstra map distances or not.
@@ -44,6 +41,6 @@ class VectorField:
         "draw_distances",
     )
 
-    def __init__(self, game_map: Map, draw_distances: bool = False) -> None:
-        self.game_map: Map = game_map
+    def __init__(self, game_map: np.ndarray, draw_distances: bool = False) -> None:
+        self.game_map: np.ndarray = game_map
         self.draw_distances: bool = draw_distances
