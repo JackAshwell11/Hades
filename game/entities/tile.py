@@ -26,6 +26,8 @@ class Floor(Tile):
 
     Parameters
     ----------
+    game: Game
+        The game view. This is passed so the floor tile can have a reference to it.
     x: int
         The x position of the floor tile in the game map.
     y: int
@@ -37,10 +39,11 @@ class Floor(Tile):
 
     def __init__(
         self,
+        game: Game,
         x: int,
         y: int,
     ) -> None:
-        super().__init__(x, y)
+        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
         return f"<Floor (Position=({self.center_x}, {self.center_y}))>"
@@ -52,6 +55,8 @@ class Wall(Tile):
 
     Parameters
     ----------
+    game: Game
+        The game view. This is passed so the wall tile can have a reference to it.
     x: int
         The x position of the wall tile in the game map.
     y: int
@@ -60,14 +65,15 @@ class Wall(Tile):
 
     # Class variables
     raw_texture: arcade.Texture = non_moving_textures["tiles"][1]
-    is_blocking: bool = True
+    blocking: bool = True
 
     def __init__(
         self,
+        game: Game,
         x: int,
         y: int,
     ) -> None:
-        super().__init__(x, y)
+        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
         return f"<Wall (Position=({self.center_x}, {self.center_y}))>"
@@ -89,7 +95,7 @@ class Shop(UsableTile):
 
     # Class variables
     raw_texture: arcade.Texture = non_moving_textures["items"][6]
-    is_blocking: bool = True
+    blocking: bool = True
 
     def __init__(
         self,

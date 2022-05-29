@@ -2,41 +2,13 @@ from __future__ import annotations
 
 # Builtin
 from collections import deque
+from typing import TYPE_CHECKING
 
 # Pip
 import numpy as np
 
-
-class Tile:
-    """
-    Represents a tile in the game map
-
-    Parameters
-    ----------
-    tile_pos: tuple[int, int]
-        The position of the tile in the game map.
-    is_blocking: bool
-        Whether the tile is blocking or not.
-    parent: Tile | None
-        The tile object that discovered this tile.
-    """
-
-    __slots__ = (
-        "tile_pos",
-        "is_blocking",
-        "parent",
-    )
-
-    def __init__(self, tile_pos: tuple[int, int], is_blocking: bool = False) -> None:
-        self.tile_pos: tuple[int, int] = tile_pos
-        self.is_blocking: bool = is_blocking
-        self.parent: Tile | None = None
-
-    def __repr__(self) -> str:
-        return (
-            f"<Tile (Tile pos={self.tile_pos}) (Is blocking={self.is_blocking})"
-            f" (Parent={self.parent})>"
-        )
+if TYPE_CHECKING:
+    from game.entities.base import Tile
 
 
 class Queue:
@@ -62,7 +34,19 @@ class Queue:
         """
         return len(self._queue)
 
-    def add(self, tile: Tile) -> None:
+    @property
+    def empty(self) -> bool:
+        """
+        Checks if the queue is empty or not.
+
+        Returns
+        -------
+        bool
+            Whether the queue is empty or not.
+        """
+        return not bool(self._queue)
+
+    def put(self, tile: Tile) -> None:
         """
         Adds a tile to the queue.
 
@@ -73,7 +57,7 @@ class Queue:
         """
         self._queue.append(tile)
 
-    def remove(self) -> Tile:
+    def get(self) -> Tile:
         """
         Removes a tile from the queue.
 
@@ -115,25 +99,45 @@ class VectorField:
         The generated game map which has the vector tiles already initialised.
     destination_tile: tuple[int, int]
         The destination tile which every tile will point towards.
-    draw_distances: bool
-        Whether to draw the Dijkstra map distances or not.
+    do_diagonals: bool
+        Whether to include the diagonals in the exploration or not.
     """
 
     __slots__ = (
         "vector_grid",
         "destination_tile",
-        "draw_distances",
+        "_neighbor_offsets",
     )
+
+    _no_diagonal_offsets: list[tuple[int, int]] = [
+        (0, -1),
+        (-1, 0),
+        (1, 0),
+        (0, 1),
+    ]
+
+    _diagonal_offsets: list[tuple[int, int]] = [
+        (-1, -1),
+        (0, -1),
+        (1, -1),
+        (-1, 0),
+        (1, 0),
+        (-1, 1),
+        (0, 1),
+        (1, 1),
+    ]
 
     def __init__(
         self,
         vector_grid: np.ndarray,
         destination_tile: tuple[int, int],
-        draw_distances: bool = False,
+        do_diagonals: bool = False,
     ) -> None:
         self.vector_grid: np.ndarray = vector_grid
         self.destination_tile: tuple[int, int] = destination_tile
-        self.draw_distances: bool = draw_distances
+        self._neighbor_offsets: list[tuple[int, int]] = (
+            self._diagonal_offsets if do_diagonals else self._no_diagonal_offsets
+        )
         self.recalculate_map()
 
     def __repr__(self) -> str:
@@ -143,9 +147,110 @@ class VectorField:
             f" (Destination={self.destination_tile})>"
         )
 
+    @property
+    def width(self) -> int:
+        """
+        Gets the width of the vector grid.
+
+        Returns
+        -------
+        int
+            The width of the vector grid.
+        """
+        return self.vector_grid.shape[1]
+
+    @property
+    def height(self) -> int:
+        """
+        Gets the height of the vector grid.
+
+        Returns
+        -------
+        int
+            The height of the vector grid.
+        """
+        return self.vector_grid.shape[0]
+
+    def _get_neighbors(self, tile: Tile) -> list[Tile]:
+        """
+        Gets a tile's neighbors.
+
+        Parameters
+        ----------
+        tile: Tile
+            The tile to get neighbors for.
+
+        Returns
+        -------
+        list[Tile]
+            A list of the tile's neighbors.
+        """
+        # Check if each neighbour offset is within the map boundaries. If so, add that
+        # tile to the list
+        tile_neighbors: list[Tile] = []
+        for dx, dy in self._neighbor_offsets:
+            x, y = tile.tile_pos[0] + dx, tile.tile_pos[1] + dy
+            target_tile: Tile = self.vector_grid[y][x]
+            if self._point_in_map(x, y) and not target_tile.blocking:
+                tile_neighbors.append(target_tile)
+
+        # Return all the neighbors
+        return tile_neighbors
+
+    def _point_in_map(self, x: int, y: int) -> bool:
+        """
+        Checks if a given point is within the boundaries of the map or not.
+
+        Returns
+        -------
+        x: int
+            The x coordinate.
+        y: int
+            The y coordinate.
+
+        Returns
+        -------
+        bool
+            Whether the point is within the boundaries of the map or not.
+        """
+        return 0 <= x < self.width and 0 <= y < self.height
+
     def recalculate_map(self) -> None:
         """Recalculates the Dijkstra map and generates the vector field."""
-        # Create a queue object so we can explore the grid
+        # Create a queue object, so we can explore the grid, a came_from dict to
+        # store the paths for the vector field and a distances' dict to store the
+        # distances to each tile from the destination
+        start = self.vector_grid[self.destination_tile[1]][self.destination_tile[0]]
         queue = Queue()
-        print(self.destination_tile)
-        print(queue)
+        queue.put(start)
+        came_from: dict[Tile, Tile | None] = {start: None}
+        distances: dict[Tile, int] = {start: 0}
+
+        # Explore the grid using a breadth first search
+        while not queue.empty:
+            # Get the current tile to explore
+            current = queue.get()
+
+            # Get the current tile's neighbors
+            for neighbor in self._get_neighbors(current):
+                # Test if the neighbour has already been reached or not. If it hasn't,
+                # add it to the queue, mark it as reached and set its distance
+                if neighbor not in came_from:
+                    queue.put(neighbor)
+                    came_from[neighbor] = current
+                    distances[neighbor] = 1 + distances[current]
+
+        # start_tile: Tile | None = None
+        # for tile in came_from:
+        #     if tile.tile_pos == (15, 12):
+        #         start_tile = tile
+        #         break
+        #
+        # print(self.destination_tile)
+        # print(f"Distance to destination: {distances[start_tile]}")
+        #
+        # path: list[Tile] = [start_tile]
+        # while came_from[start_tile] is not None:
+        #     start_tile = came_from[start_tile]
+        #     path.append(start_tile)
+        # print(path)

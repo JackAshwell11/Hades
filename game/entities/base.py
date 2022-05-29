@@ -370,7 +370,70 @@ class IndicatorBar:
             self.full_box.scale = value
 
 
-class Entity(arcade.Sprite):
+class Tile(arcade.Sprite):
+    """
+    Represents the most basic tile in the game. Everything else inherits from this. Do
+    not instantiate this directly, instead use a subclass.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the entity can have a reference to it.
+    x: int
+        The x position of the tile in the game map.
+    y: int
+        The y position of the tile in the game map.
+
+    Attributes
+    ----------
+    tile_pos: tuple[int, int]
+        The current grid position of the entity. This is in the format (x, y) with
+        (0, 0) being in the top-left corner.
+    center_x: float
+        The x position of the tile on the screen.
+    center_y: float
+        The y position of the tile on the screen.
+    texture: arcade.Texture
+        The sprite which represents this tile.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture | None = None
+    blocking: bool = False
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(scale=SPRITE_SCALE)
+        self.game: Game = game
+        self.tile_pos: tuple[int, int] = (x, y)
+        self.center_x, self.center_y = pos_to_pixel(x, y)
+        self.texture: arcade.Texture = self.raw_texture
+
+    def __repr__(self) -> str:
+        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def player(self) -> Player:
+        """
+        Gets the player object for ease of access.
+
+        Returns
+        -------
+        Player
+            The player object.
+        """
+        # Make sure the player object is valid
+        assert self.game.player is not None
+
+        # Return the player object
+        return self.game.player
+
+
+class Entity(Tile):
     """
     Represents an entity in the game.
 
@@ -387,12 +450,6 @@ class Entity(arcade.Sprite):
 
     Attributes
     ----------
-    tile_pos: tuple[int, int]
-        The current grid position of the entity.
-    center_x: float
-        The x position of the entity on the screen.
-    center_y: float
-        The y position of the entity on the screen.
     attack_algorithms: list[AttackBase]
         A list of the entity's attack algorithms.
     applied_effects: list[StatusEffectBase]
@@ -425,10 +482,7 @@ class Entity(arcade.Sprite):
         y: int,
         entity_type: BaseData,
     ) -> None:
-        super().__init__(scale=SPRITE_SCALE)
-        self.game: Game = game
-        self.tile_pos: tuple[int, int] = (x, y)
-        self.center_x, self.center_y = pos_to_pixel(x, y)
+        super().__init__(game, x, y)
         self.entity_type: BaseData = entity_type
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
         self.attack_algorithms: list[AttackBase] = [
@@ -888,44 +942,6 @@ class Entity(arcade.Sprite):
         raise NotImplementedError
 
 
-class Tile(arcade.Sprite):
-    """
-    Represents a tile that does not move in the game.
-
-    Parameters
-    ----------
-    x: int
-        The x position of the tile in the game map.
-    y: int
-        The y position of the tile in the game map.
-
-    Attributes
-    ----------
-    center_x: float
-        The x position of the tile on the screen.
-    center_y: float
-        The y position of the tile on the screen.
-    texture: arcade.Texture
-        The sprite which represents this tile.
-    """
-
-    # Class variables
-    raw_texture: arcade.Texture | None = None
-    is_blocking: bool = False
-
-    def __init__(
-        self,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(scale=SPRITE_SCALE)
-        self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.texture: arcade.Texture = self.raw_texture
-
-    def __repr__(self) -> str:
-        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
-
-
 class InteractiveTile(Tile):
     """
     Represents a tile that can be interacted with by the player. This is only meant to
@@ -934,11 +950,12 @@ class InteractiveTile(Tile):
     Parameters
     ----------
     game: Game
-        The game view. This is passed so the tile can have a reference to it.
+        The game view. This is passed so the interactive tile can have a reference to
+        it.
     x: int
-        The x position of the tile in the game map.
+        The x position of the interactive tile in the game map.
     y: int
-        The y position of the tile in the game map.
+        The y position of the interactive tile in the game map.
     """
 
     # Class variables
@@ -950,27 +967,10 @@ class InteractiveTile(Tile):
         x: int,
         y: int,
     ) -> None:
-        super().__init__(x, y)
-        self.game: Game = game
+        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
-        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
-
-    @property
-    def player(self) -> Player:
-        """
-        Gets the player object for ease of access.
-
-        Returns
-        -------
-        Player
-            The player object.
-        """
-        # Make sure the player object is valid
-        assert self.game.player is not None
-
-        # Return the player object
-        return self.game.player
+        return f"<InteractiveTile (Position=({self.center_x}, {self.center_y}))>"
 
 
 class UsableTile(InteractiveTile):
@@ -980,11 +980,11 @@ class UsableTile(InteractiveTile):
     Parameters
     ----------
     game: Game
-        The game view. This is passed so the tile can have a reference to it.
+        The game view. This is passed so the usable tile can have a reference to it.
     x: int
-        The x position of the tile in the game map.
+        The x position of the usable tile in the game map.
     y: int
-        The y position of the tile in the game map.
+        The y position of the usable tile in the game map.
     """
 
     # Class variables
@@ -1026,11 +1026,12 @@ class CollectibleTile(InteractiveTile):
     Parameters
     ----------
     game: Game
-        The game view. This is passed so the tile can have a reference to it.
+        The game view. This is passed so the collectible tile can have a reference to
+        it.
     x: int
-        The x position of the tile in the game map.
+        The x position of the collectible tile in the game map.
     y: int
-        The y position of the tile in the game map.
+        The y position of the collectible tile in the game map.
     """
 
     # Class variables
