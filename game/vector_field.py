@@ -62,7 +62,7 @@ class Queue:
         """
         return len(self._queue)
 
-    def append(self, tile: Tile) -> None:
+    def add(self, tile: Tile) -> None:
         """
         Adds a tile to the queue.
 
