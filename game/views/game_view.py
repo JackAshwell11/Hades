@@ -249,7 +249,7 @@ class Game(BaseView):
             level, CONSUMABLE_LEVEL_MAX_RANGE
         )
 
-        # Create the game map and store the width and height
+        # Create the game map
         game_map = create_map(level)
         self.game_map_shape = game_map.shape
 
@@ -393,16 +393,17 @@ class Game(BaseView):
                         self.tile_sprites.append(shop)
                         self.item_sprites.append(shop)
                         vector_grid[count_y][count_x] = shop
-        logger.debug(
-            f"Created grid with height {self.game_map_shape[0]} and width"
-            f" {self.game_map_shape[1]}"
-        )
 
         # Make sure the player was actually created
         assert self.player is not None
 
         # Initialise the vector field
-        self.vector_field = VectorField(vector_grid, self.player.tile_pos)
+        self.vector_field = VectorField(vector_grid)
+        self.vector_field.recalculate_map(self.player.tile_pos)
+        logger.debug(
+            f"Created vector grid with height {self.vector_field.height} and width"
+            f" {self.vector_field.width}"
+        )
 
         # Create the physics engine
         self.physics_engine = PhysicsEngine(DAMPING)

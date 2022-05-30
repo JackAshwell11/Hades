@@ -12,6 +12,7 @@ from game.constants.entity import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
+    SPRITE_SIZE,
     EntityID,
     EntityUpgradeData,
 )
@@ -409,7 +410,7 @@ class Tile(arcade.Sprite):
     ) -> None:
         super().__init__(scale=SPRITE_SCALE)
         self.game: Game = game
-        self.tile_pos: tuple[int, int] = (x, y)
+        self.tile_pos: tuple[int, int] = (x, self.game.game_map_shape[0] - y - 1)
         self.center_x, self.center_y = pos_to_pixel(x, y)
         self.texture: arcade.Texture = self.raw_texture
 
@@ -827,7 +828,7 @@ class Entity(Tile):
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
-        Processes movement and game logic.
+        Processes enemy logic.
 
         Parameters
         ----------
@@ -839,7 +840,34 @@ class Entity(Tile):
         NotImplementedError
             The function is not implemented.
         """
-        raise NotImplementedError
+        # Make sure variables needed are valid
+        assert self.game.vector_field is not None
+
+        # Update the player's time since last attack
+        self.time_since_last_attack += delta_time
+
+        # Update any status effects
+        for status_effect in self.applied_effects:
+            logger.debug(f"Updating status effect {status_effect} for entity {self}")
+            status_effect.update(delta_time)
+
+        # Update the entity's tile_pos. Arcade has (0, 0) at the bottom-left but the
+        # vector field has (0, 0) at the top-left so the y position needs a bit of
+        # tweaking
+        new_tile_pos = int(self.center_x // SPRITE_SIZE), int(
+            ((self.game.vector_field.height * SPRITE_SIZE) - self.center_y)
+            // SPRITE_SIZE
+        )
+        if new_tile_pos != self.tile_pos:
+            self.tile_pos = new_tile_pos
+
+            # Entity's tile position has changed so if the entity is the player, we need
+            # to recalculate the vector field
+            if self.entity_id is EntityID.PLAYER:
+                self.game.vector_field.recalculate_map(self.tile_pos)
+
+        # Run the entity's post on_update
+        self.post_on_update(delta_time)
 
     def deal_damage(self, damage: int) -> None:
         """
@@ -918,6 +946,22 @@ class Entity(Tile):
         except ValueError:
             # Entity is already dead
             pass
+
+    def post_on_update(self, delta_time: float = 1 / 60) -> None:
+        """
+        Performs custom entity logic.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
+        raise NotImplementedError
 
     def move(self) -> None:
         """

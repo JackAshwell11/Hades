@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 # Builtin
+import logging
+import time
 from collections import deque
 from typing import TYPE_CHECKING
 
@@ -9,6 +11,9 @@ import numpy as np
 
 if TYPE_CHECKING:
     from game.entities.base import Tile
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class Queue:
@@ -97,15 +102,12 @@ class VectorField:
     ----------
     vector_grid: np.ndarray
         The generated game map which has the vector tiles already initialised.
-    destination_tile: tuple[int, int]
-        The destination tile which every tile will point towards.
     do_diagonals: bool
         Whether to include the diagonals in the exploration or not.
     """
 
     __slots__ = (
         "vector_grid",
-        "destination_tile",
         "_neighbor_offsets",
     )
 
@@ -130,21 +132,17 @@ class VectorField:
     def __init__(
         self,
         vector_grid: np.ndarray,
-        destination_tile: tuple[int, int],
         do_diagonals: bool = False,
     ) -> None:
         self.vector_grid: np.ndarray = vector_grid
-        self.destination_tile: tuple[int, int] = destination_tile
         self._neighbor_offsets: list[tuple[int, int]] = (
             self._diagonal_offsets if do_diagonals else self._no_diagonal_offsets
         )
-        self.recalculate_map()
 
     def __repr__(self) -> str:
         return (
             f"<VectorField (Width={self.vector_grid.shape[1]})"
             f" (Height={self.vector_grid.shape[0]})"
-            f" (Destination={self.destination_tile})>"
         )
 
     @property
@@ -185,42 +183,45 @@ class VectorField:
         list[Tile]
             A list of the tile's neighbors.
         """
-        # Check if each neighbour offset is within the map boundaries. If so, add that
-        # tile to the list
+        # Get all the neighbour floor tiles relative to the current tile
         tile_neighbors: list[Tile] = []
         for dx, dy in self._neighbor_offsets:
+            # Check if the neighbour position is within the boundaries or not
             x, y = tile.tile_pos[0] + dx, tile.tile_pos[1] + dy
+            if (x < 0 or x >= self.width) and (y < 0 or y >= self.height):
+                continue
+
+            # Check if the neighbour is a tile or not
             target_tile: Tile = self.vector_grid[y][x]
-            if self._point_in_map(x, y) and not target_tile.blocking:
-                tile_neighbors.append(target_tile)
+            if not target_tile:
+                continue
+
+            # Check if the neighbor is a wall or not
+            if target_tile.blocking:
+                continue
+
+            # Neighbour tile is a floor tile so it is valid
+            tile_neighbors.append(target_tile)
 
         # Return all the neighbors
         return tile_neighbors
 
-    def _point_in_map(self, x: int, y: int) -> bool:
+    def recalculate_map(self, destination_tile: tuple[int, int]) -> None:
         """
-        Checks if a given point is within the boundaries of the map or not.
+        Recalculates the Dijkstra map and generates the vector field.
 
-        Returns
-        -------
-        x: int
-            The x coordinate.
-        y: int
-            The y coordinate.
-
-        Returns
-        -------
-        bool
-            Whether the point is within the boundaries of the map or not.
+        Parameters
+        ----------
+        destination_tile: tuple[int, int]
+            The destination tile which every tile will point towards.
         """
-        return 0 <= x < self.width and 0 <= y < self.height
+        # Record the start time, so we can know how long the generation takes
+        start_time = time.perf_counter()
 
-    def recalculate_map(self) -> None:
-        """Recalculates the Dijkstra map and generates the vector field."""
         # Create a queue object, so we can explore the grid, a came_from dict to
         # store the paths for the vector field and a distances' dict to store the
         # distances to each tile from the destination
-        start = self.vector_grid[self.destination_tile[1]][self.destination_tile[0]]
+        start = self.vector_grid[destination_tile[1]][destination_tile[0]]
         queue = Queue()
         queue.put(start)
         came_from: dict[Tile, Tile | None] = {start: None}
@@ -231,6 +232,10 @@ class VectorField:
             # Get the current tile to explore
             current = queue.get()
 
+            # Sometimes current can be None, so check if it is None
+            if not current:
+                continue
+
             # Get the current tile's neighbors
             for neighbor in self._get_neighbors(current):
                 # Test if the neighbour has already been reached or not. If it hasn't,
@@ -240,6 +245,14 @@ class VectorField:
                     came_from[neighbor] = current
                     distances[neighbor] = 1 + distances[current]
 
+        # Output the time taken to generate the vector field
+        time_taken = (
+            f"Vector field generated in {time.perf_counter() - start_time} seconds"
+        )
+        logger.debug(time_taken)
+        print(time_taken)
+
+        # TODO: STUFF FOR PATHFINDING:
         # start_tile: Tile | None = None
         # for tile in came_from:
         #     if tile.tile_pos == (15, 12):

@@ -163,7 +163,7 @@ class Player(Entity):
             "bonus attack cooldown": 0,
         }
 
-    def on_update(self, delta_time: float = 1 / 60) -> None:
+    def post_on_update(self, delta_time: float = 1 / 60) -> None:
         """
         Processes player logic.
 
@@ -172,20 +172,12 @@ class Player(Entity):
         delta_time: float
             Time interval since the last time the function was called.
         """
-        # Update the player's time since last attack
-        self.time_since_last_attack += delta_time
-
         # Check if the player can regenerate health
         if not self.in_combat:
             self.regenerate_armour(delta_time)
             if self.armour > self.max_armour:
                 self.armour = self.max_armour
                 logger.debug("Set player armour to max")
-
-        # Update any status effects
-        for status_effect in self.applied_effects:
-            logger.debug(f"Updating status effect {status_effect}")
-            status_effect.update(delta_time)
 
         # Make the player move
         self.move()

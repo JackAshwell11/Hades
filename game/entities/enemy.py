@@ -111,7 +111,7 @@ class Enemy(Entity):
             "bonus attack cooldown": 0,
         }
 
-    def on_update(self, delta_time: float = 1 / 60) -> None:
+    def post_on_update(self, delta_time: float = 1 / 60) -> None:
         """
         Processes enemy logic.
 
@@ -124,9 +124,6 @@ class Enemy(Entity):
         assert self.game.player is not None
         assert self.armour_bar is not None
         assert self.health_bar is not None
-
-        # Update the enemy's time since last attack
-        self.time_since_last_attack += delta_time
 
         # Check if the enemy is not in combat
         if not self.line_of_sight:
@@ -142,11 +139,6 @@ class Enemy(Entity):
             # Enemy in combat so reset their combat counter
             self.time_out_of_combat = 0
             self.time_since_armour_regen = self.armour_regen_cooldown
-
-        # Update any status effects
-        for status_effect in self.applied_effects:
-            logger.debug(f"Updating status effect {status_effect} for entity {self}")
-            status_effect.update(delta_time)
 
         # Make the enemy move
         self.move()
