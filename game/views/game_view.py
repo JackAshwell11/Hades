@@ -524,18 +524,14 @@ class Game(BaseView):
                 )
 
             # Draw the debug vector field lines
-            for source, destination in self.vector_field.path_dict.items():
+            for source, destination in self.vector_field.vector_dict.items():
                 arcade.draw_line(
                     source.center_x,
                     source.center_y,
-                    destination.center_x,
-                    destination.center_y,
+                    source.center_x + destination[0],
+                    source.center_y + destination[1],
                     DEBUG_VECTOR_FIELD_LINE,
                 )
-
-            # Draw the debug vector field distances
-            for tile, cost in self.vector_field.distances.items():
-                arcade.draw_text(cost, tile.center_x, tile.center_y, arcade.color.BLACK)
 
         # Draw the gui on the screen
         self.gui_camera.use()

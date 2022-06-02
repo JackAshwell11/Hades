@@ -125,19 +125,14 @@ class VectorFieldMovement(AIMovementBase):
         tuple[float, float]
             The calculated force to apply to the enemy.
         """
-        # Find out if we've reached the target tile or not
-        if self.current_tile is self.target_tile:
-            # Get the new target tile
-            self.target_tile = self.vector_field.get_next_tile(self.current_tile)
-
-        # Calculate the vector from the enemy's position to the target tile's position
-        vec_x, vec_y = (
-            self.owner.center_x - self.target_tile.center_x,
-            self.owner.center_y - self.target_tile.center_y,
-        )
+        # Get the vector direction the enemy needs to travel in
+        vector_direction = self.vector_field.get_vector_direction(self.current_tile)
 
         # Calculate the force to apply to the enemy and return it
-        return -vec_x * MOVEMENT_FORCE, -vec_y * MOVEMENT_FORCE
+        return (
+            vector_direction[0] * MOVEMENT_FORCE,
+            vector_direction[1] * MOVEMENT_FORCE,
+        )
 
 
 class WanderMovement(AIMovementBase):

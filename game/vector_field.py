@@ -82,14 +82,15 @@ class VectorField:
         breadth first search. This is called a 'flood fill' and will construct the
         Dijkstra map needed for the flow field.
 
-        2. Next, we draw vectors from each tile in the grid to their parent tile (the
-        tile which discovered them or reached them). This constructs the paths which the
-        entities can take to get to the destination tile).
+        2. Next, we iterate over each tile and find the neighbour with the lowest
+        Dijkstra distance. Using this we can create a vector from the source tile to the
+        neighbour tile making for more natural pathfinding since the enemy can go in 6
+        directions instead of 4.
 
-        3. Finally, we can optionally add a value to each tile which is the distance
-        from the current tile to the destination tile and is just the sum of the number
-        of vectors to get to the destination tile. This is called a Dijkstra map and
-        allows us to calculate the cost for a particular path.
+        # 3. Finally, we can optionally add a value to each tile which is the distance
+        # from the current tile to the destination tile and is just the sum of the
+        # number of vectors to get to the destination tile. This is called a Dijkstra
+        # map and allows us to calculate the cost for a particular path.
 
     Further reading which may be useful:
         `Other uses of Dijkstra maps
@@ -107,24 +108,32 @@ class VectorField:
 
     Attributes
     ----------
-    distances: dict[Tile, int]
-        A dictionary which will hold the path distance to every tile from the
-        destination tile.
-    path_dict: dict[Tile, Tile]
-        A dictionary which will hold the paths from every tile to the destination tile.
+    vector_dict: dict[Tile, tuple[float, float]]
+        A dictionary which will hold the vector direction an enemy needs to travel in
+        from the current tile to get to the destination tile.
     """
 
     __slots__ = (
         "vector_grid",
-        "distances",
-        "path_dict",
+        "vector_dict",
     )
 
-    _neighbour_offsets: list[tuple[int, int]] = [
+    _no_diagonal_offsets: list[tuple[int, int]] = [
         (0, -1),
         (-1, 0),
         (1, 0),
         (0, 1),
+    ]
+
+    _diagonal_offsets: list[tuple[int, int]] = [
+        (-1, -1),
+        (0, -1),
+        (1, -1),
+        (-1, 0),
+        (1, 0),
+        (-1, 1),
+        (0, 1),
+        (1, 1),
     ]
 
     def __init__(
@@ -132,8 +141,7 @@ class VectorField:
         vector_grid: np.ndarray,
     ) -> None:
         self.vector_grid: np.ndarray = vector_grid
-        self.distances: dict[Tile, int] = {}
-        self.path_dict: dict[Tile, Tile] = {}
+        self.vector_dict: dict[Tile, tuple[float, float]] = {}
 
     def __repr__(self) -> str:
         return (
@@ -165,14 +173,51 @@ class VectorField:
         """
         return self.vector_grid.shape[0]
 
-    def _get_neighbours(self, tile: Tile) -> list[Tile]:
+    def _get_direct_neighbours(self, tile: Tile) -> list[Tile]:
         """
-        Gets a tile's neighbours.
+        Gets a tile's direct neighbours (top, bottom, left and right) based on their
+        position in the grid.
+
+        Parameters
+        ----------
+        tile: Tile
+            The tile to get direct neighbours for.
+
+        Returns
+        -------
+        list[Tile]
+            A list of the tile's direct neighbours.
+        """
+        return self._get_neighbours(tile, self._no_diagonal_offsets)
+
+    def _get_full_neighbours(self, tile: Tile) -> list[Tile]:
+        """
+        Gets a tile's fully neighbours (top-left, top-middle, top-right, middle-left,
+        middle-right, bottom-left, bottom-middle and bottom-right) based on their
+        position in the grid.
+
+        Parameters
+        ----------
+        tile: Tile
+            The tile to get full neighbours for.
+
+        Returns
+        -------
+        list[Tile]
+            A list of the tile's full neighbours.
+        """
+        return self._get_neighbours(tile, self._diagonal_offsets)
+
+    def _get_neighbours(self, tile: Tile, offsets: list[tuple[int, int]]) -> list[Tile]:
+        """
+        Gets a tile's neighbours based on a given list of offsets.
 
         Parameters
         ----------
         tile: Tile
             The tile to get neighbours for.
+        offsets: list[tuple[int, int]]
+            A list of offsets used for getting the tile's neighbours.
 
         Returns
         -------
@@ -181,7 +226,7 @@ class VectorField:
         """
         # Get all the neighbour floor tiles relative to the current tile
         tile_neighbours: list[Tile] = []
-        for dx, dy in self._neighbour_offsets:
+        for dx, dy in offsets:
             # Check if the neighbour position is within the boundaries or not
             x, y = tile.tile_pos[0] + dx, tile.tile_pos[1] + dy
             if (x < 0 or x >= self.width) and (y < 0 or y >= self.height):
@@ -216,17 +261,15 @@ class VectorField:
 
         # To recalculate the map, we need a few things:
         #   1. A queue object, so we can explore the grid.
-        #   2. A path_dict dict to store the paths for the vector field. We need to make
-        #   sure this is empty first.
+        #   2. A vector_dict dict to store the paths for the vector field. We need to
+        #   make sure this is empty first.
         #   3. A distances dict to store the distances to each tile from the destination
         #   tile. We also need to make sure this is empty first.
         start = self.get_tile_at_position(destination_tile[0], destination_tile[1])
         queue = Queue()
         queue.put(start)
-        self.distances.clear()
-        self.path_dict.clear()
-        self.distances[start] = 0
-        self.path_dict[start] = start
+        self.vector_dict.clear()
+        distances: dict[Tile, int] = {start: 0}
 
         # Explore the grid using a breadth first search to generate the Dijkstra
         # distances
@@ -239,13 +282,30 @@ class VectorField:
                 continue
 
             # Get the current tile's neighbours
-            for neighbour in self._get_neighbours(current):
+            for neighbour in self._get_direct_neighbours(current):
                 # Test if the neighbour has already been reached or not. If it hasn't,
                 # add it to the queue and set its distance
-                if neighbour not in self.distances:
+                if neighbour not in distances:
                     queue.put(neighbour)
-                    self.distances[neighbour] = 1 + self.distances[current]
-                    self.path_dict[neighbour] = current
+                    distances[neighbour] = 1 + distances[current]
+
+        # Use the newly generated Dijkstra map to calculate the vectors at each tile
+        for tile in distances:
+            # Find the tile's neighbour with the lowest Dijkstra distance
+            min_tile = None
+            min_dist = np.inf
+            for neighbour in self._get_full_neighbours(tile):
+                distance = distances[neighbour]
+                if distances[neighbour] < min_dist:
+                    min_tile = neighbour
+                    min_dist = distance
+
+            # If we've found a valid neighbour, point the tile's vector in the direction
+            # of the tile with the lowest Dijkstra distance
+            if min_tile:
+                self.vector_dict[tile] = -(tile.center_x - min_tile.center_x), -(
+                    tile.center_y - min_tile.center_y
+                )
 
         # Output the time taken to generate the vector field and update the enemies
         time_taken = (
@@ -272,9 +332,9 @@ class VectorField:
         """
         return self.vector_grid[y][x]
 
-    def get_next_tile(self, current_tile: Tile) -> Tile:
+    def get_vector_direction(self, current_tile: Tile) -> tuple[float, float]:
         """
-        Gets the next tile that the enemy should follow along the vector field.
+        Gets the vector direction an enemy needs to travel in for a given tile.
 
         Parameters
         ----------
@@ -283,7 +343,7 @@ class VectorField:
 
         Returns
         -------
-        Tile
-            The next tile the enemy should navigate too.
+        tuple[float, float]
+            The direction the enemy needs to travel in.
         """
-        return self.path_dict[current_tile]
+        return self.vector_dict[current_tile]
