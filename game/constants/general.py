@@ -6,10 +6,9 @@ import arcade
 # Debug constants
 DEBUG_LINES = False
 DEBUG_GAME = True
-DEBUG_ARROWS = True
-DEBUG_DIJKSTRA_DISTANCES = False
 DEBUG_VIEW_DISTANCE = arcade.color.RED
 DEBUG_ATTACK_DISTANCE = arcade.color.BLUE
+DEBUG_VECTOR_FIELD_LINE = arcade.color.YELLOW
 LOGGING_FORMAT = (
     "[%(asctime)s %(levelname)s] [%(filename)s:%(funcName)s():%(lineno)d] - %(message)s"
 )

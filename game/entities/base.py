@@ -485,12 +485,12 @@ class Entity(Tile):
     ) -> None:
         super().__init__(game, x, y)
         self.entity_type: BaseData = entity_type
+        self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
         self.attack_algorithms: list[AttackBase] = [
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
-        self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.applied_effects: list[StatusEffectBase] = []
         self.health_bar: IndicatorBar | None = None
         self.armour_bar: IndicatorBar | None = None
@@ -854,9 +854,12 @@ class Entity(Tile):
         # Update the entity's tile_pos. Arcade has (0, 0) at the bottom-left but the
         # vector field has (0, 0) at the top-left so the y position needs a bit of
         # tweaking
-        new_tile_pos = int(self.center_x // SPRITE_SIZE), int(
-            ((self.game.vector_field.height * SPRITE_SIZE) - self.center_y)
-            // SPRITE_SIZE
+        new_tile_pos = (
+            int(self.center_x // SPRITE_SIZE),
+            int(
+                ((self.game.vector_field.height * SPRITE_SIZE) - self.center_y)
+                // SPRITE_SIZE
+            ),
         )
         if new_tile_pos != self.tile_pos:
             self.tile_pos = new_tile_pos

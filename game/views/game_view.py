@@ -24,6 +24,7 @@ from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
+    DEBUG_VECTOR_FIELD_LINE,
     DEBUG_VIEW_DISTANCE,
     ENEMY_LEVEL_MAX_RANGE,
     LEVEL_GENERATOR_INTERVAL,
@@ -255,7 +256,7 @@ class Game(BaseView):
 
         # Assign sprites to the game map and initialise the vector grid
         vector_grid = np.empty(self.game_map_shape, dtype=Tile)
-        for count_y, y in enumerate(reversed(game_map)):
+        for count_y, y in enumerate(np.flipud(game_map)):
             for count_x, x in enumerate(y):
                 # Determine which type the tile is
                 match x:
@@ -269,16 +270,19 @@ class Game(BaseView):
                         self.tile_sprites.append(wall)
                         vector_grid[count_y][count_x] = wall
                     case TileType.PLAYER.value:
+                        floor = Floor(self, count_x, count_y)
+                        self.tile_sprites.append(floor)
+                        vector_grid[count_y][count_x] = floor
                         self.player = Player(
                             self,
                             count_x,
                             count_y,
                             PLAYER,
                         )
+                    case TileType.ENEMY.value:
                         floor = Floor(self, count_x, count_y)
                         self.tile_sprites.append(floor)
                         vector_grid[count_y][count_x] = floor
-                    case TileType.ENEMY.value:
                         self.enemy_sprites.append(
                             Enemy(
                                 self,
@@ -290,10 +294,10 @@ class Game(BaseView):
                                 ),
                             )
                         )
+                    case TileType.HEALTH_POTION.value:
                         floor = Floor(self, count_x, count_y)
                         self.tile_sprites.append(floor)
                         vector_grid[count_y][count_x] = floor
-                    case TileType.HEALTH_POTION.value:
                         health_potion = Consumable(
                             self,
                             count_x,
@@ -303,13 +307,12 @@ class Game(BaseView):
                                 HEALTH_POTION.level_limit
                             ),
                         )
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
                         self.tile_sprites.append(health_potion)
                         self.item_sprites.append(health_potion)
-
-                        vector_grid[count_y][count_x] = health_potion
                     case TileType.ARMOUR_POTION.value:
+                        floor = Floor(self, count_x, count_y)
+                        self.tile_sprites.append(floor)
+                        vector_grid[count_y][count_x] = floor
                         armour_potion = Consumable(
                             self,
                             count_x,
@@ -319,13 +322,12 @@ class Game(BaseView):
                                 HEALTH_POTION.level_limit
                             ),
                         )
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
                         self.tile_sprites.append(armour_potion)
                         self.item_sprites.append(armour_potion)
-
-                        vector_grid[count_y][count_x] = armour_potion
                     case TileType.HEALTH_BOOST_POTION.value:
+                        floor = Floor(self, count_x, count_y)
+                        self.tile_sprites.append(floor)
+                        vector_grid[count_y][count_x] = floor
                         health_boost_potion = Consumable(
                             self,
                             count_x,
@@ -335,13 +337,12 @@ class Game(BaseView):
                                 HEALTH_POTION.level_limit
                             ),
                         )
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
                         self.tile_sprites.append(health_boost_potion)
                         self.item_sprites.append(health_boost_potion)
-
-                        vector_grid[count_y][count_x] = health_boost_potion
                     case TileType.ARMOUR_BOOST_POTION.value:
+                        floor = Floor(self, count_x, count_y)
+                        self.tile_sprites.append(floor)
+                        vector_grid[count_y][count_x] = floor
                         armour_boost_potion = Consumable(
                             self,
                             count_x,
@@ -351,12 +352,12 @@ class Game(BaseView):
                                 HEALTH_POTION.level_limit
                             ),
                         )
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
                         self.tile_sprites.append(armour_boost_potion)
                         self.item_sprites.append(armour_boost_potion)
-                        vector_grid[count_y][count_x] = armour_boost_potion
                     case TileType.SPEED_BOOST_POTION.value:
+                        floor = Floor(self, count_x, count_y)
+                        self.tile_sprites.append(floor)
+                        vector_grid[count_y][count_x] = floor
                         speed_boost_potion = Consumable(
                             self,
                             count_x,
@@ -366,12 +367,12 @@ class Game(BaseView):
                                 HEALTH_POTION.level_limit
                             ),
                         )
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
                         self.tile_sprites.append(speed_boost_potion)
                         self.item_sprites.append(speed_boost_potion)
-                        vector_grid[count_y][count_x] = speed_boost_potion
                     case TileType.FIRE_RATE_BOOST_POTION.value:
+                        floor = Floor(self, count_x, count_y)
+                        self.tile_sprites.append(floor)
+                        vector_grid[count_y][count_x] = floor
                         fire_rate_potion = Consumable(
                             self,
                             count_x,
@@ -381,24 +382,22 @@ class Game(BaseView):
                                 HEALTH_POTION.level_limit
                             ),
                         )
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
                         self.tile_sprites.append(fire_rate_potion)
                         self.item_sprites.append(fire_rate_potion)
-                        vector_grid[count_y][count_x] = fire_rate_potion
                     case TileType.SHOP.value:
                         shop = Shop(self, count_x, count_y)
                         floor = Floor(self, count_x, count_y)
+                        vector_grid[count_y][count_x] = shop
                         self.tile_sprites.append(floor)
                         self.tile_sprites.append(shop)
                         self.item_sprites.append(shop)
-                        vector_grid[count_y][count_x] = shop
 
         # Make sure the player was actually created
         assert self.player is not None
 
-        # Initialise the vector field
-        self.vector_field = VectorField(vector_grid)
+        # Initialise the vector field. We need to reverse the vector grid since the
+        # array will be flipped after initialising all the tiles
+        self.vector_field = VectorField(np.flipud(vector_grid))
         self.vector_field.recalculate_map(self.player.tile_pos)
         logger.debug(
             f"Created vector grid with height {self.vector_field.height} and width"
@@ -411,10 +410,6 @@ class Game(BaseView):
 
         # Set up the melee shader
         self.player.melee_shader.setup_shader()
-
-        # Check if any enemy has line of sight
-        for enemy in self.enemy_sprites:
-            enemy.check_line_of_sight()  # noqa
 
         # Set up the inventory view
         inventory_view = InventoryView(self.player)
@@ -430,6 +425,7 @@ class Game(BaseView):
         """Render the screen."""
         # Make sure variables needed are valid
         assert self.player is not None
+        assert self.vector_field is not None
 
         # Clear the screen
         self.clear()
@@ -444,8 +440,9 @@ class Game(BaseView):
         self.player.draw(pixelated=True)
         self.enemy_indicator_bar_sprites.draw()
 
-        # Draw the debug items
+        # Draw stuff needed for the debug mode
         if self.debug_mode:
+            # Draw the enemy debug circles
             for enemy in self.enemy_sprites:
                 # Draw the enemy's view distance
                 arcade.draw_circle_outline(
@@ -525,6 +522,20 @@ class Game(BaseView):
                     self.player.current_attack.attack_range * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
+
+            # Draw the debug vector field lines
+            for source, destination in self.vector_field.path_dict.items():
+                arcade.draw_line(
+                    source.center_x,
+                    source.center_y,
+                    destination.center_x,
+                    destination.center_y,
+                    DEBUG_VECTOR_FIELD_LINE,
+                )
+
+            # Draw the debug vector field distances
+            for tile, cost in self.vector_field.distances.items():
+                arcade.draw_text(cost, tile.center_x, tile.center_y, arcade.color.BLACK)
 
         # Draw the gui on the screen
         self.gui_camera.use()

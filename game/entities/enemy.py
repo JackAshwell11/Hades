@@ -20,10 +20,10 @@ from game.constants.entity import (
     EntityID,
 )
 from game.entities.base import Entity, IndicatorBar
+from game.entities.movement import VectorFieldMovement, WanderMovement
 
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
-    from game.entities.movement import AIMovementBase
     from game.views.game_view import Game
 
 # Get the logger
@@ -49,8 +49,12 @@ class Enemy(Entity):
 
     Attributes
     ----------
-    movement_ai: AIMovementBase
-        The AI movement algorithm which this entity uses.
+    vector_field_movement_ai: VectorFieldMovement
+        The vector field movement AI used for navigating the enemy along the vector
+        field.
+    wander_movement_ai: WanderMovement
+        The wonder movement AI used for having the enemy wander around the current
+        position simulating an idle state.
     line_of_sight: bool
         Whether the enemy has line of sight with the player or not
     """
@@ -63,9 +67,8 @@ class Enemy(Entity):
     ) -> None:
         self.enemy_level: int = enemy_level
         super().__init__(game, x, y, enemy_type)
-        self.movement_ai: AIMovementBase = self.enemy_data.movement_algorithm.value(
-            self
-        )
+        self.vector_field_movement_ai: VectorFieldMovement = VectorFieldMovement(self)
+        self.wander_movement_ai: WanderMovement = WanderMovement(self)
         self.health_bar: IndicatorBar = IndicatorBar(
             self,
             self.game.enemy_indicator_bar_sprites,
@@ -151,8 +154,21 @@ class Enemy(Entity):
         # Make sure variables needed are valid
         assert self.game.player is not None
 
-        # Process the enemy's movement and get the force needed to move the enemy
-        horizontal, vertical = self.movement_ai.calculate_movement(self.game.player)
+        # Determine what movement algorithm to use based on the distance to the player
+        player_tile_distance = (
+            math.sqrt(
+                (self.center_y - self.player.center_y) ** 2
+                + (self.center_x - self.player.center_x) ** 2
+            )
+        ) / SPRITE_SIZE
+        if player_tile_distance > self.enemy_data.view_distance:
+            # Player is outside the enemy's view distance so have them wander around
+            horizontal, vertical = 0.0, 0.0
+            # horizontal, vertical = self.wander_movement_ai.calculate_movement()
+        else:
+            # Player is within the enemy's view distance use the vector field to move
+            # towards the player
+            horizontal, vertical = self.vector_field_movement_ai.calculate_movement()
 
         # Set the needed internal variables
         self.facing = FACING_LEFT if horizontal < 0 else FACING_RIGHT

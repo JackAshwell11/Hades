@@ -4,13 +4,16 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from game.entities.enemy import Enemy
-    from game.entities.player import Player
-
+# Custom
+from game.constants.entity import MOVEMENT_FORCE
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from game.entities.base import Tile
+    from game.entities.enemy import Enemy
+    from game.vector_field import VectorField
 
 
 class AIMovementBase:
@@ -31,33 +34,9 @@ class AIMovementBase:
     def __repr__(self) -> str:
         return f"<AIMovementBase (Owner={self.owner})>"
 
-    def distance_to_player(self, player: Player) -> tuple[float, float]:
-        """
-        Calculates the distance between the enemy and the player
-
-        Parameters
-        ----------
-        player: Player
-            The player to calculate the distance to.
-
-        Returns
-        -------
-        tuple[float, float]
-            The distance to the player.
-        """
-        return (
-            self.owner.center_x - player.center_x,
-            self.owner.center_y - player.center_y,
-        )
-
-    def calculate_movement(self, player: Player) -> tuple[float, float]:
+    def calculate_movement(self) -> tuple[float, float]:
         """
         Calculates the force to apply to an enemy.
-
-        Parameters
-        ----------
-        player: Player
-            The player object.
 
         Raises
         ------
@@ -72,97 +51,103 @@ class AIMovementBase:
         raise NotImplementedError
 
 
-class FollowLineOfSight(AIMovementBase):
+class VectorFieldMovement(AIMovementBase):
     """
-    An algorithm which moves the enemy towards the player if the enemy has line of
-    sight with the player and the player is within the enemy's view distance.
+    Simplifies the logic needed for the enemy to interact with the vector field and move
+    around the game map.
 
     Parameters
     ----------
     owner: Enemy
-        The owner of this AI algorithm.
+        The owner of this movement algorithm.
+
+    Attributes
+    ----------
+    target_tile: Tile
+        f
     """
 
-    __slots__ = ()
+    __slots__ = ("target_tile",)
 
     def __init__(self, owner: Enemy) -> None:
         super().__init__(owner)
+        self.target_tile: Tile = self.owner.game.tile_sprites[-1]
 
     def __repr__(self) -> str:
-        return f"<FollowLineOfSight (Owner={self.owner})>"
+        return f"<VectorFieldMovement (Owner={self.owner})>"
 
-    def calculate_movement(self, player: Player) -> tuple[float, float]:
+    @property
+    def tile_pos(self) -> tuple[int, int]:
         """
-        Calculates the new position for an enemy based on the
-
-        Parameters
-        ----------
-        player: Player
-            The player to move towards.
+        Gets the enemy's current tile position.
 
         Returns
         -------
-        tuple[float, float]
-            The calculated force to apply to the enemy to move it towards the player.
+        tuple[int, int]
+            The enemy's current tile position.
         """
-        # Make sure we have the movement force. This avoids a circular import
-        from game.constants.entity import MOVEMENT_FORCE
+        return self.owner.tile_pos
 
-        # Check if the enemy can actually move
-        if self.owner.line_of_sight:
-            # Calculate the velocity for the enemy to move towards the player
-            distance: tuple[float, float] = self.distance_to_player(player)
-            return (
-                -distance[0] * MOVEMENT_FORCE,
-                -distance[1] * MOVEMENT_FORCE,
-            )
-        return 0, 0
-
-
-class Jitter(AIMovementBase):
-    """
-    An algorithm which .
-
-    Parameters
-    ----------
-    owner: Enemy
-        The owner of this AI algorithm.
-    """
-
-    __slots__ = ()
-
-    def __init__(self, owner: Enemy) -> None:
-        super().__init__(owner)
-
-    def __repr__(self) -> str:
-        return f"<Jitter (Owner={self.owner})>"
-
-    def calculate_movement(self, player: Player) -> tuple[float, float]:
+    @property
+    def current_tile(self) -> Tile:
         """
-        Calculates the new position for an enemy.
+        Gets the enemy's current tile.
 
-        Parameters
-        ----------
-        player: Player
-            The player object. This is not used for this algorithm.
+        Returns
+        -------
+        Tile
+            The enemy's current tile.
+        """
+        return self.vector_field.get_tile_at_position(*self.tile_pos)
+
+    @property
+    def vector_field(self) -> VectorField:
+        """
+        Gets the vector field for easy access.
+
+        Returns
+        -------
+        VectorField
+            The generated vector field.
+        """
+        # Make sure the vector field is valid
+        assert self.owner.game.vector_field is not None
+
+        # Get the vector field object
+        return self.owner.game.vector_field
+
+    def calculate_movement(self) -> tuple[float, float]:
+        """
+        Calculates the force to apply to an enemy.
 
         Returns
         -------
         tuple[float, float]
             The calculated force to apply to the enemy.
         """
-        raise NotImplementedError
+        # Find out if we've reached the target tile or not
+        if self.current_tile is self.target_tile:
+            # Get the new target tile
+            self.target_tile = self.vector_field.get_next_tile(self.current_tile)
+
+        # Calculate the vector from the enemy's position to the target tile's position
+        vec_x, vec_y = (
+            self.owner.center_x - self.target_tile.center_x,
+            self.owner.center_y - self.target_tile.center_y,
+        )
+
+        # Calculate the force to apply to the enemy and return it
+        return -vec_x * MOVEMENT_FORCE, -vec_y * MOVEMENT_FORCE
 
 
-class MoveAwayLineOfSight(AIMovementBase):
+class WanderMovement(AIMovementBase):
     """
-    An algorithm which moves the enemy away from the player if the enemy has line of
-    sight with the player and the player is within the enemy's view distance.
+    An algorithm which .
 
     Parameters
     ----------
     owner: Enemy
-        The owner of this AI algorithm.
+        The owner of this movement algorithm.
     """
 
     __slots__ = ()
@@ -171,28 +156,14 @@ class MoveAwayLineOfSight(AIMovementBase):
         super().__init__(owner)
 
     def __repr__(self) -> str:
-        return f"<MoveAway (Owner={self.owner})>"
+        return f"<Wander (Owner={self.owner})>"
 
-    def calculate_movement(self, player: Player) -> tuple[float, float]:
+    def calculate_movement(self) -> tuple[float, float]:
         """
-        Calculates the new position for an enemy.
-
-        Parameters
-        ----------
-        player: Player
-            The player to move away from.
+        Calculates the force to apply to an enemy.
 
         Returns
         -------
         tuple[float, float]
-            The calculated force to apply to the enemy to move it away from the player.
+            The calculated force to apply to the enemy.
         """
-        # Make sure we have the movement force. This avoids a circular import
-        from game.constants.entity import MOVEMENT_FORCE
-
-        # Calculate the velocity for the enemy to move towards the player
-        distance: tuple[float, float] = self.distance_to_player(player)
-        return (
-            distance[0] * MOVEMENT_FORCE,
-            distance[1] * MOVEMENT_FORCE,
-        )
