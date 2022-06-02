@@ -92,13 +92,13 @@ class VectorField:
         allows us to calculate the cost for a particular path.
 
     Further reading which may be useful:
-        `Understanding goal based pathfinding
-        <https://gamedevelopment.tutsplus.com/tutorials/understanding-goal-based-vector\
-        -field-pathfinding--gamedev-9007>`_
         `Other uses of Dijkstra maps
         <http://www.roguebasin.com/index.php/The_Incredible_Power_of_Dijkstra_Maps>`_
         `Dijkstra maps visualized
         <http://www.roguebasin.com/index.php/Dijkstra_Maps_Visualized>`_
+        `Understanding goal based pathfinding
+        <https://gamedevelopment.tutsplus.com/tutorials/understanding-goal-based-vector\
+        -field-pathfinding--gamedev-9007>`_
 
     Parameters
     ----------
@@ -107,14 +107,18 @@ class VectorField:
 
     Attributes
     ----------
-    path_dict: dict[Tile, Tile]
-        A dictionary which will hold the paths from every tile to the destination tile.
     distances: dict[Tile, int]
         A dictionary which will hold the path distance to every tile from the
         destination tile.
+    path_dict: dict[Tile, Tile]
+        A dictionary which will hold the paths from every tile to the destination tile.
     """
 
-    __slots__ = ("vector_grid", "path_dict", "distances")
+    __slots__ = (
+        "vector_grid",
+        "distances",
+        "path_dict",
+    )
 
     _neighbour_offsets: list[tuple[int, int]] = [
         (0, -1),
@@ -128,8 +132,8 @@ class VectorField:
         vector_grid: np.ndarray,
     ) -> None:
         self.vector_grid: np.ndarray = vector_grid
-        self.path_dict: dict[Tile, Tile] = {}
         self.distances: dict[Tile, int] = {}
+        self.path_dict: dict[Tile, Tile] = {}
 
     def __repr__(self) -> str:
         return (
@@ -212,7 +216,7 @@ class VectorField:
 
         # To recalculate the map, we need a few things:
         #   1. A queue object, so we can explore the grid.
-        #   2. A came_from dict to store the paths for the vector field. We need to make
+        #   2. A path_dict dict to store the paths for the vector field. We need to make
         #   sure this is empty first.
         #   3. A distances dict to store the distances to each tile from the destination
         #   tile. We also need to make sure this is empty first.
@@ -222,6 +226,7 @@ class VectorField:
         self.distances.clear()
         self.path_dict.clear()
         self.distances[start] = 0
+        self.path_dict[start] = start
 
         # Explore the grid using a breadth first search to generate the Dijkstra
         # distances
@@ -240,9 +245,7 @@ class VectorField:
                 if neighbour not in self.distances:
                     queue.put(neighbour)
                     self.distances[neighbour] = 1 + self.distances[current]
-
-        # self.path_dict[start] = start
-        print(self.distances)
+                    self.path_dict[neighbour] = current
 
         # Output the time taken to generate the vector field and update the enemies
         time_taken = (
