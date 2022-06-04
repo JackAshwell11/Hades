@@ -184,8 +184,7 @@ class Player(Entity):
 
     def move(self) -> None:
         """Processes the needed actions for the entity to move."""
-        # Calculate the new velocity of the player based on the keys pressed
-        update_enemies = False
+        # Calculate the force to apply to the player based on the keys pressed
         force = [0, 0]
         if self.right_pressed and not self.left_pressed:
             force[0] = MOVEMENT_FORCE
@@ -204,18 +203,10 @@ class Player(Entity):
             self.physics.apply_force(self, resultant_force)
             logger.debug(f"Applied force {resultant_force} to player")
 
-            # Set update_enemies
-            update_enemies = True
-
-        # Check if we need to update the enemy's line of sight
-        line_of_sights = []
-        if update_enemies:
-            # Update the enemy's line of sight check
-            for enemy in self.game.enemy_sprites:
-                line_of_sights.append(enemy.check_line_of_sight())  # noqa
-
         # Check if the player is in combat
-        self.in_combat = any(line_of_sights)
+        self.in_combat = any(
+            [enemy.player_within_range for enemy in self.game.enemy_sprites]  # noqa
+        )
         if self.in_combat:
             self.time_out_of_combat = 0
 
