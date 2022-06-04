@@ -102,7 +102,7 @@ class AttackBase:
     Parameters
     ----------
     owner: Entity
-        The owner of this attack algorithm.
+        The reference to the enemy object that manages this attack algorithm.
     attack_cooldown: int
         The cooldown for this attack.
     """
@@ -156,7 +156,7 @@ class RangedAttack(AttackBase):
     Parameters
     ----------
     owner: Entity
-        The owner of this attack algorithm.
+        The reference to the enemy object that manages this attack algorithm.
     attack_cooldown: int
         The cooldown for this attack.
     """
@@ -252,7 +252,7 @@ class MeleeAttack(AttackBase):
     Parameters
     ----------
     owner: Entity
-        The owner of this attack algorithm.
+        The reference to the enemy object that manages this attack algorithm.
     attack_cooldown: int
         The cooldown for this attack.
     """
@@ -314,7 +314,7 @@ class AreaOfEffectAttack(AttackBase):
     Parameters
     ----------
     owner: Entity
-        The owner of this attack algorithm.
+        The reference to the enemy object that manages this attack algorithm.
     attack_cooldown: int
         The cooldown for this attack.
     """

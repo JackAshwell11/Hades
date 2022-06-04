@@ -192,7 +192,7 @@ class VectorField:
 
     def _get_full_neighbours(self, tile: Tile) -> list[Tile]:
         """
-        Gets a tile's fully neighbours (top-left, top-middle, top-right, middle-left,
+        Gets a tile's full neighbours (top-left, top-middle, top-right, middle-left,
         middle-right, bottom-left, bottom-middle and bottom-right) based on their
         position in the grid.
 

@@ -20,7 +20,7 @@ from game.constants.entity import (
     EntityID,
 )
 from game.entities.base import Entity, IndicatorBar
-from game.entities.movement import VectorFieldMovement, WanderMovement
+from game.entities.movement import EnemyMovementManager
 
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
@@ -49,12 +49,9 @@ class Enemy(Entity):
 
     Attributes
     ----------
-    vector_field_movement_ai: VectorFieldMovement
-        The vector field movement AI used for navigating the enemy along the vector
-        field.
-    wander_movement_ai: WanderMovement
-        The wonder movement AI used for having the enemy wander around the current
-        position simulating an idle state.
+    movement_ai: EnemyMovementManager
+        The movement AI class used for processing the logic needed for the enemy to
+        move.
     line_of_sight: bool
         Whether the enemy has line of sight with the player or not
     """
@@ -67,8 +64,7 @@ class Enemy(Entity):
     ) -> None:
         self.enemy_level: int = enemy_level
         super().__init__(game, x, y, enemy_type)
-        self.vector_field_movement_ai: VectorFieldMovement = VectorFieldMovement(self)
-        self.wander_movement_ai: WanderMovement = WanderMovement(self)
+        self.movement_ai: EnemyMovementManager = EnemyMovementManager(self)
         self.health_bar: IndicatorBar = IndicatorBar(
             self,
             self.game.enemy_indicator_bar_sprites,
@@ -163,12 +159,11 @@ class Enemy(Entity):
         ) / SPRITE_SIZE
         if player_tile_distance > self.enemy_data.view_distance:
             # Player is outside the enemy's view distance so have them wander around
-            horizontal, vertical = 0.0, 0.0
-            # horizontal, vertical = self.wander_movement_ai.calculate_movement()
+            horizontal, vertical = self.movement_ai.calculate_wander_force()
         else:
             # Player is within the enemy's view distance use the vector field to move
             # towards the player
-            horizontal, vertical = self.vector_field_movement_ai.calculate_movement()
+            horizontal, vertical = self.movement_ai.calculate_vector_field_force()
 
         # Set the needed internal variables
         self.facing = FACING_LEFT if horizontal < 0 else FACING_RIGHT

@@ -16,14 +16,15 @@ if TYPE_CHECKING:
     from game.vector_field import VectorField
 
 
-class AIMovementBase:
+class EnemyMovementManager:
     """
-    The base class for all AI enemy movement algorithms.
+    Manages and processes logic needed for the enemy to move towards the player or
+    wander around. This is a work in progress.
 
     Parameters
     ----------
     owner: Enemy
-        The owner of this AI algorithm.
+        The reference to the enemy object that controls this manager.
     """
 
     __slots__ = ("owner",)
@@ -32,73 +33,7 @@ class AIMovementBase:
         self.owner: Enemy = owner
 
     def __repr__(self) -> str:
-        return f"<AIMovementBase (Owner={self.owner})>"
-
-    def calculate_movement(self) -> tuple[float, float]:
-        """
-        Calculates the force to apply to an enemy.
-
-        Raises
-        ------
-        NotImplementedError
-            The function is not implemented.
-
-        Returns
-        -------
-        tuple[float, float]
-            The calculated force to apply to the enemy.
-        """
-        raise NotImplementedError
-
-
-class VectorFieldMovement(AIMovementBase):
-    """
-    Simplifies the logic needed for the enemy to interact with the vector field and move
-    around the game map.
-
-    Parameters
-    ----------
-    owner: Enemy
-        The owner of this movement algorithm.
-
-    Attributes
-    ----------
-    target_tile: Tile
-        f
-    """
-
-    __slots__ = ("target_tile",)
-
-    def __init__(self, owner: Enemy) -> None:
-        super().__init__(owner)
-        self.target_tile: Tile = self.owner.game.tile_sprites[-1]
-
-    def __repr__(self) -> str:
-        return f"<VectorFieldMovement (Owner={self.owner})>"
-
-    @property
-    def tile_pos(self) -> tuple[int, int]:
-        """
-        Gets the enemy's current tile position.
-
-        Returns
-        -------
-        tuple[int, int]
-            The enemy's current tile position.
-        """
-        return self.owner.tile_pos
-
-    @property
-    def current_tile(self) -> Tile:
-        """
-        Gets the enemy's current tile.
-
-        Returns
-        -------
-        Tile
-            The enemy's current tile.
-        """
-        return self.vector_field.get_tile_at_position(*self.tile_pos)
+        return f"<EnemyMovement (Owner={self.owner})>"
 
     @property
     def vector_field(self) -> VectorField:
@@ -116,9 +51,21 @@ class VectorFieldMovement(AIMovementBase):
         # Get the vector field object
         return self.owner.game.vector_field
 
-    def calculate_movement(self) -> tuple[float, float]:
+    @property
+    def current_tile(self) -> Tile:
         """
-        Calculates the force to apply to an enemy.
+        Gets the enemy's current tile.
+
+        Returns
+        -------
+        Tile
+            The enemy's current tile.
+        """
+        return self.vector_field.get_tile_at_position(*self.owner.tile_pos)
+
+    def calculate_vector_field_force(self) -> tuple[float, float]:
+        """
+        Calculates the force to apply to an enemy which is using the vector field.
 
         Returns
         -------
@@ -134,31 +81,14 @@ class VectorFieldMovement(AIMovementBase):
             vector_direction[1] * MOVEMENT_FORCE,
         )
 
-
-class WanderMovement(AIMovementBase):
-    """
-    An algorithm which .
-
-    Parameters
-    ----------
-    owner: Enemy
-        The owner of this movement algorithm.
-    """
-
-    __slots__ = ()
-
-    def __init__(self, owner: Enemy) -> None:
-        super().__init__(owner)
-
-    def __repr__(self) -> str:
-        return f"<Wander (Owner={self.owner})>"
-
-    def calculate_movement(self) -> tuple[float, float]:
+    def calculate_wander_force(self) -> tuple[float, float]:
         """
-        Calculates the force to apply to an enemy.
+        Calculates the force to apply to an enemy who is wandering. This currently does
+        not work.
 
         Returns
         -------
         tuple[float, float]
             The calculated force to apply to the enemy.
         """
+        return 0, 0
