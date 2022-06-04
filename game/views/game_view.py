@@ -240,7 +240,6 @@ class Game(BaseView):
             The level to create a generation for. Each level should be more difficult
             than the last.
         """
-
         # Initialise the distribution generators that will determine the enemy and
         # consumable levels
         enemy_distribution = EnemyConsumableLevelGenerator.create_distribution(
@@ -258,21 +257,20 @@ class Game(BaseView):
         vector_grid = np.empty(self.game_map_shape, dtype=Tile)
         for count_y, y in enumerate(np.flipud(game_map)):
             for count_x, x in enumerate(y):
+                # Determine if we need to make a floor or wall as the backdrop
+                if x == TileType.WALL.value:
+                    wall = Wall(self, count_x, count_y)
+                    self.wall_sprites.append(wall)
+                    self.tile_sprites.append(wall)
+                    vector_grid[count_y][count_x] = wall
+                elif x != TileType.EMPTY.value:
+                    floor = Floor(self, count_x, count_y)
+                    self.tile_sprites.append(floor)
+                    vector_grid[count_y][count_x] = floor
+
                 # Determine which type the tile is
                 match x:
-                    case TileType.FLOOR.value:
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
-                        vector_grid[count_y][count_x] = floor
-                    case TileType.WALL.value:
-                        wall = Wall(self, count_x, count_y)
-                        self.wall_sprites.append(wall)
-                        self.tile_sprites.append(wall)
-                        vector_grid[count_y][count_x] = wall
                     case TileType.PLAYER.value:
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
-                        vector_grid[count_y][count_x] = floor
                         self.player = Player(
                             self,
                             count_x,
@@ -280,9 +278,6 @@ class Game(BaseView):
                             PLAYER,
                         )
                     case TileType.ENEMY.value:
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
-                        vector_grid[count_y][count_x] = floor
                         self.enemy_sprites.append(
                             Enemy(
                                 self,
@@ -295,9 +290,6 @@ class Game(BaseView):
                             )
                         )
                     case TileType.HEALTH_POTION.value:
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
-                        vector_grid[count_y][count_x] = floor
                         health_potion = Consumable(
                             self,
                             count_x,
@@ -310,9 +302,6 @@ class Game(BaseView):
                         self.tile_sprites.append(health_potion)
                         self.item_sprites.append(health_potion)
                     case TileType.ARMOUR_POTION.value:
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
-                        vector_grid[count_y][count_x] = floor
                         armour_potion = Consumable(
                             self,
                             count_x,
@@ -325,9 +314,6 @@ class Game(BaseView):
                         self.tile_sprites.append(armour_potion)
                         self.item_sprites.append(armour_potion)
                     case TileType.HEALTH_BOOST_POTION.value:
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
-                        vector_grid[count_y][count_x] = floor
                         health_boost_potion = Consumable(
                             self,
                             count_x,
@@ -340,9 +326,6 @@ class Game(BaseView):
                         self.tile_sprites.append(health_boost_potion)
                         self.item_sprites.append(health_boost_potion)
                     case TileType.ARMOUR_BOOST_POTION.value:
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
-                        vector_grid[count_y][count_x] = floor
                         armour_boost_potion = Consumable(
                             self,
                             count_x,
@@ -355,9 +338,6 @@ class Game(BaseView):
                         self.tile_sprites.append(armour_boost_potion)
                         self.item_sprites.append(armour_boost_potion)
                     case TileType.SPEED_BOOST_POTION.value:
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
-                        vector_grid[count_y][count_x] = floor
                         speed_boost_potion = Consumable(
                             self,
                             count_x,
@@ -370,9 +350,6 @@ class Game(BaseView):
                         self.tile_sprites.append(speed_boost_potion)
                         self.item_sprites.append(speed_boost_potion)
                     case TileType.FIRE_RATE_BOOST_POTION.value:
-                        floor = Floor(self, count_x, count_y)
-                        self.tile_sprites.append(floor)
-                        vector_grid[count_y][count_x] = floor
                         fire_rate_potion = Consumable(
                             self,
                             count_x,
@@ -386,9 +363,7 @@ class Game(BaseView):
                         self.item_sprites.append(fire_rate_potion)
                     case TileType.SHOP.value:
                         shop = Shop(self, count_x, count_y)
-                        floor = Floor(self, count_x, count_y)
                         vector_grid[count_y][count_x] = shop
-                        self.tile_sprites.append(floor)
                         self.tile_sprites.append(shop)
                         self.item_sprites.append(shop)
 

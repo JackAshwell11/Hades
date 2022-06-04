@@ -110,7 +110,6 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
         since we just want to remove the bullet and not process collision.
     """
     try:
-
         # Check if the owner is an enemy
         if bullet.owner.entity_id is EntityID.ENEMY:
             # Remove the bullet

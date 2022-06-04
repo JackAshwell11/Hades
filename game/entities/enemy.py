@@ -5,9 +5,6 @@ import logging
 import math
 from typing import TYPE_CHECKING
 
-# Pip
-import arcade
-
 # Custom
 from game.constants.entity import (
     ARMOUR_INDICATOR_BAR_COLOR,
@@ -52,8 +49,8 @@ class Enemy(Entity):
     movement_ai: EnemyMovementManager
         The movement AI class used for processing the logic needed for the enemy to
         move.
-    line_of_sight: bool
-        Whether the enemy has line of sight with the player or not
+    player_within_range: bool
+        Whether the player is within view distance of the enemy or not.
     """
 
     # Class variables
@@ -77,7 +74,7 @@ class Enemy(Entity):
             (0, 0),
             ARMOUR_INDICATOR_BAR_COLOR,
         )
-        self.line_of_sight: bool = False
+        self.player_within_range: bool = False
 
     def __repr__(self) -> str:
         return (
@@ -125,7 +122,7 @@ class Enemy(Entity):
         assert self.health_bar is not None
 
         # Check if the enemy is not in combat
-        if not self.line_of_sight:
+        if not self.player_within_range:
             # Enemy not in combat so check if they can regenerate armour
             if self.entity_data.armour_regen:
                 self.regenerate_armour(delta_time)
@@ -159,10 +156,13 @@ class Enemy(Entity):
         ) / SPRITE_SIZE
         if player_tile_distance > self.enemy_data.view_distance:
             # Player is outside the enemy's view distance so have them wander around
+            self.player_within_range = False
             horizontal, vertical = self.movement_ai.calculate_wander_force()
         else:
             # Player is within the enemy's view distance use the vector field to move
             # towards the player
+            self.player_within_range = True
+            self.time_out_of_combat = 0
             horizontal, vertical = self.movement_ai.calculate_vector_field_force()
 
         # Set the needed internal variables
@@ -198,7 +198,7 @@ class Enemy(Entity):
         logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
         if not (
             hypot_distance <= self.current_attack.attack_range * SPRITE_SIZE
-            and self.line_of_sight
+            and self.player_within_range
             and self.time_since_last_attack
             >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown)
         ):
@@ -215,27 +215,27 @@ class Enemy(Entity):
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
                 self.current_attack.process_attack(self.game.player)
 
-    def check_line_of_sight(self) -> bool:
-        """
-        Checks if the enemy has line of sight with the player.
-
-        Returns
-        -------
-        bool
-            Whether the enemy has line of sight with the player or not.
-        """
-        # Make sure variables needed are valid
-        assert self.game.player is not None
-
-        # Check for line of sight
-        self.line_of_sight = arcade.has_line_of_sight(
-            (self.center_x, self.center_y),
-            (self.game.player.center_x, self.game.player.center_y),
-            self.game.wall_sprites,
-            self.enemy_data.view_distance * SPRITE_SIZE,
-        )
-        if self.line_of_sight:
-            self.time_out_of_combat = 0
-
-        # Return the result
-        return self.line_of_sight
+    # def check_line_of_sight(self) -> bool:
+    #     """
+    #     Checks if the enemy has line of sight with the player.
+    #
+    #     Returns
+    #     -------
+    #     bool
+    #         Whether the enemy has line of sight with the player or not.
+    #     """
+    #     # Make sure variables needed are valid
+    #     assert self.game.player is not None
+    #
+    #     # Check for line of sight
+    #     self.player_within_range = arcade.has_line_of_sight(
+    #         (self.center_x, self.center_y),
+    #         (self.game.player.center_x, self.game.player.center_y),
+    #         self.game.wall_sprites,
+    #         self.enemy_data.view_distance * SPRITE_SIZE,
+    #     )
+    #     if self.player_within_range:
+    #         self.time_out_of_combat = 0
+    #
+    #     # Return the result
+    #     return self.player_within_range
