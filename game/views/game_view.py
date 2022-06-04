@@ -443,19 +443,20 @@ class Game(BaseView):
         # Draw stuff needed for the debug mode
         if self.debug_mode:
             # Draw the enemy debug circles
-            for enemy in self.enemy_sprites:
+            for enemy in self.enemy_sprites:  # type: Enemy
                 # Draw the enemy's view distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.enemy_data.view_distance * SPRITE_SIZE,  # noqa
+                    enemy.enemy_data.view_distance * SPRITE_SIZE,
                     DEBUG_VIEW_DISTANCE,
                 )
+
                 # Draw the enemy's attack distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.current_attack.attack_range * SPRITE_SIZE,  # noqa
+                    enemy.current_attack.attack_range * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
 
@@ -764,7 +765,9 @@ class Game(BaseView):
         # Check if the camera position has changed
         if old_position != new_position:
             # Move the camera to the new position
-            self.game_camera.move_to((screen_center_x, screen_center_y))  # noqa
+            self.game_camera.move_to(
+                arcade.pymunk_physics_engine.Vec2(screen_center_x, screen_center_y)
+            )
             logger.debug(
                 f"Changed camera position from {old_position} to {new_position}"
             )
