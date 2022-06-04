@@ -11,7 +11,6 @@ import arcade
 # Custom
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
-from game.entities.movement import FollowLineOfSight, Jitter, MoveAwayLineOfSight
 from game.textures import moving_textures
 
 
@@ -47,15 +46,6 @@ class UpgradeSection(Enum):
     DEFENCE = "defence"
     STRENGTH = "strength"
     INTELLIGENCE = "intelligence"
-
-
-# Movement algorithms
-class AIMovementType(Enum):
-    """Stores the different type of enemy movement algorithms that exist."""
-
-    FOLLOW = FollowLineOfSight
-    JITTER = Jitter
-    MOVE_AWAY = MoveAwayLineOfSight
 
 
 # Attack algorithms
@@ -192,12 +182,9 @@ class EnemyData:
 
     view_distance: int
         The amount of tiles the enemy can see too.
-    movement_algorithm: AIMovementType
-        The movement algorithm that this enemy has.
     """
 
     view_distance: int = field(kw_only=True)
-    movement_algorithm: AIMovementType = field(kw_only=True)
 
 
 @dataclass
@@ -282,7 +269,7 @@ PLAYER = BaseData(
                     ),
                     AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.SPEED,
-                        increase=lambda current_level: 200 * 1.4**current_level,
+                        increase=lambda current_level: 150 * 1.4**current_level,
                     ),
                 ],
             ),
@@ -352,7 +339,7 @@ ENEMY1 = BaseData(
             ),
         ],
     ),
-    enemy_data=EnemyData(view_distance=5, movement_algorithm=AIMovementType.FOLLOW),
+    enemy_data=EnemyData(view_distance=5),
     ranged_attack_data=RangedAttackData(
         damage=5, attack_cooldown=5, attack_range=5, max_range=10
     ),
@@ -376,5 +363,3 @@ INDICATOR_BAR_BORDER_SIZE = 4
 ENEMY_INDICATOR_BAR_OFFSET = 32
 HEALTH_INDICATOR_BAR_COLOR = arcade.color.RED
 ARMOUR_INDICATOR_BAR_COLOR = arcade.color.SILVER
-
-# TODO: USE https://notes.io/QfAH

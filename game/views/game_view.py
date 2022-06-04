@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 # Pip
 import arcade
+import numpy as np
 
 # Custom
 from game.constants.consumable import (
@@ -18,30 +19,26 @@ from game.constants.consumable import (
     HEALTH_POTION,
     SPEED_BOOST_POTION,
 )
-from game.constants.entity import (
-    ENEMY1,
-    FACING_LEFT,
-    FACING_RIGHT,
-    MOVEMENT_FORCE,
-    PLAYER,
-    SPRITE_SIZE,
-)
+from game.constants.entity import ENEMY1, FACING_LEFT, FACING_RIGHT, PLAYER, SPRITE_SIZE
 from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
+    DEBUG_VECTOR_FIELD_LINE,
     DEBUG_VIEW_DISTANCE,
     ENEMY_LEVEL_MAX_RANGE,
     LEVEL_GENERATOR_INTERVAL,
 )
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
+from game.entities.base import Tile
 from game.entities.enemy import Enemy
 from game.entities.player import Player
 from game.entities.tile import Consumable, Floor, Shop, Wall
-from game.generation.map import Map
+from game.generation.map import create_map
 from game.physics import PhysicsEngine
 from game.textures import pos_to_pixel
+from game.vector_field import VectorField
 from game.views.base_view import BaseView
 from game.views.inventory_view import InventoryView
 from game.views.shop_view import ShopView
@@ -151,6 +148,8 @@ class Game(BaseView):
         The height and width of the game map.
     player: Player | None
         The sprite for the playable character in the game.
+    vector_field: VectorField | None
+        The vector field which allows for easy pathfinding for the enemy AI.
     item_sprites: arcade.SpriteList
         The sprite list for the item sprites. This is only used for detecting player
         activity around the item.
@@ -178,14 +177,6 @@ class Game(BaseView):
         The text object used for displaying the player's health and armour.
     nearest_item: CollectibleTile | UsableTile | None
         Stores the nearest item so the player can activate it.
-    left_pressed: bool
-        Whether the left key is pressed or not.
-    right_pressed: bool
-        Whether the right key is pressed or not.
-    up_pressed: bool
-        Whether the up key is pressed or not.
-    down_pressed: bool
-        Whether the down key is pressed or not.
     """
 
     def __init__(self, debug_mode: bool = False) -> None:
@@ -194,6 +185,7 @@ class Game(BaseView):
         self.background_color = arcade.color.BLACK
         self.game_map_shape: tuple[int, int] = (-1, -1)
         self.player: Player | None = None
+        self.vector_field: VectorField | None = None
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
@@ -223,10 +215,6 @@ class Game(BaseView):
             arcade.color.BLACK,
             20,
         )
-        self.left_pressed: bool = False
-        self.right_pressed: bool = False
-        self.up_pressed: bool = False
-        self.down_pressed: bool = False
 
     def __repr__(self) -> str:
         return f"<Game (Current window={self.window})>"
@@ -234,9 +222,13 @@ class Game(BaseView):
     def post_hide_view(self) -> None:
         """Called after the view is hidden allowing for extra functionality to be
         added."""
-        self.left_pressed = (
-            self.right_pressed
-        ) = self.up_pressed = self.down_pressed = False
+        # Make sure variables needed are valid
+        assert self.player is not None
+
+        # Stop the player from moving after the game view is shown again
+        self.player.left_pressed = (
+            self.player.right_pressed
+        ) = self.player.up_pressed = self.player.down_pressed = False
 
     def setup(self, level: int) -> None:
         """
@@ -248,7 +240,6 @@ class Game(BaseView):
             The level to create a generation for. Each level should be more difficult
             than the last.
         """
-
         # Initialise the distribution generators that will determine the enemy and
         # consumable levels
         enemy_distribution = EnemyConsumableLevelGenerator.create_distribution(
@@ -258,24 +249,27 @@ class Game(BaseView):
             level, CONSUMABLE_LEVEL_MAX_RANGE
         )
 
-        # Create the game map and check that it is valid
-        game_map = Map(level)
-        assert game_map.grid is not None
+        # Create the game map
+        game_map = create_map(level)
+        self.game_map_shape = game_map.shape
 
-        # Store the game map's width and height
-        self.game_map_shape = game_map.grid.shape
-
-        # Assign sprites to the game map
-        for count_y, y in enumerate(game_map.grid):
+        # Assign sprites to the game map and initialise the vector grid
+        vector_grid = np.empty(self.game_map_shape, dtype=Tile)
+        for count_y, y in enumerate(np.flipud(game_map)):
             for count_x, x in enumerate(y):
+                # Determine if we need to make a floor or wall as the backdrop
+                if x == TileType.WALL.value:
+                    wall = Wall(self, count_x, count_y)
+                    self.wall_sprites.append(wall)
+                    self.tile_sprites.append(wall)
+                    vector_grid[count_y][count_x] = wall
+                elif x != TileType.EMPTY.value:
+                    floor = Floor(self, count_x, count_y)
+                    self.tile_sprites.append(floor)
+                    vector_grid[count_y][count_x] = floor
+
                 # Determine which type the tile is
                 match x:
-                    case TileType.FLOOR.value:
-                        self.tile_sprites.append(Floor(count_x, count_y))
-                    case TileType.WALL.value:
-                        wall = Wall(count_x, count_y)
-                        self.wall_sprites.append(wall)
-                        self.tile_sprites.append(wall)
                     case TileType.PLAYER.value:
                         self.player = Player(
                             self,
@@ -283,7 +277,6 @@ class Game(BaseView):
                             count_y,
                             PLAYER,
                         )
-                        self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.ENEMY.value:
                         self.enemy_sprites.append(
                             Enemy(
@@ -296,9 +289,7 @@ class Game(BaseView):
                                 ),
                             )
                         )
-                        self.tile_sprites.append(Floor(count_x, count_y))
                     case TileType.HEALTH_POTION.value:
-                        self.tile_sprites.append(Floor(count_x, count_y))
                         health_potion = Consumable(
                             self,
                             count_x,
@@ -311,7 +302,6 @@ class Game(BaseView):
                         self.tile_sprites.append(health_potion)
                         self.item_sprites.append(health_potion)
                     case TileType.ARMOUR_POTION.value:
-                        self.tile_sprites.append(Floor(count_x, count_y))
                         armour_potion = Consumable(
                             self,
                             count_x,
@@ -324,7 +314,6 @@ class Game(BaseView):
                         self.tile_sprites.append(armour_potion)
                         self.item_sprites.append(armour_potion)
                     case TileType.HEALTH_BOOST_POTION.value:
-                        self.tile_sprites.append(Floor(count_x, count_y))
                         health_boost_potion = Consumable(
                             self,
                             count_x,
@@ -337,7 +326,6 @@ class Game(BaseView):
                         self.tile_sprites.append(health_boost_potion)
                         self.item_sprites.append(health_boost_potion)
                     case TileType.ARMOUR_BOOST_POTION.value:
-                        self.tile_sprites.append(Floor(count_x, count_y))
                         armour_boost_potion = Consumable(
                             self,
                             count_x,
@@ -350,7 +338,6 @@ class Game(BaseView):
                         self.tile_sprites.append(armour_boost_potion)
                         self.item_sprites.append(armour_boost_potion)
                     case TileType.SPEED_BOOST_POTION.value:
-                        self.tile_sprites.append(Floor(count_x, count_y))
                         speed_boost_potion = Consumable(
                             self,
                             count_x,
@@ -363,7 +350,6 @@ class Game(BaseView):
                         self.tile_sprites.append(speed_boost_potion)
                         self.item_sprites.append(speed_boost_potion)
                     case TileType.FIRE_RATE_BOOST_POTION.value:
-                        self.tile_sprites.append(Floor(count_x, count_y))
                         fire_rate_potion = Consumable(
                             self,
                             count_x,
@@ -376,17 +362,22 @@ class Game(BaseView):
                         self.tile_sprites.append(fire_rate_potion)
                         self.item_sprites.append(fire_rate_potion)
                     case TileType.SHOP.value:
-                        self.tile_sprites.append(Floor(count_x, count_y))
                         shop = Shop(self, count_x, count_y)
+                        vector_grid[count_y][count_x] = shop
                         self.tile_sprites.append(shop)
                         self.item_sprites.append(shop)
-        logger.debug(
-            f"Created grid with height {len(game_map.grid)} and width"
-            f" {len(game_map.grid[0])}"
-        )
 
         # Make sure the player was actually created
         assert self.player is not None
+
+        # Initialise the vector field. We need to reverse the vector grid since the
+        # array will be flipped after initialising all the tiles
+        self.vector_field = VectorField(np.flipud(vector_grid))
+        self.vector_field.recalculate_map(self.player.tile_pos)
+        logger.debug(
+            f"Created vector grid with height {self.vector_field.height} and width"
+            f" {self.vector_field.width}"
+        )
 
         # Create the physics engine
         self.physics_engine = PhysicsEngine(DAMPING)
@@ -394,10 +385,6 @@ class Game(BaseView):
 
         # Set up the melee shader
         self.player.melee_shader.setup_shader()
-
-        # Check if any enemy has line of sight
-        for enemy in self.enemy_sprites:
-            enemy.check_line_of_sight()  # noqa
 
         # Set up the inventory view
         inventory_view = InventoryView(self.player)
@@ -413,6 +400,7 @@ class Game(BaseView):
         """Render the screen."""
         # Make sure variables needed are valid
         assert self.player is not None
+        assert self.vector_field is not None
 
         # Clear the screen
         self.clear()
@@ -427,21 +415,23 @@ class Game(BaseView):
         self.player.draw(pixelated=True)
         self.enemy_indicator_bar_sprites.draw()
 
-        # Draw the debug items
+        # Draw stuff needed for the debug mode
         if self.debug_mode:
-            for enemy in self.enemy_sprites:
+            # Draw the enemy debug circles
+            for enemy in self.enemy_sprites:  # type: Enemy
                 # Draw the enemy's view distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.enemy_data.view_distance * SPRITE_SIZE,  # noqa
+                    enemy.enemy_data.view_distance * SPRITE_SIZE,
                     DEBUG_VIEW_DISTANCE,
                 )
+
                 # Draw the enemy's attack distance
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.current_attack.attack_range * SPRITE_SIZE,  # noqa
+                    enemy.current_attack.attack_range * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
 
@@ -509,6 +499,16 @@ class Game(BaseView):
                     DEBUG_ATTACK_DISTANCE,
                 )
 
+            # Draw the debug vector field lines
+            for source, destination in self.vector_field.vector_dict.items():
+                arcade.draw_line(
+                    source.center_x,
+                    source.center_y,
+                    source.center_x + destination[0],
+                    source.center_y + destination[1],
+                    DEBUG_VECTOR_FIELD_LINE,
+                )
+
         # Draw the gui on the screen
         self.gui_camera.use()
         self.player_gui_sprites.draw()
@@ -538,56 +538,20 @@ class Game(BaseView):
         if self.player.health <= 0 or not self.enemy_sprites:
             arcade.exit()
 
-        # Calculate the new velocity of the player based on the keys pressed
-        update_enemies = False
-        force = [0, 0]
-        if self.right_pressed and not self.left_pressed:
-            force[0] = MOVEMENT_FORCE
-        elif self.left_pressed and not self.right_pressed:
-            force[0] = -MOVEMENT_FORCE
-        if self.up_pressed and not self.down_pressed:
-            force[1] = MOVEMENT_FORCE
-        elif self.down_pressed and not self.up_pressed:
-            force[1] = -MOVEMENT_FORCE
-        if force != [0, 0]:
-            # Apply the force
-            resultant_force = (
-                force[0],
-                force[1],
-            )
-            self.physics_engine.apply_force(self.player, resultant_force)
-            logger.debug(f"Applied force {resultant_force} to player")
-
-            # Set update_enemies
-            update_enemies = True
-
-        # Check if we need to update the enemy's line of sight
-        if update_enemies:
-            # Update the enemy's line of sight check
-            for enemy in self.enemy_sprites:
-                enemy.check_line_of_sight()  # noqa
-
-        # Position the camera
-        self.center_camera_on_player()
-
-        # Check if the player is in combat
-        self.player.in_combat = any(
-            [enemy.line_of_sight for enemy in self.enemy_sprites]  # noqa
-        )
-        if self.player.in_combat:
-            self.player.time_out_of_combat = 0
+        # Process logic for the player
+        self.player.on_update()
 
         # Process logic for the enemies
         self.enemy_sprites.on_update()
-
-        # Process logic for the player
-        self.player.on_update()
 
         # Process logic for the bullets
         self.bullet_sprites.on_update()
 
         # Update the physics engine
         self.physics_engine.step()
+
+        # Position the camera
+        self.center_camera_on_player()
 
         # Check for any nearby items
         item_collision = arcade.check_for_collision_with_list(
@@ -621,13 +585,13 @@ class Game(BaseView):
         logger.debug(f"Received key press with key {key}")
         match key:
             case arcade.key.W:
-                self.up_pressed = True
+                self.player.up_pressed = True
             case arcade.key.S:
-                self.down_pressed = True
+                self.player.down_pressed = True
             case arcade.key.A:
-                self.left_pressed = True
+                self.player.left_pressed = True
             case arcade.key.D:
-                self.right_pressed = True
+                self.player.right_pressed = True
             case arcade.key.E:
                 if self.nearest_item:
                     try:
@@ -666,16 +630,19 @@ class Game(BaseView):
             Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
             event.
         """
+        # Make sure variables needed are valid
+        assert self.player is not None
+
         logger.debug(f"Received key release with key {key}")
         match key:
             case arcade.key.W:
-                self.up_pressed = False
+                self.player.up_pressed = False
             case arcade.key.S:
-                self.down_pressed = False
+                self.player.down_pressed = False
             case arcade.key.A:
-                self.left_pressed = False
+                self.player.left_pressed = False
             case arcade.key.D:
-                self.right_pressed = False
+                self.player.right_pressed = False
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         """
@@ -773,7 +740,9 @@ class Game(BaseView):
         # Check if the camera position has changed
         if old_position != new_position:
             # Move the camera to the new position
-            self.game_camera.move_to((screen_center_x, screen_center_y))  # noqa
+            self.game_camera.move_to(
+                arcade.pymunk_physics_engine.Vec2(screen_center_x, screen_center_y)
+            )
             logger.debug(
                 f"Changed camera position from {old_position} to {new_position}"
             )

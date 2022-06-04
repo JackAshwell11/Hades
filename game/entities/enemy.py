@@ -5,9 +5,6 @@ import logging
 import math
 from typing import TYPE_CHECKING
 
-# Pip
-import arcade
-
 # Custom
 from game.constants.entity import (
     ARMOUR_INDICATOR_BAR_COLOR,
@@ -20,10 +17,10 @@ from game.constants.entity import (
     EntityID,
 )
 from game.entities.base import Entity, IndicatorBar
+from game.entities.movement import EnemyMovementManager
 
 if TYPE_CHECKING:
     from game.constants.entity import BaseData
-    from game.entities.movement import AIMovementBase
     from game.views.game_view import Game
 
 # Get the logger
@@ -49,10 +46,11 @@ class Enemy(Entity):
 
     Attributes
     ----------
-    movement_ai: AIMovementBase
-        The AI movement algorithm which this entity uses.
-    line_of_sight: bool
-        Whether the enemy has line of sight with the player or not
+    movement_ai: EnemyMovementManager
+        The movement AI class used for processing the logic needed for the enemy to
+        move.
+    player_within_range: bool
+        Whether the player is within view distance of the enemy or not.
     """
 
     # Class variables
@@ -63,9 +61,7 @@ class Enemy(Entity):
     ) -> None:
         self.enemy_level: int = enemy_level
         super().__init__(game, x, y, enemy_type)
-        self.movement_ai: AIMovementBase = self.enemy_data.movement_algorithm.value(
-            self
-        )
+        self.movement_ai: EnemyMovementManager = EnemyMovementManager(self)
         self.health_bar: IndicatorBar = IndicatorBar(
             self,
             self.game.enemy_indicator_bar_sprites,
@@ -78,7 +74,7 @@ class Enemy(Entity):
             (0, 0),
             ARMOUR_INDICATOR_BAR_COLOR,
         )
-        self.line_of_sight: bool = False
+        self.player_within_range: bool = False
 
     def __repr__(self) -> str:
         return (
@@ -111,7 +107,7 @@ class Enemy(Entity):
             "bonus attack cooldown": 0,
         }
 
-    def on_update(self, delta_time: float = 1 / 60) -> None:
+    def post_on_update(self, delta_time: float = 1 / 60) -> None:
         """
         Processes enemy logic.
 
@@ -125,11 +121,8 @@ class Enemy(Entity):
         assert self.armour_bar is not None
         assert self.health_bar is not None
 
-        # Update the enemy's time since last attack
-        self.time_since_last_attack += delta_time
-
         # Check if the enemy is not in combat
-        if not self.line_of_sight:
+        if not self.player_within_range:
             # Enemy not in combat so check if they can regenerate armour
             if self.entity_data.armour_regen:
                 self.regenerate_armour(delta_time)
@@ -143,13 +136,34 @@ class Enemy(Entity):
             self.time_out_of_combat = 0
             self.time_since_armour_regen = self.armour_regen_cooldown
 
-        # Update any status effects
-        for status_effect in self.applied_effects:
-            logger.debug(f"Updating status effect {status_effect} for entity {self}")
-            status_effect.update(delta_time)
+        # Make the enemy move
+        self.move()
 
-        # Process the enemy's movement and get the force needed to move the enemy
-        horizontal, vertical = self.movement_ai.calculate_movement(self.game.player)
+        # Make the enemy attack (they may not if the player is not within range)
+        self.attack()
+
+    def move(self) -> None:
+        """Processes the needed actions for the enemy to move."""
+        # Make sure variables needed are valid
+        assert self.game.player is not None
+
+        # Determine what movement algorithm to use based on the distance to the player
+        player_tile_distance = (
+            math.sqrt(
+                (self.center_y - self.player.center_y) ** 2
+                + (self.center_x - self.player.center_x) ** 2
+            )
+        ) / SPRITE_SIZE
+        if player_tile_distance > self.enemy_data.view_distance:
+            # Player is outside the enemy's view distance so have them wander around
+            self.player_within_range = False
+            horizontal, vertical = self.movement_ai.calculate_wander_force()
+        else:
+            # Player is within the enemy's view distance use the vector field to move
+            # towards the player
+            self.player_within_range = True
+            self.time_out_of_combat = 0
+            horizontal, vertical = self.movement_ai.calculate_vector_field_force()
 
         # Set the needed internal variables
         self.facing = FACING_LEFT if horizontal < 0 else FACING_RIGHT
@@ -172,34 +186,6 @@ class Enemy(Entity):
             self.armour_bar.top + self.health_bar.half_bar_height,
         )
 
-        # Make the enemy attack (they may not if the player is not within range)
-        self.attack()
-
-    def check_line_of_sight(self) -> bool:
-        """
-        Checks if the enemy has line of sight with the player.
-
-        Returns
-        -------
-        bool
-            Whether the enemy has line of sight with the player or not.
-        """
-        # Make sure variables needed are valid
-        assert self.game.player is not None
-
-        # Check for line of sight
-        self.line_of_sight = arcade.has_line_of_sight(
-            (self.center_x, self.center_y),
-            (self.game.player.center_x, self.game.player.center_y),
-            self.game.wall_sprites,
-            self.enemy_data.view_distance * SPRITE_SIZE,
-        )
-        if self.line_of_sight:
-            self.time_out_of_combat = 0
-
-        # Return the result
-        return self.line_of_sight
-
     def attack(self) -> None:
         """Runs the enemy's current attack algorithm."""
         # Make sure variables needed are valid
@@ -212,7 +198,7 @@ class Enemy(Entity):
         logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
         if not (
             hypot_distance <= self.current_attack.attack_range * SPRITE_SIZE
-            and self.line_of_sight
+            and self.player_within_range
             and self.time_since_last_attack
             >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown)
         ):
@@ -228,3 +214,28 @@ class Enemy(Entity):
                 self.current_attack.process_attack([self.game.player])
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
                 self.current_attack.process_attack(self.game.player)
+
+    # def check_line_of_sight(self) -> bool:
+    #     """
+    #     Checks if the enemy has line of sight with the player.
+    #
+    #     Returns
+    #     -------
+    #     bool
+    #         Whether the enemy has line of sight with the player or not.
+    #     """
+    #     # Make sure variables needed are valid
+    #     assert self.game.player is not None
+    #
+    #     # Check for line of sight
+    #     self.player_within_range = arcade.has_line_of_sight(
+    #         (self.center_x, self.center_y),
+    #         (self.game.player.center_x, self.game.player.center_y),
+    #         self.game.wall_sprites,
+    #         self.enemy_data.view_distance * SPRITE_SIZE,
+    #     )
+    #     if self.player_within_range:
+    #         self.time_out_of_combat = 0
+    #
+    #     # Return the result
+    #     return self.player_within_range

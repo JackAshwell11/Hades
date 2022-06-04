@@ -12,6 +12,7 @@ from game.constants.entity import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
+    SPRITE_SIZE,
     EntityID,
     EntityUpgradeData,
 )
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
     from game.entities.attack import AttackBase
     from game.entities.player import Player
     from game.entities.status_effect import StatusEffectBase
+    from game.physics import PhysicsEngine
     from game.views.game_view import Game
 
 # Get the logger
@@ -370,7 +372,70 @@ class IndicatorBar:
             self.full_box.scale = value
 
 
-class Entity(arcade.Sprite):
+class Tile(arcade.Sprite):
+    """
+    Represents the most basic tile in the game. Everything else inherits from this. Do
+    not instantiate this directly, instead use a subclass.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the entity can have a reference to it.
+    x: int
+        The x position of the tile in the game map.
+    y: int
+        The y position of the tile in the game map.
+
+    Attributes
+    ----------
+    tile_pos: tuple[int, int]
+        The current grid position of the entity. This is in the format (x, y) with
+        (0, 0) being in the top-left corner.
+    center_x: float
+        The x position of the tile on the screen.
+    center_y: float
+        The y position of the tile on the screen.
+    texture: arcade.Texture
+        The sprite which represents this tile.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture | None = None
+    blocking: bool = False
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(scale=SPRITE_SCALE)
+        self.game: Game = game
+        self.tile_pos: tuple[int, int] = (x, self.game.game_map_shape[0] - y - 1)
+        self.center_x, self.center_y = pos_to_pixel(x, y)
+        self.texture: arcade.Texture = self.raw_texture
+
+    def __repr__(self) -> str:
+        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def player(self) -> Player:
+        """
+        Gets the player object for ease of access.
+
+        Returns
+        -------
+        Player
+            The player object.
+        """
+        # Make sure the player object is valid
+        assert self.game.player is not None
+
+        # Return the player object
+        return self.game.player
+
+
+class Entity(Tile):
     """
     Represents an entity in the game.
 
@@ -419,16 +484,14 @@ class Entity(arcade.Sprite):
         y: int,
         entity_type: BaseData,
     ) -> None:
-        super().__init__(scale=SPRITE_SCALE)
-        self.game: Game = game
-        self.center_x, self.center_y = pos_to_pixel(x, y)
+        super().__init__(game, x, y)
         self.entity_type: BaseData = entity_type
+        self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
         self.attack_algorithms: list[AttackBase] = [
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
-        self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.applied_effects: list[StatusEffectBase] = []
         self.health_bar: IndicatorBar | None = None
         self.armour_bar: IndicatorBar | None = None
@@ -582,6 +645,18 @@ class Entity(arcade.Sprite):
             The upgrades that are available to the entity.
         """
         return self.entity_data.upgrade_data
+
+    @property
+    def physics(self) -> PhysicsEngine:
+        """
+        Gets the entity's physics engine.
+
+        Returns
+        -------
+        PhysicsEngine
+            The entity's physics engine
+        """
+        return self.physics_engines[0]
 
     @property
     def health(self) -> float:
@@ -766,7 +841,7 @@ class Entity(arcade.Sprite):
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """
-        Processes movement and game logic.
+        Processes enemy logic.
 
         Parameters
         ----------
@@ -778,7 +853,37 @@ class Entity(arcade.Sprite):
         NotImplementedError
             The function is not implemented.
         """
-        raise NotImplementedError
+        # Make sure variables needed are valid
+        assert self.game.vector_field is not None
+
+        # Update the player's time since last attack
+        self.time_since_last_attack += delta_time
+
+        # Update any status effects
+        for status_effect in self.applied_effects:
+            logger.debug(f"Updating status effect {status_effect} for entity {self}")
+            status_effect.update(delta_time)
+
+        # Update the entity's tile_pos. Arcade has (0, 0) at the bottom-left but the
+        # vector field has (0, 0) at the top-left so the y position needs a bit of
+        # tweaking
+        new_tile_pos = (
+            int(self.center_x // SPRITE_SIZE),
+            int(
+                ((self.game.vector_field.height * SPRITE_SIZE) - self.center_y)
+                // SPRITE_SIZE
+            ),
+        )
+        if new_tile_pos != self.tile_pos:
+            self.tile_pos = new_tile_pos
+
+            # Entity's tile position has changed so if the entity is the player, we need
+            # to recalculate the vector field
+            if self.entity_id is EntityID.PLAYER:
+                self.game.vector_field.recalculate_map(self.tile_pos)
+
+        # Run the entity's post on_update
+        self.post_on_update(delta_time)
 
     def deal_damage(self, damage: int) -> None:
         """
@@ -851,12 +956,40 @@ class Entity(arcade.Sprite):
         assert self.health_bar is not None
         assert self.armour_bar is not None
 
+        # Update the indicator bars
         try:
             self.health_bar.fullness = self.health / self.max_health
             self.armour_bar.fullness = self.armour / self.max_armour
         except ValueError:
             # Entity is already dead
             pass
+
+    def post_on_update(self, delta_time: float = 1 / 60) -> None:
+        """
+        Performs custom entity logic.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
+        raise NotImplementedError
+
+    def move(self) -> None:
+        """
+        Processes the needed actions for the entity to move.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
+        raise NotImplementedError
 
     def attack(self) -> None:
         """
@@ -870,44 +1003,6 @@ class Entity(arcade.Sprite):
         raise NotImplementedError
 
 
-class Tile(arcade.Sprite):
-    """
-    Represents a tile that does not move in the game.
-
-    Parameters
-    ----------
-    x: int
-        The x position of the tile in the game map.
-    y: int
-        The y position of the tile in the game map.
-
-    Attributes
-    ----------
-    center_x: float
-        The x position of the tile on the screen.
-    center_y: float
-        The y position of the tile on the screen.
-    texture: arcade.Texture
-        The sprite which represents this tile.
-    """
-
-    # Class variables
-    raw_texture: arcade.Texture | None = None
-    is_blocking: bool = False
-
-    def __init__(
-        self,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(scale=SPRITE_SCALE)
-        self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.texture: arcade.Texture = self.raw_texture
-
-    def __repr__(self) -> str:
-        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
-
-
 class InteractiveTile(Tile):
     """
     Represents a tile that can be interacted with by the player. This is only meant to
@@ -916,11 +1011,12 @@ class InteractiveTile(Tile):
     Parameters
     ----------
     game: Game
-        The game view. This is passed so the tile can have a reference to it.
+        The game view. This is passed so the interactive tile can have a reference to
+        it.
     x: int
-        The x position of the tile in the game map.
+        The x position of the interactive tile in the game map.
     y: int
-        The y position of the tile in the game map.
+        The y position of the interactive tile in the game map.
     """
 
     # Class variables
@@ -932,41 +1028,24 @@ class InteractiveTile(Tile):
         x: int,
         y: int,
     ) -> None:
-        super().__init__(x, y)
-        self.game: Game = game
+        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
-        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
-
-    @property
-    def player(self) -> Player:
-        """
-        Gets the player object for ease of access.
-
-        Returns
-        -------
-        Player
-            The player object.
-        """
-        # Make sure the player object is valid
-        assert self.game.player is not None
-
-        # Return the player object
-        return self.game.player
+        return f"<InteractiveTile (Position=({self.center_x}, {self.center_y}))>"
 
 
-class UsableTile(InteractiveTile):
+class UsableTile(Tile):
     """
     Represents a tile that can be used/activated by the player.
 
     Parameters
     ----------
     game: Game
-        The game view. This is passed so the tile can have a reference to it.
+        The game view. This is passed so the usable tile can have a reference to it.
     x: int
-        The x position of the tile in the game map.
+        The x position of the usable tile in the game map.
     y: int
-        The y position of the tile in the game map.
+        The y position of the usable tile in the game map.
     """
 
     # Class variables
@@ -1008,11 +1087,12 @@ class CollectibleTile(InteractiveTile):
     Parameters
     ----------
     game: Game
-        The game view. This is passed so the tile can have a reference to it.
+        The game view. This is passed so the collectible tile can have a reference to
+        it.
     x: int
-        The x position of the tile in the game map.
+        The x position of the collectible tile in the game map.
     y: int
-        The y position of the tile in the game map.
+        The y position of the collectible tile in the game map.
     """
 
     # Class variables

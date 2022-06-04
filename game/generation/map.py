@@ -40,6 +40,28 @@ if TYPE_CHECKING:
 # Get the logger
 logger = logging.getLogger(__name__)
 
+# Set the numpy print formatting to allow pretty printing (for debugging)
+np.set_printoptions(
+    edgeitems=30, linewidth=1000, formatter=dict(float=lambda x: "%.3g" % x)
+)
+
+
+def create_map(level: int) -> np.ndarray:
+    """
+    Initialises and generates the game map.
+
+    Parameters
+    ----------
+    level: int
+        The game level to generate a map for.
+
+    Returns
+    -------
+    np.ndarray
+        The generated map.
+    """
+    return Map(level).grid
+
 
 class Map:
     """
@@ -84,7 +106,7 @@ class Map:
 
     def __init__(self, level: int) -> None:
         self.level: int = level
-        self.map_constants: dict[TileType | str, int] = self.generate_constants()
+        self.map_constants: dict[TileType | str, int] = self._generate_constants()
         self.grid: np.ndarray | None = None
         self.bsp: Leaf | None = None
         self.player_spawn: tuple[int, int] | None = None
@@ -134,7 +156,7 @@ class Map:
         # Return the shape
         return self.grid.shape[0]
 
-    def generate_constants(self) -> dict[TileType | str, int]:
+    def _generate_constants(self) -> dict[TileType | str, int]:
         """
         Generates the needed constants based on a given level.
 
@@ -178,12 +200,7 @@ class Map:
         return result
 
     def make_map(self) -> None:
-        """Function which manages the map generation for a specified level."""
-        # Set the numpy print formatting to allow pretty printing (for debugging)
-        np.set_printoptions(
-            edgeitems=30, linewidth=1000, formatter=dict(float=lambda x: "%.3g" % x)
-        )
-
+        """Generates the map for a specified instance with a given level."""
         # Create the 2D grid used for representing the dungeon
         self.grid = np.full(
             (self.map_constants["height"], self.map_constants["width"]), 0, np.int8
@@ -279,19 +296,19 @@ class Map:
         logger.debug(f"Created {rect_areas} with total area {total_area}")
 
         # Place the player spawn in the smallest room
-        self.place_tile(TileType.PLAYER, rect_areas[0][0])
+        self._place_tile(TileType.PLAYER, rect_areas[0][0])
 
         # Place the enemies
-        self.place_enemies(
+        self._place_enemies(
             rect_areas,
             [area[1] / total_area for area in rect_areas],
         )
 
         # Place the items
-        self.place_items(rect_areas)
+        self._place_items(rect_areas)
         logger.debug(f"Generated map {self.grid}")
 
-    def place_enemies(
+    def _place_enemies(
         self,
         rect_areas: list[tuple[Rect, int]],
         area_probabilities: list[float],
@@ -314,7 +331,7 @@ class Map:
             enemies_placed = 0
             tries = PLACE_TRIES
             while enemies_placed < count and tries != 0:
-                if self.place_tile(
+                if self._place_tile(
                     enemy,
                     np.random.choice(
                         [rect[0] for rect in rect_areas], p=area_probabilities
@@ -328,7 +345,7 @@ class Map:
                     tries -= 1
                     logger.debug(f"Didn't place {enemy}")
 
-    def place_items(self, rect_areas: list[tuple[Rect, int]]) -> None:
+    def _place_items(self, rect_areas: list[tuple[Rect, int]]) -> None:
         """
         Places the items in the grid making sure other tiles aren't replaced.
 
@@ -346,7 +363,7 @@ class Map:
             items_placed = 0
             tries = PLACE_TRIES
             while items_placed < count and tries != 0:
-                if self.place_tile(
+                if self._place_tile(
                     item, np.random.choice([rect[0] for rect in rect_areas])
                 ):
                     # Item placed
@@ -357,7 +374,7 @@ class Map:
                     tries -= 1
                     logger.debug(f"Didn't place {item}")
 
-    def place_tile(self, entity: TileType, rect: Rect) -> bool:
+    def _place_tile(self, entity: TileType, rect: Rect) -> bool:
         """
         Places a given entity in a random position in a given rect.
 

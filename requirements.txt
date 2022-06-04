@@ -1,4 +1,5 @@
-arcade>=2.6.14
+arcade>=2.6.15
 numpy>=1.22.4
 pyinstaller>=5.1
+pymunk>=6.2.1
 shapely>=1.8.2

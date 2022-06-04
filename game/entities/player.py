@@ -13,6 +13,7 @@ from game.constants.entity import (
     ARMOUR_INDICATOR_BAR_COLOR,
     HEALTH_INDICATOR_BAR_COLOR,
     INDICATOR_BAR_BORDER_SIZE,
+    MOVEMENT_FORCE,
     SPRITE_SIZE,
     AttackAlgorithmType,
     EntityID,
@@ -60,6 +61,14 @@ class Player(Entity):
         The total capacity of the inventory.
     in_combat: bool
         Whether the player is in combat or not.
+    left_pressed: bool
+        Whether the left key is pressed or not.
+    right_pressed: bool
+        Whether the right key is pressed or not.
+    up_pressed: bool
+        Whether the up key is pressed or not.
+    down_pressed: bool
+        Whether the down key is pressed or not.
     """
 
     # Class variables
@@ -103,6 +112,10 @@ class Player(Entity):
         self.inventory: list[CollectibleTile] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.in_combat: bool = False
+        self.left_pressed: bool = False
+        self.right_pressed: bool = False
+        self.up_pressed: bool = False
+        self.down_pressed: bool = False
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
@@ -150,7 +163,7 @@ class Player(Entity):
             "bonus attack cooldown": 0,
         }
 
-    def on_update(self, delta_time: float = 1 / 60) -> None:
+    def post_on_update(self, delta_time: float = 1 / 60) -> None:
         """
         Processes player logic.
 
@@ -159,9 +172,6 @@ class Player(Entity):
         delta_time: float
             Time interval since the last time the function was called.
         """
-        # Update the player's time since last attack
-        self.time_since_last_attack += delta_time
-
         # Check if the player can regenerate health
         if not self.in_combat:
             self.regenerate_armour(delta_time)
@@ -169,39 +179,45 @@ class Player(Entity):
                 self.armour = self.max_armour
                 logger.debug("Set player armour to max")
 
-        # Update any status effects
-        for status_effect in self.applied_effects:
-            logger.debug(f"Updating status effect {status_effect}")
-            status_effect.update(delta_time)
+        # Make the player move
+        self.move()
 
-    def add_item_to_inventory(self, item: CollectibleTile) -> bool:
-        """
-        Adds an item to the player's inventory.
+    def move(self) -> None:
+        """Processes the needed actions for the entity to move."""
+        # Calculate the new velocity of the player based on the keys pressed
+        update_enemies = False
+        force = [0, 0]
+        if self.right_pressed and not self.left_pressed:
+            force[0] = MOVEMENT_FORCE
+        elif self.left_pressed and not self.right_pressed:
+            force[0] = -MOVEMENT_FORCE
+        if self.up_pressed and not self.down_pressed:
+            force[1] = MOVEMENT_FORCE
+        elif self.down_pressed and not self.up_pressed:
+            force[1] = -MOVEMENT_FORCE
+        if force != [0, 0]:
+            # Apply the force
+            resultant_force = (
+                force[0],
+                force[1],
+            )
+            self.physics.apply_force(self, resultant_force)
+            logger.debug(f"Applied force {resultant_force} to player")
 
-        Parameters
-        ----------
-        item: CollectibleTile
-            The item to add to the player's inventory.
+            # Set update_enemies
+            update_enemies = True
 
-        Returns
-        -------
-        bool
-            Whether the add was successful or not.
-        """
-        # Check if the array is full
-        if len(self.inventory) == self.inventory_capacity:
-            logger.info(f"Cannot add item {item} to full inventory")
-            return False
+        # Check if we need to update the enemy's line of sight
+        line_of_sights = []
+        if update_enemies:
+            # Update the enemy's line of sight check
+            for enemy in self.game.enemy_sprites:
+                line_of_sights.append(enemy.check_line_of_sight())  # noqa
 
-        # Add the item to the array
-        self.inventory.append(item)
-
-        # Update the inventory grid
-        self.game.window.views["InventoryView"].update_grid()  # type: ignore
-
-        # Add successful
-        logger.info(f"Adding item {item} to inventory")
-        return True
+        # Check if the player is in combat
+        self.in_combat = any(line_of_sights)
+        if self.in_combat:
+            self.time_out_of_combat = 0
 
     def attack(self) -> None:
         """Runs the player's current attack algorithm."""
@@ -249,3 +265,32 @@ class Player(Entity):
                 self.current_attack.process_attack(result)
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
                 self.current_attack.process_attack(self.game.enemy_sprites)
+
+    def add_item_to_inventory(self, item: CollectibleTile) -> bool:
+        """
+        Adds an item to the player's inventory.
+
+        Parameters
+        ----------
+        item: CollectibleTile
+            The item to add to the player's inventory.
+
+        Returns
+        -------
+        bool
+            Whether the add was successful or not.
+        """
+        # Check if the array is full
+        if len(self.inventory) == self.inventory_capacity:
+            logger.info(f"Cannot add item {item} to full inventory")
+            return False
+
+        # Add the item to the array
+        self.inventory.append(item)
+
+        # Update the inventory grid
+        self.game.window.views["InventoryView"].update_grid()  # type: ignore
+
+        # Add successful
+        logger.info(f"Adding item {item} to inventory")
+        return True

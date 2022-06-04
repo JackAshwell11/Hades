@@ -13,6 +13,7 @@ from game.constants.entity import EntityID
 if TYPE_CHECKING:
     from game.entities.attack import Bullet
     from game.entities.base import Entity
+    from game.entities.enemy import Enemy
     from game.entities.player import Player
     from game.entities.tile import Tile
 
@@ -109,7 +110,6 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
         since we just want to remove the bullet and not process collision.
     """
     try:
-
         # Check if the owner is an enemy
         if bullet.owner.entity_id is EntityID.ENEMY:
             # Remove the bullet
@@ -167,12 +167,13 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             player,
             moment_of_inertia=self.MOMENT_INF,
             collision_type="player",
-            max_velocity=int(player.max_velocity),
+            max_horizontal_velocity=int(player.max_velocity),
+            max_vertical_velocity=int(player.max_velocity),
         )
 
         # Add the static tile sprites to the physics engine
         for tile in tile_list:
-            if tile.is_blocking:  # noqa
+            if tile.blocking:  # noqa
                 self.add_sprite(
                     tile,
                     body_type=self.STATIC,
@@ -180,12 +181,13 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                 )
 
         # Add the enemy sprites to the physics engine
-        for enemy in enemy_list:
+        for enemy in enemy_list:  # type: Enemy
             self.add_sprite(
                 enemy,
                 moment_of_inertia=self.MOMENT_INF,
                 collision_type="enemy",
-                max_velocity=int(enemy.max_velocity),  # noqa
+                max_horizontal_velocity=int(enemy.max_velocity),
+                max_vertical_velocity=int(enemy.max_velocity),
             )
 
         # Add collision handlers

@@ -6,7 +6,6 @@ from enum import Enum
 from typing import TYPE_CHECKING, Callable, Sequence
 
 # Custom
-from game.constants.generation import TileType
 from game.textures import non_moving_textures
 
 if TYPE_CHECKING:
@@ -178,14 +177,6 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
 
 
 # Other consumable constants
-CONSUMABLES = [
-    TileType.HEALTH_POTION,
-    TileType.ARMOUR_POTION,
-    TileType.HEALTH_BOOST_POTION,
-    TileType.ARMOUR_BOOST_POTION,
-    TileType.SPEED_BOOST_POTION,
-    TileType.FIRE_RATE_BOOST_POTION,
-]
 HEALTH_POTION_INCREASE = 20
 ARMOUR_POTION_INCREASE = 10
 HEALTH_BOOST_POTION_INCREASE = 50
