@@ -956,6 +956,7 @@ class Entity(Tile):
         assert self.health_bar is not None
         assert self.armour_bar is not None
 
+        # Update the indicator bars
         try:
             self.health_bar.fullness = self.health / self.max_health
             self.armour_bar.fullness = self.armour / self.max_armour
@@ -1033,7 +1034,7 @@ class InteractiveTile(Tile):
         return f"<InteractiveTile (Position=({self.center_x}, {self.center_y}))>"
 
 
-class UsableTile(InteractiveTile):
+class UsableTile(Tile):
     """
     Represents a tile that can be used/activated by the player.
 
