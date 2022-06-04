@@ -13,6 +13,7 @@ from game.constants.entity import EntityID
 if TYPE_CHECKING:
     from game.entities.attack import Bullet
     from game.entities.base import Entity
+    from game.entities.enemy import Enemy
     from game.entities.player import Player
     from game.entities.tile import Tile
 
@@ -167,7 +168,8 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             player,
             moment_of_inertia=self.MOMENT_INF,
             collision_type="player",
-            max_velocity=int(player.max_velocity),
+            max_horizontal_velocity=int(player.max_velocity),
+            max_vertical_velocity=int(player.max_velocity),
         )
 
         # Add the static tile sprites to the physics engine
@@ -180,12 +182,13 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                 )
 
         # Add the enemy sprites to the physics engine
-        for enemy in enemy_list:
+        for enemy in enemy_list:  # type: Enemy
             self.add_sprite(
                 enemy,
                 moment_of_inertia=self.MOMENT_INF,
                 collision_type="enemy",
-                max_velocity=int(enemy.max_velocity),  # noqa
+                max_horizontal_velocity=int(enemy.max_velocity),
+                max_vertical_velocity=int(enemy.max_velocity),
             )
 
         # Add collision handlers

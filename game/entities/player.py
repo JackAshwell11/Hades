@@ -201,7 +201,7 @@ class Player(Entity):
                 force[0],
                 force[1],
             )
-            self.physics_engines[0].apply_force(self, resultant_force)
+            self.physics.apply_force(self, resultant_force)
             logger.debug(f"Applied force {resultant_force} to player")
 
             # Set update_enemies

@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from game.entities.attack import AttackBase
     from game.entities.player import Player
     from game.entities.status_effect import StatusEffectBase
+    from game.physics import PhysicsEngine
     from game.views.game_view import Game
 
 # Get the logger
@@ -644,6 +645,18 @@ class Entity(Tile):
             The upgrades that are available to the entity.
         """
         return self.entity_data.upgrade_data
+
+    @property
+    def physics(self) -> PhysicsEngine:
+        """
+        Gets the entity's physics engine.
+
+        Returns
+        -------
+        PhysicsEngine
+            The entity's physics engine
+        """
+        return self.physics_engines[0]
 
     @property
     def health(self) -> float:

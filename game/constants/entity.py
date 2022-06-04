@@ -269,7 +269,7 @@ PLAYER = BaseData(
                     ),
                     AttributeUpgradeData(
                         attribute_type=UpgradeAttribute.SPEED,
-                        increase=lambda current_level: 200 * 1.4**current_level,
+                        increase=lambda current_level: 150 * 1.4**current_level,
                     ),
                 ],
             ),
