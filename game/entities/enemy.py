@@ -5,6 +5,9 @@ import logging
 import math
 from typing import TYPE_CHECKING
 
+# Pip
+import arcade
+
 # Custom
 from game.constants.entity import (
     ARMOUR_INDICATOR_BAR_COLOR,
@@ -192,12 +195,8 @@ class Enemy(Entity):
         assert self.game.player is not None
 
         # Check if the player is within range and line of sight of the enemy
-        x_diff_squared = (self.game.player.center_x - self.center_x) ** 2
-        y_diff_squared = (self.game.player.center_y - self.center_y) ** 2
-        hypot_distance = math.sqrt(x_diff_squared + y_diff_squared)
-        logger.info(f"{self} has distance of {hypot_distance} to {self.game.player}")
         if not (
-            hypot_distance <= self.current_attack.attack_range * SPRITE_SIZE
+            self.check_line_of_sight(self.current_attack.attack_range)
             and self.player_within_range
             and self.time_since_last_attack
             >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown)
@@ -215,27 +214,27 @@ class Enemy(Entity):
             case AttackAlgorithmType.AREA_OF_EFFECT.value:
                 self.current_attack.process_attack(self.game.player)
 
-    # def check_line_of_sight(self) -> bool:
-    #     """
-    #     Checks if the enemy has line of sight with the player.
-    #
-    #     Returns
-    #     -------
-    #     bool
-    #         Whether the enemy has line of sight with the player or not.
-    #     """
-    #     # Make sure variables needed are valid
-    #     assert self.game.player is not None
-    #
-    #     # Check for line of sight
-    #     self.player_within_range = arcade.has_line_of_sight(
-    #         (self.center_x, self.center_y),
-    #         (self.game.player.center_x, self.game.player.center_y),
-    #         self.game.wall_sprites,
-    #         self.enemy_data.view_distance * SPRITE_SIZE,
-    #     )
-    #     if self.player_within_range:
-    #         self.time_out_of_combat = 0
-    #
-    #     # Return the result
-    #     return self.player_within_range
+    def check_line_of_sight(self, max_tile_range: int) -> bool:
+        """
+        Checks if the enemy has line of sight with the player.
+
+        Parameters
+        ----------
+        max_tile_range: int
+            The max tile distance that the player can be from the enemy.
+
+        Returns
+        -------
+        bool
+            Whether the enemy has line of sight with the player or not.
+        """
+        # Make sure variables needed are valid
+        assert self.game.player is not None
+
+        # Check for line of sight
+        return arcade.has_line_of_sight(
+            (self.center_x, self.center_y),
+            (self.game.player.center_x, self.game.player.center_y),
+            self.game.wall_sprites,
+            max_tile_range * SPRITE_SIZE,
+        )

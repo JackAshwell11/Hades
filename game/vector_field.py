@@ -312,7 +312,6 @@ class VectorField:
             f"Vector field generated in {time.perf_counter() - start_time} seconds"
         )
         logger.debug(time_taken)
-        print(time_taken)
 
     def get_tile_at_position(self, x: int, y: int) -> Tile:
         """
