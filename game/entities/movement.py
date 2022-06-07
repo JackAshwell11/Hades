@@ -59,15 +59,15 @@ class EnemyMovementManager:
         tuple[float, float]
             The calculated force to apply to the enemy.
         """
-        # Get the target screen position the enemy needs to travel too
-        target_pos_x, target_pos_y = self.vector_field.get_next_screen_target(
+        # Get the vector direction the enemy needs to travel in
+        vector_direction_x, vector_direction_y = self.vector_field.get_vector_direction(
             self.owner.position
         )
 
         # Calculate the force to apply to the enemy and return it
         return (
-            -(self.owner.center_x - target_pos_x) * MOVEMENT_FORCE,
-            -(self.owner.center_y - target_pos_y) * MOVEMENT_FORCE,
+            vector_direction_x * MOVEMENT_FORCE,
+            vector_direction_y * MOVEMENT_FORCE,
         )
 
     def calculate_wander_force(self) -> tuple[float, float]:

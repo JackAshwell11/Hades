@@ -11,9 +11,6 @@ import numpy as np
 
 from game.constants.entity import SPRITE_SIZE
 
-# Custom
-from game.textures import grid_pos_to_pixel
-
 if TYPE_CHECKING:
     import arcade
 
@@ -262,7 +259,9 @@ class VectorField:
             # If we've found a valid neighbour, point the tile's vector in the direction
             # of the tile with the lowest Dijkstra distance
             if min_tile:
-                self.vector_dict[tile] = min_tile
+                self.vector_dict[tile] = -(tile[0] - min_tile[0]), -(
+                    tile[1] - min_tile[1]
+                )
 
         # Output the time taken to generate the vector field and update the enemies
         time_taken = (
@@ -289,7 +288,7 @@ class VectorField:
         # can divide this by the scale too (when it's done)
         return int(position[0] // SPRITE_SIZE), int(position[1] // SPRITE_SIZE)
 
-    def get_next_screen_target(
+    def get_vector_direction(
         self, current_enemy_pos: tuple[float, float]
     ) -> tuple[float, float]:
         """
@@ -305,6 +304,4 @@ class VectorField:
         tuple[float, float[
             The vector the enemy needs to travel in.
         """
-        return grid_pos_to_pixel(
-            *self.vector_dict[self.get_tile_pos_for_pixel(current_enemy_pos)]
-        )
+        return self.vector_dict[self.get_tile_pos_for_pixel(current_enemy_pos)]

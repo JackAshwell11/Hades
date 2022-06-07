@@ -502,11 +502,14 @@ class Game(BaseView):
                 )
 
             # Draw the debug vector field lines
-            for source, destination in self.vector_field.vector_dict.items():
-                source_screen = grid_pos_to_pixel(*source)
-                destination_screen = grid_pos_to_pixel(*destination)
+            for source, vector in self.vector_field.vector_dict.items():
+                source_screen_x, source_screen_y = grid_pos_to_pixel(*source)
                 arcade.draw_line(
-                    *source_screen, *destination_screen, DEBUG_VECTOR_FIELD_LINE
+                    source_screen_x,
+                    source_screen_y,
+                    source_screen_x + vector[0] * SPRITE_SIZE,
+                    source_screen_y + vector[1] * SPRITE_SIZE,
+                    DEBUG_VECTOR_FIELD_LINE,
                 )
 
         # Draw the gui on the screen
