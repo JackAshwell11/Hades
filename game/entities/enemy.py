@@ -110,7 +110,7 @@ class Enemy(Entity):
             "bonus attack cooldown": 0,
         }
 
-    def post_on_update(self, delta_time: float = 1 / 60) -> None:
+    def post_on_update(self, delta_time: float) -> None:
         """
         Processes enemy logic.
 
@@ -153,8 +153,8 @@ class Enemy(Entity):
         # Determine what movement algorithm to use based on the distance to the player
         player_tile_distance = (
             math.sqrt(
-                (self.center_y - self.player.center_y) ** 2
-                + (self.center_x - self.player.center_x) ** 2
+                (self.center_y - self.game.player.center_y) ** 2
+                + (self.center_x - self.game.player.center_x) ** 2
             )
         ) / SPRITE_SIZE
         if player_tile_distance > self.enemy_data.view_distance:

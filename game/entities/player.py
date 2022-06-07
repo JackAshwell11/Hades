@@ -59,6 +59,8 @@ class Player(Entity):
         The list which stores the player's inventory.
     inventory_capacity: int
         The total capacity of the inventory.
+    current_tile_pos: tuple[int, int]
+        The player's current tile position in the vector field.
     in_combat: bool
         Whether the player is in combat or not.
     left_pressed: bool
@@ -111,6 +113,7 @@ class Player(Entity):
         self._entity_state.update({"money": 0.0})
         self.inventory: list[CollectibleTile] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
+        self.current_tile_pos: tuple[int, int] = (-1, -1)
         self.in_combat: bool = False
         self.left_pressed: bool = False
         self.right_pressed: bool = False
@@ -163,7 +166,7 @@ class Player(Entity):
             "bonus attack cooldown": 0,
         }
 
-    def post_on_update(self, delta_time: float = 1 / 60) -> None:
+    def post_on_update(self, delta_time: float) -> None:
         """
         Processes player logic.
 
@@ -172,12 +175,22 @@ class Player(Entity):
         delta_time: float
             Time interval since the last time the function was called.
         """
+        # Make sure variables needed are valid
+        assert self.game.vector_field is not None
+
         # Check if the player can regenerate health
         if not self.in_combat:
             self.regenerate_armour(delta_time)
             if self.armour > self.max_armour:
                 self.armour = self.max_armour
                 logger.debug("Set player armour to max")
+
+        # Check if the player has moved tile positions
+        new_tile_pos = self.game.vector_field.get_tile_pos_for_pixel(self.position)
+        if self.current_tile_pos != new_tile_pos:
+            # Player has moved tile positions so update vector field
+            self.current_tile_pos = new_tile_pos
+            self.game.vector_field.recalculate_map(self.position)
 
         # Make the player move
         self.move()
@@ -225,7 +238,7 @@ class Player(Entity):
         self.in_combat = True
 
         # Find out what attack algorithm is selected. We also need to check if the
-        # player can attack
+        # player can attack or not
         match type(self.current_attack):
             case AttackAlgorithmType.RANGED.value:
                 self.current_attack.process_attack(self.game.bullet_sprites)

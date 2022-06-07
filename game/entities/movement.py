@@ -11,7 +11,6 @@ from game.constants.entity import MOVEMENT_FORCE
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from game.entities.base import Tile
     from game.entities.enemy import Enemy
     from game.vector_field import VectorField
 
@@ -51,18 +50,6 @@ class EnemyMovementManager:
         # Get the vector field object
         return self.owner.game.vector_field
 
-    @property
-    def current_tile(self) -> Tile:
-        """
-        Gets the enemy's current tile.
-
-        Returns
-        -------
-        Tile
-            The enemy's current tile.
-        """
-        return self.vector_field.get_tile_at_position(*self.owner.tile_pos)
-
     def calculate_vector_field_force(self) -> tuple[float, float]:
         """
         Calculates the force to apply to an enemy which is using the vector field.
@@ -72,13 +59,15 @@ class EnemyMovementManager:
         tuple[float, float]
             The calculated force to apply to the enemy.
         """
-        # Get the vector direction the enemy needs to travel in
-        vector_direction = self.vector_field.get_vector_direction(self.current_tile)
+        # Get the target screen position the enemy needs to travel too
+        target_pos_x, target_pos_y = self.vector_field.get_next_screen_target(
+            self.owner.position
+        )
 
         # Calculate the force to apply to the enemy and return it
         return (
-            vector_direction[0] * MOVEMENT_FORCE,
-            vector_direction[1] * MOVEMENT_FORCE,
+            -(self.owner.center_x - target_pos_x) * MOVEMENT_FORCE,
+            -(self.owner.center_y - target_pos_y) * MOVEMENT_FORCE,
         )
 
     def calculate_wander_force(self) -> tuple[float, float]:
