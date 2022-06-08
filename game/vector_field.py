@@ -122,41 +122,6 @@ class VectorField:
         for wall in walls:
             self.walls_dict[self.get_tile_pos_for_pixel(wall.position)] = np.inf
 
-    def _get_direct_neighbours(
-        self, tile_pos: tuple[int, int]
-    ) -> list[tuple[int, int]]:
-        """
-        Gets a tile position's direct neighbours (top, bottom, left and right).
-
-        Parameters
-        ----------
-        tile_pos: tuple[int, int]
-            The tile position to get direct neighbours for.
-
-        Returns
-        -------
-        list[tuple[int, int]]
-            A list of the tile position's direct neighbours.
-        """
-        return self._get_neighbours(tile_pos, self._no_diagonal_offsets)
-
-    def _get_full_neighbours(self, tile_pos: tuple[int, int]) -> list[tuple[int, int]]:
-        """
-        Gets a tile position's full neighbours (top-left, top-middle, top-right,
-        middle-left, middle-right, bottom-left, bottom-middle and bottom-right).
-
-        Parameters
-        ----------
-        tile_pos: tuple[int, int]
-            The tile position to get full neighbours for.
-
-        Returns
-        -------
-        list[tuple[int, int]]
-            A list of the tile position's full neighbours.
-        """
-        return self._get_neighbours(tile_pos, self._diagonal_offsets)
-
     def _get_neighbours(
         self, tile_pos: tuple[int, int], offsets: list[tuple[int, int]]
     ) -> list[tuple[int, int]]:
@@ -233,7 +198,7 @@ class VectorField:
                 continue
 
             # Get the current tile's neighbours
-            for neighbour in self._get_direct_neighbours(current):
+            for neighbour in self._get_neighbours(current, self._no_diagonal_offsets):
                 # Test if the neighbour has already been reached or not. If it hasn't,
                 # add it to the queue and set its distance
                 if neighbour not in self.distances:
@@ -247,21 +212,25 @@ class VectorField:
                 continue
 
             # Find the tile's neighbour with the lowest Dijkstra distance
-            min_tile = None
+            min_tile = -1, -1
             min_dist = np.inf
-            for neighbour in self._get_full_neighbours(tile):
+            for neighbour in self._get_neighbours(tile, self._diagonal_offsets):
                 # Sometimes an invalid tile is returned so test for that
                 distance = self.distances.get(neighbour, -1)
                 if distance < min_dist and distance != -1:
                     min_tile = neighbour
                     min_dist = distance
 
-            # If we've found a valid neighbour, point the tile's vector in the direction
-            # of the tile with the lowest Dijkstra distance
+            # Now point the tile's vector in the direction of the tile with the lowest
+            # Dijkstra distance
             if min_tile:
                 self.vector_dict[tile] = -(tile[0] - min_tile[0]), -(
                     tile[1] - min_tile[1]
                 )
+
+        # Set the vector for the destination tile to avoid weird movement when the enemy
+        # is touching the player
+        self.vector_dict[start] = 0, 0
 
         # Output the time taken to generate the vector field and update the enemies
         time_taken = (
