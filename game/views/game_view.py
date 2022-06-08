@@ -31,13 +31,12 @@ from game.constants.general import (
 )
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
-from game.entities.base import Tile
 from game.entities.enemy import Enemy
 from game.entities.player import Player
 from game.entities.tile import Consumable, Floor, Shop, Wall
 from game.generation.map import create_map
 from game.physics import PhysicsEngine
-from game.textures import pos_to_pixel
+from game.textures import grid_pos_to_pixel
 from game.vector_field import VectorField
 from game.views.base_view import BaseView
 from game.views.inventory_view import InventoryView
@@ -254,19 +253,16 @@ class Game(BaseView):
         self.game_map_shape = game_map.shape
 
         # Assign sprites to the game map and initialise the vector grid
-        vector_grid = np.empty(self.game_map_shape, dtype=Tile)
         for count_y, y in enumerate(np.flipud(game_map)):
             for count_x, x in enumerate(y):
                 # Determine if we need to make a floor or wall as the backdrop
                 if x == TileType.WALL.value:
-                    wall = Wall(self, count_x, count_y)
+                    wall = Wall(count_x, count_y)
                     self.wall_sprites.append(wall)
                     self.tile_sprites.append(wall)
-                    vector_grid[count_y][count_x] = wall
                 elif x != TileType.EMPTY.value:
-                    floor = Floor(self, count_x, count_y)
+                    floor = Floor(count_x, count_y)
                     self.tile_sprites.append(floor)
-                    vector_grid[count_y][count_x] = floor
 
                 # Determine which type the tile is
                 match x:
@@ -363,20 +359,26 @@ class Game(BaseView):
                         self.item_sprites.append(fire_rate_potion)
                     case TileType.SHOP.value:
                         shop = Shop(self, count_x, count_y)
-                        vector_grid[count_y][count_x] = shop
+                        self.wall_sprites.append(shop)
                         self.tile_sprites.append(shop)
                         self.item_sprites.append(shop)
 
         # Make sure the player was actually created
         assert self.player is not None
 
-        # Initialise the vector field. We need to reverse the vector grid since the
-        # array will be flipped after initialising all the tiles
-        self.vector_field = VectorField(np.flipud(vector_grid))
-        self.vector_field.recalculate_map(self.player.tile_pos)
+        # Initialise the vector field
+        self.vector_field = VectorField(
+            self.game_map_shape[1], self.game_map_shape[0], self.wall_sprites
+        )
+        self.vector_field.recalculate_map(self.player.position)
         logger.debug(
             f"Created vector grid with height {self.vector_field.height} and width"
             f" {self.vector_field.width}"
+        )
+
+        # Update the player's current tile position
+        self.player.current_tile_pos = self.vector_field.get_tile_pos_for_pixel(
+            self.player.position
         )
 
         # Create the physics engine
@@ -500,12 +502,13 @@ class Game(BaseView):
                 )
 
             # Draw the debug vector field lines
-            for source, destination in self.vector_field.vector_dict.items():
+            for source, vector in self.vector_field.vector_dict.items():
+                source_screen_x, source_screen_y = grid_pos_to_pixel(*source)
                 arcade.draw_line(
-                    source.center_x,
-                    source.center_y,
-                    source.center_x + destination[0],
-                    source.center_y + destination[1],
+                    source_screen_x,
+                    source_screen_y,
+                    source_screen_x + vector[0] * SPRITE_SIZE,
+                    source_screen_y + vector[1] * SPRITE_SIZE,
                     DEBUG_VECTOR_FIELD_LINE,
                 )
 
@@ -709,7 +712,7 @@ class Game(BaseView):
         screen_center_y = self.player.center_y - (self.game_camera.viewport_height / 2)
 
         # Calculate the maximum width and height a sprite can be
-        upper_x, upper_y = pos_to_pixel(
+        upper_x, upper_y = grid_pos_to_pixel(
             self.game_map_shape[1] - 1, self.game_map_shape[0] - 1
         )
 

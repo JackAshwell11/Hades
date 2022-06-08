@@ -12,11 +12,10 @@ from game.constants.entity import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
-    SPRITE_SIZE,
     EntityID,
     EntityUpgradeData,
 )
-from game.textures import pos_to_pixel
+from game.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
     from game.constants.entity import (
@@ -372,70 +371,7 @@ class IndicatorBar:
             self.full_box.scale = value
 
 
-class Tile(arcade.Sprite):
-    """
-    Represents the most basic tile in the game. Everything else inherits from this. Do
-    not instantiate this directly, instead use a subclass.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the entity can have a reference to it.
-    x: int
-        The x position of the tile in the game map.
-    y: int
-        The y position of the tile in the game map.
-
-    Attributes
-    ----------
-    tile_pos: tuple[int, int]
-        The current grid position of the entity. This is in the format (x, y) with
-        (0, 0) being in the top-left corner.
-    center_x: float
-        The x position of the tile on the screen.
-    center_y: float
-        The y position of the tile on the screen.
-    texture: arcade.Texture
-        The sprite which represents this tile.
-    """
-
-    # Class variables
-    raw_texture: arcade.Texture | None = None
-    blocking: bool = False
-
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(scale=SPRITE_SCALE)
-        self.game: Game = game
-        self.tile_pos: tuple[int, int] = (x, self.game.game_map_shape[0] - y - 1)
-        self.center_x, self.center_y = pos_to_pixel(x, y)
-        self.texture: arcade.Texture = self.raw_texture
-
-    def __repr__(self) -> str:
-        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
-
-    @property
-    def player(self) -> Player:
-        """
-        Gets the player object for ease of access.
-
-        Returns
-        -------
-        Player
-            The player object.
-        """
-        # Make sure the player object is valid
-        assert self.game.player is not None
-
-        # Return the player object
-        return self.game.player
-
-
-class Entity(Tile):
+class Entity(arcade.Sprite):
     """
     Represents an entity in the game.
 
@@ -484,7 +420,9 @@ class Entity(Tile):
         y: int,
         entity_type: BaseData,
     ) -> None:
-        super().__init__(game, x, y)
+        super().__init__(scale=SPRITE_SCALE)
+        self.game: Game = game
+        self.center_x, self.center_y = grid_pos_to_pixel(x, y)
         self.entity_type: BaseData = entity_type
         self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
@@ -864,24 +802,6 @@ class Entity(Tile):
             logger.debug(f"Updating status effect {status_effect} for entity {self}")
             status_effect.update(delta_time)
 
-        # Update the entity's tile_pos. Arcade has (0, 0) at the bottom-left but the
-        # vector field has (0, 0) at the top-left so the y position needs a bit of
-        # tweaking
-        new_tile_pos = (
-            int(self.center_x // SPRITE_SIZE),
-            int(
-                ((self.game.vector_field.height * SPRITE_SIZE) - self.center_y)
-                // SPRITE_SIZE
-            ),
-        )
-        if new_tile_pos != self.tile_pos:
-            self.tile_pos = new_tile_pos
-
-            # Entity's tile position has changed so if the entity is the player, we need
-            # to recalculate the vector field
-            if self.entity_id is EntityID.PLAYER:
-                self.game.vector_field.recalculate_map(self.tile_pos)
-
         # Run the entity's post on_update
         self.post_on_update(delta_time)
 
@@ -964,7 +884,7 @@ class Entity(Tile):
             # Entity is already dead
             pass
 
-    def post_on_update(self, delta_time: float = 1 / 60) -> None:
+    def post_on_update(self, delta_time: float) -> None:
         """
         Performs custom entity logic.
 
@@ -1003,6 +923,42 @@ class Entity(Tile):
         raise NotImplementedError
 
 
+class Tile(arcade.Sprite):
+    """
+    Represents a tile that does not move in the game.
+    Parameters
+    ----------
+    x: int
+        The x position of the tile in the game map.
+    y: int
+        The y position of the tile in the game map.
+    Attributes
+    ----------
+    center_x: float
+        The x position of the tile on the screen.
+    center_y: float
+        The y position of the tile on the screen.
+    texture: arcade.Texture
+        The sprite which represents this tile.
+    """
+
+    # Class variables
+    raw_texture: arcade.Texture | None = None
+    blocking: bool = False
+
+    def __init__(
+        self,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(scale=SPRITE_SCALE)
+        self.center_x, self.center_y = grid_pos_to_pixel(x, y)
+        self.texture: arcade.Texture = self.raw_texture
+
+    def __repr__(self) -> str:
+        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
+
+
 class InteractiveTile(Tile):
     """
     Represents a tile that can be interacted with by the player. This is only meant to
@@ -1028,13 +984,30 @@ class InteractiveTile(Tile):
         x: int,
         y: int,
     ) -> None:
-        super().__init__(game, x, y)
+        super().__init__(x, y)
+        self.game: Game = game
 
     def __repr__(self) -> str:
         return f"<InteractiveTile (Position=({self.center_x}, {self.center_y}))>"
 
+    @property
+    def player(self) -> Player:
+        """
+        Gets the player object for ease of access.
 
-class UsableTile(Tile):
+        Returns
+        -------
+        Player
+            The player object.
+        """
+        # Make sure the player object is valid
+        assert self.game.player is not None
+
+        # Return the player object
+        return self.game.player
+
+
+class UsableTile(InteractiveTile):
     """
     Represents a tile that can be used/activated by the player.
 

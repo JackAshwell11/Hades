@@ -8,16 +8,16 @@ import pathlib
 import arcade
 
 
-def pos_to_pixel(x: int, y: int) -> tuple[float, float]:
+def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
     """
-    Calculate the x and y position based on the game map position.
+    Calculate the x and y position based on the game map or vector field position.
 
     Parameters
     ----------
-    x: int
-        The x position in the game map.
-    y: int
-        The x position in the game map.
+    x: float
+        The x position in the game map or vector field.
+    y: float
+        The x position in the game map or vector field.
 
     Returns
     -------
