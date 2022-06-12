@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 # Pip
 import numpy as np
 
+# Custom
 from game.constants.entity import SPRITE_SIZE
 
 if TYPE_CHECKING:
@@ -24,17 +25,17 @@ class VectorField:
     position for large amount of entities. The steps needed to accomplish this:
         1. First, we start at the destination tile and work our way outwards using a
         breadth first search. This is called a 'flood fill' and will construct the
-        Dijkstra map needed for the flow field.
+        Dijkstra map needed for the vector field.
 
         2. Next, we iterate over each tile and find the neighbour with the lowest
         Dijkstra distance. Using this we can create a vector from the source tile to the
         neighbour tile making for more natural pathfinding since the enemy can go in 6
         directions instead of 4.
 
-        # 3. Finally, we can optionally add a value to each tile which is the distance
-        # from the current tile to the destination tile and is just the sum of the
-        # number of vectors to get to the destination tile. This is called a Dijkstra
-        # map and allows us to calculate the cost for a particular path.
+        3. Finally, once the neighbour with the lowest Dijkstra distance is found, we
+        can create a link from the current tile to that neighbour tile which the enemy
+        will follow. Repeating this for every tile in the flow file gives us an
+        efficient way to calculate pathfinding for a large amount of entities.
 
     Further reading which may be useful:
         `Other uses of Dijkstra maps
@@ -105,22 +106,11 @@ class VectorField:
         self.walls_dict: dict[tuple[int, int], int] = {}
         self.distances: dict[tuple[int, int], int] = {}
         self.vector_dict: dict[tuple[int, int], tuple[float, float]] = {}
-        self._place_walls_in_grid(walls)
+        for wall in walls:
+            self.walls_dict[self.get_tile_pos_for_pixel(wall.position)] = np.inf
 
     def __repr__(self) -> str:
         return f"<VectorField (Width={self.width}) (Height={self.height})"
-
-    def _place_walls_in_grid(self, walls: arcade.SpriteList) -> None:
-        """
-        Places the wall tiles in the vector grid.
-
-        Parameters
-        ----------
-        walls: arcade.SpriteList
-            A list of wall sprites that can block the entities.
-        """
-        for wall in walls:
-            self.walls_dict[self.get_tile_pos_for_pixel(wall.position)] = np.inf
 
     def _get_neighbours(
         self, tile_pos: tuple[int, int], offsets: list[tuple[int, int]]
@@ -150,8 +140,7 @@ class VectorField:
                 continue
 
             # Check if the neighbour is a wall or not
-            target_distance = self.distances.get((x, y), -1)
-            if target_distance == np.inf:
+            if self.distances.get((x, y), -1) == np.inf:
                 continue
 
             # Neighbour tile position is a floor tile position, so it is valid
@@ -159,6 +148,24 @@ class VectorField:
 
         # Return all the neighbours
         return tile_neighbours
+
+    @staticmethod
+    def get_tile_pos_for_pixel(position: tuple[float, float]) -> tuple[int, int]:
+        """
+        Converts a sprite position on the screen into a tile position for use with the
+        vector field.
+
+        Parameters
+        ----------
+        position: tuple[float, float]
+            The sprite position on the screen.
+
+        Returns
+        -------
+        tuple[int, int]
+            The path field grid tile position for the given sprite position.
+        """
+        return int(position[0] // SPRITE_SIZE), int(position[1] // SPRITE_SIZE)
 
     def recalculate_map(self, player_pos: tuple[float, float]) -> None:
         """
@@ -205,7 +212,9 @@ class VectorField:
                     queue.append(neighbour)
                     self.distances[neighbour] = 1 + self.distances[current]
 
-        # Use the newly generated Dijkstra map to calculate the vectors at each tile
+        # Use the newly generated Dijkstra map to get a neighbour with the lowest
+        # Dijkstra distance at each tile. Then create a vector pointing in that
+        # direction
         for tile, cost in self.distances.items():
             # If this tile is a wall tile, ignore it
             if cost == np.inf:
@@ -238,24 +247,6 @@ class VectorField:
         )
         logger.debug(time_taken)
         print(time_taken)
-
-    def get_tile_pos_for_pixel(self, position: tuple[float, float]) -> tuple[int, int]:
-        """
-        Converts a sprite position on the screen into a tile pos for use with the vector
-        grid.
-
-        Parameters
-        ----------
-        position: tuple[float, float]
-            The sprite position on the screen.
-
-        Returns
-        -------
-        tuple[int, int]
-            The vector grid tile position for the given sprite position.
-        """
-        # can divide this by the scale too (when it's done)
-        return int(position[0] // SPRITE_SIZE), int(position[1] // SPRITE_SIZE)
 
     def get_vector_direction(
         self, current_enemy_pos: tuple[float, float]
