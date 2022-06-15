@@ -169,7 +169,7 @@ class IndicatorBar:
         float
             The value that is half of the bar's width.
         """
-        return self.bar_width // 2
+        return self.bar_width / 2
 
     @property
     def bar_height(self) -> int:
@@ -193,7 +193,7 @@ class IndicatorBar:
         float
             The value that is half of the bar's height.
         """
-        return self.bar_height // 2
+        return self.bar_height / 2
 
     @property
     def center_x(self) -> float:

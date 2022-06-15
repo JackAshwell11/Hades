@@ -47,7 +47,6 @@ class BackButton(arcade.gui.UIFlatButton):
         """Called when the button is clicked."""
         # Get the current window and view
         window: Window = arcade.get_window()
-        current_view: ShopView = window.current_view  # noqa
 
         # Show the game view
         game_view: Game = window.views["Game"]  # noqa

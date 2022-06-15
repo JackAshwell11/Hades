@@ -711,23 +711,15 @@ class Game(BaseView):
         screen_center_x = self.player.center_x - (self.game_camera.viewport_width / 2)
         screen_center_y = self.player.center_y - (self.game_camera.viewport_height / 2)
 
-        # Calculate the maximum width and height a sprite can be
-        upper_x, upper_y = grid_pos_to_pixel(
-            self.game_map_shape[1] - 1, self.game_map_shape[0] - 1
-        )
+        # Calculate the maximum width and height of the game map
+        upper_y, upper_x = grid_pos_to_pixel(*self.game_map_shape)
 
         # Calculate the maximum width and height the camera can be
+        half_sprite_size = SPRITE_SIZE / 2
         upper_camera_x, upper_camera_y = (
-            upper_x
-            - self.game_camera.viewport_width
-            + (self.game_camera.viewport_width / SPRITE_SIZE),
-            upper_y
-            - self.game_camera.viewport_height
-            + (self.game_camera.viewport_height / SPRITE_SIZE),
+            upper_x - self.game_camera.viewport_width - half_sprite_size,
+            upper_y - self.game_camera.viewport_height - half_sprite_size,
         )
-
-        # Store the old position, so we can check if it has changed
-        old_position = (self.game_camera.position[0], self.game_camera.position[1])
 
         # Make sure the camera doesn't extend beyond the boundaries
         if screen_center_x < 0:
@@ -738,14 +730,15 @@ class Game(BaseView):
             screen_center_y = 0
         elif screen_center_y > upper_camera_y:
             screen_center_y = upper_camera_y
-        new_position = screen_center_x, screen_center_y
+        new_position = arcade.pymunk_physics_engine.Vec2(
+            screen_center_x, screen_center_y
+        )
 
         # Check if the camera position has changed
-        if old_position != new_position:
+        if self.game_camera.position != new_position:
             # Move the camera to the new position
-            self.game_camera.move_to(
-                arcade.pymunk_physics_engine.Vec2(screen_center_x, screen_center_y)
-            )
             logger.debug(
-                f"Changed camera position from {old_position} to {new_position}"
+                f"Moving camera position from {self.game_camera.position} to"
+                f" {new_position}"
             )
+            self.game_camera.move_to(new_position)
