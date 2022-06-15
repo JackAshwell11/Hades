@@ -49,89 +49,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class EnemyConsumableLevelGenerator:
-    """
-    Represents generator that can be used to determine what level an enemy or consumable
-    should be based on the current game level.
-
-    Parameters
-    ----------
-    lower_bound: int
-        The lower bound of the normal distribution function.
-    upper_bound: int
-        The upper bound of the normal distribution function.
-    """
-
-    __slots__ = (
-        "lower_bound",
-        "upper_bound",
-        "random",
-    )
-
-    def __init__(
-        self,
-        lower_bound: int,
-        upper_bound: int,
-    ) -> None:
-        self.lower_bound: int = lower_bound
-        self.upper_bound: int = upper_bound
-
-    def __repr__(self) -> str:
-        return (
-            f"<EnemyConsumableLevelGenerator (Lower bound={self.lower_bound}) (Upper"
-            f" bound={self.upper_bound})>"
-        )
-
-    @classmethod
-    def create_distribution(
-        cls, game_level: int, max_range: int
-    ) -> EnemyConsumableLevelGenerator:
-        """
-        Creates the boundaries and initialises the generator.
-
-        Parameters
-        ----------
-        game_level: int
-            The current level for the game.
-        max_range: int
-            The maximum difference between the lower and upper bounds.
-
-        Returns
-        -------
-        EnemyConsumableLevelGenerator
-            The initialised generator.
-        """
-        # Create the upper and lower bounds. They should both start at 1 then every
-        # LEVEL_GENERATOR_INTERVAL levels, the upper bound should increase by 1.
-        # Once the difference between the lower and upper bounds reaches max_range, then
-        # we instead shift both of them along by 1
-        upper = (game_level // LEVEL_GENERATOR_INTERVAL) + 1
-        lower = 1 if upper - 1 < max_range else upper - max_range
-
-        # Initialise the generator
-        return cls(lower, upper)
-
-    def get_level(self, level_limit: int) -> int:
-        """
-        Gets the level an enemy/consumable should be based on the current game level.
-
-        Parameters
-        ----------
-        level_limit: int
-            The maximum value that the level can be.
-
-        Returns
-        -------
-        int
-            The enemy/consumable level.
-        """
-        # Generate a random value using the generator
-        random_level = random.randint(self.lower_bound, self.upper_bound)
-
-        # Make sure the value is not over the level limit
-        return min(random_level, level_limit)
-
-
 class Game(BaseView):
     """
     Manages the game and its actions.
@@ -239,13 +156,18 @@ class Game(BaseView):
             The level to create a generation for. Each level should be more difficult
             than the last.
         """
-        # Initialise the distribution generators that will determine the enemy and
+        # Calculate the lower and upper bounds that will determine the enemy and
         # consumable levels
-        enemy_distribution = EnemyConsumableLevelGenerator.create_distribution(
-            level, ENEMY_LEVEL_MAX_RANGE
+        upper_bound = (level // LEVEL_GENERATOR_INTERVAL) + 1
+        lower_bound_enemy = (
+            1
+            if upper_bound - 1 < ENEMY_LEVEL_MAX_RANGE
+            else upper_bound - ENEMY_LEVEL_MAX_RANGE
         )
-        consumable_distribution = EnemyConsumableLevelGenerator.create_distribution(
-            level, CONSUMABLE_LEVEL_MAX_RANGE
+        lower_bound_consumable = (
+            1
+            if upper_bound - 1 < CONSUMABLE_LEVEL_MAX_RANGE
+            else upper_bound - CONSUMABLE_LEVEL_MAX_RANGE
         )
 
         # Create the game map
@@ -280,19 +202,26 @@ class Game(BaseView):
                                 count_x,
                                 count_y,
                                 ENEMY1,
-                                enemy_distribution.get_level(
-                                    ENEMY1.entity_data.upgrade_level_limit
+                                min(
+                                    random.randint(lower_bound_enemy, upper_bound),
+                                    ENEMY1.entity_data.upgrade_level_limit,
                                 ),
                             )
                         )
+                    case TileType.SHOP.value:
+                        shop = Shop(self, count_x, count_y)
+                        self.wall_sprites.append(shop)
+                        self.tile_sprites.append(shop)
+                        self.item_sprites.append(shop)
                     case TileType.HEALTH_POTION.value:
                         health_potion = Consumable(
                             self,
                             count_x,
                             count_y,
                             HEALTH_POTION,
-                            consumable_distribution.get_level(
-                                HEALTH_POTION.level_limit
+                            min(
+                                random.randint(lower_bound_consumable, upper_bound),
+                                HEALTH_POTION.level_limit,
                             ),
                         )
                         self.tile_sprites.append(health_potion)
@@ -303,8 +232,9 @@ class Game(BaseView):
                             count_x,
                             count_y,
                             ARMOUR_POTION,
-                            consumable_distribution.get_level(
-                                HEALTH_POTION.level_limit
+                            min(
+                                random.randint(lower_bound_consumable, upper_bound),
+                                ARMOUR_POTION.level_limit,
                             ),
                         )
                         self.tile_sprites.append(armour_potion)
@@ -315,8 +245,9 @@ class Game(BaseView):
                             count_x,
                             count_y,
                             HEALTH_BOOST_POTION,
-                            consumable_distribution.get_level(
-                                HEALTH_POTION.level_limit
+                            min(
+                                random.randint(lower_bound_consumable, upper_bound),
+                                HEALTH_BOOST_POTION.level_limit,
                             ),
                         )
                         self.tile_sprites.append(health_boost_potion)
@@ -327,8 +258,9 @@ class Game(BaseView):
                             count_x,
                             count_y,
                             ARMOUR_BOOST_POTION,
-                            consumable_distribution.get_level(
-                                HEALTH_POTION.level_limit
+                            min(
+                                random.randint(lower_bound_consumable, upper_bound),
+                                ARMOUR_BOOST_POTION.level_limit,
                             ),
                         )
                         self.tile_sprites.append(armour_boost_potion)
@@ -339,8 +271,9 @@ class Game(BaseView):
                             count_x,
                             count_y,
                             SPEED_BOOST_POTION,
-                            consumable_distribution.get_level(
-                                HEALTH_POTION.level_limit
+                            min(
+                                random.randint(lower_bound_consumable, upper_bound),
+                                SPEED_BOOST_POTION.level_limit,
                             ),
                         )
                         self.tile_sprites.append(speed_boost_potion)
@@ -351,17 +284,13 @@ class Game(BaseView):
                             count_x,
                             count_y,
                             FIRE_RATE_BOOST_POTION,
-                            consumable_distribution.get_level(
-                                HEALTH_POTION.level_limit
+                            min(
+                                random.randint(lower_bound_consumable, upper_bound),
+                                FIRE_RATE_BOOST_POTION.level_limit,
                             ),
                         )
                         self.tile_sprites.append(fire_rate_potion)
                         self.item_sprites.append(fire_rate_potion)
-                    case TileType.SHOP.value:
-                        shop = Shop(self, count_x, count_y)
-                        self.wall_sprites.append(shop)
-                        self.tile_sprites.append(shop)
-                        self.item_sprites.append(shop)
 
         # Make sure the player was actually created
         assert self.player is not None
