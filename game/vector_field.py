@@ -246,7 +246,6 @@ class VectorField:
             f"Vector field generated in {time.perf_counter() - start_time} seconds"
         )
         logger.debug(time_taken)
-        print(time_taken)
 
     def get_vector_direction(
         self, current_enemy_pos: tuple[float, float]

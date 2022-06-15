@@ -2,67 +2,18 @@ from __future__ import annotations
 
 # Builtin
 import logging
-import pathlib
-from datetime import datetime
+import logging.config
 from typing import TYPE_CHECKING
 
 # Pip
 import arcade
 
 # Custom
-from game.constants.general import LOGGING_FORMAT
+from game.constants.general import LOGGING_DICT_CONFIG
 from game.views.start_menu_view import StartMenu
 
 if TYPE_CHECKING:
     from game.views.base_view import BaseView
-
-# Create paths
-log_path = pathlib.Path(__file__).resolve().parent / "logs"
-
-# Make sure the directories exist
-log_path.mkdir(parents=True, exist_ok=True)
-
-
-def get_log_path() -> pathlib.Path:
-    """
-    Gets the path to use for the logging output. This takes into account already
-    existing files.
-
-    Returns
-    -------
-    pathlib.Path
-        The path to use for the logging output.
-    """
-    base_filename = datetime.now().strftime("%Y-%m-%d")
-    file_count = len(list(log_path.glob(f"{base_filename}*.log")))
-    return log_path / f"{base_filename}-{file_count+1}.log"
-
-
-class ArcadeFilter(logging.Filter):
-    """A logging filter which removes all arcade debug logs."""
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        """
-        Filters out arcade debug logs to stop crowding of the log file.
-
-        Parameters
-        ----------
-        record: logging.LogRecord
-            The log record from the root logger.
-
-        Returns
-        -------
-        bool
-            Whether to keep the log record or not.
-        """
-        if record.levelname == "DEBUG":
-            if "pymunk" in record.pathname:
-                return False
-            elif "arcade" in record.pathname:
-                return False
-            elif "pyglet" in record.pathname:
-                return False
-        return True
 
 
 class Window(arcade.Window):
@@ -86,12 +37,7 @@ class Window(arcade.Window):
 def main() -> None:
     """Initialises the game and runs it."""
     # Initialise logging
-    root_logger = logging.getLogger("")
-    root_logger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(get_log_path())
-    handler.setFormatter(logging.Formatter(LOGGING_FORMAT))
-    handler.addFilter(ArcadeFilter())
-    root_logger.addHandler(handler)
+    logging.config.dictConfig(LOGGING_DICT_CONFIG)
 
     # Initialise the window
     window = Window()

@@ -1,7 +1,59 @@
 from __future__ import annotations
 
+# Builtin
+import pathlib
+from datetime import datetime
+
 # Pip
 import arcade
+
+# Create the log directory making sure it exists. Then create the path for the current
+# log file
+log_dir = pathlib.Path(__file__).resolve().parent.parent.joinpath("logs")
+log_dir.mkdir(parents=True, exist_ok=True)
+log_path = log_dir.joinpath(f"{datetime.now().strftime('%Y-%m-%d')}.log")
+
+# Logging constants
+LOGGING_DICT_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": (
+                "[%(asctime)s %(levelname)s] [%(filename)s:%(funcName)s():%(lineno)d] -"
+                " %(message)s"
+            ),
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+            "formatter": "default",
+            "stream": "ext://sys.stdout",
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "DEBUG",
+            "formatter": "default",
+            "filename": log_path,
+            "maxBytes": 5242880,  # 5MB
+            "backupCount": 5,
+        },
+    },
+    "loggers": {
+        "": {
+            "level": "WARNING",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        "game": {
+            "level": "DEBUG",
+            "handlers": ["file"],
+            "propagate": False,
+        },
+    },
+}
 
 # Debug constants
 DEBUG_LINES = False
@@ -9,9 +61,6 @@ DEBUG_GAME = True
 DEBUG_VIEW_DISTANCE = arcade.color.RED
 DEBUG_ATTACK_DISTANCE = arcade.color.BLUE
 DEBUG_VECTOR_FIELD_LINE = arcade.color.YELLOW
-LOGGING_FORMAT = (
-    "[%(asctime)s %(levelname)s] [%(filename)s:%(funcName)s():%(lineno)d] - %(message)s"
-)
 
 # Physics constants
 DAMPING = 0
