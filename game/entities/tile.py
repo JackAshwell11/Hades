@@ -73,49 +73,49 @@ class Wall(Tile):
         return f"<Wall (Position=({self.center_x}, {self.center_y}))>"
 
 
-class Shop(UsableTile):
-    """
-    Represents a shop tile in the game.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the item can have a reference to it.
-    x: int
-        The x position of the shop item in the game map.
-    y: int
-        The y position of the shop item in the game map.
-    """
-
-    # Class variables
-    raw_texture: arcade.Texture = non_moving_textures["items"][6]
-    blocking: bool = True
-
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
-
-    def __repr__(self) -> str:
-        return f"<Shop (Position=({self.center_x}, {self.center_y}))>"
-
-    def item_use(self) -> bool:
-        """
-        Called when the item is used by the player.
-
-        Returns
-        -------
-        bool
-            Whether the item activation was successful or not.
-        """
-        # Show the shop view and enable it's UIManager
-        self.game.window.show_view(self.game.window.views["ShopView"])
-
-        # Return true since activation will always be successful
-        return True
+# class Shop(UsableTile):
+#     """
+#     Represents a shop tile in the game.
+#
+#     Parameters
+#     ----------
+#     game: Game
+#         The game view. This is passed so the item can have a reference to it.
+#     x: int
+#         The x position of the shop item in the game map.
+#     y: int
+#         The y position of the shop item in the game map.
+#     """
+#
+#     # Class variables
+#     raw_texture: arcade.Texture = non_moving_textures["items"][6]
+#     blocking: bool = True
+#
+#     def __init__(
+#         self,
+#         game: Game,
+#         x: int,
+#         y: int,
+#     ) -> None:
+#         super().__init__(game, x, y)
+#
+#     def __repr__(self) -> str:
+#         return f"<Shop (Position=({self.center_x}, {self.center_y}))>"
+#
+#     def item_use(self) -> bool:
+#         """
+#         Called when the item is used by the player.
+#
+#         Returns
+#         -------
+#         bool
+#             Whether the item activation was successful or not.
+#         """
+#         # Show the shop view and enable it's UIManager
+#         self.game.window.show_view(self.game.window.views["ShopView"])
+#
+#         # Return true since activation will always be successful
+#         return True
 
 
 class Consumable(UsableTile, CollectibleTile):

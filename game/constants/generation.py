@@ -20,8 +20,7 @@ class TileType(IntEnum):
     ARMOUR_BOOST_POTION = 8
     SPEED_BOOST_POTION = 9
     FIRE_RATE_BOOST_POTION = 10
-    SHOP = 11
-    DEBUG_WALL = 12
+    DEBUG_WALL = 11
 
 
 # Room probabilities
@@ -47,9 +46,8 @@ ITEM_DISTRIBUTION = {
     TileType.ARMOUR_POTION: 0.3,
     TileType.HEALTH_BOOST_POTION: 0.1,
     TileType.ARMOUR_BOOST_POTION: 0.1,
-    TileType.SPEED_BOOST_POTION: 0.075,
-    TileType.FIRE_RATE_BOOST_POTION: 0.075,
-    TileType.SHOP: 0.05,
+    TileType.SPEED_BOOST_POTION: 0.1,
+    TileType.FIRE_RATE_BOOST_POTION: 0.1,
 }
 
 # Other map generation constants

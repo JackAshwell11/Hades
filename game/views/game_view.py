@@ -33,7 +33,7 @@ from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
 from game.entities.player import Player
-from game.entities.tile import Consumable, Floor, Shop, Wall
+from game.entities.tile import Consumable, Floor, Wall
 from game.generation.map import create_map
 from game.physics import PhysicsEngine
 from game.textures import grid_pos_to_pixel
@@ -208,11 +208,6 @@ class Game(BaseView):
                                 ),
                             )
                         )
-                    case TileType.SHOP.value:
-                        shop = Shop(self, count_x, count_y)
-                        self.wall_sprites.append(shop)
-                        self.tile_sprites.append(shop)
-                        self.item_sprites.append(shop)
                     case TileType.HEALTH_POTION.value:
                         health_potion = Consumable(
                             self,
@@ -552,6 +547,8 @@ class Game(BaseView):
                 self.player.current_attack_index = max(
                     self.player.current_attack_index - 1, 0
                 )
+            case arcade.key.T:
+                self.window.show_view(self.window.views["ShopView"])
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         """
