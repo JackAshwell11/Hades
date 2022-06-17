@@ -170,12 +170,12 @@ class Consumable(UsableTile, CollectibleTile):
 
     def item_use(self) -> bool:
         """
-        Called when the health boost potion is used by the player.
+        Called when the consumable is used by the player.
 
         Returns
         -------
         bool
-            Whether the health boost potion use was successful or not.
+            Whether the consumable use was successful or not.
         """
         # Get the adjusted level for this consumable
         adjusted_level = self.consumable_level - 1
@@ -187,6 +187,10 @@ class Consumable(UsableTile, CollectibleTile):
                     if self.player.health == self.player.max_health:
                         # Can't be used
                         self.game.display_info_box("Your health is already at max")
+                        logger.debug(
+                            f"{self.player} health at max so instant potion"
+                            "can't be used"
+                        )
                         return False
 
                     # Add health to the player
@@ -198,6 +202,10 @@ class Consumable(UsableTile, CollectibleTile):
                     if self.player.armour == self.player.max_armour:
                         # Can't be used
                         self.game.display_info_box("Your armour is already at max")
+                        logger.debug(
+                            f"{self.player} armour at max so instant potion"
+                            "can't be used"
+                        )
                         return False
 
                     # Add armour to the player
@@ -216,6 +224,7 @@ class Consumable(UsableTile, CollectibleTile):
                 self.game.display_info_box(
                     f"A {effect.status_type.value} status effect is already applied"
                 )
+                logger.debug(f"{effect.status_type} already applied to player")
                 return False
 
             # Apply the status effect

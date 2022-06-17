@@ -170,6 +170,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             max_horizontal_velocity=int(player.max_velocity),
             max_vertical_velocity=int(player.max_velocity),
         )
+        logger.debug(f"Added {player} to physics engine")
 
         # Add the static tile sprites to the physics engine
         for tile in tile_list:
@@ -179,6 +180,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                     body_type=self.STATIC,
                     collision_type="wall",
                 )
+            logger.debug(f"Added {tile} to physics engine")
 
         # Add the enemy sprites to the physics engine
         for enemy in enemy_list:  # type: Enemy
@@ -189,6 +191,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                 max_horizontal_velocity=int(enemy.max_velocity),
                 max_vertical_velocity=int(enemy.max_velocity),
             )
+            logger.debug(f"Added {enemy} to physics engine")
 
         # Add collision handlers
         self.add_collision_handler(
@@ -223,4 +226,4 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             body_type=self.KINEMATIC,
             collision_type="bullet",
         )
-        logger.info(f"Added bullet {bullet} to physics engine")
+        logger.debug(f"Added bullet {bullet} to physics engine")

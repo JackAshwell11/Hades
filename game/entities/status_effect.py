@@ -119,7 +119,9 @@ class HealthStatusEffect(StatusEffectBase):
         return f"<HealthStatusEffect (Value={self.value}) (Duration={self.duration})"
 
     def apply_effect(self) -> None:
-        """Applies the status effect to the entity."""
+        """Applies the status effect to the target."""
+        # Apply the status effect to the target
+        logger.debug(f"Applying health effect to {self.target}")
         self.original = self.target.health
         self.target.health = self.original + self.value
         self.target.max_health = self.target.max_health + self.value
@@ -143,6 +145,7 @@ class HealthStatusEffect(StatusEffectBase):
     def remove_effect(self) -> None:
         """Removes the status effect from the entity."""
         # Get the target's current value to determine if its state needs to change
+        logger.debug(f"Removing health effect from {self.target}")
         current_value: float = self.target.health
         if current_value > self.original:
             current_value = self.original
@@ -178,7 +181,9 @@ class ArmourStatusEffect(StatusEffectBase):
         return f"<ArmourStatusEffect (Value={self.value}) (Duration={self.duration})"
 
     def apply_effect(self) -> None:
-        """Applies the status effect to the entity."""
+        """Applies the status effect to the target."""
+        # Apply the status effect to the target
+        logger.debug(f"Applying armour effect to {self.target}")
         self.original = self.target.armour
         self.target.armour = self.original + self.value
         self.target.max_armour = self.target.max_armour + self.value
@@ -202,6 +207,7 @@ class ArmourStatusEffect(StatusEffectBase):
     def remove_effect(self) -> None:
         """Removes the status effect from the entity."""
         # Get the target's current value to determine if its state needs to change
+        logger.debug(f"Removing armour effect from {self.target}")
         current_value: float = self.target.armour
         if current_value > self.original:
             current_value = self.original
@@ -237,7 +243,9 @@ class SpeedStatusEffect(StatusEffectBase):
         return f"<SpeedStatusEffect (Value={self.value}) (Duration={self.duration})"
 
     def apply_effect(self) -> None:
-        """Applies the status effect to the entity."""
+        """Applies the status effect to the target."""
+        # Apply the status effect to the target
+        logger.debug(f"Applying speed effect to {self.target}")
         self.original = self.target.max_velocity
         self.target.pymunk.max_velocity = self.original + self.value
 
@@ -260,6 +268,7 @@ class SpeedStatusEffect(StatusEffectBase):
     def remove_effect(self) -> None:
         """Removes the status effect from the entity."""
         # Restore the original value and remove the status effect
+        logger.debug(f"Removing speed effect from {self.target}")
         self.target.pymunk.max_velocity = self.original
         self.target.applied_effects.remove(self)
 
@@ -289,7 +298,9 @@ class FireRateStatusEffect(StatusEffectBase):
         return f"<FireRateStatusEffect (Value={self.value}) (Duration={self.duration})"
 
     def apply_effect(self) -> None:
-        """Applies the status effect to the entity."""
+        """Applies the status effect to the target."""
+        # Apply the status effect to the target
+        logger.debug(f"Applying fire rate effect to {self.target}")
         self.original = self.target.bonus_attack_cooldown
         self.target.bonus_attack_cooldown = self.original + self.value
 
@@ -312,6 +323,7 @@ class FireRateStatusEffect(StatusEffectBase):
     def remove_effect(self) -> None:
         """Removes the status effect from the entity."""
         # Restore the original value and remove the status effect
+        logger.debug(f"Removing fire rate effect from {self.target}")
         self.target.bonus_attack_cooldown = self.original
         self.target.applied_effects.remove(self)
 
@@ -344,6 +356,9 @@ def create_status_effect(
     """
     # Get the status effect class type which manages the given status effect
     cls = STATUS_EFFECTS[status_effect_type]
+    logger.debug(
+        f"Selected status effect {cls} for status effect type{status_effect_type}"
+    )
 
     # Initialise the class with the given parameters
     return cls(target, value, duration)

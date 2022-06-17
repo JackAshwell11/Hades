@@ -112,6 +112,9 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
                 "background color", (int(width), int(height)), background_color
             )
         )
+        logger.info(
+            f"Created info box with text `{message_text}` and time{disappear_time}"
+        )
 
         super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)
 

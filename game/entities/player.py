@@ -103,6 +103,7 @@ class Player(Entity):
             self.game.player_gui_sprites,
             (0, 0),
             ARMOUR_INDICATOR_BAR_COLOR,
+            border_size=INDICATOR_BAR_BORDER_SIZE,
             scale=4,
         )
         self.armour_bar.position = (
@@ -181,9 +182,6 @@ class Player(Entity):
         # Check if the player can regenerate health
         if not self.in_combat:
             self.regenerate_armour(delta_time)
-            if self.armour > self.max_armour:
-                self.armour = self.max_armour
-                logger.debug("Set player armour to max")
 
         # Check if the player has moved tile positions
         new_tile_pos = self.game.vector_field.get_tile_pos_for_pixel(self.position)
@@ -214,7 +212,6 @@ class Player(Entity):
                 force[1],
             )
             self.physics.apply_force(self, resultant_force)
-            logger.debug(f"Applied force {resultant_force} to player")
 
         # Check if the player is in combat
         self.in_combat = any(

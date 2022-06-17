@@ -33,7 +33,8 @@ class StartButton(arcade.gui.UIFlatButton):
         window.views["Game"] = new_game
         new_game.setup(1)
         logger.info(
-            f"Initialised game view with at level {1} with DEBUG_GAME={DEBUG_GAME}"
+            f"Initialised game view at level {1} with debug mode "
+            f"{'ON' if DEBUG_GAME else 'OFF'}"
         )
 
         # Show the new game
@@ -86,10 +87,6 @@ class StartMenu(BaseView):
 
     def __repr__(self) -> str:
         return f"<StartMenu (Current window={self.window})>"
-
-    def on_show(self) -> None:
-        """Called when the view loads."""
-        logger.info("Shown start menu view")
 
     def on_draw(self) -> None:
         """Render the screen."""

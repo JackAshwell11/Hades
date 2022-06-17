@@ -834,6 +834,7 @@ class Entity(arcade.Sprite):
 
         # Check if the entity should be killed
         if self.health <= 0:
+            # Kill the entity
             self.remove_from_sprite_lists()
 
             # Remove the health and armour bar
@@ -862,13 +863,18 @@ class Entity(arcade.Sprite):
                     self.armour += ARMOUR_REGEN_AMOUNT
                     self.time_since_armour_regen = 0
                     self.update_indicator_bars()
-                    logger.debug(f"Regenerated armour for {self}")
+                    logger.debug(f"Regenerated {ARMOUR_REGEN_AMOUNT} armour for {self}")
             else:
                 # Increment the counter since not enough time has passed
                 self.time_since_armour_regen += delta_time
         else:
             # Increment the counter since not enough time has passed
             self.time_out_of_combat += delta_time
+
+        # Check if the armour is bigger than the max
+        if self.armour > self.max_armour:
+            self.armour = self.max_armour
+            logger.debug(f"Set {self} armour to max")
 
     def update_indicator_bars(self) -> None:
         """Updates the entity's indicator bars."""
@@ -878,8 +884,10 @@ class Entity(arcade.Sprite):
 
         # Update the indicator bars
         try:
-            self.health_bar.fullness = self.health / self.max_health
-            self.armour_bar.fullness = self.armour / self.max_armour
+            new_health_fullness = self.health / self.max_health
+            self.health_bar.fullness = new_health_fullness
+            new_armour_fullness = self.armour / self.max_armour
+            self.armour_bar.fullness = new_armour_fullness
         except ValueError:
             # Entity is already dead
             pass
@@ -1097,9 +1105,8 @@ class CollectibleTile(InteractiveTile):
             self.remove_from_sprite_lists()
 
             # Activate was successful
-            logger.info(f"Picked up collectible {self}")
             return True
         else:
-            # Add not successful. TODO: Probably give message to user
-            logger.info(f"Can't pick up collectible {self}")
+            # Add not successful due to full inventory
+            # TODO: Probably give message to user
             return False

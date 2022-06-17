@@ -232,20 +232,16 @@ class VectorField:
 
             # Now point the tile's vector in the direction of the tile with the lowest
             # Dijkstra distance
-            if min_tile:
-                self.vector_dict[tile] = -(tile[0] - min_tile[0]), -(
-                    tile[1] - min_tile[1]
-                )
+            self.vector_dict[tile] = -(tile[0] - min_tile[0]), -(tile[1] - min_tile[1])
 
         # Set the vector for the destination tile to avoid weird movement when the enemy
         # is touching the player
         self.vector_dict[start] = 0, 0
 
-        # Output the time taken to generate the vector field and update the enemies
-        time_taken = (
-            f"Vector field generated in {time.perf_counter() - start_time} seconds"
+        # Log the time taken to generate the vector field
+        logger.debug(
+            f"Vector field generated in {time.perf_counter() - start_time}seconds"
         )
-        logger.debug(time_taken)
 
     def get_vector_direction(
         self, current_enemy_pos: tuple[float, float]

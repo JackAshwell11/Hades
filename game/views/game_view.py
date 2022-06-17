@@ -295,13 +295,19 @@ class Game(BaseView):
         # Make sure the player was actually created
         assert self.player is not None
 
+        # Debug what was created
+        logger.debug(
+            f"Initialised game view with {len(self.enemy_sprites)} enemies and "
+            f"{len(self.tile_sprites)} tiles"
+        )
+
         # Initialise the vector field
         self.vector_field = VectorField(
             self.game_map_shape[1], self.game_map_shape[0], self.wall_sprites
         )
         self.vector_field.recalculate_map(self.player.position)
         logger.debug(
-            f"Created vector grid with height {self.vector_field.height} and width"
+            f"Created vector grid with height {self.vector_field.height} and width "
             f" {self.vector_field.width}"
         )
 
@@ -538,17 +544,14 @@ class Game(BaseView):
             case arcade.key.F:
                 self.window.show_view(self.window.views["InventoryView"])
             case arcade.key.C:
-                self.player.current_attack_index += 1
-                if self.player.current_attack_index == len(
-                    self.player.attack_algorithms
-                ):
-                    self.player.current_attack_index -= 1
+                self.player.current_attack_index = min(
+                    self.player.current_attack_index + 1,
+                    len(self.player.attack_algorithms) - 1,
+                )
             case arcade.key.Z:
-                self.player.current_attack_index -= 1
-                if self.player.current_attack_index == -1:
-                    self.player.current_attack_index = 0
-            case arcade.key.P:
-                self.display_info_box("test123")
+                self.player.current_attack_index = max(
+                    self.player.current_attack_index - 1, 0
+                )
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         """
@@ -565,6 +568,7 @@ class Game(BaseView):
         # Make sure variables needed are valid
         assert self.player is not None
 
+        # Find out what key was released
         logger.debug(f"Received key release with key {key}")
         match key:
             case arcade.key.W:
@@ -595,7 +599,8 @@ class Game(BaseView):
         # Make sure variables needed are valid
         assert self.player is not None
 
-        # Test if the player can attack
+        # Find out what mouse button was pressed
+        logger.debug(f"{button} mouse button was pressed")
         match button:
             case arcade.MOUSE_BUTTON_LEFT:
                 # Make the player attack

@@ -63,7 +63,7 @@ class InventoryBox(arcade.gui.UITextureButton):
             # the user exits
             self.trigger_full_render()
 
-            logger.info(f"Removing item {self.item_ref} from inventory grid")
+            logger.info(f"Item use for {self.item_ref} successful")
 
 
 class BackButton(arcade.gui.UIFlatButton):
@@ -83,8 +83,6 @@ class BackButton(arcade.gui.UIFlatButton):
         # Show the game view
         game_view: Game = window.views["Game"]  # noqa
         window.show_view(game_view)
-
-        logger.info("Switching from inventory view to game view")
 
 
 class InventoryView(BaseView):
@@ -130,11 +128,6 @@ class InventoryView(BaseView):
     def __repr__(self) -> str:
         return f"<InventoryView (Current window={self.window})>"
 
-    def post_show_view(self) -> None:
-        """Called when the view loads."""
-        # Update each box to show the player's inventory
-        self.update_grid()
-
     def on_draw(self) -> None:
         """Render the screen."""
         # Clear the screen
@@ -165,7 +158,7 @@ class InventoryView(BaseView):
                 except IndexError:
                     inventory_box_obj.texture = None
                     result[1] += 1
-        logger.debug(
+        logger.info(
             f"Updated inventory grid with {result[0]} item textures and"
             f" {result[1]} empty textures"
         )

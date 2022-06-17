@@ -198,7 +198,7 @@ class MeleeShader:
 
         # Store the number of primitives/sprites found
         num_sprites_found = self.query.primitives_generated
-        logger.debug(f"Found {num_sprites_found} sprites in the melee shader")
+        logger.info(f"Found {num_sprites_found} sprites in the melee shader")
         if num_sprites_found > 0:
             # Transfer the data from the shader into python and decode the value into
             # python objects. To do this, we unpack the result buffer from the VRAM and
@@ -215,6 +215,5 @@ class MeleeShader:
         return []
 
 
-# TODO:
-#
-# Still seems like there is a bug and that it sometimes works and sometimes doesn't
+# TODO: Still seems like there is a bug and that it sometimes works and sometimes
+#  doesn't

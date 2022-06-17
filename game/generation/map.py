@@ -279,21 +279,25 @@ class Map:
         # Get all the rooms objects from the leafs list, so we can store the hallways
         # too. To make the hallways, we can connect each pair of leaves in the leafs
         # list using itertools.pairwise
-        rects: list[Rect] = [leaf.room for leaf in leafs if leaf.room]
+        rooms: list[Rect] = [leaf.room for leaf in leafs if leaf.room]
+        hallways: list[Rect] = []
+        logger.info(f"Created {len(rooms)} rooms")
         for pair in list(pairwise(leafs)):
             first_hallway, second_hallway = pair[0].create_hallway(pair[1])
             if first_hallway:
-                rects.append(first_hallway)
+                hallways.append(first_hallway)
             if second_hallway:
-                rects.append(second_hallway)
+                hallways.append(second_hallway)
+        logger.info(f"Created {len(hallways)} hallways")
 
         # Create a sorted list of tuples based on the rect areas
+        rects: list[Rect] = rooms + hallways
         rect_areas = sorted(
             ((rect, rect.width * rect.height) for rect in rects),
             key=lambda x: x[1],
         )
         total_area = sum(area[1] for area in rect_areas)
-        logger.debug(f"Created {rect_areas} with total area {total_area}")
+        logger.debug(f"Created {len(rects)} total rects with area {total_area}")
 
         # Place the player spawn in the smallest room
         self._place_tile(TileType.PLAYER, rect_areas[0][0])
@@ -306,7 +310,6 @@ class Map:
 
         # Place the items
         self._place_items(rect_areas)
-        logger.debug(f"Generated map {self.grid}")
 
     def _place_enemies(
         self,
@@ -339,11 +342,9 @@ class Map:
                 ):
                     # Enemy placed
                     enemies_placed += 1
-                    logger.debug(f"Placed {enemy}")
                 else:
                     # Enemy not placed
                     tries -= 1
-                    logger.debug(f"Didn't place {enemy}")
 
     def _place_items(self, rect_areas: list[tuple[Rect, int]]) -> None:
         """
@@ -368,11 +369,9 @@ class Map:
                 ):
                     # Item placed
                     items_placed += 1
-                    logger.debug(f"Placed {item}")
                 else:
                     # Item not placed
                     tries -= 1
-                    logger.debug(f"Didn't place {item}")
 
     def _place_tile(self, entity: TileType, rect: Rect) -> bool:
         """
@@ -398,7 +397,6 @@ class Map:
             np.random.randint(rect.x1 + 1, rect.x2 - 1),
             np.random.randint(rect.y1 + 1, rect.y2 - 1),
         )
-        logger.debug(f"Generated random position ({position_x}, {position_y})")
 
         # Check if the entity is an enemy. If so, we need to make sure they are not
         # within the spawn radius

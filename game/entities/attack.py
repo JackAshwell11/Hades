@@ -83,7 +83,7 @@ class Bullet(arcade.SpriteSolidColor):
         delta_time: float
             Time interval since the last time the function was called.
         """
-        # Check if the bullet passed the max range
+        # Check if the bullet is pass the max range
         if (
             math.hypot(
                 self.center_x - self.start_position[0],
@@ -92,7 +92,7 @@ class Bullet(arcade.SpriteSolidColor):
             >= self.max_range
         ):
             self.remove_from_sprite_lists()
-            logger.debug(f"Removed {self} after passing max_range {self.max_range}")
+            logger.debug(f"Removed {self} after passing max range {self.max_range}")
 
 
 class AttackBase:
@@ -207,6 +207,7 @@ class RangedAttack(AttackBase):
 
         # Make sure the needed parameters are valid
         bullet_list: arcade.SpriteList = args[0]
+        logger.info(f"Entity {self.owner} is performing a ranged attack")
 
         # Reset the time counter
         self.owner.time_since_last_attack = 0
@@ -234,7 +235,7 @@ class RangedAttack(AttackBase):
             math.sin(angle_radians) * BULLET_VELOCITY,
         )
         physics.set_velocity(new_bullet, (change_x, change_y))
-        logger.info(
+        logger.debug(
             f"Created bullet with owner {self.owner} at position"
             f" ({new_bullet.center_x}, {new_bullet.center_y}) with velocity"
             f" ({change_x}, {change_y})"
@@ -300,6 +301,9 @@ class MeleeAttack(AttackBase):
         """
         # Make sure the needed parameters are valid
         targets: list[Entity] = args[0]
+        logger.info(
+            f"Entity {self.owner} is performing a melee attack on targets{targets}"
+        )
 
         # Deal damage to all entities within range
         for entity in targets:
@@ -365,14 +369,16 @@ class AreaOfEffectAttack(AttackBase):
 
         # Make sure the needed parameters are valid
         target_entity: arcade.SpriteList | Entity = args[0]
+        logger.info(
+            f"Entity {self.owner} is performing an area of effect attack on"
+            f"{target_entity}"
+        )
 
         # Create a sprite with an empty texture
+        base_size = int(self.attack_range * 2 * SPRITE_SIZE)
         empty_texture = arcade.Texture.create_empty(
             "",
-            (
-                int(self.attack_range * 2 * SPRITE_SIZE),
-                int(self.attack_range * 2 * SPRITE_SIZE),
-            ),
+            (base_size, base_size),
         )
         area_of_effect_sprite = arcade.Sprite(
             center_x=self.owner.center_x,
@@ -385,7 +391,6 @@ class AreaOfEffectAttack(AttackBase):
             if arcade.check_for_collision(area_of_effect_sprite, target_entity):
                 # Target is the player so deal damage
                 target_entity.deal_damage(self.area_of_effect_attack_data.damage)
-            return
         except TypeError:
             for entity in arcade.check_for_collision_with_list(
                 area_of_effect_sprite, target_entity

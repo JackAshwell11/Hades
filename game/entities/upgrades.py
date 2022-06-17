@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 from typing import TYPE_CHECKING
 
 # Custom
@@ -10,6 +11,9 @@ if TYPE_CHECKING:
     from game.constants.entity import AttributeUpgradeData, EntityUpgradeData
     from game.entities.player import Player
     from game.views.shop_view import SectionUpgradeButton
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class UpgradableAttributeBase:
@@ -239,6 +243,9 @@ def create_attribute_upgrade(
     # Get the upgradable attribute class type which manages the given upgradable
     # attribute
     cls = UPGRADABLE_ATTRIBUTES[upgrade_attribute_type]
+    logger.debug(
+        f"Selected upgradable attribute {cls} for upgrade type{upgrade_attribute_type}"
+    )
 
     # Initialise the class with the given parameters
     return cls(parent_section, player, attribute_upgrade_data)
@@ -324,8 +331,10 @@ class UpgradableSection:
         ):
             # Subtract the cost from the player's money and upgrade each attribute this
             # section manages
+            logger.debug(f"Upgrading section {self.entity_upgrade_data.section_type}")
             self.player.money -= self.next_level_cost
             for attribute_upgrade in self.attributes:
+                logger.debug(f"Upgrading attribute {attribute_upgrade}")
                 attribute_upgrade.upgrade_attribute()
 
             # Increase this section's level

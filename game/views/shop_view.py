@@ -52,8 +52,6 @@ class BackButton(arcade.gui.UIFlatButton):
         game_view: Game = window.views["Game"]  # noqa
         window.show_view(game_view)
 
-        logger.info("Switching from shop view to game view")
-
 
 class ShopView(BaseView):
     """
@@ -96,13 +94,6 @@ class ShopView(BaseView):
 
     def __repr__(self) -> str:
         return f"<ShopView (Current window={self.window})>"
-
-    def on_show(self) -> None:
-        """Called when the view loads."""
-        # Set the background color
-        self.window.background_color = arcade.color.BABY_BLUE
-
-        logger.info("Shown shop view")
 
     def on_draw(self) -> None:
         """Render the screen."""

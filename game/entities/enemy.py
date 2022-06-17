@@ -96,6 +96,7 @@ class Enemy(Entity):
         """
         # Get the enemy level adjusted for an array index
         adjusted_level = self.enemy_level - 1
+        logger.debug(f"Initialising enemy with level {adjusted_level}")
 
         # Create the entity state dict
         return {
@@ -129,11 +130,6 @@ class Enemy(Entity):
             # Enemy not in combat so check if they can regenerate armour
             if self.entity_data.armour_regen:
                 self.regenerate_armour(delta_time)
-
-                # Make sure the enemy's armour does not go over the maximum
-                if self.armour > self.max_armour:
-                    self.armour = self.max_armour
-                    logger.debug(f"Set {self} armour to max")
         else:
             # Enemy in combat so reset their combat counter
             self.time_out_of_combat = 0
@@ -177,7 +173,6 @@ class Enemy(Entity):
 
         # Apply the force
         self.physics_engines[0].apply_force(self, (horizontal, vertical))
-        logger.debug(f"Applied force ({horizontal}, {vertical}) to {self}")
 
         # Update the health and armour bar's position
         self.armour_bar.position = (

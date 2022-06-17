@@ -246,10 +246,6 @@ class Leaf:
                 self,
                 self.grid,
             )
-            logger.debug(
-                f"Split map vertically at {pos} making child leafs {self.left} and"
-                f" {self.right}"
-            )
         else:
             # Split horizontally making sure to adjust pos, so it can be within range of
             # the actual container
@@ -275,10 +271,6 @@ class Leaf:
                 self.container.y2,
                 self,
                 self.grid,
-            )
-            logger.debug(
-                f"Split map horizontally at {pos} making child leafs {self.left} and"
-                f" {self.right}"
             )
 
         # Set the leaf's split direction
@@ -317,7 +309,6 @@ class Leaf:
 
         # Create the room rect
         self.room = Rect(x_pos, y_pos, x_pos + width - 1, y_pos + height - 1)
-        logger.debug(f"Created room {self.room}")
 
         # Place the room rect in the 2D grid
         self.place_rect(self.room)
@@ -373,10 +364,6 @@ class Leaf:
                 start_room.center_x,
                 target_room.center_y,
             )
-        logger.debug(
-            f"Hallway intersection created at({hallway_intersection_x},"
-            f" {hallway_intersection_y})"
-        )
 
         # Determine hallway width/height
         half_hallway_size = HALLWAY_SIZE // 2
@@ -455,9 +442,6 @@ class Leaf:
                 *first_bottom_right,
             )
             self.place_rect(first_hallway)
-            logger.debug(
-                f"First hallway placed at ({first_top_left}, {first_bottom_right})"
-            )
         second_hallway = None
         if second_hallway_valid:
             second_hallway = Rect(
@@ -465,9 +449,6 @@ class Leaf:
                 *second_bottom_right,
             )
             self.place_rect(second_hallway)
-            logger.debug(
-                f"Second hallway placed at ({second_top_left}, {second_bottom_right})"
-            )
 
         # Return both hallways
         return first_hallway, second_hallway
@@ -498,4 +479,3 @@ class Leaf:
             max(rect.y1 + 1, 1) : min(rect.y2, height - 1),
             max(rect.x1 + 1, 1) : min(rect.x2, width - 1),
         ] = TileType.FLOOR.value
-        logger.debug(f"Placed rect {rect}")

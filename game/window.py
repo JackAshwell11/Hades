@@ -48,7 +48,6 @@ def main() -> None:
     window.views["StartMenu"] = new_view
     window.show_view(window.views["StartMenu"])
     new_view.ui_manager.enable()
-    logging.info("Initialised start menu view")
 
     # Run the game
     window.run()
