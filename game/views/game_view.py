@@ -668,8 +668,4 @@ class Game(BaseView):
         # Check if the camera position has changed
         if self.game_camera.position != new_position:
             # Move the camera to the new position
-            logger.debug(
-                f"Moving camera position from {self.game_camera.position} to"
-                f" {new_position}"
-            )
             self.game_camera.move_to(new_position)

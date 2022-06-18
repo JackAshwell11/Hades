@@ -15,6 +15,10 @@ from game.views.start_menu_view import StartMenu
 if TYPE_CHECKING:
     from game.views.base_view import BaseView
 
+# Initialise logging and get the game logger
+logging.config.dictConfig(LOGGING_DICT_CONFIG)
+logger = logging.getLogger("game")
+
 
 class Window(arcade.Window):
     """
@@ -48,8 +52,10 @@ def main() -> None:
     window.views["StartMenu"] = new_view
     window.show_view(window.views["StartMenu"])
     new_view.ui_manager.enable()
+    logger.info("Initialised start menu view")
 
     # Run the game
+    logger.info("Running game")
     window.run()
 
 
