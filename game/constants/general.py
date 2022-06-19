@@ -14,6 +14,7 @@ log_dir.mkdir(parents=True, exist_ok=True)
 log_path = log_dir.joinpath(f"{datetime.now().strftime('%Y-%m-%d')}.log")
 
 # Logging constants
+GAME_LOGGER = "game"
 LOGGING_DICT_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -47,7 +48,7 @@ LOGGING_DICT_CONFIG = {
             "handlers": ["console"],
             "propagate": False,
         },
-        "game": {
+        GAME_LOGGER: {
             "level": "DEBUG",
             "handlers": ["file"],
             "propagate": False,

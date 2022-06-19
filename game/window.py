@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 # Builtin
-import logging
 import logging.config
 from typing import TYPE_CHECKING
 
@@ -9,7 +8,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.general import LOGGING_DICT_CONFIG
+from game.constants.general import GAME_LOGGER, LOGGING_DICT_CONFIG
 from game.views.start_menu_view import StartMenu
 
 if TYPE_CHECKING:
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 
 # Initialise logging and get the game logger
 logging.config.dictConfig(LOGGING_DICT_CONFIG)
-logger = logging.getLogger("game")
+logger = logging.getLogger(GAME_LOGGER)
 
 
 class Window(arcade.Window):
@@ -40,9 +39,6 @@ class Window(arcade.Window):
 
 def main() -> None:
     """Initialises the game and runs it."""
-    # Initialise logging
-    logging.config.dictConfig(LOGGING_DICT_CONFIG)
-
     # Initialise the window
     window = Window()
     window.center_window()
