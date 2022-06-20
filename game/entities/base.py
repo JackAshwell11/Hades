@@ -160,18 +160,6 @@ class IndicatorBar:
         return self._bar_width
 
     @property
-    def half_bar_width(self) -> float:
-        """
-        Gets the value that is half of the bar's width.
-
-        Returns
-        -------
-        float
-            The value that is half of the bar's width.
-        """
-        return self.bar_width / 2
-
-    @property
     def bar_height(self) -> int:
         """
         Gets the height of the bar.
@@ -182,18 +170,6 @@ class IndicatorBar:
             The height of the bar.
         """
         return self._bar_height
-
-    @property
-    def half_bar_height(self) -> float:
-        """
-        Gets the value that is half of the bar's height.
-
-        Returns
-        -------
-        float
-            The value that is half of the bar's height.
-        """
-        return self.bar_height / 2
 
     @property
     def center_x(self) -> float:
@@ -309,7 +285,7 @@ class IndicatorBar:
             # Set the full_box to be visible incase it wasn't then update the bar
             self.full_box.visible = True
             self.full_box.width = self.bar_width * new_fullness * self.scale
-            self.full_box.left = self.center_x - self.half_bar_width * self.scale
+            self.full_box.left = self.center_x - (self.bar_width / 2) * self.scale
 
     @property
     def position(self) -> tuple[float, float]:
@@ -340,7 +316,7 @@ class IndicatorBar:
             self.full_box.position = new_position
 
             # Make sure full_box is to the left of the bar instead of the middle
-            self.full_box.left = self.center_x - self.half_bar_width * self.scale
+            self.full_box.left = self.center_x - (self.bar_width / 2) * self.scale
 
     @property
     def scale(self) -> float:

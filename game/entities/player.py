@@ -92,10 +92,10 @@ class Player(Entity):
             scale=4,
         )
         self.health_bar.position = (
-            self.health_bar.half_bar_width * self.health_bar.scale
+            (self.health_bar.bar_width / 2) * self.health_bar.scale
             + 2 * INDICATOR_BAR_BORDER_SIZE,
             self.game.gui_camera.viewport_height
-            - self.health_bar.half_bar_height * self.health_bar.scale
+            - (self.health_bar.bar_height / 2) * self.health_bar.scale
             - 2 * INDICATOR_BAR_BORDER_SIZE,
         )
         self.armour_bar: IndicatorBar = IndicatorBar(
@@ -109,7 +109,7 @@ class Player(Entity):
         self.armour_bar.position = (
             self.health_bar.center_x,
             self.health_bar.bottom
-            - self.armour_bar.half_bar_height * self.armour_bar.scale,
+            - (self.health_bar.bar_height / 2) * self.armour_bar.scale,
         )
         self._entity_state.update({"money": 0.0})
         self.inventory: list[CollectibleTile] = []

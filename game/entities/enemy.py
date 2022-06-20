@@ -181,7 +181,7 @@ class Enemy(Entity):
         )
         self.health_bar.position = (
             self.center_x,
-            self.armour_bar.top + self.health_bar.half_bar_height,
+            self.armour_bar.top + (self.health_bar.bar_height / 2),
         )
 
     def attack(self) -> None:
