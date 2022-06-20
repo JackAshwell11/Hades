@@ -1108,5 +1108,5 @@ class CollectibleTile(InteractiveTile):
             return True
         else:
             # Add not successful due to full inventory
-            # TODO: Probably give message to user
+            self.game.display_info_box("Inventory is full")
             return False

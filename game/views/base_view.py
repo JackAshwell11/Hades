@@ -10,7 +10,6 @@ import arcade
 from arcade.gui import (
     UIAnchorWidget,
     UIEvent,
-    UIFlatButton,
     UILayout,
     UIManager,
     UIMouseFilterMixin,
@@ -31,8 +30,8 @@ class UIBoxDisappearEvent(UIEvent):
 
 class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
     """
-    Represents a simple dialog box that pops up with a message with buttons to close and
-    will disappear after a certain amount of time.
+    Represents a simple dialog box that pops up with a message and disappears after a
+    certain amount of time.
 
     Parameters
     ----------
@@ -47,9 +46,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
     text_color: int
         The color of the text in the box.
     background_color: arcade.Color
-        The color of the background of the box..
-    button_text: str
-        The text to display on the button.
+        The color of the background of the box.
     disappear_time: float
         The time before the box should disappear.
     """
@@ -63,15 +60,13 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         message_text: str,
         text_color: arcade.Color = arcade.color.BLACK,
         background_color: arcade.Color = arcade.color.BABY_BLUE,
-        button_text: str = "Ok",
-        disappear_time: float = 5,
+        disappear_time: float = 3,
     ) -> None:
         # The offset used for the anchoring
         anchor_offset = 10
 
         # Store various variables needed for this box to function
         self._parent_view: BaseView = parent_view
-        self._button_text: str = button_text
         self._time_counter: float = disappear_time
 
         # Set up the text box
@@ -82,10 +77,6 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
             font_size=18,
             text_color=text_color,
         )
-
-        # Set up the exit button
-        self._exit_button = UIFlatButton(text=button_text)
-        self._exit_button.on_click = self.remove_box
 
         # Set up the layout
         group = UILayout(
@@ -99,13 +90,6 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
                     align_x=10,
                     align_y=-10,
                 ),
-                UIAnchorWidget(
-                    child=self._exit_button,
-                    anchor_x="right",
-                    anchor_y="bottom",
-                    align_x=-10,
-                    align_y=10,
-                ),
             ],
         ).with_background(
             arcade.Texture.create_filled(
@@ -113,7 +97,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
             )
         )
         logger.info(
-            f"Created info box with text `{message_text}` and time{disappear_time}"
+            f"Created info box with text `{message_text}` and time {disappear_time}"
         )
 
         super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)
@@ -129,9 +113,6 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         """
         # Update the counter
         self._time_counter -= delta_time
-
-        # Update the button text
-        self._exit_button.text = f"{self._button_text} ({round(self._time_counter)})"
 
         # Check if the box should disappear
         if self._time_counter <= 0:
