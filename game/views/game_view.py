@@ -34,7 +34,7 @@ from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
 from game.entities.player import Player
 from game.entities.tile import Consumable, Floor, Wall
-from game.generation.map import create_map
+from game.generation.map import GameMapShape, create_map
 from game.physics import PhysicsEngine
 from game.textures import grid_pos_to_pixel
 from game.vector_field import VectorField
@@ -60,8 +60,8 @@ class Game(BaseView):
 
     Attributes
     ----------
-    game_map_shape: tuple[int, int] | None
-        The height and width of the game map.
+    game_map_shape: GameMapShape | None
+        A named tuple representing the height and width of the game map.
     player: Player | None
         The sprite for the playable character in the game.
     vector_field: VectorField | None
@@ -99,7 +99,7 @@ class Game(BaseView):
         super().__init__()
         self.debug_mode: bool = debug_mode
         self.background_color = arcade.color.BLACK
-        self.game_map_shape: tuple[int, int] = (-1, -1)
+        self.game_map_shape: GameMapShape | None = None
         self.player: Player | None = None
         self.vector_field: VectorField | None = None
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
@@ -171,8 +171,7 @@ class Game(BaseView):
         )
 
         # Create the game map
-        game_map = create_map(level)
-        self.game_map_shape = game_map.shape
+        game_map, self.game_map_shape = create_map(level)
 
         # Assign sprites to the game map and initialise the vector grid
         for count_y, y in enumerate(np.flipud(game_map)):
@@ -287,7 +286,8 @@ class Game(BaseView):
                         self.tile_sprites.append(fire_rate_potion)
                         self.item_sprites.append(fire_rate_potion)
 
-        # Make sure the player was actually created
+        # Make sure the game map shape was set and the player was actually created
+        assert self.game_map_shape is not None
         assert self.player is not None
 
         # Debug what was created
@@ -298,7 +298,7 @@ class Game(BaseView):
 
         # Initialise the vector field
         self.vector_field = VectorField(
-            self.game_map_shape[1], self.game_map_shape[0], self.wall_sprites
+            self.game_map_shape.width, self.game_map_shape.height, self.wall_sprites
         )
         self.vector_field.recalculate_map(self.player.position)
         logger.debug(
@@ -638,6 +638,7 @@ class Game(BaseView):
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
         # Make sure variables needed are valid
+        assert self.game_map_shape is not None
         assert self.player is not None
 
         # Calculate the screen position centered on the player
@@ -645,7 +646,10 @@ class Game(BaseView):
         screen_center_y = self.player.center_y - (self.game_camera.viewport_height / 2)
 
         # Calculate the maximum width and height of the game map
-        upper_y, upper_x = grid_pos_to_pixel(*self.game_map_shape)
+        upper_x, upper_y = grid_pos_to_pixel(
+            self.game_map_shape.width,
+            self.game_map_shape.height,
+        )
 
         # Calculate the maximum width and height the camera can be
         half_sprite_size = SPRITE_SIZE / 2

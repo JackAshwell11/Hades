@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from collections import deque
 from itertools import pairwise
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 # Pip
 import numpy as np
@@ -46,7 +46,7 @@ np.set_printoptions(
 )
 
 
-def create_map(level: int) -> np.ndarray:
+def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
     """
     Initialises and generates the game map.
 
@@ -57,10 +57,27 @@ def create_map(level: int) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
-        The generated map.
+    tuple[np.ndarray, GameMapShape]
+        The generated map and a named tuple containing the width and height.
     """
-    return Map(level).grid
+    grid: np.ndarray = Map(level).grid
+    return grid, GameMapShape(grid.shape[1], grid.shape[0])
+
+
+class GameMapShape(NamedTuple):
+    """
+    Represents a two element tuple holding the width and height of a game map.
+
+    Parameters
+    ----------
+    width: int
+        The width of the game map.
+    height: int
+        The height of the game map.
+    """
+
+    width: int
+    height: int
 
 
 class Map:
