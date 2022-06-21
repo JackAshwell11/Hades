@@ -1,3 +1,7 @@
+"""
+Creates an efficient vector flow field useful for navigating enemies around the game
+map.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -240,7 +244,7 @@ class VectorField:
 
         # Log the time taken to generate the vector field
         logger.debug(
-            f"Vector field generated in {time.perf_counter() - start_time}seconds"
+            "Vector field generated in %f seconds", time.perf_counter() - start_time
         )
 
     def get_vector_direction(

@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 from __future__ import annotations
 
 # Builtin
@@ -20,9 +22,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Create the paths to the shader scripts
-base_path = (
-    pathlib.Path(__file__).parent.joinpath("resources").joinpath("shader scripts")
-)
+base_path = pathlib.Path(__file__).parent / "resources" / "shader scripts"
 vertex_path = base_path.joinpath("melee_vertex.glsl")
 geometry_path = base_path.joinpath("melee_geometry.glsl")
 
