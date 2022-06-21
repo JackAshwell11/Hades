@@ -17,6 +17,7 @@ from game.constants.entity import (
     SPRITE_SIZE,
     AttackAlgorithmType,
     EntityID,
+    PlayerData,
     UpgradeSection,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
@@ -123,6 +124,22 @@ class Player(Entity):
 
     def __repr__(self) -> str:
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
+
+    @property
+    def player_data(self) -> PlayerData:
+        """
+        Gets the player data if it exists.
+
+        Returns
+        -------
+        PlayerData
+            The player data.
+        """
+        # Make sure the player data is valid
+        assert self.entity_type.player_data is not None
+
+        # Return the player data
+        return self.entity_type.player_data
 
     @property
     def money(self) -> float:

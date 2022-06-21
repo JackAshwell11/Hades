@@ -22,10 +22,8 @@ if TYPE_CHECKING:
         AreaOfEffectAttackData,
         AttackData,
         BaseData,
-        EnemyData,
         EntityData,
         MeleeAttackData,
-        PlayerData,
         RangedAttackData,
     )
     from game.entities.attack import AttackBase
@@ -429,45 +427,8 @@ class Entity(arcade.Sprite):
         EntityData
             The general entity data.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-
         # Return the entity data
         return self.entity_type.entity_data
-
-    @property
-    def player_data(self) -> PlayerData:
-        """
-        Gets the player data if it exists.
-
-        Returns
-        -------
-        PlayerData
-            The player data.
-        """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-        assert self.entity_type.player_data is not None
-
-        # Return the player data
-        return self.entity_type.player_data
-
-    @property
-    def enemy_data(self) -> EnemyData:
-        """
-        Gets the enemy data if it exists.
-
-        Returns
-        -------
-        EnemyData
-            The enemy data.
-        """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-        assert self.entity_type.enemy_data is not None
-
-        # Return the enemy data
-        return self.entity_type.enemy_data
 
     @property
     def attacks(self) -> list[AttackData]:
@@ -479,9 +440,6 @@ class Entity(arcade.Sprite):
         list[AttackData]
             The entity's attacks.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-
         # Return the enemy data
         return self.entity_type.get_all_attacks()
 
@@ -496,7 +454,6 @@ class Entity(arcade.Sprite):
             The ranged attack data.
         """
         # Make sure the entity type is valid
-        assert self.entity_type is not None
         assert self.entity_type.ranged_attack_data is not None
 
         # Return the ranged attack data
@@ -513,7 +470,6 @@ class Entity(arcade.Sprite):
             The melee attack data.
         """
         # Make sure the entity type is valid
-        assert self.entity_type is not None
         assert self.entity_type.melee_attack_data is not None
 
         # Return the melee attack data
@@ -530,7 +486,6 @@ class Entity(arcade.Sprite):
             The area of effect attack data.
         """
         # Make sure the entity type is valid
-        assert self.entity_type is not None
         assert self.entity_type.area_of_effect_attack_data is not None
 
         # Return the area of effect attack data

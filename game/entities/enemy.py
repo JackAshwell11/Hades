@@ -17,6 +17,7 @@ from game.constants.entity import (
     HEALTH_INDICATOR_BAR_COLOR,
     SPRITE_SIZE,
     AttackAlgorithmType,
+    EnemyData,
     EntityID,
 )
 from game.entities.base import Entity, IndicatorBar
@@ -84,6 +85,22 @@ class Enemy(Entity):
             f"<Enemy (Position=({self.center_x}, {self.center_y})) (Enemy"
             f" level={self.enemy_level})>"
         )
+
+    @property
+    def enemy_data(self) -> EnemyData:
+        """
+        Gets the enemy data if it exists.
+
+        Returns
+        -------
+        EnemyData
+            The enemy data.
+        """
+        # Make sure the enemy data is valid
+        assert self.entity_type.enemy_data is not None
+
+        # Return the enemy data
+        return self.entity_type.enemy_data
 
     def _initialise_entity_state(self) -> dict[str, float]:
         """
