@@ -11,15 +11,17 @@ import arcade
 import numpy as np
 
 # Custom
-from game.constants.consumable import (
+from game.constants.constructor import (
     ARMOUR_BOOST_POTION,
     ARMOUR_POTION,
+    ENEMY1,
     FIRE_RATE_BOOST_POTION,
     HEALTH_BOOST_POTION,
     HEALTH_POTION,
+    PLAYER,
     SPEED_BOOST_POTION,
 )
-from game.constants.entity import ENEMY1, FACING_LEFT, FACING_RIGHT, PLAYER, SPRITE_SIZE
+from game.constants.entity import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
 from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,

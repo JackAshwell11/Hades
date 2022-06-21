@@ -11,7 +11,6 @@ import arcade
 # Custom
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
-from game.textures import moving_textures
 
 
 # Entity IDs
@@ -249,101 +248,6 @@ class AreaOfEffectAttackData(AttackData):
     """
 
     attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
-
-
-# Player characters
-PLAYER = BaseData(
-    entity_data=EntityData(
-        name="player",
-        textures=moving_textures["player"],
-        armour_regen=True,
-        upgrade_level_limit=5,
-        upgrade_data=[
-            EntityUpgradeData(
-                section_type=UpgradeSection.ENDURANCE,
-                cost=lambda current_level: 1 * 3**current_level,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.HEALTH,
-                        increase=lambda current_level: 100 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.SPEED,
-                        increase=lambda current_level: 150 * 1.4**current_level,
-                    ),
-                ],
-            ),
-            EntityUpgradeData(
-                section_type=UpgradeSection.DEFENCE,
-                cost=lambda current_level: 1 * 3**current_level,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.ARMOUR,
-                        increase=lambda current_level: 20 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
-                        increase=lambda current_level: 2 * 0.5**current_level,
-                    ),
-                ],
-            ),
-        ],
-    ),
-    player_data=PlayerData(
-        melee_degree=60,
-    ),
-    ranged_attack_data=RangedAttackData(
-        damage=10, attack_cooldown=3, attack_range=0, max_range=10
-    ),
-    melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1, attack_range=3),
-    area_of_effect_attack_data=AreaOfEffectAttackData(
-        damage=10, attack_cooldown=10, attack_range=3
-    ),
-)
-
-# Enemy characters
-ENEMY1 = BaseData(
-    entity_data=EntityData(
-        name="enemy1",
-        textures=moving_textures["enemy"],
-        armour_regen=True,
-        upgrade_level_limit=5,
-        upgrade_data=[
-            EntityUpgradeData(
-                section_type=UpgradeSection.ENDURANCE,
-                cost=lambda current_level: -1,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.HEALTH,
-                        increase=lambda current_level: 10 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.SPEED,
-                        increase=lambda current_level: 50 * 1.4**current_level,
-                    ),
-                ],
-            ),
-            EntityUpgradeData(
-                section_type=UpgradeSection.DEFENCE,
-                cost=lambda current_level: -1,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.ARMOUR,
-                        increase=lambda current_level: 10 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
-                        increase=lambda current_level: 3 * 0.6**current_level,
-                    ),
-                ],
-            ),
-        ],
-    ),
-    enemy_data=EnemyData(view_distance=5),
-    ranged_attack_data=RangedAttackData(
-        damage=5, attack_cooldown=5, attack_range=5, max_range=10
-    ),
-)
 
 
 # Sprite sizes

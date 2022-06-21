@@ -7,6 +7,9 @@ import pathlib
 # Pip
 import arcade
 
+# Custom
+from game.constants.entity import SPRITE_SIZE
+
 
 def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
     """
@@ -24,9 +27,6 @@ def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
     tuple[float, float]
         The x and y position of a sprite on the screen.
     """
-    # Avoid a circular import
-    from game.constants.entity import SPRITE_SIZE
-
     # Calculate the position on screen
     return (
         x * SPRITE_SIZE + SPRITE_SIZE / 2,
