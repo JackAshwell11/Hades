@@ -1,3 +1,7 @@
+"""
+Visually displays the player's inventory so the player can manage their inventory and
+use items.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -14,7 +18,6 @@ from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
     from game.entities.player import Player
-    from game.views.game_view import Game
     from game.window import Window
 
 # Get the logger
@@ -44,7 +47,7 @@ class InventoryBox(arcade.gui.UITextureButton):
             # Use it
             if not self.item_ref.item_use():
                 # Use was not successful
-                logger.info(f"Item use for {self.item_ref} not successful")
+                logger.info("Item use for %r not successful", self.item_ref)
                 return
 
             # Get the current window, current view and game view
@@ -63,26 +66,7 @@ class InventoryBox(arcade.gui.UITextureButton):
             # the user exits
             self.trigger_full_render()
 
-            logger.info(f"Item use for {self.item_ref} successful")
-
-
-class BackButton(arcade.gui.UIFlatButton):
-    """A button which will switch back to the game view."""
-
-    def __repr__(self) -> str:
-        return (
-            f"<BackButton (Position=({self.center_x}, {self.center_y}))"
-            f" (Width={self.width}) (Height={self.height})>"
-        )
-
-    def on_click(self, _) -> None:
-        """Called when the button is clicked."""
-        # Get the current window and view
-        window: Window = arcade.get_window()
-
-        # Show the game view
-        game_view: Game = window.views["Game"]  # noqa
-        window.show_view(game_view)
+            logger.info("Item use for %r successful", self.item_ref)
 
 
 class InventoryView(BaseView):
@@ -115,8 +99,7 @@ class InventoryView(BaseView):
             self.vertical_box.add(horizontal_box)
 
         # Create the back button
-        back_button = BackButton(text="Back", width=200)
-        self.vertical_box.add(back_button.with_space_around(top=20))
+        self.add_back_button(self.vertical_box)
 
         # Register the UI elements
         self.ui_manager.add(
@@ -159,6 +142,6 @@ class InventoryView(BaseView):
                     inventory_box_obj.texture = None
                     result[1] += 1
         logger.info(
-            f"Updated inventory grid with {result[0]} item textures and"
-            f" {result[1]} empty textures"
+            "Updated inventory grid with %d item textures and %d empty textures",
+            *result,
         )

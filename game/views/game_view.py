@@ -1,3 +1,7 @@
+"""
+Initialises and manages the main game through controlling movement, attacking, game
+logic and collision.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -533,8 +537,8 @@ class Game(BaseView):
             case arcade.key.E:
                 if self.nearest_item:
                     with contextlib.suppress(AttributeError):
-                        # Nearest item is a collectible. If this fails, then it is an
-                        # item
+                        # Nearest item is a collectible. If this raises an error, then
+                        # it is an item
                         self.nearest_item.item_pick_up()
             case arcade.key.R:
                 if self.nearest_item:

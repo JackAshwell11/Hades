@@ -1,3 +1,6 @@
+"""
+Creates a start menu so the player can change their settings or game mode.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -26,15 +29,15 @@ class StartButton(arcade.gui.UIFlatButton):
         """Called when the button is clicked."""
         # Get the current window and view
         window: Window = arcade.get_window()
-        current_view: StartMenu = window.current_view  # noqa
 
         # Set up the new game
         new_game = Game(DEBUG_GAME)
         window.views["Game"] = new_game
         new_game.setup(1)
         logger.info(
-            f"Initialised game view at level {1} with debug mode "
-            f"{'ON' if DEBUG_GAME else 'OFF'}"
+            "Initialised game view at level %d with debug mode %s",
+            1,
+            "ON" if DEBUG_GAME else "OFF",
         )
 
         # Show the new game

@@ -1,3 +1,7 @@
+"""
+Creates a shop so the player can upgrade attributes and buy special upgrades/other
+items.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -13,8 +17,6 @@ from game.views.base_view import BaseView
 if TYPE_CHECKING:
     from game.entities.player import Player
     from game.entities.upgrades import UpgradableSection
-    from game.views.game_view import Game
-    from game.window import Window
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -32,25 +34,6 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
 
         # Upgrade the section if it is possible
         self.section_ref.upgrade_section(self)
-
-
-class BackButton(arcade.gui.UIFlatButton):
-    """A button which will switch back to the game view."""
-
-    def __repr__(self) -> str:
-        return (
-            f"<BackButton (Position=({self.center_x}, {self.center_y}))"
-            f" (Width={self.width}) (Height={self.height})>"
-        )
-
-    def on_click(self, _) -> None:
-        """Called when the button is clicked."""
-        # Get the current window and view
-        window: Window = arcade.get_window()
-
-        # Show the game view
-        game_view: Game = window.views["Game"]  # noqa
-        window.show_view(game_view)
 
 
 class ShopView(BaseView):
@@ -82,8 +65,7 @@ class ShopView(BaseView):
             vertical_box.add(upgrade_section_button.with_space_around(bottom=20))
 
         # Create the back button
-        back_button = BackButton(text="Back", width=200)
-        vertical_box.add(back_button)
+        self.add_back_button(vertical_box)
 
         # Register the UI elements
         self.ui_manager.add(
