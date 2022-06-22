@@ -1,3 +1,7 @@
+"""
+Manages the procedural generation of the dungeon and places the player, enemies and
+items into the game map.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -32,7 +36,7 @@ from game.constants.generation import (
     SMALL_ROOM,
     TileType,
 )
-from game.generation.bsp import Leaf
+from game.generation.bsp import Leaf, Point
 
 if TYPE_CHECKING:
     from game.generation.bsp import Rect
@@ -41,9 +45,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Set the numpy print formatting to allow pretty printing (for debugging)
-np.set_printoptions(
-    edgeitems=30, linewidth=1000, formatter=dict(float=lambda x: "%.3g" % x)
-)
+np.set_printoptions(threshold=10, edgeitems=30, linewidth=1000)
 
 
 def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
@@ -213,7 +215,7 @@ class Map:
         # Merge the enemy/item type count dict and the generation constants dict
         # together and then return the result
         result = generation_constants | type_dict
-        logger.info(f"Generated map constants {result}")
+        logger.info("Generated map constants %r", result)
         return result
 
     def make_map(self) -> None:
@@ -225,10 +227,8 @@ class Map:
 
         # Create the first leaf used for generation
         self.bsp = Leaf(
-            0,
-            0,
-            self.map_constants["width"] - 1,
-            self.map_constants["height"] - 1,
+            Point(0, 0),
+            Point(self.map_constants["width"] - 1, self.map_constants["height"] - 1),
             None,
             self.grid,
         )
@@ -256,7 +256,7 @@ class Map:
                 # Multiply the probabilities by SMALL_ROOM
                 self.probabilities["SMALL"] *= SMALL_ROOM["SMALL"]
                 self.probabilities["LARGE"] *= SMALL_ROOM["LARGE"]
-                logger.debug(f"Split bsp. New probabilities are {self.probabilities}")
+                logger.debug("Split bsp. New probabilities are %r", self.probabilities)
 
                 # Decrement the split count
                 split_count -= 1
@@ -265,7 +265,7 @@ class Map:
                 self.probabilities["SMALL"] *= LARGE_ROOM["SMALL"]
                 self.probabilities["LARGE"] *= LARGE_ROOM["LARGE"]
                 logger.debug(
-                    f"Didn't split bsp. New probabilities are {self.probabilities}"
+                    "Didn't split bsp. New probabilities are %r", self.probabilities
                 )
 
             # Normalise the probabilities, so they add up to 1
@@ -298,14 +298,14 @@ class Map:
         # list using itertools.pairwise
         rooms: list[Rect] = [leaf.room for leaf in leafs if leaf.room]
         hallways: list[Rect] = []
-        logger.info(f"Created {len(rooms)} rooms")
+        logger.info("Created %d rooms", len(rooms))
         for pair in list(pairwise(leafs)):
             first_hallway, second_hallway = pair[0].create_hallway(pair[1])
             if first_hallway:
                 hallways.append(first_hallway)
             if second_hallway:
                 hallways.append(second_hallway)
-        logger.info(f"Created {len(hallways)} hallways")
+        logger.info("Created %d hallways", len(hallways))
 
         # Create a sorted list of tuples based on the rect areas
         rects: list[Rect] = rooms + hallways
@@ -314,7 +314,7 @@ class Map:
             key=lambda x: x[1],
         )
         total_area = sum(area[1] for area in rect_areas)
-        logger.debug(f"Created {len(rects)} total rects with area {total_area}")
+        logger.debug("Created %d total rects with area %d", len(rects), total_area)
 
         # Place the player spawn in the smallest room
         self._place_tile(TileType.PLAYER, rect_areas[0][0])
@@ -327,6 +327,11 @@ class Map:
 
         # Place the items
         self._place_items(rect_areas)
+        logger.info(
+            "Finished creating game map with constants %r and rect count %d",
+            self.map_constants,
+            len(rects),
+        )
 
     def _place_enemies(
         self,
@@ -345,7 +350,7 @@ class Map:
         """
         # Repeatedly place an enemy type. If they are placed, we can increment the
         # counter. Otherwise, continue
-        for enemy in ENEMY_DISTRIBUTION.keys():
+        for enemy in ENEMY_DISTRIBUTION:
             # Set up the counters for this enemy type
             count = self.map_constants[enemy]
             enemies_placed = 0
@@ -375,7 +380,7 @@ class Map:
         """
         # Repeatedly place an item type. If they are placed, we can increment the
         # counter. Otherwise, continue
-        for item in ITEM_DISTRIBUTION.keys():
+        for item in ITEM_DISTRIBUTION:
             # Set up the counters for this item type
             count = self.map_constants[item]
             items_placed = 0
@@ -411,8 +416,8 @@ class Map:
 
         # Get a random position within the rect making sure to exclude the walls
         position_x, position_y = (
-            np.random.randint(rect.x1 + 1, rect.x2 - 1),
-            np.random.randint(rect.y1 + 1, rect.y2 - 1),
+            np.random.randint(rect.top_left.x + 1, rect.bottom_right.x - 1),
+            np.random.randint(rect.top_left.y + 1, rect.bottom_right.y - 1),
         )
 
         # Check if the entity is an enemy. If so, we need to make sure they are not
