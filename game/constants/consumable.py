@@ -1,3 +1,7 @@
+"""
+Stores various constants related to consumables and the dataclasses used for
+constructing the consumables.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -48,11 +52,9 @@ class ConsumableData:
     name: str = field(kw_only=True)
     texture: arcade.Texture = field(kw_only=True)
     level_limit: int = field(kw_only=True)
-    instant: Sequence[InstantData] = field(
-        kw_only=True, default_factory=lambda: [].copy()
-    )
+    instant: Sequence[InstantData] = field(kw_only=True, default_factory=list)
     status_effects: Sequence[StatusEffectData] = field(
-        kw_only=True, default_factory=lambda: [].copy()
+        kw_only=True, default_factory=list
     )
 
 

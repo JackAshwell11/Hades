@@ -1,3 +1,7 @@
+"""
+Stores various constants related to entities and the dataclasses used for constructing
+the entities.
+"""
 from __future__ import annotations
 
 # Builtin

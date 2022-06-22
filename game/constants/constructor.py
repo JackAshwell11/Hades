@@ -1,3 +1,6 @@
+"""
+Stores all the constructors used to make the entities and consumables.
+"""
 from __future__ import annotations
 
 # Custom

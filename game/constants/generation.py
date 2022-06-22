@@ -1,3 +1,6 @@
+"""
+Stores various constants related to the bsp generation.
+"""
 from __future__ import annotations
 
 # Custom

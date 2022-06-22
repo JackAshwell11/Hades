@@ -47,4 +47,9 @@ repos:
 #    rev: v2.14.3
 #    hooks:
 #    -   id: pylint
-#        args: ["--disable='E0001','E1123'", "--max-line-length=88", "--good-names=i,j,k,x,y,dx,dy,x1,x2,y1,y2"]
+#        args: [
+#            "--disable='E0001','E1123','E1120'",  # E0001 is match-case, E1123 is kw_only and E1120 is attack_type
+#            "--max-line-length=88",
+#            "--good-names=i,j,k,x,y,dx,dy,x1,x2,y1,y2",
+#            "--ignore=TEMP-FILES",
+#        ]
