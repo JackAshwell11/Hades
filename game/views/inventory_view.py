@@ -106,9 +106,9 @@ class InventoryView(BaseView):
         self.vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
 
         # Create the inventory grid
-        for i in range(INVENTORY_HEIGHT):
+        for _ in range(INVENTORY_HEIGHT):
             horizontal_box = arcade.gui.UIBoxLayout(vertical=False)
-            for j in range(INVENTORY_WIDTH):
+            for _ in range(INVENTORY_WIDTH):
                 horizontal_box.add(
                     InventoryBox(width=64, height=64).with_border(width=4)
                 )

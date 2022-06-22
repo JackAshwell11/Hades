@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 # Builtin
+import contextlib
 import logging
 import math
 import random
@@ -531,12 +532,10 @@ class Game(BaseView):
                 self.player.right_pressed = True
             case arcade.key.E:
                 if self.nearest_item:
-                    try:
-                        # Nearest item is a collectible
+                    with contextlib.suppress(AttributeError):
+                        # Nearest item is a collectible. If this fails, then it is an
+                        # item
                         self.nearest_item.item_pick_up()
-                    except AttributeError:
-                        # Nearest item is an item
-                        pass
             case arcade.key.R:
                 if self.nearest_item:
                     self.nearest_item.item_use()
