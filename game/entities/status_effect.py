@@ -1,3 +1,6 @@
+"""
+Manages the different status effects that can be applied to an entity.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -95,25 +98,11 @@ class StatusEffectBase:
 
 
 class HealthStatusEffect(StatusEffectBase):
-    """
-    Represents a health status effect that temporarily boosts the target's health.
-
-    Parameters
-    ----------
-    target: Entity
-        The reference to the target entity object.
-    value: float
-        The value that should be applied to the entity temporarily.
-    duration: int
-        The duration the status effect should be applied for.
-    """
+    """Represents a health status effect that temporarily boosts the target's health."""
 
     __slots__ = ()
 
     status_effect_type: StatusEffectType = StatusEffectType.HEALTH
-
-    def __init__(self, target: Entity, value: float, duration: float) -> None:
-        super().__init__(target, value, duration)
 
     def __repr__(self) -> str:
         return f"<HealthStatusEffect (Value={self.value}) (Duration={self.duration})"
@@ -121,7 +110,7 @@ class HealthStatusEffect(StatusEffectBase):
     def apply_effect(self) -> None:
         """Applies the status effect to the target."""
         # Apply the status effect to the target
-        logger.debug(f"Applying health effect to {self.target}")
+        logger.debug("Applying health effect to %r", self.target)
         self.original = self.target.health
         self.target.health = self.original + self.value
         self.target.max_health = self.target.max_health + self.value
@@ -145,7 +134,7 @@ class HealthStatusEffect(StatusEffectBase):
     def remove_effect(self) -> None:
         """Removes the status effect from the entity."""
         # Get the target's current value to determine if its state needs to change
-        logger.debug(f"Removing health effect from {self.target}")
+        logger.debug("Removing health effect from %r", self.target)
         current_value: float = self.target.health
         if current_value > self.original:
             current_value = self.original
@@ -157,25 +146,12 @@ class HealthStatusEffect(StatusEffectBase):
 
 
 class ArmourStatusEffect(StatusEffectBase):
-    """
-    Represents an armour status effect that temporarily boosts the target's armour.
-
-    Parameters
-    ----------
-    target: Entity
-        The reference to the target entity object.
-    value: float
-        The value that should be applied to the entity temporarily.
-    duration: int
-        The duration the status effect should be applied for.
-    """
+    """Represents an armour status effect that temporarily boosts the target's
+    armour."""
 
     __slots__ = ()
 
     status_effect_type: StatusEffectType = StatusEffectType.ARMOUR
-
-    def __init__(self, target: Entity, value: float, duration: float) -> None:
-        super().__init__(target, value, duration)
 
     def __repr__(self) -> str:
         return f"<ArmourStatusEffect (Value={self.value}) (Duration={self.duration})"
@@ -183,7 +159,7 @@ class ArmourStatusEffect(StatusEffectBase):
     def apply_effect(self) -> None:
         """Applies the status effect to the target."""
         # Apply the status effect to the target
-        logger.debug(f"Applying armour effect to {self.target}")
+        logger.debug("Applying armour effect to %r", self.target)
         self.original = self.target.armour
         self.target.armour = self.original + self.value
         self.target.max_armour = self.target.max_armour + self.value
@@ -207,7 +183,7 @@ class ArmourStatusEffect(StatusEffectBase):
     def remove_effect(self) -> None:
         """Removes the status effect from the entity."""
         # Get the target's current value to determine if its state needs to change
-        logger.debug(f"Removing armour effect from {self.target}")
+        logger.debug("Removing armour effect from %r", self.target)
         current_value: float = self.target.armour
         if current_value > self.original:
             current_value = self.original
@@ -219,25 +195,11 @@ class ArmourStatusEffect(StatusEffectBase):
 
 
 class SpeedStatusEffect(StatusEffectBase):
-    """
-    Represents a speed status effect that temporarily boosts the target's speed.
-
-    Parameters
-    ----------
-    target: Entity
-        The reference to the target entity object.
-    value: float
-        The value that should be applied to the entity temporarily.
-    duration: int
-        The duration the status effect should be applied for.
-    """
+    """Represents a speed status effect that temporarily boosts the target's speed."""
 
     __slots__ = ()
 
     status_effect_type: StatusEffectType = StatusEffectType.SPEED
-
-    def __init__(self, target: Entity, value: float, duration: float) -> None:
-        super().__init__(target, value, duration)
 
     def __repr__(self) -> str:
         return f"<SpeedStatusEffect (Value={self.value}) (Duration={self.duration})"
@@ -245,7 +207,7 @@ class SpeedStatusEffect(StatusEffectBase):
     def apply_effect(self) -> None:
         """Applies the status effect to the target."""
         # Apply the status effect to the target
-        logger.debug(f"Applying speed effect to {self.target}")
+        logger.debug("Applying speed effect to %r", self.target)
         self.original = self.target.max_velocity
         self.target.pymunk.max_velocity = self.original + self.value
 
@@ -268,31 +230,18 @@ class SpeedStatusEffect(StatusEffectBase):
     def remove_effect(self) -> None:
         """Removes the status effect from the entity."""
         # Restore the original value and remove the status effect
-        logger.debug(f"Removing speed effect from {self.target}")
+        logger.debug("Removing speed effect from %r", self.target)
         self.target.pymunk.max_velocity = self.original
         self.target.applied_effects.remove(self)
 
 
 class FireRateStatusEffect(StatusEffectBase):
-    """
-    Represents a fire rate status effect that temporarily boosts the target's fire rate.
-
-    Parameters
-    ----------
-    target: Entity
-        The reference to the target entity object.
-    value: float
-        The value that should be applied to the entity temporarily.
-    duration: int
-        The duration the status effect should be applied for.
-    """
+    """Represents a fire rate status effect that temporarily boosts the target's fire
+    rate."""
 
     __slots__ = ()
 
     status_effect_type: StatusEffectType = StatusEffectType.FIRE_RATE
-
-    def __init__(self, target: Entity, value: float, duration: float) -> None:
-        super().__init__(target, value, duration)
 
     def __repr__(self) -> str:
         return f"<FireRateStatusEffect (Value={self.value}) (Duration={self.duration})"
@@ -300,7 +249,7 @@ class FireRateStatusEffect(StatusEffectBase):
     def apply_effect(self) -> None:
         """Applies the status effect to the target."""
         # Apply the status effect to the target
-        logger.debug(f"Applying fire rate effect to {self.target}")
+        logger.debug("Applying fire rate effect to %r", self.target)
         self.original = self.target.bonus_attack_cooldown
         self.target.bonus_attack_cooldown = self.original + self.value
 
@@ -323,7 +272,7 @@ class FireRateStatusEffect(StatusEffectBase):
     def remove_effect(self) -> None:
         """Removes the status effect from the entity."""
         # Restore the original value and remove the status effect
-        logger.debug(f"Removing fire rate effect from {self.target}")
+        logger.debug("Removing fire rate effect from %r", self.target)
         self.target.bonus_attack_cooldown = self.original
         self.target.applied_effects.remove(self)
 
@@ -357,7 +306,7 @@ def create_status_effect(
     # Get the status effect class type which manages the given status effect
     cls = STATUS_EFFECTS[status_effect_type]
     logger.debug(
-        f"Selected status effect {cls} for status effect type{status_effect_type}"
+        "Selected status effect %r for status effect type %r", cls, status_effect_type
     )
 
     # Initialise the class with the given parameters

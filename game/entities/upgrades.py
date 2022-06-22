@@ -1,3 +1,6 @@
+"""
+Manages upgrading of the player's attributes.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -62,28 +65,9 @@ class UpgradableAttributeBase:
 
 
 class HealthUpgradableAttribute(UpgradableAttributeBase):
-    """
-    Manages upgrading of the player's health attribute.
-
-    Parameters
-    ----------
-    parent_section: UpgradableSection
-        The reference to the parent upgradable section object.
-    player: Player
-        The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
-        The upgrade data for this attribute.
-    """
+    """Manages upgrading of the player's health attribute."""
 
     __slots__ = ()
-
-    def __init__(
-        self,
-        parent_section: UpgradableSection,
-        player: Player,
-        attribute_upgrade_data: AttributeUpgradeData,
-    ) -> None:
-        super().__init__(parent_section, player, attribute_upgrade_data)
 
     def __repr__(self) -> str:
         return f"<HealthUpgradableAttribute (Player={self.player})>"
@@ -100,28 +84,9 @@ class HealthUpgradableAttribute(UpgradableAttributeBase):
 
 
 class ArmourUpgradableAttribute(UpgradableAttributeBase):
-    """
-    Manages upgrading of the player's armour attribute.
-
-    Parameters
-    ----------
-    parent_section: UpgradableSection
-        The reference to the parent upgradable section object.
-    player: Player
-        The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
-        The upgrade data for this attribute.
-    """
+    """Manages upgrading of the player's armour attribute."""
 
     __slots__ = ()
-
-    def __init__(
-        self,
-        parent_section: UpgradableSection,
-        player: Player,
-        attribute_upgrade_data: AttributeUpgradeData,
-    ) -> None:
-        super().__init__(parent_section, player, attribute_upgrade_data)
 
     def __repr__(self) -> str:
         return f"<ArmourUpgradableAttribute (Player={self.player})>"
@@ -138,28 +103,9 @@ class ArmourUpgradableAttribute(UpgradableAttributeBase):
 
 
 class SpeedUpgradableAttribute(UpgradableAttributeBase):
-    """
-    Manages upgrading of the player's speed attribute.
-
-    Parameters
-    ----------
-    parent_section: UpgradableSection
-        The reference to the parent upgradable section object.
-    player: Player
-        The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
-        The upgrade data for this attribute.
-    """
+    """Manages upgrading of the player's speed attribute."""
 
     __slots__ = ()
-
-    def __init__(
-        self,
-        parent_section: UpgradableSection,
-        player: Player,
-        attribute_upgrade_data: AttributeUpgradeData,
-    ) -> None:
-        super().__init__(parent_section, player, attribute_upgrade_data)
 
     def __repr__(self) -> str:
         return f"<SpeedUpgradableAttribute (Player={self.player})>"
@@ -175,28 +121,9 @@ class SpeedUpgradableAttribute(UpgradableAttributeBase):
 
 
 class RegenCooldownUpgradableAttribute(UpgradableAttributeBase):
-    """
-    Manages upgrading of the player's regen cooldown attribute.
-
-    Parameters
-    ----------
-    parent_section: UpgradableSection
-        The reference to the parent upgradable section object.
-    player: Player
-        The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
-        The upgrade data for this attribute.
-    """
+    """Manages upgrading of the player's regen cooldown attribute."""
 
     __slots__ = ()
-
-    def __init__(
-        self,
-        parent_section: UpgradableSection,
-        player: Player,
-        attribute_upgrade_data: AttributeUpgradeData,
-    ) -> None:
-        super().__init__(parent_section, player, attribute_upgrade_data)
 
     def __repr__(self) -> str:
         return f"<RegenCooldownUpgradableAttribute (Player={self.player})>"
@@ -244,7 +171,9 @@ def create_attribute_upgrade(
     # attribute
     cls = UPGRADABLE_ATTRIBUTES[upgrade_attribute_type]
     logger.debug(
-        f"Selected upgradable attribute {cls} for upgrade type{upgrade_attribute_type}"
+        "Selected upgradable attribute %r for upgrade type %r",
+        cls,
+        upgrade_attribute_type,
     )
 
     # Initialise the class with the given parameters
@@ -331,10 +260,10 @@ class UpgradableSection:
         ):
             # Subtract the cost from the player's money and upgrade each attribute this
             # section manages
-            logger.debug(f"Upgrading section {self.entity_upgrade_data.section_type}")
+            logger.debug("Upgrading section %r", self.entity_upgrade_data.section_type)
             self.player.money -= self.next_level_cost
             for attribute_upgrade in self.attributes:
-                logger.debug(f"Upgrading attribute {attribute_upgrade}")
+                logger.debug("Upgrading attribute %r", attribute_upgrade)
                 attribute_upgrade.upgrade_attribute()
 
             # Increase this section's level

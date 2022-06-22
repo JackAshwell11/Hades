@@ -1,3 +1,6 @@
+"""
+Stores the different static tiles that can exist in the game.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -21,83 +24,32 @@ logger = logging.getLogger(__name__)
 
 
 class Floor(Tile):
-    """
-    Represents a floor tile in the game.
-
-    Parameters
-    ----------
-    x: int
-        The x position of the floor tile in the game map.
-    y: int
-        The y position of the floor tile in the game map.
-    """
+    """Represents a floor tile in the game."""
 
     # Class variables
     raw_texture: arcade.Texture = non_moving_textures["tiles"][0]
-
-    def __init__(
-        self,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(x, y)
 
     def __repr__(self) -> str:
         return f"<Floor (Position=({self.center_x}, {self.center_y}))>"
 
 
 class Wall(Tile):
-    """
-    Represents a wall tile in the game.
-
-    Parameters
-    ----------
-    x: int
-        The x position of the wall tile in the game map.
-    y: int
-        The y position of the wall tile in the game map.
-    """
+    """Represents a wall tile in the game."""
 
     # Class variables
     raw_texture: arcade.Texture = non_moving_textures["tiles"][1]
     blocking: bool = True
-
-    def __init__(
-        self,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(x, y)
 
     def __repr__(self) -> str:
         return f"<Wall (Position=({self.center_x}, {self.center_y}))>"
 
 
 # class Shop(UsableTile):
-#     """
-#     Represents a shop tile in the game.
-#
-#     Parameters
-#     ----------
-#     game: Game
-#         The game view. This is passed so the item can have a reference to it.
-#     x: int
-#         The x position of the shop item in the game map.
-#     y: int
-#         The y position of the shop item in the game map.
-#     """
+#     """Represents a shop tile in the game."""
 #
 #     # Class variables
 #     raw_texture: arcade.Texture = non_moving_textures["items"][6]
 #     blocking: bool = True
-#
-#     def __init__(
-#         self,
-#         game: Game,
-#         x: int,
-#         y: int,
-#     ) -> None:
-#         super().__init__(game, x, y)
 #
 #     def __repr__(self) -> str:
 #         return f"<Shop (Position=({self.center_x}, {self.center_y}))>"
@@ -188,8 +140,8 @@ class Consumable(UsableTile, CollectibleTile):
                         # Can't be used
                         self.game.display_info_box("Your health is already at max")
                         logger.debug(
-                            f"{self.player} health at max so instant potion"
-                            "can't be used"
+                            "%r health at max so instant potion can't be used",
+                            self.player,
                         )
                         return False
 
@@ -203,8 +155,8 @@ class Consumable(UsableTile, CollectibleTile):
                         # Can't be used
                         self.game.display_info_box("Your armour is already at max")
                         logger.debug(
-                            f"{self.player} armour at max so instant potion"
-                            "can't be used"
+                            "%r armour at max so instant potion can't be used",
+                            self.player,
                         )
                         return False
 
@@ -224,7 +176,7 @@ class Consumable(UsableTile, CollectibleTile):
                 self.game.display_info_box(
                     f"A {effect.status_type.value} status effect is already applied"
                 )
-                logger.debug(f"{effect.status_type} already applied to player")
+                logger.debug("%r already applied to player", effect.status_type)
                 return False
 
             # Apply the status effect
@@ -241,5 +193,5 @@ class Consumable(UsableTile, CollectibleTile):
         self.remove_from_sprite_lists()
 
         # Effect was successful
-        logger.info(f"Used {self.consumable_type.name} potion")
+        logger.info("Used %r potion", self.consumable_type.name)
         return True

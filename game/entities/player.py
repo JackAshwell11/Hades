@@ -1,3 +1,6 @@
+"""
+Stores the player object which the player can control.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -215,7 +218,7 @@ class Player(Entity):
 
         # Check if the player is in combat
         self.in_combat = any(
-            [enemy.player_within_range for enemy in self.game.enemy_sprites]  # noqa
+            enemy.player_within_range for enemy in self.game.enemy_sprites  # noqa
         )
         if self.in_combat:
             self.time_out_of_combat = 0
@@ -283,7 +286,7 @@ class Player(Entity):
         """
         # Check if the array is full
         if len(self.inventory) == self.inventory_capacity:
-            logger.info(f"Cannot add item {item} to full inventory")
+            logger.info("Cannot add item %r to full inventory", item)
             return False
 
         # Add the item to the array
@@ -293,5 +296,5 @@ class Player(Entity):
         self.game.window.views["InventoryView"].update_grid()  # type: ignore
 
         # Add successful
-        logger.info(f"Adding item {item} to inventory")
+        logger.info("Adding item %r to inventory", item)
         return True

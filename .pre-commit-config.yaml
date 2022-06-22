@@ -42,19 +42,20 @@ repos:
             -   pep8-naming
             -   flake8-bugbear
             -   flake8-simplify
+            #-   flake8-pylint
             #-   flake8-comprehensions
             #-   flake8-type-checking
-            #-   flake8-docstrings==1.6.0
-#-   repo: https://github.com/PyCQA/pylint
-#    rev: v2.14.3
-#    hooks:
-#    -   id: pylint
-#        args: [
-#            "--disable='E0001','E1123','E1120','R0914','R0915','E0611','R0902','R0901','E1101'",
-#            "--max-line-length=88",
-#            "--good-names=i,j,k,x,y,dx,dy,x1,x2,y1,y2",
-#            "--ignore=TEMP-FILES",
-#        ]
+            #-   flake8-docstrings
+-   repo: https://github.com/PyCQA/pylint
+    rev: v2.14.3
+    hooks:
+    -   id: pylint
+        args: [
+            "--disable=E0001,E1123,E1120,R0914,R0915,E0611,R0902,R0901,E1101,R0913,C0302,R0904,E0401,R0903,C0103,W0201",
+            "--max-line-length=88",
+            "--good-names=i,j,k,x,y,dx,dy,x1,x2,y1,y2",
+            "--ignore=TEMP-FILES",
+        ]
 
 # E0001 is pylint not recognising match-case
 # E1123 is pylint not recognising kw_only for dataclasses.field
@@ -65,3 +66,10 @@ repos:
 # R0902 is pylint complaining about too many instance attributes
 # R0901 is pylint complaining about the inheritance tree being too big
 # E1101 is pylint not discovering the arcade.Texture.create_filled class method
+# R0913 is pylint complaining about too many parameters
+# C0302 is pylint complaining about too many lines
+# R0904 is pylint complaining about too many public methods
+# E0401 is pylint not being able to import packages
+# R0903 is pylint complaining about too few public methods
+# C0103 is pylint complaining about snake_case
+# W0201 is pylint complaining about attributes being defined outside __init__ (when I need them to be)

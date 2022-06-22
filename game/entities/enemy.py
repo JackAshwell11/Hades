@@ -1,3 +1,6 @@
+"""
+Stores the enemy object which is hostile to the player.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -96,7 +99,7 @@ class Enemy(Entity):
         """
         # Get the enemy level adjusted for an array index
         adjusted_level = self.enemy_level - 1
-        logger.debug(f"Initialising enemy with level {adjusted_level}")
+        logger.debug("Initialising enemy with level %d", adjusted_level)
 
         # Create the entity state dict
         return {

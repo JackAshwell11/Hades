@@ -1,3 +1,6 @@
+"""
+Stores the different attack algorithms that are available to the player and enemy.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -7,6 +10,9 @@ from typing import TYPE_CHECKING, Any
 
 # Pip
 import arcade
+
+# Custom
+from game.constants.entity import BULLET_VELOCITY, SPRITE_SIZE
 
 if TYPE_CHECKING:
     from game.constants.entity import (
@@ -70,19 +76,13 @@ class Bullet(arcade.SpriteSolidColor):
         self.damage: int = damage
         self.max_range: float = max_range
         self.start_position: tuple[float, float] = self.center_x, self.center_y
+        self.angle: float = owner.direction
 
     def __repr__(self) -> str:
         return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
 
-    def on_update(self, delta_time: float = 1 / 60) -> None:
-        """
-        Processes bullet logic.
-
-        Parameters
-        ----------
-        delta_time: float
-            Time interval since the last time the function was called.
-        """
+    def on_update(self, _: float = 1 / 60) -> None:
+        """Processes bullet logic."""
         # Check if the bullet is pass the max range
         if (
             math.hypot(
@@ -92,7 +92,7 @@ class Bullet(arcade.SpriteSolidColor):
             >= self.max_range
         ):
             self.remove_from_sprite_lists()
-            logger.debug(f"Removed {self} after passing max range {self.max_range}")
+            logger.debug("Removed %r after passing max range %f", self, self.max_range)
 
 
 class AttackBase:
@@ -149,22 +149,10 @@ class AttackBase:
 
 
 class RangedAttack(AttackBase):
-    """
-    An algorithm which creates a bullet with a set velocity in the direction the
-    entity is facing.
-
-    Parameters
-    ----------
-    owner: Entity
-        The reference to the enemy object that manages this attack algorithm.
-    attack_cooldown: int
-        The cooldown for this attack.
-    """
+    """An algorithm which creates a bullet with a set velocity in the direction the
+    entity is facing."""
 
     __slots__ = ()
-
-    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
-        super().__init__(owner, attack_cooldown)
 
     def __repr__(self) -> str:
         return f"<RangedAttack (Owner={self.owner})>"
@@ -202,12 +190,9 @@ class RangedAttack(AttackBase):
         args: Any
             A tuple containing the parameters needed for the attack.
         """
-        # Make sure we have the bullet constants. This avoids a circular import
-        from game.constants.entity import BULLET_VELOCITY, SPRITE_SIZE
-
         # Make sure the needed parameters are valid
         bullet_list: arcade.SpriteList = args[0]
-        logger.info(f"Entity {self.owner} is performing a ranged attack")
+        logger.info("Entity %r is performing a ranged attack", self.owner)
 
         # Reset the time counter
         self.owner.time_since_last_attack = 0
@@ -223,7 +208,6 @@ class RangedAttack(AttackBase):
             self.ranged_attack_data.damage,
             self.ranged_attack_data.max_range * SPRITE_SIZE,
         )
-        new_bullet.angle = self.owner.direction
         physics: PhysicsEngine = self.owner.physics_engines[0]
         physics.add_bullet(new_bullet)
         bullet_list.append(new_bullet)
@@ -236,32 +220,21 @@ class RangedAttack(AttackBase):
         )
         physics.set_velocity(new_bullet, (change_x, change_y))
         logger.debug(
-            f"Created bullet with owner {self.owner} at position"
-            f" ({new_bullet.center_x}, {new_bullet.center_y}) with velocity"
-            f" ({change_x}, {change_y})"
+            "Created bullet with owner %r at position %r with velocity %r",
+            self.owner,
+            new_bullet.position,
+            (change_x, change_y),
         )
 
 
 class MeleeAttack(AttackBase):
-    """
-    An algorithm which performs a melee attack in the direction the entity is looking
+    """An algorithm which performs a melee attack in the direction the entity is looking
     dealing damage to any entity that is within a specific angle range of the entity's
     direction and are within the attack distance. Since when the enemy is attacking,
     they are always facing the player, we don't need to do the angle range check for
-    enemies.
-
-    Parameters
-    ----------
-    owner: Entity
-        The reference to the enemy object that manages this attack algorithm.
-    attack_cooldown: int
-        The cooldown for this attack.
-    """
+    enemies."""
 
     __slots__ = ()
-
-    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
-        super().__init__(owner, attack_cooldown)
 
     def __repr__(self) -> str:
         return f"<MeleeAttack (Owner={self.owner})>"
@@ -302,7 +275,7 @@ class MeleeAttack(AttackBase):
         # Make sure the needed parameters are valid
         targets: list[Entity] = args[0]
         logger.info(
-            f"Entity {self.owner} is performing a melee attack on targets{targets}"
+            "Entity %r is performing a melee attack on targets %r", self.owner, targets
         )
 
         # Deal damage to all entities within range
@@ -311,22 +284,10 @@ class MeleeAttack(AttackBase):
 
 
 class AreaOfEffectAttack(AttackBase):
-    """
-    An algorithm which creates an area around the entity with a set radius and deals
-    damage to any entities that are within that range.
-
-    Parameters
-    ----------
-    owner: Entity
-        The reference to the enemy object that manages this attack algorithm.
-    attack_cooldown: int
-        The cooldown for this attack.
-    """
+    """An algorithm which creates an area around the entity with a set radius and deals
+    damage to any entities that are within that range."""
 
     __slots__ = ()
-
-    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
-        super().__init__(owner, attack_cooldown)
 
     def __repr__(self) -> str:
         return f"<AreaOfEffectAttack (Owner={self.owner})>"
@@ -364,14 +325,12 @@ class AreaOfEffectAttack(AttackBase):
         args: Any
             A tuple containing the parameters needed for the attack.
         """
-        # Make sure we have the sprite size. This avoids a circular import
-        from game.constants.entity import SPRITE_SIZE
-
         # Make sure the needed parameters are valid
         target_entity: arcade.SpriteList | Entity = args[0]
         logger.info(
-            f"Entity {self.owner} is performing an area of effect attack on"
-            f"{target_entity}"
+            "Entity %r is performing an area of effect attack on %r",
+            self.owner,
+            target_entity,
         )
 
         # Create a sprite with an empty texture

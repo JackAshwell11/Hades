@@ -1,3 +1,6 @@
+"""
+Stores the base classes used by all game objects.
+"""
 from __future__ import annotations
 
 # Builtin
@@ -271,7 +274,7 @@ class IndicatorBar:
             The fullness must be between 0.0 and 1.0.
         """
         # Check if new_fullness if valid
-        if not (0.0 <= new_fullness <= 1.0):
+        if new_fullness < 0.0 or new_fullness > 1.0:
             raise ValueError(
                 f"Got {new_fullness}, but fullness must be between 0.0 and 1.0."
             )
@@ -775,7 +778,7 @@ class Entity(arcade.Sprite):
 
         # Update any status effects
         for status_effect in self.applied_effects:
-            logger.debug(f"Updating status effect {status_effect} for entity {self}")
+            logger.debug("Updating status effect %r for entity %r", status_effect, self)
             status_effect.update(delta_time)
 
         # Run the entity's post on_update
@@ -806,7 +809,7 @@ class Entity(arcade.Sprite):
             # Damage the health
             self.health -= damage
         self.update_indicator_bars()
-        logger.debug(f"Dealing {damage} to {self}")
+        logger.debug("Dealing %d to %r", damage, self)
 
         # Check if the entity should be killed
         if self.health <= 0:
@@ -818,7 +821,7 @@ class Entity(arcade.Sprite):
             self.health_bar.full_box.remove_from_sprite_lists()
             self.armour_bar.background_box.remove_from_sprite_lists()
             self.armour_bar.full_box.remove_from_sprite_lists()
-            logger.info(f"Killed {self}")
+            logger.info("Killed %r", self)
 
     def regenerate_armour(self, delta_time: float) -> None:
         """
@@ -839,7 +842,9 @@ class Entity(arcade.Sprite):
                     self.armour += ARMOUR_REGEN_AMOUNT
                     self.time_since_armour_regen = 0
                     self.update_indicator_bars()
-                    logger.debug(f"Regenerated {ARMOUR_REGEN_AMOUNT} armour for {self}")
+                    logger.debug(
+                        "Regenerated %d armour for %r", ARMOUR_REGEN_AMOUNT, self
+                    )
             else:
                 # Increment the counter since not enough time has passed
                 self.time_since_armour_regen += delta_time
@@ -850,7 +855,7 @@ class Entity(arcade.Sprite):
         # Check if the armour is bigger than the max
         if self.armour > self.max_armour:
             self.armour = self.max_armour
-            logger.debug(f"Set {self} armour to max")
+            logger.debug("Set %r armour to max", self)
 
     def update_indicator_bars(self) -> None:
         """Updates the entity's indicator bars."""
@@ -992,29 +997,10 @@ class InteractiveTile(Tile):
 
 
 class UsableTile(InteractiveTile):
-    """
-    Represents a tile that can be used/activated by the player.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the usable tile can have a reference to it.
-    x: int
-        The x position of the usable tile in the game map.
-    y: int
-        The y position of the usable tile in the game map.
-    """
+    """Represents a tile that can be used/activated by the player."""
 
     # Class variables
     item_text: str = "Press R to activate"
-
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
         return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
@@ -1038,30 +1024,10 @@ class UsableTile(InteractiveTile):
 
 
 class CollectibleTile(InteractiveTile):
-    """
-    Represents a tile that can be picked up by the player.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the collectible tile can have a reference to
-        it.
-    x: int
-        The x position of the collectible tile in the game map.
-    y: int
-        The y position of the collectible tile in the game map.
-    """
+    """Represents a tile that can be picked up by the player."""
 
     # Class variables
     item_text: str = "Press E to pick up"
-
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
         return f"<CollectibleTile (Position=({self.center_x}, {self.center_y}))>"
@@ -1082,7 +1048,7 @@ class CollectibleTile(InteractiveTile):
 
             # Activate was successful
             return True
-        else:
-            # Add not successful due to full inventory
-            self.game.display_info_box("Inventory is full")
-            return False
+
+        # Add not successful due to full inventory
+        self.game.display_info_box("Inventory is full")
+        return False

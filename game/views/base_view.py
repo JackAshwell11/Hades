@@ -5,14 +5,12 @@ from __future__ import annotations
 
 # Builtin
 import logging
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 # Pip
 import arcade
 from arcade.gui import (
     UIAnchorWidget,
-    UIEvent,
     UILayout,
     UIManager,
     UIMouseFilterMixin,
@@ -25,11 +23,6 @@ if TYPE_CHECKING:
 
 # Get the logger
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class UIBoxDisappearEvent(UIEvent):
-    """Dispatched when an info box disappears."""
 
 
 class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
@@ -106,6 +99,9 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
 
         super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)
 
+    def __repr__(self) -> str:
+        return f"<DisappearingInfoBox (Text={self._text_area.text})>"
+
     def on_update(self, dt: float) -> None:
         """
         Updates the internal time counter and checks to see if the box should disappear.
@@ -120,12 +116,13 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
 
         # Check if the box should disappear
         if self._time_counter <= 0:
-            self.remove_box(UIBoxDisappearEvent(self))
+            self.remove_box()
 
-    def remove_box(self, _) -> None:
+    def remove_box(self) -> None:
         """Removes the box from the UI manager."""
         self.parent.remove(self)
         self._parent_view.current_info_box = None
+        logger.info("Info box has disappeared with text %s", self._text_area.text)
 
 
 class BackButton(arcade.gui.UIFlatButton):

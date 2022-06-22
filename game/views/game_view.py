@@ -299,8 +299,9 @@ class Game(BaseView):
 
         # Debug what was created
         logger.debug(
-            f"Initialised game view with {len(self.enemy_sprites)} enemies and "
-            f"{len(self.tile_sprites)} tiles"
+            "Initialised game view with %d enemies and %d tiles",
+            len(self.enemy_sprites),
+            len(self.tile_sprites),
         )
 
         # Initialise the vector field
@@ -309,8 +310,9 @@ class Game(BaseView):
         )
         self.vector_field.recalculate_map(self.player.position)
         logger.debug(
-            f"Created vector grid with height {self.vector_field.height} and width "
-            f" {self.vector_field.width}"
+            "Created vector grid with height %d and width %d",
+            self.vector_field.height,
+            self.vector_field.width,
         )
 
         # Update the player's current tile position
@@ -481,13 +483,13 @@ class Game(BaseView):
             arcade.exit()
 
         # Process logic for the player
-        self.player.on_update()
+        self.player.on_update(delta_time)
 
         # Process logic for the enemies
-        self.enemy_sprites.on_update()
+        self.enemy_sprites.on_update(delta_time)
 
         # Process logic for the bullets
-        self.bullet_sprites.on_update()
+        self.bullet_sprites.on_update(delta_time)
 
         # Update the physics engine
         self.physics_engine.step()
@@ -502,7 +504,7 @@ class Game(BaseView):
         if item_collision:
             # Set nearest_item since we are colliding with an item
             self.nearest_item = item_collision[0]
-            logger.debug(f"Grabbed nearest item {self.nearest_item}")
+            logger.debug("Grabbed nearest item %r", self.nearest_item)
         else:
             # Reset nearest_item since we don't want to activate an item that the player
             # is not colliding with
@@ -524,7 +526,7 @@ class Game(BaseView):
         assert self.player is not None
 
         # Find out what key was pressed
-        logger.debug(f"Received key press with key {key}")
+        logger.debug("Received key press with key %r and modifiers %r", key, modifiers)
         match key:
             case arcade.key.W:
                 self.player.up_pressed = True
@@ -573,7 +575,9 @@ class Game(BaseView):
         assert self.player is not None
 
         # Find out what key was released
-        logger.debug(f"Received key release with key {key}")
+        logger.debug(
+            "Received key release with key %r and modifiers %r", key, modifiers
+        )
         match key:
             case arcade.key.W:
                 self.player.up_pressed = False
@@ -604,13 +608,19 @@ class Game(BaseView):
         assert self.player is not None
 
         # Find out what mouse button was pressed
-        logger.debug(f"{button} mouse button was pressed")
+        logger.debug(
+            "%r mouse button was pressed at position (%f, %f) with modifiers %r",
+            button,
+            x,
+            y,
+            modifiers,
+        )
         match button:
             case arcade.MOUSE_BUTTON_LEFT:
                 # Make the player attack
                 self.player.attack()
 
-    def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
+    def on_mouse_motion(self, x: float, y: float, *_) -> None:
         """
         Called when the mouse moves.
 
@@ -620,10 +630,6 @@ class Game(BaseView):
             The x position of the mouse.
         y: float
             The y position of the mouse.
-        dx: float
-            The change in the x position.
-        dy: float
-            The change in the y position.
         """
         # Make sure variables needed are valid
         assert self.player is not None

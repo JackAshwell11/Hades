@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class StartButton(arcade.gui.UIFlatButton):
     """A button which when clicked will start the game."""
 
-    def on_click(self, event: arcade.gui.UIOnClickEvent) -> None:
+    def on_click(self, _: arcade.gui.UIOnClickEvent) -> None:
         """Called when the button is clicked."""
         # Get the current window and view
         window: Window = arcade.get_window()
@@ -53,7 +53,7 @@ class StartButton(arcade.gui.UIFlatButton):
 class QuitButton(arcade.gui.UIFlatButton):
     """A button which when clicked will quit the game."""
 
-    def on_click(self, event: arcade.gui.UIOnClickEvent) -> None:
+    def on_click(self, _: arcade.gui.UIOnClickEvent) -> None:
         """Called when the button is clicked."""
         logger.info("Exiting game")
         arcade.exit()
