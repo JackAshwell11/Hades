@@ -1,3 +1,5 @@
+"""Manages collisions and movement using an abstracted version of the Pymunk physics
+engine."""
 from __future__ import annotations
 
 # Builtin
@@ -12,20 +14,20 @@ from game.constants.entity import EntityID
 
 if TYPE_CHECKING:
     from game.entities.attack import Bullet
-    from game.entities.base import Entity
+    from game.entities.base import Entity, Tile
     from game.entities.enemy import Enemy
     from game.entities.player import Player
-    from game.entities.tile import Tile
+
+__all__ = ("PhysicsEngine",)
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
 def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
-    """
-    Handles collision between a wall tile and a bullet sprite as they touch. This uses
-    the begin_handler which processes collision when two shapes are touching for the
-    first time.
+    """Handles collision between a wall tile and a bullet sprite as they touch. This
+    uses the begin_handler which processes collision when two shapes are touching for
+    the first time.
 
     Parameters
     ----------
@@ -43,19 +45,18 @@ def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
     try:
         # Remove the bullet
         bullet.remove_from_sprite_lists()
-        logger.debug(f"Removed {bullet} after hitting {wall}")
+        logger.debug("Removed %r after hitting %r", bullet, wall)
     except AttributeError:
         # An error randomly occurs here so just ignore it
         logger.warning(
-            f"An error occurred while removing {bullet} after hitting {wall}"
+            "An error occurred while removing %r after hitting %r", bullet, wall
         )
     # Stop collision processing
     return False
 
 
 def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
-    """
-    Handles collision between an enemy entity and a bullet sprite as they touch. This
+    """Handles collision between an enemy entity and a bullet sprite as they touch. This
     uses the begin_handler which processes collision when two shapes are touching for
     the first time.
 
@@ -80,19 +81,18 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
 
             # Deal damage to the enemy
             enemy.deal_damage(bullet.damage)
-            logger.debug(f"Removed {bullet} after hitting {enemy}")
+            logger.debug("Removed %r after hitting %r", bullet, enemy)
     except AttributeError:
         # An error randomly occurs here so just ignore it
         logger.warning(
-            f"An error occurred while removing {bullet} after hitting {enemy}"
+            "An error occurred while removing %r after hitting %r", bullet, enemy
         )
     # Stop collision processing
     return False
 
 
 def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
-    """
-    Handles collision between a player entity and a bullet sprite as they touch. This
+    """Handles collision between a player entity and a bullet sprite as they touch. This
     uses the begin_handler which processes collision when two shapes are touching for
     the first time.
 
@@ -117,20 +117,19 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
 
             # Deal damage to the player
             player.deal_damage(bullet.damage)
-            logger.debug(f"Removed {bullet} after hitting {player}")
+            logger.debug("Removed %r after hitting %r", bullet, player)
     except AttributeError:
         # An error randomly occurs here so just ignore it
         logger.warning(
-            f"An error occurred while removing {bullet} after hitting {player}"
+            "An error occurred while removing %r after hitting %r", bullet, player
         )
     # Stop collision processing
     return False
 
 
 class PhysicsEngine(arcade.PymunkPhysicsEngine):
-    """
-    An abstracted version of the Pymunk Physics Engine which eases setting up a physics
-    engine for a top-down game.
+    """An abstracted version of the Pymunk Physics Engine which eases setting up a
+    physics engine for a top-down game.
 
     Parameters
     ----------
@@ -149,8 +148,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         tile_list: arcade.SpriteList,
         enemy_list: arcade.SpriteList,
     ) -> None:
-        """
-        Setups up the various sprites needed for the physics engine to work properly.
+        """Set-ups the various sprites needed for the physics engine to work properly.
 
         Parameters
         ----------
@@ -170,17 +168,17 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             max_horizontal_velocity=int(player.max_velocity),
             max_vertical_velocity=int(player.max_velocity),
         )
-        logger.debug(f"Added {player} to physics engine")
+        logger.debug("Added %r to physics engine", player)
 
         # Add the static tile sprites to the physics engine
-        for tile in tile_list:
-            if tile.blocking:  # noqa
+        for tile in tile_list:  # type: Tile
+            if tile.blocking:
                 self.add_sprite(
                     tile,
                     body_type=self.STATIC,
                     collision_type="wall",
                 )
-            logger.debug(f"Added {tile} to physics engine")
+            logger.debug("Added %r to physics engine", tile)
 
         # Add the enemy sprites to the physics engine
         for enemy in enemy_list:  # type: Enemy
@@ -191,7 +189,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                 max_horizontal_velocity=int(enemy.max_velocity),
                 max_vertical_velocity=int(enemy.max_velocity),
             )
-            logger.debug(f"Added {enemy} to physics engine")
+            logger.debug("Added %r to physics engine", enemy)
 
         # Add collision handlers
         self.add_collision_handler(
@@ -203,7 +201,9 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         self.add_collision_handler(
             "player", "bullet", begin_handler=player_bullet_begin_handler
         )
-        logger.info(f"Initialised physics engine with {len(self.sprites.keys())} items")
+        logger.info(
+            "Initialised physics engine with %d items", len(self.sprites.keys())
+        )
 
     def __repr__(self) -> str:
         return (
@@ -212,8 +212,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         )
 
     def add_bullet(self, bullet: Bullet) -> None:
-        """
-        Adds a bullet to the physics engine.
+        """Adds a bullet to the physics engine.
 
         Parameters
         ----------
@@ -226,4 +225,4 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             body_type=self.KINEMATIC,
             collision_type="bullet",
         )
-        logger.debug(f"Added bullet {bullet} to physics engine")
+        logger.debug("Added bullet %r to physics engine", bullet)

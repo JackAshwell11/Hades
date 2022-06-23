@@ -1,9 +1,11 @@
+"""Stores various constants related to entities and the dataclasses used for
+constructing the entities."""
 from __future__ import annotations
 
 # Builtin
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable
+from typing import TYPE_CHECKING
 
 # Pip
 import arcade
@@ -11,7 +13,40 @@ import arcade
 # Custom
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
-from game.textures import moving_textures
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
+
+__all__ = (
+    "EntityID",
+    "UpgradeAttribute",
+    "UpgradeSection",
+    "AttackAlgorithmType",
+    "BaseData",
+    "EntityData",
+    "EntityUpgradeData",
+    "AttributeUpgradeData",
+    "PlayerData",
+    "EnemyData",
+    "AttackData",
+    "RangedAttackData",
+    "MeleeAttackData",
+    "AreaOfEffectAttackData",
+    "SPRITE_SCALE",
+    "SPRITE_SIZE",
+    "ENEMIES",
+    "MOVEMENT_FORCE",
+    "FACING_RIGHT",
+    "FACING_LEFT",
+    "ARMOUR_REGEN_WAIT",
+    "ARMOUR_REGEN_AMOUNT",
+    "BULLET_VELOCITY",
+    "MELEE_RESOLUTION",
+    "INDICATOR_BAR_BORDER_SIZE",
+    "ENEMY_INDICATOR_BAR_OFFSET",
+    "HEALTH_INDICATOR_BAR_COLOR",
+    "ARMOUR_INDICATOR_BAR_COLOR",
+)
 
 
 # Entity IDs
@@ -59,8 +94,7 @@ class AttackAlgorithmType(Enum):
 
 @dataclass
 class BaseData:
-    """
-    The base class for constructing an entity. Only fill out some keyword arguments
+    """The base class for constructing an entity. Only fill out some keyword arguments
     since not all of them are needed.
 
     entity_type: EntityType
@@ -86,24 +120,28 @@ class BaseData:
         kw_only=True, default=None
     )
 
-    def get_all_attacks(self) -> list[AttackData]:
-        """Returns all the attacks the entity has."""
-        return list(
-            filter(
-                None,
-                [
-                    self.ranged_attack_data,
-                    self.melee_attack_data,
-                    self.area_of_effect_attack_data,
-                ],
+    def get_all_attacks(self) -> Iterator[AttackData]:
+        """Returns all the attacks the entity has.
+
+        Returns
+        -------
+        Iterator[AttackData]
+            An iterator containing all the valid attack types for this entity.
+        """
+        return (
+            attack
+            for attack in (
+                self.ranged_attack_data,
+                self.melee_attack_data,
+                self.area_of_effect_attack_data,
             )
+            if attack
         )
 
 
 @dataclass
 class EntityData:
-    """
-    The base class for storing general data about an entity. This stuff should not
+    """The base class for storing general data about an entity. This stuff should not
     change between entity levels.
 
     name: str
@@ -127,8 +165,9 @@ class EntityData:
 
 @dataclass
 class EntityUpgradeData:
-    """
-    Stores an upgrade that is available to the entity. If the cost function is set to
+    """Stores an upgrade that is available to the entity. If the cost function is set
+    to.
+
     -1, then the upgrade does not exist for the entity.
 
     section_type: UpgradeSection
@@ -149,8 +188,7 @@ class EntityUpgradeData:
 
 @dataclass
 class AttributeUpgradeData:
-    """
-    Stores an attribute upgrade that is available to the entity.
+    """Stores an attribute upgrade that is available to the entity.
 
     attribute_type: UpgradeAttribute
         The type of attribute which this upgrade targets.
@@ -165,8 +203,7 @@ class AttributeUpgradeData:
 
 @dataclass
 class PlayerData:
-    """
-    Stores data about a specific player type.
+    """Stores data about a specific player type.
 
     melee_degree: int
         The degree that the player's melee attack is limited to.
@@ -177,8 +214,7 @@ class PlayerData:
 
 @dataclass
 class EnemyData:
-    """
-    Stores data about a specific enemy type.
+    """Stores data about a specific enemy type.
 
     view_distance: int
         The amount of tiles the enemy can see too.
@@ -189,8 +225,7 @@ class EnemyData:
 
 @dataclass
 class AttackData:
-    """
-    The base class for storing data about an entity's attack.
+    """The base class for storing data about an entity's attack.
 
     damage: int
         The damage the entity deals.
@@ -208,8 +243,7 @@ class AttackData:
 
 @dataclass
 class RangedAttackData(AttackData):
-    """
-    Stores data about an entity's ranged attack.
+    """Stores data about an entity's ranged attack.
 
     damage: int
         The damage the entity deals.
@@ -225,8 +259,7 @@ class RangedAttackData(AttackData):
 
 @dataclass
 class MeleeAttackData(AttackData):
-    """
-    Stores data about an entity's melee attack.
+    """Stores data about an entity's melee attack.
 
     damage: int
         The damage the entity deals.
@@ -239,8 +272,7 @@ class MeleeAttackData(AttackData):
 
 @dataclass
 class AreaOfEffectAttackData(AttackData):
-    """
-    Stores data about an entity's area of effect attack.
+    """Stores data about an entity's area of effect attack.
 
     damage: int
         The damage the entity deals.
@@ -249,101 +281,6 @@ class AreaOfEffectAttackData(AttackData):
     """
 
     attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
-
-
-# Player characters
-PLAYER = BaseData(
-    entity_data=EntityData(
-        name="player",
-        textures=moving_textures["player"],
-        armour_regen=True,
-        upgrade_level_limit=5,
-        upgrade_data=[
-            EntityUpgradeData(
-                section_type=UpgradeSection.ENDURANCE,
-                cost=lambda current_level: 1 * 3**current_level,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.HEALTH,
-                        increase=lambda current_level: 100 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.SPEED,
-                        increase=lambda current_level: 150 * 1.4**current_level,
-                    ),
-                ],
-            ),
-            EntityUpgradeData(
-                section_type=UpgradeSection.DEFENCE,
-                cost=lambda current_level: 1 * 3**current_level,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.ARMOUR,
-                        increase=lambda current_level: 20 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
-                        increase=lambda current_level: 2 * 0.5**current_level,
-                    ),
-                ],
-            ),
-        ],
-    ),
-    player_data=PlayerData(
-        melee_degree=60,
-    ),
-    ranged_attack_data=RangedAttackData(
-        damage=10, attack_cooldown=3, attack_range=0, max_range=10
-    ),
-    melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1, attack_range=3),
-    area_of_effect_attack_data=AreaOfEffectAttackData(
-        damage=10, attack_cooldown=10, attack_range=3
-    ),
-)
-
-# Enemy characters
-ENEMY1 = BaseData(
-    entity_data=EntityData(
-        name="enemy1",
-        textures=moving_textures["enemy"],
-        armour_regen=True,
-        upgrade_level_limit=5,
-        upgrade_data=[
-            EntityUpgradeData(
-                section_type=UpgradeSection.ENDURANCE,
-                cost=lambda current_level: -1,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.HEALTH,
-                        increase=lambda current_level: 10 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.SPEED,
-                        increase=lambda current_level: 50 * 1.4**current_level,
-                    ),
-                ],
-            ),
-            EntityUpgradeData(
-                section_type=UpgradeSection.DEFENCE,
-                cost=lambda current_level: -1,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.ARMOUR,
-                        increase=lambda current_level: 10 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
-                        increase=lambda current_level: 3 * 0.6**current_level,
-                    ),
-                ],
-            ),
-        ],
-    ),
-    enemy_data=EnemyData(view_distance=5),
-    ranged_attack_data=RangedAttackData(
-        damage=5, attack_cooldown=5, attack_range=5, max_range=10
-    ),
-)
 
 
 # Sprite sizes

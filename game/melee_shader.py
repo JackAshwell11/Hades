@@ -1,3 +1,5 @@
+"""Uses the GPU to send out rays around the player to find enemies that are within range
+of a melee attack."""
 from __future__ import annotations
 
 # Builtin
@@ -16,21 +18,20 @@ if TYPE_CHECKING:
     from game.entities.enemy import Enemy
     from game.views.game_view import Game
 
+__all__ = ("MeleeShader",)
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
 # Create the paths to the shader scripts
-base_path = (
-    pathlib.Path(__file__).parent.joinpath("resources").joinpath("shader scripts")
-)
+base_path = pathlib.Path(__file__).parent / "resources" / "shader scripts"
 vertex_path = base_path.joinpath("melee_vertex.glsl")
 geometry_path = base_path.joinpath("melee_geometry.glsl")
 
 
 class MeleeShader:
-    """
-    A helper class which eases setting up the shader for the player's melee attack. This
-    currently only works for the player but may change in the future.
+    """A helper class which eases setting up the shader for the player's melee attack.
+    This currently only works for the player but may change in the future.
 
     Parameters
     ----------
@@ -72,8 +73,7 @@ class MeleeShader:
 
     @property
     def ctx(self) -> ArcadeContext:
-        """
-        Gets the arcade context object for running OpenGL programs.
+        """Gets the arcade context object for running OpenGL programs.
 
         Returns
         -------
@@ -90,10 +90,13 @@ class MeleeShader:
         # Create the shader program. This draws lines from the player to each enemy
         # which is within a specific distance. It then checks if the player has line of
         # sight with each enemy that has a line drawn to them
-        self.program = self.ctx.program(
-            vertex_shader=open(vertex_path).read(),
-            geometry_shader=open(geometry_path).read(),
-        )
+        with open(vertex_path, "r", encoding="utf8") as vertex_file, open(
+            geometry_path, "r", encoding="utf8"
+        ) as geometry_file:
+            self.program = self.ctx.program(
+                vertex_shader=vertex_file.read(),
+                geometry_shader=geometry_file.read(),
+            )
 
         # Configure the program with the maximum distance, the angle range and the
         # resolution
@@ -128,9 +131,10 @@ class MeleeShader:
         )
         self.update_collision()
         logger.info(
-            "Initialised melee shader with a result buffer size of"
-            f" {self.result_buffer.size} and a walls framebuffer size of"
-            f" {self.walls_framebuffer.size}"
+            "Initialised melee shader with a result buffer size of %d and a walls"
+            " framebuffer size of %d",
+            self.result_buffer.size,
+            self.walls_framebuffer.size,
         )
 
     def update_collision(self) -> None:
@@ -143,13 +147,12 @@ class MeleeShader:
             fbo.clear()
             self.view.wall_sprites.draw()
         logger.debug(
-            f"Updated the walls framebuffer with size {self.walls_framebuffer.size}"
+            "Updated the walls framebuffer with size %d", self.walls_framebuffer.size
         )
 
     def run_shader(self) -> list[Enemy]:
-        """
-        Runs the shader program to find all enemies within range of the player based on
-        the player's direction.
+        """Runs the shader program to find all enemies within range of the player based
+        on the player's direction.
 
         Returns
         -------
@@ -198,7 +201,7 @@ class MeleeShader:
 
         # Store the number of primitives/sprites found
         num_sprites_found = self.query.primitives_generated
-        logger.info(f"Found {num_sprites_found} sprites in the melee shader")
+        logger.info("Found %d sprites in the melee shader", num_sprites_found)
         if num_sprites_found > 0:
             # Transfer the data from the shader into python and decode the value into
             # python objects. To do this, we unpack the result buffer from the VRAM and

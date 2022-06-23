@@ -1,3 +1,4 @@
+"""Builds the game into an executable format for easy distribution."""
 from __future__ import annotations
 
 # Builtin
@@ -7,12 +8,9 @@ import pathlib
 import PyInstaller.__main__  # noqa
 
 # Get path to the resources folder
-resources_folder_name = "resources"
+RESOURCES_FOLDER_NAME = "resources"
 resources_path = (
-    pathlib.Path(__file__)
-    .resolve()
-    .parent.joinpath("game")
-    .joinpath(resources_folder_name)
+    pathlib.Path(__file__).resolve().parent / "game" / RESOURCES_FOLDER_NAME
 )
 
 PyInstaller.__main__.run(
@@ -21,7 +19,7 @@ PyInstaller.__main__.run(
         "--noconsole",
         "--clean",
         "--noconfirm",
-        f"--add-data={resources_path};{resources_folder_name}",
+        f"--add-data={resources_path};{RESOURCES_FOLDER_NAME}",
     ]
 )
 

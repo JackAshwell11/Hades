@@ -1,3 +1,4 @@
+"""Stores the player object which the player can control."""
 from __future__ import annotations
 
 # Builtin
@@ -29,13 +30,14 @@ if TYPE_CHECKING:
     from game.entities.base import CollectibleTile
     from game.views.game_view import Game
 
+__all__ = ("Player",)
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
 class Player(Entity):
-    """
-    Represents the player character in the game.
+    """Represents the player character in the game.
 
     Parameters
     ----------
@@ -126,8 +128,7 @@ class Player(Entity):
 
     @property
     def money(self) -> float:
-        """
-        Gets the player's money.
+        """Gets the player's money.
 
         Returns
         -------
@@ -138,8 +139,7 @@ class Player(Entity):
 
     @money.setter
     def money(self, value: float) -> None:
-        """
-        Sets the player's money.
+        """Sets the player's money.
 
         Parameters
         ----------
@@ -149,8 +149,7 @@ class Player(Entity):
         self._entity_state["money"] = value
 
     def _initialise_entity_state(self) -> dict[str, float]:
-        """
-        Initialises the entity's state dict.
+        """Initialises the entity's state dict.
 
         Returns
         -------
@@ -168,8 +167,7 @@ class Player(Entity):
         }
 
     def post_on_update(self, delta_time: float) -> None:
-        """
-        Processes player logic.
+        """Processes player logic.
 
         Parameters
         ----------
@@ -215,7 +213,7 @@ class Player(Entity):
 
         # Check if the player is in combat
         self.in_combat = any(
-            [enemy.player_within_range for enemy in self.game.enemy_sprites]  # noqa
+            enemy.player_within_range for enemy in self.game.enemy_sprites  # noqa
         )
         if self.in_combat:
             self.time_out_of_combat = 0
@@ -268,8 +266,7 @@ class Player(Entity):
                 self.current_attack.process_attack(self.game.enemy_sprites)
 
     def add_item_to_inventory(self, item: CollectibleTile) -> bool:
-        """
-        Adds an item to the player's inventory.
+        """Adds an item to the player's inventory.
 
         Parameters
         ----------
@@ -283,7 +280,7 @@ class Player(Entity):
         """
         # Check if the array is full
         if len(self.inventory) == self.inventory_capacity:
-            logger.info(f"Cannot add item {item} to full inventory")
+            logger.info("Cannot add item %r to full inventory", item)
             return False
 
         # Add the item to the array
@@ -293,5 +290,5 @@ class Player(Entity):
         self.game.window.views["InventoryView"].update_grid()  # type: ignore
 
         # Add successful
-        logger.info(f"Adding item {item} to inventory")
+        logger.info("Adding item %r to inventory", item)
         return True

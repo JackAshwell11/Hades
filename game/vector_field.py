@@ -1,3 +1,5 @@
+"""Creates an efficient vector flow field useful for navigating enemies around the game
+map."""
 from __future__ import annotations
 
 # Builtin
@@ -15,14 +17,15 @@ from game.constants.entity import SPRITE_SIZE
 if TYPE_CHECKING:
     import arcade
 
+__all__ = ("VectorField",)
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
 class VectorField:
-    """
-    Represents a vector flow field that allows for efficient pathfinding to a specific
-    position for large amount of entities. The steps needed to accomplish this:
+    """Represents a vector flow field that allows for efficient pathfinding to a
+    specific position for large amount of entities. The steps needed to accomplish this:
         1. First, we start at the destination tile and work our way outwards using a
         breadth first search. This is called a 'flood fill' and will construct the
         Dijkstra map needed for the vector field.
@@ -33,7 +36,7 @@ class VectorField:
         directions instead of 4.
 
         3. Finally, once the neighbour with the lowest Dijkstra distance is found, we
-        can create a link from the current tile to that neighbour tile which the enemy
+        can create a vector from the current tile to that neighbour tile which the enemy
         will follow. Repeating this for every tile in the flow file gives us an
         efficient way to calculate pathfinding for a large amount of entities.
 
@@ -115,8 +118,7 @@ class VectorField:
     def _get_neighbours(
         self, tile_pos: tuple[int, int], offsets: list[tuple[int, int]]
     ) -> list[tuple[int, int]]:
-        """
-        Gets a tile position's floor neighbours based on a given list of offsets.
+        """Gets a tile position's floor neighbours based on a given list of offsets.
 
         Parameters
         ----------
@@ -151,9 +153,8 @@ class VectorField:
 
     @staticmethod
     def get_tile_pos_for_pixel(position: tuple[float, float]) -> tuple[int, int]:
-        """
-        Converts a sprite position on the screen into a tile position for use with the
-        vector field.
+        """Converts a sprite position on the screen into a tile position for use with
+        the vector field.
 
         Parameters
         ----------
@@ -168,8 +169,7 @@ class VectorField:
         return int(position[0] // SPRITE_SIZE), int(position[1] // SPRITE_SIZE)
 
     def recalculate_map(self, player_pos: tuple[float, float]) -> None:
-        """
-        Recalculates the vector field and produces a new path_dict.
+        """Recalculates the vector field and produces a new path_dict.
 
         Parameters
         ----------
@@ -240,14 +240,13 @@ class VectorField:
 
         # Log the time taken to generate the vector field
         logger.debug(
-            f"Vector field generated in {time.perf_counter() - start_time}seconds"
+            "Vector field generated in %f seconds", time.perf_counter() - start_time
         )
 
     def get_vector_direction(
         self, current_enemy_pos: tuple[float, float]
     ) -> tuple[float, float]:
-        """
-        Gets the vector the enemy needs to travel in based on their position.
+        """Gets the vector the enemy needs to travel in based on their position.
 
         Parameters
         ----------

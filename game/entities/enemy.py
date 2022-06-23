@@ -1,3 +1,4 @@
+"""Stores the enemy object which is hostile to the player."""
 from __future__ import annotations
 
 # Builtin
@@ -26,13 +27,14 @@ if TYPE_CHECKING:
     from game.constants.entity import BaseData
     from game.views.game_view import Game
 
+__all__ = ("Enemy",)
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
 class Enemy(Entity):
-    """
-    Represents a hostile character in the game.
+    """Represents a hostile character in the game.
 
     Parameters
     ----------
@@ -86,8 +88,7 @@ class Enemy(Entity):
         )
 
     def _initialise_entity_state(self) -> dict[str, float]:
-        """
-        Initialises the entity's state dict.
+        """Initialises the entity's state dict.
 
         Returns
         -------
@@ -96,7 +97,7 @@ class Enemy(Entity):
         """
         # Get the enemy level adjusted for an array index
         adjusted_level = self.enemy_level - 1
-        logger.debug(f"Initialising enemy with level {adjusted_level}")
+        logger.debug("Initialising enemy with level %d", adjusted_level)
 
         # Create the entity state dict
         return {
@@ -112,8 +113,7 @@ class Enemy(Entity):
         }
 
     def post_on_update(self, delta_time: float) -> None:
-        """
-        Processes enemy logic.
+        """Processes enemy logic.
 
         Parameters
         ----------
@@ -210,8 +210,7 @@ class Enemy(Entity):
                 self.current_attack.process_attack(self.game.player)
 
     def check_line_of_sight(self, max_tile_range: int) -> bool:
-        """
-        Checks if the enemy has line of sight with the player.
+        """Check if the enemy has line of sight with the player.
 
         Parameters
         ----------

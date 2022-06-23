@@ -1,23 +1,21 @@
+"""Manages the different movement algorithms available to the enemy."""
 from __future__ import annotations
 
 # Builtin
-import logging
 from typing import TYPE_CHECKING
 
 # Custom
 from game.constants.entity import MOVEMENT_FORCE
 
-# Get the logger
-logger = logging.getLogger(__name__)
-
 if TYPE_CHECKING:
     from game.entities.enemy import Enemy
     from game.vector_field import VectorField
 
+__all__ = ("EnemyMovementManager",)
+
 
 class EnemyMovementManager:
-    """
-    Manages and processes logic needed for the enemy to move towards the player or
+    """Manages and processes logic needed for the enemy to move towards the player or
     wander around. This is a work in progress.
 
     Parameters
@@ -36,8 +34,7 @@ class EnemyMovementManager:
 
     @property
     def vector_field(self) -> VectorField:
-        """
-        Gets the vector field for easy access.
+        """Gets the vector field for easy access.
 
         Returns
         -------
@@ -51,8 +48,7 @@ class EnemyMovementManager:
         return self.owner.game.vector_field
 
     def calculate_vector_field_force(self) -> tuple[float, float]:
-        """
-        Calculates the force to apply to an enemy which is using the vector field.
+        """Calculates the force to apply to an enemy which is using the vector field.
 
         Returns
         -------
@@ -70,10 +66,10 @@ class EnemyMovementManager:
             vector_direction_y * MOVEMENT_FORCE,
         )
 
-    def calculate_wander_force(self) -> tuple[float, float]:
-        """
-        Calculates the force to apply to an enemy who is wandering. This currently does
-        not work.
+    @staticmethod  # Change this when it is properly implemented
+    def calculate_wander_force() -> tuple[float, float]:
+        """Calculates the force to apply to an enemy who is wandering. This currently
+        does not work.
 
         Returns
         -------

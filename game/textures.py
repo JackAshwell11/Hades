@@ -1,3 +1,5 @@
+"""Pre-loads all the textures needed by the game and stores them in an easy-to-access
+format."""
 from __future__ import annotations
 
 # Builtin
@@ -7,10 +9,21 @@ import pathlib
 # Pip
 import arcade
 
+# Custom
+from game.constants.entity import SPRITE_SIZE
+
+__all__ = (
+    "grid_pos_to_pixel",
+    "non_moving_textures",
+    "moving_textures",
+)
+
+# Get the logger
+logger = logging.getLogger(__name__)
+
 
 def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
-    """
-    Calculate the x and y position based on the game map or vector field position.
+    """Calculate the x and y position based on the game map or vector field position.
 
     Parameters
     ----------
@@ -24,9 +37,6 @@ def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
     tuple[float, float]
         The x and y position of a sprite on the screen.
     """
-    # Avoid a circular import
-    from game.constants.entity import SPRITE_SIZE
-
     # Calculate the position on screen
     return (
         x * SPRITE_SIZE + SPRITE_SIZE / 2,
@@ -34,13 +44,8 @@ def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
     )
 
 
-# Get the logger
-logger = logging.getLogger(__name__)
-
 # Create the texture path
-texture_path = (
-    pathlib.Path(__file__).resolve().parent.joinpath("resources").joinpath("textures")
-)
+texture_path = pathlib.Path(__file__).resolve().parent / "resources" / "textures"
 
 # Create a dictionary to hold all the filenames for the non-moving textures
 non_moving_filenames = {
@@ -74,7 +79,9 @@ non_moving_textures: dict[str, list[arcade.Texture]] = {
     key: [arcade.load_texture(texture_path.joinpath(filename)) for filename in value]
     for key, value in non_moving_filenames.items()
 }
-logger.info(f"Created non moving texture dict with {len(non_moving_textures)} sections")
+logger.info(
+    "Created non moving texture dict with %d sections", len(non_moving_textures)
+)
 
 # Create the moving textures
 moving_textures: dict[str, dict[str, list[list[arcade.Texture]]]] = {
@@ -87,4 +94,4 @@ moving_textures: dict[str, dict[str, list[list[arcade.Texture]]]] = {
     }
     for key, value in moving_filenames.items()
 }
-logger.info(f"Created moving texture dict with {len(moving_textures)} sections")
+logger.info("Created moving texture dict with %d sections", len(moving_textures))

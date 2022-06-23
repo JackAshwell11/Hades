@@ -1,15 +1,34 @@
+"""Stores various constants related to consumables and the dataclasses used for
+constructing the consumables."""
 from __future__ import annotations
 
 # Builtin
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Callable, Sequence
-
-# Custom
-from game.textures import non_moving_textures
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+
     import arcade
+
+__all__ = (
+    "InstantEffectType",
+    "StatusEffectType",
+    "ConsumableData",
+    "InstantData",
+    "StatusEffectData",
+    "HEALTH_POTION_INCREASE",
+    "ARMOUR_POTION_INCREASE",
+    "HEALTH_BOOST_POTION_INCREASE",
+    "HEALTH_BOOST_POTION_DURATION",
+    "ARMOUR_BOOST_POTION_INCREASE",
+    "ARMOUR_BOOST_POTION_DURATION",
+    "SPEED_BOOST_POTION_INCREASE",
+    "SPEED_BOOST_POTION_DURATION",
+    "FIRE_RATE_BOOST_POTION_INCREASE",
+    "FIRE_RATE_BOOST_POTION_DURATION",
+)
 
 
 # Instant effects
@@ -33,8 +52,7 @@ class StatusEffectType(Enum):
 
 @dataclass
 class ConsumableData:
-    """
-    The base class for constructing a consumable with multiple levels.
+    """The base class for constructing a consumable with multiple levels.
 
     name: str
         The name of the consumable.
@@ -51,18 +69,15 @@ class ConsumableData:
     name: str = field(kw_only=True)
     texture: arcade.Texture = field(kw_only=True)
     level_limit: int = field(kw_only=True)
-    instant: Sequence[InstantData] = field(
-        kw_only=True, default_factory=lambda: [].copy()
-    )
+    instant: Sequence[InstantData] = field(kw_only=True, default_factory=list)
     status_effects: Sequence[StatusEffectData] = field(
-        kw_only=True, default_factory=lambda: [].copy()
+        kw_only=True, default_factory=list
     )
 
 
 @dataclass
 class InstantData:
-    """
-    Stores the data for an individual instant effect applied by a consumable.
+    """Stores the data for an individual instant effect applied by a consumable.
 
     instant_type: InstantEffect
         The type of instant effect that is applied.
@@ -77,8 +92,7 @@ class InstantData:
 
 @dataclass
 class StatusEffectData:
-    """
-    Stores the data for an individual status effect applied by a consumable.
+    """Stores the data for an individual status effect applied by a consumable.
 
     status_type: StatusEffectType
         The type of status effect that is applied.
@@ -95,85 +109,6 @@ class StatusEffectData:
     status_type: StatusEffectType = field(kw_only=True)
     increase: Callable[[int], float] = field(kw_only=True)
     duration: Callable[[int], float] = field(kw_only=True)
-
-
-# Base instant consumables
-HEALTH_POTION = ConsumableData(
-    name="health potion",
-    texture=non_moving_textures["items"][0],
-    level_limit=5,
-    instant=[
-        InstantData(
-            instant_type=InstantEffectType.HEALTH,
-            increase=lambda current_level: 10 * 1.5**current_level,
-        ),
-    ],
-)
-
-ARMOUR_POTION = ConsumableData(
-    name="armour potion",
-    texture=non_moving_textures["items"][1],
-    level_limit=5,
-    instant=[
-        InstantData(
-            instant_type=InstantEffectType.ARMOUR,
-            increase=lambda current_level: 10 * 1.5**current_level,
-        ),
-    ],
-)
-
-# Base status effect consumables
-HEALTH_BOOST_POTION = ConsumableData(
-    name="health boost potion",
-    texture=non_moving_textures["items"][2],
-    level_limit=5,
-    status_effects=[
-        StatusEffectData(
-            status_type=StatusEffectType.HEALTH,
-            increase=lambda current_level: 25 * 1.3**current_level,
-            duration=lambda current_level: 5 * 1.3**current_level,
-        )
-    ],
-)
-
-ARMOUR_BOOST_POTION = ConsumableData(
-    name="armour boost potion",
-    texture=non_moving_textures["items"][3],
-    level_limit=5,
-    status_effects=[
-        StatusEffectData(
-            status_type=StatusEffectType.ARMOUR,
-            increase=lambda current_level: 10 * 1.3**current_level,
-            duration=lambda current_level: 5 * 1.3**current_level,
-        )
-    ],
-)
-
-SPEED_BOOST_POTION = ConsumableData(
-    name="speed boost potion",
-    texture=non_moving_textures["items"][4],
-    level_limit=5,
-    status_effects=[
-        StatusEffectData(
-            status_type=StatusEffectType.HEALTH,
-            increase=lambda current_level: 25 * 1.3**current_level,
-            duration=lambda current_level: 2 * 1.3**current_level,
-        )
-    ],
-)
-
-FIRE_RATE_BOOST_POTION = ConsumableData(
-    name="fire rate boost potion",
-    texture=non_moving_textures["items"][5],
-    level_limit=5,
-    status_effects=[
-        StatusEffectData(
-            status_type=StatusEffectType.HEALTH,
-            increase=lambda current_level: -0.5,
-            duration=lambda current_level: 2 * 1.3**current_level,
-        )
-    ],
-)
 
 
 # Other consumable constants

@@ -1,6 +1,9 @@
+"""Initialises and manages the main game through controlling movement, attacking, game
+logic and collision."""
 from __future__ import annotations
 
 # Builtin
+import contextlib
 import logging
 import math
 import random
@@ -11,15 +14,17 @@ import arcade
 import numpy as np
 
 # Custom
-from game.constants.consumable import (
+from game.constants.constructor import (
     ARMOUR_BOOST_POTION,
     ARMOUR_POTION,
+    ENEMY1,
     FIRE_RATE_BOOST_POTION,
     HEALTH_BOOST_POTION,
     HEALTH_POTION,
+    PLAYER,
     SPEED_BOOST_POTION,
 )
-from game.constants.entity import ENEMY1, FACING_LEFT, FACING_RIGHT, PLAYER, SPRITE_SIZE
+from game.constants.entity import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
 from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
@@ -34,7 +39,7 @@ from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
 from game.entities.player import Player
 from game.entities.tile import Consumable, Floor, Wall
-from game.generation.map import GameMapShape, create_map
+from game.generation.map import create_map
 from game.physics import PhysicsEngine
 from game.textures import grid_pos_to_pixel
 from game.vector_field import VectorField
@@ -44,14 +49,16 @@ from game.views.shop_view import ShopView
 
 if TYPE_CHECKING:
     from game.entities.base import CollectibleTile, UsableTile
+    from game.generation.map import GameMapShape
+
+__all__ = ("Game",)
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
 class Game(BaseView):
-    """
-    Manages the game and its actions.
+    """Manages the game and its actions.
 
     Parameters
     ----------
@@ -147,8 +154,7 @@ class Game(BaseView):
         ) = self.player.up_pressed = self.player.down_pressed = False
 
     def setup(self, level: int) -> None:
-        """
-        Sets up the game.
+        """Sets up the game.
 
         Parameters
         ----------
@@ -292,8 +298,9 @@ class Game(BaseView):
 
         # Debug what was created
         logger.debug(
-            f"Initialised game view with {len(self.enemy_sprites)} enemies and "
-            f"{len(self.tile_sprites)} tiles"
+            "Initialised game view with %d enemies and %d tiles",
+            len(self.enemy_sprites),
+            len(self.tile_sprites),
         )
 
         # Initialise the vector field
@@ -302,8 +309,9 @@ class Game(BaseView):
         )
         self.vector_field.recalculate_map(self.player.position)
         logger.debug(
-            f"Created vector grid with height {self.vector_field.height} and width "
-            f" {self.vector_field.width}"
+            "Created vector grid with height %d and width %d",
+            self.vector_field.height,
+            self.vector_field.width,
         )
 
         # Update the player's current tile position
@@ -457,8 +465,7 @@ class Game(BaseView):
         self.ui_manager.draw()
 
     def on_update(self, delta_time: float) -> None:
-        """
-        Processes movement and game logic.
+        """Processes movement and game logic.
 
         Parameters
         ----------
@@ -474,13 +481,13 @@ class Game(BaseView):
             arcade.exit()
 
         # Process logic for the player
-        self.player.on_update()
+        self.player.on_update(delta_time)
 
         # Process logic for the enemies
-        self.enemy_sprites.on_update()
+        self.enemy_sprites.on_update(delta_time)
 
         # Process logic for the bullets
-        self.bullet_sprites.on_update()
+        self.bullet_sprites.on_update(delta_time)
 
         # Update the physics engine
         self.physics_engine.step()
@@ -495,15 +502,14 @@ class Game(BaseView):
         if item_collision:
             # Set nearest_item since we are colliding with an item
             self.nearest_item = item_collision[0]
-            logger.debug(f"Grabbed nearest item {self.nearest_item}")
+            logger.debug("Grabbed nearest item %r", self.nearest_item)
         else:
             # Reset nearest_item since we don't want to activate an item that the player
             # is not colliding with
             self.nearest_item = None
 
     def on_key_press(self, key: int, modifiers: int) -> None:
-        """
-        Called when the player presses a key.
+        """Called when the player presses a key.
 
         Parameters
         ----------
@@ -517,7 +523,7 @@ class Game(BaseView):
         assert self.player is not None
 
         # Find out what key was pressed
-        logger.debug(f"Received key press with key {key}")
+        logger.debug("Received key press with key %r and modifiers %r", key, modifiers)
         match key:
             case arcade.key.W:
                 self.player.up_pressed = True
@@ -529,12 +535,10 @@ class Game(BaseView):
                 self.player.right_pressed = True
             case arcade.key.E:
                 if self.nearest_item:
-                    try:
-                        # Nearest item is a collectible
+                    with contextlib.suppress(AttributeError):
+                        # Nearest item is a collectible. If this raises an error, then
+                        # it is an item
                         self.nearest_item.item_pick_up()
-                    except AttributeError:
-                        # Nearest item is an item
-                        pass
             case arcade.key.R:
                 if self.nearest_item:
                     self.nearest_item.item_use()
@@ -553,8 +557,7 @@ class Game(BaseView):
                 self.window.show_view(self.window.views["ShopView"])
 
     def on_key_release(self, key: int, modifiers: int) -> None:
-        """
-        Called when the player releases a key.
+        """Called when the player releases a key.
 
         Parameters
         ----------
@@ -568,7 +571,9 @@ class Game(BaseView):
         assert self.player is not None
 
         # Find out what key was released
-        logger.debug(f"Received key release with key {key}")
+        logger.debug(
+            "Received key release with key %r and modifiers %r", key, modifiers
+        )
         match key:
             case arcade.key.W:
                 self.player.up_pressed = False
@@ -580,8 +585,7 @@ class Game(BaseView):
                 self.player.right_pressed = False
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
-        """
-        Called when the player presses the mouse button.
+        """Called when the player presses the mouse button.
 
         Parameters
         ----------
@@ -599,15 +603,20 @@ class Game(BaseView):
         assert self.player is not None
 
         # Find out what mouse button was pressed
-        logger.debug(f"{button} mouse button was pressed")
+        logger.debug(
+            "%r mouse button was pressed at position (%f, %f) with modifiers %r",
+            button,
+            x,
+            y,
+            modifiers,
+        )
         match button:
             case arcade.MOUSE_BUTTON_LEFT:
                 # Make the player attack
                 self.player.attack()
 
-    def on_mouse_motion(self, x: float, y: float, dx: float, dy: float) -> None:
-        """
-        Called when the mouse moves.
+    def on_mouse_motion(self, x: float, y: float, *_) -> None:
+        """Called when the mouse moves.
 
         Parameters
         ----------
@@ -615,10 +624,6 @@ class Game(BaseView):
             The x position of the mouse.
         y: float
             The y position of the mouse.
-        dx: float
-            The change in the x position.
-        dy: float
-            The change in the y position.
         """
         # Make sure variables needed are valid
         assert self.player is not None

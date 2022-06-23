@@ -1,3 +1,4 @@
+"""Acts as the entry point to the game by creating and initialising the window."""
 from __future__ import annotations
 
 # Builtin
@@ -14,16 +15,17 @@ from game.views.start_menu_view import StartMenu
 if TYPE_CHECKING:
     from game.views.base_view import BaseView
 
+__all__ = ("Window",)
+
 # Initialise logging and get the game logger
 logging.config.dictConfig(LOGGING_DICT_CONFIG)
 logger = logging.getLogger(GAME_LOGGER)
 
 
 class Window(arcade.Window):
-    """
-    Manages the window and allows switching between views.
+    """Manages the window and allows switching between views.
 
-     Attributes
+    Attributes
     ----------
     views: dict[str, BaseView]
         Holds all the views used by the game.

@@ -1,3 +1,4 @@
+"""Creates a start menu so the player can change their settings or game mode."""
 from __future__ import annotations
 
 # Builtin
@@ -15,6 +16,8 @@ from game.views.game_view import Game
 if TYPE_CHECKING:
     from game.window import Window
 
+__all__ = ("StartMenu",)
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
@@ -22,19 +25,19 @@ logger = logging.getLogger(__name__)
 class StartButton(arcade.gui.UIFlatButton):
     """A button which when clicked will start the game."""
 
-    def on_click(self, event: arcade.gui.UIOnClickEvent) -> None:
+    def on_click(self, _: arcade.gui.UIOnClickEvent) -> None:
         """Called when the button is clicked."""
         # Get the current window and view
         window: Window = arcade.get_window()
-        current_view: StartMenu = window.current_view  # noqa
 
         # Set up the new game
         new_game = Game(DEBUG_GAME)
         window.views["Game"] = new_game
         new_game.setup(1)
         logger.info(
-            f"Initialised game view at level {1} with debug mode "
-            f"{'ON' if DEBUG_GAME else 'OFF'}"
+            "Initialised game view at level %d with debug mode %s",
+            1,
+            "ON" if DEBUG_GAME else "OFF",
         )
 
         # Show the new game
@@ -50,7 +53,7 @@ class StartButton(arcade.gui.UIFlatButton):
 class QuitButton(arcade.gui.UIFlatButton):
     """A button which when clicked will quit the game."""
 
-    def on_click(self, event: arcade.gui.UIOnClickEvent) -> None:
+    def on_click(self, _: arcade.gui.UIOnClickEvent) -> None:
         """Called when the button is clicked."""
         logger.info("Exiting game")
         arcade.exit()

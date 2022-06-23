@@ -1,3 +1,4 @@
+"""Manages upgrading of the player's attributes."""
 from __future__ import annotations
 
 # Builtin
@@ -12,13 +13,19 @@ if TYPE_CHECKING:
     from game.entities.player import Player
     from game.views.shop_view import SectionUpgradeButton
 
+__all__ = (
+    "UpgradeAttribute",
+    "UPGRADABLE_ATTRIBUTES",
+    "create_attribute_upgrade",
+    "UpgradableSection",
+)
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
 class UpgradableAttributeBase:
-    """
-    The base class for all player attributes that can be upgraded.
+    """The base class for all player attributes that can be upgraded.
 
     Parameters
     ----------
@@ -50,8 +57,7 @@ class UpgradableAttributeBase:
         return f"<UpgradableAttribute (Player={self.player})>"
 
     def upgrade_attribute(self) -> None:
-        """
-        Upgrades the corresponding player attribute which matches this class.
+        """Upgrades the corresponding player attribute which matches this class.
 
         Raises
         ------
@@ -62,8 +68,7 @@ class UpgradableAttributeBase:
 
 
 class HealthUpgradableAttribute(UpgradableAttributeBase):
-    """
-    Manages upgrading of the player's health attribute.
+    """Manages upgrading of the player's health attribute.
 
     Parameters
     ----------
@@ -100,8 +105,7 @@ class HealthUpgradableAttribute(UpgradableAttributeBase):
 
 
 class ArmourUpgradableAttribute(UpgradableAttributeBase):
-    """
-    Manages upgrading of the player's armour attribute.
+    """Manages upgrading of the player's armour attribute.
 
     Parameters
     ----------
@@ -138,8 +142,7 @@ class ArmourUpgradableAttribute(UpgradableAttributeBase):
 
 
 class SpeedUpgradableAttribute(UpgradableAttributeBase):
-    """
-    Manages upgrading of the player's speed attribute.
+    """Manages upgrading of the player's speed attribute.
 
     Parameters
     ----------
@@ -175,8 +178,7 @@ class SpeedUpgradableAttribute(UpgradableAttributeBase):
 
 
 class RegenCooldownUpgradableAttribute(UpgradableAttributeBase):
-    """
-    Manages upgrading of the player's regen cooldown attribute.
+    """Manages upgrading of the player's regen cooldown attribute.
 
     Parameters
     ----------
@@ -225,9 +227,8 @@ def create_attribute_upgrade(
     player: Player,
     attribute_upgrade_data: AttributeUpgradeData,
 ) -> UpgradableAttributeBase:
-    """
-    Determines which upgradable attribute class should be initialised based on a given
-    upgrade attribute type.
+    """Determines which upgradable attribute class should be initialised based on a
+    given upgrade attribute type.
 
     Parameters
     ----------
@@ -244,7 +245,9 @@ def create_attribute_upgrade(
     # attribute
     cls = UPGRADABLE_ATTRIBUTES[upgrade_attribute_type]
     logger.debug(
-        f"Selected upgradable attribute {cls} for upgrade type{upgrade_attribute_type}"
+        "Selected upgradable attribute %r for upgrade type %r",
+        cls,
+        upgrade_attribute_type,
     )
 
     # Initialise the class with the given parameters
@@ -252,8 +255,7 @@ def create_attribute_upgrade(
 
 
 class UpgradableSection:
-    """
-    Represents a player section that can be upgraded.
+    """Represents a player section that can be upgraded.
 
     Parameters
     ----------
@@ -293,8 +295,7 @@ class UpgradableSection:
 
     @property
     def next_level_cost(self) -> int:
-        """
-        Gets the cost for the next level.
+        """Gets the cost for the next level.
 
         Returns
         -------
@@ -305,8 +306,7 @@ class UpgradableSection:
 
     @property
     def level_limit(self) -> int:
-        """
-        Gets the maximum level for the player's upgrades.
+        """Gets the maximum level for the player's upgrades.
 
         Returns
         -------
@@ -316,8 +316,7 @@ class UpgradableSection:
         return self.player.entity_data.upgrade_level_limit
 
     def upgrade_section(self, shop_button: SectionUpgradeButton) -> None:
-        """
-        Upgrades the player section if the player has enough money.
+        """Upgrades the player section if the player has enough money.
 
         Parameters
         ----------
@@ -331,10 +330,10 @@ class UpgradableSection:
         ):
             # Subtract the cost from the player's money and upgrade each attribute this
             # section manages
-            logger.debug(f"Upgrading section {self.entity_upgrade_data.section_type}")
+            logger.debug("Upgrading section %r", self.entity_upgrade_data.section_type)
             self.player.money -= self.next_level_cost
             for attribute_upgrade in self.attributes:
-                logger.debug(f"Upgrading attribute {attribute_upgrade}")
+                logger.debug("Upgrading attribute %r", attribute_upgrade)
                 attribute_upgrade.upgrade_attribute()
 
             # Increase this section's level

@@ -1,3 +1,4 @@
+"""Stores general constants that can't really be grouped together."""
 from __future__ import annotations
 
 # Builtin
@@ -7,11 +8,26 @@ from datetime import datetime
 # Pip
 import arcade
 
+__all__ = (
+    "GAME_LOGGER",
+    "LOGGING_DICT_CONFIG",
+    "DEBUG_LINES",
+    "DEBUG_GAME",
+    "DEBUG_VIEW_DISTANCE",
+    "DEBUG_ATTACK_DISTANCE",
+    "DEBUG_VECTOR_FIELD_LINE",
+    "DAMPING",
+    "INVENTORY_WIDTH",
+    "INVENTORY_HEIGHT",
+    "LEVEL_GENERATOR_INTERVAL",
+    "ENEMY_LEVEL_MAX_RANGE",
+    "CONSUMABLE_LEVEL_MAX_RANGE",
+)
+
 # Create the log directory making sure it exists. Then create the path for the current
 # log file
-log_dir = pathlib.Path(__file__).resolve().parent.parent.joinpath("logs")
+log_dir = pathlib.Path(__file__).resolve().parent.parent / "logs"
 log_dir.mkdir(parents=True, exist_ok=True)
-log_path = log_dir.joinpath(f"{datetime.now().strftime('%Y-%m-%d')}.log")
 
 # Logging constants
 GAME_LOGGER = "game"
@@ -37,7 +53,7 @@ LOGGING_DICT_CONFIG = {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "default",
-            "filename": log_path,
+            "filename": log_dir.joinpath(f"{datetime.now().strftime('%Y-%m-%d')}.log"),
             "maxBytes": 5242880,  # 5MB
             "backupCount": 5,
         },

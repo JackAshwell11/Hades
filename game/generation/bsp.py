@@ -1,8 +1,10 @@
+"""Creates a binary space partition which is used for procedurally generating the game
+map."""
 from __future__ import annotations
 
 # Builtin
-import logging
 import random
+from typing import NamedTuple
 
 # Pip
 import numpy as np
@@ -15,110 +17,110 @@ from game.constants.generation import (
     TileType,
 )
 
-# Get the logger
-logger = logging.getLogger(__name__)
+__all__ = (
+    "Point",
+    "Rect",
+    "Leaf",
+)
+
+
+class Point(NamedTuple):
+    """Represents a point in the grid.
+
+    Parameters
+    ----------
+    x: int
+        The x position.
+    y: int
+        The y position.
+    """
+
+    x: int
+    y: int
+
+    def __repr__(self) -> str:
+        return f"<Point (X={self.x}) (Y={self.y})>"
 
 
 class Rect:
-    """
-    Represents a rectangle of any size useful for creating the dungeon. Containers
+    """Represents a rectangle of any size useful for creating the dungeon. Containers
     include the split wall in their sizes whereas rooms don't so MIN_CONTAINER_SIZE must
     be bigger than MIN_ROOM_SIZE.
 
     Parameters
     ----------
-    x1: int
-        The top-left x position.
-    y1: int
-        The top-left y position.
-    x2: int
-        The bottom-right x position.
-    y2: int
-        The bottom-right y position.
+    top_left: Point
+        The top-left position.
+    bottom_right: Point
+        The bottom-right position
     """
 
     __slots__ = (
-        "x1",
-        "y1",
-        "x2",
-        "y2",
+        "top_left",
+        "bottom_right",
     )
 
-    def __init__(self, x1: int, y1: int, x2: int, y2: int) -> None:
-        self.x1: int = x1
-        self.y1: int = y1
-        self.x2: int = x2
-        self.y2: int = y2
+    def __init__(self, top_left: Point, bottom_right: Point) -> None:
+        self.top_left: Point = top_left
+        self.bottom_right: Point = bottom_right
 
     def __repr__(self) -> str:
-        return (
-            f"<Rect (Top-left=({self.x1}, {self.y1})) (Bottom-right=({self.x2},"
-            f" {self.y2}))>"
-        )
+        return f"<Rect (Top-left={self.top_left}) (Bottom-right={self.bottom_right})>"
 
     @property
     def width(self) -> int:
-        """
-        Gets the width of the rect.
+        """Gets the width of the rect.
 
         Returns
         -------
         int
             The width of the rect.
         """
-        return abs(self.x2 - self.x1)
+        return abs(self.bottom_right.x - self.top_left.x)
 
     @property
     def height(self) -> int:
-        """
-        Gets the height of the rect.
+        """Gets the height of the rect.
 
         Returns
         -------
         int
             The height of the rect.
         """
-        return abs(self.y2 - self.y1)
+        return abs(self.bottom_right.y - self.top_left.y)
 
     @property
     def center_x(self) -> int:
-        """
-        Gets the x coordinate of the center position.
+        """Gets the x coordinate of the center position.
 
         Returns
         -------
         int
             The x coordinate of the center position.
         """
-        return int((self.x1 + self.x2) / 2)
+        return int((self.top_left.x + self.bottom_right.x) / 2)
 
     @property
     def center_y(self) -> int:
-        """
-        Gets the y coordinate of the center position.
+        """Gets the y coordinate of the center position.
 
         Returns
         -------
         int
             The y coordinate of the center position.
         """
-        return int((self.y1 + self.y2) / 2)
+        return int((self.top_left.y + self.bottom_right.y) / 2)
 
 
 class Leaf:
-    """
-    A binary spaced partition leaf which can be used to generate a dungeon.
+    """A binary spaced partition leaf which can be used to generate a dungeon.
 
     Parameters
     ----------
-    x1: int
-        The top-left x position.
-    y1: int
-        The top-left y position.
-    x2: int
-        The bottom-right x position.
-    y2: int
-        The bottom-right y position.
+    top_left: Point
+        The top-left position.
+    bottom_right: Point
+        The bottom-right position
     parent: Leaf | None
         The parent leaf object.
     grid: np.ndarray
@@ -153,10 +155,8 @@ class Leaf:
 
     def __init__(
         self,
-        x1: int,
-        y1: int,
-        x2: int,
-        y2: int,
+        top_left: Point,
+        bottom_right: Point,
         parent: Leaf | None,
         grid: np.ndarray,
     ) -> None:
@@ -164,20 +164,19 @@ class Leaf:
         self.right: Leaf | None = None
         self.parent: Leaf | None = parent
         self.grid: np.ndarray = grid
-        self.container: Rect = Rect(x1, y1, x2, y2)
+        self.container: Rect = Rect(top_left, bottom_right)
         self.room: Rect | None = None
         self.split_vertical: bool | None = None
 
     def __repr__(self) -> str:
         return (
             f"<Leaf (Left={self.left}) (Right={self.right}) (Top-left"
-            f" position=({self.container.x1}, {self.container.y1})) (Bottom-right"
-            f" position=({self.container.x2}, {self.container.y2}))>"
+            f" position={self.container.top_left}) (Bottom-right"
+            f" position={self.container.bottom_right})>"
         )
 
     def split(self, debug_lines: bool = False) -> bool:
-        """
-        Splits a container either horizontally or vertically.
+        """Splits a container horizontally or vertically.
 
         Parameters
         ----------
@@ -207,10 +206,11 @@ class Leaf:
         # To determine the range of values that we could split on, we need to find out
         # if the container is too small. Once we've done that, we can use the x1, y1, x2
         # and y2 coordinates to specify the range of values
-        if split_vertical:
-            max_size = self.container.width - MIN_CONTAINER_SIZE
-        else:
-            max_size = self.container.height - MIN_CONTAINER_SIZE
+        max_size = (
+            self.container.width - MIN_CONTAINER_SIZE
+            if split_vertical
+            else self.container.height - MIN_CONTAINER_SIZE
+        )
         if max_size <= MIN_CONTAINER_SIZE:
             # Container too small to split
             return False
@@ -223,52 +223,44 @@ class Leaf:
         if split_vertical:
             # Split vertically making sure to adjust pos, so it can be within range of
             # the actual container
-            pos = self.container.x1 + pos
+            pos = self.container.top_left.x + pos
             if debug_lines:
                 self.grid[
-                    self.container.y1 : self.container.y2 + 1, pos
+                    self.container.top_left.y : self.container.bottom_right.y + 1, pos
                 ] = TileType.DEBUG_WALL.value
 
             # Create child leafs
             self.left = Leaf(
-                self.container.x1,
-                self.container.y1,
-                pos - 1,
-                self.container.y2,
+                Point(self.container.top_left.x, self.container.top_left.y),
+                Point(pos - 1, self.container.bottom_right.y),
                 self,
                 self.grid,
             )
             self.right = Leaf(
-                pos + 1,
-                self.container.y1,
-                self.container.x2,
-                self.container.y2,
+                Point(pos + 1, self.container.top_left.y),
+                Point(self.container.bottom_right.x, self.container.bottom_right.y),
                 self,
                 self.grid,
             )
         else:
             # Split horizontally making sure to adjust pos, so it can be within range of
             # the actual container
-            pos = self.container.y1 + pos
+            pos = self.container.top_left.y + pos
             if debug_lines:
                 self.grid[
-                    pos, self.container.x1 : self.container.x2 + 1
+                    pos, self.container.top_left.x : self.container.bottom_right.x + 1
                 ] = TileType.DEBUG_WALL.value
 
             # Create child leafs
             self.left = Leaf(
-                self.container.x1,
-                self.container.y1,
-                self.container.x2,
-                pos - 1,
+                Point(self.container.top_left.x, self.container.top_left.y),
+                Point(self.container.bottom_right.x, pos - 1),
                 self,
                 self.grid,
             )
             self.right = Leaf(
-                self.container.x1,
-                pos + 1,
-                self.container.x2,
-                self.container.y2,
+                Point(self.container.top_left.x, pos + 1),
+                Point(self.container.bottom_right.x, self.container.bottom_right.y),
                 self,
                 self.grid,
             )
@@ -280,8 +272,7 @@ class Leaf:
         return True
 
     def create_room(self) -> bool:
-        """
-        Creates a random sized room inside a container.
+        """Creates a random sized room inside a container.
 
         Returns
         -------
@@ -301,14 +292,16 @@ class Leaf:
         # Use the width and height to find a suitable x and y position which can create
         # the room
         x_pos = random.randint(
-            self.container.x1, self.container.x1 + self.container.width - width
+            self.container.top_left.x, self.container.bottom_right.x - width
         )
         y_pos = random.randint(
-            self.container.y1, self.container.y1 + self.container.height - height
+            self.container.top_left.y, self.container.bottom_right.y - height
         )
 
         # Create the room rect
-        self.room = Rect(x_pos, y_pos, x_pos + width - 1, y_pos + height - 1)
+        self.room = Rect(
+            Point(x_pos, y_pos), Point(x_pos + width - 1, y_pos + height - 1)
+        )
 
         # Place the room rect in the 2D grid
         self.place_rect(self.room)
@@ -317,8 +310,7 @@ class Leaf:
         return True
 
     def create_hallway(self, target: Leaf) -> tuple[Rect | None, Rect | None]:
-        """
-        Creates the hallway links between rooms.
+        """Creates the hallway links between rooms.
 
         Parameters
         ----------
@@ -389,48 +381,48 @@ class Leaf:
         # Determine if we need to change the first hallway's points based on its
         # orientation (or if we even need one at al)
         first_hallway_valid = False
-        if hallway_intersection_x > start_room.x2 and split_vertical:
+        if hallway_intersection_x > start_room.bottom_right.x and split_vertical:
             # First hallway is right
-            first_top_left[0] = start_room.x2 - 1
+            first_top_left[0] = start_room.bottom_right.x - 1
             first_bottom_right[0] = hallway_intersection_x + half_hallway_size + 1
             first_hallway_valid = True
-        elif hallway_intersection_y > start_room.y2 and not split_vertical:
+        elif hallway_intersection_y > start_room.bottom_right.y and not split_vertical:
             # First hallway is down
-            first_top_left[1] = start_room.y2 - 1
+            first_top_left[1] = start_room.bottom_right.y - 1
             first_bottom_right[1] = hallway_intersection_y + half_hallway_size + 1
             first_hallway_valid = True
-        elif hallway_intersection_x < start_room.x1 and split_vertical:
+        elif hallway_intersection_x < start_room.top_left.x and split_vertical:
             # First hallway is left
             first_top_left[0] = hallway_intersection_x - half_hallway_size - 1
-            first_bottom_right[0] = start_room.x1 + 1
+            first_bottom_right[0] = start_room.top_left.x + 1
             first_hallway_valid = True
-        elif hallway_intersection_y < start_room.y1 and not split_vertical:
+        elif hallway_intersection_y < start_room.top_left.y and not split_vertical:
             # First hallway is up
             first_top_left[1] = hallway_intersection_y - half_hallway_size - 1
-            first_bottom_right[1] = start_room.y1 + 1
+            first_bottom_right[1] = start_room.top_left.y + 1
             first_hallway_valid = True
 
         # Determine if we need to change the second hallway's points based on its
         # orientation (or if we even need one at al)
         second_hallway_valid = False
-        if hallway_intersection_x < target_room.x1 and not split_vertical:
+        if hallway_intersection_x < target_room.top_left.x and not split_vertical:
             # Second hallway is right
             second_top_left[0] = hallway_intersection_x - half_hallway_size - 1
-            second_bottom_right[0] = target_room.x1 + 1
+            second_bottom_right[0] = target_room.top_left.x + 1
             second_hallway_valid = True
-        elif hallway_intersection_y < target_room.y1 and split_vertical:
+        elif hallway_intersection_y < target_room.top_left.y and split_vertical:
             # Second hallway is down
             second_top_left[1] = hallway_intersection_y - half_hallway_size - 1
-            second_bottom_right[1] = target_room.y1 + 1
+            second_bottom_right[1] = target_room.top_left.y + 1
             second_hallway_valid = True
-        elif hallway_intersection_x > target_room.x2 and not split_vertical:
+        elif hallway_intersection_x > target_room.bottom_right.x and not split_vertical:
             # Second hallway is left
-            second_top_left[0] = target_room.x2 - 1
+            second_top_left[0] = target_room.bottom_right.x - 1
             second_bottom_right[0] = hallway_intersection_x + half_hallway_size + 1
             second_hallway_valid = True
-        elif hallway_intersection_y > target_room.y2 and split_vertical:
+        elif hallway_intersection_y > target_room.bottom_right.y and split_vertical:
             # Second hallway is up
-            second_top_left[1] = target_room.y2 - 1
+            second_top_left[1] = target_room.bottom_right.y - 1
             second_bottom_right[1] = hallway_intersection_y + half_hallway_size + 1
             second_hallway_valid = True
 
@@ -438,15 +430,15 @@ class Leaf:
         first_hallway = None
         if first_hallway_valid:
             first_hallway = Rect(
-                *first_top_left,
-                *first_bottom_right,
+                Point(*first_top_left),
+                Point(*first_bottom_right),
             )
             self.place_rect(first_hallway)
         second_hallway = None
         if second_hallway_valid:
             second_hallway = Rect(
-                *second_top_left,
-                *second_bottom_right,
+                Point(*second_top_left),
+                Point(*second_bottom_right),
             )
             self.place_rect(second_hallway)
 
@@ -454,8 +446,7 @@ class Leaf:
         return first_hallway, second_hallway
 
     def place_rect(self, rect: Rect) -> None:
-        """
-        Places a rect in the 2D grid.
+        """Places a rect in the 2D grid.
 
         Parameters
         ----------
@@ -467,8 +458,8 @@ class Leaf:
 
         # Place the walls
         temp = self.grid[
-            max(rect.y1, 0) : min(rect.y2 + 1, height),
-            max(rect.x1, 0) : min(rect.x2 + 1, width),
+            max(rect.top_left.y, 0) : min(rect.bottom_right.y + 1, height),
+            max(rect.top_left.x, 0) : min(rect.bottom_right.x + 1, width),
         ]
         temp[temp == TileType.EMPTY.value] = TileType.WALL.value
 
@@ -476,6 +467,6 @@ class Leaf:
         # to overwrite the walls keeping the player in, but we still want to overwrite
         # walls that block the path for hallways
         self.grid[
-            max(rect.y1 + 1, 1) : min(rect.y2, height - 1),
-            max(rect.x1 + 1, 1) : min(rect.x2, width - 1),
+            max(rect.top_left.y + 1, 1) : min(rect.bottom_right.y, height - 1),
+            max(rect.top_left.x + 1, 1) : min(rect.bottom_right.x, width - 1),
         ] = TileType.FLOOR.value

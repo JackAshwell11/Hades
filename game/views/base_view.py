@@ -1,15 +1,14 @@
+"""Stores code that is shared between all views simplifying development."""
 from __future__ import annotations
 
 # Builtin
 import logging
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 # Pip
 import arcade
 from arcade.gui import (
     UIAnchorWidget,
-    UIEvent,
     UILayout,
     UIManager,
     UIMouseFilterMixin,
@@ -17,20 +16,17 @@ from arcade.gui import (
 )
 
 if TYPE_CHECKING:
+    from game.views.game_view import Game
     from game.window import Window
+
+__all__ = ("BaseView",)
 
 # Get the logger
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class UIBoxDisappearEvent(UIEvent):
-    """Dispatched when an info box disappears."""
-
-
 class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
-    """
-    Represents a simple dialog box that pops up with a message and disappears after a
+    """Represents a simple dialog box that pops up with a message and disappears after a
     certain amount of time.
 
     Parameters
@@ -97,14 +93,17 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
             )
         )
         logger.info(
-            f"Created info box with text `{message_text}` and time {disappear_time}"
+            "Created info box with text `%s` and time %f", message_text, disappear_time
         )
 
         super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)
 
+    def __repr__(self) -> str:
+        return f"<DisappearingInfoBox (Text={self._text_area.text})>"
+
     def on_update(self, delta_time: float) -> None:
-        """
-        Updates the internal time counter and checks to see if the box should disappear.
+        """Updates the internal time counter and checks to see if the box should
+        disappear.
 
         Parameters
         ----------
@@ -116,17 +115,36 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
 
         # Check if the box should disappear
         if self._time_counter <= 0:
-            self.remove_box(UIBoxDisappearEvent(self))
+            self.remove_box()
 
-    def remove_box(self, _) -> None:
+    def remove_box(self) -> None:
         """Removes the box from the UI manager."""
         self.parent.remove(self)
         self._parent_view.current_info_box = None
+        logger.info("Info box has disappeared with text %s", self._text_area.text)
+
+
+class BackButton(arcade.gui.UIFlatButton):
+    """A button which will switch back to the game view."""
+
+    def __repr__(self) -> str:
+        return (
+            f"<BackButton (Position=({self.center_x}, {self.center_y}))"
+            f" (Width={self.width}) (Height={self.height})>"
+        )
+
+    def on_click(self, _) -> None:
+        """Called when the button is clicked."""
+        # Get the current window and view
+        window: Window = arcade.get_window()
+
+        # Show the game view
+        game_view: Game = window.views["Game"]  # noqa
+        window.show_view(game_view)
 
 
 class BaseView(arcade.View):
-    """
-    The base class for all views.
+    """The base class for all views.
 
     Attributes
     ----------
@@ -153,27 +171,24 @@ class BaseView(arcade.View):
         self.window.background_color = self.background_color
         self.ui_manager.enable()
         self.post_show_view()
-        logger.info(f"Shown view ({self.__repr__()})")
+        logger.info("Shown view %r", self)
 
     def on_hide_view(self) -> None:
         """Called when the view is hidden."""
         self.ui_manager.disable()
         self.post_hide_view()
-        logger.info(f"Hid view ({self.__repr__()})")
+        logger.info("Hid view %r", self)
 
     def post_show_view(self) -> None:
         """Called after the view is shown allowing for extra functionality to be
         added."""
-        return None
 
     def post_hide_view(self) -> None:
         """Called after the view is hidden allowing for extra functionality to be
         added."""
-        return None
 
     def display_info_box(self, text: str) -> None:
-        """
-        Displays an info box that disappears after a set amount of time.
+        """Displays an info box that disappears after a set amount of time.
 
         Parameters
         ----------
@@ -183,3 +198,14 @@ class BaseView(arcade.View):
         if self.current_info_box is None:
             self.current_info_box = DisappearingInfoBox(self, message_text=text)
             self.ui_manager.add(self.current_info_box)
+
+    @staticmethod
+    def add_back_button(vertical_box: arcade.gui.UIBoxLayout) -> None:
+        """Adds the back button to a given vertical box.
+
+        Parameters
+        ----------
+        vertical_box: arcade.gui.UIBoxLayout
+            The UIBoxLayout to add the back button too.
+        """
+        vertical_box.add(BackButton(text="Back", width=200).with_space_around(top=20))
