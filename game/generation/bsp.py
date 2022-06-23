@@ -18,7 +18,11 @@ from game.constants.generation import (
     TileType,
 )
 
-__all__ = ["Point", "Rect", "Leaf"]
+__all__ = (
+    "Point",
+    "Rect",
+    "Leaf",
+)
 
 
 class Point(NamedTuple):
@@ -211,10 +215,11 @@ class Leaf:
         # To determine the range of values that we could split on, we need to find out
         # if the container is too small. Once we've done that, we can use the x1, y1, x2
         # and y2 coordinates to specify the range of values
-        if split_vertical:
-            max_size = self.container.width - MIN_CONTAINER_SIZE
-        else:
-            max_size = self.container.height - MIN_CONTAINER_SIZE
+        max_size = (
+            self.container.width - MIN_CONTAINER_SIZE
+            if split_vertical
+            else self.container.height - MIN_CONTAINER_SIZE
+        )
         if max_size <= MIN_CONTAINER_SIZE:
             # Container too small to split
             return False

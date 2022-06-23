@@ -13,14 +13,15 @@ import arcade.gui
 
 # Custom
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.entities.base import CollectibleTile, UsableTile
+from game.entities.base import UsableTile
 from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
+    from game.entities.base import CollectibleTile
     from game.entities.player import Player
     from game.window import Window
 
-__all__ = ["InventoryView"]
+__all__ = ("InventoryView",)
 
 # Get the logger
 logger = logging.getLogger(__name__)

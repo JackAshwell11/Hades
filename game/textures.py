@@ -14,7 +14,11 @@ import arcade
 # Custom
 from game.constants.entity import SPRITE_SIZE
 
-__all__ = ["grid_pos_to_pixel", "non_moving_textures", "moving_textures"]
+__all__ = (
+    "grid_pos_to_pixel",
+    "non_moving_textures",
+    "moving_textures",
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)

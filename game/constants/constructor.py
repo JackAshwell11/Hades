@@ -26,7 +26,7 @@ from game.constants.entity import (
 )
 from game.textures import moving_textures, non_moving_textures
 
-__all__ = [
+__all__ = (
     "PLAYER",
     "ENEMY1",
     "HEALTH_POTION",
@@ -35,7 +35,7 @@ __all__ = [
     "ARMOUR_BOOST_POTION",
     "SPEED_BOOST_POTION",
     "FIRE_RATE_BOOST_POTION",
-]
+)
 
 # Player characters
 PLAYER = BaseData(

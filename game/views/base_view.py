@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from game.views.game_view import Game
     from game.window import Window
 
-__all__ = ["BaseView"]
+__all__ = ("BaseView",)
 
 # Get the logger
 logger = logging.getLogger(__name__)

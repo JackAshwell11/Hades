@@ -19,7 +19,7 @@ from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-__all__ = [
+__all__ = (
     "EntityID",
     "UpgradeAttribute",
     "UpgradeSection",
@@ -48,7 +48,7 @@ __all__ = [
     "ENEMY_INDICATOR_BAR_OFFSET",
     "HEALTH_INDICATOR_BAR_COLOR",
     "ARMOUR_INDICATOR_BAR_COLOR",
-]
+)
 
 
 # Entity IDs
@@ -125,16 +125,15 @@ class BaseData:
 
     def get_all_attacks(self) -> list[AttackData]:
         """Returns all the attacks the entity has."""
-        return list(
-            filter(
-                None,
-                [
-                    self.ranged_attack_data,
-                    self.melee_attack_data,
-                    self.area_of_effect_attack_data,
-                ],
-            )
-        )
+        return [
+            attack
+            for attack in [
+                self.ranged_attack_data,
+                self.melee_attack_data,
+                self.area_of_effect_attack_data,
+            ]
+            if attack
+        ]
 
 
 @dataclass

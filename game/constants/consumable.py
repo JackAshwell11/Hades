@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
     import arcade
 
-__all__ = [
+__all__ = (
     "InstantEffectType",
     "StatusEffectType",
     "ConsumableData",
@@ -30,7 +30,7 @@ __all__ = [
     "SPEED_BOOST_POTION_DURATION",
     "FIRE_RATE_BOOST_POTION_INCREASE",
     "FIRE_RATE_BOOST_POTION_DURATION",
-]
+)
 
 
 # Instant effects

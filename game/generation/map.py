@@ -41,7 +41,11 @@ from game.generation.bsp import Leaf, Point
 if TYPE_CHECKING:
     from game.generation.bsp import Rect
 
-__all__ = ["create_map", "GameMapShape", "Map"]
+__all__ = (
+    "create_map",
+    "GameMapShape",
+    "Map",
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -239,7 +243,7 @@ class Map:
         stack = deque["Leaf"]()
         stack.append(self.bsp)
         split_count = self.map_constants["split count"]
-        while split_count != 0:
+        while split_count:
             # Test if the stack is empty
             if not stack:
                 break

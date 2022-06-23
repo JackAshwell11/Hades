@@ -18,7 +18,7 @@ from game.views.game_view import Game
 if TYPE_CHECKING:
     from game.window import Window
 
-__all__ = ["StartMenu"]
+__all__ = ("StartMenu",)
 
 # Get the logger
 logger = logging.getLogger(__name__)

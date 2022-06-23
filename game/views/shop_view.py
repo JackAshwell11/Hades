@@ -18,7 +18,10 @@ if TYPE_CHECKING:
     from game.entities.player import Player
     from game.entities.upgrades import UpgradableSection
 
-__all__ = ["SectionUpgradeButton", "ShopView"]
+__all__ = (
+    "SectionUpgradeButton",
+    "ShopView",
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)

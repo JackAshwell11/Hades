@@ -13,9 +13,7 @@ if TYPE_CHECKING:
     from game.entities.enemy import Enemy
     from game.vector_field import VectorField
 
-__all__ = [
-    "EnemyMovementManager",
-]
+__all__ = ("EnemyMovementManager",)
 
 
 class EnemyMovementManager:

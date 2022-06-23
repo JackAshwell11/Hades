@@ -10,7 +10,7 @@ from datetime import datetime
 # Pip
 import arcade
 
-__all__ = [
+__all__ = (
     "GAME_LOGGER",
     "LOGGING_DICT_CONFIG",
     "DEBUG_LINES",
@@ -24,11 +24,11 @@ __all__ = [
     "LEVEL_GENERATOR_INTERVAL",
     "ENEMY_LEVEL_MAX_RANGE",
     "CONSUMABLE_LEVEL_MAX_RANGE",
-]
+)
 
 # Create the log directory making sure it exists. Then create the path for the current
 # log file
-log_dir = pathlib.Path(__file__).resolve().parent.parent.joinpath("logs")
+log_dir = pathlib.Path(__file__).resolve().parent.parent / "logs"
 log_dir.mkdir(parents=True, exist_ok=True)
 
 # Logging constants

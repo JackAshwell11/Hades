@@ -1,5 +1,3 @@
-# pylint: skip-file
-
 from __future__ import annotations
 
 # Builtin
@@ -18,7 +16,7 @@ if TYPE_CHECKING:
     from game.entities.enemy import Enemy
     from game.views.game_view import Game
 
-__all__ = ["MeleeShader"]
+__all__ = ("MeleeShader",)
 
 # Get the logger
 logger = logging.getLogger(__name__)

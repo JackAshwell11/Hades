@@ -6,7 +6,7 @@ from __future__ import annotations
 # Custom
 from enum import IntEnum
 
-__all__ = [
+__all__ = (
     "TileType",
     "BASE_ROOM",
     "SMALL_ROOM",
@@ -28,7 +28,7 @@ __all__ = [
     "HALLWAY_SIZE",
     "SAFE_SPAWN_RADIUS",
     "PLACE_TRIES",
-]
+)
 
 
 # Tile types

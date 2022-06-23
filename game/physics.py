@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from game.entities.enemy import Enemy
     from game.entities.player import Player
 
-__all__ = ["PhysicsEngine"]
+__all__ = ("PhysicsEngine",)
 
 # Get the logger
 logger = logging.getLogger(__name__)

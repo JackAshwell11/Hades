@@ -13,11 +13,11 @@ from game.constants.consumable import StatusEffectType
 if TYPE_CHECKING:
     from game.entities.base import Entity
 
-__all__ = [
+__all__ = (
     "StatusEffectBase",
     "STATUS_EFFECTS",
     "create_status_effect",
-]
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -116,8 +116,6 @@ class HealthStatusEffect(StatusEffectBase):
     duration: int
         The duration the status effect should be applied for.
     """
-
-    """Represents a health status effect that temporarily boosts the target's health."""
 
     __slots__ = ()
 

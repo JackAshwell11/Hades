@@ -17,7 +17,7 @@ from game.views.start_menu_view import StartMenu
 if TYPE_CHECKING:
     from game.views.base_view import BaseView
 
-__all__ = ["Window"]
+__all__ = ("Window",)
 
 # Initialise logging and get the game logger
 logging.config.dictConfig(LOGGING_DICT_CONFIG)

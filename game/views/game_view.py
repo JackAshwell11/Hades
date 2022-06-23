@@ -41,7 +41,7 @@ from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
 from game.entities.player import Player
 from game.entities.tile import Consumable, Floor, Wall
-from game.generation.map import GameMapShape, create_map
+from game.generation.map import create_map
 from game.physics import PhysicsEngine
 from game.textures import grid_pos_to_pixel
 from game.vector_field import VectorField
@@ -51,8 +51,9 @@ from game.views.shop_view import ShopView
 
 if TYPE_CHECKING:
     from game.entities.base import CollectibleTile, UsableTile
+    from game.generation.map import GameMapShape
 
-__all__ = ["Game"]
+__all__ = ("Game",)
 
 # Get the logger
 logger = logging.getLogger(__name__)

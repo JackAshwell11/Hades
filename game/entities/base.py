@@ -37,14 +37,14 @@ if TYPE_CHECKING:
     from game.physics import PhysicsEngine
     from game.views.game_view import Game
 
-__all__ = [
+__all__ = (
     "IndicatorBar",
     "Entity",
     "Tile",
     "InteractiveTile",
     "UsableTile",
     "CollectibleTile",
-]
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)

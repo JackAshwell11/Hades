@@ -20,13 +20,13 @@ if TYPE_CHECKING:
     from game.entities.base import Entity
     from game.physics import PhysicsEngine
 
-__all__ = [
+__all__ = (
     "Bullet",
     "AttackBase",
     "RangedAttack",
     "MeleeAttack",
     "AreaOfEffectAttack",
-]
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)

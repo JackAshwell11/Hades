@@ -15,12 +15,12 @@ if TYPE_CHECKING:
     from game.entities.player import Player
     from game.views.shop_view import SectionUpgradeButton
 
-__all__ = [
+__all__ = (
     "UpgradeAttribute",
     "UPGRADABLE_ATTRIBUTES",
     "create_attribute_upgrade",
     "UpgradableSection",
-]
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)
