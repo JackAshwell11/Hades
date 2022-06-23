@@ -29,6 +29,10 @@ if TYPE_CHECKING:
     from game.constants.entity import BaseData
     from game.views.game_view import Game
 
+__all__ = [
+    "Enemy",
+]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

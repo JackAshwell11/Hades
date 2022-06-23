@@ -13,6 +13,12 @@ from game.constants.consumable import StatusEffectType
 if TYPE_CHECKING:
     from game.entities.base import Entity
 
+__all__ = [
+    "StatusEffectBase",
+    "STATUS_EFFECTS",
+    "create_status_effect",
+]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
@@ -98,11 +104,27 @@ class StatusEffectBase:
 
 
 class HealthStatusEffect(StatusEffectBase):
+    """
+    Represents a health status effect that temporarily boosts the target's health.
+
+    Parameters
+    ----------
+    target: Entity
+        The reference to the target entity object.
+    value: float
+        The value that should be applied to the entity temporarily.
+    duration: int
+        The duration the status effect should be applied for.
+    """
+
     """Represents a health status effect that temporarily boosts the target's health."""
 
     __slots__ = ()
 
     status_effect_type: StatusEffectType = StatusEffectType.HEALTH
+
+    def __init__(self, target: Entity, value: float, duration: float) -> None:
+        super().__init__(target, value, duration)
 
     def __repr__(self) -> str:
         return f"<HealthStatusEffect (Value={self.value}) (Duration={self.duration})"
@@ -146,12 +168,25 @@ class HealthStatusEffect(StatusEffectBase):
 
 
 class ArmourStatusEffect(StatusEffectBase):
-    """Represents an armour status effect that temporarily boosts the target's
-    armour."""
+    """
+    Represents an armour status effect that temporarily boosts the target's armour.
+
+    Parameters
+    ----------
+    target: Entity
+        The reference to the target entity object.
+    value: float
+        The value that should be applied to the entity temporarily.
+    duration: int
+        The duration the status effect should be applied for.
+    """
 
     __slots__ = ()
 
     status_effect_type: StatusEffectType = StatusEffectType.ARMOUR
+
+    def __init__(self, target: Entity, value: float, duration: float) -> None:
+        super().__init__(target, value, duration)
 
     def __repr__(self) -> str:
         return f"<ArmourStatusEffect (Value={self.value}) (Duration={self.duration})"
@@ -195,11 +230,25 @@ class ArmourStatusEffect(StatusEffectBase):
 
 
 class SpeedStatusEffect(StatusEffectBase):
-    """Represents a speed status effect that temporarily boosts the target's speed."""
+    """
+    Represents a speed status effect that temporarily boosts the target's speed.
+
+    Parameters
+    ----------
+    target: Entity
+        The reference to the target entity object.
+    value: float
+        The value that should be applied to the entity temporarily.
+    duration: int
+        The duration the status effect should be applied for.
+    """
 
     __slots__ = ()
 
     status_effect_type: StatusEffectType = StatusEffectType.SPEED
+
+    def __init__(self, target: Entity, value: float, duration: float) -> None:
+        super().__init__(target, value, duration)
 
     def __repr__(self) -> str:
         return f"<SpeedStatusEffect (Value={self.value}) (Duration={self.duration})"
@@ -236,12 +285,26 @@ class SpeedStatusEffect(StatusEffectBase):
 
 
 class FireRateStatusEffect(StatusEffectBase):
-    """Represents a fire rate status effect that temporarily boosts the target's fire
-    rate."""
+    """
+    Represents a fire rate status effect that temporarily boosts the target's fire
+    rate.
+
+    Parameters
+    ----------
+    target: Entity
+        The reference to the target entity object.
+    value: float
+        The value that should be applied to the entity temporarily.
+    duration: int
+        The duration the status effect should be applied for.
+    """
 
     __slots__ = ()
 
     status_effect_type: StatusEffectType = StatusEffectType.FIRE_RATE
+
+    def __init__(self, target: Entity, value: float, duration: float) -> None:
+        super().__init__(target, value, duration)
 
     def __repr__(self) -> str:
         return f"<FireRateStatusEffect (Value={self.value}) (Duration={self.duration})"

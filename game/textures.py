@@ -14,6 +14,11 @@ import arcade
 # Custom
 from game.constants.entity import SPRITE_SIZE
 
+__all__ = ["grid_pos_to_pixel", "non_moving_textures", "moving_textures"]
+
+# Get the logger
+logger = logging.getLogger(__name__)
+
 
 def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
     """
@@ -37,9 +42,6 @@ def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
         y * SPRITE_SIZE + SPRITE_SIZE / 2,
     )
 
-
-# Get the logger
-logger = logging.getLogger(__name__)
 
 # Create the texture path
 texture_path = pathlib.Path(__file__).resolve().parent / "resources" / "textures"

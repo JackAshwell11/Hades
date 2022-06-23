@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from game.views.game_view import Game
     from game.window import Window
 
+__all__ = ["BaseView"]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
@@ -102,17 +104,17 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
     def __repr__(self) -> str:
         return f"<DisappearingInfoBox (Text={self._text_area.text})>"
 
-    def on_update(self, dt: float) -> None:
+    def on_update(self, delta_time: float) -> None:
         """
         Updates the internal time counter and checks to see if the box should disappear.
 
         Parameters
         ----------
-        dt: float
+        delta_time: float
             Time interval since the last time the function was called.
         """
         # Update the counter
-        self._time_counter -= dt
+        self._time_counter -= delta_time
 
         # Check if the box should disappear
         if self._time_counter <= 0:

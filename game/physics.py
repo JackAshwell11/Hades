@@ -16,10 +16,11 @@ from game.constants.entity import EntityID
 
 if TYPE_CHECKING:
     from game.entities.attack import Bullet
-    from game.entities.base import Entity
+    from game.entities.base import Entity, Tile
     from game.entities.enemy import Enemy
     from game.entities.player import Player
-    from game.entities.tile import Tile
+
+__all__ = ["PhysicsEngine"]
 
 # Get the logger
 logger = logging.getLogger(__name__)

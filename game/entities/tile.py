@@ -19,6 +19,12 @@ if TYPE_CHECKING:
     from game.constants.consumable import ConsumableData
     from game.views.game_view import Game
 
+__all__ = [
+    "Wall",
+    "Floor",
+    "Consumable",
+]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

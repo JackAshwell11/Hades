@@ -41,6 +41,8 @@ from game.generation.bsp import Leaf, Point
 if TYPE_CHECKING:
     from game.generation.bsp import Rect
 
+__all__ = ["create_map", "GameMapShape", "Map"]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

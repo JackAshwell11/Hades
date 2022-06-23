@@ -19,6 +19,8 @@ from game.constants.entity import SPRITE_SIZE
 if TYPE_CHECKING:
     import arcade
 
+__all__ = ["VectorField"]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

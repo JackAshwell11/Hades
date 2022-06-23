@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from game.entities.player import Player
     from game.window import Window
 
+__all__ = ["InventoryView"]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

@@ -37,6 +37,15 @@ if TYPE_CHECKING:
     from game.physics import PhysicsEngine
     from game.views.game_view import Game
 
+__all__ = [
+    "IndicatorBar",
+    "Entity",
+    "Tile",
+    "InteractiveTile",
+    "UsableTile",
+    "CollectibleTile",
+]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
@@ -997,10 +1006,29 @@ class InteractiveTile(Tile):
 
 
 class UsableTile(InteractiveTile):
-    """Represents a tile that can be used/activated by the player."""
+    """
+    Represents a tile that can be used/activated by the player.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the usable tile can have a reference to it.
+    x: int
+        The x position of the usable tile in the game map.
+    y: int
+        The y position of the usable tile in the game map.
+    """
 
     # Class variables
     item_text: str = "Press R to activate"
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
         return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
@@ -1024,10 +1052,30 @@ class UsableTile(InteractiveTile):
 
 
 class CollectibleTile(InteractiveTile):
-    """Represents a tile that can be picked up by the player."""
+    """
+    Represents a tile that can be picked up by the player.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the collectible tile can have a reference to
+        it.
+    x: int
+        The x position of the collectible tile in the game map.
+    y: int
+        The y position of the collectible tile in the game map.
+    """
 
     # Class variables
     item_text: str = "Press E to pick up"
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
         return f"<CollectibleTile (Position=({self.center_x}, {self.center_y}))>"
@@ -1048,7 +1096,7 @@ class CollectibleTile(InteractiveTile):
 
             # Activate was successful
             return True
-
-        # Add not successful due to full inventory
-        self.game.display_info_box("Inventory is full")
-        return False
+        else:
+            # Add not successful due to full inventory
+            self.game.display_info_box("Inventory is full")
+            return False

@@ -32,6 +32,10 @@ if TYPE_CHECKING:
     from game.entities.base import CollectibleTile
     from game.views.game_view import Game
 
+__all__ = [
+    "Player",
+]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

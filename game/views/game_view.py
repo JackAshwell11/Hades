@@ -52,6 +52,8 @@ from game.views.shop_view import ShopView
 if TYPE_CHECKING:
     from game.entities.base import CollectibleTile, UsableTile
 
+__all__ = ["Game"]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 

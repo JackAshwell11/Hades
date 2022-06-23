@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from game.entities.enemy import Enemy
     from game.views.game_view import Game
 
+__all__ = ["MeleeShader"]
+
 # Get the logger
 logger = logging.getLogger(__name__)
 
@@ -90,8 +92,8 @@ class MeleeShader:
         # Create the shader program. This draws lines from the player to each enemy
         # which is within a specific distance. It then checks if the player has line of
         # sight with each enemy that has a line drawn to them
-        with open(vertex_path, "r") as vertex_file, open(
-            geometry_path, "r"
+        with open(vertex_path, "r", encoding="utf8") as vertex_file, open(
+            geometry_path, "r", encoding="utf8"
         ) as geometry_file:
             self.program = self.ctx.program(
                 vertex_shader=vertex_file.read(),
@@ -131,9 +133,10 @@ class MeleeShader:
         )
         self.update_collision()
         logger.info(
-            "Initialised melee shader with a result buffer size of"
-            f" {self.result_buffer.size} and a walls framebuffer size of"
-            f" {self.walls_framebuffer.size}"
+            "Initialised melee shader with a result buffer size of %d and a walls"
+            " framebuffer size of %d",
+            self.result_buffer.size,
+            self.walls_framebuffer.size,
         )
 
     def update_collision(self) -> None:
@@ -146,7 +149,7 @@ class MeleeShader:
             fbo.clear()
             self.view.wall_sprites.draw()
         logger.debug(
-            f"Updated the walls framebuffer with size {self.walls_framebuffer.size}"
+            "Updated the walls framebuffer with size %d", self.walls_framebuffer.size
         )
 
     def run_shader(self) -> list[Enemy]:
@@ -201,7 +204,7 @@ class MeleeShader:
 
         # Store the number of primitives/sprites found
         num_sprites_found = self.query.primitives_generated
-        logger.info(f"Found {num_sprites_found} sprites in the melee shader")
+        logger.info("Found %d sprites in the melee shader", num_sprites_found)
         if num_sprites_found > 0:
             # Transfer the data from the shader into python and decode the value into
             # python objects. To do this, we unpack the result buffer from the VRAM and

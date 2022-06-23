@@ -7,7 +7,7 @@ from __future__ import annotations
 # Builtin
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable
+from typing import TYPE_CHECKING
 
 # Pip
 import arcade
@@ -15,6 +15,40 @@ import arcade
 # Custom
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+__all__ = [
+    "EntityID",
+    "UpgradeAttribute",
+    "UpgradeSection",
+    "AttackAlgorithmType",
+    "BaseData",
+    "EntityData",
+    "EntityUpgradeData",
+    "AttributeUpgradeData",
+    "PlayerData",
+    "EnemyData",
+    "AttackData",
+    "RangedAttackData",
+    "MeleeAttackData",
+    "AreaOfEffectAttackData",
+    "SPRITE_SCALE",
+    "SPRITE_SIZE",
+    "ENEMIES",
+    "MOVEMENT_FORCE",
+    "FACING_RIGHT",
+    "FACING_LEFT",
+    "ARMOUR_REGEN_WAIT",
+    "ARMOUR_REGEN_AMOUNT",
+    "BULLET_VELOCITY",
+    "MELEE_RESOLUTION",
+    "INDICATOR_BAR_BORDER_SIZE",
+    "ENEMY_INDICATOR_BAR_OFFSET",
+    "HEALTH_INDICATOR_BAR_COLOR",
+    "ARMOUR_INDICATOR_BAR_COLOR",
+]
 
 
 # Entity IDs
