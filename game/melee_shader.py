@@ -132,7 +132,7 @@ class MeleeShader:
         self.update_collision()
         logger.info(
             "Initialised melee shader with a result buffer size of %d and a walls"
-            " framebuffer size of %d",
+            " framebuffer size of %r",
             self.result_buffer.size,
             self.walls_framebuffer.size,
         )
@@ -147,7 +147,7 @@ class MeleeShader:
             fbo.clear()
             self.view.wall_sprites.draw()
         logger.debug(
-            "Updated the walls framebuffer with size %d", self.walls_framebuffer.size
+            "Updated the walls framebuffer with size %r", self.walls_framebuffer.size
         )
 
     def run_shader(self) -> list[Enemy]:
