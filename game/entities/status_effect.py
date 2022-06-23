@@ -1,6 +1,4 @@
-"""
-Manages the different status effects that can be applied to an entity.
-"""
+"""Manages the different status effects that can be applied to an entity."""
 from __future__ import annotations
 
 # Builtin
@@ -24,8 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class StatusEffectBase:
-    """
-    The base class for all status effects.
+    """The base class for all status effects.
 
     Parameters
     ----------
@@ -65,8 +62,7 @@ class StatusEffectBase:
         return f"<StatusEffectBase (Value={self.value}) (Duration={self.duration})"
 
     def apply_effect(self) -> None:
-        """
-        Applies the status effect to the entity.
+        """Applies the status effect to the entity.
 
         Raises
         ------
@@ -76,8 +72,7 @@ class StatusEffectBase:
         raise NotImplementedError
 
     def update(self, delta_time: float) -> None:
-        """
-        Updates the state of a status effect.
+        """Updates the state of a status effect.
 
         Parameters
         ----------
@@ -92,8 +87,7 @@ class StatusEffectBase:
             self.remove_effect()
 
     def remove_effect(self) -> None:
-        """
-        Removes the status effect from the entity.
+        """Removes the status effect from the entity.
 
         Raises
         ------
@@ -104,8 +98,7 @@ class StatusEffectBase:
 
 
 class HealthStatusEffect(StatusEffectBase):
-    """
-    Represents a health status effect that temporarily boosts the target's health.
+    """Represents a health status effect that temporarily boosts the target's health.
 
     Parameters
     ----------
@@ -136,8 +129,7 @@ class HealthStatusEffect(StatusEffectBase):
         self.target.max_health = self.target.max_health + self.value
 
     def update(self, delta_time: float) -> None:
-        """
-        Updates the state of a status effect.
+        """Updates the state of a status effect.
 
         Parameters
         ----------
@@ -166,8 +158,7 @@ class HealthStatusEffect(StatusEffectBase):
 
 
 class ArmourStatusEffect(StatusEffectBase):
-    """
-    Represents an armour status effect that temporarily boosts the target's armour.
+    """Represents an armour status effect that temporarily boosts the target's armour.
 
     Parameters
     ----------
@@ -198,8 +189,7 @@ class ArmourStatusEffect(StatusEffectBase):
         self.target.max_armour = self.target.max_armour + self.value
 
     def update(self, delta_time: float) -> None:
-        """
-        Updates the state of a status effect.
+        """Updates the state of a status effect.
 
         Parameters
         ----------
@@ -228,8 +218,7 @@ class ArmourStatusEffect(StatusEffectBase):
 
 
 class SpeedStatusEffect(StatusEffectBase):
-    """
-    Represents a speed status effect that temporarily boosts the target's speed.
+    """Represents a speed status effect that temporarily boosts the target's speed.
 
     Parameters
     ----------
@@ -259,8 +248,7 @@ class SpeedStatusEffect(StatusEffectBase):
         self.target.pymunk.max_velocity = self.original + self.value
 
     def update(self, delta_time: float) -> None:
-        """
-        Updates the state of a status effect.
+        """Updates the state of a status effect.
 
         Parameters
         ----------
@@ -283,8 +271,7 @@ class SpeedStatusEffect(StatusEffectBase):
 
 
 class FireRateStatusEffect(StatusEffectBase):
-    """
-    Represents a fire rate status effect that temporarily boosts the target's fire
+    """Represents a fire rate status effect that temporarily boosts the target's fire
     rate.
 
     Parameters
@@ -315,8 +302,7 @@ class FireRateStatusEffect(StatusEffectBase):
         self.target.bonus_attack_cooldown = self.original + self.value
 
     def update(self, delta_time: float) -> None:
-        """
-        Updates the state of a status effect.
+        """Updates the state of a status effect.
 
         Parameters
         ----------
@@ -349,9 +335,8 @@ STATUS_EFFECTS = {
 def create_status_effect(
     status_effect_type: StatusEffectType, target: Entity, value: float, duration: float
 ) -> StatusEffectBase:
-    """
-    Determines which status effect class should be initialised based on a given status
-    effect type.
+    """Determines which status effect class should be initialised based on a given
+    status effect type.
 
     Parameters
     ----------

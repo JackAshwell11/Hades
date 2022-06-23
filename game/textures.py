@@ -1,7 +1,5 @@
-"""
-Pre-loads all the textures needed by the game and stores them in an easy-to-access
-format.
-"""
+"""Pre-loads all the textures needed by the game and stores them in an easy-to-access
+format."""
 from __future__ import annotations
 
 # Builtin
@@ -25,8 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
-    """
-    Calculate the x and y position based on the game map or vector field position.
+    """Calculate the x and y position based on the game map or vector field position.
 
     Parameters
     ----------

@@ -1,6 +1,4 @@
-"""
-Stores the enemy object which is hostile to the player.
-"""
+"""Stores the enemy object which is hostile to the player."""
 from __future__ import annotations
 
 # Builtin
@@ -36,8 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class Enemy(Entity):
-    """
-    Represents a hostile character in the game.
+    """Represents a hostile character in the game.
 
     Parameters
     ----------
@@ -91,8 +88,7 @@ class Enemy(Entity):
         )
 
     def _initialise_entity_state(self) -> dict[str, float]:
-        """
-        Initialises the entity's state dict.
+        """Initialises the entity's state dict.
 
         Returns
         -------
@@ -117,8 +113,7 @@ class Enemy(Entity):
         }
 
     def post_on_update(self, delta_time: float) -> None:
-        """
-        Processes enemy logic.
+        """Processes enemy logic.
 
         Parameters
         ----------
@@ -215,8 +210,7 @@ class Enemy(Entity):
                 self.current_attack.process_attack(self.game.player)
 
     def check_line_of_sight(self, max_tile_range: int) -> bool:
-        """
-        Checks if the enemy has line of sight with the player.
+        """Check if the enemy has line of sight with the player.
 
         Parameters
         ----------

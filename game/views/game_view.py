@@ -1,7 +1,5 @@
-"""
-Initialises and manages the main game through controlling movement, attacking, game
-logic and collision.
-"""
+"""Initialises and manages the main game through controlling movement, attacking, game
+logic and collision."""
 from __future__ import annotations
 
 # Builtin
@@ -60,8 +58,7 @@ logger = logging.getLogger(__name__)
 
 
 class Game(BaseView):
-    """
-    Manages the game and its actions.
+    """Manages the game and its actions.
 
     Parameters
     ----------
@@ -157,8 +154,7 @@ class Game(BaseView):
         ) = self.player.up_pressed = self.player.down_pressed = False
 
     def setup(self, level: int) -> None:
-        """
-        Sets up the game.
+        """Sets up the game.
 
         Parameters
         ----------
@@ -469,8 +465,7 @@ class Game(BaseView):
         self.ui_manager.draw()
 
     def on_update(self, delta_time: float) -> None:
-        """
-        Processes movement and game logic.
+        """Processes movement and game logic.
 
         Parameters
         ----------
@@ -514,8 +509,7 @@ class Game(BaseView):
             self.nearest_item = None
 
     def on_key_press(self, key: int, modifiers: int) -> None:
-        """
-        Called when the player presses a key.
+        """Called when the player presses a key.
 
         Parameters
         ----------
@@ -563,8 +557,7 @@ class Game(BaseView):
                 self.window.show_view(self.window.views["ShopView"])
 
     def on_key_release(self, key: int, modifiers: int) -> None:
-        """
-        Called when the player releases a key.
+        """Called when the player releases a key.
 
         Parameters
         ----------
@@ -592,8 +585,7 @@ class Game(BaseView):
                 self.player.right_pressed = False
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
-        """
-        Called when the player presses the mouse button.
+        """Called when the player presses the mouse button.
 
         Parameters
         ----------
@@ -624,8 +616,7 @@ class Game(BaseView):
                 self.player.attack()
 
     def on_mouse_motion(self, x: float, y: float, *_) -> None:
-        """
-        Called when the mouse moves.
+        """Called when the mouse moves.
 
         Parameters
         ----------

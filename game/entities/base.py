@@ -1,9 +1,8 @@
-"""
-Stores the base classes used by all game objects.
-"""
+"""Stores the base classes used by all game objects."""
 from __future__ import annotations
 
 # Builtin
+import contextlib
 import logging
 from typing import TYPE_CHECKING
 
@@ -21,6 +20,8 @@ from game.constants.entity import (
 from game.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from game.constants.entity import (
         AreaOfEffectAttackData,
         AttackData,
@@ -51,8 +52,7 @@ logger = logging.getLogger(__name__)
 
 
 class IndicatorBar:
-    """
-    Represents a bar which can display information about an entity.
+    """Represents a bar which can display information about an entity.
 
     Parameters
     ----------
@@ -137,8 +137,7 @@ class IndicatorBar:
 
     @property
     def background_box(self) -> arcade.SpriteSolidColor:
-        """
-        Gets the background box object of the indicator bar.
+        """Gets the background box object of the indicator bar.
 
         Returns
         -------
@@ -149,8 +148,7 @@ class IndicatorBar:
 
     @property
     def full_box(self) -> arcade.SpriteSolidColor:
-        """
-        Gets the full box of the indicator bar.
+        """Gets the full box of the indicator bar.
 
         Returns
         -------
@@ -161,8 +159,7 @@ class IndicatorBar:
 
     @property
     def bar_width(self) -> int:
-        """
-        Gets the width of the bar.
+        """Gets the width of the bar.
 
         Returns
         -------
@@ -173,8 +170,7 @@ class IndicatorBar:
 
     @property
     def bar_height(self) -> int:
-        """
-        Gets the height of the bar.
+        """Gets the height of the bar.
 
         Returns
         -------
@@ -185,8 +181,7 @@ class IndicatorBar:
 
     @property
     def center_x(self) -> float:
-        """
-        Gets the x position of the bar.
+        """Gets the x position of the bar.
 
         Returns
         -------
@@ -197,8 +192,7 @@ class IndicatorBar:
 
     @property
     def center_y(self) -> float:
-        """
-        Gets the y position of the bar.
+        """Gets the y position of the bar.
 
         Returns
         -------
@@ -209,8 +203,7 @@ class IndicatorBar:
 
     @property
     def top(self) -> float:
-        """
-        Gets the y coordinate of the top of the bar.
+        """Gets the y coordinate of the top of the bar.
 
         Returns
         -------
@@ -221,8 +214,7 @@ class IndicatorBar:
 
     @property
     def bottom(self) -> float:
-        """
-        Gets the y coordinate of the bottom of the bar.
+        """Gets the y coordinate of the bottom of the bar.
 
         Returns
         -------
@@ -233,8 +225,7 @@ class IndicatorBar:
 
     @property
     def left(self) -> float:
-        """
-        Gets the x coordinate of the left of the bar.
+        """Gets the x coordinate of the left of the bar.
 
         Returns
         -------
@@ -245,8 +236,7 @@ class IndicatorBar:
 
     @property
     def right(self) -> float:
-        """
-        Gets the x coordinate of the right of the bar.
+        """Gets the x coordinate of the right of the bar.
 
         Returns
         -------
@@ -257,8 +247,7 @@ class IndicatorBar:
 
     @property
     def fullness(self) -> float:
-        """
-        Gets the fullness of the bar.
+        """Gets the fullness of the bar.
 
         Returns
         -------
@@ -269,8 +258,7 @@ class IndicatorBar:
 
     @fullness.setter
     def fullness(self, new_fullness: float) -> None:
-        """
-        Sets the fullness of the bar.
+        """Sets the fullness of the bar.
 
         Parameters
         ----------
@@ -301,8 +289,7 @@ class IndicatorBar:
 
     @property
     def position(self) -> tuple[float, float]:
-        """
-        Gets the current position of the bar.
+        """Gets the current position of the bar.
 
         Returns
         -------
@@ -313,8 +300,7 @@ class IndicatorBar:
 
     @position.setter
     def position(self, new_position: tuple[float, float]) -> None:
-        """
-        Sets the new position of the bar.
+        """Sets the new position of the bar.
 
         Parameters
         ----------
@@ -332,8 +318,7 @@ class IndicatorBar:
 
     @property
     def scale(self) -> float:
-        """
-        Gets the scale of the bar.
+        """Gets the scale of the bar.
 
         Returns
         -------
@@ -344,8 +329,7 @@ class IndicatorBar:
 
     @scale.setter
     def scale(self, value: float) -> None:
-        """
-        Sets the new scale of the bar.
+        """Sets the new scale of the bar.
 
         Parameters
         ----------
@@ -360,8 +344,7 @@ class IndicatorBar:
 
 
 class Entity(arcade.Sprite):
-    """
-    Represents an entity in the game.
+    """Represents an entity in the game.
 
     Parameters
     ----------
@@ -433,8 +416,7 @@ class Entity(arcade.Sprite):
 
     @property
     def entity_data(self) -> EntityData:
-        """
-        Gets the general entity data.
+        """Gets the general entity data.
 
         Returns
         -------
@@ -449,8 +431,7 @@ class Entity(arcade.Sprite):
 
     @property
     def player_data(self) -> PlayerData:
-        """
-        Gets the player data if it exists.
+        """Gets the player data if it exists.
 
         Returns
         -------
@@ -466,8 +447,7 @@ class Entity(arcade.Sprite):
 
     @property
     def enemy_data(self) -> EnemyData:
-        """
-        Gets the enemy data if it exists.
+        """Gets the enemy data if it exists.
 
         Returns
         -------
@@ -482,13 +462,12 @@ class Entity(arcade.Sprite):
         return self.entity_type.enemy_data
 
     @property
-    def attacks(self) -> list[AttackData]:
-        """
-        Gets all the attacks the entity has.
+    def attacks(self) -> Iterator[AttackData]:
+        """Gets all the attacks the entity has.
 
         Returns
         -------
-        list[AttackData]
+        Iterator[AttackData]
             The entity's attacks.
         """
         # Make sure the entity type is valid
@@ -499,8 +478,7 @@ class Entity(arcade.Sprite):
 
     @property
     def ranged_attack_data(self) -> RangedAttackData:
-        """
-        Gets the ranged attack data if the entity has the attack.
+        """Gets the ranged attack data if the entity has the attack.
 
         Returns
         -------
@@ -516,8 +494,7 @@ class Entity(arcade.Sprite):
 
     @property
     def melee_attack_data(self) -> MeleeAttackData:
-        """
-        Gets the melee attack data if the entity has the attack.
+        """Gets the melee attack data if the entity has the attack.
 
         Returns
         -------
@@ -533,8 +510,7 @@ class Entity(arcade.Sprite):
 
     @property
     def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
-        """
-        Gets the area of effect attack data if the entity has the attack.
+        """Gets the area of effect attack data if the entity has the attack.
 
         Returns
         -------
@@ -550,8 +526,7 @@ class Entity(arcade.Sprite):
 
     @property
     def current_attack(self) -> AttackBase:
-        """
-        Gets the currently selected attack algorithm.
+        """Gets the currently selected attack algorithm.
 
         Returns
         -------
@@ -562,8 +537,7 @@ class Entity(arcade.Sprite):
 
     @property
     def upgrade_data(self) -> list[EntityUpgradeData]:
-        """
-        Gets the upgrades that are available to the entity.
+        """Gets the upgrades that are available to the entity.
 
         Returns
         -------
@@ -574,8 +548,7 @@ class Entity(arcade.Sprite):
 
     @property
     def physics(self) -> PhysicsEngine:
-        """
-        Gets the entity's physics engine.
+        """Gets the entity's physics engine.
 
         Returns
         -------
@@ -586,8 +559,7 @@ class Entity(arcade.Sprite):
 
     @property
     def health(self) -> float:
-        """
-        Gets the entity's health.
+        """Gets the entity's health.
 
         Returns
         -------
@@ -598,8 +570,7 @@ class Entity(arcade.Sprite):
 
     @health.setter
     def health(self, value: float) -> None:
-        """
-        Sets the entity's health.
+        """Sets the entity's health.
 
         Parameters
         ----------
@@ -610,8 +581,7 @@ class Entity(arcade.Sprite):
 
     @property
     def max_health(self) -> float:
-        """
-        Gets the player's maximum health.
+        """Gets the player's maximum health.
 
         Returns
         -------
@@ -622,9 +592,7 @@ class Entity(arcade.Sprite):
 
     @max_health.setter
     def max_health(self, value: float) -> None:
-        """
-        Sets the player's maximum health.
-
+        """Sets the player's maximum health.
 
         Parameters
         ----------
@@ -635,8 +603,7 @@ class Entity(arcade.Sprite):
 
     @property
     def armour(self) -> float:
-        """
-        Gets the entity's armour.
+        """Gets the entity's armour.
 
         Returns
         -------
@@ -647,8 +614,7 @@ class Entity(arcade.Sprite):
 
     @armour.setter
     def armour(self, value: float) -> None:
-        """
-        Sets the entity's armour.
+        """Sets the entity's armour.
 
         Parameters
         ----------
@@ -659,8 +625,7 @@ class Entity(arcade.Sprite):
 
     @property
     def max_armour(self) -> float:
-        """
-        Gets the player's maximum armour.
+        """Gets the player's maximum armour.
 
         Returns
         -------
@@ -671,8 +636,7 @@ class Entity(arcade.Sprite):
 
     @max_armour.setter
     def max_armour(self, value: float) -> None:
-        """
-        Sets the player's maximum armour.
+        """Sets the player's maximum armour.
 
         Parameters
         ----------
@@ -683,8 +647,7 @@ class Entity(arcade.Sprite):
 
     @property
     def max_velocity(self) -> float:
-        """
-        Gets the entity's max velocity.
+        """Gets the entity's max velocity.
 
         Returns
         -------
@@ -695,8 +658,7 @@ class Entity(arcade.Sprite):
 
     @max_velocity.setter
     def max_velocity(self, value: float) -> None:
-        """
-        Sets the entity's max velocity.
+        """Sets the entity's max velocity.
 
         Parameters
         ----------
@@ -708,8 +670,7 @@ class Entity(arcade.Sprite):
 
     @property
     def armour_regen_cooldown(self) -> float:
-        """
-        Gets the entity's armour regen cooldown
+        """Gets the entity's armour regen cooldown.
 
         Returns
         -------
@@ -720,8 +681,7 @@ class Entity(arcade.Sprite):
 
     @armour_regen_cooldown.setter
     def armour_regen_cooldown(self, value: float) -> None:
-        """
-        Sets the entity's armour regen cooldown.
+        """Sets the entity's armour regen cooldown.
 
         Parameters
         ----------
@@ -732,8 +692,7 @@ class Entity(arcade.Sprite):
 
     @property
     def bonus_attack_cooldown(self) -> float:
-        """
-        Gets the entity's bonus attack cooldown
+        """Gets the entity's bonus attack cooldown.
 
         Returns
         -------
@@ -744,8 +703,7 @@ class Entity(arcade.Sprite):
 
     @bonus_attack_cooldown.setter
     def bonus_attack_cooldown(self, value: float) -> None:
-        """
-        Sets the entity's bonus attack cooldown.
+        """Sets the entity's bonus attack cooldown.
 
         Parameters
         ----------
@@ -755,8 +713,7 @@ class Entity(arcade.Sprite):
         self._entity_state["bonus attack cooldown"] = value
 
     def _initialise_entity_state(self) -> dict[str, float]:
-        """
-        Initialises the entity's state dict.
+        """Initialises the entity's state dict.
 
         Returns
         -------
@@ -766,8 +723,7 @@ class Entity(arcade.Sprite):
         raise NotImplementedError
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
-        """
-        Processes enemy logic.
+        """Processes enemy logic.
 
         Parameters
         ----------
@@ -794,8 +750,7 @@ class Entity(arcade.Sprite):
         self.post_on_update(delta_time)
 
     def deal_damage(self, damage: int) -> None:
-        """
-        Deals damage to an entity.
+        """Deals damage to an entity.
 
         Parameters
         ----------
@@ -833,8 +788,7 @@ class Entity(arcade.Sprite):
             logger.info("Killed %r", self)
 
     def regenerate_armour(self, delta_time: float) -> None:
-        """
-        Regenerates the entity's armour if they are able to do so.
+        """Regenerates the entity's armour if they are able to do so.
 
         Parameters
         ----------
@@ -873,18 +827,15 @@ class Entity(arcade.Sprite):
         assert self.armour_bar is not None
 
         # Update the indicator bars
-        try:
+        with contextlib.suppress(ValueError):
+            # If this fails, the entity is already dead
             new_health_fullness = self.health / self.max_health
             self.health_bar.fullness = new_health_fullness
             new_armour_fullness = self.armour / self.max_armour
             self.armour_bar.fullness = new_armour_fullness
-        except ValueError:
-            # Entity is already dead
-            pass
 
     def post_on_update(self, delta_time: float) -> None:
-        """
-        Performs custom entity logic.
+        """Performs custom entity logic.
 
         Parameters
         ----------
@@ -899,8 +850,7 @@ class Entity(arcade.Sprite):
         raise NotImplementedError
 
     def move(self) -> None:
-        """
-        Processes the needed actions for the entity to move.
+        """Processes the needed actions for the entity to move.
 
         Raises
         ------
@@ -910,8 +860,7 @@ class Entity(arcade.Sprite):
         raise NotImplementedError
 
     def attack(self) -> None:
-        """
-        Runs the entity's current attack algorithm.
+        """Runs the entity's current attack algorithm.
 
         Raises
         ------
@@ -958,9 +907,8 @@ class Tile(arcade.Sprite):
 
 
 class InteractiveTile(Tile):
-    """
-    Represents a tile that can be interacted with by the player. This is only meant to
-    be inherited from and should not be initialised on its own.
+    """Represents a tile that can be interacted with by the player. This is only meant
+    to be inherited from and should not be initialised on its own.
 
     Parameters
     ----------
@@ -990,8 +938,7 @@ class InteractiveTile(Tile):
 
     @property
     def player(self) -> Player:
-        """
-        Gets the player object for ease of access.
+        """Gets the player object for ease of access.
 
         Returns
         -------
@@ -1006,8 +953,7 @@ class InteractiveTile(Tile):
 
 
 class UsableTile(InteractiveTile):
-    """
-    Represents a tile that can be used/activated by the player.
+    """Represents a tile that can be used/activated by the player.
 
     Parameters
     ----------
@@ -1034,8 +980,7 @@ class UsableTile(InteractiveTile):
         return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
 
     def item_use(self) -> bool:
-        """
-        Called when the item is used by the player. Override this to add item use
+        """Called when the item is used by the player. Override this to add item use
         functionality.
 
         Raises
@@ -1052,8 +997,7 @@ class UsableTile(InteractiveTile):
 
 
 class CollectibleTile(InteractiveTile):
-    """
-    Represents a tile that can be picked up by the player.
+    """Represents a tile that can be picked up by the player.
 
     Parameters
     ----------
@@ -1081,8 +1025,7 @@ class CollectibleTile(InteractiveTile):
         return f"<CollectibleTile (Position=({self.center_x}, {self.center_y}))>"
 
     def item_pick_up(self) -> bool:
-        """
-        Called when the collectible is picked up by the player.
+        """Called when the collectible is picked up by the player.
 
         Returns
         -------

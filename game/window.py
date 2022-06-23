@@ -1,6 +1,4 @@
-"""
-Acts as the entry point to the game by creating and initialising the window.
-"""
+"""Acts as the entry point to the game by creating and initialising the window."""
 from __future__ import annotations
 
 # Builtin
@@ -25,10 +23,9 @@ logger = logging.getLogger(GAME_LOGGER)
 
 
 class Window(arcade.Window):
-    """
-    Manages the window and allows switching between views.
+    """Manages the window and allows switching between views.
 
-     Attributes
+    Attributes
     ----------
     views: dict[str, BaseView]
         Holds all the views used by the game.

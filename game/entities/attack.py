@@ -1,6 +1,4 @@
-"""
-Stores the different attack algorithms that are available to the player and enemy.
-"""
+"""Stores the different attack algorithms that are available to the player and enemy."""
 from __future__ import annotations
 
 # Builtin
@@ -33,8 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class Bullet(arcade.SpriteSolidColor):
-    """
-    Represents a bullet in the game.
+    """Represents a bullet in the game.
 
     Parameters
     ----------
@@ -100,8 +97,7 @@ class Bullet(arcade.SpriteSolidColor):
 
 
 class AttackBase:
-    """
-    The base class for all attack algorithms.
+    """The base class for all attack algorithms.
 
     Parameters
     ----------
@@ -125,8 +121,7 @@ class AttackBase:
 
     @property
     def attack_range(self) -> int:
-        """
-        Gets the attack range for this attack.
+        """Gets the attack range for this attack.
 
         Returns
         -------
@@ -136,8 +131,7 @@ class AttackBase:
         raise NotImplementedError
 
     def process_attack(self, *args: Any) -> None:
-        """
-        Performs an attack by the owner entity.
+        """Performs an attack by the owner entity.
 
         Parameters
         ----------
@@ -153,8 +147,7 @@ class AttackBase:
 
 
 class RangedAttack(AttackBase):
-    """
-    An algorithm which creates a bullet with a set velocity in the direction the
+    """An algorithm which creates a bullet with a set velocity in the direction the
     entity is facing.
 
     Parameters
@@ -175,8 +168,7 @@ class RangedAttack(AttackBase):
 
     @property
     def ranged_attack_data(self) -> RangedAttackData:
-        """
-        Gets the ranged attack data.
+        """Gets the ranged attack data.
 
         Returns
         -------
@@ -187,8 +179,7 @@ class RangedAttack(AttackBase):
 
     @property
     def attack_range(self) -> int:
-        """
-        Gets the attack range for this attack.
+        """Gets the attack range for this attack.
 
         Returns
         -------
@@ -198,8 +189,7 @@ class RangedAttack(AttackBase):
         return self.ranged_attack_data.attack_range
 
     def process_attack(self, *args: Any) -> None:
-        """
-        Performs a ranged attack in the direction the entity is facing.
+        """Performs a ranged attack in the direction the entity is facing.
 
         Parameters
         ----------
@@ -247,8 +237,7 @@ class RangedAttack(AttackBase):
 
 
 class MeleeAttack(AttackBase):
-    """
-    An algorithm which performs a melee attack in the direction the entity is looking
+    """An algorithm which performs a melee attack in the direction the entity is looking
     dealing damage to any entity that is within a specific angle range of the entity's
     direction and are within the attack distance. Since when the enemy is attacking,
     they are always facing the player, we don't need to do the angle range check for
@@ -272,8 +261,7 @@ class MeleeAttack(AttackBase):
 
     @property
     def melee_attack_data(self) -> MeleeAttackData:
-        """
-        Gets the melee attack data.
+        """Gets the melee attack data.
 
         Returns
         -------
@@ -284,8 +272,7 @@ class MeleeAttack(AttackBase):
 
     @property
     def attack_range(self) -> int:
-        """
-        Gets the attack range for this attack.
+        """Gets the attack range for this attack.
 
         Returns
         -------
@@ -295,8 +282,7 @@ class MeleeAttack(AttackBase):
         return self.melee_attack_data.attack_range
 
     def process_attack(self, *args: Any) -> None:
-        """
-        Performs a melee attack in the direction the entity is facing.
+        """Performs a melee attack in the direction the entity is facing.
 
         Parameters
         ----------
@@ -315,8 +301,7 @@ class MeleeAttack(AttackBase):
 
 
 class AreaOfEffectAttack(AttackBase):
-    """
-    An algorithm which creates an area around the entity with a set radius and deals
+    """An algorithm which creates an area around the entity with a set radius and deals
     damage to any entities that are within that range.
 
     Parameters
@@ -337,8 +322,7 @@ class AreaOfEffectAttack(AttackBase):
 
     @property
     def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
-        """
-        Gets the area of effect attack data.
+        """Gets the area of effect attack data.
 
         Returns
         -------
@@ -349,8 +333,7 @@ class AreaOfEffectAttack(AttackBase):
 
     @property
     def attack_range(self) -> int:
-        """
-        Gets the attack range for this attack.
+        """Gets the attack range for this attack.
 
         Returns
         -------
@@ -360,8 +343,7 @@ class AreaOfEffectAttack(AttackBase):
         return self.area_of_effect_attack_data.attack_range
 
     def process_attack(self, *args: Any) -> None:
-        """
-        Performs an area of effect attack around the entity.
+        """Performs an area of effect attack around the entity.
 
         Parameters
         ----------

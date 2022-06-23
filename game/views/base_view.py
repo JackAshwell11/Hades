@@ -1,6 +1,4 @@
-"""
-Stores code that is shared between all views simplifying development.
-"""
+"""Stores code that is shared between all views simplifying development."""
 from __future__ import annotations
 
 # Builtin
@@ -28,8 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
-    """
-    Represents a simple dialog box that pops up with a message and disappears after a
+    """Represents a simple dialog box that pops up with a message and disappears after a
     certain amount of time.
 
     Parameters
@@ -105,8 +102,8 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         return f"<DisappearingInfoBox (Text={self._text_area.text})>"
 
     def on_update(self, delta_time: float) -> None:
-        """
-        Updates the internal time counter and checks to see if the box should disappear.
+        """Updates the internal time counter and checks to see if the box should
+        disappear.
 
         Parameters
         ----------
@@ -147,8 +144,7 @@ class BackButton(arcade.gui.UIFlatButton):
 
 
 class BaseView(arcade.View):
-    """
-    The base class for all views.
+    """The base class for all views.
 
     Attributes
     ----------
@@ -192,8 +188,7 @@ class BaseView(arcade.View):
         added."""
 
     def display_info_box(self, text: str) -> None:
-        """
-        Displays an info box that disappears after a set amount of time.
+        """Displays an info box that disappears after a set amount of time.
 
         Parameters
         ----------
@@ -206,8 +201,7 @@ class BaseView(arcade.View):
 
     @staticmethod
     def add_back_button(vertical_box: arcade.gui.UIBoxLayout) -> None:
-        """
-        Adds the back button to a given vertical box.
+        """Adds the back button to a given vertical box.
 
         Parameters
         ----------

@@ -1,7 +1,5 @@
-"""
-Manages the procedural generation of the dungeon and places the player, enemies and
-items into the game map.
-"""
+"""Manages the procedural generation of the dungeon and places the player, enemies and
+items into the game map."""
 from __future__ import annotations
 
 # Builtin
@@ -55,8 +53,7 @@ np.set_printoptions(threshold=10, edgeitems=30, linewidth=1000)
 
 
 def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
-    """
-    Initialises and generates the game map.
+    """Initialises and generates the game map.
 
     Parameters
     ----------
@@ -73,8 +70,7 @@ def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
 
 
 class GameMapShape(NamedTuple):
-    """
-    Represents a two element tuple holding the width and height of a game map.
+    """Represents a two element tuple holding the width and height of a game map.
 
     Parameters
     ----------
@@ -89,8 +85,7 @@ class GameMapShape(NamedTuple):
 
 
 class Map:
-    """
-    Procedurally generates a game generation based on a given game level.
+    """Procedurally generates a game generation based on a given game level.
 
     Parameters
     ----------
@@ -151,8 +146,7 @@ class Map:
 
     @property
     def width(self) -> int:
-        """
-        Gets the width of the grid.
+        """Gets the width of the grid.
 
         Returns
         -------
@@ -167,8 +161,7 @@ class Map:
 
     @property
     def height(self) -> int:
-        """
-        Gets the height of the grid.
+        """Gets the height of the grid.
 
         Returns
         -------
@@ -182,8 +175,7 @@ class Map:
         return self.grid.shape[0]
 
     def _generate_constants(self) -> dict[TileType | str, int]:
-        """
-        Generates the needed constants based on a given level.
+        """Generates the needed constants based on a given level.
 
         Returns
         -------
@@ -344,8 +336,7 @@ class Map:
         rect_areas: list[tuple[Rect, int]],
         area_probabilities: list[float],
     ) -> None:
-        """
-        Places the enemies in the grid making sure other tiles aren't replaced.
+        """Places the enemies in the grid making sure other tiles aren't replaced.
 
         Parameters
         ----------
@@ -375,8 +366,7 @@ class Map:
                     tries -= 1
 
     def _place_items(self, rect_areas: list[tuple[Rect, int]]) -> None:
-        """
-        Places the items in the grid making sure other tiles aren't replaced.
+        """Places the items in the grid making sure other tiles aren't replaced.
 
         Parameters
         ----------
@@ -402,8 +392,7 @@ class Map:
                     tries -= 1
 
     def _place_tile(self, entity: TileType, rect: Rect) -> bool:
-        """
-        Places a given entity in a random position in a given rect.
+        """Places a given entity in a random position in a given rect.
 
         Parameters
         ----------

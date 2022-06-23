@@ -1,6 +1,4 @@
-"""
-Allows the game to be run from the command line.
-"""
+"""Allows the game to be run from the command line."""
 from __future__ import annotations
 
 # Custom

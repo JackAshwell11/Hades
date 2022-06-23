@@ -1,7 +1,5 @@
-"""
-Stores various constants related to consumables and the dataclasses used for
-constructing the consumables.
-"""
+"""Stores various constants related to consumables and the dataclasses used for
+constructing the consumables."""
 from __future__ import annotations
 
 # Builtin
@@ -54,8 +52,7 @@ class StatusEffectType(Enum):
 
 @dataclass
 class ConsumableData:
-    """
-    The base class for constructing a consumable with multiple levels.
+    """The base class for constructing a consumable with multiple levels.
 
     name: str
         The name of the consumable.
@@ -80,8 +77,7 @@ class ConsumableData:
 
 @dataclass
 class InstantData:
-    """
-    Stores the data for an individual instant effect applied by a consumable.
+    """Stores the data for an individual instant effect applied by a consumable.
 
     instant_type: InstantEffect
         The type of instant effect that is applied.
@@ -96,8 +92,7 @@ class InstantData:
 
 @dataclass
 class StatusEffectData:
-    """
-    Stores the data for an individual status effect applied by a consumable.
+    """Stores the data for an individual status effect applied by a consumable.
 
     status_type: StatusEffectType
         The type of status effect that is applied.

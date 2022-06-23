@@ -1,6 +1,4 @@
-"""
-Stores general constants that can't really be grouped together.
-"""
+"""Stores general constants that can't really be grouped together."""
 from __future__ import annotations
 
 # Builtin

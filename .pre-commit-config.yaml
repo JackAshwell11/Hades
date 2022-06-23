@@ -33,6 +33,11 @@ repos:
     hooks:
     -   id: mypy
         args: ["--ignore-missing-imports"]
+-   repo: https://github.com/PyCQA/docformatter
+    rev: v1.4
+    hooks:
+    -   id: docformatter
+        args: ["--in-place", "--wrap-summaries", "88", "--wrap-descriptions", "88"]
 -   repo: https://github.com/PyCQA/flake8
     rev: 4.0.1
     hooks:
@@ -42,7 +47,6 @@ repos:
             -   flake8-bugbear
             -   flake8-builtins
             -   flake8-comprehensions
-            #-   flake8-docstrings
             -   flake8-dunder-all
             -   flake8-encodings
             -   flake8-logging-format
@@ -61,6 +65,14 @@ repos:
 #            "--max-line-length=88",
 #            "--good-names=i,j,k,x,y,dx,dy,x1,x2,y1,y2",
 #            "--ignore=TEMP-FILES",
+#            "--load-plugins=pylint.extensions.emptystring,
+#            pylint.extensions.comparison_placement,
+#            pylint.extensions.confusing_elif,
+#            pylint.extensions.for_any_all,
+#            pylint.extensions.consider_ternary_expression,
+#            pylint.extensions.bad_builtin,
+#            pylint.extensions.check_elif
+#            pylint.extensions.set_membership",
 #        ]
 
 # Flake8 codes:

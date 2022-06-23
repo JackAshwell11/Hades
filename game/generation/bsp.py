@@ -1,6 +1,5 @@
-"""
-Creates a binary space partition which is used for procedurally generating the game map.
-"""
+"""Creates a binary space partition which is used for procedurally generating the game
+map."""
 from __future__ import annotations
 
 # Builtin
@@ -26,8 +25,7 @@ __all__ = (
 
 
 class Point(NamedTuple):
-    """
-    Represents a point in the grid.
+    """Represents a point in the grid.
 
     Parameters
     ----------
@@ -45,8 +43,7 @@ class Point(NamedTuple):
 
 
 class Rect:
-    """
-    Represents a rectangle of any size useful for creating the dungeon. Containers
+    """Represents a rectangle of any size useful for creating the dungeon. Containers
     include the split wall in their sizes whereas rooms don't so MIN_CONTAINER_SIZE must
     be bigger than MIN_ROOM_SIZE.
 
@@ -72,8 +69,7 @@ class Rect:
 
     @property
     def width(self) -> int:
-        """
-        Gets the width of the rect.
+        """Gets the width of the rect.
 
         Returns
         -------
@@ -84,8 +80,7 @@ class Rect:
 
     @property
     def height(self) -> int:
-        """
-        Gets the height of the rect.
+        """Gets the height of the rect.
 
         Returns
         -------
@@ -96,8 +91,7 @@ class Rect:
 
     @property
     def center_x(self) -> int:
-        """
-        Gets the x coordinate of the center position.
+        """Gets the x coordinate of the center position.
 
         Returns
         -------
@@ -108,8 +102,7 @@ class Rect:
 
     @property
     def center_y(self) -> int:
-        """
-        Gets the y coordinate of the center position.
+        """Gets the y coordinate of the center position.
 
         Returns
         -------
@@ -120,8 +113,7 @@ class Rect:
 
 
 class Leaf:
-    """
-    A binary spaced partition leaf which can be used to generate a dungeon.
+    """A binary spaced partition leaf which can be used to generate a dungeon.
 
     Parameters
     ----------
@@ -184,8 +176,7 @@ class Leaf:
         )
 
     def split(self, debug_lines: bool = False) -> bool:
-        """
-        Splits a container either horizontally or vertically.
+        """Splits a container horizontally or vertically.
 
         Parameters
         ----------
@@ -281,8 +272,7 @@ class Leaf:
         return True
 
     def create_room(self) -> bool:
-        """
-        Creates a random sized room inside a container.
+        """Creates a random sized room inside a container.
 
         Returns
         -------
@@ -320,8 +310,7 @@ class Leaf:
         return True
 
     def create_hallway(self, target: Leaf) -> tuple[Rect | None, Rect | None]:
-        """
-        Creates the hallway links between rooms.
+        """Creates the hallway links between rooms.
 
         Parameters
         ----------
@@ -457,8 +446,7 @@ class Leaf:
         return first_hallway, second_hallway
 
     def place_rect(self, rect: Rect) -> None:
-        """
-        Places a rect in the 2D grid.
+        """Places a rect in the 2D grid.
 
         Parameters
         ----------

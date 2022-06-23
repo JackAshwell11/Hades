@@ -1,7 +1,5 @@
-"""
-Visually displays the player's inventory so the player can manage their inventory and
-use items.
-"""
+"""Visually displays the player's inventory so the player can manage their inventory and
+use items."""
 from __future__ import annotations
 
 # Builtin
@@ -73,8 +71,7 @@ class InventoryBox(arcade.gui.UITextureButton):
 
 
 class InventoryView(BaseView):
-    """
-    Displays the player's inventory allowing them to manage it and equip items.
+    """Displays the player's inventory allowing them to manage it and equip items.
 
     Parameters
     ----------

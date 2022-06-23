@@ -1,6 +1,4 @@
-"""
-Builds the game into an executable format for easy distribution.
-"""
+"""Builds the game into an executable format for easy distribution."""
 from __future__ import annotations
 
 # Builtin

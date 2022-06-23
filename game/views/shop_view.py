@@ -1,7 +1,5 @@
-"""
-Creates a shop so the player can upgrade attributes and buy special upgrades/other
-items.
-"""
+"""Creates a shop so the player can upgrade attributes and buy special upgrades/other
+items."""
 from __future__ import annotations
 
 # Builtin
@@ -42,8 +40,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
 
 
 class ShopView(BaseView):
-    """
-    Displays the shop UI so the player can upgrade their attributes
+    """Displays the shop UI so the player can upgrade their attributes.
 
     Parameters
     ----------

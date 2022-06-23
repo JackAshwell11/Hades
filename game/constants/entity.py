@@ -1,7 +1,5 @@
-"""
-Stores various constants related to entities and the dataclasses used for constructing
-the entities.
-"""
+"""Stores various constants related to entities and the dataclasses used for
+constructing the entities."""
 from __future__ import annotations
 
 # Builtin
@@ -17,7 +15,7 @@ from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
 __all__ = (
     "EntityID",
@@ -96,8 +94,7 @@ class AttackAlgorithmType(Enum):
 
 @dataclass
 class BaseData:
-    """
-    The base class for constructing an entity. Only fill out some keyword arguments
+    """The base class for constructing an entity. Only fill out some keyword arguments
     since not all of them are needed.
 
     entity_type: EntityType
@@ -123,23 +120,28 @@ class BaseData:
         kw_only=True, default=None
     )
 
-    def get_all_attacks(self) -> list[AttackData]:
-        """Returns all the attacks the entity has."""
-        return [
+    def get_all_attacks(self) -> Iterator[AttackData]:
+        """Returns all the attacks the entity has.
+
+        Returns
+        -------
+        Iterator[AttackData]
+            An iterator containing all the valid attack types for this entity.
+        """
+        return (
             attack
-            for attack in [
+            for attack in (
                 self.ranged_attack_data,
                 self.melee_attack_data,
                 self.area_of_effect_attack_data,
-            ]
+            )
             if attack
-        ]
+        )
 
 
 @dataclass
 class EntityData:
-    """
-    The base class for storing general data about an entity. This stuff should not
+    """The base class for storing general data about an entity. This stuff should not
     change between entity levels.
 
     name: str
@@ -163,8 +165,9 @@ class EntityData:
 
 @dataclass
 class EntityUpgradeData:
-    """
-    Stores an upgrade that is available to the entity. If the cost function is set to
+    """Stores an upgrade that is available to the entity. If the cost function is set
+    to.
+
     -1, then the upgrade does not exist for the entity.
 
     section_type: UpgradeSection
@@ -185,8 +188,7 @@ class EntityUpgradeData:
 
 @dataclass
 class AttributeUpgradeData:
-    """
-    Stores an attribute upgrade that is available to the entity.
+    """Stores an attribute upgrade that is available to the entity.
 
     attribute_type: UpgradeAttribute
         The type of attribute which this upgrade targets.
@@ -201,8 +203,7 @@ class AttributeUpgradeData:
 
 @dataclass
 class PlayerData:
-    """
-    Stores data about a specific player type.
+    """Stores data about a specific player type.
 
     melee_degree: int
         The degree that the player's melee attack is limited to.
@@ -213,8 +214,7 @@ class PlayerData:
 
 @dataclass
 class EnemyData:
-    """
-    Stores data about a specific enemy type.
+    """Stores data about a specific enemy type.
 
     view_distance: int
         The amount of tiles the enemy can see too.
@@ -225,8 +225,7 @@ class EnemyData:
 
 @dataclass
 class AttackData:
-    """
-    The base class for storing data about an entity's attack.
+    """The base class for storing data about an entity's attack.
 
     damage: int
         The damage the entity deals.
@@ -244,8 +243,7 @@ class AttackData:
 
 @dataclass
 class RangedAttackData(AttackData):
-    """
-    Stores data about an entity's ranged attack.
+    """Stores data about an entity's ranged attack.
 
     damage: int
         The damage the entity deals.
@@ -261,8 +259,7 @@ class RangedAttackData(AttackData):
 
 @dataclass
 class MeleeAttackData(AttackData):
-    """
-    Stores data about an entity's melee attack.
+    """Stores data about an entity's melee attack.
 
     damage: int
         The damage the entity deals.
@@ -275,8 +272,7 @@ class MeleeAttackData(AttackData):
 
 @dataclass
 class AreaOfEffectAttackData(AttackData):
-    """
-    Stores data about an entity's area of effect attack.
+    """Stores data about an entity's area of effect attack.
 
     damage: int
         The damage the entity deals.

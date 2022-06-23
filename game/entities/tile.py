@@ -1,6 +1,4 @@
-"""
-Stores the different static tiles that can exist in the game.
-"""
+"""Stores the different static tiles that can exist in the game."""
 from __future__ import annotations
 
 # Builtin
@@ -77,8 +75,7 @@ class Wall(Tile):
 
 
 class Consumable(UsableTile, CollectibleTile):
-    """
-    Represents a consumable that can be consumed by the player in the game.
+    """Represents a consumable that can be consumed by the player in the game.
 
     Parameters
     ----------
@@ -115,8 +112,7 @@ class Consumable(UsableTile, CollectibleTile):
 
     @property
     def name(self) -> str:
-        """
-        Gets the name of this consumable.
+        """Gets the name of this consumable.
 
         Returns
         -------
@@ -127,8 +123,7 @@ class Consumable(UsableTile, CollectibleTile):
         return self.consumable_type.name
 
     def item_use(self) -> bool:
-        """
-        Called when the consumable is used by the player.
+        """Called when the consumable is used by the player.
 
         Returns
         -------

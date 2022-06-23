@@ -1,6 +1,4 @@
-"""
-Creates a start menu so the player can change their settings or game mode.
-"""
+"""Creates a start menu so the player can change their settings or game mode."""
 from __future__ import annotations
 
 # Builtin

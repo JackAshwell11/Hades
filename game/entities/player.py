@@ -1,6 +1,4 @@
-"""
-Stores the player object which the player can control.
-"""
+"""Stores the player object which the player can control."""
 from __future__ import annotations
 
 # Builtin
@@ -39,8 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 class Player(Entity):
-    """
-    Represents the player character in the game.
+    """Represents the player character in the game.
 
     Parameters
     ----------
@@ -131,8 +128,7 @@ class Player(Entity):
 
     @property
     def money(self) -> float:
-        """
-        Gets the player's money.
+        """Gets the player's money.
 
         Returns
         -------
@@ -143,8 +139,7 @@ class Player(Entity):
 
     @money.setter
     def money(self, value: float) -> None:
-        """
-        Sets the player's money.
+        """Sets the player's money.
 
         Parameters
         ----------
@@ -154,8 +149,7 @@ class Player(Entity):
         self._entity_state["money"] = value
 
     def _initialise_entity_state(self) -> dict[str, float]:
-        """
-        Initialises the entity's state dict.
+        """Initialises the entity's state dict.
 
         Returns
         -------
@@ -173,8 +167,7 @@ class Player(Entity):
         }
 
     def post_on_update(self, delta_time: float) -> None:
-        """
-        Processes player logic.
+        """Processes player logic.
 
         Parameters
         ----------
@@ -273,8 +266,7 @@ class Player(Entity):
                 self.current_attack.process_attack(self.game.enemy_sprites)
 
     def add_item_to_inventory(self, item: CollectibleTile) -> bool:
-        """
-        Adds an item to the player's inventory.
+        """Adds an item to the player's inventory.
 
         Parameters
         ----------

@@ -1,3 +1,5 @@
+"""Uses the GPU to send out rays around the player to find enemies that are within range
+of a melee attack."""
 from __future__ import annotations
 
 # Builtin
@@ -28,9 +30,8 @@ geometry_path = base_path.joinpath("melee_geometry.glsl")
 
 
 class MeleeShader:
-    """
-    A helper class which eases setting up the shader for the player's melee attack. This
-    currently only works for the player but may change in the future.
+    """A helper class which eases setting up the shader for the player's melee attack.
+    This currently only works for the player but may change in the future.
 
     Parameters
     ----------
@@ -72,8 +73,7 @@ class MeleeShader:
 
     @property
     def ctx(self) -> ArcadeContext:
-        """
-        Gets the arcade context object for running OpenGL programs.
+        """Gets the arcade context object for running OpenGL programs.
 
         Returns
         -------
@@ -151,9 +151,8 @@ class MeleeShader:
         )
 
     def run_shader(self) -> list[Enemy]:
-        """
-        Runs the shader program to find all enemies within range of the player based on
-        the player's direction.
+        """Runs the shader program to find all enemies within range of the player based
+        on the player's direction.
 
         Returns
         -------
