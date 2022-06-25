@@ -6,18 +6,18 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.entity import UpgradeAttribute
+from game.constants.entity import EntityAttributeType
 
 if TYPE_CHECKING:
-    from game.constants.entity import AttributeUpgradeData, EntityUpgradeData
+    from game.constants.entity import EntityAttributeData, EntitySectionData
     from game.entities.player import Player
     from game.views.shop_view import SectionUpgradeButton
 
 __all__ = (
-    "UpgradeAttribute",
+    "EntityAttributeType",
     "UPGRADABLE_ATTRIBUTES",
-    "create_attribute_upgrade",
     "UpgradableSection",
+    "create_attribute_upgrade",
 )
 
 # Get the logger
@@ -33,7 +33,7 @@ class UpgradableAttributeBase:
         The reference to the parent upgradable section object.
     player: Player
         The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
+    attribute_upgrade_data: EntityAttributeData
         The upgrade data for this attribute.
     """
 
@@ -47,11 +47,11 @@ class UpgradableAttributeBase:
         self,
         parent_section: UpgradableSection,
         player: Player,
-        attribute_upgrade_data: AttributeUpgradeData,
+        attribute_upgrade_data: EntityAttributeData,
     ) -> None:
         self.parent_section: UpgradableSection = parent_section
         self.player: Player = player
-        self.attribute_upgrade_data: AttributeUpgradeData = attribute_upgrade_data
+        self.attribute_upgrade_data: EntityAttributeData = attribute_upgrade_data
 
     def __repr__(self) -> str:
         return f"<UpgradableAttribute (Player={self.player})>"
@@ -76,7 +76,7 @@ class HealthUpgradableAttribute(UpgradableAttributeBase):
         The reference to the parent upgradable section object.
     player: Player
         The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
+    attribute_upgrade_data: EntityAttributeData
         The upgrade data for this attribute.
     """
 
@@ -86,7 +86,7 @@ class HealthUpgradableAttribute(UpgradableAttributeBase):
         self,
         parent_section: UpgradableSection,
         player: Player,
-        attribute_upgrade_data: AttributeUpgradeData,
+        attribute_upgrade_data: EntityAttributeData,
     ) -> None:
         super().__init__(parent_section, player, attribute_upgrade_data)
 
@@ -113,7 +113,7 @@ class ArmourUpgradableAttribute(UpgradableAttributeBase):
         The reference to the parent upgradable section object.
     player: Player
         The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
+    attribute_upgrade_data: EntityAttributeData
         The upgrade data for this attribute.
     """
 
@@ -123,7 +123,7 @@ class ArmourUpgradableAttribute(UpgradableAttributeBase):
         self,
         parent_section: UpgradableSection,
         player: Player,
-        attribute_upgrade_data: AttributeUpgradeData,
+        attribute_upgrade_data: EntityAttributeData,
     ) -> None:
         super().__init__(parent_section, player, attribute_upgrade_data)
 
@@ -150,7 +150,7 @@ class SpeedUpgradableAttribute(UpgradableAttributeBase):
         The reference to the parent upgradable section object.
     player: Player
         The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
+    attribute_upgrade_data: EntityAttributeData
         The upgrade data for this attribute.
     """
 
@@ -160,7 +160,7 @@ class SpeedUpgradableAttribute(UpgradableAttributeBase):
         self,
         parent_section: UpgradableSection,
         player: Player,
-        attribute_upgrade_data: AttributeUpgradeData,
+        attribute_upgrade_data: EntityAttributeData,
     ) -> None:
         super().__init__(parent_section, player, attribute_upgrade_data)
 
@@ -186,7 +186,7 @@ class RegenCooldownUpgradableAttribute(UpgradableAttributeBase):
         The reference to the parent upgradable section object.
     player: Player
         The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
+    attribute_upgrade_data: EntityAttributeData
         The upgrade data for this attribute.
     """
 
@@ -196,7 +196,7 @@ class RegenCooldownUpgradableAttribute(UpgradableAttributeBase):
         self,
         parent_section: UpgradableSection,
         player: Player,
-        attribute_upgrade_data: AttributeUpgradeData,
+        attribute_upgrade_data: EntityAttributeData,
     ) -> None:
         super().__init__(parent_section, player, attribute_upgrade_data)
 
@@ -214,31 +214,31 @@ class RegenCooldownUpgradableAttribute(UpgradableAttributeBase):
 
 
 UPGRADABLE_ATTRIBUTES = {
-    UpgradeAttribute.HEALTH: HealthUpgradableAttribute,
-    UpgradeAttribute.ARMOUR: ArmourUpgradableAttribute,
-    UpgradeAttribute.SPEED: SpeedUpgradableAttribute,
-    UpgradeAttribute.REGEN_COOLDOWN: RegenCooldownUpgradableAttribute,
+    EntityAttributeType.HEALTH: HealthUpgradableAttribute,
+    EntityAttributeType.ARMOUR: ArmourUpgradableAttribute,
+    EntityAttributeType.SPEED: SpeedUpgradableAttribute,
+    EntityAttributeType.REGEN_COOLDOWN: RegenCooldownUpgradableAttribute,
 }
 
 
 def create_attribute_upgrade(
-    upgrade_attribute_type: UpgradeAttribute,
+    upgrade_attribute_type: EntityAttributeType,
     parent_section: UpgradableSection,
     player: Player,
-    attribute_upgrade_data: AttributeUpgradeData,
+    attribute_upgrade_data: EntityAttributeData,
 ) -> UpgradableAttributeBase:
     """Determines which upgradable attribute class should be initialised based on a
     given upgrade attribute type.
 
     Parameters
     ----------
-    upgrade_attribute_type: UpgradeAttribute
+    upgrade_attribute_type: EntityAttributeType
         The upgradable attribute to create.
     parent_section: UpgradableSection
         The reference to the parent upgradable section object.
     player: Player
         The reference to the player object.
-    attribute_upgrade_data: AttributeUpgradeData
+    attribute_upgrade_data: EntityAttributeData
         The upgrade data for this attribute.
     """
     # Get the upgradable attribute class type which manages the given upgradable
@@ -261,7 +261,7 @@ class UpgradableSection:
     ----------
     player: Player
         The reference to the player object.
-    entity_upgrade_data: EntityUpgradeData
+    entity_upgrade_data: EntitySectionData
         The upgrade data for this section.
     current_level: int
         The current level of this section.
@@ -275,16 +275,16 @@ class UpgradableSection:
     )
 
     def __init__(
-        self, player: Player, entity_upgrade_data: EntityUpgradeData, current_level: int
+        self, player: Player, entity_upgrade_data: EntitySectionData, current_level: int
     ) -> None:
         self.player: Player = player
-        self.entity_upgrade_data: EntityUpgradeData = entity_upgrade_data
+        self.entity_upgrade_data: EntitySectionData = entity_upgrade_data
         self.current_level: int = current_level
         self.attributes = [
             create_attribute_upgrade(
                 attribute_upgrade.attribute_type, self, player, attribute_upgrade
             )
-            for attribute_upgrade in entity_upgrade_data.upgrades
+            for attribute_upgrade in entity_upgrade_data.attributes
         ]
 
     def __repr__(self) -> str:
@@ -313,7 +313,7 @@ class UpgradableSection:
         int
             The maximum level for the player's upgrades.
         """
-        return self.player.entity_data.upgrade_level_limit
+        return self.player.entity_data.level_limit
 
     def upgrade_section(self, shop_button: SectionUpgradeButton) -> None:
         """Upgrades the player section if the player has enough money.

@@ -18,13 +18,14 @@ from game.constants.entity import (
     HEALTH_INDICATOR_BAR_COLOR,
     SPRITE_SIZE,
     AttackAlgorithmType,
+    EntityAttributeType,
     EntityID,
 )
 from game.entities.base import Entity, IndicatorBar
 from game.entities.movement import EnemyMovementManager
 
 if TYPE_CHECKING:
-    from game.constants.entity import BaseData
+    from game.constants.entity import BaseData, EnemyData
     from game.views.game_view import Game
 
 __all__ = ("Enemy",)
@@ -87,6 +88,21 @@ class Enemy(Entity):
             f" level={self.enemy_level})>"
         )
 
+    @property
+    def enemy_data(self) -> EnemyData:
+        """Gets the enemy data if it exists.
+
+        Returns
+        -------
+        EnemyData
+            The enemy data.
+        """
+        # Make sure the enemy data is valid
+        assert self.entity_type.enemy_data is not None
+
+        # Return the enemy data
+        return self.entity_type.enemy_data
+
     def _initialise_entity_state(self) -> dict[str, float]:
         """Initialises the entity's state dict.
 
@@ -101,14 +117,24 @@ class Enemy(Entity):
 
         # Create the entity state dict
         return {
-            "health": self.upgrade_data[0].upgrades[0].increase(adjusted_level),
-            "max health": self.upgrade_data[0].upgrades[0].increase(adjusted_level),
-            "armour": self.upgrade_data[1].upgrades[0].increase(adjusted_level),
-            "max armour": self.upgrade_data[1].upgrades[0].increase(adjusted_level),
-            "max velocity": self.upgrade_data[0].upgrades[1].increase(adjusted_level),
-            "armour regen cooldown": self.upgrade_data[1]
-            .upgrades[1]
-            .increase(adjusted_level),
+            "health": self.attribute_data[EntityAttributeType.HEALTH].increase(
+                adjusted_level
+            ),
+            "max health": self.attribute_data[EntityAttributeType.HEALTH].increase(
+                adjusted_level
+            ),
+            "armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(
+                adjusted_level
+            ),
+            "max armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(
+                adjusted_level
+            ),
+            "max velocity": self.attribute_data[EntityAttributeType.SPEED].increase(
+                adjusted_level
+            ),
+            "armour regen cooldown": self.attribute_data[
+                EntityAttributeType.REGEN_COOLDOWN
+            ].increase(adjusted_level),
             "bonus attack cooldown": 0,
         }
 

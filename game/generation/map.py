@@ -40,9 +40,9 @@ if TYPE_CHECKING:
     from game.generation.bsp import Rect
 
 __all__ = (
-    "create_map",
     "GameMapShape",
     "Map",
+    "create_map",
 )
 
 # Get the logger

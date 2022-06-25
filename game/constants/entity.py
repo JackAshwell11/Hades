@@ -18,34 +18,34 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
 __all__ = (
-    "EntityID",
-    "UpgradeAttribute",
-    "UpgradeSection",
-    "AttackAlgorithmType",
-    "BaseData",
-    "EntityData",
-    "EntityUpgradeData",
-    "AttributeUpgradeData",
-    "PlayerData",
-    "EnemyData",
-    "AttackData",
-    "RangedAttackData",
-    "MeleeAttackData",
+    "ARMOUR_INDICATOR_BAR_COLOR",
+    "ARMOUR_REGEN_AMOUNT",
+    "ARMOUR_REGEN_WAIT",
     "AreaOfEffectAttackData",
+    "AttackAlgorithmType",
+    "AttackData",
+    "BULLET_VELOCITY",
+    "BaseData",
+    "ENEMIES",
+    "ENEMY_INDICATOR_BAR_OFFSET",
+    "EnemyData",
+    "EntityAttributeData",
+    "EntityAttributeSectionType",
+    "EntityAttributeType",
+    "EntityData",
+    "EntityID",
+    "FACING_LEFT",
+    "FACING_RIGHT",
+    "HEALTH_INDICATOR_BAR_COLOR",
+    "INDICATOR_BAR_BORDER_SIZE",
+    "MELEE_RESOLUTION",
+    "MOVEMENT_FORCE",
+    "MeleeAttackData",
+    "PlayerData",
+    "PlayerSectionUpgradeData",
+    "RangedAttackData",
     "SPRITE_SCALE",
     "SPRITE_SIZE",
-    "ENEMIES",
-    "MOVEMENT_FORCE",
-    "FACING_RIGHT",
-    "FACING_LEFT",
-    "ARMOUR_REGEN_WAIT",
-    "ARMOUR_REGEN_AMOUNT",
-    "BULLET_VELOCITY",
-    "MELEE_RESOLUTION",
-    "INDICATOR_BAR_BORDER_SIZE",
-    "ENEMY_INDICATOR_BAR_OFFSET",
-    "HEALTH_INDICATOR_BAR_COLOR",
-    "ARMOUR_INDICATOR_BAR_COLOR",
 )
 
 
@@ -58,9 +58,9 @@ class EntityID(Enum):
     ENEMY = "enemy"
 
 
-# Entity attribute upgrades
-class UpgradeAttribute(Enum):
-    """Stores the types of attributes for the entity which can be upgraded."""
+# Entity attribute types
+class EntityAttributeType(Enum):
+    """Stores the types of attributes which an entity can have."""
 
     HEALTH = "health"
     ARMOUR = "armour"
@@ -72,15 +72,14 @@ class UpgradeAttribute(Enum):
     # RANGED_ATTACK = "ranged attack"
 
 
-# Entity upgrade sections
-class UpgradeSection(Enum):
-    """Stores the sections that can be upgraded by the player improving various
-    attributes."""
+# Entity attribute sections types
+class EntityAttributeSectionType(Enum):
+    """Stores the sections which group all the entity attributes into similar types."""
 
-    ENDURANCE = "endurance"
-    DEFENCE = "defence"
-    STRENGTH = "strength"
-    INTELLIGENCE = "intelligence"
+    ENDURANCE = [EntityAttributeType.HEALTH, EntityAttributeType.SPEED]
+    DEFENCE = [EntityAttributeType.ARMOUR, EntityAttributeType.REGEN_COOLDOWN]
+    STRENGTH = []
+    INTELLIGENCE = []
 
 
 # Attack algorithms
@@ -150,55 +149,38 @@ class EntityData:
         The textures which represent this entity.
     armour_regen: bool
         Whether the entity regenerates armour or not.
-    upgrade_level_limit: int
-        The maximum level the entity's upgrades can be.
-    upgrade_data: list[UpgradeData]
-        The upgrades that are available to the entity.
+    level_limit: int
+        The maximum level the entity can be.
+    attribute_data: dict[EntityAttributeType, EntityAttributeData]
+        The attributes that are available to this entity.
     """
 
     name: str = field(kw_only=True)
     textures: dict[str, list[list[arcade.Texture]]] = field(kw_only=True)
     armour_regen: bool = field(kw_only=True)
-    upgrade_level_limit: int = field(kw_only=True)
-    upgrade_data: list[EntityUpgradeData] = field(kw_only=True)
+    level_limit: int = field(kw_only=True)
+    attribute_data: dict[EntityAttributeType, EntityAttributeData] = field(kw_only=True)
 
 
 @dataclass
-class EntityUpgradeData:
-    """Stores an upgrade that is available to the entity. If the cost function is set
-    to.
+class EntityAttributeData:
+    """Stores an attribute that is available to the entity.
 
-    -1, then the upgrade does not exist for the entity.
-
-    section_type: UpgradeSection
-        The type of upgrade this instance represents.
-    cost: Callable[[int], float]
-        The exponential lambda function which calculates the next level's cost based on
-        the current level.
-    level_limit: int
-        The maximum level this upgrade can go to.
-    upgrades: list[AttributeUpgrade]
-        The list of attribute upgrades which are included in this instance.
-    """
-
-    section_type: UpgradeSection = field(kw_only=True)
-    cost: Callable[[int], float] = field(kw_only=True)
-    upgrades: list[AttributeUpgradeData] = field(kw_only=True)
-
-
-@dataclass
-class AttributeUpgradeData:
-    """Stores an attribute upgrade that is available to the entity.
-
-    attribute_type: UpgradeAttribute
-        The type of attribute which this upgrade targets.
     increase: Callable[[int], float]
         The exponential lambda function which calculates the next level's value based on
         the current level.
+    upgradable: bool
+        Whether this attribute is upgradable or not.
+    status_effect: bool
+        Whether this attribute can have a status effect applied to it or not.
+    variable: bool
+        Whether this attribute can change from it current value or not.
     """
 
-    attribute_type: UpgradeAttribute = field(kw_only=True)
     increase: Callable[[int], float] = field(kw_only=True)
+    upgradable: bool = field(kw_only=True, default=False)
+    status_effect: bool = field(kw_only=True, default=False)
+    variable: bool = field(kw_only=True, default=False)
 
 
 @dataclass
@@ -207,9 +189,28 @@ class PlayerData:
 
     melee_degree: int
         The degree that the player's melee attack is limited to.
+    section_upgrade_data: list[PlayerSectionUpgradeData]
+        The section upgrades that are available to the player.
     """
 
     melee_degree: int = field(kw_only=True)
+    section_upgrade_data: list[PlayerSectionUpgradeData] = field(kw_only=True)
+
+
+@dataclass
+class PlayerSectionUpgradeData:
+    """Stores a section upgrade that is available to the player. If the cost function is
+    set to -1, then the section cannot be upgraded.
+
+    section_type: EntityAttributeSectionType
+        The type of entity attribute section this data represents.
+    cost: Callable[[int], float]
+        The exponential lambda function which calculates the next level's cost based on
+        the current level.
+    """
+
+    section_type: EntityAttributeSectionType = field(kw_only=True)
+    cost: Callable[[int], float] = field(kw_only=True)
 
 
 @dataclass
@@ -225,7 +226,8 @@ class EnemyData:
 
 @dataclass
 class AttackData:
-    """The base class for storing data about an entity's attack.
+    """The base class for storing data about an entity's attack. This should not be
+    initialised on its own.
 
     damage: int
         The damage the entity deals.

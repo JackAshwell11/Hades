@@ -17,16 +17,15 @@ from game.constants.entity import (
     MOVEMENT_FORCE,
     SPRITE_SIZE,
     AttackAlgorithmType,
+    EntityAttributeType,
     EntityID,
-    UpgradeSection,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from game.entities.base import Entity, IndicatorBar
-from game.entities.upgrades import UpgradableSection
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from game.constants.entity import BaseData
+    from game.constants.entity import BaseData, PlayerData
     from game.entities.base import CollectibleTile
     from game.views.game_view import Game
 
@@ -55,8 +54,8 @@ class Player(Entity):
     melee_shader: MeleeShader
         The OpenGL shader used to find and attack any enemies within a specific distance
         around the player based on their direction.
-    upgrade_sections: dict[UpgradeSection, UpgradableSection]
-        A mapping of an upgrade section enum to an upgradable section object.
+    # upgrade_sections: dict[EntityAttributeSectionType, UpgradableSection]
+    #     A mapping of an upgrade section enum to an upgradable section object.
     inventory: list[game.entities.tile.Item]
         The list which stores the player's inventory.
     inventory_capacity: int
@@ -81,10 +80,11 @@ class Player(Entity):
     def __init__(self, game: Game, x: int, y: int, player_type: BaseData) -> None:
         super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
-        self.upgrade_sections: dict[UpgradeSection, UpgradableSection] = {
-            upgrade_data.section_type: UpgradableSection(self, upgrade_data, 1)
-            for upgrade_data in self.upgrade_data
-        }
+        self.upgrade_sections = {}
+        # : dict[EntityAttributeSectionType, UpgradableSection] = {
+        #     upgrade_data.section_type: UpgradableSection(self, upgrade_data, 1)
+        #      for upgrade_data in self.upgrade_data
+        # }
         self.health_bar: IndicatorBar = IndicatorBar(
             self,
             self.game.player_gui_sprites,
@@ -127,6 +127,21 @@ class Player(Entity):
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
 
     @property
+    def player_data(self) -> PlayerData:
+        """Gets the player data if it exists.
+
+        Returns
+        -------
+        PlayerData
+            The player data.
+        """
+        # Make sure the entity type is valid
+        assert self.entity_type.player_data is not None
+
+        # Return the player data
+        return self.entity_type.player_data
+
+    @property
     def money(self) -> float:
         """Gets the player's money.
 
@@ -157,12 +172,14 @@ class Player(Entity):
             The initialised entity state.
         """
         return {
-            "health": self.upgrade_data[0].upgrades[0].increase(0),
-            "max health": self.upgrade_data[0].upgrades[0].increase(0),
-            "armour": self.upgrade_data[1].upgrades[0].increase(0),
-            "max armour": self.upgrade_data[1].upgrades[0].increase(0),
-            "max velocity": self.upgrade_data[0].upgrades[1].increase(0),
-            "armour regen cooldown": self.upgrade_data[1].upgrades[1].increase(0),
+            "health": self.attribute_data[EntityAttributeType.HEALTH].increase(0),
+            "max health": self.attribute_data[EntityAttributeType.HEALTH].increase(0),
+            "armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(0),
+            "max armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(0),
+            "max velocity": self.attribute_data[EntityAttributeType.SPEED].increase(0),
+            "armour regen cooldown": self.attribute_data[
+                EntityAttributeType.REGEN_COOLDOWN
+            ].increase(0),
             "bonus attack cooldown": 0,
         }
 

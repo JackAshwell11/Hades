@@ -19,11 +19,11 @@ if TYPE_CHECKING:
     from game.physics import PhysicsEngine
 
 __all__ = (
-    "Bullet",
-    "AttackBase",
-    "RangedAttack",
-    "MeleeAttack",
     "AreaOfEffectAttack",
+    "AttackBase",
+    "Bullet",
+    "MeleeAttack",
+    "RangedAttack",
 )
 
 # Get the logger

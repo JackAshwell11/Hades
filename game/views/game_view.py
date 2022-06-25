@@ -209,7 +209,7 @@ class Game(BaseView):
                                 ENEMY1,
                                 min(
                                     random.randint(lower_bound_enemy, upper_bound),
-                                    ENEMY1.entity_data.upgrade_level_limit,
+                                    ENEMY1.entity_data.level_limit,
                                 ),
                             )
                         )

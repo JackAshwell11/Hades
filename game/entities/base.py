@@ -15,7 +15,6 @@ from game.constants.entity import (
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
     EntityID,
-    EntityUpgradeData,
 )
 from game.textures import grid_pos_to_pixel
 
@@ -26,10 +25,10 @@ if TYPE_CHECKING:
         AreaOfEffectAttackData,
         AttackData,
         BaseData,
-        EnemyData,
+        EntityAttributeData,
+        EntityAttributeType,
         EntityData,
         MeleeAttackData,
-        PlayerData,
         RangedAttackData,
     )
     from game.entities.attack import AttackBase
@@ -39,12 +38,12 @@ if TYPE_CHECKING:
     from game.views.game_view import Game
 
 __all__ = (
-    "IndicatorBar",
-    "Entity",
-    "Tile",
-    "InteractiveTile",
-    "UsableTile",
     "CollectibleTile",
+    "Entity",
+    "IndicatorBar",
+    "InteractiveTile",
+    "Tile",
+    "UsableTile",
 )
 
 # Get the logger
@@ -423,43 +422,7 @@ class Entity(arcade.Sprite):
         EntityData
             The general entity data.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-
-        # Return the entity data
         return self.entity_type.entity_data
-
-    @property
-    def player_data(self) -> PlayerData:
-        """Gets the player data if it exists.
-
-        Returns
-        -------
-        PlayerData
-            The player data.
-        """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-        assert self.entity_type.player_data is not None
-
-        # Return the player data
-        return self.entity_type.player_data
-
-    @property
-    def enemy_data(self) -> EnemyData:
-        """Gets the enemy data if it exists.
-
-        Returns
-        -------
-        EnemyData
-            The enemy data.
-        """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-        assert self.entity_type.enemy_data is not None
-
-        # Return the enemy data
-        return self.entity_type.enemy_data
 
     @property
     def attacks(self) -> Iterator[AttackData]:
@@ -479,14 +442,12 @@ class Entity(arcade.Sprite):
     @property
     def ranged_attack_data(self) -> RangedAttackData:
         """Gets the ranged attack data if the entity has the attack.
-
         Returns
         -------
         RangedAttackData
             The ranged attack data.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
+        # Make sure the ranged attack data is valid
         assert self.entity_type.ranged_attack_data is not None
 
         # Return the ranged attack data
@@ -495,14 +456,12 @@ class Entity(arcade.Sprite):
     @property
     def melee_attack_data(self) -> MeleeAttackData:
         """Gets the melee attack data if the entity has the attack.
-
         Returns
         -------
         MeleeAttackData
             The melee attack data.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
+        # Make sure the melee attack data is valid
         assert self.entity_type.melee_attack_data is not None
 
         # Return the melee attack data
@@ -511,18 +470,27 @@ class Entity(arcade.Sprite):
     @property
     def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
         """Gets the area of effect attack data if the entity has the attack.
-
         Returns
         -------
         AreaOfEffectAttackData
             The area of effect attack data.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
+        # Make sure the area of effect attack data is valid
         assert self.entity_type.area_of_effect_attack_data is not None
 
         # Return the area of effect attack data
         return self.entity_type.area_of_effect_attack_data
+
+    @property
+    def attribute_data(self) -> dict[EntityAttributeType, EntityAttributeData]:
+        """Gets the entity's attribute data.
+
+        Returns
+        -------
+        dict[EntityAttributeType, EntityAttributeData]
+            The entity's attribute data.
+        """
+        return self.entity_data.attribute_data
 
     @property
     def current_attack(self) -> AttackBase:
@@ -534,17 +502,6 @@ class Entity(arcade.Sprite):
             The currently selected attack algorithm.
         """
         return self.attack_algorithms[self.current_attack_index]
-
-    @property
-    def upgrade_data(self) -> list[EntityUpgradeData]:
-        """Gets the upgrades that are available to the entity.
-
-        Returns
-        -------
-        list[game.constants.entity.EntityUpgradeData]
-            The upgrades that are available to the entity.
-        """
-        return self.entity_data.upgrade_data
 
     @property
     def physics(self) -> PhysicsEngine:

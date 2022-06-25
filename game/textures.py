@@ -14,8 +14,8 @@ from game.constants.entity import SPRITE_SIZE
 
 __all__ = (
     "grid_pos_to_pixel",
-    "non_moving_textures",
     "moving_textures",
+    "non_moving_textures",
 )
 
 # Get the logger

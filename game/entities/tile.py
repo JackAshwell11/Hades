@@ -18,9 +18,9 @@ if TYPE_CHECKING:
     from game.views.game_view import Game
 
 __all__ = (
-    "Wall",
-    "Floor",
     "Consumable",
+    "Floor",
+    "Wall",
 )
 
 # Get the logger

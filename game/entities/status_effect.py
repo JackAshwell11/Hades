@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from game.entities.base import Entity
 
 __all__ = (
-    "StatusEffectBase",
     "STATUS_EFFECTS",
+    "StatusEffectBase",
     "create_status_effect",
 )
 
