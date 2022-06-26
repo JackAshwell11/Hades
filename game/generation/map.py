@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, NamedTuple
 import numpy as np
 
 # Custom
-from game.constants.entity import ENEMIES
+from game.constants.constructor import ENEMIES
 from game.constants.general import DEBUG_LINES
 from game.constants.generation import (
     BASE_ENEMY_COUNT,

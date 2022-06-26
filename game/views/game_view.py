@@ -14,16 +14,7 @@ import arcade
 import numpy as np
 
 # Custom
-from game.constants.constructor import (
-    ARMOUR_BOOST_POTION,
-    ARMOUR_POTION,
-    ENEMY1,
-    FIRE_RATE_BOOST_POTION,
-    HEALTH_BOOST_POTION,
-    HEALTH_POTION,
-    PLAYER,
-    SPEED_BOOST_POTION,
-)
+from game.constants.constructor import CONSUMABLES, ENEMIES, PLAYERS
 from game.constants.entity import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
 from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
@@ -182,115 +173,63 @@ class Game(BaseView):
         # Assign sprites to the game map and initialise the vector grid
         for count_y, y in enumerate(np.flipud(game_map)):
             for count_x, x in enumerate(y):
-                # Determine if we need to make a floor or wall as the backdrop
+                # Determine if the tile is empty
+                if x == TileType.EMPTY.value:
+                    continue
+
+                # Determine if the tile is a wall
                 if x == TileType.WALL.value:
                     wall = Wall(count_x, count_y)
                     self.wall_sprites.append(wall)
                     self.tile_sprites.append(wall)
-                elif x != TileType.EMPTY.value:
-                    floor = Floor(count_x, count_y)
-                    self.tile_sprites.append(floor)
+                    continue
 
-                # Determine which type the tile is
-                match x:
-                    case TileType.PLAYER.value:
-                        self.player = Player(
-                            self,
-                            count_x,
-                            count_y,
-                            PLAYER,
-                        )
-                    case TileType.ENEMY.value:
-                        self.enemy_sprites.append(
-                            Enemy(
-                                self,
-                                count_x,
-                                count_y,
-                                ENEMY1,
-                                min(
-                                    random.randint(lower_bound_enemy, upper_bound),
-                                    ENEMY1.entity_data.level_limit,
-                                ),
-                            )
-                        )
-                    case TileType.HEALTH_POTION.value:
-                        health_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            HEALTH_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                HEALTH_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(health_potion)
-                        self.item_sprites.append(health_potion)
-                    case TileType.ARMOUR_POTION.value:
-                        armour_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            ARMOUR_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                ARMOUR_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(armour_potion)
-                        self.item_sprites.append(armour_potion)
-                    case TileType.HEALTH_BOOST_POTION.value:
-                        health_boost_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            HEALTH_BOOST_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                HEALTH_BOOST_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(health_boost_potion)
-                        self.item_sprites.append(health_boost_potion)
-                    case TileType.ARMOUR_BOOST_POTION.value:
-                        armour_boost_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            ARMOUR_BOOST_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                ARMOUR_BOOST_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(armour_boost_potion)
-                        self.item_sprites.append(armour_boost_potion)
-                    case TileType.SPEED_BOOST_POTION.value:
-                        speed_boost_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            SPEED_BOOST_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                SPEED_BOOST_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(speed_boost_potion)
-                        self.item_sprites.append(speed_boost_potion)
-                    case TileType.FIRE_RATE_BOOST_POTION.value:
-                        fire_rate_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            FIRE_RATE_BOOST_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                FIRE_RATE_BOOST_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(fire_rate_potion)
-                        self.item_sprites.append(fire_rate_potion)
+                # The tile's backdrop should be a floor
+                floor = Floor(count_x, count_y)
+                self.tile_sprites.append(floor)
+
+                # Skip to the next iteration if the tile is a floor
+                if x == TileType.FLOOR.value:
+                    continue
+
+                # Determine if the tile is a player
+                if x in PLAYERS:
+                    self.player = Player(
+                        self,
+                        count_x,
+                        count_y,
+                        PLAYERS[x],
+                    )
+                    continue
+
+                # Determine if the tile is an enemy or a consumable
+                is_enemy = False
+                if x in ENEMIES:
+                    target_constructor = ENEMIES[x]
+                    target_cls = Enemy
+                    lower_cls_bound = lower_bound_enemy
+                    level_limit = target_constructor.entity_data.level_limit
+                    is_enemy = True
+                else:
+                    target_constructor = CONSUMABLES[x]
+                    target_cls = Consumable
+                    lower_cls_bound = lower_bound_consumable
+                    level_limit = target_constructor.level_limit
+
+                # Initialise the enemy or consumable and add it to the necessary
+                # sprite lists
+                tile_cls = target_cls(
+                    self,
+                    count_x,
+                    count_y,
+                    target_constructor,
+                    min(random.randint(lower_cls_bound, upper_bound), level_limit),
+                )
+                if is_enemy:
+                    self.enemy_sprites.append(tile_cls)
+                else:
+                    self.tile_sprites.append(tile_cls)
+                    self.item_sprites.append(tile_cls)
 
         # Make sure the game map shape was set and the player was actually created
         assert self.game_map_shape is not None

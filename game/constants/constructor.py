@@ -22,17 +22,13 @@ from game.constants.entity import (
     PlayerSectionUpgradeData,
     RangedAttackData,
 )
+from game.constants.generation import TileType
 from game.textures import moving_textures, non_moving_textures
 
 __all__ = (
-    "ARMOUR_BOOST_POTION",
-    "ARMOUR_POTION",
-    "ENEMY1",
-    "FIRE_RATE_BOOST_POTION",
-    "HEALTH_BOOST_POTION",
-    "HEALTH_POTION",
-    "PLAYER",
-    "SPEED_BOOST_POTION",
+    "CONSUMABLES",
+    "ENEMIES",
+    "PLAYERS",
 )
 
 # Player characters
@@ -200,3 +196,16 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
         )
     ],
 )
+
+
+# Constructor mappings
+PLAYERS = {TileType.PLAYER: PLAYER}
+ENEMIES = {TileType.ENEMY: ENEMY1}
+CONSUMABLES = {
+    TileType.HEALTH_POTION: HEALTH_POTION,
+    TileType.ARMOUR_POTION: ARMOUR_POTION,
+    TileType.HEALTH_BOOST_POTION: HEALTH_BOOST_POTION,
+    TileType.ARMOUR_BOOST_POTION: ARMOUR_POTION,
+    TileType.SPEED_BOOST_POTION: SPEED_BOOST_POTION,
+    TileType.FIRE_RATE_BOOST_POTION: FIRE_RATE_BOOST_POTION,
+}

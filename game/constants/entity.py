@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
 
 if TYPE_CHECKING:
@@ -26,7 +25,6 @@ __all__ = (
     "AttackData",
     "BULLET_VELOCITY",
     "BaseData",
-    "ENEMIES",
     "ENEMY_INDICATOR_BAR_OFFSET",
     "EnemyData",
     "EntityAttributeData",
@@ -290,7 +288,6 @@ SPRITE_SCALE = 0.4375
 SPRITE_SIZE = 128 * SPRITE_SCALE
 
 # Other entity constants
-ENEMIES = [TileType.ENEMY]
 MOVEMENT_FORCE = 1000000
 FACING_RIGHT = 0
 FACING_LEFT = 1
