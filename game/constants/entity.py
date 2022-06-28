@@ -32,6 +32,7 @@ __all__ = (
     "EntityAttributeType",
     "EntityData",
     "EntityID",
+    "ENTITY_EVENTS",
     "FACING_LEFT",
     "FACING_RIGHT",
     "HEALTH_INDICATOR_BAR_COLOR",
@@ -64,6 +65,8 @@ class EntityAttributeType(Enum):
     ARMOUR = "armour"
     SPEED = "speed"
     REGEN_COOLDOWN = "regen cooldown"
+    FIRE_RATE_MULTIPLIER = "fire rate multiplier"
+    MONEY = "money"
     # POTION_DURATION = "potion duration"
     # MELEE_ATTACK = "melee attack"
     # AREA_OF_EFFECT_ATTACK = "area of effect attack"
@@ -91,8 +94,7 @@ class AttackAlgorithmType(Enum):
 
 @dataclass
 class BaseData:
-    """The base class for constructing an entity. Only fill out some keyword arguments
-    since not all of them are needed.
+    """The base class for constructing an entity.
 
     entity_type: EntityType
         The data specifying the entity's attributes.
@@ -288,6 +290,7 @@ SPRITE_SCALE = 0.4375
 SPRITE_SIZE = 128 * SPRITE_SCALE
 
 # Other entity constants
+ENTITY_EVENTS = ["on_entity_status_effect"]
 MOVEMENT_FORCE = 1000000
 FACING_RIGHT = 0
 FACING_LEFT = 1

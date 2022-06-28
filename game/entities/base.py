@@ -4,7 +4,7 @@ from __future__ import annotations
 # Builtin
 import contextlib
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 # Pip
 import arcade
@@ -14,6 +14,7 @@ from game.constants.entity import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
+    EntityAttributeType,
     EntityID,
 )
 from game.textures import grid_pos_to_pixel
@@ -26,12 +27,12 @@ if TYPE_CHECKING:
         AttackData,
         BaseData,
         EntityAttributeData,
-        EntityAttributeType,
         EntityData,
         MeleeAttackData,
         RangedAttackData,
     )
     from game.entities.attack import AttackBase
+    from game.entities.attribute import EntityAttribute
     from game.entities.player import Player
     from game.entities.status_effect import StatusEffectBase
     from game.physics import PhysicsEngine
@@ -40,6 +41,7 @@ if TYPE_CHECKING:
 __all__ = (
     "CollectibleTile",
     "Entity",
+    "EntityEventHandler",
     "IndicatorBar",
     "InteractiveTile",
     "Tile",
@@ -342,6 +344,31 @@ class IndicatorBar:
             self.full_box.scale = value
 
 
+class EntityEventHandler:
+    """A simple handler class which allows events relating to entities to be captured
+    and processed.
+
+    Attributes
+    ----------
+    entities: list[Entity]
+        A list of all the entities that are registered with this handler.
+    """
+
+    __slots__ = (
+        "__weakref__",
+        "entities",
+    )
+
+    def __init__(self) -> None:
+        self.entities: list[Entity] = []
+
+    def __repr__(self) -> str:
+        return f"<EntityEventHandler (Entity count={len(self.entities)})>"
+
+    def on_entity_status_effect(self, target, *event_args: Any) -> None:
+        print(target, event_args)
+
+
 class Entity(arcade.Sprite):
     """Represents an entity in the game.
 
@@ -394,7 +421,9 @@ class Entity(arcade.Sprite):
         self.game: Game = game
         self.center_x, self.center_y = grid_pos_to_pixel(x, y)
         self.entity_type: BaseData = entity_type
-        self._entity_state: dict[str, float] = self._initialise_entity_state()
+        self._entity_state: dict[
+            EntityAttributeType, EntityAttribute
+        ] = self._initialise_entity_state()
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
         self.attack_algorithms: list[AttackBase] = [
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
@@ -525,17 +554,6 @@ class Entity(arcade.Sprite):
         """
         return self._entity_state["health"]
 
-    @health.setter
-    def health(self, value: float) -> None:
-        """Sets the entity's health.
-
-        Parameters
-        ----------
-        value: float
-            The new health value.
-        """
-        self._entity_state["health"] = value
-
     @property
     def max_health(self) -> float:
         """Gets the player's maximum health.
@@ -546,17 +564,6 @@ class Entity(arcade.Sprite):
             The player's maximum health.
         """
         return self._entity_state["max health"]
-
-    @max_health.setter
-    def max_health(self, value: float) -> None:
-        """Sets the player's maximum health.
-
-        Parameters
-        ----------
-        value: float
-            The new maximum health value.
-        """
-        self._entity_state["max health"] = value
 
     @property
     def armour(self) -> float:
@@ -569,17 +576,6 @@ class Entity(arcade.Sprite):
         """
         return self._entity_state["armour"]
 
-    @armour.setter
-    def armour(self, value: float) -> None:
-        """Sets the entity's armour.
-
-        Parameters
-        ----------
-        value: float
-            The new armour value.
-        """
-        self._entity_state["armour"] = value
-
     @property
     def max_armour(self) -> float:
         """Gets the player's maximum armour.
@@ -591,61 +587,27 @@ class Entity(arcade.Sprite):
         """
         return self._entity_state["max armour"]
 
-    @max_armour.setter
-    def max_armour(self, value: float) -> None:
-        """Sets the player's maximum armour.
-
-        Parameters
-        ----------
-        value: float
-            The new maximum armour value.
-        """
-        self._entity_state["max armour"] = value
-
     @property
-    def max_velocity(self) -> float:
+    def max_velocity(self) -> EntityAttribute:
         """Gets the entity's max velocity.
 
         Returns
         -------
-        float
+        EntityAttribute
             The entity's max velocity.
         """
-        return self._entity_state["max velocity"]
-
-    @max_velocity.setter
-    def max_velocity(self, value: float) -> None:
-        """Sets the entity's max velocity.
-
-        Parameters
-        ----------
-        value: float
-            The new max velocity value.
-        """
-        self._entity_state["max velocity"] = value
-        self.pymunk.max_velocity = value
+        return self._entity_state[EntityAttributeType.SPEED]
 
     @property
-    def armour_regen_cooldown(self) -> float:
+    def armour_regen_cooldown(self) -> EntityAttribute:
         """Gets the entity's armour regen cooldown.
 
         Returns
         -------
-        float
+        EntityAttribute
             The entity's armour regen cooldown.
         """
-        return self._entity_state["armour regen cooldown"]
-
-    @armour_regen_cooldown.setter
-    def armour_regen_cooldown(self, value: float) -> None:
-        """Sets the entity's armour regen cooldown.
-
-        Parameters
-        ----------
-        value: float
-            The new armour regen cooldown value.
-        """
-        self._entity_state["armour regen cooldown"] = value
+        return self._entity_state[EntityAttributeType.REGEN_COOLDOWN]
 
     @property
     def bonus_attack_cooldown(self) -> float:
@@ -658,23 +620,12 @@ class Entity(arcade.Sprite):
         """
         return self._entity_state["bonus attack cooldown"]
 
-    @bonus_attack_cooldown.setter
-    def bonus_attack_cooldown(self, value: float) -> None:
-        """Sets the entity's bonus attack cooldown.
-
-        Parameters
-        ----------
-        value: float
-            The new bonus attack cooldown.
-        """
-        self._entity_state["bonus attack cooldown"] = value
-
-    def _initialise_entity_state(self) -> dict[str, float]:
+    def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialises the entity's state dict.
 
         Returns
         -------
-        dict[str, float]
+        dict[EntityAttributeType, EntityAttribute]
             The initialised entity state.
         """
         raise NotImplementedError
@@ -940,15 +891,15 @@ class UsableTile(InteractiveTile):
         """Called when the item is used by the player. Override this to add item use
         functionality.
 
-        Raises
-        ------
-        NotImplementedError
-            The function is not implemented.
-
         Returns
         -------
         bool
             Whether the item use was successful or not.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
         """
         raise NotImplementedError
 

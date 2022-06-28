@@ -15,7 +15,7 @@ import numpy as np
 
 # Custom
 from game.constants.constructor import CONSUMABLES, ENEMIES, PLAYERS
-from game.constants.entity import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
+from game.constants.entity import ENTITY_EVENTS, FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
 from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
@@ -27,6 +27,7 @@ from game.constants.general import (
 )
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
+from game.entities.base import EntityEventHandler
 from game.entities.enemy import Enemy
 from game.entities.player import Player
 from game.entities.tile import Consumable, Floor, Wall
@@ -100,6 +101,7 @@ class Game(BaseView):
         self.game_map_shape: GameMapShape | None = None
         self.player: Player | None = None
         self.vector_field: VectorField | None = None
+        self.entity_event_handler: EntityEventHandler = EntityEventHandler()
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
@@ -200,6 +202,7 @@ class Game(BaseView):
                         count_y,
                         PLAYERS[x],
                     )
+                    self.entity_event_handler.entities.append(self.player)
                     continue
 
                 # Determine if the tile is an enemy or a consumable
@@ -227,6 +230,7 @@ class Game(BaseView):
                 )
                 if is_enemy:
                     self.enemy_sprites.append(tile_cls)
+                    self.entity_event_handler.entities.append(tile_cls)
                 else:
                     self.tile_sprites.append(tile_cls)
                     self.item_sprites.append(tile_cls)
@@ -235,12 +239,26 @@ class Game(BaseView):
         assert self.game_map_shape is not None
         assert self.player is not None
 
-        # Debug what was created
+        # Debug how many enemies and tiles were initialised
         logger.debug(
             "Initialised game view with %d enemies and %d tiles",
             len(self.enemy_sprites),
             len(self.tile_sprites),
         )
+
+        # Set up the inventory view
+        inventory_view = InventoryView(self.player)
+        self.window.views["InventoryView"] = inventory_view
+        logger.info("Initialised inventory view")
+
+        # Set up the shop view
+        shop_view = ShopView(self.player)
+        self.window.views["ShopView"] = shop_view
+        logger.info("Initialised shop view")
+
+        # Create the physics engine
+        self.physics_engine = PhysicsEngine(DAMPING)
+        self.physics_engine.setup(self.player, self.tile_sprites, self.enemy_sprites)
 
         # Initialise the vector field
         self.vector_field = VectorField(
@@ -258,22 +276,14 @@ class Game(BaseView):
             self.player.position
         )
 
-        # Create the physics engine
-        self.physics_engine = PhysicsEngine(DAMPING)
-        self.physics_engine.setup(self.player, self.tile_sprites, self.enemy_sprites)
+        # Set up the entity event handler
+        for event in ENTITY_EVENTS:
+            self.window.register_event_type(event)
+        # Push the entity event handler so it can capture events
+        self.window.push_handlers(self.entity_event_handler)
 
         # Set up the melee shader
         self.player.melee_shader.setup_shader()
-
-        # Set up the inventory view
-        inventory_view = InventoryView(self.player)
-        self.window.views["InventoryView"] = inventory_view
-        logger.info("Initialised inventory view")
-
-        # Set up the shop view
-        shop_view = ShopView(self.player)
-        self.window.views["ShopView"] = shop_view
-        logger.info("Initialised shop view")
 
     def on_draw(self) -> None:
         """Render the screen."""
@@ -287,7 +297,7 @@ class Game(BaseView):
         # Activate our Camera
         self.game_camera.use()
 
-        # Draw the various spritelist
+        # Draw the various spritelists
         self.tile_sprites.draw(pixelated=True)
         self.bullet_sprites.draw(pixelated=True)
         self.enemy_sprites.draw(pixelated=True)

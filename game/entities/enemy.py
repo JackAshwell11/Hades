@@ -21,6 +21,7 @@ from game.constants.entity import (
     EntityAttributeType,
     EntityID,
 )
+from game.entities.attribute import EntityAttribute
 from game.entities.base import Entity, IndicatorBar
 from game.entities.movement import EnemyMovementManager
 
@@ -103,12 +104,12 @@ class Enemy(Entity):
         # Return the enemy data
         return self.entity_type.enemy_data
 
-    def _initialise_entity_state(self) -> dict[str, float]:
+    def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialises the entity's state dict.
 
         Returns
         -------
-        dict[str, float]
+        dict[EntityAttributeType, EntityAttribute]
             The initialised entity state.
         """
         # Get the enemy level adjusted for an array index
@@ -117,26 +118,30 @@ class Enemy(Entity):
 
         # Create the entity state dict
         return {
-            "health": self.attribute_data[EntityAttributeType.HEALTH].increase(
-                adjusted_level
-            ),
-            "max health": self.attribute_data[EntityAttributeType.HEALTH].increase(
-                adjusted_level
-            ),
-            "armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(
-                adjusted_level
-            ),
-            "max armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(
-                adjusted_level
-            ),
-            "max velocity": self.attribute_data[EntityAttributeType.SPEED].increase(
-                adjusted_level
-            ),
-            "armour regen cooldown": self.attribute_data[
-                EntityAttributeType.REGEN_COOLDOWN
-            ].increase(adjusted_level),
-            "bonus attack cooldown": 0,
+            attribute_type: EntityAttribute(adjusted_level, attribute_data)
+            for attribute_type, attribute_data in self.attribute_data.items()
         }
+        # return {
+        #     "health": self.attribute_data[EntityAttributeType.HEALTH].increase(
+        #         adjusted_level
+        #     ),
+        #     "max health": self.attribute_data[EntityAttributeType.HEALTH].increase(
+        #         adjusted_level
+        #     ),
+        #     "armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(
+        #         adjusted_level
+        #     ),
+        #     "max armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(
+        #         adjusted_level
+        #     ),
+        #     "max velocity": self.attribute_data[EntityAttributeType.SPEED].increase(
+        #         adjusted_level
+        #     ),
+        #     "armour regen cooldown": self.attribute_data[
+        #         EntityAttributeType.REGEN_COOLDOWN
+        #     ].increase(adjusted_level),
+        #     "bonus attack cooldown": 0,
+        # }
 
     def post_on_update(self, delta_time: float) -> None:
         """Processes enemy logic.
@@ -236,7 +241,7 @@ class Enemy(Entity):
                 self.current_attack.process_attack(self.game.player)
 
     def check_line_of_sight(self, max_tile_range: int) -> bool:
-        """Check if the enemy has line of sight with the player.
+        """Checks if the enemy has line of sight with the player.
 
         Parameters
         ----------

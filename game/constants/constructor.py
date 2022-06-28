@@ -61,6 +61,15 @@ PLAYER = BaseData(
                 upgradable=True,
                 status_effect=True,
             ),
+            EntityAttributeType.FIRE_RATE_MULTIPLIER: EntityAttributeData(
+                increase=lambda current_level: 1 * 1.1 * current_level,
+                upgradable=True,
+                status_effect=True,
+            ),
+            EntityAttributeType.MONEY: EntityAttributeData(
+                increase=lambda _: 0,
+                variable=True,
+            ),
         },
     ),
     player_data=PlayerData(
@@ -109,6 +118,10 @@ ENEMY1 = BaseData(
             ),
             EntityAttributeType.REGEN_COOLDOWN: EntityAttributeData(
                 increase=lambda current_level: 3 * 0.6**current_level,
+                status_effect=True,
+            ),
+            EntityAttributeType.FIRE_RATE_MULTIPLIER: EntityAttributeData(
+                increase=lambda current_level: 1 * 1.05**current_level,
                 status_effect=True,
             ),
         },

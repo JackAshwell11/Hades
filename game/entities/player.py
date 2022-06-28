@@ -21,6 +21,7 @@ from game.constants.entity import (
     EntityID,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
+from game.entities.attribute import EntityAttribute
 from game.entities.base import Entity, IndicatorBar
 from game.melee_shader import MeleeShader
 
@@ -113,7 +114,7 @@ class Player(Entity):
             self.health_bar.bottom
             - (self.health_bar.bar_height / 2) * self.armour_bar.scale,
         )
-        self._entity_state.update({"money": 0.0})
+        # self._entity_state.update({"money": 0.0})
         self.inventory: list[CollectibleTile] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.current_tile_pos: tuple[int, int] = (-1, -1)
@@ -142,46 +143,40 @@ class Player(Entity):
         return self.entity_type.player_data
 
     @property
-    def money(self) -> float:
+    def money(self) -> EntityAttribute:
         """Gets the player's money.
 
         Returns
         -------
-        float
+        EntityAttribute
             The player's money
         """
-        return self._entity_state["money"]
+        return self._entity_state[EntityAttributeType.MONEY]
 
-    @money.setter
-    def money(self, value: float) -> None:
-        """Sets the player's money.
-
-        Parameters
-        ----------
-        value: float
-            The new money value.
-        """
-        self._entity_state["money"] = value
-
-    def _initialise_entity_state(self) -> dict[str, float]:
+    def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialises the entity's state dict.
 
         Returns
         -------
-        dict[str, float]
+        dict[EntityAttributeType, EntityAttribute]
             The initialised entity state.
         """
         return {
-            "health": self.attribute_data[EntityAttributeType.HEALTH].increase(0),
-            "max health": self.attribute_data[EntityAttributeType.HEALTH].increase(0),
-            "armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(0),
-            "max armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(0),
-            "max velocity": self.attribute_data[EntityAttributeType.SPEED].increase(0),
-            "armour regen cooldown": self.attribute_data[
-                EntityAttributeType.REGEN_COOLDOWN
-            ].increase(0),
-            "bonus attack cooldown": 0,
+            attribute_type: EntityAttribute(0, attribute_data)
+            for attribute_type, attribute_data in self.attribute_data.items()
         }
+
+        # return {
+        #     "health": EntityAttribute(0, self.attribute_data[EntityAttributeType.HEALTH]),
+        #     "max health": EntityAttribute(0, self.attribute_data[EntityAttributeType.HEALTH]),
+        #     "armour": EntityAttribute(0, self.attribute_data[EntityAttributeType.ARMOUR]),
+        #     "max armour": EntityAttribute(0, self.attribute_data[EntityAttributeType.ARMOUR]),
+        #     "max velocity": EntityAttribute(0, self.attribute_data[EntityAttributeType.SPEED]),
+        #     "armour regen cooldown": EntityAttribute(0, self.attribute_data[
+        #         EntityAttributeType.REGEN_COOLDOWN
+        #     ]),
+        #     "bonus attack cooldown": 0,
+        # }
 
     def post_on_update(self, delta_time: float) -> None:
         """Processes player logic.
