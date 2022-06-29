@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.consumable import StatusEffectType
+from game.constants.game_object import StatusEffectType
 
 if TYPE_CHECKING:
     from game.entities.base import Entity

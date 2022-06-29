@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 # Custom
-from game.constants.entity import SPRITE_SIZE
+from game.constants.game_object import SPRITE_SIZE
 
 if TYPE_CHECKING:
     import arcade

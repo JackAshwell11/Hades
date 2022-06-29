@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import (
+from game.constants.game_object import (
     ARMOUR_INDICATOR_BAR_COLOR,
     HEALTH_INDICATOR_BAR_COLOR,
     INDICATOR_BAR_BORDER_SIZE,
@@ -26,7 +26,7 @@ from game.entities.base import Entity, IndicatorBar
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from game.constants.entity import BaseData, PlayerData
+    from game.constants.game_object import BaseData, PlayerData
     from game.entities.base import CollectibleTile
     from game.views.game_view import Game
 
@@ -201,10 +201,16 @@ class Player(Entity):
             self.game.vector_field.recalculate_map(self.position)
 
         # Make the player move
-        self.move()
+        self.move(delta_time)
 
-    def move(self) -> None:
-        """Processes the needed actions for the entity to move."""
+    def move(self, delta_time: float) -> None:
+        """Processes the needed actions for the entity to move.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
+        """
         # Calculate the force to apply to the player based on the keys pressed
         force = [0, 0]
         if self.right_pressed and not self.left_pressed:

@@ -6,10 +6,10 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.entity import EntityAttributeType
+from game.constants.game_object import EntityAttributeType
 
 if TYPE_CHECKING:
-    from game.constants.entity import EntityAttributeData, EntitySectionData
+    from game.constants.game_object import EntityAttributeData, EntitySectionData
     from game.entities.player import Player
     from game.views.shop_view import SectionUpgradeButton
 

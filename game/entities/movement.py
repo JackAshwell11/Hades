@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.entity import MOVEMENT_FORCE
+from game.constants.game_object import MOVEMENT_FORCE
 
 if TYPE_CHECKING:
     from game.entities.enemy import Enemy

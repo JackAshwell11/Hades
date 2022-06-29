@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import (
+from game.constants.game_object import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
@@ -22,7 +22,7 @@ from game.textures import grid_pos_to_pixel
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from game.constants.entity import (
+    from game.constants.game_object import (
         AreaOfEffectAttackData,
         AttackData,
         BaseData,
@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     from game.entities.attack import AttackBase
     from game.entities.attribute import EntityAttribute
     from game.entities.player import Player
-    from game.entities.status_effect import StatusEffectBase
     from game.physics import PhysicsEngine
     from game.views.game_view import Game
 
@@ -343,8 +342,8 @@ class IndicatorBar:
             self.full_box.scale = value
 
 
-class _Base(arcade.Sprite):
-    """The base class for all entity and tile object in the game.
+class GameObject(arcade.Sprite):
+    """The base class for all game objects.
 
     Parameters
     ----------
@@ -377,7 +376,7 @@ class _Base(arcade.Sprite):
         self.center_x, self.center_y = grid_pos_to_pixel(x, y)
 
 
-class Entity(_Base):
+class Entity(GameObject):
     """Represents an entity in the game.
 
     Parameters
@@ -395,8 +394,6 @@ class Entity(_Base):
     ----------
     attack_algorithms: list[AttackBase]
         A list of the entity's attack algorithms.
-    applied_effects: list[StatusEffectBase]
-        The currently applied status effects.
     health_bar: IndicatorBar | None
         An indicator bar object which displays the entity's health visually.
     armour_bar: IndicatorBar | None
@@ -432,7 +429,6 @@ class Entity(_Base):
             algorithm.attack_type.value(self, algorithm.attack_cooldown)
             for algorithm in self.attacks
         ]
-        self.applied_effects: list[StatusEffectBase] = []
         self.health_bar: IndicatorBar | None = None
         self.armour_bar: IndicatorBar | None = None
         self.current_attack_index: int = 0
@@ -523,6 +519,17 @@ class Entity(_Base):
             The entity's attribute data.
         """
         return self.entity_data.attribute_data
+
+    @property
+    def entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
+        """Gets the entity's state.
+
+        Returns
+        -------
+        dict[EntityAttributeType, EntityAttribute]
+            The entity's state.
+        """
+        return self._entity_state
 
     @property
     def current_attack(self) -> AttackBase:
@@ -631,9 +638,14 @@ class Entity(_Base):
         self.time_since_last_attack += delta_time
 
         # Update any status effects
-        for status_effect in self.applied_effects:
-            logger.debug("Updating status effect %r for entity %r", status_effect, self)
-            status_effect.update(delta_time)
+        for attribute in self.entity_state.values():
+            if attribute.applied_status_effect:
+                logger.debug(
+                    "Updating status effect %r for entity %r",
+                    attribute.applied_status_effect,
+                    self,
+                )
+                attribute.applied_status_effect.update(delta_time)
 
         # Run the entity's post on_update
         self.post_on_update(delta_time)
@@ -653,19 +665,19 @@ class Entity(_Base):
         # Check if the entity still has armour
         if self.armour.value > 0:
             # Damage the armour
-            self.armour.change_value(self.armour.value - damage)
+            self.armour.value = self.armour.value - damage
             if self.armour.value < 0:
                 # Damage exceeds armour so damage health
-                self.health.change_value(self.health.value + self.armour.value)
-                self.armour.change_value(0)
+                self.health.value = self.health.value + self.armour.value
+                self.armour.value = 0
         else:
             # Damage the health
-            self.health.change_value(self.health.value - damage)
+            self.health.value = self.health.value - damage
         self.update_indicator_bars()
         logger.debug("Dealing %d to %r", damage, self)
 
         # Check if the entity should be killed
-        if self.health <= 0:
+        if self.health.value <= 0:
             # Kill the entity
             self.remove_from_sprite_lists()
 
@@ -691,7 +703,7 @@ class Entity(_Base):
                 # Check if the entity's armour is below the max value
                 if self.armour.value < self.armour.max_value:
                     # Regen armour
-                    self.armour.change_value(self.armour.value + ARMOUR_REGEN_AMOUNT)
+                    self.armour.value = self.armour.value + ARMOUR_REGEN_AMOUNT
                     self.time_since_armour_regen = 0
                     self.update_indicator_bars()
                     logger.debug(
@@ -733,8 +745,13 @@ class Entity(_Base):
         """
         raise NotImplementedError
 
-    def move(self) -> None:
+    def move(self, delta_time: float) -> None:
         """Processes the needed actions for the entity to move.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
 
         Raises
         ------
@@ -754,7 +771,7 @@ class Entity(_Base):
         raise NotImplementedError
 
 
-class Tile(_Base):
+class Tile(GameObject):
     """Represents a tile that does not move in the game.
 
     Parameters

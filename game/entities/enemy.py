@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import (
+from game.constants.game_object import (
     ARMOUR_INDICATOR_BAR_COLOR,
     ENEMY_INDICATOR_BAR_OFFSET,
     FACING_LEFT,
@@ -26,7 +26,7 @@ from game.entities.base import Entity, IndicatorBar
 from game.entities.movement import EnemyMovementManager
 
 if TYPE_CHECKING:
-    from game.constants.entity import BaseData, EnemyData
+    from game.constants.game_object import BaseData, EnemyData
     from game.views.game_view import Game
 
 __all__ = ("Enemy",)
@@ -167,13 +167,19 @@ class Enemy(Entity):
             self.time_since_armour_regen = self.armour_regen_cooldown.value
 
         # Make the enemy move
-        self.move()
+        self.move(delta_time)
 
         # Make the enemy attack (they may not if the player is not within range)
         self.attack()
 
-    def move(self) -> None:
-        """Processes the needed actions for the enemy to move."""
+    def move(self, delta_time: float) -> None:
+        """Processes the needed actions for the enemy to move.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
+        """
         # Make sure variables needed are valid
         assert self.game.player is not None
 

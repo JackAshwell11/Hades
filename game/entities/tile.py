@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.consumable import InstantEffectType
+from game.constants.game_object import ConsumableData, InstantEffectType
 from game.entities.base import CollectibleTile, Tile, UsableTile
 from game.entities.status_effect import StatusEffectBase, create_status_effect
 from game.textures import non_moving_textures
@@ -14,7 +14,6 @@ from game.textures import non_moving_textures
 if TYPE_CHECKING:
     import arcade
 
-    from game.constants.consumable import ConsumableData
     from game.views.game_view import Game
 
 __all__ = (
@@ -147,14 +146,14 @@ class Consumable(UsableTile, CollectibleTile):
                         return False
 
                     # Add health to the player
-                    self.player.health.change_value(
+                    self.player.health.value = (
                         self.player.health.value + instant.increase(adjusted_level)
                     )
-                    if self.player.health > self.player:
-                        self.player.health = self.player.max_health
+                    if self.player.health.value > self.player.health.max_value:
+                        self.player.health.value = self.player.health.max_value
                         logger.debug("Set player health to max")
                 case InstantEffectType.ARMOUR:
-                    if self.player.armour == self.player.max_armour:
+                    if self.player.armour.value == self.player.armour.max_value:
                         # Can't be used
                         self.game.display_info_box("Your armour is already at max")
                         logger.debug(
@@ -164,17 +163,19 @@ class Consumable(UsableTile, CollectibleTile):
                         return False
 
                     # Add armour to the player
-                    self.player.armour += instant.increase(adjusted_level)
-                    if self.player.armour > self.player.max_armour:
-                        self.player.armour = self.player.max_armour
+                    self.player.armour.value = (
+                        self.player.armour.value + instant.increase(adjusted_level)
+                    )
+                    if self.player.armour.value > self.player.armour.max_value:
+                        self.player.armour.value = self.player.armour.max_value
                         logger.debug("Set player armour to max")
 
         # Apply all the status effects linked to this consumable
         for effect in self.consumable_type.status_effects:
             # Check if the status effect can be applied
             if effect.status_type in [
-                player_effect.status_effect_type
-                for player_effect in self.player.applied_effects
+                getattr(attribute.applied_status_effect, "status_effect_type", None)
+                for attribute in self.player.entity_state.values()
             ]:
                 self.game.display_info_box(
                     f"A {effect.status_type.value} status effect is already applied"
@@ -183,14 +184,9 @@ class Consumable(UsableTile, CollectibleTile):
                 return False
 
             # Apply the status effect
-            new_effect: StatusEffectBase = create_status_effect(
-                effect.status_type,
-                self.player,
-                effect.increase(adjusted_level),
-                effect.duration(adjusted_level),
+            self.player.entity_state[effect.status_type.value].apply_status_effect(
+                effect, adjusted_level
             )
-            self.player.applied_effects.append(new_effect)
-            new_effect.apply_effect()
 
         # Remove the item
         self.remove_from_sprite_lists()

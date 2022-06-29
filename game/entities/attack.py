@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 import arcade
 
 if TYPE_CHECKING:
-    from game.constants.entity import (
+    from game.constants.game_object import (
         AreaOfEffectAttackData,
         MeleeAttackData,
         RangedAttackData,
@@ -197,7 +197,7 @@ class RangedAttack(AttackBase):
             A tuple containing the parameters needed for the attack.
         """
         # Make sure we have the bullet constants. This avoids a circular import
-        from game.constants.entity import BULLET_VELOCITY, SPRITE_SIZE
+        from game.constants.game_object import BULLET_VELOCITY, SPRITE_SIZE
 
         # Make sure the needed parameters are valid
         bullet_list: arcade.SpriteList = args[0]
@@ -351,7 +351,7 @@ class AreaOfEffectAttack(AttackBase):
             A tuple containing the parameters needed for the attack.
         """
         # Make sure we have the sprite size. This avoids a circular import
-        from game.constants.entity import SPRITE_SIZE
+        from game.constants.game_object import SPRITE_SIZE
 
         # Make sure the needed parameters are valid
         target_entity: arcade.SpriteList | Entity = args[0]

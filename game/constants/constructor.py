@@ -2,25 +2,23 @@
 from __future__ import annotations
 
 # Custom
-from game.constants.consumable import (
-    ConsumableData,
-    InstantData,
-    InstantEffectType,
-    StatusEffectData,
-    StatusEffectType,
-)
-from game.constants.entity import (
+from game.constants.game_object import (
     AreaOfEffectAttackData,
     BaseData,
+    ConsumableData,
     EnemyData,
     EntityAttributeData,
     EntityAttributeSectionType,
     EntityAttributeType,
     EntityData,
+    InstantData,
+    InstantEffectType,
     MeleeAttackData,
     PlayerData,
     PlayerSectionUpgradeData,
     RangedAttackData,
+    StatusEffectData,
+    StatusEffectType,
 )
 from game.constants.generation import TileType
 from game.textures import moving_textures, non_moving_textures
@@ -190,7 +188,7 @@ SPEED_BOOST_POTION = ConsumableData(
     level_limit=5,
     status_effects=[
         StatusEffectData(
-            status_type=StatusEffectType.HEALTH,
+            status_type=StatusEffectType.SPEED,
             increase=lambda current_level: 25 * 1.3**current_level,
             duration=lambda current_level: 2 * 1.3**current_level,
         )
@@ -203,7 +201,7 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
     level_limit=5,
     status_effects=[
         StatusEffectData(
-            status_type=StatusEffectType.HEALTH,
+            status_type=StatusEffectType.FIRE_RATE,
             increase=lambda current_level: -0.5,
             duration=lambda current_level: 2 * 1.3**current_level,
         )

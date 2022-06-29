@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import ObjectID
+from game.constants.game_object import ObjectID
 
 if TYPE_CHECKING:
     from game.entities.attack import Bullet

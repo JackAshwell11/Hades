@@ -15,7 +15,7 @@ import numpy as np
 
 # Custom
 from game.constants.constructor import CONSUMABLES, ENEMIES, PLAYERS
-from game.constants.entity import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE, ObjectID
+from game.constants.game_object import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE, ObjectID
 from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
@@ -414,7 +414,7 @@ class Game(BaseView):
         assert self.player is not None
 
         # Check if the game should end
-        if self.player.health <= 0 or not self.enemy_sprites:
+        if self.player.health.value <= 0 or not self.enemy_sprites:
             arcade.exit()
 
         # Process logic for the player

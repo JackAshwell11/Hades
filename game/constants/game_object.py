@@ -1,5 +1,5 @@
-"""Stores various constants related to entities and the dataclasses used for
-constructing the entities."""
+"""Stores various constants related to game objects and dataclasses used for
+constructing the game object."""
 from __future__ import annotations
 
 # Builtin
@@ -14,7 +14,7 @@ import arcade
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator
+    from collections.abc import Callable, Iterator, Sequence
 
 __all__ = (
     "ARMOUR_INDICATOR_BAR_COLOR",
@@ -25,25 +25,30 @@ __all__ = (
     "AttackData",
     "BULLET_VELOCITY",
     "BaseData",
+    "ConsumableData",
     "ENEMY_INDICATOR_BAR_OFFSET",
     "EnemyData",
     "EntityAttributeData",
     "EntityAttributeSectionType",
     "EntityAttributeType",
     "EntityData",
-    "ObjectID",
     "FACING_LEFT",
     "FACING_RIGHT",
     "HEALTH_INDICATOR_BAR_COLOR",
     "INDICATOR_BAR_BORDER_SIZE",
+    "InstantData",
+    "InstantEffectType",
     "MELEE_RESOLUTION",
     "MOVEMENT_FORCE",
     "MeleeAttackData",
+    "ObjectID",
     "PlayerData",
     "PlayerSectionUpgradeData",
     "RangedAttackData",
     "SPRITE_SCALE",
     "SPRITE_SIZE",
+    "StatusEffectData",
+    "StatusEffectType",
 )
 
 
@@ -90,6 +95,25 @@ class AttackAlgorithmType(Enum):
     RANGED = RangedAttack
     MELEE = MeleeAttack
     AREA_OF_EFFECT = AreaOfEffectAttack
+
+
+# Instant effect types
+class InstantEffectType(Enum):
+    """Stores the type of instant effects that can be applied to an entity."""
+
+    HEALTH = EntityAttributeType.HEALTH
+    ARMOUR = EntityAttributeType.ARMOUR
+
+
+# Status effect types
+class StatusEffectType(Enum):
+    """Stores the type of status effects that can be applied to an entity."""
+
+    HEALTH = EntityAttributeType.HEALTH
+    ARMOUR = EntityAttributeType.ARMOUR
+    SPEED = EntityAttributeType.SPEED
+    FIRE_RATE = EntityAttributeType.FIRE_RATE_MULTIPLIER
+    # BURN = "burn"
 
 
 @dataclass
@@ -285,11 +309,72 @@ class AreaOfEffectAttackData(AttackData):
     attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
 
 
+@dataclass
+class ConsumableData:
+    """The base class for constructing a consumable with multiple levels.
+
+    name: str
+        The name of the consumable.
+    texture: arcade.Texture
+        The texture for this consumable.
+    level_limit: int
+        The maximum level this consumable can go to.
+    instant: Sequence[InstantData]
+        The instant effects that this consumable gives.
+    status_effects: Sequence[StatusEffectData]
+        The status effects that this consumable gives.
+    """
+
+    name: str = field(kw_only=True)
+    texture: arcade.Texture = field(kw_only=True)
+    level_limit: int = field(kw_only=True)
+    instant: Sequence[InstantData] = field(kw_only=True, default_factory=list)
+    status_effects: Sequence[StatusEffectData] = field(
+        kw_only=True, default_factory=list
+    )
+
+
+@dataclass
+class InstantData:
+    """Stores the data for an individual instant effect applied by a consumable.
+
+    instant_type: InstantEffect
+        The type of instant effect that is applied.
+    increase: Callable[[int], float]
+        The exponential lambda function which calculates the next level's value based on
+        the current level.
+    """
+
+    instant_type: InstantEffectType = field(kw_only=True)
+    increase: Callable[[int], float] = field(kw_only=True)
+
+
+@dataclass
+class StatusEffectData:
+    """Stores the data for an individual status effect applied by a consumable.
+
+    status_type: StatusEffectType
+        The type of status effect that is applied.
+    increase: Callable[[int], float]
+        The exponential lambda function which calculates the next level's value based on
+        the current level.
+    duration: Callable[[int], float]
+        The exponential lambda function which calculates the next level's duration based
+        on the current level.
+    duration: float
+        The duration of this status effect.
+    """
+
+    status_type: StatusEffectType = field(kw_only=True)
+    increase: Callable[[int], float] = field(kw_only=True)
+    duration: Callable[[int], float] = field(kw_only=True)
+
+
 # Sprite sizes
 SPRITE_SCALE = 0.4375
 SPRITE_SIZE = 128 * SPRITE_SCALE
 
-# Other entity constants
+# Other game object constants
 MOVEMENT_FORCE = 1000000
 FACING_RIGHT = 0
 FACING_LEFT = 1
