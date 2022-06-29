@@ -15,7 +15,7 @@ import numpy as np
 
 # Custom
 from game.constants.constructor import CONSUMABLES, ENEMIES, PLAYERS
-from game.constants.entity import ENTITY_EVENTS, FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
+from game.constants.entity import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE, ObjectID
 from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
@@ -27,7 +27,6 @@ from game.constants.general import (
 )
 from game.constants.generation import TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
-from game.entities.base import EntityEventHandler
 from game.entities.enemy import Enemy
 from game.entities.player import Player
 from game.entities.tile import Consumable, Floor, Wall
@@ -101,7 +100,6 @@ class Game(BaseView):
         self.game_map_shape: GameMapShape | None = None
         self.player: Player | None = None
         self.vector_field: VectorField | None = None
-        self.entity_event_handler: EntityEventHandler = EntityEventHandler()
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
@@ -181,59 +179,55 @@ class Game(BaseView):
 
                 # Determine if the tile is a wall
                 if x == TileType.WALL.value:
-                    wall = Wall(count_x, count_y)
+                    wall = Wall(self, count_x, count_y)
                     self.wall_sprites.append(wall)
                     self.tile_sprites.append(wall)
                     continue
 
                 # The tile's backdrop should be a floor
-                floor = Floor(count_x, count_y)
+                floor = Floor(self, count_x, count_y)
                 self.tile_sprites.append(floor)
 
                 # Skip to the next iteration if the tile is a floor
                 if x == TileType.FLOOR.value:
                     continue
 
-                # Determine if the tile is a player
+                # Determine if the tile is a player, an enemy or a consumable
+                constructor_args = [self, count_x, count_y]
                 if x in PLAYERS:
-                    self.player = Player(
-                        self,
-                        count_x,
-                        count_y,
-                        PLAYERS[x],
-                    )
-                    self.entity_event_handler.entities.append(self.player)
-                    continue
-
-                # Determine if the tile is an enemy or a consumable
-                is_enemy = False
-                if x in ENEMIES:
-                    target_constructor = ENEMIES[x]
+                    target_cls = Player
+                    constructor_args.append(PLAYERS[x])
+                elif x in ENEMIES:
                     target_cls = Enemy
-                    lower_cls_bound = lower_bound_enemy
-                    level_limit = target_constructor.entity_data.level_limit
-                    is_enemy = True
+                    target_constructor = ENEMIES[x]
+                    constructor_args.append(target_constructor)
+                    constructor_args.append(
+                        min(
+                            random.randint(lower_bound_enemy, upper_bound),
+                            target_constructor.entity_data.level_limit,
+                        )
+                    )
                 else:
-                    target_constructor = CONSUMABLES[x]
                     target_cls = Consumable
-                    lower_cls_bound = lower_bound_consumable
-                    level_limit = target_constructor.level_limit
+                    target_constructor = CONSUMABLES[x]
+                    constructor_args.append(target_constructor)
+                    constructor_args.append(
+                        min(
+                            random.randint(lower_bound_consumable, upper_bound),
+                            target_constructor.level_limit,
+                        )
+                    )
 
-                # Initialise the enemy or consumable and add it to the necessary
-                # sprite lists
-                tile_cls = target_cls(
-                    self,
-                    count_x,
-                    count_y,
-                    target_constructor,
-                    min(random.randint(lower_cls_bound, upper_bound), level_limit),
-                )
-                if is_enemy:
-                    self.enemy_sprites.append(tile_cls)
-                    self.entity_event_handler.entities.append(tile_cls)
-                else:
-                    self.tile_sprites.append(tile_cls)
-                    self.item_sprites.append(tile_cls)
+                # Initialise the constructor and add it to the necessary sprite lists
+                initialised_cls = target_cls(*constructor_args)
+
+                if initialised_cls.object_id is ObjectID.PLAYER:
+                    self.player = initialised_cls
+                elif initialised_cls.object_id is ObjectID.ENEMY:
+                    self.enemy_sprites.append(initialised_cls)
+                elif initialised_cls.object_id is ObjectID.TILE:
+                    self.tile_sprites.append(initialised_cls)
+                    self.item_sprites.append(initialised_cls)
 
         # Make sure the game map shape was set and the player was actually created
         assert self.game_map_shape is not None
@@ -275,12 +269,6 @@ class Game(BaseView):
         self.player.current_tile_pos = self.vector_field.get_tile_pos_for_pixel(
             self.player.position
         )
-
-        # Set up the entity event handler
-        for event in ENTITY_EVENTS:
-            self.window.register_event_type(event)
-        # Push the entity event handler so it can capture events
-        self.window.push_handlers(self.entity_event_handler)
 
         # Set up the melee shader
         self.player.melee_shader.setup_shader()

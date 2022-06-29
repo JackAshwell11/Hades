@@ -31,8 +31,7 @@ __all__ = (
     "EntityAttributeSectionType",
     "EntityAttributeType",
     "EntityData",
-    "EntityID",
-    "ENTITY_EVENTS",
+    "ObjectID",
     "FACING_LEFT",
     "FACING_RIGHT",
     "HEALTH_INDICATOR_BAR_COLOR",
@@ -48,13 +47,14 @@ __all__ = (
 )
 
 
-# Entity IDs
-class EntityID(Enum):
-    """Stores the ID of each enemy to make collision checking more efficient."""
+# Object IDs
+class ObjectID(Enum):
+    """Stores the ID of each game object to make checking more efficient."""
 
-    ENTITY = "entity"
+    BASE = "base"
     PLAYER = "player"
     ENEMY = "enemy"
+    TILE = "tile"
 
 
 # Entity attribute types
@@ -79,8 +79,8 @@ class EntityAttributeSectionType(Enum):
 
     ENDURANCE = [EntityAttributeType.HEALTH, EntityAttributeType.SPEED]
     DEFENCE = [EntityAttributeType.ARMOUR, EntityAttributeType.REGEN_COOLDOWN]
-    STRENGTH = []
-    INTELLIGENCE = []
+    STRENGTH = []  # noqa
+    INTELLIGENCE = []  # noqa
 
 
 # Attack algorithms
@@ -290,7 +290,6 @@ SPRITE_SCALE = 0.4375
 SPRITE_SIZE = 128 * SPRITE_SCALE
 
 # Other entity constants
-ENTITY_EVENTS = ["on_entity_status_effect"]
 MOVEMENT_FORCE = 1000000
 FACING_RIGHT = 0
 FACING_LEFT = 1

@@ -19,7 +19,7 @@ from game.constants.entity import (
     SPRITE_SIZE,
     AttackAlgorithmType,
     EntityAttributeType,
-    EntityID,
+    ObjectID,
 )
 from game.entities.attribute import EntityAttribute
 from game.entities.base import Entity, IndicatorBar
@@ -61,7 +61,7 @@ class Enemy(Entity):
     """
 
     # Class variables
-    entity_id: EntityID = EntityID.ENEMY
+    object_id: ObjectID = ObjectID.ENEMY
 
     def __init__(
         self, game: Game, x: int, y: int, enemy_type: BaseData, enemy_level: int
@@ -118,7 +118,7 @@ class Enemy(Entity):
 
         # Create the entity state dict
         return {
-            attribute_type: EntityAttribute(adjusted_level, attribute_data)
+            attribute_type: EntityAttribute(self, attribute_data, adjusted_level)
             for attribute_type, attribute_data in self.attribute_data.items()
         }
         # return {
@@ -164,7 +164,7 @@ class Enemy(Entity):
         else:
             # Enemy in combat so reset their combat counter
             self.time_out_of_combat = 0
-            self.time_since_armour_regen = self.armour_regen_cooldown
+            self.time_since_armour_regen = self.armour_regen_cooldown.value
 
         # Make the enemy move
         self.move()
@@ -225,7 +225,7 @@ class Enemy(Entity):
             self.check_line_of_sight(self.current_attack.attack_range)
             and self.player_within_range
             and self.time_since_last_attack
-            >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown)
+            >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown.value)
         ):
             return
 

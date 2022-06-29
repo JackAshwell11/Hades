@@ -137,7 +137,7 @@ class Consumable(UsableTile, CollectibleTile):
         for instant in self.consumable_type.instant:
             match instant.instant_type:
                 case InstantEffectType.HEALTH:
-                    if self.player.health == self.player.max_health:
+                    if self.player.health.value == self.player.health.max_value:
                         # Can't be used
                         self.game.display_info_box("Your health is already at max")
                         logger.debug(
@@ -147,8 +147,10 @@ class Consumable(UsableTile, CollectibleTile):
                         return False
 
                     # Add health to the player
-                    self.player.health += instant.increase(adjusted_level)
-                    if self.player.health > self.player.max_health:
+                    self.player.health.change_value(
+                        self.player.health.value + instant.increase(adjusted_level)
+                    )
+                    if self.player.health > self.player:
                         self.player.health = self.player.max_health
                         logger.debug("Set player health to max")
                 case InstantEffectType.ARMOUR:

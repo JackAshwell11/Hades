@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import EntityID
+from game.constants.entity import ObjectID
 
 if TYPE_CHECKING:
     from game.entities.attack import Bullet
@@ -75,7 +75,7 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
     """
     try:
         # Check if the owner is the player
-        if bullet.owner.entity_id is EntityID.PLAYER:
+        if bullet.owner.entity_id is ObjectID.PLAYER:
             # Remove the bullet
             bullet.remove_from_sprite_lists()
 
@@ -111,7 +111,7 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
     """
     try:
         # Check if the owner is an enemy
-        if bullet.owner.entity_id is EntityID.ENEMY:
+        if bullet.owner.entity_id is ObjectID.ENEMY:
             # Remove the bullet
             bullet.remove_from_sprite_lists()
 
