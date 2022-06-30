@@ -17,19 +17,16 @@ from game.constants.game_object import (
     EntityAttributeType,
     ObjectID,
 )
+from game.entities.attack import create_attack
 from game.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-
     from game.constants.game_object import (
-        AreaOfEffectAttackData,
+        AttackAlgorithmType,
         AttackData,
         BaseData,
         EntityAttributeData,
         EntityData,
-        MeleeAttackData,
-        RangedAttackData,
     )
     from game.entities.attack import AttackBase
     from game.entities.attribute import EntityAttribute
@@ -426,8 +423,8 @@ class Entity(GameObject):
         ] = self._initialise_entity_state()
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
         self.attack_algorithms: list[AttackBase] = [
-            algorithm.attack_type.value(self, algorithm.attack_cooldown)
-            for algorithm in self.attacks
+            create_attack(self, algorithm_type, algorithm_data)
+            for algorithm_type, algorithm_data in self.attacks.items()
         ]
         self.health_bar: IndicatorBar | None = None
         self.armour_bar: IndicatorBar | None = None
@@ -453,61 +450,15 @@ class Entity(GameObject):
         return self.entity_type.entity_data
 
     @property
-    def attacks(self) -> Iterator[AttackData]:
-        """Gets all the attacks the entity has.
+    def attacks(self) -> dict[AttackAlgorithmType, AttackData]:
+        """Gets the entity's attacks.
 
         Returns
         -------
-        Iterator[AttackData]
+        dict[AttackAlgorithmType, AttackData]
             The entity's attacks.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-
-        # Return the enemy data
-        return self.entity_type.get_all_attacks()
-
-    @property
-    def ranged_attack_data(self) -> RangedAttackData:
-        """Gets the ranged attack data if the entity has the attack.
-        Returns
-        -------
-        RangedAttackData
-            The ranged attack data.
-        """
-        # Make sure the ranged attack data is valid
-        assert self.entity_type.ranged_attack_data is not None
-
-        # Return the ranged attack data
-        return self.entity_type.ranged_attack_data
-
-    @property
-    def melee_attack_data(self) -> MeleeAttackData:
-        """Gets the melee attack data if the entity has the attack.
-        Returns
-        -------
-        MeleeAttackData
-            The melee attack data.
-        """
-        # Make sure the melee attack data is valid
-        assert self.entity_type.melee_attack_data is not None
-
-        # Return the melee attack data
-        return self.entity_type.melee_attack_data
-
-    @property
-    def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
-        """Gets the area of effect attack data if the entity has the attack.
-        Returns
-        -------
-        AreaOfEffectAttackData
-            The area of effect attack data.
-        """
-        # Make sure the area of effect attack data is valid
-        assert self.entity_type.area_of_effect_attack_data is not None
-
-        # Return the area of effect attack data
-        return self.entity_type.area_of_effect_attack_data
+        return self.entity_type.attacks
 
     @property
     def attribute_data(self) -> dict[EntityAttributeType, EntityAttributeData]:

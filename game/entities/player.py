@@ -114,7 +114,6 @@ class Player(Entity):
             self.health_bar.bottom
             - (self.health_bar.bar_height / 2) * self.armour_bar.scale,
         )
-        # self._entity_state.update({"money": 0.0})
         self.inventory: list[CollectibleTile] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.current_tile_pos: tuple[int, int] = (-1, -1)
@@ -240,7 +239,8 @@ class Player(Entity):
         """Runs the player's current attack algorithm."""
         # Check if the player can attack
         if self.time_since_last_attack < (
-            self.current_attack.attack_cooldown + self.bonus_attack_cooldown.value
+            self.current_attack.attack_data.attack_cooldown
+            + self.bonus_attack_cooldown.value
         ):
             return
 
@@ -252,10 +252,10 @@ class Player(Entity):
 
         # Find out what attack algorithm is selected. We also need to check if the
         # player can attack or not
-        match type(self.current_attack):
-            case AttackAlgorithmType.RANGED.value:
+        match self.current_attack.attack_type:
+            case AttackAlgorithmType.RANGED:
                 self.current_attack.process_attack(self.game.bullet_sprites)
-            case AttackAlgorithmType.MELEE.value:
+            case AttackAlgorithmType.MELEE:
                 # # Update the framebuffer to ensure collision detection is accurate
                 # self.melee_shader.update_collision()
                 # result = self.melee_shader.run_shader()
@@ -272,7 +272,7 @@ class Player(Entity):
                         self.position,
                         enemy.position,
                         self.game.wall_sprites,
-                        self.current_attack.attack_range * SPRITE_SIZE,
+                        self.current_attack.attack_data.attack_range * SPRITE_SIZE,
                     ) and (
                         self.direction - self.player_data.melee_degree // 2
                     ) <= angle <= (
@@ -280,7 +280,7 @@ class Player(Entity):
                     ):
                         result.append(enemy)
                 self.current_attack.process_attack(result)
-            case AttackAlgorithmType.AREA_OF_EFFECT.value:
+            case AttackAlgorithmType.AREA_OF_EFFECT:
                 self.current_attack.process_attack(self.game.enemy_sprites)
 
     def add_item_to_inventory(self, item: CollectibleTile) -> bool:

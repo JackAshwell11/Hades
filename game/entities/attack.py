@@ -9,12 +9,11 @@ from typing import TYPE_CHECKING, Any
 # Pip
 import arcade
 
+# Custom
+from game.constants.game_object import BULLET_VELOCITY, SPRITE_SIZE, AttackAlgorithmType
+
 if TYPE_CHECKING:
-    from game.constants.game_object import (
-        AreaOfEffectAttackData,
-        MeleeAttackData,
-        RangedAttackData,
-    )
+    from game.constants.game_object import AttackData
     from game.entities.base import Entity
     from game.physics import PhysicsEngine
 
@@ -22,6 +21,7 @@ __all__ = (
     "AreaOfEffectAttack",
     "AttackBase",
     "Bullet",
+    "create_attack",
     "MeleeAttack",
     "RangedAttack",
 )
@@ -103,32 +103,24 @@ class AttackBase:
     ----------
     owner: Entity
         The reference to the enemy object that manages this attack algorithm.
-    attack_cooldown: int
-        The cooldown for this attack.
+    attack_data: AttackData
+        The data for this attack.
     """
+
+    # Class variables
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.BASE
 
     __slots__ = (
         "owner",
-        "attack_cooldown",
+        "attack_data",
     )
 
-    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
+    def __init__(self, owner: Entity, attack_data: AttackData) -> None:
         self.owner: Entity = owner
-        self.attack_cooldown: int = attack_cooldown
+        self.attack_data: AttackData = attack_data
 
     def __repr__(self) -> str:
         return f"<AttackBase (Owner={self.owner})>"
-
-    @property
-    def attack_range(self) -> int:
-        """Gets the attack range for this attack.
-
-        Returns
-        -------
-        int
-            The attack range for this attack.
-        """
-        raise NotImplementedError
 
     def process_attack(self, *args: Any) -> None:
         """Performs an attack by the owner entity.
@@ -148,45 +140,15 @@ class AttackBase:
 
 class RangedAttack(AttackBase):
     """An algorithm which creates a bullet with a set velocity in the direction the
-    entity is facing.
+    entity is facing."""
 
-    Parameters
-    ----------
-    owner: Entity
-        The reference to the enemy object that manages this attack algorithm.
-    attack_cooldown: int
-        The cooldown for this attack.
-    """
+    # Class variables
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.RANGED
 
     __slots__ = ()
 
-    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
-        super().__init__(owner, attack_cooldown)
-
     def __repr__(self) -> str:
         return f"<RangedAttack (Owner={self.owner})>"
-
-    @property
-    def ranged_attack_data(self) -> RangedAttackData:
-        """Gets the ranged attack data.
-
-        Returns
-        -------
-        RangedAttackData
-            The ranged attack data.
-        """
-        return self.owner.ranged_attack_data
-
-    @property
-    def attack_range(self) -> int:
-        """Gets the attack range for this attack.
-
-        Returns
-        -------
-        int
-            The attack range for this attack.
-        """
-        return self.ranged_attack_data.attack_range
 
     def process_attack(self, *args: Any) -> None:
         """Performs a ranged attack in the direction the entity is facing.
@@ -196,16 +158,12 @@ class RangedAttack(AttackBase):
         args: Any
             A tuple containing the parameters needed for the attack.
         """
-        # Make sure we have the bullet constants. This avoids a circular import
-        from game.constants.game_object import BULLET_VELOCITY, SPRITE_SIZE
-
         # Make sure the needed parameters are valid
         bullet_list: arcade.SpriteList = args[0]
         logger.info("Entity %r is performing a ranged attack", self.owner)
 
         # Reset the time counter
         self.owner.time_since_last_attack = 0
-
         # Create and add the new bullet to the physics engine
         new_bullet = Bullet(
             self.owner.center_x,
@@ -214,8 +172,8 @@ class RangedAttack(AttackBase):
             5,
             arcade.color.RED,
             self.owner,
-            self.ranged_attack_data.damage,
-            self.ranged_attack_data.max_range * SPRITE_SIZE,
+            self.attack_data.damage,
+            self.attack_data.max_range * SPRITE_SIZE,  # noqa
         )
         physics: PhysicsEngine = self.owner.physics_engines[0]
         physics.add_bullet(new_bullet)
@@ -238,48 +196,15 @@ class RangedAttack(AttackBase):
 
 class MeleeAttack(AttackBase):
     """An algorithm which performs a melee attack in the direction the entity is looking
-    dealing damage to any entity that is within a specific angle range of the entity's
-    direction and are within the attack distance. Since when the enemy is attacking,
-    they are always facing the player, we don't need to do the angle range check for
-    enemies.
+    dealing damage to any entity that is within the entity's fov and attack distance."""
 
-    Parameters
-    ----------
-    owner: Entity
-        The reference to the enemy object that manages this attack algorithm.
-    attack_cooldown: int
-        The cooldown for this attack.
-    """
+    # Class variables
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.MELEE
 
     __slots__ = ()
 
-    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
-        super().__init__(owner, attack_cooldown)
-
     def __repr__(self) -> str:
         return f"<MeleeAttack (Owner={self.owner})>"
-
-    @property
-    def melee_attack_data(self) -> MeleeAttackData:
-        """Gets the melee attack data.
-
-        Returns
-        -------
-        MeleeAttackData
-            The melee attack data.
-        """
-        return self.owner.melee_attack_data
-
-    @property
-    def attack_range(self) -> int:
-        """Gets the attack range for this attack.
-
-        Returns
-        -------
-        int
-            The attack range for this attack.
-        """
-        return self.melee_attack_data.attack_range
 
     def process_attack(self, *args: Any) -> None:
         """Performs a melee attack in the direction the entity is facing.
@@ -297,50 +222,20 @@ class MeleeAttack(AttackBase):
 
         # Deal damage to all entities within range
         for entity in targets:
-            entity.deal_damage(self.melee_attack_data.damage)
+            entity.deal_damage(self.attack_data.damage)
 
 
 class AreaOfEffectAttack(AttackBase):
     """An algorithm which creates an area around the entity with a set radius and deals
-    damage to any entities that are within that range.
+    damage to any entities that are within that range."""
 
-    Parameters
-    ----------
-    owner: Entity
-        The reference to the enemy object that manages this attack algorithm.
-    attack_cooldown: int
-        The cooldown for this attack.
-    """
+    # Class variables
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
 
     __slots__ = ()
 
-    def __init__(self, owner: Entity, attack_cooldown: int) -> None:
-        super().__init__(owner, attack_cooldown)
-
     def __repr__(self) -> str:
         return f"<AreaOfEffectAttack (Owner={self.owner})>"
-
-    @property
-    def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
-        """Gets the area of effect attack data.
-
-        Returns
-        -------
-        AreaOfEffectAttackData
-            The area of effect attack data.
-        """
-        return self.owner.area_of_effect_attack_data
-
-    @property
-    def attack_range(self) -> int:
-        """Gets the attack range for this attack.
-
-        Returns
-        -------
-        int
-            The attack range for this attack.
-        """
-        return self.area_of_effect_attack_data.attack_range
 
     def process_attack(self, *args: Any) -> None:
         """Performs an area of effect attack around the entity.
@@ -350,9 +245,6 @@ class AreaOfEffectAttack(AttackBase):
         args: Any
             A tuple containing the parameters needed for the attack.
         """
-        # Make sure we have the sprite size. This avoids a circular import
-        from game.constants.game_object import SPRITE_SIZE
-
         # Make sure the needed parameters are valid
         target_entity: arcade.SpriteList | Entity = args[0]
         logger.info(
@@ -362,7 +254,7 @@ class AreaOfEffectAttack(AttackBase):
         )
 
         # Create a sprite with an empty texture
-        base_size = int(self.attack_range * 2 * SPRITE_SIZE)
+        base_size = int(self.attack_data.attack_range * 2 * SPRITE_SIZE)
         empty_texture = arcade.Texture.create_empty(
             "",
             (base_size, base_size),
@@ -377,10 +269,44 @@ class AreaOfEffectAttack(AttackBase):
         try:
             if arcade.check_for_collision(area_of_effect_sprite, target_entity):
                 # Target is the player so deal damage
-                target_entity.deal_damage(self.area_of_effect_attack_data.damage)
+                target_entity.deal_damage(self.attack_data.damage)
         except TypeError:
             for entity in arcade.check_for_collision_with_list(
                 area_of_effect_sprite, target_entity
-            ):
+            ):  # type: Entity
                 # Deal damage to all the enemies within range
-                entity.deal_damage(self.area_of_effect_attack_data.damage)  # noqa
+                entity.deal_damage(self.attack_data.damage)
+
+
+ATTACKS = {
+    AttackAlgorithmType.RANGED: RangedAttack,
+    AttackAlgorithmType.MELEE: MeleeAttack,
+    AttackAlgorithmType.AREA_OF_EFFECT: AreaOfEffectAttack,
+}
+
+
+def create_attack(
+    owner: Entity, attack_type: AttackAlgorithmType, attack_data: AttackData
+) -> AttackBase:
+    """Determines which attack algorithm should be initialised based on a given attack
+    type.
+
+    Parameters
+    ----------
+    owner: Entity
+        The reference to the entity object.
+    attack_type: AttackAlgorithmType
+        The attack algorithm to create.
+    attack_data: AttackData
+        The attack data for this attack.
+    """
+    # Get the attack algorithm class type which matches the given attack type
+    cls = ATTACKS[attack_type]
+    logger.debug(
+        "Selected attack algorithm %r for given attack algorithm type %r",
+        cls,
+        attack_type,
+    )
+
+    # Initialise the class with the given parameters
+    return cls(owner, attack_data)

@@ -228,22 +228,25 @@ class Enemy(Entity):
 
         # Check if the player is within range and line of sight of the enemy
         if not (
-            self.check_line_of_sight(self.current_attack.attack_range)
+            self.check_line_of_sight(self.current_attack.attack_data.attack_range)
             and self.player_within_range
             and self.time_since_last_attack
-            >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown.value)
+            >= (
+                self.current_attack.attack_data.attack_cooldown
+                + self.bonus_attack_cooldown.value
+            )
         ):
             return
 
         # Enemy can attack so reset the counters and determine what attack algorithm is
         # selected
         self.time_since_last_attack = 0
-        match type(self.current_attack):
-            case AttackAlgorithmType.RANGED.value:
+        match self.current_attack.attack_type:
+            case AttackAlgorithmType.RANGED:
                 self.current_attack.process_attack(self.game.bullet_sprites)
-            case AttackAlgorithmType.MELEE.value:
+            case AttackAlgorithmType.MELEE:
                 self.current_attack.process_attack([self.game.player])
-            case AttackAlgorithmType.AREA_OF_EFFECT.value:
+            case AttackAlgorithmType.AREA_OF_EFFECT:
                 self.current_attack.process_attack(self.game.player)
 
     def check_line_of_sight(self, max_tile_range: int) -> bool:

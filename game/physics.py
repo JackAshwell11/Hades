@@ -75,7 +75,7 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
     """
     try:
         # Check if the owner is the player
-        if bullet.owner.entity_id is ObjectID.PLAYER:
+        if bullet.owner.object_id is ObjectID.PLAYER:
             # Remove the bullet
             bullet.remove_from_sprite_lists()
 
@@ -111,7 +111,7 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
     """
     try:
         # Check if the owner is an enemy
-        if bullet.owner.entity_id is ObjectID.ENEMY:
+        if bullet.owner.object_id is ObjectID.ENEMY:
             # Remove the bullet
             bullet.remove_from_sprite_lists()
 

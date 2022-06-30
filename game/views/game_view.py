@@ -197,30 +197,27 @@ class Game(BaseView):
                 if x in PLAYERS:
                     target_cls = Player
                     constructor_args.append(PLAYERS[x])
-                elif x in ENEMIES:
-                    target_cls = Enemy
-                    target_constructor = ENEMIES[x]
-                    constructor_args.append(target_constructor)
-                    constructor_args.append(
-                        min(
-                            random.randint(lower_bound_enemy, upper_bound),
-                            target_constructor.entity_data.level_limit,
-                        )
-                    )
                 else:
-                    target_cls = Consumable
-                    target_constructor = CONSUMABLES[x]
+                    if x in ENEMIES:
+                        target_cls = Enemy
+                        target_constructor = ENEMIES[x]
+                        lower_bound = lower_bound_enemy
+                        level_limit = target_constructor.entity_data.level_limit
+                    else:
+                        target_cls = Consumable
+                        target_constructor = CONSUMABLES[x]
+                        lower_bound = lower_bound_consumable
+                        level_limit = target_constructor.level_limit
                     constructor_args.append(target_constructor)
                     constructor_args.append(
                         min(
-                            random.randint(lower_bound_consumable, upper_bound),
-                            target_constructor.level_limit,
+                            random.randint(lower_bound, upper_bound),
+                            level_limit,
                         )
                     )
 
                 # Initialise the constructor and add it to the necessary sprite lists
                 initialised_cls = target_cls(*constructor_args)
-
                 if initialised_cls.object_id is ObjectID.PLAYER:
                     self.player = initialised_cls
                 elif initialised_cls.object_id is ObjectID.ENEMY:
@@ -308,7 +305,7 @@ class Game(BaseView):
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.current_attack.attack_range * SPRITE_SIZE,
+                    enemy.current_attack.attack_data.attack_range * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
 
@@ -323,21 +320,21 @@ class Game(BaseView):
                     self.player.center_x
                     + math.cos(low_angle)
                     * SPRITE_SIZE
-                    * self.player.current_attack.attack_range,
+                    * self.player.current_attack.attack_data.attack_range,
                     self.player.center_y
                     + math.sin(low_angle)
                     * SPRITE_SIZE
-                    * self.player.current_attack.attack_range,
+                    * self.player.current_attack.attack_data.attack_range,
                 )
                 point_high = (
                     self.player.center_x
                     + math.cos(high_angle)
                     * SPRITE_SIZE
-                    * self.player.current_attack.attack_range,
+                    * self.player.current_attack.attack_data.attack_range,
                     self.player.center_y
                     + math.sin(high_angle)
                     * SPRITE_SIZE
-                    * self.player.current_attack.attack_range,
+                    * self.player.current_attack.attack_data.attack_range,
                 )
                 # Draw both boundary lines for the player fov
                 arcade.draw_line(
@@ -361,7 +358,9 @@ class Game(BaseView):
                         point_high[0] - point_low[0], point_high[1] - point_low[1]
                     )
                     * 2,
-                    self.player.current_attack.attack_range * SPRITE_SIZE * 2,
+                    self.player.current_attack.attack_data.attack_range
+                    * SPRITE_SIZE
+                    * 2,
                     DEBUG_ATTACK_DISTANCE,
                     math.degrees(low_angle),
                     math.degrees(high_angle),
@@ -372,7 +371,7 @@ class Game(BaseView):
                 arcade.draw_circle_outline(
                     self.player.center_x,
                     self.player.center_y,
-                    self.player.current_attack.attack_range * SPRITE_SIZE,
+                    self.player.current_attack.attack_data.attack_range * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
 
@@ -392,7 +391,7 @@ class Game(BaseView):
         # Draw the gui on the screen
         self.gui_camera.use()
         self.player_gui_sprites.draw()
-        self.player_status_text.value = f"Money: {self.player.money}"
+        self.player_status_text.value = f"Money: {str(self.player.money)}"
         self.player_status_text.draw()
         if self.nearest_item:
             self.item_text.text = self.nearest_item.item_text

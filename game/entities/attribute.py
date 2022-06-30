@@ -127,11 +127,18 @@ class EntityAttribute:
         self.owner: Entity = owner
         self.attribute_data: EntityAttributeData = attribute_data
         self._value: float = attribute_data.increase(level)
-        self._max_value: float = self._value if attribute_data.variable else -1
+        self._max_value: float = (
+            self._value
+            if attribute_data.variable and attribute_data.maximum
+            else float("inf")
+        )
         self.applied_status_effect = None
 
     def __repr__(self) -> str:
         return f"<EntityAttribute (Value={self.value})>"
+
+    def __str__(self) -> str:
+        return str(int(self.value))
 
     @property
     def value(self) -> float:

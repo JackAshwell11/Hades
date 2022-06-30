@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 # Custom
 from game.constants.game_object import ConsumableData, InstantEffectType
 from game.entities.base import CollectibleTile, Tile, UsableTile
-from game.entities.status_effect import StatusEffectBase, create_status_effect
 from game.textures import non_moving_textures
 
 if TYPE_CHECKING:

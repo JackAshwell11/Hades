@@ -4,6 +4,7 @@ from __future__ import annotations
 # Custom
 from game.constants.game_object import (
     AreaOfEffectAttackData,
+    AttackAlgorithmType,
     BaseData,
     ConsumableData,
     EnemyData,
@@ -66,6 +67,7 @@ PLAYER = BaseData(
             ),
             EntityAttributeType.MONEY: EntityAttributeData(
                 increase=lambda _: 0,
+                maximum=False,
                 variable=True,
             ),
         },
@@ -83,13 +85,17 @@ PLAYER = BaseData(
             ),
         ],
     ),
-    ranged_attack_data=RangedAttackData(
-        damage=10, attack_cooldown=3, attack_range=0, max_range=10
-    ),
-    melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1, attack_range=3),
-    area_of_effect_attack_data=AreaOfEffectAttackData(
-        damage=10, attack_cooldown=10, attack_range=3
-    ),
+    attacks={
+        AttackAlgorithmType.RANGED: RangedAttackData(
+            damage=10, attack_cooldown=3, attack_range=0, max_range=10
+        ),
+        AttackAlgorithmType.MELEE: MeleeAttackData(
+            damage=10, attack_cooldown=1, attack_range=3
+        ),
+        AttackAlgorithmType.AREA_OF_EFFECT: AreaOfEffectAttackData(
+            damage=10, attack_cooldown=10, attack_range=3
+        ),
+    },
 )
 
 # Enemy characters
@@ -125,9 +131,11 @@ ENEMY1 = BaseData(
         },
     ),
     enemy_data=EnemyData(view_distance=5),
-    ranged_attack_data=RangedAttackData(
-        damage=5, attack_cooldown=5, attack_range=5, max_range=10
-    ),
+    attacks={
+        AttackAlgorithmType.RANGED: RangedAttackData(
+            damage=5, attack_cooldown=5, attack_range=5, max_range=10
+        )
+    },
 )
 
 # Base instant consumables

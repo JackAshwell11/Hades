@@ -10,11 +10,8 @@ from typing import TYPE_CHECKING
 # Pip
 import arcade
 
-# Custom
-from game.entities.attack import AreaOfEffectAttack, MeleeAttack, RangedAttack
-
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator, Sequence
+    from collections.abc import Callable, Sequence
 
 __all__ = (
     "ARMOUR_INDICATOR_BAR_COLOR",
@@ -92,9 +89,10 @@ class EntityAttributeSectionType(Enum):
 class AttackAlgorithmType(Enum):
     """Stores the different types of attack algorithms that exist."""
 
-    RANGED = RangedAttack
-    MELEE = MeleeAttack
-    AREA_OF_EFFECT = AreaOfEffectAttack
+    BASE = "base"
+    RANGED = "ranged"
+    MELEE = "melee"
+    AREA_OF_EFFECT = "area of effect"
 
 
 # Instant effect types
@@ -126,40 +124,16 @@ class BaseData:
         The data about the player entity.
     enemy_data: EnemyData | None
         The data about the enemy entity.
-    ranged_attack_data: AttackData | None
-        The data about the entity's ranged attack.
-    melee_attack_data: AttackData | None
-        The data about the entity's melee attack.
-    area_of_effect_attack_data: AreaOfEffectAttackData | None
-        The data about the entity's area of effect attack.
+    attacks: dict[AttackAlgorithmType, AttackData]
+        The data about the entity's attacks.
     """
 
     entity_data: EntityData = field(kw_only=True)
     player_data: PlayerData | None = field(kw_only=True, default=None)
     enemy_data: EnemyData | None = field(kw_only=True, default=None)
-    ranged_attack_data: RangedAttackData | None = field(kw_only=True, default=None)
-    melee_attack_data: MeleeAttackData | None = field(kw_only=True, default=None)
-    area_of_effect_attack_data: AreaOfEffectAttackData | None = field(
-        kw_only=True, default=None
+    attacks: dict[AttackAlgorithmType, AttackData] = field(
+        kw_only=True, default_factory=dict
     )
-
-    def get_all_attacks(self) -> Iterator[AttackData]:
-        """Returns all the attacks the entity has.
-
-        Returns
-        -------
-        Iterator[AttackData]
-            An iterator containing all the valid attack types for this entity.
-        """
-        return (
-            attack
-            for attack in (
-                self.ranged_attack_data,
-                self.melee_attack_data,
-                self.area_of_effect_attack_data,
-            )
-            if attack
-        )
 
 
 @dataclass
@@ -193,6 +167,8 @@ class EntityAttributeData:
     increase: Callable[[int], float]
         The exponential lambda function which calculates the next level's value based on
         the current level.
+    maximum: bool
+        Whether this attribute has a maximum value or not.
     upgradable: bool
         Whether this attribute is upgradable or not.
     status_effect: bool
@@ -202,6 +178,7 @@ class EntityAttributeData:
     """
 
     increase: Callable[[int], float] = field(kw_only=True)
+    maximum: bool = field(kw_only=True, default=True)
     upgradable: bool = field(kw_only=True, default=False)
     status_effect: bool = field(kw_only=True, default=False)
     variable: bool = field(kw_only=True, default=False)
@@ -264,7 +241,6 @@ class AttackData:
     damage: int = field(kw_only=True)
     attack_cooldown: int = field(kw_only=True)
     attack_range: int = field(kw_only=True)
-    attack_type: AttackAlgorithmType
 
 
 @dataclass
@@ -280,7 +256,6 @@ class RangedAttackData(AttackData):
     """
 
     max_range: int = field(kw_only=True)
-    attack_type: AttackAlgorithmType = AttackAlgorithmType.RANGED
 
 
 @dataclass
@@ -293,8 +268,6 @@ class MeleeAttackData(AttackData):
         The time duration between attacks.
     """
 
-    attack_type: AttackAlgorithmType = AttackAlgorithmType.MELEE
-
 
 @dataclass
 class AreaOfEffectAttackData(AttackData):
@@ -305,8 +278,6 @@ class AreaOfEffectAttackData(AttackData):
     attack_cooldown: int
         The time duration between attacks.
     """
-
-    attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
 
 
 @dataclass
