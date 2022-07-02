@@ -40,7 +40,6 @@ __all__ = (
     "MeleeAttackData",
     "ObjectID",
     "PlayerData",
-    "PlayerSectionUpgradeData",
     "RangedAttackData",
     "SPRITE_SCALE",
     "SPRITE_SIZE",
@@ -81,8 +80,8 @@ class EntityAttributeSectionType(Enum):
 
     ENDURANCE = [EntityAttributeType.HEALTH, EntityAttributeType.SPEED]
     DEFENCE = [EntityAttributeType.ARMOUR, EntityAttributeType.REGEN_COOLDOWN]
-    STRENGTH = []  # noqa
-    INTELLIGENCE = []  # noqa
+    STRENGTH = []  # type: ignore
+    INTELLIGENCE = []  # type: ignore
 
 
 # Attack algorithms
@@ -169,8 +168,6 @@ class EntityAttributeData:
         the current level.
     maximum: bool
         Whether this attribute has a maximum value or not.
-    upgradable: bool
-        Whether this attribute is upgradable or not.
     status_effect: bool
         Whether this attribute can have a status effect applied to it or not.
     variable: bool
@@ -179,7 +176,6 @@ class EntityAttributeData:
 
     increase: Callable[[int], float] = field(kw_only=True)
     maximum: bool = field(kw_only=True, default=True)
-    upgradable: bool = field(kw_only=True, default=False)
     status_effect: bool = field(kw_only=True, default=False)
     variable: bool = field(kw_only=True, default=False)
 
@@ -190,28 +186,14 @@ class PlayerData:
 
     melee_degree: int
         The degree that the player's melee attack is limited to.
-    section_upgrade_data: list[PlayerSectionUpgradeData]
+    section_upgrade_data: dict[EntityAttributeSectionType, Callable[[int], float]]
         The section upgrades that are available to the player.
     """
 
     melee_degree: int = field(kw_only=True)
-    section_upgrade_data: list[PlayerSectionUpgradeData] = field(kw_only=True)
-
-
-@dataclass
-class PlayerSectionUpgradeData:
-    """Stores a section upgrade that is available to the player. If the cost function is
-    set to -1, then the section cannot be upgraded.
-
-    section_type: EntityAttributeSectionType
-        The type of entity attribute section this data represents.
-    cost: Callable[[int], float]
-        The exponential lambda function which calculates the next level's cost based on
-        the current level.
-    """
-
-    section_type: EntityAttributeSectionType = field(kw_only=True)
-    cost: Callable[[int], float] = field(kw_only=True)
+    section_upgrade_data: dict[
+        EntityAttributeSectionType, Callable[[int], float]
+    ] = field(kw_only=True)
 
 
 @dataclass

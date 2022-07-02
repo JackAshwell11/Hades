@@ -16,7 +16,6 @@ from game.constants.game_object import (
     InstantEffectType,
     MeleeAttackData,
     PlayerData,
-    PlayerSectionUpgradeData,
     RangedAttackData,
     StatusEffectData,
     StatusEffectType,
@@ -40,29 +39,24 @@ PLAYER = BaseData(
         attribute_data={
             EntityAttributeType.HEALTH: EntityAttributeData(
                 increase=lambda current_level: 100 * 1.4**current_level,
-                upgradable=True,
                 status_effect=True,
                 variable=True,
             ),
             EntityAttributeType.SPEED: EntityAttributeData(
                 increase=lambda current_level: 150 * 1.4**current_level,
-                upgradable=True,
                 status_effect=True,
             ),
             EntityAttributeType.ARMOUR: EntityAttributeData(
                 increase=lambda current_level: 20 * 1.4**current_level,
-                upgradable=True,
                 status_effect=True,
                 variable=True,
             ),
             EntityAttributeType.REGEN_COOLDOWN: EntityAttributeData(
                 increase=lambda current_level: 2 * 0.5**current_level,
-                upgradable=True,
                 status_effect=True,
             ),
             EntityAttributeType.FIRE_RATE_MULTIPLIER: EntityAttributeData(
                 increase=lambda current_level: 1 * 1.1 * current_level,
-                upgradable=True,
                 status_effect=True,
             ),
             EntityAttributeType.MONEY: EntityAttributeData(
@@ -74,16 +68,12 @@ PLAYER = BaseData(
     ),
     player_data=PlayerData(
         melee_degree=60,
-        section_upgrade_data=[
-            PlayerSectionUpgradeData(
-                section_type=EntityAttributeSectionType.ENDURANCE,
-                cost=lambda current_level: 1 * 3**current_level,
-            ),
-            PlayerSectionUpgradeData(
-                section_type=EntityAttributeSectionType.DEFENCE,
-                cost=lambda current_level: 1 * 3**current_level,
-            ),
-        ],
+        section_upgrade_data={
+            EntityAttributeSectionType.ENDURANCE: lambda current_level: 1
+            * 3**current_level,
+            EntityAttributeSectionType.DEFENCE: lambda current_level: 1
+            * 3**current_level,
+        },
     ),
     attacks={
         AttackAlgorithmType.RANGED: RangedAttackData(

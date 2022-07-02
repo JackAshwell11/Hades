@@ -5,18 +5,27 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from game.constants.game_object import EntityAttributeData, StatusEffectData
-    from game.entities.base import Entity
+# Custom
+from game.constants.game_object import EntityAttributeType
 
-__all__ = ("EntityAttribute",)
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from game.constants.game_object import (
+        EntityAttributeData,
+        EntityAttributeSectionType,
+        StatusEffectData,
+    )
+    from game.entities.base import Entity
+    from game.entities.player import Player
+
+__all__ = (
+    "EntityAttribute",
+    "UpgradablePlayerSection",
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)
-
-
-class VariableError(Exception):
-    """Raised when a non-variable entity attribute's value is set."""
 
 
 # class StatusEffect:
@@ -94,6 +103,122 @@ class VariableError(Exception):
 #             self._remove_effect()
 
 
+class UpgradablePlayerSection:
+    """Represents a player attribute section that can be upgraded.
+
+    Parameters
+    ----------
+    player: Player
+        The reference to the player object used for upgrading the entity attributes.
+    attribute_section_type: EntityAttributeSectionType
+        The attribute section type this upgradable section represents.
+    cost_function: Callable[[int], float]
+        The cost function for this upgradable section used for calculating the next
+        level's cost.
+    current_level: int
+        The current level for this upgradable section.
+    """
+
+    __slots__ = (
+        "player",
+        "attribute_section_type",
+        "cost_function",
+        "current_level",
+    )
+
+    def __init__(
+        self,
+        player: Player,
+        attribute_section_type: EntityAttributeSectionType,
+        cost_function: Callable[[int], float],
+        current_level: int,
+    ) -> None:
+        self.player: Player = player
+        self.attribute_section_type: EntityAttributeSectionType = attribute_section_type
+        self.cost_function: Callable[[int], float] = cost_function
+        self.current_level: int = current_level
+
+    def __repr__(self) -> str:
+        return (
+            "<UpgradablePlayerSection (Attribute section"
+            f" type={self.attribute_section_type}) (Current level={self.current_level})"
+            f" (Level limit={self.level_limit})>"
+        )
+
+    @property
+    def next_level_cost(self) -> int:
+        """Gets the cost for the next level.
+
+        Returns
+        -------
+        int
+            The next level cost.
+        """
+        return round(self.cost_function(self.current_level))
+
+    @property
+    def level_limit(self) -> int:
+        """Gets the maximum level for the player's upgrades.
+
+        Returns
+        -------
+        int
+            The maximum level for the player's upgrades.
+        """
+        return self.player.entity_data.level_limit
+
+    def upgrade_section(self) -> bool:
+        """Upgrades the player section if possible.
+
+        Returns
+        -------
+        bool
+            Whether the upgrade was successful or not.
+        """
+        # Check if the player has enough money and the current level is below the limit
+        if (
+            self.player.money.value < self.next_level_cost
+            or self.current_level >= self.level_limit
+        ):
+            return False
+
+        # Section upgrade is valid so subtract the cost from the player's money and
+        # increment the current level
+        self.player.money.value -= self.next_level_cost
+        self.current_level += 1
+
+        # Now upgrade each entity attribute
+        logger.debug("Upgrading section %r", self.attribute_section_type)
+        for (
+            entity_attribute
+        ) in self.attribute_section_type.value:  # type: EntityAttributeType
+            # Calculate the diff between the current level and the next (this is
+            # because some attribute may be variable or have status effects applied
+            # to them)
+            diff = self.cost_function(self.current_level) - self.cost_function(
+                self.current_level - 1
+            )
+
+            # Apply that diff to the target entity attribute's value and max value
+            # (if the attribute is variable)
+            target_attribute = self.player.entity_state[entity_attribute]
+            target_attribute._value += diff  # noqa
+            if target_attribute.attribute_data.variable:
+                target_attribute._max_value += diff  # noqa
+
+            # If the entity attribute is health or armour, we need to update the
+            # indicator bars
+            if (
+                entity_attribute is EntityAttributeType.HEALTH
+                or entity_attribute is EntityAttributeType.ARMOUR
+            ):
+                self.player.update_indicator_bars()
+            logger.debug("Upgraded attribute %r", entity_attribute)
+
+        # Upgrade successful
+        return True
+
+
 class EntityAttribute:
     """Represents an attribute that is part of an entity.
 
@@ -137,9 +262,6 @@ class EntityAttribute:
     def __repr__(self) -> str:
         return f"<EntityAttribute (Value={self.value})>"
 
-    def __str__(self) -> str:
-        return str(int(self.value))
-
     @property
     def value(self) -> float:
         """Gets the attribute's value.
@@ -162,15 +284,16 @@ class EntityAttribute:
 
         Raises
         ------
-        VariableError
+        ValueError
             This attribute's value cannot be set.
         """
         # Check if the attribute value can be changed
         if not self.attribute_data.variable:
-            raise VariableError("This attribute's value cannot be set.")
+            raise ValueError("This attribute's value cannot be set.")
 
         # Update the attribute value with the new value
         self._value = value
+        logger.debug("Set %r value for entity %r to %d", self, self.owner, self.value)
 
         # Check if the attribute value exceeds the max. If so, set it to the max
         if self.value > self.max_value:

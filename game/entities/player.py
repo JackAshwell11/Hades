@@ -21,12 +21,18 @@ from game.constants.game_object import (
     ObjectID,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.entities.attribute import EntityAttribute
+from game.entities.attribute import EntityAttribute, UpgradablePlayerSection
 from game.entities.base import Entity, IndicatorBar
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from game.constants.game_object import BaseData, PlayerData
+    from collections.abc import Callable
+
+    from game.constants.game_object import (
+        BaseData,
+        EntityAttributeSectionType,
+        PlayerData,
+    )
     from game.entities.base import CollectibleTile
     from game.views.game_view import Game
 
@@ -55,9 +61,9 @@ class Player(Entity):
     melee_shader: MeleeShader
         The OpenGL shader used to find and attack any enemies within a specific distance
         around the player based on their direction.
-    # upgrade_sections: dict[EntityAttributeSectionType, UpgradableSection]
-    #     A mapping of an upgrade section enum to an upgradable section object.
-    inventory: list[game.entities.tile.Item]
+    upgrade_sections: list[UpgradablePlayerSection]
+        Stores the upgradable section objects for each of the player's upgrade sections.
+    inventory: list[CollectibleTile]
         The list which stores the player's inventory.
     inventory_capacity: int
         The total capacity of the inventory.
@@ -81,11 +87,13 @@ class Player(Entity):
     def __init__(self, game: Game, x: int, y: int, player_type: BaseData) -> None:
         super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
-        self.upgrade_sections = {}
-        # : dict[EntityAttributeSectionType, UpgradableSection] = {
-        #     upgrade_data.section_type: UpgradableSection(self, upgrade_data, 1)
-        #      for upgrade_data in self.upgrade_data
-        # }
+        self.upgrade_sections: list[UpgradablePlayerSection] = [
+            UpgradablePlayerSection(self, attribute_section_type, cost_function, 0)
+            for (
+                attribute_section_type,
+                cost_function,
+            ) in self.player_data.section_upgrade_data.items()
+        ]
         self.health_bar: IndicatorBar = IndicatorBar(
             self,
             self.game.player_gui_sprites,
@@ -142,6 +150,19 @@ class Player(Entity):
         return self.entity_type.player_data
 
     @property
+    def section_upgrade_data(
+        self,
+    ) -> dict[EntityAttributeSectionType, Callable[[int], float]]:
+        """Gets the section upgrade data for the player.
+
+        Returns
+        -------
+        dict[EntityAttributeSectionType, Callable[[int], float]]
+            The section upgrade data.
+        """
+        return self.player_data.section_upgrade_data
+
+    @property
     def money(self) -> EntityAttribute:
         """Gets the player's money.
 
@@ -150,7 +171,7 @@ class Player(Entity):
         EntityAttribute
             The player's money
         """
-        return self._entity_state[EntityAttributeType.MONEY]
+        return self.entity_state[EntityAttributeType.MONEY]
 
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialises the entity's state dict.

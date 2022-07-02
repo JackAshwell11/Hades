@@ -39,6 +39,7 @@ from game.views.inventory_view import InventoryView
 from game.views.shop_view import ShopView
 
 if TYPE_CHECKING:
+    from game.constants.game_object import BaseData, ConsumableData
     from game.entities.base import CollectibleTile, UsableTile
     from game.generation.map import GameMapShape
 
@@ -193,11 +194,11 @@ class Game(BaseView):
                     continue
 
                 # Determine if the tile is a player, an enemy or a consumable
-                constructor_args = [self, count_x, count_y]
                 if x in PLAYERS:
-                    target_cls = Player
-                    constructor_args.append(PLAYERS[x])
+                    instantiated_cls = Player(self, count_x, count_y, PLAYERS[x])
                 else:
+                    target_cls: type[Enemy] | type[Consumable]
+                    target_constructor: BaseData | ConsumableData
                     if x in ENEMIES:
                         target_cls = Enemy
                         target_constructor = ENEMIES[x]
@@ -208,23 +209,25 @@ class Game(BaseView):
                         target_constructor = CONSUMABLES[x]
                         lower_bound = lower_bound_consumable
                         level_limit = target_constructor.level_limit
-                    constructor_args.append(target_constructor)
-                    constructor_args.append(
+                    instantiated_cls = target_cls(
+                        self,
+                        count_x,
+                        count_y,
+                        target_constructor,  # type: ignore
                         min(
                             random.randint(lower_bound, upper_bound),
                             level_limit,
-                        )
+                        ),
                     )
 
-                # Initialise the constructor and add it to the necessary sprite lists
-                initialised_cls = target_cls(*constructor_args)
-                if initialised_cls.object_id is ObjectID.PLAYER:
-                    self.player = initialised_cls
-                elif initialised_cls.object_id is ObjectID.ENEMY:
-                    self.enemy_sprites.append(initialised_cls)
-                elif initialised_cls.object_id is ObjectID.TILE:
-                    self.tile_sprites.append(initialised_cls)
-                    self.item_sprites.append(initialised_cls)
+                # Add the instantiated game object to the necessary sprite lists
+                if instantiated_cls.object_id is ObjectID.PLAYER:
+                    self.player = instantiated_cls
+                elif instantiated_cls.object_id is ObjectID.ENEMY:
+                    self.enemy_sprites.append(instantiated_cls)
+                elif instantiated_cls.object_id is ObjectID.TILE:
+                    self.tile_sprites.append(instantiated_cls)
+                    self.item_sprites.append(instantiated_cls)
 
         # Make sure the game map shape was set and the player was actually created
         assert self.game_map_shape is not None
@@ -391,7 +394,7 @@ class Game(BaseView):
         # Draw the gui on the screen
         self.gui_camera.use()
         self.player_gui_sprites.draw()
-        self.player_status_text.value = f"Money: {str(self.player.money)}"
+        self.player_status_text.value = f"Money: {str(self.player.money.value)}"
         self.player_status_text.draw()
         if self.nearest_item:
             self.item_text.text = self.nearest_item.item_text

@@ -389,6 +389,8 @@ class Entity(GameObject):
 
     Attributes
     ----------
+    entity_state: dict[EntityAttributeType, EntityAttribute]
+        The entity's state which manages all the entity's attributes.
     attack_algorithms: list[AttackBase]
         A list of the entity's attack algorithms.
     health_bar: IndicatorBar | None
@@ -418,10 +420,10 @@ class Entity(GameObject):
     ) -> None:
         super().__init__(game, x, y)
         self.entity_type: BaseData = entity_type
-        self._entity_state: dict[
+        self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
+        self.entity_state: dict[
             EntityAttributeType, EntityAttribute
         ] = self._initialise_entity_state()
-        self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
         self.attack_algorithms: list[AttackBase] = [
             create_attack(self, algorithm_type, algorithm_data)
             for algorithm_type, algorithm_data in self.attacks.items()
@@ -472,17 +474,6 @@ class Entity(GameObject):
         return self.entity_data.attribute_data
 
     @property
-    def entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
-        """Gets the entity's state.
-
-        Returns
-        -------
-        dict[EntityAttributeType, EntityAttribute]
-            The entity's state.
-        """
-        return self._entity_state
-
-    @property
     def current_attack(self) -> AttackBase:
         """Gets the currently selected attack algorithm.
 
@@ -513,7 +504,7 @@ class Entity(GameObject):
         EntityAttribute
             The entity's health
         """
-        return self._entity_state[EntityAttributeType.HEALTH]
+        return self.entity_state[EntityAttributeType.HEALTH]
 
     @property
     def armour(self) -> EntityAttribute:
@@ -524,7 +515,7 @@ class Entity(GameObject):
         EntityAttribute
             The entity's armour.
         """
-        return self._entity_state[EntityAttributeType.ARMOUR]
+        return self.entity_state[EntityAttributeType.ARMOUR]
 
     @property
     def max_velocity(self) -> EntityAttribute:
@@ -535,7 +526,7 @@ class Entity(GameObject):
         EntityAttribute
             The entity's max velocity.
         """
-        return self._entity_state[EntityAttributeType.SPEED]
+        return self.entity_state[EntityAttributeType.SPEED]
 
     @property
     def armour_regen_cooldown(self) -> EntityAttribute:
@@ -546,7 +537,7 @@ class Entity(GameObject):
         EntityAttribute
             The entity's armour regen cooldown.
         """
-        return self._entity_state[EntityAttributeType.REGEN_COOLDOWN]
+        return self.entity_state[EntityAttributeType.REGEN_COOLDOWN]
 
     @property
     def bonus_attack_cooldown(self) -> EntityAttribute:
@@ -557,7 +548,7 @@ class Entity(GameObject):
         EntityAttribute
             The entity's bonus attack cooldown.
         """
-        return self._entity_state[EntityAttributeType.FIRE_RATE_MULTIPLIER]
+        return self.entity_state[EntityAttributeType.FIRE_RATE_MULTIPLIER]
 
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialises the entity's state dict.
