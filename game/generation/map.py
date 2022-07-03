@@ -98,12 +98,10 @@ class Map:
         A mapping of constant name to value. These constants are width, height, split
         count (how many times the bsp should split) and the counts for the different
         enemies and items.
-    grid: np.ndarray | None
+    grid: np.ndarray
         The 2D grid which represents the dungeon.
-    bsp: Leaf | None
+    bsp: Leaf
         The root leaf for the binary space partition.
-    player_spawn: tuple[int, int] | None
-        The coordinates for the player spawn. This is in the format (x, y).
     enemy_spawns: list[tuple[int, int]]
         The coordinates for the enemy spawn points. This is in the format (x, y).
     probabilities: dict[str, float]
@@ -118,21 +116,26 @@ class Map:
         "map_constants",
         "grid",
         "bsp",
-        "player_spawn",
-        "enemy_spawns",
         "probabilities",
         "player_pos",
+        "enemy_spawns",
     )
 
     def __init__(self, level: int) -> None:
         self.level: int = level
         self.map_constants: dict[TileType | str, int] = self._generate_constants()
-        self.grid: np.ndarray | None = None
-        self.bsp: Leaf | None = None
-        self.player_spawn: tuple[int, int] | None = None
-        self.enemy_spawns: list[tuple[int, int]] = []
+        self.grid: np.ndarray = np.full(
+            (self.map_constants["height"], self.map_constants["width"]), 0, np.int8
+        )
+        self.bsp: Leaf = Leaf(
+            Point(0, 0),
+            Point(self.map_constants["width"] - 1, self.map_constants["height"] - 1),
+            None,
+            self.grid,
+        )
         self.probabilities: dict[str, float] = BASE_ROOM
         self.player_pos: tuple[int, int] = (-1, -1)
+        self.enemy_spawns: list[tuple[int, int]] = []
         self.make_map()
 
     def __repr__(self) -> str:
@@ -218,19 +221,6 @@ class Map:
 
     def make_map(self) -> None:
         """Generates the map for a specified instance with a given level."""
-        # Create the 2D grid used for representing the dungeon
-        self.grid = np.full(
-            (self.map_constants["height"], self.map_constants["width"]), 0, np.int8
-        )
-
-        # Create the first leaf used for generation
-        self.bsp = Leaf(
-            Point(0, 0),
-            Point(self.map_constants["width"] - 1, self.map_constants["height"] - 1),
-            None,
-            self.grid,
-        )
-
         # Start the splitting using a stack
         stack = deque["Leaf"]()
         stack.append(self.bsp)
@@ -267,7 +257,7 @@ class Map:
                 )
 
             # Normalise the probabilities, so they add up to 1
-            probabilities_sum = 1 / sum(self.probabilities.values())  # type: ignore
+            probabilities_sum = 1 / sum(self.probabilities.values())
             self.probabilities = {
                 key: value * probabilities_sum
                 for key, value in self.probabilities.items()
