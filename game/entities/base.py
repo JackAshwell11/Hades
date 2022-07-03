@@ -587,7 +587,7 @@ class Entity(GameObject):
                     attribute.applied_status_effect,
                     self,
                 )
-                attribute.applied_status_effect.update(delta_time)
+                attribute.update_status_effect(delta_time)
 
         # Run the entity's post on_update
         self.post_on_update(delta_time)

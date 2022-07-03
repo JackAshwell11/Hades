@@ -186,18 +186,6 @@ class Player(Entity):
             for attribute_type, attribute_data in self.attribute_data.items()
         }
 
-        # return {
-        #     "health": EntityAttribute(0, self.attribute_data[EntityAttributeType.HEALTH]),
-        #     "max health": EntityAttribute(0, self.attribute_data[EntityAttributeType.HEALTH]),
-        #     "armour": EntityAttribute(0, self.attribute_data[EntityAttributeType.ARMOUR]),
-        #     "max armour": EntityAttribute(0, self.attribute_data[EntityAttributeType.ARMOUR]),
-        #     "max velocity": EntityAttribute(0, self.attribute_data[EntityAttributeType.SPEED]),
-        #     "armour regen cooldown": EntityAttribute(0, self.attribute_data[
-        #         EntityAttributeType.REGEN_COOLDOWN
-        #     ]),
-        #     "bonus attack cooldown": 0,
-        # }
-
     def post_on_update(self, delta_time: float) -> None:
         """Processes player logic.
 

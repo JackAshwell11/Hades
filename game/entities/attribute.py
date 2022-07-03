@@ -1,12 +1,13 @@
-"""TO DO!"""
+"""Manages the entity's attributes and their various properties."""
 from __future__ import annotations
 
 # Builtin
 import logging
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.game_object import EntityAttributeType
+from game.constants.game_object import EntityAttributeType, StatusEffectType
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -28,79 +29,33 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
-# class StatusEffect:
-#     """Represents a status effect that can be applied to an entity attribute.
-#
-#     Parameters
-#     ----------
-#     entity_attribute: EntityAttribute
-#         The entity attribute to apply the status effect too.
-#     status_effect_type: StatusEffectType
-#         The status effect type that this object represents.
-#     value: float
-#         The value that should be applied to the entity temporarily.
-#     duration: float
-#         The duration the status effect should be applied for.
-#
-#     Attributes
-#     ----------
-#     original: float
-#         The original value of the variable which is being changed.
-#     time_counter: float
-#         The time counter for the status effect.
-#     """
-#
-#     __slots__ = (
-#         "entity_attribute",
-#         "status_effect_type",
-#         "value",
-#         "duration",
-#         "original",
-#         "time_counter"
-#     )
-#
-#     def __init__(
-#         self, entity_attribute: EntityAttribute, status_effect_type: StatusEffectType, value: float, duration: float
-#     ) -> None:
-#         self.entity_attribute: EntityAttribute = entity_attribute
-#         self.status_effect_type: StatusEffectType = status_effect_type
-#         self.value: float = value
-#         self.duration: float = duration
-#         self.original: float = -1
-#         self.time_counter: float = 0
-#         self._apply_effect()
-#
-#     def __repr__(self) -> str:
-#         return f"<StatusEffect (Value={self.value}) (Duration={self.duration})>"
-#
-#     def _apply_effect(self) -> None:
-#         """Applies the effect to the entity attribute."""
-#         # Apply the status effect to the target
-#         logger.debug("Applying health effect to %r", self.entity_attribute)
-#         self.original = self.entity_attribute.value
-#         self.entity_attribute._value += self.value  # noqa
-#         if self.entity_attribute.attribute_data.variable:
-#             self.entity_attribute._max_value += self.value  # noqa
-#
-#     def _remove_effect(self) -> None:
-#         """Removes the effect from the entity attribute."""
-#         # Get the target's current value to determine if its state needs to change
-#         logger.debug("Removing health effect from %r", self.target)
-#
-#     def update(self, delta_time: float) -> None:
-#         """Updates the state of a status effect.
-#
-#         Parameters
-#         ----------
-#         delta_time: float
-#             Time interval since the last time the function was called.
-#         """
-#         # Update the time counter
-#         self.time_counter += delta_time
-#
-#         # Check if we need to remove the status effect
-#         if self.time_counter >= self.duration:
-#             self._remove_effect()
+@dataclass(slots=True)
+class StatusEffect:
+    """Represents a status effect that can be applied to an entity attribute.
+
+    entity_attribute: EntityAttribute
+        The entity attribute to apply the status effect too.
+    status_effect_type: StatusEffectType
+        The status effect type that this object represents.
+    value: float
+        The value that should be applied to the entity temporarily.
+    duration: float
+        The duration the status effect should be applied for.
+    original: float
+        The original value of the variable which is being changed.
+    time_counter: float
+        The time counter for the status effect.
+    """
+
+    entity_attribute: EntityAttribute
+    status_effect_type: StatusEffectType
+    value: float
+    duration: float
+    original: float = -1
+    time_counter: float = 0
+
+    def __post_init__(self) -> None:
+        self.original: float = self.entity_attribute.value
 
 
 class UpgradablePlayerSection:
@@ -254,7 +209,7 @@ class EntityAttribute:
             if attribute_data.variable and attribute_data.maximum
             else float("inf")
         )
-        self.applied_status_effect = None
+        self.applied_status_effect: StatusEffect | None = None
 
     def __repr__(self) -> str:
         return f"<EntityAttribute (Value={self.value})>"
@@ -333,4 +288,81 @@ class EntityAttribute:
         level: int
             The level to initialise the status effect at.
         """
-        raise NotImplementedError
+        # Test if there is already a status effect applied and if the attribute can have
+        # one applied to it
+        if self.applied_status_effect and self.attribute_data.status_effect:
+            return
+
+        # Apply the status effect to this attribute
+        logger.debug(
+            "Applying status effect %r to %r", status_effect_data.status_type, self
+        )
+        new_status_effect = StatusEffect(
+            self,
+            status_effect_data.status_type,
+            status_effect_data.increase(level),
+            status_effect_data.duration(level),
+        )
+        self.applied_status_effect = new_status_effect
+        self._value += new_status_effect.value
+        if self.attribute_data.variable:
+            self._max_value += new_status_effect.value
+
+        # Apply custom status effect application logic
+        if new_status_effect.status_effect_type is StatusEffectType.SPEED:
+            new_value = new_status_effect.original + new_status_effect.value
+            self.owner.pymunk.max_horizontal_velocity = new_value
+            self.owner.pymunk.max_vertical_velocity = new_value
+
+    def update_status_effect(self, delta_time: float) -> None:
+        """Updates the currently applied status effect.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
+        """
+        # Test if there isn't a status effect already applied
+        if not self.applied_status_effect:
+            return
+
+        # Update the time counter
+        current_status_effect = self.applied_status_effect
+        current_status_effect.time_counter += delta_time
+
+        # Apply custom status effect update logic
+        ...
+
+        # Check if we need to remove the status effect
+        if current_status_effect.time_counter >= current_status_effect.duration:
+            self.remove_status_effect()
+
+    def remove_status_effect(self) -> None:
+        """Removes the currently applied status effect from the attribute."""
+        # Test if there isn't a status effect already applied
+        if not self.applied_status_effect:
+            return
+
+        # Remove the status effect from this attribute while checking if the current
+        # value is bigger than the original value. If so, we need to restore the
+        # original value
+        current_status_effect = self.applied_status_effect
+        logger.debug(
+            "Removing status effect %r from %r",
+            current_status_effect.status_effect_type,
+            self,
+        )
+        current_value = self.value
+        if current_value > current_status_effect.original:
+            current_value = current_status_effect.original
+        self._value = current_value
+        if self.attribute_data.variable:
+            self._max_value = self.value - current_status_effect.value
+
+        # Apply custom status effect remove logic
+        if current_status_effect.status_effect_type is StatusEffectType.SPEED:
+            self.owner.pymunk.max_horizontal_velocity = current_status_effect.original
+            self.owner.pymunk.max_vertical_velocity = current_status_effect.original
+
+        # Clear the applied status effect
+        self.applied_status_effect = None

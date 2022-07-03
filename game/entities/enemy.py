@@ -121,27 +121,6 @@ class Enemy(Entity):
             attribute_type: EntityAttribute(self, attribute_data, adjusted_level)
             for attribute_type, attribute_data in self.attribute_data.items()
         }
-        # return {
-        #     "health": self.attribute_data[EntityAttributeType.HEALTH].increase(
-        #         adjusted_level
-        #     ),
-        #     "max health": self.attribute_data[EntityAttributeType.HEALTH].increase(
-        #         adjusted_level
-        #     ),
-        #     "armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(
-        #         adjusted_level
-        #     ),
-        #     "max armour": self.attribute_data[EntityAttributeType.ARMOUR].increase(
-        #         adjusted_level
-        #     ),
-        #     "max velocity": self.attribute_data[EntityAttributeType.SPEED].increase(
-        #         adjusted_level
-        #     ),
-        #     "armour regen cooldown": self.attribute_data[
-        #         EntityAttributeType.REGEN_COOLDOWN
-        #     ].increase(adjusted_level),
-        #     "bonus attack cooldown": 0,
-        # }
 
     def post_on_update(self, delta_time: float) -> None:
         """Processes enemy logic.

@@ -109,6 +109,7 @@ class StatusEffectType(Enum):
     SPEED = EntityAttributeType.SPEED
     FIRE_RATE = EntityAttributeType.FIRE_RATE_PENALTY
     # BURN = "burn"
+    # POISON = "poison"
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
