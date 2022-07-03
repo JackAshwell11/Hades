@@ -98,7 +98,7 @@ class Consumable(UsableTile, CollectibleTile):
         x: int,
         y: int,
         consumable_type: ConsumableData,
-        consumable_level: int,
+        consumable_level: int = 0,
     ) -> None:
         self.consumable_level: int = consumable_level
         super().__init__(game, x, y)

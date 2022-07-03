@@ -201,10 +201,7 @@ class UpgradablePlayerSection:
 
             # Apply that diff to the target entity attribute's value and max value
             # (if the attribute is variable)
-            target_attribute = self.player.entity_state[entity_attribute]
-            target_attribute._value += diff  # noqa
-            if target_attribute.attribute_data.variable:
-                target_attribute._max_value += diff  # noqa
+            self.player.entity_state[entity_attribute].upgrade(diff)
 
             # If the entity attribute is health or armour, we need to update the
             # indicator bars
@@ -311,6 +308,18 @@ class EntityAttribute:
             The attribute's max value.
         """
         return self._max_value
+
+    def upgrade(self, diff: float) -> None:
+        """Upgrades this attribute. This should only be called on the player entity.
+
+        Parameters
+        ----------
+        diff: float
+            The difference to add to the attribute to increase it's level.
+        """
+        self._value += diff
+        if self.attribute_data.variable:
+            self._max_value += diff
 
     def apply_status_effect(
         self, status_effect_data: StatusEffectData, level: int

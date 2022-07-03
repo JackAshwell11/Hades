@@ -3,8 +3,8 @@ from __future__ import annotations
 
 # Custom
 from game.constants.game_object import (
-    AreaOfEffectAttackData,
     AttackAlgorithmType,
+    AttackData,
     BaseData,
     ConsumableData,
     EnemyData,
@@ -14,7 +14,6 @@ from game.constants.game_object import (
     EntityData,
     InstantData,
     InstantEffectType,
-    MeleeAttackData,
     PlayerData,
     RangedAttackData,
     StatusEffectData,
@@ -55,8 +54,8 @@ PLAYER = BaseData(
                 increase=lambda current_level: 2 * 0.5**current_level,
                 status_effect=True,
             ),
-            EntityAttributeType.FIRE_RATE_MULTIPLIER: EntityAttributeData(
-                increase=lambda current_level: 1 * 1.1 * current_level,
+            EntityAttributeType.FIRE_RATE_PENALTY: EntityAttributeData(
+                increase=lambda current_level: 1 * 0.9**current_level,
                 status_effect=True,
             ),
             EntityAttributeType.MONEY: EntityAttributeData(
@@ -76,13 +75,16 @@ PLAYER = BaseData(
         },
     ),
     attacks={
-        AttackAlgorithmType.RANGED: RangedAttackData(
-            damage=10, attack_cooldown=3, attack_range=0, max_range=10
+        AttackAlgorithmType.RANGED: AttackData(
+            damage=10,
+            attack_cooldown=3,
+            attack_range=0,
+            extra=RangedAttackData(max_bullet_range=10),
         ),
-        AttackAlgorithmType.MELEE: MeleeAttackData(
+        AttackAlgorithmType.MELEE: AttackData(
             damage=10, attack_cooldown=1, attack_range=3
         ),
-        AttackAlgorithmType.AREA_OF_EFFECT: AreaOfEffectAttackData(
+        AttackAlgorithmType.AREA_OF_EFFECT: AttackData(
             damage=10, attack_cooldown=10, attack_range=3
         ),
     },
@@ -114,16 +116,19 @@ ENEMY1 = BaseData(
                 increase=lambda current_level: 3 * 0.6**current_level,
                 status_effect=True,
             ),
-            EntityAttributeType.FIRE_RATE_MULTIPLIER: EntityAttributeData(
-                increase=lambda current_level: 1 * 1.05**current_level,
+            EntityAttributeType.FIRE_RATE_PENALTY: EntityAttributeData(
+                increase=lambda current_level: 1 * 0.95**current_level,
                 status_effect=True,
             ),
         },
     ),
     enemy_data=EnemyData(view_distance=5),
     attacks={
-        AttackAlgorithmType.RANGED: RangedAttackData(
-            damage=5, attack_cooldown=5, attack_range=5, max_range=10
+        AttackAlgorithmType.RANGED: AttackData(
+            damage=5,
+            attack_cooldown=5,
+            attack_range=5,
+            extra=RangedAttackData(max_bullet_range=10),
         )
     },
 )
@@ -200,7 +205,7 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
     status_effects=[
         StatusEffectData(
             status_type=StatusEffectType.FIRE_RATE,
-            increase=lambda current_level: -0.5,
+            increase=lambda current_level: -0.05 * 1.1**current_level,
             duration=lambda current_level: 2 * 1.3**current_level,
         )
     ],

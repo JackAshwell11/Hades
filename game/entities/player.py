@@ -261,7 +261,7 @@ class Player(Entity):
         # Check if the player can attack
         if self.time_since_last_attack < (
             self.current_attack.attack_data.attack_cooldown
-            + self.bonus_attack_cooldown.value
+            * self.fire_rate_penalty.value
         ):
             return
 

@@ -425,8 +425,8 @@ class Entity(GameObject):
             EntityAttributeType, EntityAttribute
         ] = self._initialise_entity_state()
         self.attack_algorithms: list[AttackBase] = [
-            create_attack(self, algorithm_type, algorithm_data)
-            for algorithm_type, algorithm_data in self.attacks.items()
+            create_attack(self, attack_type, attack_data)
+            for attack_type, attack_data in self.attacks.items()
         ]
         self.health_bar: IndicatorBar | None = None
         self.armour_bar: IndicatorBar | None = None
@@ -540,15 +540,15 @@ class Entity(GameObject):
         return self.entity_state[EntityAttributeType.REGEN_COOLDOWN]
 
     @property
-    def bonus_attack_cooldown(self) -> EntityAttribute:
-        """Gets the entity's bonus attack cooldown.
+    def fire_rate_penalty(self) -> EntityAttribute:
+        """Gets the entity's fire rate penalty.
 
         Returns
         -------
         EntityAttribute
-            The entity's bonus attack cooldown.
+            The entity's fire rate penalty.
         """
-        return self.entity_state[EntityAttributeType.FIRE_RATE_MULTIPLIER]
+        return self.entity_state[EntityAttributeType.FIRE_RATE_PENALTY]
 
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialises the entity's state dict.

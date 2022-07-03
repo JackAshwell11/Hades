@@ -17,7 +17,6 @@ __all__ = (
     "ARMOUR_INDICATOR_BAR_COLOR",
     "ARMOUR_REGEN_AMOUNT",
     "ARMOUR_REGEN_WAIT",
-    "AreaOfEffectAttackData",
     "AttackAlgorithmType",
     "AttackData",
     "BULLET_VELOCITY",
@@ -37,7 +36,6 @@ __all__ = (
     "InstantEffectType",
     "MELEE_RESOLUTION",
     "MOVEMENT_FORCE",
-    "MeleeAttackData",
     "ObjectID",
     "PlayerData",
     "RangedAttackData",
@@ -60,13 +58,13 @@ class ObjectID(Enum):
 
 # Entity attribute types
 class EntityAttributeType(Enum):
-    """Stores the types of attributes which an entity can have."""
+    """Stores the types of attributes an entity can have."""
 
     HEALTH = "health"
     ARMOUR = "armour"
     SPEED = "speed"
     REGEN_COOLDOWN = "regen cooldown"
-    FIRE_RATE_MULTIPLIER = "fire rate multiplier"
+    FIRE_RATE_PENALTY = "fire rate penalty"
     MONEY = "money"
     # POTION_DURATION = "potion duration"
     # MELEE_ATTACK = "melee attack"
@@ -80,8 +78,8 @@ class EntityAttributeSectionType(Enum):
 
     ENDURANCE = [EntityAttributeType.HEALTH, EntityAttributeType.SPEED]
     DEFENCE = [EntityAttributeType.ARMOUR, EntityAttributeType.REGEN_COOLDOWN]
-    STRENGTH = []  # type: ignore
-    INTELLIGENCE = []  # type: ignore
+    # STRENGTH = []
+    # INTELLIGENCE = []
 
 
 # Attack algorithms
@@ -109,11 +107,11 @@ class StatusEffectType(Enum):
     HEALTH = EntityAttributeType.HEALTH
     ARMOUR = EntityAttributeType.ARMOUR
     SPEED = EntityAttributeType.SPEED
-    FIRE_RATE = EntityAttributeType.FIRE_RATE_MULTIPLIER
+    FIRE_RATE = EntityAttributeType.FIRE_RATE_PENALTY
     # BURN = "burn"
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True, slots=True)
 class BaseData:
     """The base class for constructing an entity.
 
@@ -127,15 +125,13 @@ class BaseData:
         The data about the entity's attacks.
     """
 
-    entity_data: EntityData = field(kw_only=True)
-    player_data: PlayerData | None = field(kw_only=True, default=None)
-    enemy_data: EnemyData | None = field(kw_only=True, default=None)
-    attacks: dict[AttackAlgorithmType, AttackData] = field(
-        kw_only=True, default_factory=dict
-    )
+    entity_data: EntityData
+    player_data: PlayerData | None = None
+    enemy_data: EnemyData | None = None
+    attacks: dict[AttackAlgorithmType, AttackData] = field(default_factory=dict)
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True, slots=True)
 class EntityData:
     """The base class for storing general data about an entity. This stuff should not
     change between entity levels.
@@ -152,14 +148,14 @@ class EntityData:
         The attributes that are available to this entity.
     """
 
-    name: str = field(kw_only=True)
-    textures: dict[str, list[list[arcade.Texture]]] = field(kw_only=True)
-    armour_regen: bool = field(kw_only=True)
-    level_limit: int = field(kw_only=True)
-    attribute_data: dict[EntityAttributeType, EntityAttributeData] = field(kw_only=True)
+    name: str
+    textures: dict[str, list[list[arcade.Texture]]]
+    armour_regen: bool
+    level_limit: int
+    attribute_data: dict[EntityAttributeType, EntityAttributeData]
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True, slots=True)
 class EntityAttributeData:
     """Stores an attribute that is available to the entity.
 
@@ -174,13 +170,13 @@ class EntityAttributeData:
         Whether this attribute can change from it current value or not.
     """
 
-    increase: Callable[[int], float] = field(kw_only=True)
-    maximum: bool = field(kw_only=True, default=True)
-    status_effect: bool = field(kw_only=True, default=False)
-    variable: bool = field(kw_only=True, default=False)
+    increase: Callable[[int], float]
+    maximum: bool = True
+    status_effect: bool = False
+    variable: bool = False
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True, slots=True)
 class PlayerData:
     """Stores data about a specific player type.
 
@@ -190,13 +186,11 @@ class PlayerData:
         The section upgrades that are available to the player.
     """
 
-    melee_degree: int = field(kw_only=True)
-    section_upgrade_data: dict[
-        EntityAttributeSectionType, Callable[[int], float]
-    ] = field(kw_only=True)
+    melee_degree: int
+    section_upgrade_data: dict[EntityAttributeSectionType, Callable[[int], float]]
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True, slots=True)
 class EnemyData:
     """Stores data about a specific enemy type.
 
@@ -204,13 +198,12 @@ class EnemyData:
         The amount of tiles the enemy can see too.
     """
 
-    view_distance: int = field(kw_only=True)
+    view_distance: int
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True, slots=True)
 class AttackData:
-    """The base class for storing data about an entity's attack. This should not be
-    initialised on its own.
+    """Stores generalized data about an entity's attack.
 
     damage: int
         The damage the entity deals.
@@ -218,51 +211,38 @@ class AttackData:
         The time duration between attacks.
     attack_range: int
         The range this attack has. This is the radius of the circle, not the diameter.
+    extra: RangedAttackData | None
+        The extra data about this entity's attack.
     """
 
-    damage: int = field(kw_only=True)
-    attack_cooldown: int = field(kw_only=True)
-    attack_range: int = field(kw_only=True)
-
-
-@dataclass
-class RangedAttackData(AttackData):
-    """Stores data about an entity's ranged attack.
-
     damage: int
-        The damage the entity deals.
     attack_cooldown: int
-        The time duration between attacks.
-    max_range: int
+    attack_range: int
+    extra: RangedAttackData | None = None
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class RangedAttackData:
+    """Stores extra data about an entity's ranged attack.
+
+    max_bullet_range: int
         The max range of the bullet.
     """
 
-    max_range: int = field(kw_only=True)
+    max_bullet_range: int
 
 
-@dataclass
-class MeleeAttackData(AttackData):
-    """Stores data about an entity's melee attack.
-
-    damage: int
-        The damage the entity deals.
-    attack_cooldown: int
-        The time duration between attacks.
-    """
-
-
-@dataclass
-class AreaOfEffectAttackData(AttackData):
-    """Stores data about an entity's area of effect attack.
-
-    damage: int
-        The damage the entity deals.
-    attack_cooldown: int
-        The time duration between attacks.
-    """
+# @dataclass(frozen=True, kw_only=True, slots=True)
+# class MeleeAttackData:
+#     """Stores data about an entity's melee attack."""
+#
+#
+# @dataclass(frozen=True, kw_only=True, slots=True)
+# class AreaOfEffectAttackData:
+#     """Stores data about an entity's area of effect attack."""
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True, slots=True)
 class ConsumableData:
     """The base class for constructing a consumable with multiple levels.
 
@@ -278,16 +258,14 @@ class ConsumableData:
         The status effects that this consumable gives.
     """
 
-    name: str = field(kw_only=True)
-    texture: arcade.Texture = field(kw_only=True)
-    level_limit: int = field(kw_only=True)
-    instant: Sequence[InstantData] = field(kw_only=True, default_factory=list)
-    status_effects: Sequence[StatusEffectData] = field(
-        kw_only=True, default_factory=list
-    )
+    name: str
+    texture: arcade.Texture
+    level_limit: int
+    instant: Sequence[InstantData] = field(default_factory=list)
+    status_effects: Sequence[StatusEffectData] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True, slots=True)
 class InstantData:
     """Stores the data for an individual instant effect applied by a consumable.
 
@@ -298,11 +276,11 @@ class InstantData:
         the current level.
     """
 
-    instant_type: InstantEffectType = field(kw_only=True)
-    increase: Callable[[int], float] = field(kw_only=True)
+    instant_type: InstantEffectType
+    increase: Callable[[int], float]
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True, slots=True)
 class StatusEffectData:
     """Stores the data for an individual status effect applied by a consumable.
 
@@ -318,9 +296,9 @@ class StatusEffectData:
         The duration of this status effect.
     """
 
-    status_type: StatusEffectType = field(kw_only=True)
-    increase: Callable[[int], float] = field(kw_only=True)
-    duration: Callable[[int], float] = field(kw_only=True)
+    status_type: StatusEffectType
+    increase: Callable[[int], float]
+    duration: Callable[[int], float]
 
 
 # Sprite sizes

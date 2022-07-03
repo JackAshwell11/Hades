@@ -64,7 +64,7 @@ class Enemy(Entity):
     object_id: ObjectID = ObjectID.ENEMY
 
     def __init__(
-        self, game: Game, x: int, y: int, enemy_type: BaseData, enemy_level: int
+        self, game: Game, x: int, y: int, enemy_type: BaseData, enemy_level: int = 0
     ) -> None:
         self.enemy_level: int = enemy_level
         super().__init__(game, x, y, enemy_type)
@@ -233,7 +233,7 @@ class Enemy(Entity):
             and self.time_since_last_attack
             >= (
                 self.current_attack.attack_data.attack_cooldown
-                + self.bonus_attack_cooldown.value
+                * self.fire_rate_penalty.value
             )
         ):
             return

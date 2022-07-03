@@ -158,12 +158,16 @@ class RangedAttack(AttackBase):
         args: Any
             A tuple containing the parameters needed for the attack.
         """
+        # Make sure variables needed are valid
+        assert self.attack_data.extra is not None
+
         # Make sure the needed parameters are valid
         bullet_list: arcade.SpriteList = args[0]
         logger.info("Entity %r is performing a ranged attack", self.owner)
 
         # Reset the time counter
         self.owner.time_since_last_attack = 0
+
         # Create and add the new bullet to the physics engine
         new_bullet = Bullet(
             self.owner.center_x,
@@ -173,7 +177,7 @@ class RangedAttack(AttackBase):
             arcade.color.RED,
             self.owner,
             self.attack_data.damage,
-            self.attack_data.max_range * SPRITE_SIZE,
+            self.attack_data.extra.max_bullet_range * SPRITE_SIZE,
         )
         physics: PhysicsEngine = self.owner.physics_engines[0]
         physics.add_bullet(new_bullet)
