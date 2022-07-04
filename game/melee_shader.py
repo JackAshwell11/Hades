@@ -9,7 +9,7 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.entity import MELEE_RESOLUTION, SPRITE_SIZE
+from game.constants.game_object import MELEE_RESOLUTION, SPRITE_SIZE
 
 if TYPE_CHECKING:
     from arcade import ArcadeContext
@@ -101,7 +101,7 @@ class MeleeShader:
         # Configure the program with the maximum distance, the angle range and the
         # resolution
         self.program["max_distance"] = (
-            self.view.player.current_attack.attack_range * SPRITE_SIZE
+            self.view.player.current_attack.attack_data.attack_range * SPRITE_SIZE
         )
         self.program["half_angle_range"] = (
             self.view.player.player_data.melee_degree // 2

@@ -14,17 +14,8 @@ import arcade
 import numpy as np
 
 # Custom
-from game.constants.constructor import (
-    ARMOUR_BOOST_POTION,
-    ARMOUR_POTION,
-    ENEMY1,
-    FIRE_RATE_BOOST_POTION,
-    HEALTH_BOOST_POTION,
-    HEALTH_POTION,
-    PLAYER,
-    SPEED_BOOST_POTION,
-)
-from game.constants.entity import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
+from game.constants.constructor import CONSUMABLES, ENEMIES, PLAYERS
+from game.constants.game_object import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE, ObjectID
 from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
@@ -48,6 +39,7 @@ from game.views.inventory_view import InventoryView
 from game.views.shop_view import ShopView
 
 if TYPE_CHECKING:
+    from game.constants.game_object import BaseData, ConsumableData
     from game.entities.base import CollectibleTile, UsableTile
     from game.generation.map import GameMapShape
 
@@ -182,126 +174,85 @@ class Game(BaseView):
         # Assign sprites to the game map and initialise the vector grid
         for count_y, y in enumerate(np.flipud(game_map)):
             for count_x, x in enumerate(y):
-                # Determine if we need to make a floor or wall as the backdrop
+                # Determine if the tile is empty
+                if x == TileType.EMPTY.value:
+                    continue
+
+                # Determine if the tile is a wall
                 if x == TileType.WALL.value:
-                    wall = Wall(count_x, count_y)
+                    wall = Wall(self, count_x, count_y)
                     self.wall_sprites.append(wall)
                     self.tile_sprites.append(wall)
-                elif x != TileType.EMPTY.value:
-                    floor = Floor(count_x, count_y)
-                    self.tile_sprites.append(floor)
+                    continue
 
-                # Determine which type the tile is
-                match x:
-                    case TileType.PLAYER.value:
-                        self.player = Player(
-                            self,
-                            count_x,
-                            count_y,
-                            PLAYER,
-                        )
-                    case TileType.ENEMY.value:
-                        self.enemy_sprites.append(
-                            Enemy(
-                                self,
-                                count_x,
-                                count_y,
-                                ENEMY1,
-                                min(
-                                    random.randint(lower_bound_enemy, upper_bound),
-                                    ENEMY1.entity_data.upgrade_level_limit,
-                                ),
-                            )
-                        )
-                    case TileType.HEALTH_POTION.value:
-                        health_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            HEALTH_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                HEALTH_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(health_potion)
-                        self.item_sprites.append(health_potion)
-                    case TileType.ARMOUR_POTION.value:
-                        armour_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            ARMOUR_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                ARMOUR_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(armour_potion)
-                        self.item_sprites.append(armour_potion)
-                    case TileType.HEALTH_BOOST_POTION.value:
-                        health_boost_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            HEALTH_BOOST_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                HEALTH_BOOST_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(health_boost_potion)
-                        self.item_sprites.append(health_boost_potion)
-                    case TileType.ARMOUR_BOOST_POTION.value:
-                        armour_boost_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            ARMOUR_BOOST_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                ARMOUR_BOOST_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(armour_boost_potion)
-                        self.item_sprites.append(armour_boost_potion)
-                    case TileType.SPEED_BOOST_POTION.value:
-                        speed_boost_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            SPEED_BOOST_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                SPEED_BOOST_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(speed_boost_potion)
-                        self.item_sprites.append(speed_boost_potion)
-                    case TileType.FIRE_RATE_BOOST_POTION.value:
-                        fire_rate_potion = Consumable(
-                            self,
-                            count_x,
-                            count_y,
-                            FIRE_RATE_BOOST_POTION,
-                            min(
-                                random.randint(lower_bound_consumable, upper_bound),
-                                FIRE_RATE_BOOST_POTION.level_limit,
-                            ),
-                        )
-                        self.tile_sprites.append(fire_rate_potion)
-                        self.item_sprites.append(fire_rate_potion)
+                # The tile's backdrop should be a floor
+                floor = Floor(self, count_x, count_y)
+                self.tile_sprites.append(floor)
+
+                # Skip to the next iteration if the tile is a floor
+                if x == TileType.FLOOR.value:
+                    continue
+
+                # Determine if the tile is a player, an enemy or a consumable
+                if x in PLAYERS:
+                    instantiated_cls = Player(self, count_x, count_y, PLAYERS[x])
+                else:
+                    target_cls: type[Enemy] | type[Consumable]
+                    target_constructor: BaseData | ConsumableData
+                    if x in ENEMIES:
+                        target_cls = Enemy
+                        target_constructor = ENEMIES[x]
+                        lower_bound = lower_bound_enemy
+                        level_limit = target_constructor.entity_data.level_limit
+                    else:
+                        target_cls = Consumable
+                        target_constructor = CONSUMABLES[x]
+                        lower_bound = lower_bound_consumable
+                        level_limit = target_constructor.level_limit
+                    instantiated_cls = target_cls(
+                        self,
+                        count_x,
+                        count_y,
+                        target_constructor,  # type: ignore
+                        min(
+                            random.randint(lower_bound, upper_bound),
+                            level_limit,
+                        ),
+                    )
+
+                # Add the instantiated game object to the necessary sprite lists
+                if instantiated_cls.object_id is ObjectID.PLAYER:
+                    self.player = instantiated_cls
+                elif instantiated_cls.object_id is ObjectID.ENEMY:
+                    self.enemy_sprites.append(instantiated_cls)
+                elif instantiated_cls.object_id is ObjectID.TILE:
+                    self.tile_sprites.append(instantiated_cls)
+                    self.item_sprites.append(instantiated_cls)
 
         # Make sure the game map shape was set and the player was actually created
         assert self.game_map_shape is not None
         assert self.player is not None
 
-        # Debug what was created
+        # Debug how many enemies and tiles were initialised
         logger.debug(
             "Initialised game view with %d enemies and %d tiles",
             len(self.enemy_sprites),
             len(self.tile_sprites),
         )
+
+        # Set up the inventory view
+        inventory_view = InventoryView(self.player)
+        self.window.views["InventoryView"] = inventory_view
+        logger.info("Initialised inventory view")
+
+        # Set up the shop view
+        shop_view = ShopView(self.player)
+        self.window.views["ShopView"] = shop_view
+        logger.info("Initialised shop view")
+
+        # Create the physics engine
+        self.physics_engine = PhysicsEngine(DAMPING)
+        self.physics_engine.setup(self.player, self.tile_sprites, self.enemy_sprites)
 
         # Initialise the vector field
         self.vector_field = VectorField(
@@ -319,22 +270,8 @@ class Game(BaseView):
             self.player.position
         )
 
-        # Create the physics engine
-        self.physics_engine = PhysicsEngine(DAMPING)
-        self.physics_engine.setup(self.player, self.tile_sprites, self.enemy_sprites)
-
         # Set up the melee shader
         self.player.melee_shader.setup_shader()
-
-        # Set up the inventory view
-        inventory_view = InventoryView(self.player)
-        self.window.views["InventoryView"] = inventory_view
-        logger.info("Initialised inventory view")
-
-        # Set up the shop view
-        shop_view = ShopView(self.player)
-        self.window.views["ShopView"] = shop_view
-        logger.info("Initialised shop view")
 
     def on_draw(self) -> None:
         """Render the screen."""
@@ -348,7 +285,7 @@ class Game(BaseView):
         # Activate our Camera
         self.game_camera.use()
 
-        # Draw the various spritelist
+        # Draw the various spritelists
         self.tile_sprites.draw(pixelated=True)
         self.bullet_sprites.draw(pixelated=True)
         self.enemy_sprites.draw(pixelated=True)
@@ -371,7 +308,7 @@ class Game(BaseView):
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.current_attack.attack_range * SPRITE_SIZE,
+                    enemy.current_attack.attack_data.attack_range * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
 
@@ -386,21 +323,21 @@ class Game(BaseView):
                     self.player.center_x
                     + math.cos(low_angle)
                     * SPRITE_SIZE
-                    * self.player.current_attack.attack_range,
+                    * self.player.current_attack.attack_data.attack_range,
                     self.player.center_y
                     + math.sin(low_angle)
                     * SPRITE_SIZE
-                    * self.player.current_attack.attack_range,
+                    * self.player.current_attack.attack_data.attack_range,
                 )
                 point_high = (
                     self.player.center_x
                     + math.cos(high_angle)
                     * SPRITE_SIZE
-                    * self.player.current_attack.attack_range,
+                    * self.player.current_attack.attack_data.attack_range,
                     self.player.center_y
                     + math.sin(high_angle)
                     * SPRITE_SIZE
-                    * self.player.current_attack.attack_range,
+                    * self.player.current_attack.attack_data.attack_range,
                 )
                 # Draw both boundary lines for the player fov
                 arcade.draw_line(
@@ -424,7 +361,9 @@ class Game(BaseView):
                         point_high[0] - point_low[0], point_high[1] - point_low[1]
                     )
                     * 2,
-                    self.player.current_attack.attack_range * SPRITE_SIZE * 2,
+                    self.player.current_attack.attack_data.attack_range
+                    * SPRITE_SIZE
+                    * 2,
                     DEBUG_ATTACK_DISTANCE,
                     math.degrees(low_angle),
                     math.degrees(high_angle),
@@ -435,7 +374,7 @@ class Game(BaseView):
                 arcade.draw_circle_outline(
                     self.player.center_x,
                     self.player.center_y,
-                    self.player.current_attack.attack_range * SPRITE_SIZE,
+                    self.player.current_attack.attack_data.attack_range * SPRITE_SIZE,
                     DEBUG_ATTACK_DISTANCE,
                 )
 
@@ -455,7 +394,7 @@ class Game(BaseView):
         # Draw the gui on the screen
         self.gui_camera.use()
         self.player_gui_sprites.draw()
-        self.player_status_text.value = f"Money: {self.player.money}"
+        self.player_status_text.value = f"Money: {str(self.player.money.value)}"
         self.player_status_text.draw()
         if self.nearest_item:
             self.item_text.text = self.nearest_item.item_text
@@ -477,7 +416,7 @@ class Game(BaseView):
         assert self.player is not None
 
         # Check if the game should end
-        if self.player.health <= 0 or not self.enemy_sprites:
+        if self.player.health.value <= 0 or not self.enemy_sprites:
             arcade.exit()
 
         # Process logic for the player

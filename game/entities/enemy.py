@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import (
+from game.constants.game_object import (
     ARMOUR_INDICATOR_BAR_COLOR,
     ENEMY_INDICATOR_BAR_OFFSET,
     FACING_LEFT,
@@ -18,13 +18,15 @@ from game.constants.entity import (
     HEALTH_INDICATOR_BAR_COLOR,
     SPRITE_SIZE,
     AttackAlgorithmType,
-    EntityID,
+    EntityAttributeType,
+    ObjectID,
 )
+from game.entities.attribute import EntityAttribute
 from game.entities.base import Entity, IndicatorBar
 from game.entities.movement import EnemyMovementManager
 
 if TYPE_CHECKING:
-    from game.constants.entity import BaseData
+    from game.constants.game_object import BaseData, EnemyData
     from game.views.game_view import Game
 
 __all__ = ("Enemy",)
@@ -59,10 +61,10 @@ class Enemy(Entity):
     """
 
     # Class variables
-    entity_id: EntityID = EntityID.ENEMY
+    object_id: ObjectID = ObjectID.ENEMY
 
     def __init__(
-        self, game: Game, x: int, y: int, enemy_type: BaseData, enemy_level: int
+        self, game: Game, x: int, y: int, enemy_type: BaseData, enemy_level: int = 0
     ) -> None:
         self.enemy_level: int = enemy_level
         super().__init__(game, x, y, enemy_type)
@@ -87,12 +89,27 @@ class Enemy(Entity):
             f" level={self.enemy_level})>"
         )
 
-    def _initialise_entity_state(self) -> dict[str, float]:
+    @property
+    def enemy_data(self) -> EnemyData:
+        """Gets the enemy data if it exists.
+
+        Returns
+        -------
+        EnemyData
+            The enemy data.
+        """
+        # Make sure the enemy data is valid
+        assert self.entity_type.enemy_data is not None
+
+        # Return the enemy data
+        return self.entity_type.enemy_data
+
+    def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialises the entity's state dict.
 
         Returns
         -------
-        dict[str, float]
+        dict[EntityAttributeType, EntityAttribute]
             The initialised entity state.
         """
         # Get the enemy level adjusted for an array index
@@ -101,15 +118,8 @@ class Enemy(Entity):
 
         # Create the entity state dict
         return {
-            "health": self.upgrade_data[0].upgrades[0].increase(adjusted_level),
-            "max health": self.upgrade_data[0].upgrades[0].increase(adjusted_level),
-            "armour": self.upgrade_data[1].upgrades[0].increase(adjusted_level),
-            "max armour": self.upgrade_data[1].upgrades[0].increase(adjusted_level),
-            "max velocity": self.upgrade_data[0].upgrades[1].increase(adjusted_level),
-            "armour regen cooldown": self.upgrade_data[1]
-            .upgrades[1]
-            .increase(adjusted_level),
-            "bonus attack cooldown": 0,
+            attribute_type: EntityAttribute(self, attribute_data, adjusted_level)
+            for attribute_type, attribute_data in self.attribute_data.items()
         }
 
     def post_on_update(self, delta_time: float) -> None:
@@ -133,16 +143,22 @@ class Enemy(Entity):
         else:
             # Enemy in combat so reset their combat counter
             self.time_out_of_combat = 0
-            self.time_since_armour_regen = self.armour_regen_cooldown
+            self.time_since_armour_regen = self.armour_regen_cooldown.value
 
         # Make the enemy move
-        self.move()
+        self.move(delta_time)
 
         # Make the enemy attack (they may not if the player is not within range)
         self.attack()
 
-    def move(self) -> None:
-        """Processes the needed actions for the enemy to move."""
+    def move(self, delta_time: float) -> None:
+        """Processes the needed actions for the enemy to move.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
+        """
         # Make sure variables needed are valid
         assert self.game.player is not None
 
@@ -191,26 +207,29 @@ class Enemy(Entity):
 
         # Check if the player is within range and line of sight of the enemy
         if not (
-            self.check_line_of_sight(self.current_attack.attack_range)
+            self.check_line_of_sight(self.current_attack.attack_data.attack_range)
             and self.player_within_range
             and self.time_since_last_attack
-            >= (self.current_attack.attack_cooldown + self.bonus_attack_cooldown)
+            >= (
+                self.current_attack.attack_data.attack_cooldown
+                * self.fire_rate_penalty.value
+            )
         ):
             return
 
         # Enemy can attack so reset the counters and determine what attack algorithm is
         # selected
         self.time_since_last_attack = 0
-        match type(self.current_attack):
-            case AttackAlgorithmType.RANGED.value:
+        match self.current_attack.attack_type:
+            case AttackAlgorithmType.RANGED:
                 self.current_attack.process_attack(self.game.bullet_sprites)
-            case AttackAlgorithmType.MELEE.value:
+            case AttackAlgorithmType.MELEE:
                 self.current_attack.process_attack([self.game.player])
-            case AttackAlgorithmType.AREA_OF_EFFECT.value:
+            case AttackAlgorithmType.AREA_OF_EFFECT:
                 self.current_attack.process_attack(self.game.player)
 
     def check_line_of_sight(self, max_tile_range: int) -> bool:
-        """Check if the enemy has line of sight with the player.
+        """Checks if the enemy has line of sight with the player.
 
         Parameters
         ----------

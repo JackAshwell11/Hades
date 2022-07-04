@@ -2,37 +2,30 @@
 from __future__ import annotations
 
 # Custom
-from game.constants.consumable import (
+from game.constants.game_object import (
+    AttackAlgorithmType,
+    AttackData,
+    BaseData,
     ConsumableData,
+    EnemyData,
+    EntityAttributeData,
+    EntityAttributeSectionType,
+    EntityAttributeType,
+    EntityData,
     InstantData,
     InstantEffectType,
+    PlayerData,
+    RangedAttackData,
     StatusEffectData,
     StatusEffectType,
 )
-from game.constants.entity import (
-    AreaOfEffectAttackData,
-    AttributeUpgradeData,
-    BaseData,
-    EnemyData,
-    EntityData,
-    EntityUpgradeData,
-    MeleeAttackData,
-    PlayerData,
-    RangedAttackData,
-    UpgradeAttribute,
-    UpgradeSection,
-)
+from game.constants.generation import TileType
 from game.textures import moving_textures, non_moving_textures
 
 __all__ = (
-    "PLAYER",
-    "ENEMY1",
-    "HEALTH_POTION",
-    "ARMOUR_POTION",
-    "HEALTH_BOOST_POTION",
-    "ARMOUR_BOOST_POTION",
-    "SPEED_BOOST_POTION",
-    "FIRE_RATE_BOOST_POTION",
+    "CONSUMABLES",
+    "ENEMIES",
+    "PLAYERS",
 )
 
 # Player characters
@@ -41,48 +34,60 @@ PLAYER = BaseData(
         name="player",
         textures=moving_textures["player"],
         armour_regen=True,
-        upgrade_level_limit=5,
-        upgrade_data=[
-            EntityUpgradeData(
-                section_type=UpgradeSection.ENDURANCE,
-                cost=lambda current_level: 1 * 3**current_level,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.HEALTH,
-                        increase=lambda current_level: 100 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.SPEED,
-                        increase=lambda current_level: 150 * 1.4**current_level,
-                    ),
-                ],
+        level_limit=5,
+        attribute_data={
+            EntityAttributeType.HEALTH: EntityAttributeData(
+                increase=lambda current_level: 100 * 1.4**current_level,
+                status_effect=True,
+                variable=True,
             ),
-            EntityUpgradeData(
-                section_type=UpgradeSection.DEFENCE,
-                cost=lambda current_level: 1 * 3**current_level,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.ARMOUR,
-                        increase=lambda current_level: 20 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
-                        increase=lambda current_level: 2 * 0.5**current_level,
-                    ),
-                ],
+            EntityAttributeType.SPEED: EntityAttributeData(
+                increase=lambda current_level: 150 * 1.4**current_level,
+                status_effect=True,
             ),
-        ],
+            EntityAttributeType.ARMOUR: EntityAttributeData(
+                increase=lambda current_level: 20 * 1.4**current_level,
+                status_effect=True,
+                variable=True,
+            ),
+            EntityAttributeType.REGEN_COOLDOWN: EntityAttributeData(
+                increase=lambda current_level: 2 * 0.5**current_level,
+                status_effect=True,
+            ),
+            EntityAttributeType.FIRE_RATE_PENALTY: EntityAttributeData(
+                increase=lambda current_level: 1 * 0.9**current_level,
+                status_effect=True,
+            ),
+            EntityAttributeType.MONEY: EntityAttributeData(
+                increase=lambda _: 0,
+                maximum=False,
+                variable=True,
+            ),
+        },
     ),
     player_data=PlayerData(
         melee_degree=60,
+        section_upgrade_data={
+            EntityAttributeSectionType.ENDURANCE: lambda current_level: 1
+            * 3**current_level,
+            EntityAttributeSectionType.DEFENCE: lambda current_level: 1
+            * 3**current_level,
+        },
     ),
-    ranged_attack_data=RangedAttackData(
-        damage=10, attack_cooldown=3, attack_range=0, max_range=10
-    ),
-    melee_attack_data=MeleeAttackData(damage=10, attack_cooldown=1, attack_range=3),
-    area_of_effect_attack_data=AreaOfEffectAttackData(
-        damage=10, attack_cooldown=10, attack_range=3
-    ),
+    attacks={
+        AttackAlgorithmType.RANGED: AttackData(
+            damage=10,
+            attack_cooldown=3,
+            attack_range=0,
+            extra=RangedAttackData(max_bullet_range=10),
+        ),
+        AttackAlgorithmType.MELEE: AttackData(
+            damage=10, attack_cooldown=1, attack_range=3
+        ),
+        AttackAlgorithmType.AREA_OF_EFFECT: AttackData(
+            damage=10, attack_cooldown=10, attack_range=3
+        ),
+    },
 )
 
 # Enemy characters
@@ -91,42 +96,41 @@ ENEMY1 = BaseData(
         name="enemy1",
         textures=moving_textures["enemy"],
         armour_regen=True,
-        upgrade_level_limit=5,
-        upgrade_data=[
-            EntityUpgradeData(
-                section_type=UpgradeSection.ENDURANCE,
-                cost=lambda current_level: -1,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.HEALTH,
-                        increase=lambda current_level: 10 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.SPEED,
-                        increase=lambda current_level: 50 * 1.4**current_level,
-                    ),
-                ],
+        level_limit=5,
+        attribute_data={
+            EntityAttributeType.HEALTH: EntityAttributeData(
+                increase=lambda current_level: 10 * 1.4**current_level,
+                status_effect=True,
+                variable=True,
             ),
-            EntityUpgradeData(
-                section_type=UpgradeSection.DEFENCE,
-                cost=lambda current_level: -1,
-                upgrades=[
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.ARMOUR,
-                        increase=lambda current_level: 10 * 1.4**current_level,
-                    ),
-                    AttributeUpgradeData(
-                        attribute_type=UpgradeAttribute.REGEN_COOLDOWN,
-                        increase=lambda current_level: 3 * 0.6**current_level,
-                    ),
-                ],
+            EntityAttributeType.SPEED: EntityAttributeData(
+                increase=lambda current_level: 50 * 1.4**current_level,
+                status_effect=True,
             ),
-        ],
+            EntityAttributeType.ARMOUR: EntityAttributeData(
+                increase=lambda current_level: 10 * 1.4**current_level,
+                status_effect=True,
+                variable=True,
+            ),
+            EntityAttributeType.REGEN_COOLDOWN: EntityAttributeData(
+                increase=lambda current_level: 3 * 0.6**current_level,
+                status_effect=True,
+            ),
+            EntityAttributeType.FIRE_RATE_PENALTY: EntityAttributeData(
+                increase=lambda current_level: 1 * 0.95**current_level,
+                status_effect=True,
+            ),
+        },
     ),
     enemy_data=EnemyData(view_distance=5),
-    ranged_attack_data=RangedAttackData(
-        damage=5, attack_cooldown=5, attack_range=5, max_range=10
-    ),
+    attacks={
+        AttackAlgorithmType.RANGED: AttackData(
+            damage=5,
+            attack_cooldown=5,
+            attack_range=5,
+            extra=RangedAttackData(max_bullet_range=10),
+        )
+    },
 )
 
 # Base instant consumables
@@ -187,7 +191,7 @@ SPEED_BOOST_POTION = ConsumableData(
     level_limit=5,
     status_effects=[
         StatusEffectData(
-            status_type=StatusEffectType.HEALTH,
+            status_type=StatusEffectType.SPEED,
             increase=lambda current_level: 25 * 1.3**current_level,
             duration=lambda current_level: 2 * 1.3**current_level,
         )
@@ -200,9 +204,22 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
     level_limit=5,
     status_effects=[
         StatusEffectData(
-            status_type=StatusEffectType.HEALTH,
-            increase=lambda current_level: -0.5,
+            status_type=StatusEffectType.FIRE_RATE,
+            increase=lambda current_level: -0.05 * 1.1**current_level,
             duration=lambda current_level: 2 * 1.3**current_level,
         )
     ],
 )
+
+
+# Constructor mappings
+PLAYERS = {TileType.PLAYER: PLAYER}
+ENEMIES = {TileType.ENEMY: ENEMY1}
+CONSUMABLES = {
+    TileType.HEALTH_POTION: HEALTH_POTION,
+    TileType.ARMOUR_POTION: ARMOUR_POTION,
+    TileType.HEALTH_BOOST_POTION: HEALTH_BOOST_POTION,
+    TileType.ARMOUR_BOOST_POTION: ARMOUR_POTION,
+    TileType.SPEED_BOOST_POTION: SPEED_BOOST_POTION,
+    TileType.FIRE_RATE_BOOST_POTION: FIRE_RATE_BOOST_POTION,
+}

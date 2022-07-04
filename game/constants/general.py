@@ -9,19 +9,19 @@ from datetime import datetime
 import arcade
 
 __all__ = (
-    "GAME_LOGGER",
-    "LOGGING_DICT_CONFIG",
-    "DEBUG_LINES",
-    "DEBUG_GAME",
-    "DEBUG_VIEW_DISTANCE",
-    "DEBUG_ATTACK_DISTANCE",
-    "DEBUG_VECTOR_FIELD_LINE",
-    "DAMPING",
-    "INVENTORY_WIDTH",
-    "INVENTORY_HEIGHT",
-    "LEVEL_GENERATOR_INTERVAL",
-    "ENEMY_LEVEL_MAX_RANGE",
     "CONSUMABLE_LEVEL_MAX_RANGE",
+    "DAMPING",
+    "DEBUG_ATTACK_DISTANCE",
+    "DEBUG_GAME",
+    "DEBUG_LINES",
+    "DEBUG_VECTOR_FIELD_LINE",
+    "DEBUG_VIEW_DISTANCE",
+    "ENEMY_LEVEL_MAX_RANGE",
+    "GAME_LOGGER",
+    "INVENTORY_HEIGHT",
+    "INVENTORY_WIDTH",
+    "LEVEL_GENERATOR_INTERVAL",
+    "LOGGING_DICT_CONFIG",
 )
 
 # Create the log directory making sure it exists. Then create the path for the current

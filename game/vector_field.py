@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 # Custom
-from game.constants.entity import SPRITE_SIZE
+from game.constants.game_object import SPRITE_SIZE
 
 if TYPE_CHECKING:
     import arcade
@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 
 class VectorField:
     """Represents a vector flow field that allows for efficient pathfinding to a
-    specific position for large amount of entities. The steps needed to accomplish this:
+    specific position for large amount of entities.
+
+    The steps needed to accomplish this:
         1. First, we start at the destination tile and work our way outwards using a
         breadth first search. This is called a 'flood fill' and will construct the
         Dijkstra map needed for the vector field.
@@ -41,13 +43,13 @@ class VectorField:
         efficient way to calculate pathfinding for a large amount of entities.
 
     Further reading which may be useful:
-        `Other uses of Dijkstra maps
-        <http://www.roguebasin.com/index.php/The_Incredible_Power_of_Dijkstra_Maps>`_
-        `Dijkstra maps visualized
-        <http://www.roguebasin.com/index.php/Dijkstra_Maps_Visualized>`_
-        `Understanding goal based pathfinding
-        <https://gamedevelopment.tutsplus.com/tutorials/understanding-goal-based-vector\
-        -field-pathfinding--gamedev-9007>`_
+    `Other uses of Dijkstra maps
+    <http://www.roguebasin.com/index.php/The_Incredible_Power_of_Dijkstra_Maps>`_
+    `Dijkstra maps visualized
+    <http://www.roguebasin.com/index.php/Dijkstra_Maps_Visualized>`_
+    `Understanding goal based pathfinding
+    <https://gamedevelopment.tutsplus.com/tutorials/understanding-goal-based-vector\
+    -field-pathfinding--gamedev-9007>`_
 
     Parameters
     ----------

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import EntityID
+from game.constants.game_object import ObjectID
 
 if TYPE_CHECKING:
     from game.entities.attack import Bullet
@@ -75,7 +75,7 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
     """
     try:
         # Check if the owner is the player
-        if bullet.owner.entity_id is EntityID.PLAYER:
+        if bullet.owner.object_id is ObjectID.PLAYER:
             # Remove the bullet
             bullet.remove_from_sprite_lists()
 
@@ -111,7 +111,7 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
     """
     try:
         # Check if the owner is an enemy
-        if bullet.owner.entity_id is EntityID.ENEMY:
+        if bullet.owner.object_id is ObjectID.ENEMY:
             # Remove the bullet
             bullet.remove_from_sprite_lists()
 
@@ -165,8 +165,8 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             player,
             moment_of_inertia=self.MOMENT_INF,
             collision_type="player",
-            max_horizontal_velocity=int(player.max_velocity),
-            max_vertical_velocity=int(player.max_velocity),
+            max_horizontal_velocity=int(player.max_velocity.value),
+            max_vertical_velocity=int(player.max_velocity.value),
         )
         logger.debug("Added %r to physics engine", player)
 
@@ -186,8 +186,8 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                 enemy,
                 moment_of_inertia=self.MOMENT_INF,
                 collision_type="enemy",
-                max_horizontal_velocity=int(enemy.max_velocity),
-                max_vertical_velocity=int(enemy.max_velocity),
+                max_horizontal_velocity=int(enemy.max_velocity.value),
+                max_vertical_velocity=int(enemy.max_velocity.value),
             )
             logger.debug("Added %r to physics engine", enemy)
 

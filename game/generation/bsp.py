@@ -18,9 +18,9 @@ from game.constants.generation import (
 )
 
 __all__ = (
+    "Leaf",
     "Point",
     "Rect",
-    "Leaf",
 )
 
 

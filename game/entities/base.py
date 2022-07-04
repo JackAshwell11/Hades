@@ -10,41 +10,37 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import (
+from game.constants.game_object import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
-    EntityID,
-    EntityUpgradeData,
+    EntityAttributeType,
+    ObjectID,
 )
+from game.entities.attack import create_attack
 from game.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-
-    from game.constants.entity import (
-        AreaOfEffectAttackData,
+    from game.constants.game_object import (
+        AttackAlgorithmType,
         AttackData,
         BaseData,
-        EnemyData,
+        EntityAttributeData,
         EntityData,
-        MeleeAttackData,
-        PlayerData,
-        RangedAttackData,
     )
     from game.entities.attack import AttackBase
+    from game.entities.attribute import EntityAttribute
     from game.entities.player import Player
-    from game.entities.status_effect import StatusEffectBase
     from game.physics import PhysicsEngine
     from game.views.game_view import Game
 
 __all__ = (
-    "IndicatorBar",
-    "Entity",
-    "Tile",
-    "InteractiveTile",
-    "UsableTile",
     "CollectibleTile",
+    "Entity",
+    "IndicatorBar",
+    "InteractiveTile",
+    "Tile",
+    "UsableTile",
 )
 
 # Get the logger
@@ -343,7 +339,41 @@ class IndicatorBar:
             self.full_box.scale = value
 
 
-class Entity(arcade.Sprite):
+class GameObject(arcade.Sprite):
+    """The base class for all game objects.
+
+    Parameters
+    ----------
+    game: Game
+        The game view. This is passed so the object can have a reference to it.
+    x: int
+        The x position of the object in the game map.
+    y: int
+        The y position of the object in the game map.
+
+    Attributes
+    ----------
+    center_x: float
+        The x position of the object on the screen.
+    center_y: float
+        The y position of the object on the screen.
+    """
+
+    # Class variables
+    object_id: ObjectID = ObjectID.BASE
+
+    def __init__(
+        self,
+        game: Game,
+        x: int,
+        y: int,
+    ) -> None:
+        super().__init__(scale=SPRITE_SCALE)
+        self.game: Game = game
+        self.center_x, self.center_y = grid_pos_to_pixel(x, y)
+
+
+class Entity(GameObject):
     """Represents an entity in the game.
 
     Parameters
@@ -359,10 +389,10 @@ class Entity(arcade.Sprite):
 
     Attributes
     ----------
+    entity_state: dict[EntityAttributeType, EntityAttribute]
+        The entity's state which manages all the entity's attributes.
     attack_algorithms: list[AttackBase]
         A list of the entity's attack algorithms.
-    applied_effects: list[StatusEffectBase]
-        The currently applied status effects.
     health_bar: IndicatorBar | None
         An indicator bar object which displays the entity's health visually.
     armour_bar: IndicatorBar | None
@@ -381,9 +411,6 @@ class Entity(arcade.Sprite):
         The time since the entity last regenerated armour.
     """
 
-    # Class variables
-    entity_id: EntityID = EntityID.ENTITY
-
     def __init__(
         self,
         game: Game,
@@ -391,17 +418,16 @@ class Entity(arcade.Sprite):
         y: int,
         entity_type: BaseData,
     ) -> None:
-        super().__init__(scale=SPRITE_SCALE)
-        self.game: Game = game
-        self.center_x, self.center_y = grid_pos_to_pixel(x, y)
+        super().__init__(game, x, y)
         self.entity_type: BaseData = entity_type
-        self._entity_state: dict[str, float] = self._initialise_entity_state()
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
+        self.entity_state: dict[
+            EntityAttributeType, EntityAttribute
+        ] = self._initialise_entity_state()
         self.attack_algorithms: list[AttackBase] = [
-            algorithm.attack_type.value(self, algorithm.attack_cooldown)
-            for algorithm in self.attacks
+            create_attack(self, attack_type, attack_data)
+            for attack_type, attack_data in self.attacks.items()
         ]
-        self.applied_effects: list[StatusEffectBase] = []
         self.health_bar: IndicatorBar | None = None
         self.armour_bar: IndicatorBar | None = None
         self.current_attack_index: int = 0
@@ -409,7 +435,7 @@ class Entity(arcade.Sprite):
         self.facing: int = 0
         self.time_since_last_attack: float = 0
         self.time_out_of_combat: float = 0
-        self.time_since_armour_regen: float = self.armour_regen_cooldown
+        self.time_since_armour_regen: float = self.armour_regen_cooldown.value
 
     def __repr__(self) -> str:
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
@@ -423,106 +449,29 @@ class Entity(arcade.Sprite):
         EntityData
             The general entity data.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-
-        # Return the entity data
         return self.entity_type.entity_data
 
     @property
-    def player_data(self) -> PlayerData:
-        """Gets the player data if it exists.
+    def attacks(self) -> dict[AttackAlgorithmType, AttackData]:
+        """Gets the entity's attacks.
 
         Returns
         -------
-        PlayerData
-            The player data.
-        """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-        assert self.entity_type.player_data is not None
-
-        # Return the player data
-        return self.entity_type.player_data
-
-    @property
-    def enemy_data(self) -> EnemyData:
-        """Gets the enemy data if it exists.
-
-        Returns
-        -------
-        EnemyData
-            The enemy data.
-        """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-        assert self.entity_type.enemy_data is not None
-
-        # Return the enemy data
-        return self.entity_type.enemy_data
-
-    @property
-    def attacks(self) -> Iterator[AttackData]:
-        """Gets all the attacks the entity has.
-
-        Returns
-        -------
-        Iterator[AttackData]
+        dict[AttackAlgorithmType, AttackData]
             The entity's attacks.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-
-        # Return the enemy data
-        return self.entity_type.get_all_attacks()
+        return self.entity_type.attacks
 
     @property
-    def ranged_attack_data(self) -> RangedAttackData:
-        """Gets the ranged attack data if the entity has the attack.
+    def attribute_data(self) -> dict[EntityAttributeType, EntityAttributeData]:
+        """Gets the entity's attribute data.
 
         Returns
         -------
-        RangedAttackData
-            The ranged attack data.
+        dict[EntityAttributeType, EntityAttributeData]
+            The entity's attribute data.
         """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-        assert self.entity_type.ranged_attack_data is not None
-
-        # Return the ranged attack data
-        return self.entity_type.ranged_attack_data
-
-    @property
-    def melee_attack_data(self) -> MeleeAttackData:
-        """Gets the melee attack data if the entity has the attack.
-
-        Returns
-        -------
-        MeleeAttackData
-            The melee attack data.
-        """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-        assert self.entity_type.melee_attack_data is not None
-
-        # Return the melee attack data
-        return self.entity_type.melee_attack_data
-
-    @property
-    def area_of_effect_attack_data(self) -> AreaOfEffectAttackData:
-        """Gets the area of effect attack data if the entity has the attack.
-
-        Returns
-        -------
-        AreaOfEffectAttackData
-            The area of effect attack data.
-        """
-        # Make sure the entity type is valid
-        assert self.entity_type is not None
-        assert self.entity_type.area_of_effect_attack_data is not None
-
-        # Return the area of effect attack data
-        return self.entity_type.area_of_effect_attack_data
+        return self.entity_data.attribute_data
 
     @property
     def current_attack(self) -> AttackBase:
@@ -536,17 +485,6 @@ class Entity(arcade.Sprite):
         return self.attack_algorithms[self.current_attack_index]
 
     @property
-    def upgrade_data(self) -> list[EntityUpgradeData]:
-        """Gets the upgrades that are available to the entity.
-
-        Returns
-        -------
-        list[game.constants.entity.EntityUpgradeData]
-            The upgrades that are available to the entity.
-        """
-        return self.entity_data.upgrade_data
-
-    @property
     def physics(self) -> PhysicsEngine:
         """Gets the entity's physics engine.
 
@@ -558,166 +496,66 @@ class Entity(arcade.Sprite):
         return self.physics_engines[0]
 
     @property
-    def health(self) -> float:
+    def health(self) -> EntityAttribute:
         """Gets the entity's health.
 
         Returns
         -------
-        float
+        EntityAttribute
             The entity's health
         """
-        return self._entity_state["health"]
-
-    @health.setter
-    def health(self, value: float) -> None:
-        """Sets the entity's health.
-
-        Parameters
-        ----------
-        value: float
-            The new health value.
-        """
-        self._entity_state["health"] = value
+        return self.entity_state[EntityAttributeType.HEALTH]
 
     @property
-    def max_health(self) -> float:
-        """Gets the player's maximum health.
-
-        Returns
-        -------
-        float
-            The player's maximum health.
-        """
-        return self._entity_state["max health"]
-
-    @max_health.setter
-    def max_health(self, value: float) -> None:
-        """Sets the player's maximum health.
-
-        Parameters
-        ----------
-        value: float
-            The new maximum health value.
-        """
-        self._entity_state["max health"] = value
-
-    @property
-    def armour(self) -> float:
+    def armour(self) -> EntityAttribute:
         """Gets the entity's armour.
 
         Returns
         -------
-        float
+        EntityAttribute
             The entity's armour.
         """
-        return self._entity_state["armour"]
-
-    @armour.setter
-    def armour(self, value: float) -> None:
-        """Sets the entity's armour.
-
-        Parameters
-        ----------
-        value: float
-            The new armour value.
-        """
-        self._entity_state["armour"] = value
+        return self.entity_state[EntityAttributeType.ARMOUR]
 
     @property
-    def max_armour(self) -> float:
-        """Gets the player's maximum armour.
-
-        Returns
-        -------
-        float
-            The player's maximum armour
-        """
-        return self._entity_state["max armour"]
-
-    @max_armour.setter
-    def max_armour(self, value: float) -> None:
-        """Sets the player's maximum armour.
-
-        Parameters
-        ----------
-        value: float
-            The new maximum armour value.
-        """
-        self._entity_state["max armour"] = value
-
-    @property
-    def max_velocity(self) -> float:
+    def max_velocity(self) -> EntityAttribute:
         """Gets the entity's max velocity.
 
         Returns
         -------
-        float
+        EntityAttribute
             The entity's max velocity.
         """
-        return self._entity_state["max velocity"]
-
-    @max_velocity.setter
-    def max_velocity(self, value: float) -> None:
-        """Sets the entity's max velocity.
-
-        Parameters
-        ----------
-        value: float
-            The new max velocity value.
-        """
-        self._entity_state["max velocity"] = value
-        self.pymunk.max_velocity = value
+        return self.entity_state[EntityAttributeType.SPEED]
 
     @property
-    def armour_regen_cooldown(self) -> float:
+    def armour_regen_cooldown(self) -> EntityAttribute:
         """Gets the entity's armour regen cooldown.
 
         Returns
         -------
-        float
+        EntityAttribute
             The entity's armour regen cooldown.
         """
-        return self._entity_state["armour regen cooldown"]
-
-    @armour_regen_cooldown.setter
-    def armour_regen_cooldown(self, value: float) -> None:
-        """Sets the entity's armour regen cooldown.
-
-        Parameters
-        ----------
-        value: float
-            The new armour regen cooldown value.
-        """
-        self._entity_state["armour regen cooldown"] = value
+        return self.entity_state[EntityAttributeType.REGEN_COOLDOWN]
 
     @property
-    def bonus_attack_cooldown(self) -> float:
-        """Gets the entity's bonus attack cooldown.
+    def fire_rate_penalty(self) -> EntityAttribute:
+        """Gets the entity's fire rate penalty.
 
         Returns
         -------
-        float
-            The entity's bonus attack cooldown.
+        EntityAttribute
+            The entity's fire rate penalty.
         """
-        return self._entity_state["bonus attack cooldown"]
+        return self.entity_state[EntityAttributeType.FIRE_RATE_PENALTY]
 
-    @bonus_attack_cooldown.setter
-    def bonus_attack_cooldown(self, value: float) -> None:
-        """Sets the entity's bonus attack cooldown.
-
-        Parameters
-        ----------
-        value: float
-            The new bonus attack cooldown.
-        """
-        self._entity_state["bonus attack cooldown"] = value
-
-    def _initialise_entity_state(self) -> dict[str, float]:
+    def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialises the entity's state dict.
 
         Returns
         -------
-        dict[str, float]
+        dict[EntityAttributeType, EntityAttribute]
             The initialised entity state.
         """
         raise NotImplementedError
@@ -742,9 +580,14 @@ class Entity(arcade.Sprite):
         self.time_since_last_attack += delta_time
 
         # Update any status effects
-        for status_effect in self.applied_effects:
-            logger.debug("Updating status effect %r for entity %r", status_effect, self)
-            status_effect.update(delta_time)
+        for attribute in self.entity_state.values():
+            if attribute.applied_status_effect:
+                logger.debug(
+                    "Updating status effect %r for entity %r",
+                    attribute.applied_status_effect,
+                    self,
+                )
+                attribute.update_status_effect(delta_time)
 
         # Run the entity's post on_update
         self.post_on_update(delta_time)
@@ -762,21 +605,21 @@ class Entity(arcade.Sprite):
         assert self.armour_bar is not None
 
         # Check if the entity still has armour
-        if self.armour > 0:
+        if self.armour.value > 0:
             # Damage the armour
-            self.armour -= damage
-            if self.armour < 0:
+            self.armour.value = self.armour.value - damage
+            if self.armour.value < 0:
                 # Damage exceeds armour so damage health
-                self.health += self.armour
-                self.armour = 0
+                self.health.value = self.health.value + self.armour.value
+                self.armour.value = 0
         else:
             # Damage the health
-            self.health -= damage
+            self.health.value = self.health.value - damage
         self.update_indicator_bars()
         logger.debug("Dealing %d to %r", damage, self)
 
         # Check if the entity should be killed
-        if self.health <= 0:
+        if self.health.value <= 0:
             # Kill the entity
             self.remove_from_sprite_lists()
 
@@ -798,11 +641,11 @@ class Entity(arcade.Sprite):
         # Check if the entity has been out of combat for ARMOUR_REGEN_WAIT seconds
         if self.time_out_of_combat >= ARMOUR_REGEN_WAIT:
             # Check if enough has passed since the last armour regen
-            if self.time_since_armour_regen >= self.armour_regen_cooldown:
+            if self.time_since_armour_regen >= self.armour_regen_cooldown.value:
                 # Check if the entity's armour is below the max value
-                if self.armour < self.max_armour:
+                if self.armour.value < self.armour.max_value:
                     # Regen armour
-                    self.armour += ARMOUR_REGEN_AMOUNT
+                    self.armour.value = self.armour.value + ARMOUR_REGEN_AMOUNT
                     self.time_since_armour_regen = 0
                     self.update_indicator_bars()
                     logger.debug(
@@ -815,11 +658,6 @@ class Entity(arcade.Sprite):
             # Increment the counter since not enough time has passed
             self.time_out_of_combat += delta_time
 
-        # Check if the armour is bigger than the max
-        if self.armour > self.max_armour:
-            self.armour = self.max_armour
-            logger.debug("Set %r armour to max", self)
-
     def update_indicator_bars(self) -> None:
         """Updates the entity's indicator bars."""
         # Make sure variables needed are valid
@@ -829,9 +667,9 @@ class Entity(arcade.Sprite):
         # Update the indicator bars
         with contextlib.suppress(ValueError):
             # If this fails, the entity is already dead
-            new_health_fullness = self.health / self.max_health
+            new_health_fullness = self.health.value / self.health.max_value
             self.health_bar.fullness = new_health_fullness
-            new_armour_fullness = self.armour / self.max_armour
+            new_armour_fullness = self.armour.value / self.armour.max_value
             self.armour_bar.fullness = new_armour_fullness
 
     def post_on_update(self, delta_time: float) -> None:
@@ -849,8 +687,13 @@ class Entity(arcade.Sprite):
         """
         raise NotImplementedError
 
-    def move(self) -> None:
+    def move(self, delta_time: float) -> None:
         """Processes the needed actions for the entity to move.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
 
         Raises
         ------
@@ -870,59 +713,26 @@ class Entity(arcade.Sprite):
         raise NotImplementedError
 
 
-class Tile(arcade.Sprite):
-    """
-    Represents a tile that does not move in the game.
+class Tile(GameObject):
+    """Represents a tile that does not move in the game.
+
     Parameters
     ----------
     x: int
         The x position of the tile in the game map.
     y: int
         The y position of the tile in the game map.
+
     Attributes
     ----------
-    center_x: float
-        The x position of the tile on the screen.
-    center_y: float
-        The y position of the tile on the screen.
     texture: arcade.Texture
         The sprite which represents this tile.
     """
 
     # Class variables
+    object_id: ObjectID = ObjectID.TILE
     raw_texture: arcade.Texture | None = None
     blocking: bool = False
-
-    def __init__(
-        self,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(scale=SPRITE_SCALE)
-        self.center_x, self.center_y = grid_pos_to_pixel(x, y)
-        self.texture: arcade.Texture = self.raw_texture
-
-    def __repr__(self) -> str:
-        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
-
-
-class InteractiveTile(Tile):
-    """Represents a tile that can be interacted with by the player. This is only meant
-    to be inherited from and should not be initialised on its own.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the interactive tile can have a reference to
-        it.
-    x: int
-        The x position of the interactive tile in the game map.
-    y: int
-        The y position of the interactive tile in the game map.
-    """
-
-    # Class variables
-    item_text: str = ""
 
     def __init__(
         self,
@@ -930,8 +740,21 @@ class InteractiveTile(Tile):
         x: int,
         y: int,
     ) -> None:
-        super().__init__(x, y)
-        self.game: Game = game
+        super().__init__(game, x, y)
+        self.texture: arcade.Texture = self.raw_texture
+
+    def __repr__(self) -> str:
+        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
+
+
+class InteractiveTile(Tile):
+    """Represents a tile that can be interacted with by the player.
+
+    This is only meant to be inherited from and should not be initialised on its own.
+    """
+
+    # Class variables
+    item_text: str = ""
 
     def __repr__(self) -> str:
         return f"<InteractiveTile (Position=({self.center_x}, {self.center_y}))>"
@@ -953,28 +776,10 @@ class InteractiveTile(Tile):
 
 
 class UsableTile(InteractiveTile):
-    """Represents a tile that can be used/activated by the player.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the usable tile can have a reference to it.
-    x: int
-        The x position of the usable tile in the game map.
-    y: int
-        The y position of the usable tile in the game map.
-    """
+    """Represents a tile that can be used/activated by the player."""
 
     # Class variables
     item_text: str = "Press R to activate"
-
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
         return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
@@ -983,43 +788,24 @@ class UsableTile(InteractiveTile):
         """Called when the item is used by the player. Override this to add item use
         functionality.
 
-        Raises
-        ------
-        NotImplementedError
-            The function is not implemented.
-
         Returns
         -------
         bool
             Whether the item use was successful or not.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
         """
         raise NotImplementedError
 
 
 class CollectibleTile(InteractiveTile):
-    """Represents a tile that can be picked up by the player.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the collectible tile can have a reference to
-        it.
-    x: int
-        The x position of the collectible tile in the game map.
-    y: int
-        The y position of the collectible tile in the game map.
-    """
+    """Represents a tile that can be picked up by the player."""
 
     # Class variables
     item_text: str = "Press E to pick up"
-
-    def __init__(
-        self,
-        game: Game,
-        x: int,
-        y: int,
-    ) -> None:
-        super().__init__(game, x, y)
 
     def __repr__(self) -> str:
         return f"<CollectibleTile (Position=({self.center_x}, {self.center_y}))>"

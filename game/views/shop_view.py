@@ -13,8 +13,8 @@ import arcade.gui
 from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
+    from game.entities.attribute import UpgradablePlayerSection
     from game.entities.player import Player
-    from game.entities.upgrades import UpgradableSection
 
 __all__ = (
     "SectionUpgradeButton",
@@ -28,15 +28,19 @@ logger = logging.getLogger(__name__)
 class SectionUpgradeButton(arcade.gui.UIFlatButton):
     """A button which will upgrade a player section if the player has enough money."""
 
-    section_ref: UpgradableSection | None = None
+    section_ref: UpgradablePlayerSection | None = None
 
     def on_click(self, _) -> None:
         """Called when the button is clicked."""
         # Make sure variables needed are valid
         assert self.section_ref is not None
 
-        # Upgrade the section if it is possible
-        self.section_ref.upgrade_section(self)
+        # Upgrade the section if possible
+        if self.section_ref.upgrade_section():
+            self.text = (
+                f"{self.section_ref.attribute_section_type.name} -"
+                f" {self.section_ref.next_level_cost}"
+            )
 
 
 class ShopView(BaseView):
@@ -55,15 +59,15 @@ class ShopView(BaseView):
 
         # Create all the section upgrade buttons based on the amount of sections the
         # player has
-        for (
-            upgrade_type,
-            upgradable_section_obj,
-        ) in self.player.upgrade_sections.items():
+        for upgradable_player_section in self.player.upgrade_sections:
             upgrade_section_button = SectionUpgradeButton(
-                text=f"{upgrade_type.value} - {upgradable_section_obj.next_level_cost}",
+                text=(
+                    f"{upgradable_player_section.attribute_section_type.name} -"
+                    f" {upgradable_player_section.next_level_cost}"
+                ),
                 width=200,
             )
-            upgrade_section_button.section_ref = upgradable_section_obj
+            upgrade_section_button.section_ref = upgradable_player_section
             vertical_box.add(upgrade_section_button.with_space_around(bottom=20))
 
         # Create the back button

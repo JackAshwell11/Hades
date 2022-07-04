@@ -10,23 +10,29 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.entity import (
+from game.constants.game_object import (
     ARMOUR_INDICATOR_BAR_COLOR,
     HEALTH_INDICATOR_BAR_COLOR,
     INDICATOR_BAR_BORDER_SIZE,
     MOVEMENT_FORCE,
     SPRITE_SIZE,
     AttackAlgorithmType,
-    EntityID,
-    UpgradeSection,
+    EntityAttributeType,
+    ObjectID,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
+from game.entities.attribute import EntityAttribute, UpgradablePlayerSection
 from game.entities.base import Entity, IndicatorBar
-from game.entities.upgrades import UpgradableSection
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from game.constants.entity import BaseData
+    from collections.abc import Callable
+
+    from game.constants.game_object import (
+        BaseData,
+        EntityAttributeSectionType,
+        PlayerData,
+    )
     from game.entities.base import CollectibleTile
     from game.views.game_view import Game
 
@@ -55,9 +61,9 @@ class Player(Entity):
     melee_shader: MeleeShader
         The OpenGL shader used to find and attack any enemies within a specific distance
         around the player based on their direction.
-    upgrade_sections: dict[UpgradeSection, UpgradableSection]
-        A mapping of an upgrade section enum to an upgradable section object.
-    inventory: list[game.entities.tile.Item]
+    upgrade_sections: list[UpgradablePlayerSection]
+        Stores the upgradable section objects for each of the player's upgrade sections.
+    inventory: list[CollectibleTile]
         The list which stores the player's inventory.
     inventory_capacity: int
         The total capacity of the inventory.
@@ -76,15 +82,18 @@ class Player(Entity):
     """
 
     # Class variables
-    entity_id: EntityID = EntityID.PLAYER
+    object_id: ObjectID = ObjectID.PLAYER
 
     def __init__(self, game: Game, x: int, y: int, player_type: BaseData) -> None:
         super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
-        self.upgrade_sections: dict[UpgradeSection, UpgradableSection] = {
-            upgrade_data.section_type: UpgradableSection(self, upgrade_data, 1)
-            for upgrade_data in self.upgrade_data
-        }
+        self.upgrade_sections: list[UpgradablePlayerSection] = [
+            UpgradablePlayerSection(self, attribute_section_type, cost_function, 0)
+            for (
+                attribute_section_type,
+                cost_function,
+            ) in self.player_data.section_upgrade_data.items()
+        ]
         self.health_bar: IndicatorBar = IndicatorBar(
             self,
             self.game.player_gui_sprites,
@@ -113,7 +122,6 @@ class Player(Entity):
             self.health_bar.bottom
             - (self.health_bar.bar_height / 2) * self.armour_bar.scale,
         )
-        self._entity_state.update({"money": 0.0})
         self.inventory: list[CollectibleTile] = []
         self.inventory_capacity: int = INVENTORY_WIDTH * INVENTORY_HEIGHT
         self.current_tile_pos: tuple[int, int] = (-1, -1)
@@ -127,43 +135,55 @@ class Player(Entity):
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
 
     @property
-    def money(self) -> float:
+    def player_data(self) -> PlayerData:
+        """Gets the player data if it exists.
+
+        Returns
+        -------
+        PlayerData
+            The player data.
+        """
+        # Make sure the entity type is valid
+        assert self.entity_type.player_data is not None
+
+        # Return the player data
+        return self.entity_type.player_data
+
+    @property
+    def section_upgrade_data(
+        self,
+    ) -> dict[EntityAttributeSectionType, Callable[[int], float]]:
+        """Gets the section upgrade data for the player.
+
+        Returns
+        -------
+        dict[EntityAttributeSectionType, Callable[[int], float]]
+            The section upgrade data.
+        """
+        return self.player_data.section_upgrade_data
+
+    @property
+    def money(self) -> EntityAttribute:
         """Gets the player's money.
 
         Returns
         -------
-        float
+        EntityAttribute
             The player's money
         """
-        return self._entity_state["money"]
+        return self.entity_state[EntityAttributeType.MONEY]
 
-    @money.setter
-    def money(self, value: float) -> None:
-        """Sets the player's money.
-
-        Parameters
-        ----------
-        value: float
-            The new money value.
-        """
-        self._entity_state["money"] = value
-
-    def _initialise_entity_state(self) -> dict[str, float]:
+    def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialises the entity's state dict.
 
         Returns
         -------
-        dict[str, float]
+        dict[EntityAttributeType, EntityAttribute]
             The initialised entity state.
         """
         return {
-            "health": self.upgrade_data[0].upgrades[0].increase(0),
-            "max health": self.upgrade_data[0].upgrades[0].increase(0),
-            "armour": self.upgrade_data[1].upgrades[0].increase(0),
-            "max armour": self.upgrade_data[1].upgrades[0].increase(0),
-            "max velocity": self.upgrade_data[0].upgrades[1].increase(0),
-            "armour regen cooldown": self.upgrade_data[1].upgrades[1].increase(0),
-            "bonus attack cooldown": 0,
+            attribute_type: EntityAttribute(self, attribute_data, 0)
+            for attribute_type, attribute_data in self.attribute_data.items()
         }
 
     def post_on_update(self, delta_time: float) -> None:
@@ -189,10 +209,16 @@ class Player(Entity):
             self.game.vector_field.recalculate_map(self.position)
 
         # Make the player move
-        self.move()
+        self.move(delta_time)
 
-    def move(self) -> None:
-        """Processes the needed actions for the entity to move."""
+    def move(self, delta_time: float) -> None:
+        """Processes the needed actions for the entity to move.
+
+        Parameters
+        ----------
+        delta_time: float
+            Time interval since the last time the function was called.
+        """
         # Calculate the force to apply to the player based on the keys pressed
         force = [0, 0]
         if self.right_pressed and not self.left_pressed:
@@ -222,22 +248,23 @@ class Player(Entity):
         """Runs the player's current attack algorithm."""
         # Check if the player can attack
         if self.time_since_last_attack < (
-            self.current_attack.attack_cooldown + self.bonus_attack_cooldown
+            self.current_attack.attack_data.attack_cooldown
+            * self.fire_rate_penalty.value
         ):
             return
 
         # Reset the player's combat variables and attack
-        self.time_since_armour_regen = self.armour_regen_cooldown
+        self.time_since_armour_regen = self.armour_regen_cooldown.value
         self.time_since_last_attack = 0
         self.time_out_of_combat = 0
         self.in_combat = True
 
         # Find out what attack algorithm is selected. We also need to check if the
         # player can attack or not
-        match type(self.current_attack):
-            case AttackAlgorithmType.RANGED.value:
+        match self.current_attack.attack_type:
+            case AttackAlgorithmType.RANGED:
                 self.current_attack.process_attack(self.game.bullet_sprites)
-            case AttackAlgorithmType.MELEE.value:
+            case AttackAlgorithmType.MELEE:
                 # # Update the framebuffer to ensure collision detection is accurate
                 # self.melee_shader.update_collision()
                 # result = self.melee_shader.run_shader()
@@ -254,7 +281,7 @@ class Player(Entity):
                         self.position,
                         enemy.position,
                         self.game.wall_sprites,
-                        self.current_attack.attack_range * SPRITE_SIZE,
+                        self.current_attack.attack_data.attack_range * SPRITE_SIZE,
                     ) and (
                         self.direction - self.player_data.melee_degree // 2
                     ) <= angle <= (
@@ -262,7 +289,7 @@ class Player(Entity):
                     ):
                         result.append(enemy)
                 self.current_attack.process_attack(result)
-            case AttackAlgorithmType.AREA_OF_EFFECT.value:
+            case AttackAlgorithmType.AREA_OF_EFFECT:
                 self.current_attack.process_attack(self.game.enemy_sprites)
 
     def add_item_to_inventory(self, item: CollectibleTile) -> bool:
