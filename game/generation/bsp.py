@@ -14,6 +14,7 @@ from game.constants.generation import (
     HALLWAY_SIZE,
     MIN_CONTAINER_SIZE,
     MIN_ROOM_SIZE,
+    ROOM_RATIO,
     TileType,
 )
 
@@ -27,8 +28,6 @@ __all__ = (
 class Point(NamedTuple):
     """Represents a point in the grid.
 
-    Parameters
-    ----------
     x: int
         The x position.
     y: int
@@ -139,7 +138,7 @@ class Leaf:
     room: Rect | None
         The rect object for representing the room inside this leaf.
     split_vertical: bool | None
-        Whether or not the leaf was split vertically. By default, this is None
+        Whether the leaf was split vertically or not. By default, this is None
         (not split).
     """
 
@@ -181,7 +180,7 @@ class Leaf:
         Parameters
         ----------
         debug_lines: bool
-            Whether or not to draw the debug lines.
+            Whether to draw the debug lines or not.
 
         Returns
         -------
@@ -298,12 +297,20 @@ class Leaf:
             self.container.top_left.y, self.container.bottom_right.y - height
         )
 
-        # Create the room rect
-        self.room = Rect(
+        # Create the room rect and test if its width to height ratio will make an
+        # oddly-shaped room
+        temp_rect = Rect(
             Point(x_pos, y_pos), Point(x_pos + width - 1, y_pos + height - 1)
         )
+        if (
+            min(temp_rect.width, temp_rect.height)
+            / max(temp_rect.width, temp_rect.height)
+            < ROOM_RATIO
+        ):
+            return False
 
-        # Place the room rect in the 2D grid
+        # Width to height ratio is fine so store the rect and place it in the 2D grid
+        self.room = temp_rect
         self.place_rect(self.room)
 
         # Successful room creation

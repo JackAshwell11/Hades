@@ -19,19 +19,16 @@ from game.constants.generation import (
     BASE_ITEM_COUNT,
     BASE_MAP_HEIGHT,
     BASE_MAP_WIDTH,
-    BASE_ROOM,
-    BASE_SPLIT_COUNT,
+    BASE_SPLIT_ITERATION,
     ENEMY_DISTRIBUTION,
     ITEM_DISTRIBUTION,
-    LARGE_ROOM,
     MAX_ENEMY_COUNT,
     MAX_ITEM_COUNT,
     MAX_MAP_HEIGHT,
     MAX_MAP_WIDTH,
-    MAX_SPLIT_COUNT,
+    MAX_SPLIT_ITERATION,
     PLACE_TRIES,
     SAFE_SPAWN_RADIUS,
-    SMALL_ROOM,
     TileType,
 )
 from game.generation.bsp import Leaf, Point
@@ -72,8 +69,6 @@ def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
 class GameMapShape(NamedTuple):
     """Represents a two element tuple holding the width and height of a game map.
 
-    Parameters
-    ----------
     width: int
         The width of the game map.
     height: int
@@ -104,9 +99,6 @@ class Map:
         The root leaf for the binary space partition.
     enemy_spawns: list[tuple[int, int]]
         The coordinates for the enemy spawn points. This is in the format (x, y).
-    probabilities: dict[str, float]
-        The current probabilities used to determine if we should split on each iteration
-        or not.
     player_pos: tuple[int, int]
         The player's position in the grid. This is set to -1 to avoid typing errors.
     """
@@ -116,7 +108,6 @@ class Map:
         "map_constants",
         "grid",
         "bsp",
-        "probabilities",
         "player_pos",
         "enemy_spawns",
     )
@@ -133,7 +124,6 @@ class Map:
             None,
             self.grid,
         )
-        self.probabilities: dict[str, float] = BASE_ROOM
         self.player_pos: tuple[int, int] = (-1, -1)
         self.enemy_spawns: list[tuple[int, int]] = []
         self.make_map()
@@ -193,8 +183,9 @@ class Map:
             "height": np.minimum(
                 int(np.round(BASE_MAP_HEIGHT * 1.2**self.level)), MAX_MAP_HEIGHT
             ),
-            "split count": np.minimum(
-                int(np.round(BASE_SPLIT_COUNT * 1.5**self.level)), MAX_SPLIT_COUNT
+            "split iteration": np.minimum(
+                int(np.round(BASE_SPLIT_ITERATION * 1.5**self.level)),
+                MAX_SPLIT_ITERATION,
             ),
             "enemy count": np.minimum(
                 int(np.round(BASE_ENEMY_COUNT * 1.1**self.level)), MAX_ENEMY_COUNT
@@ -224,44 +215,37 @@ class Map:
         # Start the splitting using a stack
         stack = deque["Leaf"]()
         stack.append(self.bsp)
-        split_count = self.map_constants["split count"]
-        while split_count:
-            # Test if the stack is empty
-            if not stack:
-                break
+        split_iteration = self.map_constants["split iteration"]
+        while split_iteration and stack:
+            # Get the current leaf from the stack
+            current = stack.pop()
 
-            # Use the probabilities to check if we should split
-            if np.random.choice([True, False], p=list(self.probabilities.values())):
-                # Get the current leaf from the stack
-                current = stack.pop()
-
-                # Split the bsp
-                if current.split(DEBUG_LINES) and current.left and current.right:
-                    # Add the child leafs so they can be split
-                    stack.append(current.left)
-                    stack.append(current.right)
-
-                # Multiply the probabilities by SMALL_ROOM
-                self.probabilities["SMALL"] *= SMALL_ROOM["SMALL"]
-                self.probabilities["LARGE"] *= SMALL_ROOM["LARGE"]
-                logger.debug("Split bsp. New probabilities are %r", self.probabilities)
+            # Split the bsp if possible
+            if current.split(DEBUG_LINES) and current.left and current.right:
+                # Add the child leafs so they can be split
+                logger.debug("Split bsp. Split iteration is now %d", split_iteration)
+                stack.append(current.left)
+                stack.append(current.right)
 
                 # Decrement the split count
-                split_count -= 1
-            else:
-                # Multiply the probabilities by LARGE_ROOM
-                self.probabilities["SMALL"] *= LARGE_ROOM["SMALL"]
-                self.probabilities["LARGE"] *= LARGE_ROOM["LARGE"]
-                logger.debug(
-                    "Didn't split bsp. New probabilities are %r", self.probabilities
-                )
+                split_iteration -= 1
 
-            # Normalise the probabilities, so they add up to 1
-            probabilities_sum = 1 / sum(self.probabilities.values())
-            self.probabilities = {
-                key: value * probabilities_sum
-                for key, value in self.probabilities.items()
-            }
+        # import networkx as nx
+        # import matplotlib.pyplot as plt
+        # g = nx.DiGraph()
+        # stack.append(self.bsp)
+        # while stack:
+        #     current = stack.pop()
+        #     if current.left:
+        #         g.add_edge(current, current.left)
+        #         stack.append(current.left)
+        #     if current.right:
+        #         g.add_edge(current, current.right)
+        #         stack.append(current.right)
+        #
+        # nx.draw(g, arrows=True)
+        # plt.show()
+        # print(self.grid)
 
         # Create the rooms. We can use the same stack since it is currently empty
         leafs: list[Leaf] = []
@@ -270,16 +254,25 @@ class Map:
             # Get the current leaf from the stack
             current = stack.pop()
 
-            # Create the room
-            result = current.create_room()
-            if result:
-                # Room creation successful so save the rect
-                leafs.append(current)
-            elif current.left and current.right:
+            # Check if a room already exists in this leaf
+            if current.room:
+                continue
+
+            # Test if we can create a room in the current leaf
+            if current.left and current.right:
                 # Room creation not successful meaning there are child leafs so try
                 # again on the child leafs
                 stack.append(current.left)
                 stack.append(current.right)
+            else:
+                # Create a room in the current leaf and save the rect
+                logger.debug("Creating room in leaf %r", current)
+                while not current.create_room():
+                    # Width to height ratio is outside of range so try again
+                    logger.debug("Trying generation of room in leaf %r again", current)
+                leafs.append(current)
+
+        print(self.grid)
 
         # Get all the rooms objects from the leafs list, so we can store the hallways
         # too. To make the hallways, we can connect each pair of leaves in the leafs
