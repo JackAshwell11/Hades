@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # Builtin
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 # Custom
@@ -51,11 +51,12 @@ class StatusEffect:
     status_effect_type: StatusEffectType
     value: float
     duration: float
-    original: float = -1
-    time_counter: float = 0
+    original: float = field(init=False)
+    time_counter: float = field(init=False)
 
     def __post_init__(self) -> None:
-        self.original: float = self.entity_attribute.value
+        self.original = self.entity_attribute.value
+        self.time_counter = 0
 
 
 class UpgradablePlayerSection:

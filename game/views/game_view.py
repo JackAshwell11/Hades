@@ -221,13 +221,14 @@ class Game(BaseView):
                     )
 
                 # Add the instantiated game object to the necessary sprite lists
-                if instantiated_cls.object_id is ObjectID.PLAYER:
-                    self.player = instantiated_cls
-                elif instantiated_cls.object_id is ObjectID.ENEMY:
-                    self.enemy_sprites.append(instantiated_cls)
-                elif instantiated_cls.object_id is ObjectID.TILE:
-                    self.tile_sprites.append(instantiated_cls)
-                    self.item_sprites.append(instantiated_cls)
+                match instantiated_cls.object_id:
+                    case ObjectID.PLAYER:
+                        self.player = instantiated_cls
+                    case ObjectID.ENEMY:
+                        self.enemy_sprites.append(instantiated_cls)
+                    case ObjectID.TILE:
+                        self.tile_sprites.append(instantiated_cls)
+                        self.item_sprites.append(instantiated_cls)
 
         # Make sure the game map shape was set and the player was actually created
         assert self.game_map_shape is not None
