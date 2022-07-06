@@ -73,7 +73,7 @@ LOGGING_DICT_CONFIG = {
 }
 
 # Debug constants
-DEBUG_LINES = True
+DEBUG_LINES = False
 DEBUG_GAME = True
 DEBUG_VIEW_DISTANCE = arcade.color.RED
 DEBUG_ATTACK_DISTANCE = arcade.color.BLUE

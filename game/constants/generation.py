@@ -9,6 +9,7 @@ __all__ = (
     "BASE_ITEM_COUNT",
     "BASE_MAP_HEIGHT",
     "BASE_MAP_WIDTH",
+    "BASE_OBSTACLE_COUNT",
     "BASE_SPLIT_ITERATION",
     "ENEMY_DISTRIBUTION",
     "HALLWAY_SIZE",
@@ -17,13 +18,15 @@ __all__ = (
     "MAX_ITEM_COUNT",
     "MAX_MAP_HEIGHT",
     "MAX_MAP_WIDTH",
+    "MAX_OBSTACLE_COUNT",
     "MAX_SPLIT_ITERATION",
     "MIN_CONTAINER_SIZE",
     "MIN_ROOM_SIZE",
     "PLACE_TRIES",
+    "REPLACEABLE_TILES",
+    "ROOM_RATIO",
     "SAFE_SPAWN_RADIUS",
     "TileType",
-    "ROOM_RATIO",
 )
 
 
@@ -31,19 +34,22 @@ __all__ = (
 class TileType(IntEnum):
     """Stores the ID of each tile in the game map."""
 
-    NONE = -1
     EMPTY = 0
     FLOOR = 1
     WALL = 2
-    PLAYER = 3
-    ENEMY = 4
-    HEALTH_POTION = 5
-    ARMOUR_POTION = 6
-    HEALTH_BOOST_POTION = 7
-    ARMOUR_BOOST_POTION = 8
-    SPEED_BOOST_POTION = 9
-    FIRE_RATE_BOOST_POTION = 10
-    DEBUG_WALL = 11
+    OBSTACLE = 3
+    PLAYER = 4
+    ENEMY = 5
+    HEALTH_POTION = 6
+    ARMOUR_POTION = 7
+    HEALTH_BOOST_POTION = 8
+    ARMOUR_BOOST_POTION = 9
+    SPEED_BOOST_POTION = 10
+    FIRE_RATE_BOOST_POTION = 11
+    DEBUG_WALL = 99
+
+    def __str__(self) -> str:
+        return str(self.value)
 
 
 # Map generation distributions
@@ -59,20 +65,29 @@ ITEM_DISTRIBUTION = {
     TileType.FIRE_RATE_BOOST_POTION: 0.1,
 }
 
-# Other map generation constants
+# Map generation counts
 BASE_MAP_WIDTH = 30
-MAX_MAP_WIDTH = 150
 BASE_MAP_HEIGHT = 20
-MAX_MAP_HEIGHT = 100
-BASE_SPLIT_ITERATION = 8
-MAX_SPLIT_ITERATION = 25
+BASE_SPLIT_ITERATION = 5
+BASE_OBSTACLE_COUNT = 50
 BASE_ENEMY_COUNT = 7
-MAX_ENEMY_COUNT = 35
 BASE_ITEM_COUNT = 3
+MAX_MAP_WIDTH = 150
+MAX_MAP_HEIGHT = 100
+MAX_SPLIT_ITERATION = 25
+MAX_OBSTACLE_COUNT = 200
+MAX_ENEMY_COUNT = 35
 MAX_ITEM_COUNT = 15
+
+# Bsp split constants
 MIN_CONTAINER_SIZE = 5
 MIN_ROOM_SIZE = 4
 ROOM_RATIO = 0.625
+
+# Room and hallway generation constants
+REPLACEABLE_TILES = [TileType.EMPTY, TileType.OBSTACLE]
 HALLWAY_SIZE = 5
+
+# Entity generation constants
 SAFE_SPAWN_RADIUS = 5
 PLACE_TRIES = 5

@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 from collections import deque
 from itertools import pairwise
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 # Pip
 import numpy as np
@@ -19,22 +19,24 @@ from game.constants.generation import (
     BASE_ITEM_COUNT,
     BASE_MAP_HEIGHT,
     BASE_MAP_WIDTH,
+    BASE_OBSTACLE_COUNT,
     BASE_SPLIT_ITERATION,
     ENEMY_DISTRIBUTION,
+    HALLWAY_SIZE,
     ITEM_DISTRIBUTION,
     MAX_ENEMY_COUNT,
     MAX_ITEM_COUNT,
     MAX_MAP_HEIGHT,
     MAX_MAP_WIDTH,
+    MAX_OBSTACLE_COUNT,
     MAX_SPLIT_ITERATION,
     PLACE_TRIES,
     SAFE_SPAWN_RADIUS,
     TileType,
 )
-from game.generation.bsp import Leaf, Point
-
-if TYPE_CHECKING:
-    from game.generation.bsp import Rect
+from game.generation.astar import calculate_astar_path
+from game.generation.bsp import Leaf
+from game.generation.primitives import Point, Rect
 
 __all__ = (
     "GameMapShape",
@@ -46,7 +48,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 # Set the numpy print formatting to allow pretty printing (for debugging)
-np.set_printoptions(threshold=10, edgeitems=30, linewidth=1000)
+np.set_printoptions(threshold=1, edgeitems=50, linewidth=10000)
 
 
 def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
@@ -80,7 +82,7 @@ class GameMapShape(NamedTuple):
 
 
 class Map:
-    """Procedurally generates a game generation based on a given game level.
+    """Procedurally generates a dungeon based on a given game level.
 
     Parameters
     ----------
@@ -97,10 +99,11 @@ class Map:
         The 2D grid which represents the dungeon.
     bsp: Leaf
         The root leaf for the binary space partition.
+     player_pos: tuple[int, int]
+        The player's position in the grid. This is set to (-1, -1) to avoid typing
+        errors.
     enemy_spawns: list[tuple[int, int]]
         The coordinates for the enemy spawn points. This is in the format (x, y).
-    player_pos: tuple[int, int]
-        The player's position in the grid. This is set to -1 to avoid typing errors.
     """
 
     __slots__ = (
@@ -126,7 +129,11 @@ class Map:
         )
         self.player_pos: tuple[int, int] = (-1, -1)
         self.enemy_spawns: list[tuple[int, int]] = []
-        self.make_map()
+
+        # Create the map
+        self._split_bsp()
+        self._create_hallways(self._generate_rooms())
+        print(self.grid)
 
     def __repr__(self) -> str:
         return (
@@ -187,6 +194,10 @@ class Map:
                 int(np.round(BASE_SPLIT_ITERATION * 1.5**self.level)),
                 MAX_SPLIT_ITERATION,
             ),
+            "obstacle count": np.minimum(
+                int(np.round(BASE_OBSTACLE_COUNT * 1.3**self.level)),
+                MAX_OBSTACLE_COUNT,
+            ),
             "enemy count": np.minimum(
                 int(np.round(BASE_ENEMY_COUNT * 1.1**self.level)), MAX_ENEMY_COUNT
             ),
@@ -210,49 +221,41 @@ class Map:
         logger.info("Generated map constants %r", result)
         return result
 
-    def make_map(self) -> None:
-        """Generates the map for a specified instance with a given level."""
-        # Start the splitting using a stack
-        stack = deque["Leaf"]()
-        stack.append(self.bsp)
+    def _split_bsp(self) -> None:
+        """Splits the bsp based on the generated constants."""
+        # Start the splitting using deque
+        deque_obj = deque["Leaf"]()
+        deque_obj.append(self.bsp)
         split_iteration = self.map_constants["split iteration"]
-        while split_iteration and stack:
-            # Get the current leaf from the stack
-            current = stack.pop()
+        while split_iteration and deque_obj:
+            # Get the current leaf from the deque object
+            current = deque_obj.popleft()
 
             # Split the bsp if possible
             if current.split(DEBUG_LINES) and current.left and current.right:
                 # Add the child leafs so they can be split
                 logger.debug("Split bsp. Split iteration is now %d", split_iteration)
-                stack.append(current.left)
-                stack.append(current.right)
+                deque_obj.append(current.left)
+                deque_obj.append(current.right)
 
                 # Decrement the split count
                 split_iteration -= 1
 
-        # import networkx as nx
-        # import matplotlib.pyplot as plt
-        # g = nx.DiGraph()
-        # stack.append(self.bsp)
-        # while stack:
-        #     current = stack.pop()
-        #     if current.left:
-        #         g.add_edge(current, current.left)
-        #         stack.append(current.left)
-        #     if current.right:
-        #         g.add_edge(current, current.right)
-        #         stack.append(current.right)
-        #
-        # nx.draw(g, arrows=True)
-        # plt.show()
-        # print(self.grid)
+    def _generate_rooms(self) -> list[Rect]:
+        """Generates the rooms for a given level using the bsp.
 
-        # Create the rooms. We can use the same stack since it is currently empty
-        leafs: list[Leaf] = []
-        stack.append(self.bsp)
-        while stack:
+        Returns
+        -------
+        list[Rect]
+            The generated rooms.
+        """
+        # Create the rooms. We can use the same deque object since it is currently empty
+        rooms: list[Rect] = []
+        deque_obj = deque["Leaf"]()
+        deque_obj.append(self.bsp)
+        while deque_obj:
             # Get the current leaf from the stack
-            current = stack.pop()
+            current = deque_obj.pop()
 
             # Check if a room already exists in this leaf
             if current.room:
@@ -262,17 +265,159 @@ class Map:
             if current.left and current.right:
                 # Room creation not successful meaning there are child leafs so try
                 # again on the child leafs
-                stack.append(current.left)
-                stack.append(current.right)
+                deque_obj.append(current.left)
+                deque_obj.append(current.right)
             else:
                 # Create a room in the current leaf and save the rect
                 logger.debug("Creating room in leaf %r", current)
                 while not current.create_room():
                     # Width to height ratio is outside of range so try again
                     logger.debug("Trying generation of room in leaf %r again", current)
-                leafs.append(current)
 
-        print(self.grid)
+                # Check if the room was actually created. If so, append it to the list
+                if current.room:
+                    rooms.append(current.room)
+
+        # Return all the created rooms
+        return rooms
+
+        # import matplotlib.pyplot as plt
+        # import networkx as nx
+        #
+        # g = nx.DiGraph()
+        # i = 0
+        # y = {}
+        # deque_obj.append(self.bsp)
+        # while deque_obj:
+        #     current = deque_obj.pop()
+        #     current_dict = y.get(current, -1)
+        #     if current_dict == -1:
+        #         i += 1
+        #         y[current] = i
+        #         current_dict = i
+        #
+        #     if current.left:
+        #         current_left_dict = y.get(current.left, -1)
+        #         if current_left_dict == -1:
+        #             i += 1
+        #             y[current.left] = i
+        #             current_left_dict = i
+        #         g.add_edge(current_dict, current_left_dict)
+        #         deque_obj.append(current.left)
+        #     if current.right:
+        #         current_right_dict = y.get(current.right, -1)
+        #         if current_right_dict == -1:
+        #             i += 1
+        #             y[current.right] = i
+        #             current_right_dict = i
+        #         g.add_edge(current_dict, current_right_dict)
+        #         deque_obj.append(current.right)
+        # nx.draw_planar(g, arrows=True, with_labels=True)
+        # plt.show()
+
+    def _create_hallways(self, rooms: list[Rect]):
+        """Creates the hallways by generating a Delaunay graph and finding a minimum
+        spawning tree before adding a few removed edges back into the graph. This
+        ensures that the hallways won't intersect and that there won't be too many.
+
+        Parameters
+        ----------
+        rooms: list[Rects]
+            The rooms to create a Delaunay graph out of.
+        """
+        # Place random obstacles in the grid
+        y, x = np.where(self.grid == 0)
+        arr_index = np.random.choice(len(y), self.map_constants["obstacle count"])
+        self.grid[y[arr_index], x[arr_index]] = TileType.OBSTACLE
+
+        # # Create a complete graph out of rooms
+        # connections: set[tuple[Point, Point, float]] = set()
+        # complete_graph: dict[Point, list[tuple[Point, float]]] = {}
+        # from itertools import permutations
+        # from heapq import heappop, heappush
+        # for source, destination in permutations(rooms, 2):
+        #     cost = source.get_distance_to(destination)
+        #     source_center = source.center
+        #     destination_center = destination.center
+        #     complete_graph.update(
+        #         {
+        #             source_center: complete_graph.get(source_center, [])
+        #             + [(destination_center, cost)]
+        #         }
+        #     )
+        #     connections.add((source_center, destination_center, cost))
+        #
+        # # Use Prim's algorithm to construct a minimum spanning tree of complete_graph
+        # visited: set[Point] = set()
+        # start = next(iter(complete_graph))
+        # unexplored: list[tuple[float, Point, Point]] = [(0, start, start)]
+        # mst: set[tuple[Point, Point, float]] = set()
+        # while unexplored:
+        #     # Get the neighbour with the lowest cost
+        #     cost, source, destination = heappop(unexplored)
+        #
+        #     # Check if the neighbour is already visited or not
+        #     if destination not in visited:
+        #         # Neighbour isn't visited so mark them as visited and add their
+        #         # neighbours to the heap
+        #         visited.add(destination)
+        #         for neighbour, neighbour_cost in complete_graph[destination]:
+        #             if neighbour not in visited:
+        #                 heappush(unexplored, (neighbour_cost, destination, neighbour))
+        #
+        #         # Add a new edge towards the lowest cost neighbour onto the mst
+        #         if source != destination:
+        #             mst.add((source, destination, cost))
+        #
+        # # Add some removed edges back into the graph, so it's not as sparsely populated
+        # removed_edges = connections - connections.intersection(mst)
+        # hallway_connections = mst.copy().union(
+        #     {
+        #         removed_edges.pop()
+        #         for _ in range(round(len(removed_edges) * 0.15))
+        #     }
+        # )
+
+        # Use the A* algorithm with to connect each pair of rooms making sure to avoid
+        # the obstacles giving us natural looking hallways. Note that the width of the
+        # hallways will always be odd in this implementation due to numpy indexing
+        half_hallway_size = HALLWAY_SIZE // 2
+        for pair_source, pair_destination in pairwise(rooms):
+            for path_point in calculate_astar_path(
+                self.grid,
+                Point(*pair_source.center),
+                Point(*pair_destination.center),
+            ):
+                # Test if the current tile is a floor tile
+                if self.grid[path_point.y][path_point.x] is TileType.FLOOR:
+                    # Current tile is a floor tile, so there is no point placing a rect
+                    continue
+
+                # Place a rect box around the path_point using HALLWAY_SIZE to determine
+                # the width and height
+                Rect(
+                    self.grid,
+                    Point(
+                        path_point.x - half_hallway_size,
+                        path_point.y - half_hallway_size,
+                    ),
+                    Point(
+                        path_point.x + half_hallway_size,
+                        path_point.y + half_hallway_size,
+                    ),
+                ).place_rect()
+
+    def f(self):
+        # from scipy.spatial import Delaunay
+        # import matplotlib.pyplot as plt
+        # points = []
+        # for leaf in leafs:
+        #     points.append([leaf.room.center_x, leaf.room.center_y])
+        # points = np.array(points)
+        # tri = Delaunay(points)
+        # plt.triplot(points[:, 0], points[:, 1], tri.simplices)
+        # plt.plot(points[:, 0], points[:, 1], 'o')
+        # plt.show()
 
         # Get all the rooms objects from the leafs list, so we can store the hallways
         # too. To make the hallways, we can connect each pair of leaves in the leafs
