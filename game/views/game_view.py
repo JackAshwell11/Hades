@@ -175,7 +175,7 @@ class Game(BaseView):
         for count_y, y in enumerate(np.flipud(game_map)):
             for count_x, x in enumerate(y):
                 # Determine if the tile is empty
-                if x == TileType.EMPTY.value:
+                if x in [TileType.EMPTY.value, TileType.DEBUG_WALL.value]:
                     continue
 
                 # Determine if the tile is a wall

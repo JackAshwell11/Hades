@@ -90,8 +90,8 @@ class MeleeShader:
         # Create the shader program. This draws lines from the player to each enemy
         # which is within a specific distance. It then checks if the player has line of
         # sight with each enemy that has a line drawn to them
-        with open(vertex_path, "r", encoding="utf8") as vertex_file, open(
-            geometry_path, "r", encoding="utf8"
+        with open(vertex_path, encoding="utf8") as vertex_file, open(
+            geometry_path, encoding="utf8"
         ) as geometry_file:
             self.program = self.ctx.program(
                 vertex_shader=vertex_file.read(),
