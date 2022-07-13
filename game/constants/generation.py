@@ -25,7 +25,6 @@ __all__ = (
     "PLACE_TRIES",
     "REPLACEABLE_TILES",
     "ROOM_RATIO",
-    "SAFE_SPAWN_RADIUS",
     "TileType",
 )
 
@@ -84,10 +83,7 @@ MIN_CONTAINER_SIZE = 5
 MIN_ROOM_SIZE = 4
 ROOM_RATIO = 0.625
 
-# Room and hallway generation constants
-REPLACEABLE_TILES = [TileType.EMPTY, TileType.OBSTACLE]
+# Room, hallway and entity generation constants
+REPLACEABLE_TILES = [TileType.EMPTY, TileType.OBSTACLE, TileType.DEBUG_WALL]
 HALLWAY_SIZE = 5
-
-# Entity generation constants
-SAFE_SPAWN_RADIUS = 5
 PLACE_TRIES = 5

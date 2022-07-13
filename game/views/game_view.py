@@ -20,12 +20,13 @@ from game.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
+    DEBUG_GAME,
     DEBUG_VECTOR_FIELD_LINE,
     DEBUG_VIEW_DISTANCE,
     ENEMY_LEVEL_MAX_RANGE,
     LEVEL_GENERATOR_INTERVAL,
 )
-from game.constants.generation import TileType
+from game.constants.generation import REPLACEABLE_TILES, TileType
 from game.entities.attack import AreaOfEffectAttack, MeleeAttack
 from game.entities.enemy import Enemy
 from game.entities.player import Player
@@ -51,11 +52,6 @@ logger = logging.getLogger(__name__)
 
 class Game(BaseView):
     """Manages the game and its actions.
-
-    Parameters
-    ----------
-    debug_mode: bool
-        Whether to draw the various debug things or not.
 
     Attributes
     ----------
@@ -94,9 +90,8 @@ class Game(BaseView):
         Stores the nearest item so the player can activate it.
     """
 
-    def __init__(self, debug_mode: bool = False) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.debug_mode: bool = debug_mode
         self.background_color = arcade.color.BLACK
         self.game_map_shape: GameMapShape | None = None
         self.player: Player | None = None
@@ -175,11 +170,11 @@ class Game(BaseView):
         for count_y, y in enumerate(np.flipud(game_map)):
             for count_x, x in enumerate(y):
                 # Determine if the tile is empty
-                if x in [TileType.EMPTY.value, TileType.DEBUG_WALL.value]:
+                if x in REPLACEABLE_TILES:
                     continue
 
                 # Determine if the tile is a wall
-                if x == TileType.WALL.value:
+                if x == TileType.WALL:
                     wall = Wall(self, count_x, count_y)
                     self.wall_sprites.append(wall)
                     self.tile_sprites.append(wall)
@@ -190,7 +185,7 @@ class Game(BaseView):
                 self.tile_sprites.append(floor)
 
                 # Skip to the next iteration if the tile is a floor
-                if x == TileType.FLOOR.value:
+                if x == TileType.FLOOR:
                     continue
 
                 # Determine if the tile is a player, an enemy or a consumable
@@ -294,7 +289,7 @@ class Game(BaseView):
         self.enemy_indicator_bar_sprites.draw()
 
         # Draw stuff needed for the debug mode
-        if self.debug_mode:
+        if DEBUG_GAME:
             # Draw the enemy debug circles
             for enemy in self.enemy_sprites:  # type: Enemy
                 # Draw the enemy's view distance

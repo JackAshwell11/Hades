@@ -6,6 +6,7 @@ import random
 from typing import TYPE_CHECKING
 
 # Custom
+from game.constants.general import DEBUG_GAME
 from game.constants.generation import (
     MIN_CONTAINER_SIZE,
     MIN_ROOM_SIZE,
@@ -83,13 +84,8 @@ class Leaf:
             f" position={self.container.bottom_right})>"
         )
 
-    def split(self, debug_lines: bool = False) -> bool:
+    def split(self) -> bool:
         """Splits a container horizontally or vertically.
-
-        Parameters
-        ----------
-        debug_lines: bool
-            Whether to draw the debug lines or not.
 
         Returns
         -------
@@ -132,7 +128,7 @@ class Leaf:
             # Split vertically making sure to adjust pos, so it can be within range of
             # the actual container
             pos = self.container.top_left.x + pos
-            if debug_lines:
+            if DEBUG_GAME:
                 self.grid[
                     self.container.top_left.y : self.container.bottom_right.y + 1, pos
                 ] = TileType.DEBUG_WALL
@@ -154,7 +150,7 @@ class Leaf:
             # Split horizontally making sure to adjust pos, so it can be within range of
             # the actual container
             pos = self.container.top_left.y + pos
-            if debug_lines:
+            if DEBUG_GAME:
                 self.grid[
                     pos, self.container.top_left.x : self.container.bottom_right.x + 1
                 ] = TileType.DEBUG_WALL
@@ -220,165 +216,3 @@ class Leaf:
 
         # Successful room creation
         return True
-
-    # def place_rect(self, rect: Rect) -> None:
-    #     """Places a rect in the 2D grid.
-    #
-    #     Parameters
-    #     ----------
-    #     rect: Rect
-    #         The rect to place in the 2D grid.
-    #     """
-    #     # Get the width and height of the array
-    #     height, width = self.grid.shape
-    #
-    #     # Place the walls
-    #     temp = self.grid[
-    #         max(rect.top_left.y, 0) : min(rect.bottom_right.y + 1, height),
-    #         max(rect.top_left.x, 0) : min(rect.bottom_right.x + 1, width),
-    #     ]
-    #     temp[temp == TileType.EMPTY.value] = TileType.WALL.value
-    #
-    #     # Place the floors. The ranges must be -1 in all directions since we don't want
-    #     # to overwrite the walls keeping the player in, but we still want to overwrite
-    #     # walls that block the path for hallways
-    #     self.grid[
-    #         max(rect.top_left.y + 1, 1) : min(rect.bottom_right.y, height - 1),
-    #         max(rect.top_left.x + 1, 1) : min(rect.bottom_right.x, width - 1),
-    #     ] = TileType.FLOOR.value
-    #
-    # def create_hallway(self, target: Leaf) -> tuple[Rect | None, Rect | None]:
-    #     """Creates the hallway links between rooms.
-    #
-    #     Parameters
-    #     ----------
-    #     target: Leaf
-    #         The target leaf to make a hallway too.
-    #
-    #     Returns
-    #     -------
-    #     tuple[Rect | None, Rect | None]
-    #         A tuple containing the generated hallways. This may only contain 1 hallway
-    #         since the other hallway may be contained entirely in the target room.
-    #     """
-    #     # Get the two rooms which will be connected with a hallway and make sure they're
-    #     # valid
-    #     start_room = self.room
-    #     target_room = target.room
-    #     assert start_room is not None
-    #     assert target_room is not None
-    #
-    #     # Get the split_vertical bool from the parent object, so we know which
-    #     # orientation the hallway should be
-    #     assert self.parent is not None
-    #     split_vertical = self.parent.split_vertical
-    #
-    #     # Create hallway intersection point. This will be used to determine which
-    #     # orientation the hallway is out of 8 orientations. We also have the is_left and
-    #     # split_vertical bools to help determine the orientation. The matches are:
-    #     #   RIGHT-UP: split_vertical=True
-    #     #   RIGHT-DOWN: split_vertical=True
-    #     #   LEFT-UP: split_vertical=True
-    #     #   LEFT-DOWN: split_vertical=True
-    #     #   UP-LEFT: split_vertical=False
-    #     #   UP-RIGHT: split_vertical=False
-    #     #   DOWN-LEFT: split_vertical=False
-    #     #   DOWN-RIGHT: split_vertical=False
-    #     if split_vertical:
-    #         hallway_intersection_x, hallway_intersection_y = (
-    #             target_room.center_x,
-    #             start_room.center_y,
-    #         )
-    #     else:
-    #         hallway_intersection_x, hallway_intersection_y = (
-    #             start_room.center_x,
-    #             target_room.center_y,
-    #         )
-    #
-    #     # Determine hallway width/height
-    #     half_hallway_size = HALLWAY_SIZE // 2
-    #
-    #     # Set the base variables for the hallways
-    #     first_top_left = [
-    #         start_room.center_x - half_hallway_size,
-    #         start_room.center_y - half_hallway_size,
-    #     ]
-    #     first_bottom_right = [
-    #         start_room.center_x + half_hallway_size,
-    #         start_room.center_y + half_hallway_size,
-    #     ]
-    #     second_top_left = [
-    #         target_room.center_x - half_hallway_size,
-    #         target_room.center_y - half_hallway_size,
-    #     ]
-    #     second_bottom_right = [
-    #         target_room.center_x + half_hallway_size,
-    #         target_room.center_y + half_hallway_size,
-    #     ]
-    #
-    #     # Determine if we need to change the first hallway's points based on its
-    #     # orientation (or if we even need one at al)
-    #     first_hallway_valid = False
-    #     if hallway_intersection_x > start_room.bottom_right.x and split_vertical:
-    #         # First hallway is right
-    #         first_top_left[0] = start_room.bottom_right.x - 1
-    #         first_bottom_right[0] = hallway_intersection_x + half_hallway_size + 1
-    #         first_hallway_valid = True
-    #     elif hallway_intersection_y > start_room.bottom_right.y and not split_vertical:
-    #         # First hallway is down
-    #         first_top_left[1] = start_room.bottom_right.y - 1
-    #         first_bottom_right[1] = hallway_intersection_y + half_hallway_size + 1
-    #         first_hallway_valid = True
-    #     elif hallway_intersection_x < start_room.top_left.x and split_vertical:
-    #         # First hallway is left
-    #         first_top_left[0] = hallway_intersection_x - half_hallway_size - 1
-    #         first_bottom_right[0] = start_room.top_left.x + 1
-    #         first_hallway_valid = True
-    #     elif hallway_intersection_y < start_room.top_left.y and not split_vertical:
-    #         # First hallway is up
-    #         first_top_left[1] = hallway_intersection_y - half_hallway_size - 1
-    #         first_bottom_right[1] = start_room.top_left.y + 1
-    #         first_hallway_valid = True
-    #
-    #     # Determine if we need to change the second hallway's points based on its
-    #     # orientation (or if we even need one at al)
-    #     second_hallway_valid = False
-    #     if hallway_intersection_x < target_room.top_left.x and not split_vertical:
-    #         # Second hallway is right
-    #         second_top_left[0] = hallway_intersection_x - half_hallway_size - 1
-    #         second_bottom_right[0] = target_room.top_left.x + 1
-    #         second_hallway_valid = True
-    #     elif hallway_intersection_y < target_room.top_left.y and split_vertical:
-    #         # Second hallway is down
-    #         second_top_left[1] = hallway_intersection_y - half_hallway_size - 1
-    #         second_bottom_right[1] = target_room.top_left.y + 1
-    #         second_hallway_valid = True
-    #     elif hallway_intersection_x > target_room.bottom_right.x and not split_vertical:
-    #         # Second hallway is left
-    #         second_top_left[0] = target_room.bottom_right.x - 1
-    #         second_bottom_right[0] = hallway_intersection_x + half_hallway_size + 1
-    #         second_hallway_valid = True
-    #     elif hallway_intersection_y > target_room.bottom_right.y and split_vertical:
-    #         # Second hallway is up
-    #         second_top_left[1] = target_room.bottom_right.y - 1
-    #         second_bottom_right[1] = hallway_intersection_y + half_hallway_size + 1
-    #         second_hallway_valid = True
-    #
-    #     # Place the hallways
-    #     first_hallway = None
-    #     if first_hallway_valid:
-    #         first_hallway = Rect(
-    #             Point(*first_top_left),
-    #             Point(*first_bottom_right),
-    #         )
-    #         self.place_rect(first_hallway)
-    #     second_hallway = None
-    #     if second_hallway_valid:
-    #         second_hallway = Rect(
-    #             Point(*second_top_left),
-    #             Point(*second_bottom_right),
-    #         )
-    #         self.place_rect(second_hallway)
-    #
-    #     # Return both hallways
-    #     return first_hallway, second_hallway

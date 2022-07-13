@@ -6,14 +6,12 @@ from __future__ import annotations
 import logging
 from collections import deque
 from itertools import pairwise
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 # Pip
 import numpy as np
 
 # Custom
-from game.constants.constructor import ENEMIES
-from game.constants.general import DEBUG_LINES
 from game.constants.generation import (
     BASE_ENEMY_COUNT,
     BASE_ITEM_COUNT,
@@ -31,12 +29,14 @@ from game.constants.generation import (
     MAX_OBSTACLE_COUNT,
     MAX_SPLIT_ITERATION,
     PLACE_TRIES,
-    SAFE_SPAWN_RADIUS,
     TileType,
 )
 from game.generation.astar import calculate_astar_path
 from game.generation.bsp import Leaf
 from game.generation.primitives import Point, Rect
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 __all__ = (
     "GameMapShape",
@@ -133,7 +133,15 @@ class Map:
         # Create the map
         self._split_bsp()
         self._create_hallways(self._generate_rooms())
-        print(self.grid)
+
+        # Place the entities
+        possible_tiles: list[tuple[int, int]] = list(  # noqa
+            zip(*np.nonzero(self.grid == TileType.FLOOR))
+        )
+        np.random.shuffle(possible_tiles)
+        self._place_tile(TileType.PLAYER, possible_tiles)
+        self._place_multiple(ENEMY_DISTRIBUTION, possible_tiles)
+        self._place_multiple(ITEM_DISTRIBUTION, possible_tiles)
 
     def __repr__(self) -> str:
         return (
@@ -232,7 +240,7 @@ class Map:
             current = deque_obj.popleft()
 
             # Split the bsp if possible
-            if current.split(DEBUG_LINES) and current.left and current.right:
+            if current.split() and current.left and current.right:
                 # Add the child leafs so they can be split
                 logger.debug("Split bsp. Split iteration is now %d", split_iteration)
                 deque_obj.append(current.left)
@@ -280,40 +288,6 @@ class Map:
 
         # Return all the created rooms
         return rooms
-
-        # import matplotlib.pyplot as plt
-        # import networkx as nx
-        #
-        # g = nx.DiGraph()
-        # i = 0
-        # y = {}
-        # deque_obj.append(self.bsp)
-        # while deque_obj:
-        #     current = deque_obj.pop()
-        #     current_dict = y.get(current, -1)
-        #     if current_dict == -1:
-        #         i += 1
-        #         y[current] = i
-        #         current_dict = i
-        #
-        #     if current.left:
-        #         current_left_dict = y.get(current.left, -1)
-        #         if current_left_dict == -1:
-        #             i += 1
-        #             y[current.left] = i
-        #             current_left_dict = i
-        #         g.add_edge(current_dict, current_left_dict)
-        #         deque_obj.append(current.left)
-        #     if current.right:
-        #         current_right_dict = y.get(current.right, -1)
-        #         if current_right_dict == -1:
-        #             i += 1
-        #             y[current.right] = i
-        #             current_right_dict = i
-        #         g.add_edge(current_dict, current_right_dict)
-        #         deque_obj.append(current.right)
-        # nx.draw_planar(g, arrows=True, with_labels=True)
-        # plt.show()
 
     def _create_hallways(self, rooms: list[Rect]):
         """Creates the hallways by generating a Delaunay graph and finding a minimum
@@ -369,7 +343,8 @@ class Map:
         #         if source != destination:
         #             mst.add((source, destination, cost))
         #
-        # # Add some removed edges back into the graph, so it's not as sparsely populated
+        # # Add some removed edges back into the graph, so it's not as sparsely
+        # # populated
         # removed_edges = connections - connections.intersection(mst)
         # hallway_connections = mst.copy().union(
         #     {
@@ -407,163 +382,61 @@ class Map:
                     ),
                 ).place_rect()
 
-    def f(self):
-        # from scipy.spatial import Delaunay
-        # import matplotlib.pyplot as plt
-        # points = []
-        # for leaf in leafs:
-        #     points.append([leaf.room.center_x, leaf.room.center_y])
-        # points = np.array(points)
-        # tri = Delaunay(points)
-        # plt.triplot(points[:, 0], points[:, 1], tri.simplices)
-        # plt.plot(points[:, 0], points[:, 1], 'o')
-        # plt.show()
-
-        # Get all the rooms objects from the leafs list, so we can store the hallways
-        # too. To make the hallways, we can connect each pair of leaves in the leafs
-        # list using itertools.pairwise
-        rooms: list[Rect] = [leaf.room for leaf in leafs if leaf.room]
-        hallways: list[Rect] = []
-        logger.info("Created %d rooms", len(rooms))
-        for pair in list(pairwise(leafs)):
-            first_hallway, second_hallway = pair[0].create_hallway(pair[1])
-            if first_hallway:
-                hallways.append(first_hallway)
-            if second_hallway:
-                hallways.append(second_hallway)
-        logger.info("Created %d hallways", len(hallways))
-
-        # Create a sorted list of tuples based on the rect areas
-        rects: list[Rect] = rooms + hallways
-        rect_areas = sorted(
-            ((rect, rect.width * rect.height) for rect in rects),
-            key=lambda x: x[1],
-        )
-        total_area = sum(area[1] for area in rect_areas)
-        logger.debug("Created %d total rects with area %d", len(rects), total_area)
-
-        # Place the player spawn in the smallest room
-        self._place_tile(TileType.PLAYER, rect_areas[0][0])
-
-        # Place the enemies
-        self._place_enemies(
-            rect_areas,
-            [area[1] / total_area for area in rect_areas],
-        )
-
-        # Place the items
-        self._place_items(rect_areas)
-        logger.info(
-            "Finished creating game map with constants %r and rect count %d",
-            self.map_constants,
-            len(rects),
-        )
-
-    def _place_enemies(
+    def _place_multiple(
         self,
-        rect_areas: list[tuple[Rect, int]],
-        area_probabilities: list[float],
+        target_distribution: Mapping[TileType, int | float],
+        possible_tiles: list[tuple[int, int]],
     ) -> None:
-        """Places the enemies in the grid making sure other tiles aren't replaced.
+        """Places multiple tile types from a given distribution in the 2D grid.
 
         Parameters
         ----------
-        rect_areas: list[tuple[Rect, int]]
-            A sorted list of rects and their areas.
-        area_probabilities: list[float]
-            A list of areas probabilities. This corresponds to rect_areas.
+        target_distribution: Mapping[TileType, int | float]
+            The target distribution to place in the 2D grid.
+        possible_tiles: list[tuple[int, int]]
+            The possible tiles that the tiles can be placed into.
         """
-        # Repeatedly place an enemy type. If they are placed, we can increment the
-        # counter. Otherwise, continue
-        for enemy in ENEMY_DISTRIBUTION:
-            # Set up the counters for this enemy type
-            count = self.map_constants[enemy]
-            enemies_placed = 0
+        for tile in target_distribution:
+            tiles_placed = 0
             tries = PLACE_TRIES
-            while enemies_placed < count and tries != 0:
-                if self._place_tile(
-                    enemy,
-                    np.random.choice(
-                        [rect[0] for rect in rect_areas], p=area_probabilities
-                    ),
-                ):
-                    # Enemy placed
-                    enemies_placed += 1
+            while tiles_placed < self.map_constants[tile] and tries != 0:
+                if self._place_tile(tile, possible_tiles):
+                    # Tile placed
+                    tiles_placed += 1
                 else:
-                    # Enemy not placed
+                    # Tile not placed
                     tries -= 1
 
-    def _place_items(self, rect_areas: list[tuple[Rect, int]]) -> None:
-        """Places the items in the grid making sure other tiles aren't replaced.
+    def _place_tile(
+        self, target_tile: TileType, possible_tiles: list[tuple[int, int]]
+    ) -> bool:
+        """Places a given tile in the 2D grid.
 
         Parameters
         ----------
-        rect_areas: list[tuple[Rect, int]]
-            A sorted list of rects and their areas. This is only used to pick a random
-            rect, the items aren't actually placed based on weights.
-        """
-        # Repeatedly place an item type. If they are placed, we can increment the
-        # counter. Otherwise, continue
-        for item in ITEM_DISTRIBUTION:
-            # Set up the counters for this item type
-            count = self.map_constants[item]
-            items_placed = 0
-            tries = PLACE_TRIES
-            while items_placed < count and tries != 0:
-                if self._place_tile(
-                    item, np.random.choice([rect[0] for rect in rect_areas])
-                ):
-                    # Item placed
-                    items_placed += 1
-                else:
-                    # Item not placed
-                    tries -= 1
-
-    def _place_tile(self, entity: TileType, rect: Rect) -> bool:
-        """Places a given entity in a random position in a given rect.
-
-        Parameters
-        ----------
-        entity: TileType
-            The entity to place in the grid.
-        rect: Rect
-            The rect object to place the tile in.
+        target_tile: TileType
+            The tile to place in the 2D grid.
+        possible_tiles: list[tuple[int, int]]
+            The possible tiles that the tile can be placed into.
 
         Returns
         -------
         bool
-            Whether or not an enemy was placed.
+            Whether the tile was placed or not.
         """
-        # Make sure variables needed are valid
-        assert self.grid is not None
+        # Check if there are any floor tiles left
+        if possible_tiles:
+            # Get a random floor position and place the target tile
+            y, x = possible_tiles.pop()
+            self.grid[y][x] = target_tile
 
-        # Get a random position within the rect making sure to exclude the walls
-        position_x, position_y = (
-            np.random.randint(rect.top_left.x + 1, rect.bottom_right.x - 1),
-            np.random.randint(rect.top_left.y + 1, rect.bottom_right.y - 1),
-        )
+            # Check if the target tile is the player. If so, we need to store its
+            # position
+            if target_tile is TileType.PLAYER:
+                self.player_pos = x, y
 
-        # Check if the entity is an enemy. If so, we need to make sure they are not
-        # within the spawn radius
-        if entity in ENEMIES:
-            distance_to_player = np.hypot(
-                self.player_pos[0] - position_x, self.player_pos[1] - position_y
-            )
-            if distance_to_player < SAFE_SPAWN_RADIUS:
-                # Enemy is within spawn radius so don't place them
-                return False
-
-        # Check if the chosen position is already taken
-        if self.grid[position_y, position_x] != TileType.FLOOR.value:
-            # Already taken
+            # Placing successful so return True
+            return True
+        else:
+            # Placing not successful so return False
             return False
-
-        # Place the entity in the random position
-        self.grid[position_y, position_x] = entity.value
-
-        # Check if the entity is the player. If so, save the position
-        if entity is TileType.PLAYER:
-            self.player_pos = (position_x, position_y)
-
-        # Return true so we know an enemy has been placed
-        return True
