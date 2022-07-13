@@ -218,5 +218,5 @@ class MeleeShader:
         return []
 
 
-# TODO: Still seems like there is a bug and that it sometimes works and sometimes
-#  doesn't
+# Still seems like there is a bug and that it sometimes works and sometimes doesn't.
+# Need to fix this

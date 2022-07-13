@@ -1,6 +1,5 @@
-"""
-Procedurally Generated Dungeon Crawler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""Procedurally Generated Dungeon Crawler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A procedurally generated dungeon crawler game made in Python using the
 `Arcade <https://github.com/pythonarcade/arcade>`_ library.

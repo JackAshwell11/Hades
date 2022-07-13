@@ -332,7 +332,6 @@ class EntityAttribute:
         current_status_effect.time_counter += delta_time
 
         # Apply custom status effect update logic
-        ...
 
         # Check if we need to remove the status effect
         if current_status_effect.time_counter >= current_status_effect.duration:
