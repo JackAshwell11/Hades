@@ -82,13 +82,13 @@ class VectorField:
         "vector_dict",
     )
 
+    # Class variables
     _no_diagonal_offsets: list[tuple[int, int]] = [
         (0, -1),
         (-1, 0),
         (1, 0),
         (0, 1),
     ]
-
     _diagonal_offsets: list[tuple[int, int]] = [
         (-1, -1),
         (0, -1),
