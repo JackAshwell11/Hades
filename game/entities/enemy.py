@@ -91,7 +91,7 @@ class Enemy(Entity):
 
     @property
     def enemy_data(self) -> EnemyData:
-        """Gets the enemy data if it exists.
+        """Get the enemy data if it exists.
 
         Returns
         -------
@@ -105,7 +105,7 @@ class Enemy(Entity):
         return self.entity_type.enemy_data
 
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
-        """Initialises the entity's state dict.
+        """Initialise the enemy's state.
 
         Returns
         -------
@@ -123,7 +123,7 @@ class Enemy(Entity):
         }
 
     def post_on_update(self, delta_time: float) -> None:
-        """Processes enemy logic.
+        """Process custom enemy logic.
 
         Parameters
         ----------
@@ -152,7 +152,7 @@ class Enemy(Entity):
         self.attack()
 
     def move(self, delta_time: float) -> None:
-        """Processes the needed actions for the enemy to move.
+        """Process the needed actions for the enemy to move.
 
         Parameters
         ----------
@@ -201,7 +201,7 @@ class Enemy(Entity):
         )
 
     def attack(self) -> None:
-        """Runs the enemy's current attack algorithm."""
+        """Run the enemy's current attack algorithm."""
         # Make sure variables needed are valid
         assert self.game.player is not None
 
@@ -229,7 +229,7 @@ class Enemy(Entity):
                 self.current_attack.process_attack(self.game.player)
 
     def check_line_of_sight(self, max_tile_range: int) -> bool:
-        """Checks if the enemy has line of sight with the player.
+        """Check if the enemy has line of sight with the player.
 
         Parameters
         ----------

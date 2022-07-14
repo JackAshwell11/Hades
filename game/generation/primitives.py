@@ -33,9 +33,10 @@ class Point(NamedTuple):
 
 
 class Rect(NamedTuple):
-    """Represents a rectangle of any size useful for creating the dungeon. Containers
-    include the split wall in their sizes whereas rooms don't so MIN_CONTAINER_SIZE must
-    be bigger than MIN_ROOM_SIZE.
+    """Represents a rectangle of any size useful for creating the dungeon.
+
+    Containers include the split wall in their sizes whereas rooms don't so
+    MIN_CONTAINER_SIZE must be bigger than MIN_ROOM_SIZE.
 
     grid: np.ndarray
         The 2D grid which represents the dungeon.
@@ -51,7 +52,7 @@ class Rect(NamedTuple):
 
     @property
     def width(self) -> int:
-        """Gets the width of the rect.
+        """Get the width of the rect.
 
         Returns
         -------
@@ -62,7 +63,7 @@ class Rect(NamedTuple):
 
     @property
     def height(self) -> int:
-        """Gets the height of the rect.
+        """Get the height of the rect.
 
         Returns
         -------
@@ -73,7 +74,7 @@ class Rect(NamedTuple):
 
     @property
     def center_x(self) -> int:
-        """Gets the x coordinate of the center position.
+        """Get the x coordinate of the center position.
 
         Returns
         -------
@@ -84,7 +85,7 @@ class Rect(NamedTuple):
 
     @property
     def center_y(self) -> int:
-        """Gets the y coordinate of the center position.
+        """Get the y coordinate of the center position.
 
         Returns
         -------
@@ -95,7 +96,7 @@ class Rect(NamedTuple):
 
     @property
     def center(self) -> Point:
-        """Gets the center position of the rect.
+        """Get the center position of the rect.
 
         Returns
         -------
@@ -105,7 +106,7 @@ class Rect(NamedTuple):
         return Point(self.center_x, self.center_y)
 
     def get_distance_to(self, other: Rect) -> float:
-        """Gets the Euclidean distance to another rect.
+        """Get the Euclidean distance to another rect.
 
         Parameters
         ----------

@@ -1,5 +1,4 @@
-"""Visually displays the player's inventory so the player can manage their inventory and
-use items."""
+"""Displays the player's inventory graphically allowing for easy management."""
 from __future__ import annotations
 
 # Builtin
@@ -38,7 +37,7 @@ class InventoryBox(arcade.gui.UITextureButton):
         )
 
     def on_click(self, _) -> None:
-        """Called when the button is clicked."""
+        """Use an item in the player's inventory."""
         # Stop slots being clicked on if they're empty
         if not self.item_ref:
             return
@@ -120,7 +119,7 @@ class InventoryView(BaseView):
         self.ui_manager.draw()
 
     def update_grid(self) -> None:
-        """Updates the inventory grid."""
+        """Update the inventory grid with the player's current inventory."""
         result = [0, 0]
         for row_count, box_layout in enumerate(self.vertical_box.children):
             for column_count, ui_border_obj in enumerate(box_layout.children):

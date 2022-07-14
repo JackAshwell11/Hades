@@ -103,7 +103,7 @@ class UpgradablePlayerSection:
 
     @property
     def next_level_cost(self) -> int:
-        """Gets the cost for the next level.
+        """Get the cost for the next level.
 
         Returns
         -------
@@ -114,7 +114,7 @@ class UpgradablePlayerSection:
 
     @property
     def level_limit(self) -> int:
-        """Gets the maximum level for the player's upgrades.
+        """Get the maximum level for the player's upgrades.
 
         Returns
         -------
@@ -217,7 +217,7 @@ class EntityAttribute:
 
     @property
     def value(self) -> float:
-        """Gets the attribute's value.
+        """Get the attribute's value.
 
         Returns
         -------
@@ -228,7 +228,7 @@ class EntityAttribute:
 
     @value.setter
     def value(self, value: float) -> None:
-        """Sets the attribute's value if possible.
+        """Set the attribute's value if possible.
 
         Parameters
         ----------
@@ -255,8 +255,9 @@ class EntityAttribute:
 
     @property
     def max_value(self) -> float:
-        """Gets the attribute's max value. If this is -1, then the attribute is not
-        variable.
+        """Get the attribute's max value.
+
+        If this is -1, then the attribute is not variable.
 
         Returns
         -------
@@ -280,7 +281,7 @@ class EntityAttribute:
     def apply_status_effect(
         self, status_effect_data: StatusEffectData, level: int
     ) -> None:
-        """Applies a status effect to the attribute if possible.
+        """Apply a status effect to the attribute if possible.
 
         Parameters
         ----------
@@ -316,7 +317,7 @@ class EntityAttribute:
             self.owner.pymunk.max_vertical_velocity = new_value
 
     def update_status_effect(self, delta_time: float) -> None:
-        """Updates the currently applied status effect.
+        """Update the currently applied status effect.
 
         Parameters
         ----------
@@ -338,7 +339,7 @@ class EntityAttribute:
             self.remove_status_effect()
 
     def remove_status_effect(self) -> None:
-        """Removes the currently applied status effect from the attribute."""
+        """Remove the currently applied status effect from the attribute."""
         # Test if there isn't a status effect already applied
         if not self.applied_status_effect:
             return

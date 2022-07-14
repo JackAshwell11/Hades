@@ -15,8 +15,7 @@ __all__ = ("EnemyMovementManager",)
 
 
 class EnemyMovementManager:
-    """Manages and processes logic needed for the enemy to move towards the player or
-    wander around. This is a work in progress.
+    """Manages and processes logic needed for the enemy to move.
 
     Parameters
     ----------
@@ -34,7 +33,7 @@ class EnemyMovementManager:
 
     @property
     def vector_field(self) -> VectorField:
-        """Gets the vector field for easy access.
+        """Get the vector field for easy access.
 
         Returns
         -------
@@ -48,7 +47,7 @@ class EnemyMovementManager:
         return self.owner.game.vector_field
 
     def calculate_vector_field_force(self) -> tuple[float, float]:
-        """Calculates the force to apply to an enemy which is using the vector field.
+        """Calculate the force to apply to an enemy which is using the vector field.
 
         Returns
         -------
@@ -68,8 +67,7 @@ class EnemyMovementManager:
 
     @staticmethod  # Change this when it is properly implemented
     def calculate_wander_force() -> tuple[float, float]:
-        """Calculates the force to apply to an enemy who is wandering. This currently
-        does not work.
+        """Calculate the force to apply to an enemy who is wandering.
 
         Returns
         -------

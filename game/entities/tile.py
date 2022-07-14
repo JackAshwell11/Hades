@@ -110,7 +110,7 @@ class Consumable(UsableTile, CollectibleTile):
 
     @property
     def name(self) -> str:
-        """Gets the name of this consumable.
+        """Get the name of this consumable.
 
         Returns
         -------
@@ -121,7 +121,7 @@ class Consumable(UsableTile, CollectibleTile):
         return self.consumable_type.name
 
     def item_use(self) -> bool:
-        """Called when the consumable is used by the player.
+        """Process item use functionality.
 
         Returns
         -------

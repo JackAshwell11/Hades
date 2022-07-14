@@ -1,5 +1,4 @@
-"""Manages the procedural generation of the dungeon and places the player, enemies and
-items into the game map."""
+"""Manages the generation of the dungeon and placing of entities."""
 from __future__ import annotations
 
 # Builtin
@@ -52,7 +51,7 @@ np.set_printoptions(threshold=1, edgeitems=50, linewidth=10000)
 
 
 def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
-    """Initialises and generates the game map.
+    """Generate the game map for a given game level.
 
     Parameters
     ----------
@@ -82,7 +81,7 @@ class GameMapShape(NamedTuple):
 
 
 class Map:
-    """Procedurally generates a dungeon based on a given game level.
+    """Procedurally generates a dungeon map based on a given game level.
 
     Parameters
     ----------
@@ -154,7 +153,7 @@ class Map:
 
     @property
     def width(self) -> int:
-        """Gets the width of the grid.
+        """Get the width of the grid.
 
         Returns
         -------
@@ -169,7 +168,7 @@ class Map:
 
     @property
     def height(self) -> int:
-        """Gets the height of the grid.
+        """Get the height of the grid.
 
         Returns
         -------
@@ -183,7 +182,7 @@ class Map:
         return self.grid.shape[0]
 
     def _generate_constants(self) -> dict[TileType | str, int]:
-        """Generates the needed constants based on a given level.
+        """Generate the needed constants based on a given game level.
 
         Returns
         -------
@@ -230,7 +229,7 @@ class Map:
         return result
 
     def _split_bsp(self) -> None:
-        """Splits the bsp based on the generated constants."""
+        """Split the bsp based on the generated constants."""
         # Start the splitting using deque
         deque_obj = deque["Leaf"]()
         deque_obj.append(self.bsp)
@@ -250,7 +249,7 @@ class Map:
                 split_iteration -= 1
 
     def _generate_rooms(self) -> list[Rect]:
-        """Generates the rooms for a given level using the bsp.
+        """Generate the rooms for a given game level using the bsp.
 
         Returns
         -------
@@ -290,9 +289,7 @@ class Map:
         return rooms
 
     def _create_hallways(self, rooms: list[Rect]):
-        """Creates the hallways by generating a Delaunay graph and finding a minimum
-        spawning tree before adding a few removed edges back into the graph. This
-        ensures that the hallways won't intersect and that there won't be too many.
+        """Create the hallways by placing random obstacles and pathfinding around them.
 
         Parameters
         ----------

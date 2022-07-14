@@ -1,5 +1,4 @@
-"""Initialises and manages the main game through controlling movement, attacking, game
-logic and collision."""
+"""Initialises and manages the main game."""
 from __future__ import annotations
 
 # Builtin
@@ -130,8 +129,7 @@ class Game(BaseView):
         return f"<Game (Current window={self.window})>"
 
     def post_hide_view(self) -> None:
-        """Called after the view is hidden allowing for extra functionality to be
-        added."""
+        """Process post hide view functionality."""
         # Make sure variables needed are valid
         assert self.player is not None
 
@@ -141,7 +139,7 @@ class Game(BaseView):
         ) = self.player.up_pressed = self.player.down_pressed = False
 
     def setup(self, level: int) -> None:
-        """Sets up the game.
+        """Set up the game.
 
         Parameters
         ----------
@@ -400,7 +398,7 @@ class Game(BaseView):
         self.ui_manager.draw()
 
     def on_update(self, delta_time: float) -> None:
-        """Processes movement and game logic.
+        """Process movement and game logic.
 
         Parameters
         ----------
@@ -444,7 +442,7 @@ class Game(BaseView):
             self.nearest_item = None
 
     def on_key_press(self, key: int, modifiers: int) -> None:
-        """Called when the player presses a key.
+        """Process key press functionality.
 
         Parameters
         ----------
@@ -492,7 +490,7 @@ class Game(BaseView):
                 self.window.show_view(self.window.views["ShopView"])
 
     def on_key_release(self, key: int, modifiers: int) -> None:
-        """Called when the player releases a key.
+        """Process key release functionality.
 
         Parameters
         ----------
@@ -520,7 +518,7 @@ class Game(BaseView):
                 self.player.right_pressed = False
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
-        """Called when the player presses the mouse button.
+        """Process mouse button functionality.
 
         Parameters
         ----------
@@ -551,7 +549,7 @@ class Game(BaseView):
                 self.player.attack()
 
     def on_mouse_motion(self, x: float, y: float, *_) -> None:
-        """Called when the mouse moves.
+        """Process mouse motion functionality.
 
         Parameters
         ----------

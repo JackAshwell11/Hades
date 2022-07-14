@@ -1,5 +1,4 @@
-"""Stores various constants related to game objects and dataclasses used for
-constructing the game object."""
+"""Stores various constants related to game objects and their dataclasses."""
 from __future__ import annotations
 
 # Builtin
@@ -134,8 +133,7 @@ class BaseData:
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class EntityData:
-    """The base class for storing general data about an entity. This stuff should not
-    change between entity levels.
+    """The base class for storing general data about an entity.
 
     name: str
         The name of the entity.

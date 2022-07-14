@@ -673,7 +673,7 @@ class Entity(GameObject):
             self.armour_bar.fullness = new_armour_fullness
 
     def post_on_update(self, delta_time: float) -> None:
-        """Performs custom entity logic.
+        """Process custom entity logic.
 
         Parameters
         ----------
@@ -785,8 +785,7 @@ class UsableTile(InteractiveTile):
         return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
 
     def item_use(self) -> bool:
-        """Called when the item is used by the player. Override this to add item use
-        functionality.
+        """Process item use functionality.
 
         Returns
         -------

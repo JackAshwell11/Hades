@@ -85,7 +85,7 @@ class Leaf:
         )
 
     def split(self) -> bool:
-        """Splits a container horizontally or vertically.
+        """Split a container either horizontally or vertically.
 
         Returns
         -------
@@ -176,7 +176,7 @@ class Leaf:
         return True
 
     def create_room(self) -> bool:
-        """Creates a random sized room inside a container.
+        """Create a random sized room inside a container.
 
         Returns
         -------

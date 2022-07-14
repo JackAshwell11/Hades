@@ -1,5 +1,4 @@
-"""Creates a shop so the player can upgrade attributes and buy special upgrades/other
-items."""
+"""Creates a shop for upgrades and special attributes/items."""
 from __future__ import annotations
 
 # Builtin
@@ -31,7 +30,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
     section_ref: UpgradablePlayerSection | None = None
 
     def on_click(self, _) -> None:
-        """Called when the button is clicked."""
+        """Upgrade a player attribute section."""
         # Make sure variables needed are valid
         assert self.section_ref is not None
 
@@ -44,7 +43,8 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
 
 
 class ShopView(BaseView):
-    """Displays the shop UI so the player can upgrade their attributes.
+    """
+    Displays the shop UI so the player can upgrade their attributes.
 
     Parameters
     ----------

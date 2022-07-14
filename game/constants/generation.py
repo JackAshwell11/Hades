@@ -47,9 +47,6 @@ class TileType(IntEnum):
     FIRE_RATE_BOOST_POTION = 11
     DEBUG_WALL = 99
 
-    def __str__(self) -> str:
-        return str(self.value)
-
 
 # Map generation distributions
 ENEMY_DISTRIBUTION = {

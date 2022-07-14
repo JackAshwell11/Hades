@@ -21,9 +21,9 @@ __all__ = (
     "AreaOfEffectAttack",
     "AttackBase",
     "Bullet",
-    "create_attack",
     "MeleeAttack",
     "RangedAttack",
+    "create_attack",
 )
 
 # Get the logger
@@ -83,7 +83,7 @@ class Bullet(arcade.SpriteSolidColor):
         return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
 
     def on_update(self, _: float = 1 / 60) -> None:
-        """Processes bullet logic."""
+        """Process bullet logic."""
         # Check if the bullet is pass the max range
         if (
             math.hypot(
@@ -123,7 +123,7 @@ class AttackBase:
         return f"<AttackBase (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:
-        """Performs an attack by the owner entity.
+        """Perform an attack by the owner entity.
 
         Parameters
         ----------
@@ -151,7 +151,7 @@ class RangedAttack(AttackBase):
         return f"<RangedAttack (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:
-        """Performs a ranged attack in the direction the entity is facing.
+        """Perform a ranged attack in the direction the entity is facing.
 
         Parameters
         ----------
@@ -211,7 +211,7 @@ class MeleeAttack(AttackBase):
         return f"<MeleeAttack (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:
-        """Performs a melee attack in the direction the entity is facing.
+        """Perform a melee attack in the direction the entity is facing.
 
         Parameters
         ----------
@@ -242,7 +242,7 @@ class AreaOfEffectAttack(AttackBase):
         return f"<AreaOfEffectAttack (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:
-        """Performs an area of effect attack around the entity.
+        """Perform an area of effect attack around the entity.
 
         Parameters
         ----------
@@ -292,8 +292,7 @@ ATTACKS = {
 def create_attack(
     owner: Entity, attack_type: AttackAlgorithmType, attack_data: AttackData
 ) -> AttackBase:
-    """Determines which attack algorithm should be initialised based on a given attack
-    type.
+    """Determine which attack algorithm should be created based on a given attack type.
 
     Parameters
     ----------

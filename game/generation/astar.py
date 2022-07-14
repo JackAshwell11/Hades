@@ -27,10 +27,14 @@ offsets: list[tuple[int, int]] = [
 
 
 def heuristic(a: Point, b: Point) -> int:
-    """Calculates the `Manhattan <https://en.wikipedia.org/wiki/Taxicab_geometry>`_
-    distance between two points. This preferable to the `Euclidean
-    <https://en.wikipedia.org/wiki/Euclidean_distance>`_ distance since we can
-    generate staircased paths instead of straight line paths.
+    """Calculate the Manhattan distance between two points.
+
+     This preferable to the Euclidean distance since we can generate staircase-like
+     paths instead of straight line paths.
+
+     Further reading which may be useful:
+     `Manhattan distance <https://en.wikipedia.org/wiki/Taxicab_geometry>`_
+     `Euclidean distance <https://en.wikipedia.org/wiki/Euclidean_distance>`_
 
     Parameters
     ----------
@@ -45,7 +49,7 @@ def heuristic(a: Point, b: Point) -> int:
 def get_neighbours(
     target: Point, height: int, width: int
 ) -> Generator[Point, None, None]:
-    """Gets the north, south, east and west neighbours of a given point if possible.
+    """Get the north, south, east and west neighbours of a given point if possible.
 
     Parameters
     ----------
@@ -72,8 +76,10 @@ def get_neighbours(
 
 
 def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Point]:
-    """Calculates the shortest path from one point to another using the `A* algorithm
-    <https://en.wikipedia.org/wiki/A*_search_algorithm>`_.
+    """Calculate the shortest path from one point to another using the A* algorithm.
+
+    Further reading which may be useful:
+    `The A* algorithm <https://en.wikipedia.org/wiki/A*_search_algorithm>`_
 
 
     Parameters
