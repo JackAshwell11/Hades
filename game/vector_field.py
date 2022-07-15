@@ -1,5 +1,4 @@
-"""Creates an efficient vector flow field useful for navigating enemies around the game
-map."""
+"""Creates a vector field useful for navigating enemies around the game map."""
 from __future__ import annotations
 
 # Builtin
@@ -24,8 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class VectorField:
-    """Represents a vector flow field that allows for efficient pathfinding to a
-    specific position for large amount of entities.
+    """Represents a vector field allowing pathfinding for large amounts of enemies.
 
     The steps needed to accomplish this:
         1. First, we start at the destination tile and work our way outwards using a
@@ -39,8 +37,8 @@ class VectorField:
 
         3. Finally, once the neighbour with the lowest Dijkstra distance is found, we
         can create a vector from the current tile to that neighbour tile which the enemy
-        will follow. Repeating this for every tile in the flow file gives us an
-        efficient way to calculate pathfinding for a large amount of entities.
+        will follow. Repeating this for every tile gives us an efficient way to
+        calculate pathfinding for a large amount of entities.
 
     Further reading which may be useful:
     `Other uses of Dijkstra maps
@@ -115,12 +113,13 @@ class VectorField:
             self.walls_dict[self.get_tile_pos_for_pixel(wall.position)] = np.inf
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<VectorField (Width={self.width}) (Height={self.height})"
 
     def _get_neighbours(
         self, tile_pos: tuple[int, int], offsets: list[tuple[int, int]]
     ) -> list[tuple[int, int]]:
-        """Gets a tile position's floor neighbours based on a given list of offsets.
+        """Get a tile position's floor neighbours based on a given list of offsets.
 
         Parameters
         ----------
@@ -155,8 +154,7 @@ class VectorField:
 
     @staticmethod
     def get_tile_pos_for_pixel(position: tuple[float, float]) -> tuple[int, int]:
-        """Converts a sprite position on the screen into a tile position for use with
-        the vector field.
+        """Convert a screen position into a tile position for use with the vector field.
 
         Parameters
         ----------
@@ -248,7 +246,7 @@ class VectorField:
     def get_vector_direction(
         self, current_enemy_pos: tuple[float, float]
     ) -> tuple[float, float]:
-        """Gets the vector the enemy needs to travel in based on their position.
+        """Get the vector the enemy should travel on based on their current position.
 
         Parameters
         ----------

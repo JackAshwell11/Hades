@@ -36,11 +36,12 @@ class Window(arcade.Window):
         self.views: dict[str, BaseView] = {}
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Window (Width={self.width}) (Height={self.height})>"
 
 
 def main() -> None:
-    """Initialises the game and runs it."""
+    """Initialise the game and runs it."""
     # Initialise the window
     window = Window()
     window.center_window()

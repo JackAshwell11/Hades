@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 # Custom
 from game.constants.game_object import ConsumableData, InstantEffectType
-from game.entities.base import CollectibleTile, Tile, UsableTile
+from game.game_object.base import CollectibleTile, Tile, UsableTile
 from game.textures import non_moving_textures
 
 if TYPE_CHECKING:
@@ -32,6 +32,7 @@ class Floor(Tile):
     raw_texture: arcade.Texture = non_moving_textures["tiles"][0]
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Floor (Position=({self.center_x}, {self.center_y}))>"
 
 
@@ -43,6 +44,7 @@ class Wall(Tile):
     blocking: bool = True
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Wall (Position=({self.center_x}, {self.center_y}))>"
 
 
@@ -106,11 +108,12 @@ class Consumable(UsableTile, CollectibleTile):
         self.texture: arcade.Texture = self.consumable_type.texture
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Consumable (Position=({self.center_x}, {self.center_y}))>"
 
     @property
     def name(self) -> str:
-        """Gets the name of this consumable.
+        """Get the name of this consumable.
 
         Returns
         -------
@@ -121,7 +124,7 @@ class Consumable(UsableTile, CollectibleTile):
         return self.consumable_type.name
 
     def item_use(self) -> bool:
-        """Called when the consumable is used by the player.
+        """Process item use functionality.
 
         Returns
         -------

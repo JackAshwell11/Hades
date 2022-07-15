@@ -1,4 +1,4 @@
-"""Stores code that is shared between all views simplifying development."""
+"""Stores objects that are shared between all view classes."""
 from __future__ import annotations
 
 # Builtin
@@ -26,8 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
-    """Represents a simple dialog box that pops up with a message and disappears after a
-    certain amount of time.
+    """Represents a simple dialog box that displays a message then disappears.
 
     Parameters
     ----------
@@ -102,8 +101,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         return f"<DisappearingInfoBox (Text={self._text_area.text})>"
 
     def on_update(self, delta_time: float) -> None:
-        """Updates the internal time counter and checks to see if the box should
-        disappear.
+        """Update the internal time counter and see if the box should disappear.
 
         Parameters
         ----------
@@ -118,7 +116,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
             self.remove_box()
 
     def remove_box(self) -> None:
-        """Removes the box from the UI manager."""
+        """Remove the box from the UI manager."""
         self.parent.remove(self)
         self._parent_view.current_info_box = None
         logger.info("Info box has disappeared with text %s", self._text_area.text)
@@ -134,7 +132,7 @@ class BackButton(arcade.gui.UIFlatButton):
         )
 
     def on_click(self, _) -> None:
-        """Called when the button is clicked."""
+        """Return to the game when the button is clicked."""
         # Get the current window and view
         window: Window = arcade.get_window()
 
@@ -164,31 +162,30 @@ class BaseView(arcade.View):
         self.current_info_box: DisappearingInfoBox | None = None
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<BaseView (Current window={self.window})>"
 
     def on_show_view(self) -> None:
-        """Called when the view is shown."""
+        """Process show view functionality."""
         self.window.background_color = self.background_color
         self.ui_manager.enable()
         self.post_show_view()
         logger.info("Shown view %r", self)
 
     def on_hide_view(self) -> None:
-        """Called when the view is hidden."""
+        """Process hide view functionality."""
         self.ui_manager.disable()
         self.post_hide_view()
         logger.info("Hid view %r", self)
 
     def post_show_view(self) -> None:
-        """Called after the view is shown allowing for extra functionality to be
-        added."""
+        """Process post show view functionality."""
 
     def post_hide_view(self) -> None:
-        """Called after the view is hidden allowing for extra functionality to be
-        added."""
+        """Process post hide view functionality."""
 
     def display_info_box(self, text: str) -> None:
-        """Displays an info box that disappears after a set amount of time.
+        """Display an info box that disappears after a set amount of time.
 
         Parameters
         ----------
@@ -201,7 +198,7 @@ class BaseView(arcade.View):
 
     @staticmethod
     def add_back_button(vertical_box: arcade.gui.UIBoxLayout) -> None:
-        """Adds the back button to a given vertical box.
+        """Add the back button to a given vertical box.
 
         Parameters
         ----------

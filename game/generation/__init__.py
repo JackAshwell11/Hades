@@ -1,2 +1,1 @@
-"""Contains the functionality which generates the dungeon and places the
-entities (player/enemies/items) in it."""
+"""Generates the dungeon and places game objects in it."""

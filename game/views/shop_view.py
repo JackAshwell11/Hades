@@ -1,5 +1,4 @@
-"""Creates a shop so the player can upgrade attributes and buy special upgrades/other
-items."""
+"""Creates a shop for upgrades and special attributes/items."""
 from __future__ import annotations
 
 # Builtin
@@ -13,8 +12,8 @@ import arcade.gui
 from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
-    from game.entities.attribute import UpgradablePlayerSection
-    from game.entities.player import Player
+    from game.game_object.attribute import UpgradablePlayerSection
+    from game.game_object.player import Player
 
 __all__ = (
     "SectionUpgradeButton",
@@ -31,7 +30,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
     section_ref: UpgradablePlayerSection | None = None
 
     def on_click(self, _) -> None:
-        """Called when the button is clicked."""
+        """Upgrade a player attribute section."""
         # Make sure variables needed are valid
         assert self.section_ref is not None
 
@@ -44,7 +43,8 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
 
 
 class ShopView(BaseView):
-    """Displays the shop UI so the player can upgrade their attributes.
+    """
+    Displays the shop UI so the player can upgrade their attributes.
 
     Parameters
     ----------
@@ -81,6 +81,7 @@ class ShopView(BaseView):
         )
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<ShopView (Current window={self.window})>"
 
     def on_draw(self) -> None:

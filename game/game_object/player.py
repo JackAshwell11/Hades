@@ -1,4 +1,4 @@
-"""Stores the player object which the player can control."""
+"""Manages the player object and its various functions."""
 from __future__ import annotations
 
 # Builtin
@@ -21,8 +21,8 @@ from game.constants.game_object import (
     ObjectID,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.entities.attribute import EntityAttribute, UpgradablePlayerSection
-from game.entities.base import Entity, IndicatorBar
+from game.game_object.attribute import EntityAttribute, UpgradablePlayerSection
+from game.game_object.base import Entity, IndicatorBar
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
         EntityAttributeSectionType,
         PlayerData,
     )
-    from game.entities.base import CollectibleTile
+    from game.game_object.base import CollectibleTile
     from game.views.game_view import Game
 
 __all__ = ("Player",)
@@ -132,11 +132,12 @@ class Player(Entity):
         self.down_pressed: bool = False
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
 
     @property
     def player_data(self) -> PlayerData:
-        """Gets the player data if it exists.
+        """Get the player data if it exists.
 
         Returns
         -------
@@ -153,7 +154,7 @@ class Player(Entity):
     def section_upgrade_data(
         self,
     ) -> dict[EntityAttributeSectionType, Callable[[int], float]]:
-        """Gets the section upgrade data for the player.
+        """Get the section upgrade data for the player.
 
         Returns
         -------
@@ -164,7 +165,7 @@ class Player(Entity):
 
     @property
     def money(self) -> EntityAttribute:
-        """Gets the player's money.
+        """Get the player's money.
 
         Returns
         -------
@@ -174,7 +175,7 @@ class Player(Entity):
         return self.entity_state[EntityAttributeType.MONEY]
 
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
-        """Initialises the entity's state dict.
+        """Initialise the player's state.
 
         Returns
         -------
@@ -187,7 +188,7 @@ class Player(Entity):
         }
 
     def post_on_update(self, delta_time: float) -> None:
-        """Processes player logic.
+        """Process custom player logic.
 
         Parameters
         ----------
@@ -212,7 +213,7 @@ class Player(Entity):
         self.move(delta_time)
 
     def move(self, delta_time: float) -> None:
-        """Processes the needed actions for the entity to move.
+        """Process the needed actions for the player to move.
 
         Parameters
         ----------
@@ -245,7 +246,7 @@ class Player(Entity):
             self.time_out_of_combat = 0
 
     def attack(self) -> None:
-        """Runs the player's current attack algorithm."""
+        """Run the player's current attack algorithm."""
         # Check if the player can attack
         if self.time_since_last_attack < (
             self.current_attack.attack_data.attack_cooldown
@@ -293,7 +294,7 @@ class Player(Entity):
                 self.current_attack.process_attack(self.game.enemy_sprites)
 
     def add_item_to_inventory(self, item: CollectibleTile) -> bool:
-        """Adds an item to the player's inventory.
+        """Add an item to the player's inventory.
 
         Parameters
         ----------

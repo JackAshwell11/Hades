@@ -8,15 +8,14 @@ from typing import TYPE_CHECKING
 from game.constants.game_object import MOVEMENT_FORCE
 
 if TYPE_CHECKING:
-    from game.entities.enemy import Enemy
+    from game.game_object.enemy import Enemy
     from game.vector_field import VectorField
 
 __all__ = ("EnemyMovementManager",)
 
 
 class EnemyMovementManager:
-    """Manages and processes logic needed for the enemy to move towards the player or
-    wander around. This is a work in progress.
+    """Manages and processes logic needed for the enemy to move.
 
     Parameters
     ----------
@@ -30,11 +29,12 @@ class EnemyMovementManager:
         self.owner: Enemy = owner
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<EnemyMovement (Owner={self.owner})>"
 
     @property
     def vector_field(self) -> VectorField:
-        """Gets the vector field for easy access.
+        """Get the vector field for easy access.
 
         Returns
         -------
@@ -48,7 +48,7 @@ class EnemyMovementManager:
         return self.owner.game.vector_field
 
     def calculate_vector_field_force(self) -> tuple[float, float]:
-        """Calculates the force to apply to an enemy which is using the vector field.
+        """Calculate the force to apply to an enemy which is using the vector field.
 
         Returns
         -------
@@ -68,8 +68,7 @@ class EnemyMovementManager:
 
     @staticmethod  # Change this when it is properly implemented
     def calculate_wander_force() -> tuple[float, float]:
-        """Calculates the force to apply to an enemy who is wandering. This currently
-        does not work.
+        """Calculate the force to apply to an enemy who is wandering.
 
         Returns
         -------

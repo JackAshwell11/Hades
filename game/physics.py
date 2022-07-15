@@ -1,5 +1,4 @@
-"""Manages collisions and movement using an abstracted version of the Pymunk physics
-engine."""
+"""Manages the physics using an abstracted version of the Pymunk physics engine."""
 from __future__ import annotations
 
 # Builtin
@@ -13,10 +12,10 @@ import arcade
 from game.constants.game_object import ObjectID
 
 if TYPE_CHECKING:
-    from game.entities.attack import Bullet
-    from game.entities.base import Entity, Tile
-    from game.entities.enemy import Enemy
-    from game.entities.player import Player
+    from game.game_object.attack import Bullet
+    from game.game_object.base import Entity, Tile
+    from game.game_object.enemy import Enemy
+    from game.game_object.player import Player
 
 __all__ = ("PhysicsEngine",)
 
@@ -25,9 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
-    """Handles collision between a wall tile and a bullet sprite as they touch. This
-    uses the begin_handler which processes collision when two shapes are touching for
-    the first time.
+    """Handle collision between a wall tile and a bullet sprite as they touch.
+
+    This uses the begin_handler which processes collision when two shapes are touching
+    for the first time.
 
     Parameters
     ----------
@@ -56,9 +56,10 @@ def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
 
 
 def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
-    """Handles collision between an enemy entity and a bullet sprite as they touch. This
-    uses the begin_handler which processes collision when two shapes are touching for
-    the first time.
+    """Handle collision between an enemy entity and a bullet sprite as they touch.
+
+    This uses the begin_handler which processes collision when two shapes are touching
+    for the first time.
 
     Parameters
     ----------
@@ -92,9 +93,10 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
 
 
 def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
-    """Handles collision between a player entity and a bullet sprite as they touch. This
-    uses the begin_handler which processes collision when two shapes are touching for
-    the first time.
+    """Handle collision between a player entity and a bullet sprite as they touch.
+
+    This uses the begin_handler which processes collision when two shapes are touching
+    for the first time.
 
     Parameters
     ----------
@@ -128,8 +130,7 @@ def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
 
 
 class PhysicsEngine(arcade.PymunkPhysicsEngine):
-    """An abstracted version of the Pymunk Physics Engine which eases setting up a
-    physics engine for a top-down game.
+    """A helper class to ease setting up the Pymunk physics engine for a top-down game.
 
     Parameters
     ----------
@@ -206,13 +207,14 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         )
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return (
             f"<PhysicsEngine (Damping={self.damping}) (Sprite"
             f" count={len(self.sprites)})>"
         )
 
     def add_bullet(self, bullet: Bullet) -> None:
-        """Adds a bullet to the physics engine.
+        """Add a bullet to the physics engine.
 
         Parameters
         ----------

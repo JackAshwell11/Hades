@@ -26,7 +26,7 @@ class StartButton(arcade.gui.UIFlatButton):
     """A button which when clicked will start the game."""
 
     def on_click(self, _: arcade.gui.UIOnClickEvent) -> None:
-        """Called when the button is clicked."""
+        """Create a game instance when the button is clicked."""
         # Get the current window and view
         window: Window = arcade.get_window()
 
@@ -54,7 +54,7 @@ class QuitButton(arcade.gui.UIFlatButton):
     """A button which when clicked will quit the game."""
 
     def on_click(self, _: arcade.gui.UIOnClickEvent) -> None:
-        """Called when the button is clicked."""
+        """Exit the game when the button is clicked."""
         logger.info("Exiting game")
         arcade.exit()
 
@@ -66,8 +66,7 @@ class QuitButton(arcade.gui.UIFlatButton):
 
 
 class StartMenu(BaseView):
-    """Creates a start menu allowing the player to pick which game mode and options they
-    want."""
+    """Creates a start menu useful for picking the game mode and options."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -89,6 +88,7 @@ class StartMenu(BaseView):
         )
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<StartMenu (Current window={self.window})>"
 
     def on_draw(self) -> None:

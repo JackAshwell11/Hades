@@ -1,4 +1,4 @@
-"""Stores objects that are shared between all the generation files."""
+"""Stores objects that are shared between all generation classes."""
 from __future__ import annotations
 
 # Builtin
@@ -29,13 +29,15 @@ class Point(NamedTuple):
     y: int
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Point (X={self.x}) (Y={self.y})>"
 
 
 class Rect(NamedTuple):
-    """Represents a rectangle of any size useful for creating the dungeon. Containers
-    include the split wall in their sizes whereas rooms don't so MIN_CONTAINER_SIZE must
-    be bigger than MIN_ROOM_SIZE.
+    """Represents a rectangle of any size useful for creating the dungeon.
+
+    Containers include the split wall in their sizes whereas rooms don't so
+    MIN_CONTAINER_SIZE must be bigger than MIN_ROOM_SIZE.
 
     grid: np.ndarray
         The 2D grid which represents the dungeon.
@@ -49,9 +51,17 @@ class Rect(NamedTuple):
     top_left: Point
     bottom_right: Point
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            f"<Rect (Top left position={self.top_left}) (Bottom right"
+            f" position={self.bottom_right}) (Center position={self.center})"
+            f" (Width={self.width}) (Height={self.height})>"
+        )
+
     @property
     def width(self) -> int:
-        """Gets the width of the rect.
+        """Get the width of the rect.
 
         Returns
         -------
@@ -62,7 +72,7 @@ class Rect(NamedTuple):
 
     @property
     def height(self) -> int:
-        """Gets the height of the rect.
+        """Get the height of the rect.
 
         Returns
         -------
@@ -73,7 +83,7 @@ class Rect(NamedTuple):
 
     @property
     def center_x(self) -> int:
-        """Gets the x coordinate of the center position.
+        """Get the x coordinate of the center position.
 
         Returns
         -------
@@ -84,7 +94,7 @@ class Rect(NamedTuple):
 
     @property
     def center_y(self) -> int:
-        """Gets the y coordinate of the center position.
+        """Get the y coordinate of the center position.
 
         Returns
         -------
@@ -95,7 +105,7 @@ class Rect(NamedTuple):
 
     @property
     def center(self) -> Point:
-        """Gets the center position of the rect.
+        """Get the center position of the rect.
 
         Returns
         -------
@@ -105,7 +115,7 @@ class Rect(NamedTuple):
         return Point(self.center_x, self.center_y)
 
     def get_distance_to(self, other: Rect) -> float:
-        """Gets the Euclidean distance to another rect.
+        """Get the Euclidean distance to another rect.
 
         Parameters
         ----------

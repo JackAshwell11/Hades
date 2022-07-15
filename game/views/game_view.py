@@ -1,5 +1,4 @@
-"""Initialises and manages the main game through controlling movement, attacking, game
-logic and collision."""
+"""Initialises and manages the main game."""
 from __future__ import annotations
 
 # Builtin
@@ -27,10 +26,10 @@ from game.constants.general import (
     LEVEL_GENERATOR_INTERVAL,
 )
 from game.constants.generation import REPLACEABLE_TILES, TileType
-from game.entities.attack import AreaOfEffectAttack, MeleeAttack
-from game.entities.enemy import Enemy
-from game.entities.player import Player
-from game.entities.tile import Consumable, Floor, Wall
+from game.game_object.attack import AreaOfEffectAttack, MeleeAttack
+from game.game_object.enemy import Enemy
+from game.game_object.player import Player
+from game.game_object.tile import Consumable, Floor, Wall
 from game.generation.map import create_map
 from game.physics import PhysicsEngine
 from game.textures import grid_pos_to_pixel
@@ -41,7 +40,7 @@ from game.views.shop_view import ShopView
 
 if TYPE_CHECKING:
     from game.constants.game_object import BaseData, ConsumableData
-    from game.entities.base import CollectibleTile, UsableTile
+    from game.game_object.base import CollectibleTile, UsableTile
     from game.generation.map import GameMapShape
 
 __all__ = ("Game",)
@@ -127,11 +126,11 @@ class Game(BaseView):
         )
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Game (Current window={self.window})>"
 
     def post_hide_view(self) -> None:
-        """Called after the view is hidden allowing for extra functionality to be
-        added."""
+        """Process post hide view functionality."""
         # Make sure variables needed are valid
         assert self.player is not None
 
@@ -141,7 +140,7 @@ class Game(BaseView):
         ) = self.player.up_pressed = self.player.down_pressed = False
 
     def setup(self, level: int) -> None:
-        """Sets up the game.
+        """Set up the game.
 
         Parameters
         ----------
@@ -400,7 +399,7 @@ class Game(BaseView):
         self.ui_manager.draw()
 
     def on_update(self, delta_time: float) -> None:
-        """Processes movement and game logic.
+        """Process movement and game logic.
 
         Parameters
         ----------
@@ -444,7 +443,7 @@ class Game(BaseView):
             self.nearest_item = None
 
     def on_key_press(self, key: int, modifiers: int) -> None:
-        """Called when the player presses a key.
+        """Process key press functionality.
 
         Parameters
         ----------
@@ -492,7 +491,7 @@ class Game(BaseView):
                 self.window.show_view(self.window.views["ShopView"])
 
     def on_key_release(self, key: int, modifiers: int) -> None:
-        """Called when the player releases a key.
+        """Process key release functionality.
 
         Parameters
         ----------
@@ -520,7 +519,7 @@ class Game(BaseView):
                 self.player.right_pressed = False
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
-        """Called when the player presses the mouse button.
+        """Process mouse button functionality.
 
         Parameters
         ----------
@@ -551,7 +550,7 @@ class Game(BaseView):
                 self.player.attack()
 
     def on_mouse_motion(self, x: float, y: float, *_) -> None:
-        """Called when the mouse moves.
+        """Process mouse motion functionality.
 
         Parameters
         ----------

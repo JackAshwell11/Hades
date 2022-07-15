@@ -1,4 +1,4 @@
-"""Stores all the constructors used to make the entities and consumables."""
+"""Stores all the constructors used to make the game objects."""
 from __future__ import annotations
 
 # Custom

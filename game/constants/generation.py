@@ -1,4 +1,4 @@
-"""Stores various constants related to the bsp generation."""
+"""Stores various constants related to the dungeon generation."""
 from __future__ import annotations
 
 # Custom
@@ -46,9 +46,6 @@ class TileType(IntEnum):
     SPEED_BOOST_POTION = 10
     FIRE_RATE_BOOST_POTION = 11
     DEBUG_WALL = 99
-
-    def __str__(self) -> str:
-        return str(self.value)
 
 
 # Map generation distributions
