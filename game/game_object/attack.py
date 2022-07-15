@@ -1,4 +1,4 @@
-"""Stores the different attack algorithms that are available to the player and enemy."""
+"""Stores the different attack algorithms that are available to the entities."""
 from __future__ import annotations
 
 # Builtin
@@ -14,7 +14,7 @@ from game.constants.game_object import BULLET_VELOCITY, SPRITE_SIZE, AttackAlgor
 
 if TYPE_CHECKING:
     from game.constants.game_object import AttackData
-    from game.entities.base import Entity
+    from game.game_object.base import Entity
     from game.physics import PhysicsEngine
 
 __all__ = (
@@ -80,6 +80,7 @@ class Bullet(arcade.SpriteSolidColor):
         self.angle: float = owner.direction
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
 
     def on_update(self, _: float = 1 / 60) -> None:
@@ -120,6 +121,7 @@ class AttackBase:
         self.attack_data: AttackData = attack_data
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<AttackBase (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:
@@ -139,8 +141,7 @@ class AttackBase:
 
 
 class RangedAttack(AttackBase):
-    """An algorithm which creates a bullet with a set velocity in the direction the
-    entity is facing."""
+    """Creates a bullet in the direction the entity is facing with a set velocity."""
 
     # Class variables
     attack_type: AttackAlgorithmType = AttackAlgorithmType.RANGED
@@ -148,6 +149,7 @@ class RangedAttack(AttackBase):
     __slots__ = ()
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<RangedAttack (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:
@@ -199,8 +201,7 @@ class RangedAttack(AttackBase):
 
 
 class MeleeAttack(AttackBase):
-    """An algorithm which performs a melee attack in the direction the entity is looking
-    dealing damage to any entity that is within the entity's fov and attack distance."""
+    """Performs a melee attack dealing damage to any entity in front of the owner."""
 
     # Class variables
     attack_type: AttackAlgorithmType = AttackAlgorithmType.MELEE
@@ -208,6 +209,7 @@ class MeleeAttack(AttackBase):
     __slots__ = ()
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<MeleeAttack (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:
@@ -230,8 +232,7 @@ class MeleeAttack(AttackBase):
 
 
 class AreaOfEffectAttack(AttackBase):
-    """An algorithm which creates an area around the entity with a set radius and deals
-    damage to any entities that are within that range."""
+    """Creates an area around the entity dealing damage to all entities within range."""
 
     # Class variables
     attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
@@ -239,6 +240,7 @@ class AreaOfEffectAttack(AttackBase):
     __slots__ = ()
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<AreaOfEffectAttack (Owner={self.owner})>"
 
     def process_attack(self, *args: Any) -> None:

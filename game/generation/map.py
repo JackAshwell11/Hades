@@ -1,4 +1,4 @@
-"""Manages the generation of the dungeon and placing of entities."""
+"""Manages the generation of the dungeon and placing of game objects."""
 from __future__ import annotations
 
 # Builtin
@@ -133,7 +133,7 @@ class Map:
         self._split_bsp()
         self._create_hallways(self._generate_rooms())
 
-        # Place the entities
+        # Place the game objects
         possible_tiles: list[tuple[int, int]] = list(  # noqa
             zip(*np.nonzero(self.grid == TileType.FLOOR))
         )
@@ -143,6 +143,7 @@ class Map:
         self._place_multiple(ITEM_DISTRIBUTION, possible_tiles)
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return (
             f"<Map (Width={self.map_constants['width']})"
             f" (Height={self.map_constants['height']}) (Split"

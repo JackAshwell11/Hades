@@ -1,4 +1,4 @@
-"""Stores the enemy object which is hostile to the player."""
+"""Manages the enemy object and its various functions."""
 from __future__ import annotations
 
 # Builtin
@@ -21,9 +21,9 @@ from game.constants.game_object import (
     EntityAttributeType,
     ObjectID,
 )
-from game.entities.attribute import EntityAttribute
-from game.entities.base import Entity, IndicatorBar
-from game.entities.movement import EnemyMovementManager
+from game.game_object.attribute import EntityAttribute
+from game.game_object.base import Entity, IndicatorBar
+from game.game_object.movement import EnemyMovementManager
 
 if TYPE_CHECKING:
     from game.constants.game_object import BaseData, EnemyData
@@ -84,6 +84,7 @@ class Enemy(Entity):
         self.player_within_range: bool = False
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return (
             f"<Enemy (Position=({self.center_x}, {self.center_y})) (Enemy"
             f" level={self.enemy_level})>"

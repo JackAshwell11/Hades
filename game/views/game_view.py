@@ -26,10 +26,10 @@ from game.constants.general import (
     LEVEL_GENERATOR_INTERVAL,
 )
 from game.constants.generation import REPLACEABLE_TILES, TileType
-from game.entities.attack import AreaOfEffectAttack, MeleeAttack
-from game.entities.enemy import Enemy
-from game.entities.player import Player
-from game.entities.tile import Consumable, Floor, Wall
+from game.game_object.attack import AreaOfEffectAttack, MeleeAttack
+from game.game_object.enemy import Enemy
+from game.game_object.player import Player
+from game.game_object.tile import Consumable, Floor, Wall
 from game.generation.map import create_map
 from game.physics import PhysicsEngine
 from game.textures import grid_pos_to_pixel
@@ -40,7 +40,7 @@ from game.views.shop_view import ShopView
 
 if TYPE_CHECKING:
     from game.constants.game_object import BaseData, ConsumableData
-    from game.entities.base import CollectibleTile, UsableTile
+    from game.game_object.base import CollectibleTile, UsableTile
     from game.generation.map import GameMapShape
 
 __all__ = ("Game",)
@@ -126,6 +126,7 @@ class Game(BaseView):
         )
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Game (Current window={self.window})>"
 
     def post_hide_view(self) -> None:

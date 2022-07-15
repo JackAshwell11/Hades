@@ -1,4 +1,4 @@
-"""Stores the player object which the player can control."""
+"""Manages the player object and its various functions."""
 from __future__ import annotations
 
 # Builtin
@@ -21,8 +21,8 @@ from game.constants.game_object import (
     ObjectID,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.entities.attribute import EntityAttribute, UpgradablePlayerSection
-from game.entities.base import Entity, IndicatorBar
+from game.game_object.attribute import EntityAttribute, UpgradablePlayerSection
+from game.game_object.base import Entity, IndicatorBar
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
         EntityAttributeSectionType,
         PlayerData,
     )
-    from game.entities.base import CollectibleTile
+    from game.game_object.base import CollectibleTile
     from game.views.game_view import Game
 
 __all__ = ("Player",)
@@ -132,6 +132,7 @@ class Player(Entity):
         self.down_pressed: bool = False
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"
 
     @property

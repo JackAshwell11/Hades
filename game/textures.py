@@ -1,5 +1,4 @@
-"""Pre-loads all the textures needed by the game and stores them in an easy-to-access
-format."""
+"""Pre-loads all the textures needed by the game and stores them for later use."""
 from __future__ import annotations
 
 # Builtin

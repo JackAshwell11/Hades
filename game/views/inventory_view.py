@@ -1,4 +1,4 @@
-"""Displays the player's inventory graphically allowing for easy management."""
+"""Displays the player's inventory graphically."""
 from __future__ import annotations
 
 # Builtin
@@ -10,12 +10,12 @@ import arcade.gui
 
 # Custom
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.entities.base import UsableTile
+from game.game_object.base import UsableTile
 from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
-    from game.entities.base import CollectibleTile
-    from game.entities.player import Player
+    from game.game_object.base import CollectibleTile
+    from game.game_object.player import Player
     from game.window import Window
 
 __all__ = ("InventoryView",)
@@ -108,6 +108,7 @@ class InventoryView(BaseView):
         )
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<InventoryView (Current window={self.window})>"
 
     def on_draw(self) -> None:

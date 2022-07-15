@@ -1,4 +1,4 @@
-"""Stores the base classes used by all game objects."""
+"""Manages the base classes used by all game objects."""
 from __future__ import annotations
 
 # Builtin
@@ -17,7 +17,7 @@ from game.constants.game_object import (
     EntityAttributeType,
     ObjectID,
 )
-from game.entities.attack import create_attack
+from game.game_object.attack import create_attack
 from game.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
@@ -28,9 +28,9 @@ if TYPE_CHECKING:
         EntityAttributeData,
         EntityData,
     )
-    from game.entities.attack import AttackBase
-    from game.entities.attribute import EntityAttribute
-    from game.entities.player import Player
+    from game.game_object.attack import AttackBase
+    from game.game_object.attribute import EntityAttribute
+    from game.game_object.player import Player
     from game.physics import PhysicsEngine
     from game.views.game_view import Game
 
@@ -129,11 +129,12 @@ class IndicatorBar:
         self.scale = scale
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<IndicatorBar (Owner={self.owner})>"
 
     @property
     def background_box(self) -> arcade.SpriteSolidColor:
-        """Gets the background box object of the indicator bar.
+        """Get the background box object of the indicator bar.
 
         Returns
         -------
@@ -144,7 +145,7 @@ class IndicatorBar:
 
     @property
     def full_box(self) -> arcade.SpriteSolidColor:
-        """Gets the full box of the indicator bar.
+        """Get the full box of the indicator bar.
 
         Returns
         -------
@@ -155,7 +156,7 @@ class IndicatorBar:
 
     @property
     def bar_width(self) -> int:
-        """Gets the width of the bar.
+        """Get the width of the bar.
 
         Returns
         -------
@@ -166,7 +167,7 @@ class IndicatorBar:
 
     @property
     def bar_height(self) -> int:
-        """Gets the height of the bar.
+        """Get the height of the bar.
 
         Returns
         -------
@@ -177,7 +178,7 @@ class IndicatorBar:
 
     @property
     def center_x(self) -> float:
-        """Gets the x position of the bar.
+        """Get the x position of the bar.
 
         Returns
         -------
@@ -188,7 +189,7 @@ class IndicatorBar:
 
     @property
     def center_y(self) -> float:
-        """Gets the y position of the bar.
+        """Get the y position of the bar.
 
         Returns
         -------
@@ -199,7 +200,7 @@ class IndicatorBar:
 
     @property
     def top(self) -> float:
-        """Gets the y coordinate of the top of the bar.
+        """Get the y coordinate of the top of the bar.
 
         Returns
         -------
@@ -210,7 +211,7 @@ class IndicatorBar:
 
     @property
     def bottom(self) -> float:
-        """Gets the y coordinate of the bottom of the bar.
+        """Get the y coordinate of the bottom of the bar.
 
         Returns
         -------
@@ -221,7 +222,7 @@ class IndicatorBar:
 
     @property
     def left(self) -> float:
-        """Gets the x coordinate of the left of the bar.
+        """Get the x coordinate of the left of the bar.
 
         Returns
         -------
@@ -232,7 +233,7 @@ class IndicatorBar:
 
     @property
     def right(self) -> float:
-        """Gets the x coordinate of the right of the bar.
+        """Get the x coordinate of the right of the bar.
 
         Returns
         -------
@@ -243,7 +244,7 @@ class IndicatorBar:
 
     @property
     def fullness(self) -> float:
-        """Gets the fullness of the bar.
+        """Get the fullness of the bar.
 
         Returns
         -------
@@ -254,7 +255,7 @@ class IndicatorBar:
 
     @fullness.setter
     def fullness(self, new_fullness: float) -> None:
-        """Sets the fullness of the bar.
+        """Set the fullness of the bar.
 
         Parameters
         ----------
@@ -285,7 +286,7 @@ class IndicatorBar:
 
     @property
     def position(self) -> tuple[float, float]:
-        """Gets the current position of the bar.
+        """Get the current position of the bar.
 
         Returns
         -------
@@ -296,7 +297,7 @@ class IndicatorBar:
 
     @position.setter
     def position(self, new_position: tuple[float, float]) -> None:
-        """Sets the new position of the bar.
+        """Set the new position of the bar.
 
         Parameters
         ----------
@@ -314,7 +315,7 @@ class IndicatorBar:
 
     @property
     def scale(self) -> float:
-        """Gets the scale of the bar.
+        """Get the scale of the bar.
 
         Returns
         -------
@@ -325,7 +326,7 @@ class IndicatorBar:
 
     @scale.setter
     def scale(self, value: float) -> None:
-        """Sets the new scale of the bar.
+        """Set the new scale of the bar.
 
         Parameters
         ----------
@@ -438,11 +439,12 @@ class Entity(GameObject):
         self.time_since_armour_regen: float = self.armour_regen_cooldown.value
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
 
     @property
     def entity_data(self) -> EntityData:
-        """Gets the general entity data.
+        """Get the general entity data.
 
         Returns
         -------
@@ -453,7 +455,7 @@ class Entity(GameObject):
 
     @property
     def attacks(self) -> dict[AttackAlgorithmType, AttackData]:
-        """Gets the entity's attacks.
+        """Get the entity's attacks.
 
         Returns
         -------
@@ -464,7 +466,7 @@ class Entity(GameObject):
 
     @property
     def attribute_data(self) -> dict[EntityAttributeType, EntityAttributeData]:
-        """Gets the entity's attribute data.
+        """Get the entity's attribute data.
 
         Returns
         -------
@@ -475,7 +477,7 @@ class Entity(GameObject):
 
     @property
     def current_attack(self) -> AttackBase:
-        """Gets the currently selected attack algorithm.
+        """Get the currently selected attack algorithm.
 
         Returns
         -------
@@ -486,7 +488,7 @@ class Entity(GameObject):
 
     @property
     def physics(self) -> PhysicsEngine:
-        """Gets the entity's physics engine.
+        """Get the entity's physics engine.
 
         Returns
         -------
@@ -497,7 +499,7 @@ class Entity(GameObject):
 
     @property
     def health(self) -> EntityAttribute:
-        """Gets the entity's health.
+        """Get the entity's health.
 
         Returns
         -------
@@ -508,7 +510,7 @@ class Entity(GameObject):
 
     @property
     def armour(self) -> EntityAttribute:
-        """Gets the entity's armour.
+        """Get the entity's armour.
 
         Returns
         -------
@@ -519,7 +521,7 @@ class Entity(GameObject):
 
     @property
     def max_velocity(self) -> EntityAttribute:
-        """Gets the entity's max velocity.
+        """Get the entity's max velocity.
 
         Returns
         -------
@@ -530,7 +532,7 @@ class Entity(GameObject):
 
     @property
     def armour_regen_cooldown(self) -> EntityAttribute:
-        """Gets the entity's armour regen cooldown.
+        """Get the entity's armour regen cooldown.
 
         Returns
         -------
@@ -541,7 +543,7 @@ class Entity(GameObject):
 
     @property
     def fire_rate_penalty(self) -> EntityAttribute:
-        """Gets the entity's fire rate penalty.
+        """Get the entity's fire rate penalty.
 
         Returns
         -------
@@ -551,7 +553,7 @@ class Entity(GameObject):
         return self.entity_state[EntityAttributeType.FIRE_RATE_PENALTY]
 
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
-        """Initialises the entity's state dict.
+        """Initialise the entity's state dict.
 
         Returns
         -------
@@ -561,7 +563,7 @@ class Entity(GameObject):
         raise NotImplementedError
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
-        """Processes enemy logic.
+        """Process enemy logic.
 
         Parameters
         ----------
@@ -593,7 +595,7 @@ class Entity(GameObject):
         self.post_on_update(delta_time)
 
     def deal_damage(self, damage: int) -> None:
-        """Deals damage to an entity.
+        """Deal damage to an entity.
 
         Parameters
         ----------
@@ -631,7 +633,7 @@ class Entity(GameObject):
             logger.info("Killed %r", self)
 
     def regenerate_armour(self, delta_time: float) -> None:
-        """Regenerates the entity's armour if they are able to do so.
+        """Regenerate the entity's armour if they are able to do so.
 
         Parameters
         ----------
@@ -659,7 +661,7 @@ class Entity(GameObject):
             self.time_out_of_combat += delta_time
 
     def update_indicator_bars(self) -> None:
-        """Updates the entity's indicator bars."""
+        """Update the entity's indicator bars."""
         # Make sure variables needed are valid
         assert self.health_bar is not None
         assert self.armour_bar is not None
@@ -688,7 +690,7 @@ class Entity(GameObject):
         raise NotImplementedError
 
     def move(self, delta_time: float) -> None:
-        """Processes the needed actions for the entity to move.
+        """Process the needed actions for the entity to move.
 
         Parameters
         ----------
@@ -703,7 +705,7 @@ class Entity(GameObject):
         raise NotImplementedError
 
     def attack(self) -> None:
-        """Runs the entity's current attack algorithm.
+        """Run the entity's current attack algorithm.
 
         Raises
         ------
@@ -744,6 +746,7 @@ class Tile(GameObject):
         self.texture: arcade.Texture = self.raw_texture
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
 
 
@@ -757,11 +760,12 @@ class InteractiveTile(Tile):
     item_text: str = ""
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<InteractiveTile (Position=({self.center_x}, {self.center_y}))>"
 
     @property
     def player(self) -> Player:
-        """Gets the player object for ease of access.
+        """Get the player object for ease of access.
 
         Returns
         -------
@@ -782,6 +786,7 @@ class UsableTile(InteractiveTile):
     item_text: str = "Press R to activate"
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
 
     def item_use(self) -> bool:
@@ -807,10 +812,11 @@ class CollectibleTile(InteractiveTile):
     item_text: str = "Press E to pick up"
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<CollectibleTile (Position=({self.center_x}, {self.center_y}))>"
 
     def item_pick_up(self) -> bool:
-        """Called when the collectible is picked up by the player.
+        """Process item pick up functionality.
 
         Returns
         -------

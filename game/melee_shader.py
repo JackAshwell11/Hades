@@ -1,5 +1,4 @@
-"""Uses the GPU to send out rays around the player to find enemies that are within range
-of a melee attack."""
+"""Finds enemies within melee range of the player using a ray-casting shader program."""
 from __future__ import annotations
 
 # Builtin
@@ -15,7 +14,7 @@ if TYPE_CHECKING:
     from arcade import ArcadeContext
     from arcade.gl import Buffer, Framebuffer, Program, Query
 
-    from game.entities.enemy import Enemy
+    from game.game_object.enemy import Enemy
     from game.views.game_view import Game
 
 __all__ = ("MeleeShader",)
@@ -25,13 +24,12 @@ logger = logging.getLogger(__name__)
 
 # Create the paths to the shader scripts
 base_path = pathlib.Path(__file__).parent / "resources" / "shader scripts"
-vertex_path = base_path.joinpath("melee_vertex.glsl")
-geometry_path = base_path.joinpath("melee_geometry.glsl")
+vertex_path = base_path / "melee_vertex.glsl"
+geometry_path = base_path / "melee_geometry.glsl"
 
 
 class MeleeShader:
-    """A helper class which eases setting up the shader for the player's melee attack.
-    This currently only works for the player but may change in the future.
+    """Eases setting up the ray-casting shader for the player's melee attack.
 
     Parameters
     ----------
@@ -69,11 +67,12 @@ class MeleeShader:
         self.walls_framebuffer: Framebuffer | None = None
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return "<MeleeShader>"
 
     @property
     def ctx(self) -> ArcadeContext:
-        """Gets the arcade context object for running OpenGL programs.
+        """Get the arcade context object for running OpenGL programs.
 
         Returns
         -------
@@ -83,7 +82,7 @@ class MeleeShader:
         return self.view.window.ctx
 
     def setup_shader(self) -> None:
-        """Sets up the shader and it's needed attributes."""
+        """Set up the shader and it's needed attributes."""
         # Make sure variables needed are valid
         assert self.view.player is not None
 
@@ -138,7 +137,7 @@ class MeleeShader:
         )
 
     def update_collision(self) -> None:
-        """Updates the wall framebuffer to ensure collision detection is accurate."""
+        """Update the wall framebuffer to ensure collision detection is accurate."""
         # Make sure variables needed are valid
         assert self.walls_framebuffer is not None
 
@@ -151,8 +150,7 @@ class MeleeShader:
         )
 
     def run_shader(self) -> list[Enemy]:
-        """Runs the shader program to find all enemies within range of the player based
-        on the player's direction.
+        """Run the shader to find all enemies within range of the player's melee attack.
 
         Returns
         -------

@@ -17,8 +17,8 @@ if TYPE_CHECKING:
         EntityAttributeSectionType,
         StatusEffectData,
     )
-    from game.entities.base import Entity
-    from game.entities.player import Player
+    from game.game_object.base import Entity
+    from game.game_object.player import Player
 
 __all__ = (
     "EntityAttribute",
@@ -95,6 +95,7 @@ class UpgradablePlayerSection:
         self.current_level: int = current_level
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return (
             "<UpgradablePlayerSection (Attribute section"
             f" type={self.attribute_section_type}) (Current level={self.current_level})"
@@ -213,6 +214,7 @@ class EntityAttribute:
         self.applied_status_effect: StatusEffect | None = None
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<EntityAttribute (Value={self.value})>"
 
     @property

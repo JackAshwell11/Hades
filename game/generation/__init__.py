@@ -1,1 +1,1 @@
-"""Generates the dungeon and places entities in it."""
+"""Generates the dungeon and places game objects in it."""

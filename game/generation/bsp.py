@@ -78,6 +78,7 @@ class Leaf:
         self.split_vertical: bool | None = None
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return (
             f"<Leaf (Left={self.left}) (Right={self.right}) (Top-left"
             f" position={self.container.top_left}) (Bottom-right"

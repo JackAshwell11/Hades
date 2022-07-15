@@ -1,1 +1,1 @@
-"""Contains all the constants and constructors used by the game."""
+"""Contains all the constants used by the game."""

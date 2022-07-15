@@ -12,8 +12,8 @@ import arcade.gui
 from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
-    from game.entities.attribute import UpgradablePlayerSection
-    from game.entities.player import Player
+    from game.game_object.attribute import UpgradablePlayerSection
+    from game.game_object.player import Player
 
 __all__ = (
     "SectionUpgradeButton",
@@ -81,6 +81,7 @@ class ShopView(BaseView):
         )
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<ShopView (Current window={self.window})>"
 
     def on_draw(self) -> None:

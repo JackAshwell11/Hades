@@ -1,4 +1,4 @@
-"""Stores objects that are shared between all the generation files."""
+"""Stores objects that are shared between all generation classes."""
 from __future__ import annotations
 
 # Builtin
@@ -29,6 +29,7 @@ class Point(NamedTuple):
     y: int
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<Point (X={self.x}) (Y={self.y})>"
 
 
@@ -49,6 +50,14 @@ class Rect(NamedTuple):
     grid: np.ndarray
     top_left: Point
     bottom_right: Point
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            f"<Rect (Top left position={self.top_left}) (Bottom right"
+            f" position={self.bottom_right}) (Center position={self.center})"
+            f" (Width={self.width}) (Height={self.height})>"
+        )
 
     @property
     def width(self) -> int:

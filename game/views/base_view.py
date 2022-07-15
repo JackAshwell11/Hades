@@ -1,4 +1,4 @@
-"""Stores code that is shared between all views simplifying development."""
+"""Stores objects that are shared between all view classes."""
 from __future__ import annotations
 
 # Builtin
@@ -162,6 +162,7 @@ class BaseView(arcade.View):
         self.current_info_box: DisappearingInfoBox | None = None
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<BaseView (Current window={self.window})>"
 
     def on_show_view(self) -> None:

@@ -1,4 +1,4 @@
-"""Stores various constants related to the bsp generation."""
+"""Stores various constants related to the dungeon generation."""
 from __future__ import annotations
 
 # Custom

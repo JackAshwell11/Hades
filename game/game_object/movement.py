@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from game.constants.game_object import MOVEMENT_FORCE
 
 if TYPE_CHECKING:
-    from game.entities.enemy import Enemy
+    from game.game_object.enemy import Enemy
     from game.vector_field import VectorField
 
 __all__ = ("EnemyMovementManager",)
@@ -29,6 +29,7 @@ class EnemyMovementManager:
         self.owner: Enemy = owner
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<EnemyMovement (Owner={self.owner})>"
 
     @property
