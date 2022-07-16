@@ -17,7 +17,7 @@ from game.constants.game_object import (
     EntityAttributeType,
     ObjectID,
 )
-from game.game_object.attack import create_attack
+from game.game_objects.attack import create_attack
 from game.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
@@ -28,9 +28,9 @@ if TYPE_CHECKING:
         EntityAttributeData,
         EntityData,
     )
-    from game.game_object.attack import AttackBase
-    from game.game_object.attribute import EntityAttribute
-    from game.game_object.player import Player
+    from game.game_objects.attack import AttackBase
+    from game.game_objects.attribute import EntityAttribute
+    from game.game_objects.player import Player
     from game.physics import PhysicsEngine
     from game.views.game_view import Game
 
@@ -372,6 +372,10 @@ class GameObject(arcade.Sprite):
         super().__init__(scale=SPRITE_SCALE)
         self.game: Game = game
         self.center_x, self.center_y = grid_pos_to_pixel(x, y)
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<GameObject (Position=({self.center_x}, {self.center_y}))>"
 
 
 class Entity(GameObject):

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from game.constants.game_object import MOVEMENT_FORCE
 
 if TYPE_CHECKING:
-    from game.game_object.enemy import Enemy
+    from game.game_objects.enemy import Enemy
     from game.vector_field import VectorField
 
 __all__ = ("EnemyMovementManager",)

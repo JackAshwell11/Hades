@@ -21,8 +21,8 @@ from game.constants.game_object import (
     ObjectID,
 )
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.game_object.attribute import EntityAttribute, UpgradablePlayerSection
-from game.game_object.base import Entity, IndicatorBar
+from game.game_objects.attribute import EntityAttribute, UpgradablePlayerSection
+from game.game_objects.base import Entity, IndicatorBar
 from game.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
         EntityAttributeSectionType,
         PlayerData,
     )
-    from game.game_object.base import CollectibleTile
+    from game.game_objects.base import CollectibleTile
     from game.views.game_view import Game
 
 __all__ = ("Player",)

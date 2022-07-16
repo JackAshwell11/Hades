@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 
 # Pip
 import arcade
-import numpy as np
 
 # Custom
 from game.constants.constructor import CONSUMABLES, ENEMIES, PLAYERS
@@ -26,10 +25,10 @@ from game.constants.general import (
     LEVEL_GENERATOR_INTERVAL,
 )
 from game.constants.generation import REPLACEABLE_TILES, TileType
-from game.game_object.attack import AreaOfEffectAttack, MeleeAttack
-from game.game_object.enemy import Enemy
-from game.game_object.player import Player
-from game.game_object.tile import Consumable, Floor, Wall
+from game.game_objects.attack import AreaOfEffectAttack, MeleeAttack
+from game.game_objects.enemy import Enemy
+from game.game_objects.player import Player
+from game.game_objects.tile import Consumable, Floor, Wall
 from game.generation.map import create_map
 from game.physics import PhysicsEngine
 from game.textures import grid_pos_to_pixel
@@ -40,7 +39,7 @@ from game.views.shop_view import ShopView
 
 if TYPE_CHECKING:
     from game.constants.game_object import BaseData, ConsumableData
-    from game.game_object.base import CollectibleTile, UsableTile
+    from game.game_objects.base import CollectibleTile, UsableTile
     from game.generation.map import GameMapShape
 
 __all__ = ("Game",)
@@ -166,7 +165,7 @@ class Game(BaseView):
         game_map, self.game_map_shape = create_map(level)
 
         # Assign sprites to the game map and initialise the vector grid
-        for count_y, y in enumerate(np.flipud(game_map)):
+        for count_y, y in enumerate(reversed(game_map)):
             for count_x, x in enumerate(y):
                 # Determine if the tile is empty
                 if x in REPLACEABLE_TILES:
@@ -352,10 +351,7 @@ class Game(BaseView):
                 arcade.draw_arc_outline(
                     self.player.center_x,
                     self.player.center_y,
-                    math.hypot(
-                        point_high[0] - point_low[0], point_high[1] - point_low[1]
-                    )
-                    * 2,
+                    math.dist(point_high, point_low) * 2,
                     self.player.current_attack.attack_data.attack_range
                     * SPRITE_SIZE
                     * 2,

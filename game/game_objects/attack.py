@@ -14,7 +14,7 @@ from game.constants.game_object import BULLET_VELOCITY, SPRITE_SIZE, AttackAlgor
 
 if TYPE_CHECKING:
     from game.constants.game_object import AttackData
-    from game.game_object.base import Entity
+    from game.game_objects.base import Entity
     from game.physics import PhysicsEngine
 
 __all__ = (
@@ -86,13 +86,7 @@ class Bullet(arcade.SpriteSolidColor):
     def on_update(self, _: float = 1 / 60) -> None:
         """Process bullet logic."""
         # Check if the bullet is pass the max range
-        if (
-            math.hypot(
-                self.center_x - self.start_position[0],
-                self.center_y - self.start_position[1],
-            )
-            >= self.max_range
-        ):
+        if math.dist(self.position, self.start_position) >= self.max_range:
             self.remove_from_sprite_lists()
             logger.debug("Removed %r after passing max range %f", self, self.max_range)
 

@@ -12,8 +12,8 @@ import arcade.gui
 from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
-    from game.game_object.attribute import UpgradablePlayerSection
-    from game.game_object.player import Player
+    from game.game_objects.attribute import UpgradablePlayerSection
+    from game.game_objects.player import Player
 
 __all__ = (
     "SectionUpgradeButton",
@@ -40,6 +40,13 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
                 f"{self.section_ref.attribute_section_type.name} -"
                 f" {self.section_ref.next_level_cost}"
             )
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            f"<SectionUpgradeButton (Position=({self.center_x}, {self.center_y}))"
+            f" (Width={self.width}) (Height={self.height})>"
+        )
 
 
 class ShopView(BaseView):

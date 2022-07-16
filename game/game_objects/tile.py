@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 # Custom
 from game.constants.game_object import ConsumableData, InstantEffectType
-from game.game_object.base import CollectibleTile, Tile, UsableTile
+from game.game_objects.base import CollectibleTile, Tile, UsableTile
 from game.textures import non_moving_textures
 
 if TYPE_CHECKING:

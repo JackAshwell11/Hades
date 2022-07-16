@@ -14,6 +14,8 @@ import numpy as np
 from game.constants.game_object import SPRITE_SIZE
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     import arcade
 
 __all__ = ("VectorField",)
@@ -118,7 +120,7 @@ class VectorField:
 
     def _get_neighbours(
         self, tile_pos: tuple[int, int], offsets: list[tuple[int, int]]
-    ) -> list[tuple[int, int]]:
+    ) -> Generator[tuple[int, int], None, None]:
         """Get a tile position's floor neighbours based on a given list of offsets.
 
         Parameters
@@ -130,12 +132,11 @@ class VectorField:
 
         Returns
         -------
-        list[tuple[int, int]]
+        Generator[tuple[int, int], None, None]
             A list of the tile position's neighbours.
         """
         # Get all the neighbour floor tile positions relative to the current tile
         # position
-        tile_neighbours: list[tuple[int, int]] = []
         for dx, dy in offsets:
             # Check if the neighbour position is within the boundaries or not
             x, y = tile_pos[0] + dx, tile_pos[1] + dy
@@ -147,10 +148,7 @@ class VectorField:
                 continue
 
             # Neighbour tile position is a floor tile position, so it is valid
-            tile_neighbours.append((x, y))
-
-        # Return all the neighbours
-        return tile_neighbours
+            yield x, y
 
     @staticmethod
     def get_tile_pos_for_pixel(position: tuple[float, float]) -> tuple[int, int]:

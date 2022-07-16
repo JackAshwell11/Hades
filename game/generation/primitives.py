@@ -28,10 +28,6 @@ class Point(NamedTuple):
     x: int
     y: int
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<Point (X={self.x}) (Y={self.y})>"
-
 
 class Rect(NamedTuple):
     """Represents a rectangle of any size useful for creating the dungeon.

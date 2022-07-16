@@ -44,6 +44,7 @@ class StartButton(arcade.gui.UIFlatButton):
         window.show_view(new_game)
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return (
             f"<StartButton (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"
@@ -59,6 +60,7 @@ class QuitButton(arcade.gui.UIFlatButton):
         arcade.exit()
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return (
             f"<QuitButton (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"

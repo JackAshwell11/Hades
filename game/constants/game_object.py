@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # Builtin
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 # Pip
@@ -46,29 +46,33 @@ __all__ = (
 
 
 # Object IDs
+# noinspection PyArgumentList
+# TODO REMOVE ABOVE LINE ONCE BUG FIXED
 class ObjectID(Enum):
-    """Stores the ID of each game object to make checking more efficient."""
+    """Stores the different types of game objects to make checking more efficient."""
 
-    BASE = "base"
-    PLAYER = "player"
-    ENEMY = "enemy"
-    TILE = "tile"
+    BASE = auto()
+    PLAYER = auto()
+    ENEMY = auto()
+    TILE = auto()
 
 
 # Entity attribute types
+# noinspection PyArgumentList
+# TODO REMOVE ABOVE LINE ONCE BUG FIXED
 class EntityAttributeType(Enum):
     """Stores the types of attributes an entity can have."""
 
-    HEALTH = "health"
-    ARMOUR = "armour"
-    SPEED = "speed"
-    REGEN_COOLDOWN = "regen cooldown"
-    FIRE_RATE_PENALTY = "fire rate penalty"
-    MONEY = "money"
-    # POTION_DURATION = "potion duration"
-    # MELEE_ATTACK = "melee attack"
-    # AREA_OF_EFFECT_ATTACK = "area of effect attack"
-    # RANGED_ATTACK = "ranged attack"
+    HEALTH = auto()
+    ARMOUR = auto()
+    SPEED = auto()
+    REGEN_COOLDOWN = auto()
+    FIRE_RATE_PENALTY = auto()
+    MONEY = auto()
+    # POTION_DURATION = auto()
+    # MELEE_ATTACK = auto()
+    # AREA_OF_EFFECT_ATTACK = auto()
+    # RANGED_ATTACK = auto()
 
 
 # Entity attribute sections types
@@ -82,13 +86,15 @@ class EntityAttributeSectionType(Enum):
 
 
 # Attack algorithms
+# noinspection PyArgumentList
+# TODO REMOVE ABOVE LINE ONCE BUG FIXED
 class AttackAlgorithmType(Enum):
     """Stores the different types of attack algorithms that exist."""
 
-    BASE = "base"
-    RANGED = "ranged"
-    MELEE = "melee"
-    AREA_OF_EFFECT = "area of effect"
+    BASE = auto()
+    RANGED = auto()
+    MELEE = auto()
+    AREA_OF_EFFECT = auto()
 
 
 # Instant effect types
