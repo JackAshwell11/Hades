@@ -19,10 +19,9 @@ ${VENV_NAME}: requirements.txt requirements-dev.txt
 	$(PY) -m venv $(VENV_NAME)
 	pip install -r requirements.txt -r requirements-dev.txt
 
-# Directory paths
-BASE_DIR := $(VENV_PATH)/../game
-WINDOW_PATH = $(BASE_DIR)/window.py
-RESOURCES_PATH = $(BASE_DIR)/resources
+# Nuitka constants
+BASE_PATH := $(VENV_PATH)/../game
+NUITKA_PATH := $(BASE_PATH)/window.py
 
 
 # -------------------- Builds --------------------
@@ -36,8 +35,8 @@ pre-commit:  # Runs pre-commit
 	pre-commit run --all-files
 
 build:  # Builds the game with nuitka
-	nuitka "$(BASE_DIR)"\
+	nuitka "$(NUITKA_PATH)"\
  	--standalone\
  	--follow-imports\
- 	--include-data-dir="$(RESOURCES_PATH)"=resources\
- 	--enable-plugin=numpy
+ 	--enable-plugin=numpy\
+ 	--include-data-dir=game/resources=game/resources

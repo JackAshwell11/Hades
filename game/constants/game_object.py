@@ -2,15 +2,14 @@
 from __future__ import annotations
 
 # Builtin
-from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 # Pip
 import arcade
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable
 
 __all__ = (
     "ARMOUR_INDICATOR_BAR_COLOR",
@@ -117,28 +116,26 @@ class StatusEffectType(Enum):
     # POISON = "poison"
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class BaseData:
+class BaseData(NamedTuple):
     """The base class for constructing an entity.
 
     entity_type: EntityType
         The data specifying the entity's attributes.
+    attacks: dict[AttackAlgorithmType, AttackData]
+        The data about the entity's attacks.
     player_data: PlayerData | None
         The data about the player entity.
     enemy_data: EnemyData | None
         The data about the enemy entity.
-    attacks: dict[AttackAlgorithmType, AttackData]
-        The data about the entity's attacks.
     """
 
     entity_data: EntityData
+    attacks: dict[AttackAlgorithmType, AttackData]
     player_data: PlayerData | None = None
     enemy_data: EnemyData | None = None
-    attacks: dict[AttackAlgorithmType, AttackData] = field(default_factory=dict)
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class EntityData:
+class EntityData(NamedTuple):
     """The base class for storing general data about an entity.
 
     name: str
@@ -160,15 +157,14 @@ class EntityData:
     attribute_data: dict[EntityAttributeType, EntityAttributeData]
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class EntityAttributeData:
+class EntityAttributeData(NamedTuple):
     """Stores an attribute that is available to the entity.
 
     increase: Callable[[int], float]
         The exponential lambda function which calculates the next level's value based on
         the current level.
     maximum: bool
-        Whether this attribute has a maximum value or not.
+        Whether this attribute has a maximum level or not.
     status_effect: bool
         Whether this attribute can have a status effect applied to it or not.
     variable: bool
@@ -181,8 +177,7 @@ class EntityAttributeData:
     variable: bool = False
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class PlayerData:
+class PlayerData(NamedTuple):
     """Stores data about a specific player type.
 
     melee_degree: int
@@ -195,8 +190,7 @@ class PlayerData:
     section_upgrade_data: dict[EntityAttributeSectionType, Callable[[int], float]]
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class EnemyData:
+class EnemyData(NamedTuple):
     """Stores data about a specific enemy type.
 
     view_distance: int
@@ -206,8 +200,7 @@ class EnemyData:
     view_distance: int
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class AttackData:
+class AttackData(NamedTuple):
     """Stores generalized data about an entity's attack.
 
     damage: int
@@ -226,8 +219,7 @@ class AttackData:
     extra: RangedAttackData | None = None
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class RangedAttackData:
+class RangedAttackData(NamedTuple):
     """Stores extra data about an entity's ranged attack.
 
     max_bullet_range: int
@@ -237,18 +229,15 @@ class RangedAttackData:
     max_bullet_range: int
 
 
-# @dataclass(frozen=True, kw_only=True, slots=True)
-# class MeleeAttackData:
+# class MeleeAttackData(NamedTuple):
 #     """Stores data about an entity's melee attack."""
 #
 #
-# @dataclass(frozen=True, kw_only=True, slots=True)
-# class AreaOfEffectAttackData:
+# class AreaOfEffectAttackData(NamedTuple):
 #     """Stores data about an entity's area of effect attack."""
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class ConsumableData:
+class ConsumableData(NamedTuple):
     """The base class for constructing a consumable with multiple levels.
 
     name: str
@@ -257,21 +246,20 @@ class ConsumableData:
         The texture for this consumable.
     level_limit: int
         The maximum level this consumable can go to.
-    instant: Sequence[InstantData]
+    instant: list[InstantData]
         The instant effects that this consumable gives.
-    status_effects: Sequence[StatusEffectData]
+    status_effects: list[StatusEffectData]
         The status effects that this consumable gives.
     """
 
     name: str
     texture: arcade.Texture
     level_limit: int
-    instant: Sequence[InstantData] = field(default_factory=list)
-    status_effects: Sequence[StatusEffectData] = field(default_factory=list)
+    instant: list[InstantData]
+    status_effects: list[StatusEffectData]
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class InstantData:
+class InstantData(NamedTuple):
     """Stores the data for an individual instant effect applied by a consumable.
 
     instant_type: InstantEffect
@@ -285,8 +273,7 @@ class InstantData:
     increase: Callable[[int], float]
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class StatusEffectData:
+class StatusEffectData(NamedTuple):
     """Stores the data for an individual status effect applied by a consumable.
 
     status_type: StatusEffectType
