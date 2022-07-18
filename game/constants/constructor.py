@@ -65,15 +65,6 @@ PLAYER = BaseData(
             ),
         },
     ),
-    player_data=PlayerData(
-        melee_degree=60,
-        section_upgrade_data={
-            EntityAttributeSectionType.ENDURANCE: lambda current_level: 1
-            * 3**current_level,
-            EntityAttributeSectionType.DEFENCE: lambda current_level: 1
-            * 3**current_level,
-        },
-    ),
     attacks={
         AttackAlgorithmType.RANGED: AttackData(
             damage=10,
@@ -88,6 +79,15 @@ PLAYER = BaseData(
             damage=10, attack_cooldown=10, attack_range=3
         ),
     },
+    player_data=PlayerData(
+        melee_degree=60,
+        section_upgrade_data={
+            EntityAttributeSectionType.ENDURANCE: lambda current_level: 1
+            * 3**current_level,
+            EntityAttributeSectionType.DEFENCE: lambda current_level: 1
+            * 3**current_level,
+        },
+    ),
 )
 
 # Enemy characters
@@ -122,7 +122,6 @@ ENEMY1 = BaseData(
             ),
         },
     ),
-    enemy_data=EnemyData(view_distance=5),
     attacks={
         AttackAlgorithmType.RANGED: AttackData(
             damage=5,
@@ -131,6 +130,7 @@ ENEMY1 = BaseData(
             extra=RangedAttackData(max_bullet_range=10),
         )
     },
+    enemy_data=EnemyData(view_distance=5),
 )
 
 # Base instant consumables
@@ -144,6 +144,7 @@ HEALTH_POTION = ConsumableData(
             increase=lambda current_level: 10 * 1.5**current_level,
         ),
     ],
+    status_effects=[],
 )
 
 ARMOUR_POTION = ConsumableData(
@@ -156,6 +157,7 @@ ARMOUR_POTION = ConsumableData(
             increase=lambda current_level: 10 * 1.5**current_level,
         ),
     ],
+    status_effects=[],
 )
 
 # Base status effect consumables
@@ -163,6 +165,7 @@ HEALTH_BOOST_POTION = ConsumableData(
     name="health boost potion",
     texture=non_moving_textures["items"][2],
     level_limit=5,
+    instant=[],
     status_effects=[
         StatusEffectData(
             status_type=StatusEffectType.HEALTH,
@@ -176,6 +179,7 @@ ARMOUR_BOOST_POTION = ConsumableData(
     name="armour boost potion",
     texture=non_moving_textures["items"][3],
     level_limit=5,
+    instant=[],
     status_effects=[
         StatusEffectData(
             status_type=StatusEffectType.ARMOUR,
@@ -189,6 +193,7 @@ SPEED_BOOST_POTION = ConsumableData(
     name="speed boost potion",
     texture=non_moving_textures["items"][4],
     level_limit=5,
+    instant=[],
     status_effects=[
         StatusEffectData(
             status_type=StatusEffectType.SPEED,
@@ -202,6 +207,7 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
     name="fire rate boost potion",
     texture=non_moving_textures["items"][5],
     level_limit=5,
+    instant=[],
     status_effects=[
         StatusEffectData(
             status_type=StatusEffectType.FIRE_RATE,
