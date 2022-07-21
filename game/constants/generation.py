@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Custom
-from enum import IntEnum
+from enum import IntEnum, auto
 
 __all__ = (
     "BASE_ENEMY_COUNT",
@@ -30,22 +30,24 @@ __all__ = (
 
 
 # Tile types
+# noinspection PyArgumentList
+# TODO REMOVE ABOVE LINE ONCE BUG FIXED
 class TileType(IntEnum):
-    """Stores the ID of each tile in the game map."""
+    """Stores the different types of tiles in the game map."""
 
-    EMPTY = 0
-    FLOOR = 1
-    WALL = 2
-    OBSTACLE = 3
-    PLAYER = 4
-    ENEMY = 5
-    HEALTH_POTION = 6
-    ARMOUR_POTION = 7
-    HEALTH_BOOST_POTION = 8
-    ARMOUR_BOOST_POTION = 9
-    SPEED_BOOST_POTION = 10
-    FIRE_RATE_BOOST_POTION = 11
-    DEBUG_WALL = 99
+    EMPTY = auto()
+    FLOOR = auto()
+    WALL = auto()
+    OBSTACLE = auto()
+    PLAYER = auto()
+    ENEMY = auto()
+    HEALTH_POTION = auto()
+    ARMOUR_POTION = auto()
+    HEALTH_BOOST_POTION = auto()
+    ARMOUR_BOOST_POTION = auto()
+    SPEED_BOOST_POTION = auto()
+    FIRE_RATE_BOOST_POTION = auto()
+    DEBUG_WALL = auto()
 
 
 # Map generation distributions

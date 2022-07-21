@@ -21,9 +21,9 @@ from game.constants.game_object import (
     EntityAttributeType,
     ObjectID,
 )
-from game.game_object.attribute import EntityAttribute
-from game.game_object.base import Entity, IndicatorBar
-from game.game_object.movement import EnemyMovementManager
+from game.game_objects.attribute import EntityAttribute
+from game.game_objects.base import Entity, IndicatorBar
+from game.game_objects.movement import EnemyMovementManager
 
 if TYPE_CHECKING:
     from game.constants.game_object import BaseData, EnemyData
@@ -165,11 +165,8 @@ class Enemy(Entity):
 
         # Determine what movement algorithm to use based on the distance to the player
         player_tile_distance = (
-            math.sqrt(
-                (self.center_y - self.game.player.center_y) ** 2
-                + (self.center_x - self.game.player.center_x) ** 2
-            )
-        ) / SPRITE_SIZE
+            math.dist(self.position, self.game.player.position) / SPRITE_SIZE
+        )
         if player_tile_distance > self.enemy_data.view_distance:
             # Player is outside the enemy's view distance so have them wander around
             self.player_within_range = False

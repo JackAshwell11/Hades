@@ -10,12 +10,12 @@ import arcade.gui
 
 # Custom
 from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.game_object.base import UsableTile
+from game.game_objects.base import UsableTile
 from game.views.base_view import BaseView
 
 if TYPE_CHECKING:
-    from game.game_object.base import CollectibleTile
-    from game.game_object.player import Player
+    from game.game_objects.base import CollectibleTile
+    from game.game_objects.player import Player
     from game.window import Window
 
 __all__ = ("InventoryView",)
@@ -31,6 +31,7 @@ class InventoryBox(arcade.gui.UITextureButton):
     item_ref: CollectibleTile | UsableTile | None = None
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return (
             f"<InventoryBox (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"

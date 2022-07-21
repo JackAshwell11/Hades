@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from arcade import ArcadeContext
     from arcade.gl import Buffer, Framebuffer, Program, Query
 
-    from game.game_object.enemy import Enemy
+    from game.game_objects.enemy import Enemy
     from game.views.game_view import Game
 
 __all__ = ("MeleeShader",)
@@ -68,7 +68,11 @@ class MeleeShader:
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
-        return "<MeleeShader>"
+        # Make sure the walls framebuffer is valid
+        assert self.walls_framebuffer is not None
+
+        # Return the repr
+        return f"<MeleeShader (Wall framebuffer size={self.walls_framebuffer.size})>"
 
     @property
     def ctx(self) -> ArcadeContext:

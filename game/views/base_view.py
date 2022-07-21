@@ -98,6 +98,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return f"<DisappearingInfoBox (Text={self._text_area.text})>"
 
     def on_update(self, delta_time: float) -> None:
@@ -126,6 +127,7 @@ class BackButton(arcade.gui.UIFlatButton):
     """A button which will switch back to the game view."""
 
     def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
         return (
             f"<BackButton (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"

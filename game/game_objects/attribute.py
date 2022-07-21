@@ -17,8 +17,8 @@ if TYPE_CHECKING:
         EntityAttributeSectionType,
         StatusEffectData,
     )
-    from game.game_object.base import Entity
-    from game.game_object.player import Player
+    from game.game_objects.base import Entity
+    from game.game_objects.player import Player
 
 __all__ = (
     "EntityAttribute",
@@ -215,7 +215,7 @@ class EntityAttribute:
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
-        return f"<EntityAttribute (Value={self.value})>"
+        return f"<EntityAttribute (Value={self._value})>"
 
     @property
     def value(self) -> float:

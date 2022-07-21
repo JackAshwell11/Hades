@@ -118,7 +118,9 @@ class Map:
         self.level: int = level
         self.map_constants: dict[TileType | str, int] = self._generate_constants()
         self.grid: np.ndarray = np.full(
-            (self.map_constants["height"], self.map_constants["width"]), 0, np.int8
+            (self.map_constants["height"], self.map_constants["width"]),
+            TileType.EMPTY,
+            np.int8,
         )
         self.bsp: Leaf = Leaf(
             Point(0, 0),
@@ -298,9 +300,12 @@ class Map:
             The rooms to create a Delaunay graph out of.
         """
         # Place random obstacles in the grid
-        y, x = np.where(self.grid == 0)
+        y, x = np.where(self.grid == TileType.EMPTY)
         arr_index = np.random.choice(len(y), self.map_constants["obstacle count"])
         self.grid[y[arr_index], x[arr_index]] = TileType.OBSTACLE
+        logger.debug(
+            "Created %d obstacles in the 2D grid", self.map_constants["obstacle count"]
+        )
 
         # # Create a complete graph out of rooms
         # connections: set[tuple[Point, Point, float]] = set()
@@ -368,6 +373,9 @@ class Map:
 
                 # Place a rect box around the path_point using HALLWAY_SIZE to determine
                 # the width and height
+                logger.debug(
+                    "Creating path from %r to %r", pair_source, pair_destination
+                )
                 Rect(
                     self.grid,
                     Point(
@@ -394,15 +402,18 @@ class Map:
         possible_tiles: list[tuple[int, int]]
             The possible tiles that the tiles can be placed into.
         """
+        # Place each tile in the distribution based on their probabilities of occurring
         for tile in target_distribution:
             tiles_placed = 0
             tries = PLACE_TRIES
             while tiles_placed < self.map_constants[tile] and tries != 0:
                 if self._place_tile(tile, possible_tiles):
                     # Tile placed
+                    logger.debug("One of multiple %r placed in the 2D grid", tile)
                     tiles_placed += 1
                 else:
                     # Tile not placed
+                    logger.debug("Can't place one of multiple %r in the 2D grid", tile)
                     tries -= 1
 
     def _place_tile(
@@ -434,7 +445,9 @@ class Map:
                 self.player_pos = x, y
 
             # Placing successful so return True
+            logger.debug("Placed tile %r in the 2D grid")
             return True
         else:
             # Placing not successful so return False
+            logger.debug("Can't place tile %r in the 2D grid")
             return False

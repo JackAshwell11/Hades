@@ -12,10 +12,10 @@ import arcade
 from game.constants.game_object import ObjectID
 
 if TYPE_CHECKING:
-    from game.game_object.attack import Bullet
-    from game.game_object.base import Entity, Tile
-    from game.game_object.enemy import Enemy
-    from game.game_object.player import Player
+    from game.game_objects.attack import Bullet
+    from game.game_objects.base import Entity, Tile
+    from game.game_objects.enemy import Enemy
+    from game.game_objects.player import Player
 
 __all__ = ("PhysicsEngine",)
 
