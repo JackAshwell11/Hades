@@ -39,5 +39,4 @@ build:  # Builds the game with nuitka
  	--standalone\
  	--follow-imports\
  	--enable-plugin=numpy\
- 	--include-data-dir=game/resources=resources
-# https://github.com/Nuitka/Nuitka/issues/1675
+ 	--include-data-dir=game/resources=game/resources
