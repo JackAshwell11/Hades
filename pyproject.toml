@@ -1,0 +1,31 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "game"  # TODO: CHANGE GAME NAME AND GAME/ DIR BE THE NEW NAME
+version = "0.0.1"
+description = "A procedurally generated dungeon crawler made in Python."
+authors = ["Aspect1103 <jack.ashwell1@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/Aspect1103/Procedurally-Generated-Dungeon-Crawler"
+repository = "https://github.com/Aspect1103/Procedurally-Generated-Dungeon-Crawler"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+arcade = "2.6.15"
+numpy = "1.23.1"
+pymunk = "6.2.1"
+shapely = "1.8.2"
+
+[tool.poetry.dev-dependencies]
+nuitka = "1.0"
+pre-commit = "2.20.0"
+pytest = "7.1.2"
+pytest-cov = "3.0.0"
+tox = "3.25.1"
+
+[tool.pytest.ini_options]
+addopts = "--cov=game"
+testpaths = ["tests"]
