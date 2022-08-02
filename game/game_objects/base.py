@@ -279,7 +279,7 @@ class IndicatorBar:
             # Set the full_box to not be visible since it is not full anymore
             self.full_box.visible = False
         else:
-            # Set the full_box to be visible incase it wasn't then update the bar
+            # Set the full_box to be visible in case it wasn't then update the bar
             self.full_box.visible = True
             self.full_box.width = self.bar_width * new_fullness * self.scale
             self.full_box.left = self.center_x - (self.bar_width / 2) * self.scale
