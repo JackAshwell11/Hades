@@ -27,5 +27,8 @@ pytest-cov = "3.0.0"
 tox = "3.25.1"
 
 [tool.pytest.ini_options]
-addopts = "--cov=game"
+addopts = "--cov=game --cov-report=term-missing"
 testpaths = ["tests"]
+
+[tool.coverage.report]
+exclude_lines = ["if TYPE_CHECKING:"]

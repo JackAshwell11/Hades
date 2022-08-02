@@ -58,7 +58,7 @@ repos:
     hooks:
       - id: pylint
         args:
-          - "--disable=E0401,E1101,R0902,R0903,R0913,R0914,R0915,R1705,W0201,W0511"
+          - "--disable=E0401,E1101,R0902,R0903,R0913,R0914,R0915,R1705,W0201,W0511,W0621"
           - "--good-names=i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
           - "--ignore=TEMP-FILES"
           - "--load-plugins=pylint.extensions.bad_builtin,
@@ -75,6 +75,7 @@ repos:
     hooks:
       - id: pydocstyle
         args: ["--convention=numpy"]
+        additional_dependencies: ["toml"]
   - repo: "https://github.com/asottile/pyupgrade"
     rev: v2.37.1
     hooks:
@@ -97,3 +98,4 @@ repos:
 # - R1705 is pylint complaining about an unnecessary else after a return
 # - W0201 is pylint complaining about attributes being defined outside __init__ (sometimes this needs to happen)
 # - W0511 is pylint complaining about to-do statements
+# - W0621 is pylint complaining about redefining outer names (this is used in pytest)
