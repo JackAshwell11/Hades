@@ -75,7 +75,6 @@ repos:
     hooks:
       - id: pydocstyle
         args: ["--convention=numpy"]
-        # additional_dependencies: ["toml"]
   - repo: "https://github.com/asottile/pyupgrade"
     rev: v2.37.3
     hooks:

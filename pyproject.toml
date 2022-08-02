@@ -32,3 +32,16 @@ testpaths = ["tests"]
 
 [tool.coverage.report]
 exclude_lines = ["if TYPE_CHECKING:"]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = true
+envlist = py310
+
+[testenv]
+whitelist_externals = poetry
+commands =
+    poetry run pytest --cov-append
+    coverage lcov
+"""
