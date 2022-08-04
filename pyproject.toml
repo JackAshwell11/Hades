@@ -24,6 +24,10 @@ nuitka = "1.0"
 pre-commit = "2.20.0"
 pytest = "7.1.2"
 pytest-cov = "3.0.0"
+pytest-icdiff = "0.5"
+pytest-instafail = "0.4.2"
+pytest-randomly = "3.12.0"
+pytest-sugar = "0.9.5"
 tox = "3.25.1"
 
 [tool.pytest.ini_options]
@@ -31,17 +35,25 @@ addopts = "--cov=game --cov-report=term-missing"
 testpaths = ["tests"]
 
 [tool.coverage.report]
-exclude_lines = ["if TYPE_CHECKING:"]
+exclude_lines = [
+    "if TYPE_CHECKING:",  # Exclude all type checking imports
+]
 
 [tool.tox]
 legacy_tox_ini = """
 [tox]
 isolated_build = true
-envlist = py310
+envlist = clean, py310, report
 
 [testenv]
-whitelist_externals = poetry
-commands =
-    poetry run pytest --cov-append
-    coverage lcov
+allowlist_externals = poetry
+commands = poetry run pytest --cov-append
+
+[testenv:clean]
+allowlist_externals = coverage
+commands = coverage erase
+
+[testenv:report]
+allowlist_externals = coverage
+commands = coverage lcov
 """

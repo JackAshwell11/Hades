@@ -30,10 +30,10 @@ class Leaf:
         The top-left position.
     bottom_right: Point
         The bottom-right position
-    parent: Leaf | None
-        The parent leaf object.
     grid: np.ndarray
         The 2D grid which represents the dungeon.
+    parent: Leaf | None
+        The parent leaf object.
 
     Attributes
     ----------
@@ -66,8 +66,8 @@ class Leaf:
         self,
         top_left: Point,
         bottom_right: Point,
-        parent: Leaf | None,
         grid: np.ndarray,
+        parent: Leaf | None = None,
     ) -> None:
         self.left: Leaf | None = None
         self.right: Leaf | None = None
@@ -138,14 +138,14 @@ class Leaf:
             self.left = Leaf(
                 Point(self.container.top_left.x, self.container.top_left.y),
                 Point(pos - 1, self.container.bottom_right.y),
-                self,
                 self.grid,
+                self,
             )
             self.right = Leaf(
                 Point(pos + 1, self.container.top_left.y),
                 Point(self.container.bottom_right.x, self.container.bottom_right.y),
-                self,
                 self.grid,
+                self,
             )
         else:
             # Split horizontally making sure to adjust pos, so it can be within range of
@@ -160,14 +160,14 @@ class Leaf:
             self.left = Leaf(
                 Point(self.container.top_left.x, self.container.top_left.y),
                 Point(self.container.bottom_right.x, pos - 1),
-                self,
                 self.grid,
+                self,
             )
             self.right = Leaf(
                 Point(self.container.top_left.x, pos + 1),
                 Point(self.container.bottom_right.x, self.container.bottom_right.y),
-                self,
                 self.grid,
+                self,
             )
 
         # Set the leaf's split direction
