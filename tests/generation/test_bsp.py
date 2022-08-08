@@ -1,13 +1,15 @@
 """Tests all functions in generation/bsp.py."""
 from __future__ import annotations
 
-# Pip
-import numpy as np
-
-from game.generation.bsp import Leaf
+# Builtin
+from typing import TYPE_CHECKING
 
 # Custom
+from game.generation.bsp import Leaf
 from game.generation.primitives import Point
+
+if TYPE_CHECKING:
+    import numpy as np
 
 __all__ = ()
 

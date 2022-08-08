@@ -278,13 +278,13 @@ class Map:
         # Return all the created rooms
         return rooms
 
-    def _create_hallways(self, rooms: list[Rect]):
+    def _create_hallways(self, rooms: list[Rect]) -> None:
         """Create the hallways by placing random obstacles and pathfinding around them.
 
         Parameters
         ----------
         rooms: list[Rects]
-            The rooms to create a Delaunay graph out of.
+            The rooms to make hallways between using the A* algorithm.
         """
         # Place random obstacles in the grid
         y, x = np.where(self.grid == TileType.EMPTY)

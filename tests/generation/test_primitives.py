@@ -16,7 +16,7 @@ def test_point() -> None:
     """Test the Point class in primitives.py."""
     temp_point_one = Point(0, 0)
     assert temp_point_one == (0, 0)
-    temp_point_two = Point("test", "test")  # noqa
+    temp_point_two = Point("test", "test")  # type: ignore
     assert temp_point_two == ("test", "test")
 
 

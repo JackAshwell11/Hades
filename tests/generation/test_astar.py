@@ -1,6 +1,9 @@
 """Tests all functions in generation/astar.py."""
 from __future__ import annotations
 
+# Builtin
+from typing import TYPE_CHECKING
+
 # Pip
 import numpy as np
 import pytest
@@ -8,7 +11,9 @@ import pytest
 # Custom
 from game.constants.generation import TileType
 from game.generation import astar
-from game.generation.primitives import Point
+
+if TYPE_CHECKING:
+    from game.generation.primitives import Point
 
 __all__ = ()
 
