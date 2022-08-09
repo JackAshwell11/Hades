@@ -3,27 +3,16 @@ from __future__ import annotations
 
 # Builtin
 from heapq import heappop, heappush
-from typing import TYPE_CHECKING
 
 # Pip
 import numpy as np
 
 # Custom
+from game.common import grid_bfs
 from game.constants.generation import TileType
 from game.generation.primitives import Point
 
-if TYPE_CHECKING:
-    from collections.abc import Generator
-
 __all__ = ("calculate_astar_path",)
-
-
-offsets: list[tuple[int, int]] = [
-    (0, -1),
-    (-1, 0),
-    (1, 0),
-    (0, 1),
-]
 
 
 def heuristic(a: Point, b: Point) -> int:
@@ -44,35 +33,6 @@ def heuristic(a: Point, b: Point) -> int:
         The second point.
     """
     return abs(a.x - b.x) + abs(a.y - b.y)
-
-
-def get_neighbours(
-    target: Point, height: int, width: int
-) -> Generator[Point, None, None]:
-    """Get the north, south, east and west neighbours of a given point if possible.
-
-    Parameters
-    ----------
-    target: Point
-        The point to get neighbours for.
-    height: int
-        The height of the grid.
-    width: int
-        The width of the grid.
-
-    Returns
-    -------
-    Generator[Point, None, None]
-        The given point's neighbours.
-    """
-    # Loop over each offset and get the grid position
-    for dx, dy in offsets:
-        x, y = target.x + dx, target.y + dy
-
-        # Check if the grid position is within the bounds of the grid
-        if (0 <= x < width) and (0 <= y < height):
-            # Neighbour is valid so yield it
-            yield Point(x, y)
 
 
 def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Point]:
@@ -110,7 +70,7 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
         if current == end:
             # Backtrack through came_from to get the path and return the result
             result = []
-            while current in came_from:
+            while True:
                 # Add the path to the result list
                 result.append(current)
 
@@ -125,7 +85,7 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
         #   f - The total cost of traversing the neighbour.
         #   g - The distance between the start point and the neighbour point.
         #   h - The estimated distance from the neighbour point to the end point.
-        for neighbour in get_neighbours(current, *grid.shape):
+        for neighbour in grid_bfs(current, *grid.shape, return_point=True):
             if neighbour not in came_from:
                 # Store the neighbour's parent and calculate its distance from the start
                 # point

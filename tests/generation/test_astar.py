@@ -27,7 +27,7 @@ def get_obstacle_grid() -> np.ndarray:
         The 2D numpy grid.
     """
     # Create a temporary grid with some obstacles. This uses the same code from
-    # Map._create_hallways
+    # Map._create_hallways()
     temp_grid = np.full(
         (10, 10),
         TileType.EMPTY,
@@ -62,26 +62,6 @@ def test_heuristic(
     assert astar.heuristic(valid_point_one, boundary_point) == 8
     with pytest.raises(TypeError):
         astar.heuristic(invalid_point, invalid_point)
-
-
-def test_get_neighbours(
-    valid_point_one: Point, boundary_point: Point, invalid_point: Point
-) -> None:
-    """Test the get_neighbours function in astar.py.
-
-    Parameters
-    ----------
-    valid_point_one: Point
-        A valid point used for testing.
-    boundary_point: Point
-        A boundary point used for testing.
-    invalid_point: Point
-        An invalid point used for testing.
-    """
-    assert len(list(astar.get_neighbours(valid_point_one, 10, 10))) == 4  # noqa
-    assert len(list(astar.get_neighbours(boundary_point, 10, 10))) == 2  # noqa
-    with pytest.raises(TypeError):
-        list(astar.get_neighbours(invalid_point, 10, 10))  # noqa
 
 
 def test_calculate_astar_path(

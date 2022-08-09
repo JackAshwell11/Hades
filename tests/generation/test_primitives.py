@@ -64,6 +64,23 @@ def test_rect_init(
         repr(temp_rect_two)
 
 
+def test_rect_properties(rect: Rect) -> None:
+    """Test all the properties in the Rect class.
+
+    Parameters
+    ----------
+    rect: Rect
+        The rect used for testing.
+    """
+    assert (
+        rect.width == 2
+        and rect.height == 2
+        and rect.center_x == 4
+        and rect.center_y == 6
+        and rect.center == (4, 6)
+    )
+
+
 def test_rect_get_distance_to(
     valid_point_one: Point,
     boundary_point: Point,

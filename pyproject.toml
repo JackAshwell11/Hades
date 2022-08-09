@@ -31,7 +31,7 @@ pytest-sugar = "0.9.5"
 tox = "3.25.1"
 
 [tool.pytest.ini_options]
-addopts = "-vv --cov=game --cov-report=term-missing"
+addopts = "-vv --cov=game --cov-report=term-missing --cov-branch"
 testpaths = ["tests"]
 
 [tool.coverage.report]

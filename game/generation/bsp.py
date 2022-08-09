@@ -129,7 +129,7 @@ class Leaf:
             # Split vertically making sure to adjust pos, so it can be within range of
             # the actual container
             pos = self.container.top_left.x + pos
-            if DEBUG_GAME:
+            if DEBUG_GAME:  # pragma: no branch
                 self.grid[
                     self.container.top_left.y : self.container.bottom_right.y + 1, pos
                 ] = TileType.DEBUG_WALL
@@ -151,7 +151,7 @@ class Leaf:
             # Split horizontally making sure to adjust pos, so it can be within range of
             # the actual container
             pos = self.container.top_left.y + pos
-            if DEBUG_GAME:
+            if DEBUG_GAME:  # pragma: no branch
                 self.grid[
                     pos, self.container.top_left.x : self.container.bottom_right.x + 1
                 ] = TileType.DEBUG_WALL

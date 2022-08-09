@@ -98,11 +98,9 @@ class Map:
         The 2D grid which represents the dungeon.
     bsp: Leaf
         The root leaf for the binary space partition.
-     player_pos: tuple[int, int]
+    player_pos: tuple[int, int]
         The player's position in the grid. This is set to (-1, -1) to avoid typing
         errors.
-    enemy_spawns: list[tuple[int, int]]
-        The coordinates for the enemy spawn points. This is in the format (x, y).
     """
 
     __slots__ = (
@@ -111,7 +109,6 @@ class Map:
         "grid",
         "bsp",
         "player_pos",
-        "enemy_spawns",
     )
 
     def __init__(self, level: int) -> None:
@@ -129,7 +126,6 @@ class Map:
             None,
         )
         self.player_pos: tuple[int, int] = (-1, -1)
-        self.enemy_spawns: list[tuple[int, int]] = []
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
@@ -205,10 +201,10 @@ class Map:
 
         # Create the dictionary which will hold the counts for each enemy and item type
         type_dict: dict[TileType, int] = {
-            key: int(np.ceil(value * generation_constants["enemy count"]))
+            key: int(np.round(value * generation_constants["enemy count"]))
             for key, value in ENEMY_DISTRIBUTION.items()
         } | {
-            key: int(np.ceil(value * generation_constants["item count"]))
+            key: int(np.round(value * generation_constants["item count"]))
             for key, value in ITEM_DISTRIBUTION.items()
         }
 
@@ -271,9 +267,8 @@ class Map:
                     # Width to height ratio is outside of range so try again
                     logger.debug("Trying generation of room in leaf %r again", current)
 
-                # Check if the room was actually created. If so, append it to the list
-                if current.room:
-                    rooms.append(current.room)
+                # Add the created room to the rooms list
+                rooms.append(current.room)
 
         # Return all the created rooms
         return rooms
@@ -354,7 +349,7 @@ class Map:
                 Point(*pair_destination.center),
             ):
                 # Test if the current tile is a floor tile
-                if self.grid[path_point.y][path_point.x] is TileType.FLOOR:
+                if self.grid[path_point.y][path_point.x] == TileType.FLOOR:
                     # Current tile is a floor tile, so there is no point placing a rect
                     continue
 

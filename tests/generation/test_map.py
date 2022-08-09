@@ -10,7 +10,13 @@ import numpy as np
 import pytest
 
 # Custom
-from game.constants.generation import ENEMY_DISTRIBUTION, ITEM_DISTRIBUTION, TileType
+from game.common import grid_bfs
+from game.constants.generation import (
+    BASE_ITEM_COUNT,
+    ENEMY_DISTRIBUTION,
+    ITEM_DISTRIBUTION,
+    TileType,
+)
 from game.generation.map import GameMapShape, Map, create_map
 from game.generation.primitives import Point
 
@@ -18,6 +24,22 @@ if TYPE_CHECKING:
     from game.generation.bsp import Leaf
 
 __all__ = ()
+
+
+def count_items(grid: np.ndarray) -> int:
+    """Count the number of items generated in a given numpy grid.
+
+    Parameters
+    ----------
+    grid: np.ndarray
+        The numpy grid to count items in.
+
+    Returns
+    -------
+    int
+        The number of items in the grid.
+    """
+    return np.count_nonzero(np.isin(grid, list(ITEM_DISTRIBUTION.keys())))
 
 
 def test_create_map() -> None:
@@ -54,24 +76,15 @@ def test_map_init() -> None:
     )
 
 
-def test_map_place_multiple(map_obj: Map) -> None:
-    """Test the _place_multiple function in the Map class.
+def test_map_properties(map_obj: Map) -> None:
+    """Test all the properties in the Map class.
 
     Parameters
     ----------
     map_obj: Map
         The map used for testing.
     """
-
-
-def test_map_place_tile(map_obj: Map) -> None:
-    """Test the _place_tile function in the Map class.
-
-    Parameters
-    ----------
-    map_obj: Map
-        The map used for testing.
-    """
+    assert map_obj.width == 30 and map_obj.height == 20
 
 
 def test_map_private(map_obj: Map) -> None:
@@ -112,42 +125,44 @@ def test_map_private(map_obj: Map) -> None:
     # Check if at least 1 room is generated
     rooms = map_obj._generate_rooms()
     assert rooms
+    assert not map_obj._generate_rooms()
 
     # Use a flood fill to check if all the rooms are connected
     map_obj._create_hallways(rooms)
     hallway_gen_deque = deque["Point"]()
     hallway_gen_deque.append(rooms[0].center)
-    offsets: list[tuple[int, int]] = [
-        (0, -1),
-        (-1, 0),
-        (1, 0),
-        (0, 1),
-    ]
-
-    def bfs(target):
-        height, width = map_obj.grid.shape
-        for dx, dy in offsets:
-            x, y = target.x + dx, target.y + dy
-
-            if (0 <= x < width) and (0 <= y < height):
-                yield Point(x, y)
-
     visited = set()
+    reached = set()
     centers = [room.center for room in rooms]
-    centers_result = []
     while hallway_gen_deque:
         current: Point = hallway_gen_deque.popleft()
-        map_obj.grid[current.y][current.x] = 9
         if current in centers:
-            centers_result.append(True)
-        for neighbour in bfs(current):
+            reached.add(current)
+        for neighbour in grid_bfs(current, *map_obj.grid.shape, return_point=True):
             if (
                 map_obj.grid[neighbour.y][neighbour.x] == TileType.FLOOR
                 and neighbour not in visited
             ):
                 hallway_gen_deque.append(neighbour)
                 visited.add(neighbour)
-    print(len(centers_result) == len(centers))
+    assert len(reached) == len(centers)
+
+    # Check if the player is placed and recorded correctly. First, we need to get the
+    # possible tiles list, so we use the same code from Map.generate_map()
+    possible_tiles: list[tuple[int, int]] = list(  # noqa
+        zip(*np.nonzero(map_obj.grid == TileType.FLOOR))
+    )
+    np.random.shuffle(possible_tiles)
+    map_obj._place_tile(TileType.PLAYER, [])
+    assert map_obj.player_pos == (-1, -1)
+    map_obj._place_tile(TileType.PLAYER, possible_tiles)
+    assert map_obj.player_pos != (-1, -1)
+
+    # Check if the items are placed correctly
+    map_obj._place_multiple(ITEM_DISTRIBUTION, [])
+    assert count_items(map_obj.grid) == 0
+    map_obj._place_multiple(ITEM_DISTRIBUTION, possible_tiles)
+    assert count_items(map_obj.grid) == BASE_ITEM_COUNT
 
 
 def test_map_generate_map(map_obj: Map) -> None:
@@ -161,6 +176,6 @@ def test_map_generate_map(map_obj: Map) -> None:
     temp_map = map_obj.generate_map()
     assert (
         isinstance(temp_map, Map)
-        and temp_map.enemy_spawns
+        and count_items(map_obj.grid) == BASE_ITEM_COUNT
         and temp_map.player_pos != (-1, -1)
     )

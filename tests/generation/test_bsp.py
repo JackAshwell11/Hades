@@ -77,3 +77,7 @@ def test_leaf_create_room(leaf: Leaf) -> None:
     while not result:
         result = leaf.create_room()
     assert result and leaf.room
+
+    # Make sure we test what happens if the leaf's left and right nodes are not None
+    leaf.left = leaf.right = "test"
+    assert not leaf.create_room()
