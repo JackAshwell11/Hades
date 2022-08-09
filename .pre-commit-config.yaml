@@ -8,7 +8,7 @@ repos:
     -   id: black
         args: ["--preview"]
 -   repo: https://github.com/PyCQA/flake8
-    rev: 5.0.2
+    rev: 5.0.4
     hooks:
     -   id: flake8
         args: ["--enable-extensions=W504", "--ignore=E203,W503", "--max-complexity=10", "--max-line-length=88"]
