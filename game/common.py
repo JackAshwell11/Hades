@@ -4,29 +4,25 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING
 
-# Custom
-from game.generation.primitives import Point
-
 if TYPE_CHECKING:
     from collections.abc import Generator
 
 __all__ = ("grid_bfs",)
 
 
-cardinal_offsets: list[tuple[int, int]] = [
+cardinal_offsets: tuple[tuple[int, int], ...] = (
     (0, -1),
     (-1, 0),
     (1, 0),
     (0, 1),
-]
+)
 
 
 def grid_bfs(
     target: tuple[int, int],
     height: int,
     width: int,
-    offsets: list[tuple[int, int]] = cardinal_offsets,
-    return_point: bool = False,
+    offsets: tuple[tuple[int, int], ...] = cardinal_offsets,
 ) -> Generator[tuple[int, int], None, None]:
     """Get a target's neighbours based on a given list of offsets.
 
@@ -38,10 +34,8 @@ def grid_bfs(
         The height of the grid.
     width: int
         The width of the grid.
-    offsets: list[tuple[int, int]]
-        A list of offsets used for getting them target's neighbours.
-    return_point: bool
-        Whether to return a Point object or not.
+    offsets: tuple[tuple[int, int], ...]
+        A tuple of offsets used for getting the target's neighbours.
 
     Returns
     -------
@@ -56,7 +50,4 @@ def grid_bfs(
             continue
 
         # Yield the neighbour tile position
-        if return_point:
-            yield Point(x, y)
-        else:
-            yield x, y
+        yield x, y

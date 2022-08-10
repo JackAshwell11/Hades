@@ -42,19 +42,45 @@ def count_items(grid: np.ndarray) -> int:
     return np.count_nonzero(np.isin(grid, list(ITEM_DISTRIBUTION.keys())))
 
 
+def get_possible_tiles(grid: np.ndarray) -> list[tuple[int, int]]:
+    """Get the possible tiles that a game object can be placed into.
+
+    Parameters
+    ----------
+    grid: np.ndarray
+        The numpy grid to get possible tiles from.
+
+    Returns
+    -------
+    list[tuple[int, int]]
+        The list of possible tiles.
+    """
+    # This uses the same code from Map.generate_map()
+    return list(zip(*np.nonzero(grid == TileType.FLOOR)))  # noqa
+
+
 def test_create_map() -> None:
     """Test the create_map function in map.py."""
     temp_positive = create_map(1)
-    assert isinstance(temp_positive[0], np.ndarray) and isinstance(
-        temp_positive[1], GameMapShape
+    assert (
+        isinstance(temp_positive[0].grid, np.ndarray)
+        and isinstance(temp_positive[1], GameMapShape)
+        and count_items(temp_positive[0].grid) == BASE_ITEM_COUNT
+        and temp_positive[0].player_pos != (-1, -1)
     )
     temp_zero = create_map(0)
-    assert isinstance(temp_zero[0], np.ndarray) and isinstance(
-        temp_zero[1], GameMapShape
+    assert (
+        isinstance(temp_zero[0].grid, np.ndarray)
+        and isinstance(temp_zero[1], GameMapShape)
+        and count_items(temp_zero[0].grid) == BASE_ITEM_COUNT
+        and temp_zero[0].player_pos != (-1, -1)
     )
     temp_negative = create_map(-1)
-    assert isinstance(temp_negative[0], np.ndarray) and isinstance(
-        temp_negative[1], GameMapShape
+    assert (
+        isinstance(temp_negative[0].grid, np.ndarray)
+        and isinstance(temp_negative[1], GameMapShape)
+        and count_items(temp_negative[0].grid) == BASE_ITEM_COUNT
+        and temp_negative[0].player_pos != (-1, -1)
     )
     with pytest.raises(TypeError):
         create_map("test")  # type: ignore
@@ -87,16 +113,15 @@ def test_map_properties(map_obj: Map) -> None:
     assert map_obj.width == 30 and map_obj.height == 20
 
 
-def test_map_private(map_obj: Map) -> None:
-    """Test all the private functions in the Map class.
+def test_map_generate_constants(map_obj: Map) -> None:
+    """Test the generate_constants function in the Map class.
 
     Parameters
     ----------
     map_obj: Map
         The map used for testing.
     """
-    # Check if the _generate_constants function returns the necessary keys
-    temp_result = set(map_obj._generate_constants().keys())
+    temp_result = set(map_obj.generate_constants().keys())
     assert temp_result == {
         "width",
         "height",
@@ -106,39 +131,68 @@ def test_map_private(map_obj: Map) -> None:
         "item count",
     }.union(ENEMY_DISTRIBUTION.keys()).union(ITEM_DISTRIBUTION.keys())
 
+
+def test_map_split_bsp(map_obj: Map) -> None:
+    """Test the split_bsp function in the Map class.
+
+    Parameters
+    ----------
+    map_obj: Map
+        The map used for testing.
+    """
     # Use a deque object to get all the leafs which don't have child leaves, so we can
     # check if the correct amount of splits has taken place (there should always be n+1
     # child leaves in the result list for this scenario)
-    map_obj._split_bsp()
+    map_obj.split_bsp()
     result = []
     room_gen_deque = deque["Leaf"]()
     room_gen_deque.append(map_obj.bsp)
     while room_gen_deque:
-        current: Leaf = room_gen_deque.popleft()
-        if current.left and current.right:
-            room_gen_deque.append(current.left)
-            room_gen_deque.append(current.right)
+        current_leaf: Leaf = room_gen_deque.popleft()
+        if current_leaf.left and current_leaf.right:
+            room_gen_deque.append(current_leaf.left)
+            room_gen_deque.append(current_leaf.right)
         else:
-            result.append(current)
+            result.append(current_leaf)
     assert len(result) == map_obj.map_constants["split iteration"] + 1
 
-    # Check if at least 1 room is generated
-    rooms = map_obj._generate_rooms()
-    assert rooms
-    assert not map_obj._generate_rooms()
 
+def test_map_generate_rooms(map_obj: Map) -> None:
+    """Test the generate_rooms function in the Map class.
+
+    Parameters
+    ----------
+    map_obj: Map
+        The map used for testing.
+    """
+    # Check if at least 1 room is generated
+    rooms = map_obj.split_bsp().generate_rooms()
+    assert rooms
+    assert not map_obj.generate_rooms()
+
+
+def test_map_create_hallways(map_obj: Map) -> None:
+    """Test the create_hallways function in the Map class.
+
+    Parameters
+    ----------
+    map_obj: Map
+        The map used for testing.
+    """
     # Use a flood fill to check if all the rooms are connected
-    map_obj._create_hallways(rooms)
+    rooms = map_obj.split_bsp().generate_rooms()
+    map_obj.create_hallways(rooms)
     hallway_gen_deque = deque["Point"]()
     hallway_gen_deque.append(rooms[0].center)
     visited = set()
     reached = set()
     centers = [room.center for room in rooms]
     while hallway_gen_deque:
-        current: Point = hallway_gen_deque.popleft()
-        if current in centers:
-            reached.add(current)
-        for neighbour in grid_bfs(current, *map_obj.grid.shape, return_point=True):
+        current_point: Point = hallway_gen_deque.popleft()
+        if current_point in centers:
+            reached.add(current_point)
+        for bfs_neighbour in grid_bfs(current_point, *map_obj.grid.shape):
+            neighbour = Point(*bfs_neighbour)
             if (
                 map_obj.grid[neighbour.y][neighbour.x] == TileType.FLOOR
                 and neighbour not in visited
@@ -147,35 +201,40 @@ def test_map_private(map_obj: Map) -> None:
                 visited.add(neighbour)
     assert len(reached) == len(centers)
 
-    # Check if the player is placed and recorded correctly. First, we need to get the
-    # possible tiles list, so we use the same code from Map.generate_map()
-    possible_tiles: list[tuple[int, int]] = list(  # noqa
-        zip(*np.nonzero(map_obj.grid == TileType.FLOOR))
-    )
-    np.random.shuffle(possible_tiles)
-    map_obj._place_tile(TileType.PLAYER, [])
-    assert map_obj.player_pos == (-1, -1)
-    map_obj._place_tile(TileType.PLAYER, possible_tiles)
-    assert map_obj.player_pos != (-1, -1)
 
-    # Check if the items are placed correctly
-    map_obj._place_multiple(ITEM_DISTRIBUTION, [])
-    assert count_items(map_obj.grid) == 0
-    map_obj._place_multiple(ITEM_DISTRIBUTION, possible_tiles)
-    assert count_items(map_obj.grid) == BASE_ITEM_COUNT
-
-
-def test_map_generate_map(map_obj: Map) -> None:
-    """Test the _generate_map function in the Map class.
+def test_map_place_tile(map_obj: Map) -> None:
+    """Test the place_tile function in the Map class.
 
     Parameters
     ----------
     map_obj: Map
         The map used for testing.
     """
-    temp_map = map_obj.generate_map()
-    assert (
-        isinstance(temp_map, Map)
-        and count_items(map_obj.grid) == BASE_ITEM_COUNT
-        and temp_map.player_pos != (-1, -1)
-    )
+    # Make sure the dungeon is generated first
+    rooms = map_obj.split_bsp().generate_rooms()
+    map_obj.create_hallways(rooms)
+    possible_tiles = get_possible_tiles(map_obj.grid)
+    np.random.shuffle(possible_tiles)
+    map_obj.place_tile(TileType.PLAYER, [])
+    assert map_obj.player_pos == (-1, -1)
+    map_obj.place_tile(TileType.PLAYER, possible_tiles)
+    assert map_obj.player_pos != (-1, -1)
+
+
+def test_map_place_multiple(map_obj: Map) -> None:
+    """Test the place_multiple function in the Map class.
+
+    Parameters
+    ----------
+    map_obj: Map
+        The map used for testing.
+    """
+    # Make sure the dungeon is generated first
+    rooms = map_obj.split_bsp().generate_rooms()
+    map_obj.create_hallways(rooms)
+    possible_tiles = get_possible_tiles(map_obj.grid)
+    np.random.shuffle(possible_tiles)
+    map_obj.place_multiple(ITEM_DISTRIBUTION, [])
+    assert count_items(map_obj.grid) == 0
+    map_obj.place_multiple(ITEM_DISTRIBUTION, possible_tiles)
+    assert count_items(map_obj.grid) == BASE_ITEM_COUNT

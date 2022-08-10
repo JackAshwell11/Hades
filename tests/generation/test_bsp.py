@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 # Custom
 from game.generation.bsp import Leaf
-from game.generation.primitives import Point
+from game.generation.primitives import Point, Rect
 
 if TYPE_CHECKING:
     import numpy as np
@@ -63,6 +63,12 @@ def test_leaf_split(leaf: Leaf) -> None:
         )
         leaf.left = leaf.right = leaf.split_vertical = None
 
+    # Make sure we test what happens if the container's width and height are both less
+    # than MIN_CONTAINER_SIZE
+    leaf.left = leaf.right = leaf.split_vertical = None
+    leaf.container = Rect(leaf.container.grid, leaf.container.top_left, Point(-1, -1))
+    assert not leaf.split()
+
 
 def test_leaf_create_room(leaf: Leaf) -> None:
     """Test the create_room function in the Leaf class.
@@ -79,5 +85,5 @@ def test_leaf_create_room(leaf: Leaf) -> None:
     assert result and leaf.room
 
     # Make sure we test what happens if the leaf's left and right nodes are not None
-    leaf.left = leaf.right = "test"
+    leaf.left = leaf.right = "test"  # type: ignore
     assert not leaf.create_room()

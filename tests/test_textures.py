@@ -24,14 +24,14 @@ def test_grid_pos_to_pixel() -> None:
     with pytest.raises(ValueError):
         grid_pos_to_pixel(-500, -500)
     with pytest.raises(TypeError):
-        grid_pos_to_pixel("test", "test")  # noqa
+        grid_pos_to_pixel("test", "test")  # type: ignore
 
 
 def test_textures_script() -> None:
     """Test the textures.py script."""
     # Compare the non_moving_filenames dict to the non_moving_textures dict
-    for section_name, section_data in non_moving_filenames.items():
-        for section_count, texture_filename in enumerate(section_data):
+    for section_name, non_moving_type in non_moving_filenames.items():
+        for section_count, texture_filename in enumerate(non_moving_type):
             compare_texture = non_moving_textures[section_name][section_count]
             assert (
                 isinstance(compare_texture, arcade.Texture)
@@ -39,8 +39,8 @@ def test_textures_script() -> None:
             )
 
     # Compare the moving_filenames dict to the moving_textures dict
-    for section_name, section_data in moving_filenames.items():
-        for animation_type, filenames in section_data.items():
+    for section_name, moving_type in moving_filenames.items():
+        for animation_type, filenames in moving_type.items():
             for texture_count, texture_filename in enumerate(filenames):
                 compare_texture = moving_textures[section_name][animation_type][
                     texture_count

@@ -165,7 +165,7 @@ class Game(BaseView):
         game_map, self.game_map_shape = create_map(level)
 
         # Assign sprites to the game map and initialise the vector grid
-        for count_y, y in enumerate(reversed(game_map)):
+        for count_y, y in enumerate(reversed(game_map.grid)):
             for count_x, x in enumerate(y):
                 # Determine if the tile is empty
                 if x in REPLACEABLE_TILES:

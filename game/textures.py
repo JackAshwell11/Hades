@@ -58,7 +58,7 @@ def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
 texture_path = pathlib.Path(__file__).resolve().parent / "resources" / "textures"
 
 # Create a dictionary to hold all the filenames for the non-moving textures
-non_moving_filenames = {
+non_moving_filenames: dict[str, list[str]] = {
     "tiles": [
         "floor.png",
         "wall.png",
@@ -75,7 +75,7 @@ non_moving_filenames = {
 }
 
 # Create a dictionary to hold all the filenames for the non-moving textures
-moving_filenames = {
+moving_filenames: dict[str, dict[str, list[str]]] = {
     "player": {
         "idle": ["player_idle.png"],
     },

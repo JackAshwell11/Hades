@@ -85,10 +85,11 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
         #   f - The total cost of traversing the neighbour.
         #   g - The distance between the start point and the neighbour point.
         #   h - The estimated distance from the neighbour point to the end point.
-        for neighbour in grid_bfs(current, *grid.shape, return_point=True):
-            if neighbour not in came_from:
+        for bfs_neighbour in grid_bfs(current, *grid.shape):
+            if bfs_neighbour not in came_from:
                 # Store the neighbour's parent and calculate its distance from the start
                 # point
+                neighbour = Point(*bfs_neighbour)
                 came_from[neighbour] = current
                 distances[neighbour] = distances[came_from[neighbour]] + 1
 

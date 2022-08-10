@@ -6,16 +6,10 @@ repos:
     rev: 22.6.0
     hooks:
       - id: black
-        args: ["--preview"]
   - repo: "https://github.com/PyCQA/flake8"
     rev: 5.0.4
     hooks:
       - id: flake8
-        args:
-          - "--enable-extensions=W504"
-          - "--ignore=E203,W503"
-          - "--max-complexity=10"
-          - "--max-line-length=88"
         additional_dependencies:
           - flake8-bugbear
           - flake8-builtins
@@ -33,14 +27,10 @@ repos:
     rev: 5.10.1
     hooks:
       - id: isort
-        args:
-          - "--filter-files"
-          - "--profile=black"
   - repo: "https://github.com/pre-commit/mirrors-mypy"
     rev: v0.971
     hooks:
       - id: mypy
-        args: ["--ignore-missing-imports"]
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
     rev: v4.3.0
     hooks:
@@ -51,51 +41,18 @@ repos:
       - id: mixed-line-ending
       - id: pretty-format-json
         args: ["--autofix"]
-      - id: requirements-txt-fixer
       - id: trailing-whitespace
   - repo: "https://github.com/PyCQA/pylint"
     rev: v2.14.5
     hooks:
       - id: pylint
-        args:
-          - "--disable=E0401,E1101,R0902,R0903,R0913,R0914,R0915,R1705,W0201,W0511,W0621"
-          - "--good-names=i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
-          - "--ignore=TEMP-FILES"
-          - "--load-plugins=pylint.extensions.bad_builtin,
-            pylint.extensions.check_elif,
-            pylint.extensions.comparison_placement,
-            pylint.extensions.confusing_elif,
-            pylint.extensions.consider_ternary_expression,
-            pylint.extensions.emptystring,
-            pylint.extensions.for_any_all,
-            pylint.extensions.set_membership"
-          - "--max-line-length=88"
   - repo: "https://github.com/pycqa/pydocstyle"
     rev: 6.1.1
     hooks:
       - id: pydocstyle
-        args: ["--convention=numpy"]
-        # additional_dependencies: ["toml"]
+        additional_dependencies: ["toml"]
   - repo: "https://github.com/asottile/pyupgrade"
     rev: v2.37.3
     hooks:
       - id: pyupgrade
         args: ["--py310-plus"]
-
-# Flake8 codes:
-# - E203 is flake8 complaining about a whitespace before a colon in bsp.py
-# - W503 is flake8 wanting to put an operator on the next line (not preferred due to black)
-# - W504 is flake8 wanting to put an operator on the same line (preferred due to black)
-
-# Pylint codes:
-# - E0401 is pylint not being able to import packages
-# - E1101 is pylint complaining about BaseView setting window
-# - R0902 is pylint complaining about too many instance attributes
-# - R0903 is pylint complaining about too few public methods
-# - R0913 is pylint complaining about too many parameters
-# - R0914 is pylint complaining about too many local variables
-# - R0916 is pylint complaining about too many statements
-# - R1705 is pylint complaining about an unnecessary else after a return
-# - W0201 is pylint complaining about attributes being defined outside __init__ (sometimes this needs to happen)
-# - W0511 is pylint complaining about to-do statements
-# - W0621 is pylint complaining about redefining outer names (this is used in pytest)

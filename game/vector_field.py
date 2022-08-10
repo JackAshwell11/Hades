@@ -23,7 +23,7 @@ __all__ = ("VectorField",)
 logger = logging.getLogger(__name__)
 
 
-intercardinal_offsets: list[tuple[int, int]] = [
+intercardinal_offsets: tuple[tuple[int, int], ...] = (
     (-1, -1),
     (0, -1),
     (1, -1),
@@ -32,7 +32,7 @@ intercardinal_offsets: list[tuple[int, int]] = [
     (-1, 1),
     (0, 1),
     (1, 1),
-]
+)
 
 
 class VectorField:
@@ -171,7 +171,7 @@ class VectorField:
             current = queue.popleft()
 
             # Sometimes current can be None, so check if it is None
-            if not current:
+            if not current:  # pragma: no cover
                 continue
 
             # Get the current tile's neighbours
@@ -198,7 +198,7 @@ class VectorField:
             min_tile = -1, -1
             min_dist = np.inf
             for neighbour in grid_bfs(
-                tile, self.height, self.width, offsets=intercardinal_offsets
+                tile, self.width, self.height, offsets=intercardinal_offsets
             ):
                 # Sometimes an invalid tile is returned so test for that
                 distance = self.distances.get(neighbour, -1)

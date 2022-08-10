@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 np.set_printoptions(threshold=1, edgeitems=50, linewidth=10000)
 
 
-def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
+def create_map(level: int) -> tuple[Map, GameMapShape]:
     """Generate the game map for a given game level.
 
     Parameters
@@ -60,11 +60,25 @@ def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
 
     Returns
     -------
-    tuple[np.ndarray, GameMapShape]
+    tuple[Map, GameMapShape]
         The generated map and a named tuple containing the width and height.
     """
-    grid: np.ndarray = Map(level).generate_map().grid
-    return grid, GameMapShape(grid.shape[1], grid.shape[0])
+    # Create the rooms and hallways
+    temp_map = Map(level)
+    temp_map.create_hallways(temp_map.split_bsp().generate_rooms())
+
+    # Place the game objects
+    possible_tiles: list[tuple[int, int]] = list(  # noqa
+        zip(*np.nonzero(temp_map.grid == TileType.FLOOR))
+    )
+    np.random.shuffle(possible_tiles)
+    temp_map.place_tile(TileType.PLAYER, possible_tiles)
+    temp_map.place_multiple(ENEMY_DISTRIBUTION, possible_tiles).place_multiple(
+        ITEM_DISTRIBUTION, possible_tiles
+    )
+
+    # Return the map object and a GameMapShape object
+    return temp_map, GameMapShape(temp_map.grid.shape[1], temp_map.grid.shape[0])
 
 
 class GameMapShape(NamedTuple):
@@ -113,7 +127,7 @@ class Map:
 
     def __init__(self, level: int) -> None:
         self.level: int = level
-        self.map_constants: dict[TileType | str, int] = self._generate_constants()
+        self.map_constants: dict[TileType | str, int] = self.generate_constants()
         self.grid: np.ndarray = np.full(
             (self.map_constants["height"], self.map_constants["width"]),
             TileType.EMPTY,
@@ -167,7 +181,7 @@ class Map:
         # Return the shape
         return self.grid.shape[0]
 
-    def _generate_constants(self) -> dict[TileType | str, int]:
+    def generate_constants(self) -> dict[TileType | str, int]:
         """Generate the needed constants based on a given game level.
 
         Returns
@@ -214,8 +228,14 @@ class Map:
         logger.info("Generated map constants %r", result)
         return result
 
-    def _split_bsp(self) -> None:
-        """Split the bsp based on the generated constants."""
+    def split_bsp(self) -> Map:
+        """Split the bsp based on the generated constants.
+
+        Returns
+        -------
+        Map
+            The map object which represents the dungeon.
+        """
         # Start the splitting using deque
         deque_obj = deque["Leaf"]()
         deque_obj.append(self.bsp)
@@ -234,7 +254,10 @@ class Map:
                 # Decrement the split iteration
                 split_iteration -= 1
 
-    def _generate_rooms(self) -> list[Rect]:
+        # Return the map object
+        return self
+
+    def generate_rooms(self) -> list[Rect]:
         """Generate the rooms for a given game level using the bsp.
 
         Returns
@@ -268,18 +291,24 @@ class Map:
                     logger.debug("Trying generation of room in leaf %r again", current)
 
                 # Add the created room to the rooms list
+                assert current.room  # Have to make sure its actually created first
                 rooms.append(current.room)
 
         # Return all the created rooms
         return rooms
 
-    def _create_hallways(self, rooms: list[Rect]) -> None:
+    def create_hallways(self, rooms: list[Rect]) -> Map:
         """Create the hallways by placing random obstacles and pathfinding around them.
 
         Parameters
         ----------
         rooms: list[Rects]
             The rooms to make hallways between using the A* algorithm.
+
+        Returns
+        -------
+        Map
+            The map object which represents the dungeon.
         """
         # Place random obstacles in the grid
         y, x = np.where(self.grid == TileType.EMPTY)
@@ -370,11 +399,14 @@ class Map:
                     ),
                 ).place_rect()
 
-    def _place_multiple(
+        # Return the map object
+        return self
+
+    def place_multiple(
         self,
         target_distribution: Mapping[TileType, int | float],
         possible_tiles: list[tuple[int, int]],
-    ) -> None:
+    ) -> Map:
         """Places multiple tile types from a given distribution in the 2D grid.
 
         Parameters
@@ -383,13 +415,18 @@ class Map:
             The target distribution to place in the 2D grid.
         possible_tiles: list[tuple[int, int]]
             The possible tiles that the tiles can be placed into.
+
+        Returns
+        -------
+        Map
+            The map object which represents the dungeon.
         """
         # Place each tile in the distribution based on their probabilities of occurring
         for tile in target_distribution:
             tiles_placed = 0
             tries = PLACE_TRIES
             while tiles_placed < self.map_constants[tile] and tries != 0:
-                if self._place_tile(tile, possible_tiles):
+                if self.place_tile(tile, possible_tiles):
                     # Tile placed
                     logger.debug("One of multiple %r placed in the 2D grid", tile)
                     tiles_placed += 1
@@ -398,7 +435,10 @@ class Map:
                     logger.debug("Can't place one of multiple %r in the 2D grid", tile)
                     tries -= 1
 
-    def _place_tile(
+        # Return the map object
+        return self
+
+    def place_tile(
         self, target_tile: TileType, possible_tiles: list[tuple[int, int]]
     ) -> bool:
         """Places a given tile in the 2D grid.
@@ -433,27 +473,3 @@ class Map:
             # Placing not successful so return False
             logger.debug("Can't place tile %r in the 2D grid")
             return False
-
-    def generate_map(self) -> Map:
-        """Generate the map and place the tiles in it.
-
-        Returns
-        -------
-        Map
-            The map object which represents the dungeon.
-        """
-        # Create the map
-        self._split_bsp()
-        self._create_hallways(self._generate_rooms())
-
-        # Place the game objects
-        possible_tiles: list[tuple[int, int]] = list(  # noqa
-            zip(*np.nonzero(self.grid == TileType.FLOOR))
-        )
-        np.random.shuffle(possible_tiles)
-        self._place_tile(TileType.PLAYER, possible_tiles)
-        self._place_multiple(ENEMY_DISTRIBUTION, possible_tiles)
-        self._place_multiple(ITEM_DISTRIBUTION, possible_tiles)
-
-        # Return the map object so it can be used
-        return self
