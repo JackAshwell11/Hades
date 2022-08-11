@@ -11,17 +11,28 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 # Custom
+from game.common import grid_bfs
 from game.constants.game_object import SPRITE_SIZE
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
-
     import arcade
 
 __all__ = ("VectorField",)
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+
+intercardinal_offsets: tuple[tuple[int, int], ...] = (
+    (-1, -1),
+    (0, -1),
+    (1, -1),
+    (-1, 0),
+    (1, 0),
+    (-1, 1),
+    (0, 1),
+    (1, 1),
+)
 
 
 class VectorField:
@@ -82,24 +93,6 @@ class VectorField:
         "vector_dict",
     )
 
-    # Class variables
-    _no_diagonal_offsets: list[tuple[int, int]] = [
-        (0, -1),
-        (-1, 0),
-        (1, 0),
-        (0, 1),
-    ]
-    _diagonal_offsets: list[tuple[int, int]] = [
-        (-1, -1),
-        (0, -1),
-        (1, -1),
-        (-1, 0),
-        (1, 0),
-        (-1, 1),
-        (0, 1),
-        (1, 1),
-    ]
-
     def __init__(
         self,
         width: int,
@@ -116,55 +109,34 @@ class VectorField:
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
-        return f"<VectorField (Width={self.width}) (Height={self.height})"
-
-    def _get_neighbours(
-        self, tile_pos: tuple[int, int], offsets: list[tuple[int, int]]
-    ) -> Generator[tuple[int, int], None, None]:
-        """Get a tile position's floor neighbours based on a given list of offsets.
-
-        Parameters
-        ----------
-        tile_pos: tuple[int, int]
-            The tile position to get neighbours for.
-        offsets: list[tuple[int, int]]
-            A list of offsets used for getting the tile position's neighbours.
-
-        Returns
-        -------
-        Generator[tuple[int, int], None, None]
-            A list of the tile position's neighbours.
-        """
-        # Get all the neighbour floor tile positions relative to the current tile
-        # position
-        for dx, dy in offsets:
-            # Check if the neighbour position is within the boundaries or not
-            x, y = tile_pos[0] + dx, tile_pos[1] + dy
-            if (x < 0 or x >= self.width) or (y < 0 or y >= self.height):
-                continue
-
-            # Check if the neighbour is a wall or not
-            if self.distances.get((x, y), -1) == np.inf:
-                continue
-
-            # Neighbour tile position is a floor tile position, so it is valid
-            yield x, y
+        return f"<VectorField (Width={self.width}) (Height={self.height})>"
 
     @staticmethod
     def get_tile_pos_for_pixel(position: tuple[float, float]) -> tuple[int, int]:
-        """Convert a screen position into a tile position for use with the vector field.
+        """Calculate the tile position from a given screen position.
 
         Parameters
         ----------
         position: tuple[float, float]
             The sprite position on the screen.
 
+        Raises
+        ------
+        ValueError
+            The inputs must be bigger than or equal to 0.
+
         Returns
         -------
         tuple[int, int]
             The path field grid tile position for the given sprite position.
         """
-        return int(position[0] // SPRITE_SIZE), int(position[1] // SPRITE_SIZE)
+        # Check if the inputs are negative
+        x, y = position
+        if x < 0 or y < 0:
+            raise ValueError("The inputs must be bigger than or equal to 0.")
+
+        # Calculate the grid position
+        return int(x // SPRITE_SIZE), int(y // SPRITE_SIZE)
 
     def recalculate_map(self, player_pos: tuple[float, float]) -> None:
         """Recalculates the vector field and produces a new path_dict.
@@ -199,11 +171,15 @@ class VectorField:
             current = queue.popleft()
 
             # Sometimes current can be None, so check if it is None
-            if not current:
+            if not current:  # pragma: no cover
                 continue
 
             # Get the current tile's neighbours
-            for neighbour in self._get_neighbours(current, self._no_diagonal_offsets):
+            for neighbour in grid_bfs(current, self.height, self.width):
+                # Check if the neighbour is a wall or not
+                if self.distances.get((neighbour[0], neighbour[1]), -1) == np.inf:
+                    continue
+
                 # Test if the neighbour has already been reached or not. If it hasn't,
                 # add it to the queue and set its distance
                 if neighbour not in self.distances:
@@ -221,7 +197,9 @@ class VectorField:
             # Find the tile's neighbour with the lowest Dijkstra distance
             min_tile = -1, -1
             min_dist = np.inf
-            for neighbour in self._get_neighbours(tile, self._diagonal_offsets):
+            for neighbour in grid_bfs(
+                tile, self.width, self.height, offsets=intercardinal_offsets
+            ):
                 # Sometimes an invalid tile is returned so test for that
                 distance = self.distances.get(neighbour, -1)
                 if distance < min_dist and distance != -1:

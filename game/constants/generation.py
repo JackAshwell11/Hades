@@ -57,10 +57,10 @@ ENEMY_DISTRIBUTION = {
 ITEM_DISTRIBUTION = {
     TileType.HEALTH_POTION: 0.3,
     TileType.ARMOUR_POTION: 0.3,
-    TileType.HEALTH_BOOST_POTION: 0.1,
+    TileType.HEALTH_BOOST_POTION: 0.2,
     TileType.ARMOUR_BOOST_POTION: 0.1,
-    TileType.SPEED_BOOST_POTION: 0.1,
-    TileType.FIRE_RATE_BOOST_POTION: 0.1,
+    TileType.SPEED_BOOST_POTION: 0.05,
+    TileType.FIRE_RATE_BOOST_POTION: 0.05,
 }
 
 # Map generation counts

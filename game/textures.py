@@ -13,7 +13,9 @@ from game.constants.game_object import SPRITE_SIZE
 
 __all__ = (
     "grid_pos_to_pixel",
+    "moving_filenames",
     "moving_textures",
+    "non_moving_filenames",
     "non_moving_textures",
 )
 
@@ -31,11 +33,20 @@ def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
     y: float
         The x position in the game map or vector field.
 
+    Raises
+    ------
+    ValueError
+        The inputs must be bigger than or equal to 0.
+
     Returns
     -------
     tuple[float, float]
         The x and y position of a sprite on the screen.
     """
+    # Check if the inputs are negative
+    if x < 0 or y < 0:
+        raise ValueError("The inputs must be bigger than or equal to 0.")
+
     # Calculate the position on screen
     return (
         x * SPRITE_SIZE + SPRITE_SIZE / 2,
@@ -47,7 +58,7 @@ def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
 texture_path = pathlib.Path(__file__).resolve().parent / "resources" / "textures"
 
 # Create a dictionary to hold all the filenames for the non-moving textures
-non_moving_filenames = {
+non_moving_filenames: dict[str, list[str]] = {
     "tiles": [
         "floor.png",
         "wall.png",
@@ -64,7 +75,7 @@ non_moving_filenames = {
 }
 
 # Create a dictionary to hold all the filenames for the non-moving textures
-moving_filenames = {
+moving_filenames: dict[str, dict[str, list[str]]] = {
     "player": {
         "idle": ["player_idle.png"],
     },

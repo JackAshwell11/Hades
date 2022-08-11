@@ -1,3 +1,0 @@
-nuitka==0.9.6
-pre-commit==2.20.0
-pytest==7.1.2

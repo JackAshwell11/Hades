@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 np.set_printoptions(threshold=1, edgeitems=50, linewidth=10000)
 
 
-def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
+def create_map(level: int) -> tuple[Map, GameMapShape]:
     """Generate the game map for a given game level.
 
     Parameters
@@ -60,11 +60,25 @@ def create_map(level: int) -> tuple[np.ndarray, GameMapShape]:
 
     Returns
     -------
-    tuple[np.ndarray, GameMapShape]
+    tuple[Map, GameMapShape]
         The generated map and a named tuple containing the width and height.
     """
-    grid: np.ndarray = Map(level).grid
-    return grid, GameMapShape(grid.shape[1], grid.shape[0])
+    # Create the rooms and hallways
+    temp_map = Map(level)
+    temp_map.create_hallways(temp_map.split_bsp().generate_rooms())
+
+    # Place the game objects
+    possible_tiles: list[tuple[int, int]] = list(  # noqa
+        zip(*np.nonzero(temp_map.grid == TileType.FLOOR))
+    )
+    np.random.shuffle(possible_tiles)
+    temp_map.place_tile(TileType.PLAYER, possible_tiles)
+    temp_map.place_multiple(ENEMY_DISTRIBUTION, possible_tiles).place_multiple(
+        ITEM_DISTRIBUTION, possible_tiles
+    )
+
+    # Return the map object and a GameMapShape object
+    return temp_map, GameMapShape(temp_map.grid.shape[1], temp_map.grid.shape[0])
 
 
 class GameMapShape(NamedTuple):
@@ -98,11 +112,9 @@ class Map:
         The 2D grid which represents the dungeon.
     bsp: Leaf
         The root leaf for the binary space partition.
-     player_pos: tuple[int, int]
+    player_pos: tuple[int, int]
         The player's position in the grid. This is set to (-1, -1) to avoid typing
         errors.
-    enemy_spawns: list[tuple[int, int]]
-        The coordinates for the enemy spawn points. This is in the format (x, y).
     """
 
     __slots__ = (
@@ -111,12 +123,11 @@ class Map:
         "grid",
         "bsp",
         "player_pos",
-        "enemy_spawns",
     )
 
     def __init__(self, level: int) -> None:
         self.level: int = level
-        self.map_constants: dict[TileType | str, int] = self._generate_constants()
+        self.map_constants: dict[TileType | str, int] = self.generate_constants()
         self.grid: np.ndarray = np.full(
             (self.map_constants["height"], self.map_constants["width"]),
             TileType.EMPTY,
@@ -125,31 +136,17 @@ class Map:
         self.bsp: Leaf = Leaf(
             Point(0, 0),
             Point(self.map_constants["width"] - 1, self.map_constants["height"] - 1),
-            None,
             self.grid,
+            None,
         )
         self.player_pos: tuple[int, int] = (-1, -1)
-        self.enemy_spawns: list[tuple[int, int]] = []
-
-        # Create the map
-        self._split_bsp()
-        self._create_hallways(self._generate_rooms())
-
-        # Place the game objects
-        possible_tiles: list[tuple[int, int]] = list(  # noqa
-            zip(*np.nonzero(self.grid == TileType.FLOOR))
-        )
-        np.random.shuffle(possible_tiles)
-        self._place_tile(TileType.PLAYER, possible_tiles)
-        self._place_multiple(ENEMY_DISTRIBUTION, possible_tiles)
-        self._place_multiple(ITEM_DISTRIBUTION, possible_tiles)
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
         return (
             f"<Map (Width={self.map_constants['width']})"
             f" (Height={self.map_constants['height']}) (Split"
-            f" count={self.map_constants['split count']}) (Enemy"
+            f" count={self.map_constants['split iteration']}) (Enemy"
             f" count={self.map_constants['enemy count']}) (Item"
             f" count={self.map_constants['item count']})>"
         )
@@ -184,7 +181,7 @@ class Map:
         # Return the shape
         return self.grid.shape[0]
 
-    def _generate_constants(self) -> dict[TileType | str, int]:
+    def generate_constants(self) -> dict[TileType | str, int]:
         """Generate the needed constants based on a given game level.
 
         Returns
@@ -218,10 +215,10 @@ class Map:
 
         # Create the dictionary which will hold the counts for each enemy and item type
         type_dict: dict[TileType, int] = {
-            key: int(np.ceil(value * generation_constants["enemy count"]))
+            key: int(np.round(value * generation_constants["enemy count"]))
             for key, value in ENEMY_DISTRIBUTION.items()
         } | {
-            key: int(np.ceil(value * generation_constants["item count"]))
+            key: int(np.round(value * generation_constants["item count"]))
             for key, value in ITEM_DISTRIBUTION.items()
         }
 
@@ -231,8 +228,14 @@ class Map:
         logger.info("Generated map constants %r", result)
         return result
 
-    def _split_bsp(self) -> None:
-        """Split the bsp based on the generated constants."""
+    def split_bsp(self) -> Map:
+        """Split the bsp based on the generated constants.
+
+        Returns
+        -------
+        Map
+            The map object which represents the dungeon.
+        """
         # Start the splitting using deque
         deque_obj = deque["Leaf"]()
         deque_obj.append(self.bsp)
@@ -248,10 +251,13 @@ class Map:
                 deque_obj.append(current.left)
                 deque_obj.append(current.right)
 
-                # Decrement the split count
+                # Decrement the split iteration
                 split_iteration -= 1
 
-    def _generate_rooms(self) -> list[Rect]:
+        # Return the map object
+        return self
+
+    def generate_rooms(self) -> list[Rect]:
         """Generate the rooms for a given game level using the bsp.
 
         Returns
@@ -284,20 +290,25 @@ class Map:
                     # Width to height ratio is outside of range so try again
                     logger.debug("Trying generation of room in leaf %r again", current)
 
-                # Check if the room was actually created. If so, append it to the list
-                if current.room:
-                    rooms.append(current.room)
+                # Add the created room to the rooms list
+                assert current.room  # Have to make sure its actually created first
+                rooms.append(current.room)
 
         # Return all the created rooms
         return rooms
 
-    def _create_hallways(self, rooms: list[Rect]):
+    def create_hallways(self, rooms: list[Rect]) -> Map:
         """Create the hallways by placing random obstacles and pathfinding around them.
 
         Parameters
         ----------
         rooms: list[Rects]
-            The rooms to create a Delaunay graph out of.
+            The rooms to make hallways between using the A* algorithm.
+
+        Returns
+        -------
+        Map
+            The map object which represents the dungeon.
         """
         # Place random obstacles in the grid
         y, x = np.where(self.grid == TileType.EMPTY)
@@ -367,7 +378,7 @@ class Map:
                 Point(*pair_destination.center),
             ):
                 # Test if the current tile is a floor tile
-                if self.grid[path_point.y][path_point.x] is TileType.FLOOR:
+                if self.grid[path_point.y][path_point.x] == TileType.FLOOR:
                     # Current tile is a floor tile, so there is no point placing a rect
                     continue
 
@@ -388,11 +399,14 @@ class Map:
                     ),
                 ).place_rect()
 
-    def _place_multiple(
+        # Return the map object
+        return self
+
+    def place_multiple(
         self,
         target_distribution: Mapping[TileType, int | float],
         possible_tiles: list[tuple[int, int]],
-    ) -> None:
+    ) -> Map:
         """Places multiple tile types from a given distribution in the 2D grid.
 
         Parameters
@@ -401,13 +415,18 @@ class Map:
             The target distribution to place in the 2D grid.
         possible_tiles: list[tuple[int, int]]
             The possible tiles that the tiles can be placed into.
+
+        Returns
+        -------
+        Map
+            The map object which represents the dungeon.
         """
         # Place each tile in the distribution based on their probabilities of occurring
         for tile in target_distribution:
             tiles_placed = 0
             tries = PLACE_TRIES
             while tiles_placed < self.map_constants[tile] and tries != 0:
-                if self._place_tile(tile, possible_tiles):
+                if self.place_tile(tile, possible_tiles):
                     # Tile placed
                     logger.debug("One of multiple %r placed in the 2D grid", tile)
                     tiles_placed += 1
@@ -416,7 +435,10 @@ class Map:
                     logger.debug("Can't place one of multiple %r in the 2D grid", tile)
                     tries -= 1
 
-    def _place_tile(
+        # Return the map object
+        return self
+
+    def place_tile(
         self, target_tile: TileType, possible_tiles: list[tuple[int, int]]
     ) -> bool:
         """Places a given tile in the 2D grid.

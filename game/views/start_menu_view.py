@@ -33,10 +33,10 @@ class StartButton(arcade.gui.UIFlatButton):
         # Set up the new game
         new_game = Game()
         window.views["Game"] = new_game
-        new_game.setup(1)
+        new_game.setup(0)
         logger.info(
             "Initialised game view at level %d with debug mode %s",
-            1,
+            0,
             "ON" if DEBUG_GAME else "OFF",
         )
 

@@ -1,0 +1,127 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "game"  # TODO: CHANGE GAME NAME AND GAME/ DIR BE THE NEW NAME
+version = "0.0.1"
+description = "A procedurally generated dungeon crawler made in Python."
+authors = ["Aspect1103 <jack.ashwell1@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/Aspect1103/Procedurally-Generated-Dungeon-Crawler"
+repository = "https://github.com/Aspect1103/Procedurally-Generated-Dungeon-Crawler"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+arcade = "2.6.15"
+numpy = "1.23.1"
+pymunk = "6.2.1"
+shapely = "1.8.2"
+
+[tool.poetry.dev-dependencies]
+black = "22.6.0"
+flake8 = "5.0.4"
+isort = "5.10.1"
+mypy = "v0.971"
+nuitka = "1.0.3"
+pre-commit = "2.20.0"
+pydocstyle = "6.1.1"
+pylint = "v2.14.5"
+pytest = "7.1.2"
+pytest-cov = "3.0.0"
+pytest-icdiff = "0.6"
+pytest-instafail = "0.4.2"
+pytest-randomly = "3.12.0"
+pytest-sugar = "0.9.5"
+pyupgrade = "v2.37.3"
+tox = "3.25.1"
+
+[tool.pytest.ini_options]
+addopts = "-vv --cov=game --cov-report=term-missing --cov-branch"
+testpaths = ["tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "if TYPE_CHECKING:",  # Exclude all type checking imports
+    "pragma: no cover",  # Exclude all no cover blocks
+]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = true
+envlist = clean, py310, report
+
+[testenv]
+allowlist_externals = poetry
+commands = poetry run pytest --cov-append
+
+[testenv:clean]
+allowlist_externals = coverage
+commands = coverage erase
+
+[testenv:report]
+allowlist_externals = coverage
+commands = coverage lcov
+"""
+
+[tool.black]
+preview = true
+
+[tool.isort]
+filter_files = true
+profile = "black"
+
+[tool.mypy]
+ignore-missing-imports = true
+
+[tool.pylint."BASIC"]
+good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
+
+[tool.pylint."FORMAT"]
+max-line-length = 88
+
+[tool.pylint."MASTER"]
+ignore = "TEMP-FILES"
+load-plugins = [
+    "pylint.extensions.bad_builtin",
+    "pylint.extensions.check_elif",
+    "pylint.extensions.comparison_placement",
+    "pylint.extensions.confusing_elif",
+    "pylint.extensions.consider_ternary_expression",
+    "pylint.extensions.emptystring",
+    "pylint.extensions.for_any_all",
+    "pylint.extensions.set_membership",
+]
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+    "attribute-defined-outside-init",
+    "fixme",
+    "import-error",
+    "no-else-return",
+    "no-member",
+    "redefined-outer-name",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-instance-attributes",
+    "too-many-locals",
+    "too-many-statements"
+]
+
+[tool.pydocstyle]
+convention = "numpy"
+
+# Pylint codes:
+# E0401 is pylint not being able to import packages
+# E1101 is pylint complaining about BaseView setting window
+# R0902 is pylint complaining about too many instance attributes
+# R0903 is pylint complaining about too few public methods
+# R0913 is pylint complaining about too many parameters
+# R0914 is pylint complaining about too many local variables
+# R0916 is pylint complaining about too many statements
+# R1705 is pylint complaining about an unnecessary else after a return
+# W0201 is pylint complaining about attributes being defined outside __init__ (sometimes this needs to happen)
+# W0511 is pylint complaining about to-do statements
+# W0621 is pylint complaining about redefining outer names (this is used in pytest)

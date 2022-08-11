@@ -1,0 +1,10 @@
+[flake8]
+enable-extensions = W504
+ignore = E203,W503
+max-complexity = 10
+max-line-length = 88
+
+# Flake8 codes:
+# E203 is flake8 complaining about a whitespace before a colon in bsp.py
+# W503 is flake8 wanting to put an operator on the next line (not preferred due to black)
+# W504 is flake8 wanting to put an operator on the same line (preferred due to black)
