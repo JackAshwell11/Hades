@@ -9,11 +9,11 @@ import numpy as np
 import pytest
 
 # Custom
-from game.constants.generation import TileType
-from game.generation import astar
+from hades.constants.generation import TileType
+from hades.generation import astar
 
 if TYPE_CHECKING:
-    from game.generation.primitives import Point
+    from hades.generation.primitives import Point
 
 __all__ = ()
 

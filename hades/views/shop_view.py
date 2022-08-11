@@ -9,11 +9,11 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from game.views.base_view import BaseView
+from hades.views.base_view import BaseView
 
 if TYPE_CHECKING:
-    from game.game_objects.attribute import UpgradablePlayerSection
-    from game.game_objects.player import Player
+    from hades.game_objects.attribute import UpgradablePlayerSection
+    from hades.game_objects.player import Player
 
 __all__ = (
     "SectionUpgradeButton",

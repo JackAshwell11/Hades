@@ -3,7 +3,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "game"  # TODO: CHANGE GAME NAME AND GAME/ DIR BE THE NEW NAME
+name = "hades"
 version = "0.0.1"
 description = "A procedurally generated dungeon crawler made in Python."
 authors = ["Aspect1103 <jack.ashwell1@gmail.com>"]

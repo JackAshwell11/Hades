@@ -8,14 +8,14 @@ import struct
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.game_object import MELEE_RESOLUTION, SPRITE_SIZE
+from hades.constants.game_object import MELEE_RESOLUTION, SPRITE_SIZE
 
 if TYPE_CHECKING:
     from arcade import ArcadeContext
     from arcade.gl import Buffer, Framebuffer, Program, Query
 
-    from game.game_objects.enemy import Enemy
-    from game.views.game_view import Game
+    from hades.game_objects.enemy import Enemy
+    from hades.views.game_view import Game
 
 __all__ = ("MeleeShader",)
 

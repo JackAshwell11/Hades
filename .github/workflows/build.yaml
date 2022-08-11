@@ -1,0 +1,37 @@
+name: Build game
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.10"
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    - name: Load cached venv
+      id: cached-pip-wheels
+      uses: actions/cache@v2
+    - name: Run Nuitka
+      run: make build
+    - name: Package game
+      uses: vimtor/action-zip@v1
+      with:
+        files: window.dist
+        dest: game.zip
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: game.zip

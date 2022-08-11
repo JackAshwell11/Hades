@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.game_object import (
+from hades.constants.game_object import (
     ARMOUR_INDICATOR_BAR_COLOR,
     ENEMY_INDICATOR_BAR_OFFSET,
     FACING_LEFT,
@@ -21,13 +21,13 @@ from game.constants.game_object import (
     EntityAttributeType,
     ObjectID,
 )
-from game.game_objects.attribute import EntityAttribute
-from game.game_objects.base import Entity, IndicatorBar
-from game.game_objects.movement import EnemyMovementManager
+from hades.game_objects.attribute import EntityAttribute
+from hades.game_objects.base import Entity, IndicatorBar
+from hades.game_objects.movement import EnemyMovementManager
 
 if TYPE_CHECKING:
-    from game.constants.game_object import BaseData, EnemyData
-    from game.views.game_view import Game
+    from hades.constants.game_object import BaseData, EnemyData
+    from hades.views.game_view import Game
 
 __all__ = ("Enemy",)
 

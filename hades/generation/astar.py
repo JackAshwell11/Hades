@@ -8,9 +8,9 @@ from heapq import heappop, heappush
 import numpy as np
 
 # Custom
-from game.common import grid_bfs
-from game.constants.generation import TileType
-from game.generation.primitives import Point
+from hades.common import grid_bfs
+from hades.constants.generation import TileType
+from hades.generation.primitives import Point
 
 __all__ = ("calculate_astar_path",)
 

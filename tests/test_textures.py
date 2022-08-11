@@ -6,7 +6,7 @@ import arcade
 import pytest
 
 # Custom
-from game.textures import (
+from hades.textures import (
     grid_pos_to_pixel,
     moving_filenames,
     moving_textures,

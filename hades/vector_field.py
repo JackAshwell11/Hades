@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 # Custom
-from game.common import grid_bfs
-from game.constants.game_object import SPRITE_SIZE
+from hades.common import grid_bfs
+from hades.constants.game_object import SPRITE_SIZE
 
 if TYPE_CHECKING:
     import arcade

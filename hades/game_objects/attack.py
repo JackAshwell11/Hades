@@ -10,12 +10,16 @@ from typing import TYPE_CHECKING, Any
 import arcade
 
 # Custom
-from game.constants.game_object import BULLET_VELOCITY, SPRITE_SIZE, AttackAlgorithmType
+from hades.constants.game_object import (
+    BULLET_VELOCITY,
+    SPRITE_SIZE,
+    AttackAlgorithmType,
+)
 
 if TYPE_CHECKING:
-    from game.constants.game_object import AttackData
-    from game.game_objects.base import Entity
-    from game.physics import PhysicsEngine
+    from hades.constants.game_object import AttackData
+    from hades.game_objects.base import Entity
+    from hades.physics import PhysicsEngine
 
 __all__ = (
     "AreaOfEffectAttack",

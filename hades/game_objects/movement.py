@@ -5,11 +5,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.game_object import MOVEMENT_FORCE
+from hades.constants.game_object import MOVEMENT_FORCE
 
 if TYPE_CHECKING:
-    from game.game_objects.enemy import Enemy
-    from game.vector_field import VectorField
+    from hades.game_objects.enemy import Enemy
+    from hades.vector_field import VectorField
 
 __all__ = ("EnemyMovementManager",)
 

@@ -6,14 +6,14 @@ import random
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.general import DEBUG_GAME
-from game.constants.generation import (
+from hades.constants.general import DEBUG_GAME
+from hades.constants.generation import (
     MIN_CONTAINER_SIZE,
     MIN_ROOM_SIZE,
     ROOM_RATIO,
     TileType,
 )
-from game.generation.primitives import Point, Rect
+from hades.generation.primitives import Point, Rect
 
 if TYPE_CHECKING:
     import numpy as np

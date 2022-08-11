@@ -12,9 +12,9 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.constructor import CONSUMABLES, ENEMIES, PLAYERS
-from game.constants.game_object import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE, ObjectID
-from game.constants.general import (
+from hades.constants.constructor import CONSUMABLES, ENEMIES, PLAYERS
+from hades.constants.game_object import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE, ObjectID
+from hades.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
@@ -24,23 +24,23 @@ from game.constants.general import (
     ENEMY_LEVEL_MAX_RANGE,
     LEVEL_GENERATOR_INTERVAL,
 )
-from game.constants.generation import REPLACEABLE_TILES, TileType
-from game.game_objects.attack import AreaOfEffectAttack, MeleeAttack
-from game.game_objects.enemy import Enemy
-from game.game_objects.player import Player
-from game.game_objects.tile import Consumable, Floor, Wall
-from game.generation.map import create_map
-from game.physics import PhysicsEngine
-from game.textures import grid_pos_to_pixel
-from game.vector_field import VectorField
-from game.views.base_view import BaseView
-from game.views.inventory_view import InventoryView
-from game.views.shop_view import ShopView
+from hades.constants.generation import REPLACEABLE_TILES, TileType
+from hades.game_objects.attack import AreaOfEffectAttack, MeleeAttack
+from hades.game_objects.enemy import Enemy
+from hades.game_objects.player import Player
+from hades.game_objects.tile import Consumable, Floor, Wall
+from hades.generation.map import create_map
+from hades.physics import PhysicsEngine
+from hades.textures import grid_pos_to_pixel
+from hades.vector_field import VectorField
+from hades.views.base_view import BaseView
+from hades.views.inventory_view import InventoryView
+from hades.views.shop_view import ShopView
 
 if TYPE_CHECKING:
-    from game.constants.game_object import BaseData, ConsumableData
-    from game.game_objects.base import CollectibleTile, UsableTile
-    from game.generation.map import GameMapShape
+    from hades.constants.game_object import BaseData, ConsumableData
+    from hades.game_objects.base import CollectibleTile, UsableTile
+    from hades.generation.map import GameMapShape
 
 __all__ = ("Game",)
 

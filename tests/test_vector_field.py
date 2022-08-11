@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 # Custom
-from game.vector_field import VectorField
+from hades.vector_field import VectorField
 
 __all__ = ()
 

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from game.constants.game_object import (
+from hades.constants.game_object import (
     ARMOUR_INDICATOR_BAR_COLOR,
     HEALTH_INDICATOR_BAR_COLOR,
     INDICATOR_BAR_BORDER_SIZE,
@@ -20,21 +20,21 @@ from game.constants.game_object import (
     EntityAttributeType,
     ObjectID,
 )
-from game.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from game.game_objects.attribute import EntityAttribute, UpgradablePlayerSection
-from game.game_objects.base import Entity, IndicatorBar
-from game.melee_shader import MeleeShader
+from hades.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
+from hades.game_objects.attribute import EntityAttribute, UpgradablePlayerSection
+from hades.game_objects.base import Entity, IndicatorBar
+from hades.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from game.constants.game_object import (
+    from hades.constants.game_object import (
         BaseData,
         EntityAttributeSectionType,
         PlayerData,
     )
-    from game.game_objects.base import CollectibleTile
-    from game.views.game_view import Game
+    from hades.game_objects.base import CollectibleTile
+    from hades.views.game_view import Game
 
 __all__ = ("Player",)
 

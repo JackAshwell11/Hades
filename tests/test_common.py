@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 # Custom
-from game.common import grid_bfs
+from hades.common import grid_bfs
 
 __all__ = ()
 

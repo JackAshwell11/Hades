@@ -10,18 +10,18 @@ import numpy as np
 import pytest
 
 # Custom
-from game.common import grid_bfs
-from game.constants.generation import (
+from hades.common import grid_bfs
+from hades.constants.generation import (
     BASE_ITEM_COUNT,
     ENEMY_DISTRIBUTION,
     ITEM_DISTRIBUTION,
     TileType,
 )
-from game.generation.map import GameMapShape, Map, create_map
-from game.generation.primitives import Point
+from hades.generation.map import GameMapShape, Map, create_map
+from hades.generation.primitives import Point
 
 if TYPE_CHECKING:
-    from game.generation.bsp import Leaf
+    from hades.generation.bsp import Leaf
 
 __all__ = ()
 

@@ -9,12 +9,12 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from game.constants.general import DEBUG_GAME
-from game.views.base_view import BaseView
-from game.views.game_view import Game
+from hades.constants.general import DEBUG_GAME
+from hades.views.base_view import BaseView
+from hades.views.game_view import Game
 
 if TYPE_CHECKING:
-    from game.window import Window
+    from hades.window import Window
 
 __all__ = ("StartMenu",)
 

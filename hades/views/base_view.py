@@ -16,8 +16,8 @@ from arcade.gui import (
 )
 
 if TYPE_CHECKING:
-    from game.views.game_view import Game
-    from game.window import Window
+    from hades.views.game_view import Game
+    from hades.window import Window
 
 __all__ = ("BaseView",)
 

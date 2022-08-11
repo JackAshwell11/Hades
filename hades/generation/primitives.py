@@ -8,7 +8,7 @@ from typing import NamedTuple
 import numpy as np
 
 # Custom
-from game.constants.generation import REPLACEABLE_TILES, TileType
+from hades.constants.generation import REPLACEABLE_TILES, TileType
 
 __all__ = (
     "Point",

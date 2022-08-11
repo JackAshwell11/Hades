@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from game.generation.bsp import Leaf
-from game.generation.primitives import Point, Rect
+from hades.generation.bsp import Leaf
+from hades.generation.primitives import Point, Rect
 
 if TYPE_CHECKING:
     import numpy as np

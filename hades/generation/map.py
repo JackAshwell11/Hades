@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, NamedTuple
 import numpy as np
 
 # Custom
-from game.constants.generation import (
+from hades.constants.generation import (
     BASE_ENEMY_COUNT,
     BASE_ITEM_COUNT,
     BASE_MAP_HEIGHT,
@@ -30,9 +30,9 @@ from game.constants.generation import (
     PLACE_TRIES,
     TileType,
 )
-from game.generation.astar import calculate_astar_path
-from game.generation.bsp import Leaf
-from game.generation.primitives import Point, Rect
+from hades.generation.astar import calculate_astar_path
+from hades.generation.bsp import Leaf
+from hades.generation.primitives import Point, Rect
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

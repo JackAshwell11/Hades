@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Custom
-from game import window
+from hades import window
 
 if __name__ == "__main__":
     window.main()

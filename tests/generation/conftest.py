@@ -6,10 +6,10 @@ import numpy as np
 import pytest
 
 # Custom
-from game.constants.generation import TileType
-from game.generation.bsp import Leaf
-from game.generation.map import Map
-from game.generation.primitives import Point, Rect
+from hades.constants.generation import TileType
+from hades.generation.bsp import Leaf
+from hades.generation.map import Map
+from hades.generation.primitives import Point, Rect
 
 __all__ = ()
 

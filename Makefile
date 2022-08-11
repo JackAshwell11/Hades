@@ -19,8 +19,10 @@ ${VENV_NAME}:
 	poetry install
 
 # Nuitka constants
-BASE_PATH := $(VENV_PATH)/../game
+GAME_DIR := hades
+BASE_PATH := $(VENV_PATH)/../$(GAME_DIR)
 NUITKA_PATH := $(BASE_PATH)/window.py
+RESOURCES_PATH := $(GAME_DIR)/resources
 
 
 # -------------------- Builds --------------------
@@ -44,5 +46,5 @@ build: ${VENV_NAME}  # Builds the game with nuitka
  	--standalone\
  	--assume-yes-for-downloads\
  	--follow-imports\
- 	--include-data-dir=game/resources=game/resources\
+ 	--include-data-dir=$(RESOURCES_PATH)=$(RESOURCES_PATH)\
  	--enable-plugin=numpy

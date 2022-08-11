@@ -6,14 +6,14 @@ import logging
 from typing import TYPE_CHECKING
 
 # Custom
-from game.constants.game_object import ConsumableData, InstantEffectType
-from game.game_objects.base import CollectibleTile, Tile, UsableTile
-from game.textures import non_moving_textures
+from hades.constants.game_object import ConsumableData, InstantEffectType
+from hades.game_objects.base import CollectibleTile, Tile, UsableTile
+from hades.textures import non_moving_textures
 
 if TYPE_CHECKING:
     import arcade
 
-    from game.views.game_view import Game
+    from hades.views.game_view import Game
 
 __all__ = (
     "Consumable",

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Custom
-from game.constants.game_object import (
+from hades.constants.game_object import (
     AttackAlgorithmType,
     AttackData,
     BaseData,
@@ -19,8 +19,8 @@ from game.constants.game_object import (
     StatusEffectData,
     StatusEffectType,
 )
-from game.constants.generation import TileType
-from game.textures import moving_textures, non_moving_textures
+from hades.constants.generation import TileType
+from hades.textures import moving_textures, non_moving_textures
 
 __all__ = (
     "CONSUMABLES",
