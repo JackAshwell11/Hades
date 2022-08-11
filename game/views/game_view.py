@@ -112,8 +112,7 @@ class Game(BaseView):
             "Money: 0",
             10,
             10,
-            arcade.color.WHITE,
-            20,
+            font_size=20,
         )
         self.nearest_item: CollectibleTile | UsableTile | None = None
         self.item_text: arcade.Text = arcade.Text(

@@ -187,7 +187,7 @@ class MeleeShader:
         self.view.enemy_sprites.write_sprite_buffers_to_gpu()
 
         # Bind the wall textures to channel 0 so the shader can read them
-        self.walls_framebuffer.color_attachments[0].use(0)
+        self.walls_framebuffer.color_attachments[0].use()
 
         # Query the shader to find enemies we can attack
         with self.query:

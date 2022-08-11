@@ -194,7 +194,7 @@ def test_map_create_hallways(map_obj: Map) -> None:
         for bfs_neighbour in grid_bfs(current_point, *map_obj.grid.shape):
             neighbour = Point(*bfs_neighbour)
             if (
-                map_obj.grid[neighbour.y][neighbour.x] == TileType.FLOOR
+                map_obj.grid[neighbour.y][neighbour.x] is TileType.FLOOR
                 and neighbour not in visited
             ):
                 hallway_gen_deque.append(neighbour)

@@ -128,7 +128,7 @@ class Leaf:
         if split_vertical:
             # Split vertically making sure to adjust pos, so it can be within range of
             # the actual container
-            pos = self.container.top_left.x + pos
+            pos += self.container.top_left.x
             if DEBUG_GAME:  # pragma: no branch
                 self.grid[
                     self.container.top_left.y : self.container.bottom_right.y + 1, pos
@@ -150,7 +150,7 @@ class Leaf:
         else:
             # Split horizontally making sure to adjust pos, so it can be within range of
             # the actual container
-            pos = self.container.top_left.y + pos
+            pos += self.container.top_left.y
             if DEBUG_GAME:  # pragma: no branch
                 self.grid[
                     pos, self.container.top_left.x : self.container.bottom_right.x + 1

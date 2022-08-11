@@ -613,14 +613,14 @@ class Entity(GameObject):
         # Check if the entity still has armour
         if self.armour.value > 0:
             # Damage the armour
-            self.armour.value = self.armour.value - damage
+            self.armour.value -= damage
             if self.armour.value < 0:
                 # Damage exceeds armour so damage health
-                self.health.value = self.health.value + self.armour.value
+                self.health.value += self.armour.value
                 self.armour.value = 0
         else:
             # Damage the health
-            self.health.value = self.health.value - damage
+            self.health.value -= damage
         self.update_indicator_bars()
         logger.debug("Dealing %d to %r", damage, self)
 

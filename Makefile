@@ -42,6 +42,7 @@ test: ${VENV_NAME}  # Runs the tests using Tox
 build: ${VENV_NAME}  # Builds the game with nuitka
 	nuitka "$(NUITKA_PATH)"\
  	--standalone\
+ 	--assume-yes-for-downloads\
  	--follow-imports\
- 	--enable-plugin=numpy\
- 	--include-data-dir=game/resources=game/resources
+ 	--include-data-dir=game/resources=game/resources\
+ 	--enable-plugin=numpy

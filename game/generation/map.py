@@ -131,15 +131,15 @@ class Map:
         self.grid: np.ndarray = np.full(
             (self.map_constants["height"], self.map_constants["width"]),
             TileType.EMPTY,
-            np.int8,
+            TileType,
         )
         self.bsp: Leaf = Leaf(
             Point(0, 0),
             Point(self.map_constants["width"] - 1, self.map_constants["height"] - 1),
             self.grid,
-            None,
         )
         self.player_pos: tuple[int, int] = (-1, -1)
+        print(self.grid)
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
@@ -378,7 +378,7 @@ class Map:
                 Point(*pair_destination.center),
             ):
                 # Test if the current tile is a floor tile
-                if self.grid[path_point.y][path_point.x] == TileType.FLOOR:
+                if self.grid[path_point.y][path_point.x] is TileType.FLOOR:
                     # Current tile is a floor tile, so there is no point placing a rect
                     continue
 
