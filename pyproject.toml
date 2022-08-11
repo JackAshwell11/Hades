@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "hades"
 version = "0.0.1"
-description = "A procedurally generated dungeon crawler made in Python."
+description = "A procedurally generated bullet bullet-hell dungeon crawler made in Python."
 authors = ["Aspect1103 <jack.ashwell1@gmail.com>"]
 license = "MIT"
 readme = "README.md"
@@ -25,6 +25,7 @@ flake8 = "5.0.4"
 isort = "5.10.1"
 mypy = "v0.971"
 nuitka = "1.0.3"
+ordered-set = "4.1.0"
 pre-commit = "2.20.0"
 pydocstyle = "6.1.1"
 pylint = "v2.14.5"
@@ -38,7 +39,7 @@ pyupgrade = "v2.37.3"
 tox = "3.25.1"
 
 [tool.pytest.ini_options]
-addopts = "-vv --cov=game --cov-report=term-missing --cov-branch"
+addopts = "-vv --cov=hades --cov-report=term-missing --cov-branch"
 testpaths = ["tests"]
 
 [tool.coverage.report]

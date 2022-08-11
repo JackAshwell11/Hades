@@ -139,7 +139,6 @@ class Map:
             self.grid,
         )
         self.player_pos: tuple[int, int] = (-1, -1)
-        print(self.grid)
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""

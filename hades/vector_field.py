@@ -198,9 +198,10 @@ class VectorField:
             min_tile = -1, -1
             min_dist = np.inf
             for neighbour in grid_bfs(
-                tile, self.width, self.height, offsets=intercardinal_offsets
+                tile, self.height, self.width, offsets=intercardinal_offsets
             ):
-                # Sometimes an invalid tile is returned so test for that
+                # Test if the neighbour has the lowest distance. We don't need to test
+                # for infinity since it'll never be picked
                 distance = self.distances.get(neighbour, -1)
                 if distance < min_dist and distance != -1:
                     min_tile = neighbour

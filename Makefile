@@ -18,12 +18,6 @@ export PATH := ${VENV_PATH}/$(VENV_SUBDIR):${PATH}
 ${VENV_NAME}:
 	poetry install
 
-# Nuitka constants
-GAME_DIR := hades
-BASE_PATH := $(VENV_PATH)/../$(GAME_DIR)
-NUITKA_PATH := $(BASE_PATH)/window.py
-RESOURCES_PATH := $(GAME_DIR)/resources
-
 
 # -------------------- Builds --------------------
 prepare-venv: ${VENV_NAME}  # Creates a virtual environment if one doesn't exist
@@ -41,10 +35,6 @@ pre-commit: ${VENV_NAME}  # Runs pre-commit
 test: ${VENV_NAME}  # Runs the tests using Tox
 	tox
 
-build: ${VENV_NAME}  # Builds the game with nuitka
-	nuitka "$(NUITKA_PATH)"\
- 	--standalone\
- 	--assume-yes-for-downloads\
- 	--follow-imports\
- 	--include-data-dir=$(RESOURCES_PATH)=$(RESOURCES_PATH)\
- 	--enable-plugin=numpy
+
+build: ${VENV_NAME}  # Builds the game into an executable form
+	poetry run python build.py

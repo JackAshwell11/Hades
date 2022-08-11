@@ -1,4 +1,4 @@
-"""A procedurally generated dungeon crawler made in Python.
+"""A procedurally generated dungeon crawler bullet-hell made in Python.
 
 This game uses `Arcade <https://api.arcade.academy/en/latest/>`_ to visualise the game
 and make it playable, `Numpy <https://numpy.org>`_ for the procedural generation,
