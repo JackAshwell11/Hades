@@ -29,7 +29,7 @@ jobs:
         path: ~/.cache
         key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
     - name: Build game
-      run: make build
+      run: poetry run python build.py
     - name: Release
       uses: svenstaro/upload-release-action@v2
       with:
