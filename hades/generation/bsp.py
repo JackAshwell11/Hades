@@ -93,6 +93,10 @@ class Leaf:
         bool
             Whether the split was successful or not.
         """
+        # Check if this leaf is already split or not
+        if self.left and self.right:
+            return False
+
         # To determine the direction of split, we test if the width is 25% larger than
         # the height, if so we split vertically. However, if the height is 25% larger
         # than the width, we split horizontally. Otherwise, we split randomly
@@ -186,7 +190,7 @@ class Leaf:
         """
         # Test if this container is already split or not. If it is, we do not want to
         # create a room inside it otherwise it will overwrite other rooms
-        if self.left is not None and self.right is not None:
+        if self.left and self.right:
             return False
 
         # Pick a random width and height making sure it is at least MIN_ROOM_SIZE but
