@@ -9,8 +9,8 @@ description = "A procedurally generated bullet bullet-hell dungeon crawler made 
 authors = ["Aspect1103 <jack.ashwell1@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/Aspect1103/Procedurally-Generated-Dungeon-Crawler"
-repository = "https://github.com/Aspect1103/Procedurally-Generated-Dungeon-Crawler"
+homepage = "https://github.com/Aspect1103/Hades"
+repository = "https://github.com/Aspect1103/Hades"
 
 [tool.poetry.dependencies]
 python = "^3.10"
