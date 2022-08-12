@@ -156,6 +156,9 @@ def test_map_split_bsp(map_obj: Map) -> None:
             result.append(current_leaf)
     assert len(result) == map_obj.map_constants["split iteration"] + 1
 
+    # Make sure we test what happens if the bsp is already split
+    assert isinstance(map_obj.split_bsp(), Map)
+
 
 def test_map_generate_rooms(map_obj: Map) -> None:
     """Test the generate_rooms function in the Map class.
