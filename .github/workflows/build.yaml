@@ -28,9 +28,12 @@ jobs:
       with:
         path: ~/.cache
         key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction
     - name: Build game
       run: poetry run python build.py
     - name: Release
       uses: svenstaro/upload-release-action@v2
       with:
-        files: hades.zip
+        file: hades.zip

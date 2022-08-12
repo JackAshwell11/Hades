@@ -4,7 +4,6 @@ from __future__ import annotations
 # Builtin
 import platform
 import subprocess
-import sys
 import zipfile
 from pathlib import Path
 
@@ -38,12 +37,7 @@ COMMAND_STRING = " ".join(COMMANDS)
 print(f"Executing command string: {COMMAND_STRING}")
 
 # Execute the build command
-try:
-    subprocess.run(COMMAND_STRING, check=True)
-    print(f"Successfully built {OUTPUT_DIR}. Now zipping")
-except subprocess.CalledProcessError:
-    print("An error occurred while building the game")
-    sys.exit(1)
+subprocess.run(COMMAND_STRING, check=True)
 
 # Zip the game and verify that the file exists
 with zipfile.ZipFile(ZIP_OUTPUT_NAME, "w", zipfile.ZIP_DEFLATED) as zip_file:
