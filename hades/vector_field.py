@@ -17,6 +17,8 @@ from hades.constants.game_object import SPRITE_SIZE
 if TYPE_CHECKING:
     import arcade
 
+    from hades.views.game_view import Game
+
 __all__ = ("VectorField",)
 
 # Get the logger
@@ -64,6 +66,8 @@ class VectorField:
 
     Parameters
     ----------
+    game: Game
+        The game view. This is passed so the vector field can have a reference to it.
     width: int
         The width of the grid.
     height: int
@@ -86,6 +90,7 @@ class VectorField:
     """
 
     __slots__ = (
+        "game",
         "width",
         "height",
         "walls_dict",
@@ -95,10 +100,12 @@ class VectorField:
 
     def __init__(
         self,
+        game: Game,
         width: int,
         height: int,
         walls: arcade.SpriteList,
     ) -> None:
+        self.game: Game = game
         self.width: int = width
         self.height: int = height
         self.walls_dict: dict[tuple[int, int], int] = {}
@@ -138,14 +145,8 @@ class VectorField:
         # Calculate the grid position
         return int(x // SPRITE_SIZE), int(y // SPRITE_SIZE)
 
-    def recalculate_map(self, player_pos: tuple[float, float]) -> None:
-        """Recalculates the vector field and produces a new path_dict.
-
-        Parameters
-        ----------
-        player_pos: tuple[float, float]
-            The position of the player on the screen.
-        """
+    def recalculate_map(self) -> None:
+        """Recalculates the vector field and produces a new path_dict."""
         # Record the start time, so we can know how long the generation takes
         start_time = time.perf_counter()
 
@@ -156,11 +157,13 @@ class VectorField:
         #   2. A vector_dict dict to store the paths for the vector field. We also need
         #   to make sure this is empty first.
         #   3. A queue object, so we can explore the grid.
-        start = self.get_tile_pos_for_pixel(player_pos)
+        #   4. Clear the possible_spawns list in the game view.
+        start = self.get_tile_pos_for_pixel(self.game.player.position)
         self.distances.clear()
         self.distances |= self.walls_dict
         self.distances[start] = 0
         self.vector_dict.clear()
+        self.game.possible_enemy_spawns.clear()
         queue: deque[tuple[int, int]] = deque[tuple[int, int]]()
         queue.append(start)
 
@@ -210,6 +213,10 @@ class VectorField:
             # Now point the tile's vector in the direction of the tile with the lowest
             # Dijkstra distance
             self.vector_dict[tile] = -(tile[0] - min_tile[0]), -(tile[1] - min_tile[1])
+
+            # Test if the current tile is within the player's fov
+            if cost > self.game.player.entity_data.view_distance:
+                self.game.possible_enemy_spawns.append(tile)
 
         # Set the vector for the destination tile to avoid weird movement when the enemy
         # is touching the player

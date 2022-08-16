@@ -146,6 +146,8 @@ class EntityData(NamedTuple):
         Whether the entity regenerates armour or not.
     level_limit: int
         The maximum level the entity can be.
+    view_distance: int
+        The distance the entity can see.
     attribute_data: dict[EntityAttributeType, EntityAttributeData]
         The attributes that are available to this entity.
     """
@@ -154,6 +156,7 @@ class EntityData(NamedTuple):
     textures: dict[str, list[list[arcade.Texture]]]
     armour_regen: bool
     level_limit: int
+    view_distance: int
     attribute_data: dict[EntityAttributeType, EntityAttributeData]
 
 
@@ -191,13 +194,7 @@ class PlayerData(NamedTuple):
 
 
 class EnemyData(NamedTuple):
-    """Stores data about a specific enemy type.
-
-    view_distance: int
-        The amount of tiles the enemy can see too.
-    """
-
-    view_distance: int
+    """Stores data about a specific enemy type."""
 
 
 class AttackData(NamedTuple):

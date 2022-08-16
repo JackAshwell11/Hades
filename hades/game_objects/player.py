@@ -207,7 +207,7 @@ class Player(Entity):
         if self.current_tile_pos != new_tile_pos:
             # Player has moved tile positions so update vector field
             self.current_tile_pos = new_tile_pos
-            self.game.vector_field.recalculate_map(self.position)
+            self.game.vector_field.recalculate_map()
 
         # Make the player move
         self.move(delta_time)
@@ -262,36 +262,35 @@ class Player(Entity):
 
         # Find out what attack algorithm is selected. We also need to check if the
         # player can attack or not
-        match self.current_attack.attack_type:
-            case AttackAlgorithmType.RANGED:
-                self.current_attack.process_attack(self.game.bullet_sprites)
-            case AttackAlgorithmType.MELEE:
-                # # Update the framebuffer to ensure collision detection is accurate
-                # self.melee_shader.update_collision()
-                # result = self.melee_shader.run_shader()
-                result = []
-                for enemy in self.game.enemy_sprites:
-                    vec_x, vec_y = (
-                        enemy.center_x - self.center_x,
-                        enemy.center_y - self.center_y,
-                    )
-                    angle = math.degrees(math.atan2(vec_y, vec_x))
-                    if angle < 0:
-                        angle += 360
-                    if arcade.has_line_of_sight(
-                        self.position,
-                        enemy.position,
-                        self.game.wall_sprites,
-                        self.current_attack.attack_data.attack_range * SPRITE_SIZE,
-                    ) and (
-                        self.direction - self.player_data.melee_degree // 2
-                    ) <= angle <= (
-                        self.direction + self.player_data.melee_degree // 2
-                    ):
-                        result.append(enemy)
-                self.current_attack.process_attack(result)
-            case AttackAlgorithmType.AREA_OF_EFFECT:
-                self.current_attack.process_attack(self.game.enemy_sprites)
+        if self.current_attack.attack_type is AttackAlgorithmType.RANGED:
+            self.current_attack.process_attack(self.game.bullet_sprites)
+        elif self.current_attack.attack_type is AttackAlgorithmType.MELEE:
+            # # Update the framebuffer to ensure collision detection is accurate
+            # self.melee_shader.update_collision()
+            # result = self.melee_shader.run_shader()
+            result = []
+            for enemy in self.game.enemy_sprites:
+                vec_x, vec_y = (
+                    enemy.center_x - self.center_x,
+                    enemy.center_y - self.center_y,
+                )
+                angle = math.degrees(math.atan2(vec_y, vec_x))
+                if angle < 0:
+                    angle += 360
+                if arcade.has_line_of_sight(
+                    self.position,
+                    enemy.position,
+                    self.game.wall_sprites,
+                    self.current_attack.attack_data.attack_range * SPRITE_SIZE,
+                ) and (
+                    self.direction - self.player_data.melee_degree // 2
+                ) <= angle <= (
+                    self.direction + self.player_data.melee_degree // 2
+                ):
+                    result.append(enemy)
+            self.current_attack.process_attack(result)
+        elif self.current_attack.attack_type is AttackAlgorithmType.AREA_OF_EFFECT:
+            self.current_attack.process_attack(self.game.enemy_sprites)
 
     def add_item_to_inventory(self, item: CollectibleTile) -> bool:
         """Add an item to the player's inventory.

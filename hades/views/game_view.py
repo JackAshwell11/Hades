@@ -6,6 +6,7 @@ import contextlib
 import logging
 import math
 import random
+from functools import cache
 from typing import TYPE_CHECKING
 
 # Pip
@@ -13,15 +14,21 @@ import arcade
 
 # Custom
 from hades.constants.constructor import CONSUMABLES, PLAYERS
-from hades.constants.game_object import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE, ObjectID
+from hades.constants.game_object import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
 from hades.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
+    DEBUG_ENEMY_SPAWN_COLOR,
+    DEBUG_ENEMY_SPAWN_SIZE,
     DEBUG_GAME,
     DEBUG_VECTOR_FIELD_LINE,
     DEBUG_VIEW_DISTANCE,
+    ENEMY_GENERATE_INTERVAL,
+    ENEMY_LEVEL_MAX_RANGE,
+    ENEMY_RETRY_COUNT,
     LEVEL_GENERATOR_INTERVAL,
+    TOTAL_ENEMY_COUNT,
 )
 from hades.constants.generation import WALL_REPLACEABLE_TILES, TileType
 from hades.game_objects.attack import AreaOfEffectAttack, MeleeAttack
@@ -46,6 +53,23 @@ __all__ = ("Game",)
 logger = logging.getLogger(__name__)
 
 
+@cache
+def get_upper_bound(level: int) -> int:
+    """Get the upper bound for a given level.
+
+    Parameters
+    ----------
+    level: int
+        The level to get the upper bound for.
+
+    Returns
+    -------
+    int
+        The upper bound.
+    """
+    return (level // LEVEL_GENERATOR_INTERVAL) + 1
+
+
 class Game(BaseView):
     """Manages the game and its actions.
 
@@ -55,8 +79,6 @@ class Game(BaseView):
         A named tuple representing the height and width of the game map.
     player: Player | None
         The sprite for the playable character in the game.
-    vector_field: VectorField | None
-        The vector field which allows for easy pathfinding for the enemy AI.
     item_sprites: arcade.SpriteList
         The sprite list for the item sprites. This is only used for detecting player
         activity around the item.
@@ -78,12 +100,18 @@ class Game(BaseView):
         The camera used for moving the viewport around the screen.
     gui_camera: arcade.Camera
         The camera used for visualising the GUI elements.
+    vector_field: VectorField | None
+        The vector field which allows for easy pathfinding for the enemy AI.
     physics_engine: PhysicsEngine | None
         The physics engine which processes wall collision.
-    player_status_text: arcade.Text
-        The text object used for displaying the player's health and armour.
     nearest_item: CollectibleTile | UsableTile | None
         Stores the nearest item so the player can activate it.
+    possible_enemy_spawns: list[tuple[int, int]]
+        A list of possible positions that enemies can spawn in.
+    player_status_text: arcade.Text
+        The text object used for displaying the player's health and armour.
+    item_text: arcade.Text
+        The text object used for displaying info about the nearest item.
     """
 
     def __init__(self) -> None:
@@ -91,7 +119,6 @@ class Game(BaseView):
         self.background_color = arcade.color.BLACK
         self.game_map_shape: GameMapShape | None = None
         self.player: Player | None = None
-        self.vector_field: VectorField | None = None
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
@@ -105,14 +132,16 @@ class Game(BaseView):
         self.gui_camera: arcade.Camera = arcade.Camera(
             self.window.width, self.window.height
         )
+        self.vector_field: VectorField | None = None
         self.physics_engine: PhysicsEngine | None = None
+        self.nearest_item: CollectibleTile | UsableTile | None = None
+        self.possible_enemy_spawns: list[tuple[int, int]] = []
         self.player_status_text: arcade.Text = arcade.Text(
             "Money: 0",
             10,
             10,
             font_size=20,
         )
-        self.nearest_item: CollectibleTile | UsableTile | None = None
         self.item_text: arcade.Text = arcade.Text(
             "",
             self.window.width / 2 - 150,
@@ -146,7 +175,7 @@ class Game(BaseView):
         """
         # Calculate the lower and upper bounds that will determine the consumable
         # levels
-        consumable_upper_bound = (level // LEVEL_GENERATOR_INTERVAL) + 1
+        consumable_upper_bound = get_upper_bound(level)
         consumable_lower_bound = (
             1
             if consumable_upper_bound - 1 < CONSUMABLE_LEVEL_MAX_RANGE
@@ -180,10 +209,10 @@ class Game(BaseView):
 
                 # Determine if the tile is a player or a consumable
                 if x in PLAYERS:
-                    instantiated_cls = Player(self, count_x, count_y, PLAYERS[x])
+                    self.player = Player(self, count_x, count_y, PLAYERS[x])
                 elif x in CONSUMABLES:
                     target_constructor = CONSUMABLES[x]
-                    instantiated_cls = Consumable(
+                    instantiated_consumable = Consumable(
                         self,
                         count_x,
                         count_y,
@@ -195,17 +224,12 @@ class Game(BaseView):
                             target_constructor.level_limit,
                         ),
                     )
+                    self.tile_sprites.append(instantiated_consumable)
+                    self.item_sprites.append(instantiated_consumable)
                 else:
                     # Unknown type
                     logger.warning("Unknown tiletype %r", x)
                     continue
-
-                # Add the instantiated game object to the necessary sprite lists
-                if instantiated_cls.object_id is ObjectID.PLAYER:
-                    self.player = instantiated_cls
-                elif instantiated_cls.object_id is ObjectID.TILE:
-                    self.tile_sprites.append(instantiated_cls)
-                    self.item_sprites.append(instantiated_cls)
 
         # Make sure the game map shape was set and the player was actually created
         assert self.game_map_shape is not None
@@ -230,9 +254,12 @@ class Game(BaseView):
 
         # Initialise the vector field
         self.vector_field = VectorField(
-            self.game_map_shape.width, self.game_map_shape.height, self.wall_sprites
+            self,
+            self.game_map_shape.width,
+            self.game_map_shape.height,
+            self.wall_sprites,
         )
-        self.vector_field.recalculate_map(self.player.position)
+        self.vector_field.recalculate_map()
         logger.debug(
             "Created vector grid with height %d and width %d",
             self.vector_field.height,
@@ -246,6 +273,12 @@ class Game(BaseView):
 
         # Set up the melee shader
         # self.player.melee_shader.setup_shader()
+
+        # Generate half of the total enemies and then schedule the function to run
+        # every ENEMY_GENERATE_INTERVAL seconds
+        for _ in range(TOTAL_ENEMY_COUNT // 2):
+            self.generate_enemy(0)
+        arcade.schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
 
     def on_draw(self) -> None:
         """Render the screen."""
@@ -274,7 +307,7 @@ class Game(BaseView):
                 arcade.draw_circle_outline(
                     enemy.center_x,
                     enemy.center_y,
-                    enemy.enemy_data.view_distance * SPRITE_SIZE,
+                    enemy.entity_data.view_distance * SPRITE_SIZE,
                     DEBUG_VIEW_DISTANCE,
                 )
 
@@ -362,6 +395,12 @@ class Game(BaseView):
                 )
             arcade.draw_lines(lines, DEBUG_VECTOR_FIELD_LINE)
 
+            # Draw the enemy spawn locations
+            points: list[tuple[float, float]] = []
+            for location in self.possible_enemy_spawns:
+                points.append(grid_pos_to_pixel(*location))
+            arcade.draw_points(points, DEBUG_ENEMY_SPAWN_COLOR, DEBUG_ENEMY_SPAWN_SIZE)
+
         # Draw the gui on the screen
         self.gui_camera.use()
         self.player_gui_sprites.draw()
@@ -387,8 +426,8 @@ class Game(BaseView):
         assert self.player is not None
 
         # Check if the game should end
-        if self.player.health.value <= 0 or not self.enemy_sprites:
-            arcade.exit()
+        # if self.player.health.value <= 0 or not self.enemy_sprites:
+        #     arcade.exit()
 
         # Process logic for the player
         self.player.on_update(delta_time)
@@ -548,6 +587,22 @@ class Game(BaseView):
             angle += 360
         self.player.direction = angle
         self.player.facing = FACING_LEFT if 90 <= angle <= 270 else FACING_RIGHT
+
+    def generate_enemy(self, _: float = 1 / 60) -> None:
+        """Generate an enemy outside the player's fov."""
+        # Check if we've reached the max amount of enemies
+        if len(self.enemy_sprites) < TOTAL_ENEMY_COUNT:
+            # Limit not reached so we can generate enemies
+            # TODO: Have enemy levelled
+            enemy_upper_bound = get_upper_bound(0)
+            enemy_lower_bound = (
+                1
+                if enemy_upper_bound - 1 < CONSUMABLE_LEVEL_MAX_RANGE
+                else enemy_upper_bound - CONSUMABLE_LEVEL_MAX_RANGE
+            )
+
+        print(self.possible_enemy_spawns)
+        print(len(self.enemy_sprites))
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""

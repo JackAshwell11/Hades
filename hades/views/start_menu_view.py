@@ -98,7 +98,7 @@ class StartMenu(BaseView):
         # Clear the screen
         self.clear()
 
-        # Draw the background colour
+        # Draw the background color
         self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
 
         # Draw the UI elements

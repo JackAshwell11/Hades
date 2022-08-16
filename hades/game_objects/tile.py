@@ -136,41 +136,40 @@ class Consumable(UsableTile, CollectibleTile):
 
         # Apply all the instant effects linked to this consumable
         for instant in self.consumable_type.instant:
-            match instant.instant_type:
-                case InstantEffectType.HEALTH:
-                    if self.player.health.value == self.player.health.max_value:
-                        # Can't be used
-                        self.game.display_info_box("Your health is already at max")
-                        logger.debug(
-                            "%r health at max so instant potion can't be used",
-                            self.player,
-                        )
-                        return False
-
-                    # Add health to the player
-                    self.player.health.value = (
-                        self.player.health.value + instant.increase(adjusted_level)
+            if instant.instant_type is InstantEffectType.HEALTH:
+                if self.player.health.value == self.player.health.max_value:
+                    # Can't be used
+                    self.game.display_info_box("Your health is already at max")
+                    logger.debug(
+                        "%r health at max so instant potion can't be used",
+                        self.player,
                     )
-                    if self.player.health.value > self.player.health.max_value:
-                        self.player.health.value = self.player.health.max_value
-                        logger.debug("Set player health to max")
-                case InstantEffectType.ARMOUR:
-                    if self.player.armour.value == self.player.armour.max_value:
-                        # Can't be used
-                        self.game.display_info_box("Your armour is already at max")
-                        logger.debug(
-                            "%r armour at max so instant potion can't be used",
-                            self.player,
-                        )
-                        return False
+                    return False
 
-                    # Add armour to the player
-                    self.player.armour.value = (
-                        self.player.armour.value + instant.increase(adjusted_level)
+                # Add health to the player
+                self.player.health.value = self.player.health.value + instant.increase(
+                    adjusted_level
+                )
+                if self.player.health.value > self.player.health.max_value:
+                    self.player.health.value = self.player.health.max_value
+                    logger.debug("Set player health to max")
+            elif instant.instant_type is InstantEffectType.ARMOUR:
+                if self.player.armour.value == self.player.armour.max_value:
+                    # Can't be used
+                    self.game.display_info_box("Your armour is already at max")
+                    logger.debug(
+                        "%r armour at max so instant potion can't be used",
+                        self.player,
                     )
-                    if self.player.armour.value > self.player.armour.max_value:
-                        self.player.armour.value = self.player.armour.max_value
-                        logger.debug("Set player armour to max")
+                    return False
+
+                # Add armour to the player
+                self.player.armour.value = self.player.armour.value + instant.increase(
+                    adjusted_level
+                )
+                if self.player.armour.value > self.player.armour.max_value:
+                    self.player.armour.value = self.player.armour.max_value
+                    logger.debug("Set player armour to max")
 
         # Apply all the status effects linked to this consumable
         for effect in self.consumable_type.status_effects:

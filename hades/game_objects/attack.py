@@ -177,7 +177,7 @@ class RangedAttack(AttackBase):
             arcade.color.RED,
             self.owner,
             self.attack_data.damage,
-            self.attack_data.extra.max_bullet_range * SPRITE_SIZE,
+            self.attack_data.attack_range * SPRITE_SIZE,
         )
         physics: PhysicsEngine = self.owner.physics_engines[0]
         physics.add_bullet(new_bullet)

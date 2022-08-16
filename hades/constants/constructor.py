@@ -34,6 +34,7 @@ PLAYER = BaseData(
         textures=moving_textures["player"],
         armour_regen=True,
         level_limit=5,
+        view_distance=5,
         attribute_data={
             EntityAttributeType.HEALTH: EntityAttributeData(
                 increase=lambda current_level: 100 * 1.4**current_level,
@@ -68,7 +69,7 @@ PLAYER = BaseData(
         AttackAlgorithmType.RANGED: AttackData(
             damage=10,
             attack_cooldown=3,
-            attack_range=0,
+            attack_range=-1,
             extra=RangedAttackData(max_bullet_range=10),
         ),
         AttackAlgorithmType.MELEE: AttackData(
@@ -96,6 +97,7 @@ ENEMY1 = BaseData(
         textures=moving_textures["enemy"],
         armour_regen=True,
         level_limit=5,
+        view_distance=5,
         attribute_data={
             EntityAttributeType.HEALTH: EntityAttributeData(
                 increase=lambda current_level: 10 * 1.4**current_level,
@@ -129,7 +131,7 @@ ENEMY1 = BaseData(
             extra=RangedAttackData(max_bullet_range=10),
         )
     },
-    enemy_data=EnemyData(view_distance=5),
+    enemy_data=EnemyData(),
 )
 
 # Base instant consumables

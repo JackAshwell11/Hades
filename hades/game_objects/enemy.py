@@ -167,7 +167,7 @@ class Enemy(Entity):
         player_tile_distance = (
             math.dist(self.position, self.game.player.position) / SPRITE_SIZE
         )
-        if player_tile_distance > self.enemy_data.view_distance:
+        if player_tile_distance > self.entity_data.view_distance:
             # Player is outside the enemy's view distance so have them wander around
             self.player_within_range = False
             horizontal, vertical = self.movement_ai.calculate_wander_force()
@@ -218,13 +218,12 @@ class Enemy(Entity):
         # Enemy can attack so reset the counters and determine what attack algorithm is
         # selected
         self.time_since_last_attack = 0
-        match self.current_attack.attack_type:
-            case AttackAlgorithmType.RANGED:
-                self.current_attack.process_attack(self.game.bullet_sprites)
-            case AttackAlgorithmType.MELEE:
-                self.current_attack.process_attack([self.game.player])
-            case AttackAlgorithmType.AREA_OF_EFFECT:
-                self.current_attack.process_attack(self.game.player)
+        if self.current_attack.attack_type is AttackAlgorithmType.RANGED:
+            self.current_attack.process_attack(self.game.bullet_sprites)
+        elif self.current_attack.attack_type is AttackAlgorithmType.MELEE:
+            self.current_attack.process_attack([self.game.player])
+        elif self.current_attack.attack_type is AttackAlgorithmType.AREA_OF_EFFECT:
+            self.current_attack.process_attack(self.game.player)
 
     def check_line_of_sight(self, max_tile_range: int) -> bool:
         """Check if the enemy has line of sight with the player.
