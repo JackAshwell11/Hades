@@ -11,12 +11,7 @@ import pytest
 
 # Custom
 from hades.common import grid_bfs
-from hades.constants.generation import (
-    BASE_ITEM_COUNT,
-    ENEMY_DISTRIBUTION,
-    ITEM_DISTRIBUTION,
-    TileType,
-)
+from hades.constants.generation import BASE_ITEM_COUNT, ITEM_DISTRIBUTION, TileType
 from hades.generation.map import GameMapShape, Map, create_map
 from hades.generation.primitives import Point
 
@@ -96,10 +91,7 @@ def test_game_map_shape() -> None:
 
 def test_map_init() -> None:
     """Test the initialisation of the Map class in map.py."""
-    assert (
-        repr(Map(0))
-        == "<Map (Width=30) (Height=20) (Split count=5) (Enemy count=7) (Item count=3)>"
-    )
+    assert repr(Map(0)) == "<Map (Width=30) (Height=20) (Split count=5) (Item count=3)>"
 
 
 def test_map_properties(map_obj: Map) -> None:
@@ -127,9 +119,8 @@ def test_map_generate_constants(map_obj: Map) -> None:
         "height",
         "split iteration",
         "obstacle count",
-        "enemy count",
         "item count",
-    }.union(ENEMY_DISTRIBUTION.keys()).union(ITEM_DISTRIBUTION.keys())
+    }.union(ITEM_DISTRIBUTION.keys())
 
 
 def test_map_split_bsp(map_obj: Map) -> None:
@@ -187,8 +178,7 @@ def test_map_create_hallways(map_obj: Map) -> None:
     map_obj.create_hallways(rooms)
     hallway_gen_deque = deque["Point"]()
     hallway_gen_deque.append(rooms[0].center)
-    visited = set()
-    reached = set()
+    visited, reached = set(), set()
     centers = [room.center for room in rooms]
     while hallway_gen_deque:
         current_point: Point = hallway_gen_deque.popleft()

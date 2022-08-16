@@ -28,7 +28,6 @@ COMMANDS = [
     f'nuitka "{SOURCE_DIR}"',
     "--standalone",
     "--assume-yes-for-downloads",
-    "--follow-imports",
     f"--include-data-dir={RESOURCES_DIR}={RESOURCES_DIR}",
     f'--output-dir="{OUTPUT_DIR}"',
     "--plugin-enable=numpy",

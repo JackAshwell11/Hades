@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from hades.constants.constructor import CONSUMABLES, ENEMIES, PLAYERS
+from hades.constants.constructor import CONSUMABLES, PLAYERS
 from hades.constants.game_object import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE, ObjectID
 from hades.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
@@ -21,10 +21,9 @@ from hades.constants.general import (
     DEBUG_GAME,
     DEBUG_VECTOR_FIELD_LINE,
     DEBUG_VIEW_DISTANCE,
-    ENEMY_LEVEL_MAX_RANGE,
     LEVEL_GENERATOR_INTERVAL,
 )
-from hades.constants.generation import REPLACEABLE_TILES, TileType
+from hades.constants.generation import WALL_REPLACEABLE_TILES, TileType
 from hades.game_objects.attack import AreaOfEffectAttack, MeleeAttack
 from hades.game_objects.enemy import Enemy
 from hades.game_objects.player import Player
@@ -38,7 +37,6 @@ from hades.views.inventory_view import InventoryView
 from hades.views.shop_view import ShopView
 
 if TYPE_CHECKING:
-    from hades.constants.game_object import BaseData, ConsumableData
     from hades.game_objects.base import CollectibleTile, UsableTile
     from hades.generation.map import GameMapShape
 
@@ -146,18 +144,13 @@ class Game(BaseView):
             The level to create a generation for. Each level should be more difficult
             than the last.
         """
-        # Calculate the lower and upper bounds that will determine the enemy and
-        # consumable levels
-        upper_bound = (level // LEVEL_GENERATOR_INTERVAL) + 1
-        lower_bound_enemy = (
+        # Calculate the lower and upper bounds that will determine the consumable
+        # levels
+        consumable_upper_bound = (level // LEVEL_GENERATOR_INTERVAL) + 1
+        consumable_lower_bound = (
             1
-            if upper_bound - 1 < ENEMY_LEVEL_MAX_RANGE
-            else upper_bound - ENEMY_LEVEL_MAX_RANGE
-        )
-        lower_bound_consumable = (
-            1
-            if upper_bound - 1 < CONSUMABLE_LEVEL_MAX_RANGE
-            else upper_bound - CONSUMABLE_LEVEL_MAX_RANGE
+            if consumable_upper_bound - 1 < CONSUMABLE_LEVEL_MAX_RANGE
+            else consumable_upper_bound - CONSUMABLE_LEVEL_MAX_RANGE
         )
 
         # Create the game map
@@ -167,7 +160,7 @@ class Game(BaseView):
         for count_y, y in enumerate(reversed(game_map.grid)):
             for count_x, x in enumerate(y):
                 # Determine if the tile is empty
-                if x in REPLACEABLE_TILES:
+                if x in WALL_REPLACEABLE_TILES:
                     continue
 
                 # Determine if the tile is a wall
@@ -185,53 +178,41 @@ class Game(BaseView):
                 if x == TileType.FLOOR:
                     continue
 
-                # Determine if the tile is a player, an enemy or a consumable
+                # Determine if the tile is a player or a consumable
                 if x in PLAYERS:
                     instantiated_cls = Player(self, count_x, count_y, PLAYERS[x])
-                else:
-                    target_cls: type[Enemy] | type[Consumable]
-                    target_constructor: BaseData | ConsumableData
-                    if x in ENEMIES:
-                        target_cls = Enemy
-                        target_constructor = ENEMIES[x]
-                        lower_bound = lower_bound_enemy
-                        level_limit = target_constructor.entity_data.level_limit
-                    else:
-                        target_cls = Consumable
-                        target_constructor = CONSUMABLES[x]
-                        lower_bound = lower_bound_consumable
-                        level_limit = target_constructor.level_limit
-                    instantiated_cls = target_cls(
+                elif x in CONSUMABLES:
+                    target_constructor = CONSUMABLES[x]
+                    instantiated_cls = Consumable(
                         self,
                         count_x,
                         count_y,
-                        target_constructor,  # type: ignore
+                        target_constructor,
                         min(
-                            random.randint(lower_bound, upper_bound),
-                            level_limit,
+                            random.randint(
+                                consumable_lower_bound, consumable_upper_bound
+                            ),
+                            target_constructor.level_limit,
                         ),
                     )
+                else:
+                    # Unknown type
+                    logger.warning("Unknown tiletype %r", x)
+                    continue
 
                 # Add the instantiated game object to the necessary sprite lists
-                match instantiated_cls.object_id:
-                    case ObjectID.PLAYER:
-                        self.player = instantiated_cls
-                    case ObjectID.ENEMY:
-                        self.enemy_sprites.append(instantiated_cls)
-                    case ObjectID.TILE:
-                        self.tile_sprites.append(instantiated_cls)
-                        self.item_sprites.append(instantiated_cls)
+                if instantiated_cls.object_id is ObjectID.PLAYER:
+                    self.player = instantiated_cls
+                elif instantiated_cls.object_id is ObjectID.TILE:
+                    self.tile_sprites.append(instantiated_cls)
+                    self.item_sprites.append(instantiated_cls)
 
         # Make sure the game map shape was set and the player was actually created
         assert self.game_map_shape is not None
         assert self.player is not None
 
         # Debug how many enemies and tiles were initialised
-        logger.debug(
-            "Initialised game view with %d enemies and %d tiles",
-            len(self.enemy_sprites),
-            len(self.tile_sprites),
-        )
+        logger.debug("Initialised game view with  %d tiles", len(self.tile_sprites))
 
         # Set up the inventory view
         inventory_view = InventoryView(self.player)
@@ -245,7 +226,7 @@ class Game(BaseView):
 
         # Create the physics engine
         self.physics_engine = PhysicsEngine(DAMPING)
-        self.physics_engine.setup(self.player, self.tile_sprites, self.enemy_sprites)
+        self.physics_engine.setup(self.player, self.tile_sprites)
 
         # Initialise the vector field
         self.vector_field = VectorField(
@@ -264,7 +245,7 @@ class Game(BaseView):
         )
 
         # Set up the melee shader
-        self.player.melee_shader.setup_shader()
+        # self.player.melee_shader.setup_shader()
 
     def on_draw(self) -> None:
         """Render the screen."""
@@ -539,10 +520,9 @@ class Game(BaseView):
             y,
             modifiers,
         )
-        match button:
-            case arcade.MOUSE_BUTTON_LEFT:
-                # Make the player attack
-                self.player.attack()
+        if button is arcade.MOUSE_BUTTON_LEFT:
+            # Make the player attack
+            self.player.attack()
 
     def on_mouse_motion(self, x: float, y: float, *_) -> None:
         """Process mouse motion functionality.

@@ -147,7 +147,6 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         self,
         player: Entity,
         tile_list: arcade.SpriteList,
-        enemy_list: arcade.SpriteList,
     ) -> None:
         """Set-ups the various sprites needed for the physics engine to work properly.
 
@@ -158,8 +157,6 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         tile_list: arcade.SpriteList
             The sprite list for the tile sprites. This includes both static and
             non-static sprites.
-        enemy_list: arcade.SpriteList
-            The sprite list for the enemy sprites
         """
         # Add the player sprite to the physics engine
         self.add_sprite(
@@ -180,17 +177,6 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
                     collision_type="wall",
                 )
             logger.debug("Added %r to physics engine", tile)
-
-        # Add the enemy sprites to the physics engine
-        for enemy in enemy_list:  # type: Enemy
-            self.add_sprite(
-                enemy,
-                moment_of_inertia=self.MOMENT_INF,
-                collision_type="enemy",
-                max_horizontal_velocity=int(enemy.max_velocity.value),
-                max_vertical_velocity=int(enemy.max_velocity.value),
-            )
-            logger.debug("Added %r to physics engine", enemy)
 
         # Add collision handlers
         self.add_collision_handler(
@@ -228,3 +214,20 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             collision_type="bullet",
         )
         logger.debug("Added bullet %r to physics engine", bullet)
+
+    def add_enemy(self, enemy: Enemy) -> None:
+        """Add an enemy to the physics engine.
+
+        Parameters
+        ----------
+        enemy: Enemy
+            The enemy to add to the physics engine.
+        """
+        self.add_sprite(
+            enemy,
+            moment_of_inertia=self.MOMENT_INF,
+            collision_type="enemy",
+            max_horizontal_velocity=int(enemy.max_velocity.value),
+            max_vertical_velocity=int(enemy.max_velocity.value),
+        )
+        logger.debug("Added %r to physics engine", enemy)

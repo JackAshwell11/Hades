@@ -8,7 +8,7 @@ from typing import NamedTuple
 import numpy as np
 
 # Custom
-from hades.constants.generation import REPLACEABLE_TILES, TileType
+from hades.constants.generation import WALL_REPLACEABLE_TILES, TileType
 
 __all__ = (
     "Point",
@@ -40,7 +40,7 @@ class Rect(NamedTuple):
     top_left: Point
         The top-left position.
     bottom_right: Point
-        The bottom-right position
+        The bottom-right position.
     """
 
     grid: np.ndarray
@@ -135,7 +135,7 @@ class Rect(NamedTuple):
             max(self.top_left.y, 0) : min(self.bottom_right.y + 1, grid_height),
             max(self.top_left.x, 0) : min(self.bottom_right.x + 1, grid_width),
         ]
-        temp_wall[np.isin(temp_wall, REPLACEABLE_TILES)] = TileType.WALL
+        temp_wall[np.isin(temp_wall, WALL_REPLACEABLE_TILES)] = TileType.WALL
 
         # Place the floors. The ranges must be -1 in all directions since we don't want
         # to overwrite the walls keeping the player in, but we still want to overwrite

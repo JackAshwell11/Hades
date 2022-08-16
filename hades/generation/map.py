@@ -12,22 +12,19 @@ import numpy as np
 
 # Custom
 from hades.constants.generation import (
-    BASE_ENEMY_COUNT,
     BASE_ITEM_COUNT,
     BASE_MAP_HEIGHT,
     BASE_MAP_WIDTH,
     BASE_OBSTACLE_COUNT,
     BASE_SPLIT_ITERATION,
-    ENEMY_DISTRIBUTION,
     HALLWAY_SIZE,
     ITEM_DISTRIBUTION,
-    MAX_ENEMY_COUNT,
+    ITEM_PLACE_TRIES,
     MAX_ITEM_COUNT,
     MAX_MAP_HEIGHT,
     MAX_MAP_WIDTH,
     MAX_OBSTACLE_COUNT,
     MAX_SPLIT_ITERATION,
-    PLACE_TRIES,
     TileType,
 )
 from hades.generation.astar import calculate_astar_path
@@ -73,9 +70,7 @@ def create_map(level: int) -> tuple[Map, GameMapShape]:
     )
     np.random.shuffle(possible_tiles)
     temp_map.place_tile(TileType.PLAYER, possible_tiles)
-    temp_map.place_multiple(ENEMY_DISTRIBUTION, possible_tiles).place_multiple(
-        ITEM_DISTRIBUTION, possible_tiles
-    )
+    temp_map.place_multiple(ITEM_DISTRIBUTION, possible_tiles)
 
     # Return the map object and a GameMapShape object
     return temp_map, GameMapShape(temp_map.grid.shape[1], temp_map.grid.shape[0])
@@ -105,9 +100,9 @@ class Map:
     Attributes
     ----------
     map_constants: dict[TileType | str, int]
-        A mapping of constant name to value. These constants are width, height, split
-        count (how many times the bsp should split) and the counts for the different
-        enemies and items.
+        A mapping of constant name to value. These constants are 'width', 'height',
+        'split iteration' (how many times the bsp should split) and the counts for each
+        item type (accessed through TileType).
     grid: np.ndarray
         The 2D grid which represents the dungeon.
     bsp: Leaf
@@ -145,8 +140,7 @@ class Map:
         return (
             f"<Map (Width={self.map_constants['width']})"
             f" (Height={self.map_constants['height']}) (Split"
-            f" count={self.map_constants['split iteration']}) (Enemy"
-            f" count={self.map_constants['enemy count']}) (Item"
+            f" count={self.map_constants['split iteration']}) (Item"
             f" count={self.map_constants['item count']})>"
         )
 
@@ -204,26 +198,20 @@ class Map:
                 int(np.round(BASE_OBSTACLE_COUNT * 1.3**self.level)),
                 MAX_OBSTACLE_COUNT,
             ),
-            "enemy count": np.minimum(
-                int(np.round(BASE_ENEMY_COUNT * 1.1**self.level)), MAX_ENEMY_COUNT
-            ),
             "item count": np.minimum(
                 int(np.round(BASE_ITEM_COUNT * 1.1**self.level)), MAX_ITEM_COUNT
             ),
         }
 
-        # Create the dictionary which will hold the counts for each enemy and item type
-        type_dict: dict[TileType, int] = {
-            key: int(np.round(value * generation_constants["enemy count"]))
-            for key, value in ENEMY_DISTRIBUTION.items()
-        } | {
+        # Create the dictionary which will hold the counts for each item type
+        item_dict: dict[TileType, int] = {
             key: int(np.round(value * generation_constants["item count"]))
             for key, value in ITEM_DISTRIBUTION.items()
         }
 
-        # Merge the enemy/item type count dict and the generation constants dict
-        # together and then return the result
-        result = generation_constants | type_dict
+        # Merge the generation constants dict and the item type count dict together and
+        # then return the result
+        result = generation_constants | item_dict
         logger.info("Generated map constants %r", result)
         return result
 
@@ -423,7 +411,7 @@ class Map:
         # Place each tile in the distribution based on their probabilities of occurring
         for tile in target_distribution:
             tiles_placed = 0
-            tries = PLACE_TRIES
+            tries = ITEM_PLACE_TRIES
             while tiles_placed < self.map_constants[tile] and tries != 0:
                 if self.place_tile(tile, possible_tiles):
                     # Tile placed

@@ -24,7 +24,6 @@ from hades.textures import moving_textures, non_moving_textures
 
 __all__ = (
     "CONSUMABLES",
-    "ENEMIES",
     "PLAYERS",
 )
 
@@ -220,7 +219,6 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
 
 # Constructor mappings
 PLAYERS = {TileType.PLAYER: PLAYER}
-ENEMIES = {TileType.ENEMY: ENEMY1}
 CONSUMABLES = {
     TileType.HEALTH_POTION: HEALTH_POTION,
     TileType.ARMOUR_POTION: ARMOUR_POTION,

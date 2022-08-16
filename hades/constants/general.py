@@ -15,7 +15,6 @@ __all__ = (
     "DEBUG_GAME",
     "DEBUG_VECTOR_FIELD_LINE",
     "DEBUG_VIEW_DISTANCE",
-    "ENEMY_LEVEL_MAX_RANGE",
     "GAME_LOGGER",
     "INVENTORY_HEIGHT",
     "INVENTORY_WIDTH",
@@ -84,7 +83,6 @@ DAMPING = 0
 INVENTORY_WIDTH = 6
 INVENTORY_HEIGHT = 5
 
-# Enemy and consumable level generator constants
+# Consumable level generator constants
 LEVEL_GENERATOR_INTERVAL = 10
-ENEMY_LEVEL_MAX_RANGE = 5
 CONSUMABLE_LEVEL_MAX_RANGE = 5
