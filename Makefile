@@ -35,6 +35,5 @@ pre-commit: ${VENV_NAME}  # Runs pre-commit
 test: ${VENV_NAME}  # Runs the tests using Tox
 	tox
 
-
 build: ${VENV_NAME}  # Builds the game into an executable form
-	poetry run python build.py
+	python build.py
