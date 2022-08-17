@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 
 # Custom
-from hades.textures import grid_pos_to_pixel
 from hades.vector_field import VectorField
 
 __all__ = ()
