@@ -84,9 +84,9 @@ def test_create_map() -> None:
 def test_level_constants() -> None:
     """Test the LevelConstants class in map.py."""
     temp_level_constants_one = LevelConstants(0, 0, 0)
-    assert temp_level_constants_one == (0, 0)
-    temp_level_constants_two = LevelConstants("test", "test")  # type: ignore
-    assert temp_level_constants_two == ("test", "test")
+    assert temp_level_constants_one == (0, 0, 0)
+    temp_level_constants_two = LevelConstants("test", "test", "test")  # type: ignore
+    assert temp_level_constants_two == ("test", "test", "test")
 
 
 def test_map_init() -> None:

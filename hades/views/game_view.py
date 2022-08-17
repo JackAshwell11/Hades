@@ -594,6 +594,10 @@ class Game(BaseView):
 
     def generate_enemy(self, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
+        # Make sure variables needed are valid
+        assert self.level_constants is not None
+        assert self.physics_engine is not None
+
         # Check if we've reached the max amount of enemies
         if len(self.enemy_sprites) < TOTAL_ENEMY_COUNT:
             # Limit not reached so determine the bounds

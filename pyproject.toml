@@ -75,7 +75,7 @@ filter_files = true
 profile = "black"
 
 [tool.mypy]
-ignore-missing-imports = true
+ignore_missing_imports = true
 
 [tool.pylint."BASIC"]
 good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
@@ -98,6 +98,7 @@ load-plugins = [
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
+    "arguments-renamed",
     "attribute-defined-outside-init",
     "fixme",
     "import-error",
@@ -105,6 +106,7 @@ disable = [
     "no-member",
     "redefined-outer-name",
     "too-few-public-methods",
+    "too-many-ancestors",
     "too-many-arguments",
     "too-many-instance-attributes",
     "too-many-locals",
@@ -115,14 +117,16 @@ disable = [
 convention = "numpy"
 
 # Pylint codes:
-# E0401 is pylint not being able to import packages
-# E1101 is pylint complaining about BaseView setting window
-# R0902 is pylint complaining about too many instance attributes
-# R0903 is pylint complaining about too few public methods
-# R0913 is pylint complaining about too many parameters
-# R0914 is pylint complaining about too many local variables
-# R0916 is pylint complaining about too many statements
-# R1705 is pylint complaining about an unnecessary else after a return
-# W0201 is pylint complaining about attributes being defined outside __init__ (sometimes this needs to happen)
-# W0511 is pylint complaining about to-do statements
-# W0621 is pylint complaining about redefining outer names (this is used in pytest)
+# arguments-renamed - Pylint complaining about inhertied function parameters being renamed
+# attribute-defined-outside-init - Pylint complaining about attributes being defined outside __init__ (sometimes this needs to happen)
+# fix_me - Pylint complaining about to-do statements
+# import-error - Pylint not being able to import packages
+# no-else-return - Pylint complaining about an unnecessary else after a return
+# no-member - Pylint complaining about BaseView setting window
+# redefined-outer-name - Pylint complaining about redefining outer names (this is used in pytest)
+# too-few-public-methods - Pylint complaining about too few public methods
+# too-many-ancestors - Pylint complaining about too many inherited classes
+# too-many-arguments - Pylint complaining about too many parameters
+# too-many-instance-attributes - Pylint complaining about too many instance attributes
+# too-many-locals - Pylint complaining about too many local variables
+# too-many-statements - Pylint complaining about too many statements

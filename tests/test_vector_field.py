@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 # Custom
+from hades.textures import grid_pos_to_pixel
 from hades.vector_field import VectorField
 
 __all__ = ()
@@ -181,7 +182,7 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
     vector_result = []
     player_screen_pos = 252.0, 812.0
     player_grid_pos = vector_field.get_tile_pos_for_pixel(player_screen_pos)
-    vector_field.recalculate_map(player_screen_pos)
+    temp_possible_spawns_valid = vector_field.recalculate_map(player_screen_pos, 5)
     vector_dict_items = list(vector_field.vector_dict.items())
     for index in np.random.choice(len(vector_dict_items), 20):
         current_pos, vector = vector_dict_items[index]
@@ -196,6 +197,14 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
             vector = vector_field.vector_dict[current_pos]
         vector_result.append(True)
     assert all(vector_result)
+
+    # Check that all possible spawns are 5 tiles away from the player
+    for spawn in temp_possible_spawns_valid:
+        assert vector_field.distances[spawn] > 5
+
+    # Make sure we test what happens if the player's view distance is zero or negative
+    assert (4, 14) not in vector_field.recalculate_map(player_screen_pos, 0)
+    assert (4, 14) in vector_field.recalculate_map(player_screen_pos, -1)
 
 
 def test_vector_field_get_vector_direction(vector_field: VectorField) -> None:
