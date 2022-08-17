@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from hades.constants.constructor import CONSUMABLES, PLAYERS
+from hades.constants.constructor import CONSUMABLES, ENEMY1, PLAYERS
 from hades.constants.game_object import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
 from hades.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
@@ -25,7 +25,6 @@ from hades.constants.general import (
     DEBUG_VECTOR_FIELD_LINE,
     DEBUG_VIEW_DISTANCE,
     ENEMY_GENERATE_INTERVAL,
-    ENEMY_LEVEL_MAX_RANGE,
     ENEMY_RETRY_COUNT,
     LEVEL_GENERATOR_INTERVAL,
     TOTAL_ENEMY_COUNT,
@@ -45,7 +44,7 @@ from hades.views.shop_view import ShopView
 
 if TYPE_CHECKING:
     from hades.game_objects.base import CollectibleTile, UsableTile
-    from hades.generation.map import GameMapShape
+    from hades.generation.map import LevelConstants
 
 __all__ = ("Game",)
 
@@ -75,8 +74,8 @@ class Game(BaseView):
 
     Attributes
     ----------
-    game_map_shape: GameMapShape | None
-        A named tuple representing the height and width of the game map.
+    level_constants: LevelConstants | None
+        Holds the constants for the current level.
     player: Player | None
         The sprite for the playable character in the game.
     item_sprites: arcade.SpriteList
@@ -117,7 +116,7 @@ class Game(BaseView):
     def __init__(self) -> None:
         super().__init__()
         self.background_color = arcade.color.BLACK
-        self.game_map_shape: GameMapShape | None = None
+        self.level_constants: LevelConstants | None = None
         self.player: Player | None = None
         self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
         self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
@@ -170,8 +169,7 @@ class Game(BaseView):
         Parameters
         ----------
         level: int
-            The level to create a generation for. Each level should be more difficult
-            than the last.
+            The level to create a game for.
         """
         # Calculate the lower and upper bounds that will determine the consumable
         # levels
@@ -181,9 +179,14 @@ class Game(BaseView):
             if consumable_upper_bound - 1 < CONSUMABLE_LEVEL_MAX_RANGE
             else consumable_upper_bound - CONSUMABLE_LEVEL_MAX_RANGE
         )
+        logger.debug(
+            "Generating consumable with lower bound %d and upper bound %d",
+            consumable_lower_bound,
+            consumable_upper_bound,
+        )
 
         # Create the game map
-        game_map, self.game_map_shape = create_map(level)
+        game_map, self.level_constants = create_map(level)
 
         # Assign sprites to the game map and initialise the vector grid
         for count_y, y in enumerate(reversed(game_map.grid)):
@@ -232,7 +235,7 @@ class Game(BaseView):
                     continue
 
         # Make sure the game map shape was set and the player was actually created
-        assert self.game_map_shape is not None
+        assert self.level_constants is not None
         assert self.player is not None
 
         # Debug how many enemies and tiles were initialised
@@ -254,12 +257,13 @@ class Game(BaseView):
 
         # Initialise the vector field
         self.vector_field = VectorField(
-            self,
-            self.game_map_shape.width,
-            self.game_map_shape.height,
+            self.level_constants.width,
+            self.level_constants.height,
             self.wall_sprites,
         )
-        self.vector_field.recalculate_map()
+        self.possible_enemy_spawns = self.vector_field.recalculate_map(
+            self.player.position, self.player.entity_data.view_distance
+        )
         logger.debug(
             "Created vector grid with height %d and width %d",
             self.vector_field.height,
@@ -277,7 +281,7 @@ class Game(BaseView):
         # Generate half of the total enemies and then schedule the function to run
         # every ENEMY_GENERATE_INTERVAL seconds
         for _ in range(TOTAL_ENEMY_COUNT // 2):
-            self.generate_enemy(0)
+            self.generate_enemy()
         arcade.schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
 
     def on_draw(self) -> None:
@@ -592,22 +596,57 @@ class Game(BaseView):
         """Generate an enemy outside the player's fov."""
         # Check if we've reached the max amount of enemies
         if len(self.enemy_sprites) < TOTAL_ENEMY_COUNT:
-            # Limit not reached so we can generate enemies
-            # TODO: Have enemy levelled
-            enemy_upper_bound = get_upper_bound(0)
+            # Limit not reached so determine the bounds
+            enemy_upper_bound = get_upper_bound(self.level_constants.level)
             enemy_lower_bound = (
                 1
                 if enemy_upper_bound - 1 < CONSUMABLE_LEVEL_MAX_RANGE
                 else enemy_upper_bound - CONSUMABLE_LEVEL_MAX_RANGE
             )
+            logger.debug(
+                "Generating enemy with lower bound %d and upper bound %d",
+                enemy_lower_bound,
+                enemy_upper_bound,
+            )
 
-        print(self.possible_enemy_spawns)
-        print(len(self.enemy_sprites))
+            # Attempt to generate an enemy retrying ENEMY_RETRY_COUNT times if it fails
+            enemy = Enemy(
+                self,
+                0,
+                0,
+                ENEMY1,
+                min(
+                    random.randint(enemy_lower_bound, enemy_upper_bound),
+                    ENEMY1.entity_data.level_limit,
+                ),
+            )
+            tries = ENEMY_RETRY_COUNT
+            while tries != 0:
+                # Pick a random position for the enemy and check if they collide with
+                # other enemies or the player
+                enemy.position = grid_pos_to_pixel(*self.possible_enemy_spawns.pop())
+                if enemy.collides_with_list(
+                    self.enemy_sprites
+                ) or enemy.collides_with_sprite(self.player):
+                    logger.debug(
+                        "%r encountered a collision during generation. Retrying", enemy
+                    )
+                    tries -= 1
+                    continue
+
+                # Enemy position is good so add them to the spritelist and stop
+                self.physics_engine.add_enemy(enemy)
+                self.enemy_sprites.append(enemy)
+                logger.debug("%d has been successfully generated")
+                break
+
+            # Enemy has failed to generate
+            logger.debug("%d failed to be generated", enemy)
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
         # Make sure variables needed are valid
-        assert self.game_map_shape is not None
+        assert self.level_constants is not None
         assert self.player is not None
 
         # Calculate the screen position centered on the player
@@ -616,8 +655,8 @@ class Game(BaseView):
 
         # Calculate the maximum width and height of the game map
         upper_x, upper_y = grid_pos_to_pixel(
-            self.game_map_shape.width,
-            self.game_map_shape.height,
+            self.level_constants.width,
+            self.level_constants.height,
         )
 
         # Calculate the maximum width and height the camera can be

@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 __all__ = (
-    "GameMapShape",
+    "LevelConstants",
     "Map",
     "create_map",
 )
@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 np.set_printoptions(threshold=1, edgeitems=50, linewidth=10000)
 
 
-def create_map(level: int) -> tuple[Map, GameMapShape]:
+def create_map(level: int) -> tuple[Map, LevelConstants]:
     """Generate the game map for a given game level.
 
     Parameters
@@ -57,7 +57,7 @@ def create_map(level: int) -> tuple[Map, GameMapShape]:
 
     Returns
     -------
-    tuple[Map, GameMapShape]
+    tuple[Map, LevelConstants]
         The generated map and a named tuple containing the width and height.
     """
     # Create the rooms and hallways
@@ -73,18 +73,23 @@ def create_map(level: int) -> tuple[Map, GameMapShape]:
     temp_map.place_multiple(ITEM_DISTRIBUTION, possible_tiles)
 
     # Return the map object and a GameMapShape object
-    return temp_map, GameMapShape(temp_map.grid.shape[1], temp_map.grid.shape[0])
+    return temp_map, LevelConstants(
+        level, temp_map.grid.shape[1], temp_map.grid.shape[0]
+    )
 
 
-class GameMapShape(NamedTuple):
-    """Represents a two element tuple holding the width and height of a game map.
+class LevelConstants(NamedTuple):
+    """Holds the constants for a specific level.
 
+    level: int
+        The level of this game.
     width: int
         The width of the game map.
     height: int
         The height of the game map.
     """
 
+    level: int
     width: int
     height: int
 

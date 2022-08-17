@@ -24,6 +24,7 @@ from hades.textures import moving_textures, non_moving_textures
 
 __all__ = (
     "CONSUMABLES",
+    "ENEMY1",
     "PLAYERS",
 )
 

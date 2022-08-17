@@ -1,21 +1,27 @@
 # Python files
 __pycache__/
-venv/
+.venv/
 
 # Editor files
-.idea
+.idea/
 
-# Mypy cache
+# Coverage files
+htmlcov/
+.tox/
+.pytest_cache/
+.coverage
+coverage.xml
+
+# Mypy files
 .mypy_cache/
-
-# Pyinstaller files
-*.spec
-build/
-dist/
 
 # Log and save files
 logs/
 saves/
+
+# Nuitka files
+window.build/
+window.dist/
 
 # Aseprite project
 aseprite/

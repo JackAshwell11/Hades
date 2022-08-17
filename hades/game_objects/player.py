@@ -207,7 +207,9 @@ class Player(Entity):
         if self.current_tile_pos != new_tile_pos:
             # Player has moved tile positions so update vector field
             self.current_tile_pos = new_tile_pos
-            self.game.vector_field.recalculate_map()
+            self.game.possible_enemy_spawns = self.game.vector_field.recalculate_map(
+                self.position, self.entity_data.view_distance
+            )
 
         # Make the player move
         self.move(delta_time)

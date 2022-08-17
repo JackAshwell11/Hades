@@ -12,7 +12,7 @@ import pytest
 # Custom
 from hades.common import grid_bfs
 from hades.constants.generation import BASE_ITEM_COUNT, ITEM_DISTRIBUTION, TileType
-from hades.generation.map import GameMapShape, Map, create_map
+from hades.generation.map import LevelConstants, Map, create_map
 from hades.generation.primitives import Point
 
 if TYPE_CHECKING:
@@ -59,21 +59,21 @@ def test_create_map() -> None:
     temp_positive = create_map(1)
     assert (
         isinstance(temp_positive[0].grid, np.ndarray)
-        and isinstance(temp_positive[1], GameMapShape)
+        and isinstance(temp_positive[1], LevelConstants)
         and count_items(temp_positive[0].grid) == BASE_ITEM_COUNT
         and temp_positive[0].player_pos != (-1, -1)
     )
     temp_zero = create_map(0)
     assert (
         isinstance(temp_zero[0].grid, np.ndarray)
-        and isinstance(temp_zero[1], GameMapShape)
+        and isinstance(temp_zero[1], LevelConstants)
         and count_items(temp_zero[0].grid) == BASE_ITEM_COUNT
         and temp_zero[0].player_pos != (-1, -1)
     )
     temp_negative = create_map(-1)
     assert (
         isinstance(temp_negative[0].grid, np.ndarray)
-        and isinstance(temp_negative[1], GameMapShape)
+        and isinstance(temp_negative[1], LevelConstants)
         and count_items(temp_negative[0].grid) == BASE_ITEM_COUNT
         and temp_negative[0].player_pos != (-1, -1)
     )
@@ -81,12 +81,12 @@ def test_create_map() -> None:
         create_map("test")  # type: ignore
 
 
-def test_game_map_shape() -> None:
-    """Test the GameMapShape class in map.py."""
-    temp_game_map_shape_one = GameMapShape(0, 0)
-    assert temp_game_map_shape_one == (0, 0)
-    temp_game_map_shape_two = GameMapShape("test", "test")  # type: ignore
-    assert temp_game_map_shape_two == ("test", "test")
+def test_level_constants() -> None:
+    """Test the LevelConstants class in map.py."""
+    temp_level_constants_one = LevelConstants(0, 0, 0)
+    assert temp_level_constants_one == (0, 0)
+    temp_level_constants_two = LevelConstants("test", "test")  # type: ignore
+    assert temp_level_constants_two == ("test", "test")
 
 
 def test_map_init() -> None:
