@@ -40,7 +40,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./coverage.lcov
         parallel: true
-  finish:
+  coveralls:
     needs: test
     runs-on: ubuntu-latest
     steps:
