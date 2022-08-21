@@ -5,12 +5,13 @@ __pycache__/
 # Editor files
 .idea/
 
-# Coverage files
+# Testing files
 htmlcov/
 .tox/
 .pytest_cache/
 .coverage
 coverage.xml
+coverage.lcov
 
 # Mypy files
 .mypy_cache/
