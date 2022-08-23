@@ -94,7 +94,7 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
                 distances[neighbour] = distances[came_from[neighbour]] + 1
 
                 # Check if the neighbour is an obstacle
-                if grid[neighbour.y][neighbour.x] is TileType.OBSTACLE:
+                if grid[neighbour.y][neighbour.x] == TileType.OBSTACLE:
                     # Set the total cost for the obstacle to infinity
                     total_costs[neighbour] = np.inf
                 else:

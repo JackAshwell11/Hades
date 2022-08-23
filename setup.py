@@ -11,7 +11,7 @@ def main():
         author_email="jack@gmail.com",
         ext_modules=[
             Extension(
-                "astar", ["hades/extensions/astar.c"], include_dirs=[np.get_include()]
+                "astar", ["hades/extensions/astar.cpp"], include_dirs=[np.get_include()]
             )
         ],
     )
