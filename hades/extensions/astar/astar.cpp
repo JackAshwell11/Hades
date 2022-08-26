@@ -19,31 +19,33 @@ inline void hash_combine(size_t& seed, const T& v) {
 
 
 struct Point {
+    /* Represents a namedtuple describing a point in the grid */
     int x, y;
 
-    bool operator==(const Point pnt) const {
-        // If two hashes are the same, we need to check if the two structs are
-        // the same
+    inline bool operator==(const Point pnt) const {
+        // If two hashes are the same, we need to check if the two structs are the same
         return x == pnt.x && y == pnt.y;
     }
 };
 
 
 Point CARDINAL_OFFSETS[4] = {
-        {0, -1},
-        {-1, 0},
-        {1, 0},
-        {0, 1}
+    {0, -1},
+    {-1, 0},
+    {1, 0},
+    {0, 1},
 };
 
 
 struct Neighbour {
+    /* Represents a namedtuple describing a grid point and its cost from the start
+    position */
     int cost;
     Point point;
 
-    bool operator<(const Neighbour nghbr) const {
-        // The priority_queue data structure gets the maximum priority, so we
-        // need to override that functionality to get the minimum priority
+    inline bool operator<(const Neighbour nghbr) const {
+        // The priority_queue data structure gets the maximum priority, so we need to
+        // override that functionality to get the minimum priority
         return cost > nghbr.cost;
     }
 };
@@ -61,31 +63,18 @@ struct hash<Point> {
 };
 
 
-void print_numpy_array(PyArrayObject *arr) {
-    int i, j;
-    int* array_data_pointer = (int*)PyArray_DATA(arr);
-    int height = (int)PyArray_DIM(arr, 0);
-    int width = (int)PyArray_DIM(arr, 1);
-    for(i = 0; i < 2; i++) {
-        for(j = 0; j < 3; j++) {
-            printf("arr pos i=%d, j=%d, val=%d\n", i, j, array_data_pointer[i * width + j]);
-        }
-    }
-}
-
-
-static int heuristic(Point a, Point b) {
+inline int heuristic(Point a, Point b) {
     /* Calculates the heuristic used for the A* algorithm */
     return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
 
-static list<Point> grid_bfs(Point target, int height, int width, Point* offsets) {
-    /* Gets a target's neighbours in a grid */
+inline list<Point> grid_bfs(Point target, int height, int width) {
+    /* Gets a target's neighbours in a grid for use with the A* algorithm */
     list<Point> result;
     for (int i = 0; i < 4; i++) {
-        int x = target.x + offsets[i].x;
-        int y = target.y + offsets[i].y;
+        int x = target.x + CARDINAL_OFFSETS[i].x;
+        int y = target.y + CARDINAL_OFFSETS[i].y;
         if ((x >= 0 && x < width) && (y >= 0 && y < height)) {
             result.push_back({x, y});
         }
@@ -142,12 +131,11 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
         // Add all the neighbours to the heap with their cost being f = g + h:
         //   f - The total cost of traversing the neighbour.
         //   g - The distance between the start point and the neighbour point.
-        //   h - The estimated distance from the neighbour point to the end
-        //   point.
-        for (Point neighbour : grid_bfs(current, height, width, CARDINAL_OFFSETS)) {
+        //   h - The estimated distance from the neighbour point to the end point.
+        for (Point neighbour : grid_bfs(current, height, width)) {
             if (!came_from.count(neighbour)) {
-                // Store the neighbour's parent and calculate its distance from
-                // the start point
+                // Store the neighbour's parent and calculate its distance from the
+                // start point
                 came_from[neighbour] = current;
                 distances[neighbour] = distances.at(came_from.at(neighbour)) + 1;
 
@@ -171,21 +159,51 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
 }
 
 
+PyDoc_STRVAR(
+    astar_module_docstring,
+    "Calculate the shortest path in a grid from one point to another using the A* "
+    "algorithm.\n\n"
+);
+
+PyDoc_STRVAR(
+    astar_docstring,
+    "Calculate the shortest path in a grid from one point to another using the A* "
+    "algorithm.\n\n"
+    "Further reading which may be useful:\n"
+    "`The A* algorithm <https://en.wikipedia.org/wiki/A*_search_algorithm>`_\n\n"
+    "Parameters\n"
+    "----------\n"
+    "grid: np.ndarray\n"
+    "   The 2D grid which represents the dungeon.\n"
+    "start: Point\n"
+    "    The start point for the algorithm.\n"
+    "end: Point\n"
+    "    The end point for the algorithm.\n\n"
+    "Returns\n"
+    "-------\n"
+    "list[Point]\n"
+    "    A list of points mapping out the shortest path from start to end."
+);
+
+
 static PyMethodDef astarmethods[] = {
-    {"calculate_astar_path", calculate_astar_path, METH_VARARGS, "Calculate the shortest path in a grid from one point to another using the A* algorithm."},
+    /* Defines the metadata for methods accessible through Python */
+    {"calculate_astar_path", calculate_astar_path, METH_VARARGS, astar_docstring},
     {NULL, NULL, 0, NULL}
 };
 
 
 static struct PyModuleDef astarmodule = {
+    /* Defines the metadata for this extension module */
     PyModuleDef_HEAD_INIT,
     "astar",
-    "Calculate the shortest path in a grid from one point to another using the A* algorithm.",
+    astar_module_docstring,
     -1,
     astarmethods,
 };
 
 PyMODINIT_FUNC PyInit_astar(void) {
+    /* Initialises this module so Python can access it */
     PyObject *module = PyModule_Create(&astarmodule);
     import_array();
     return module;
