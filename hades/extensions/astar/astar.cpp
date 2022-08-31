@@ -62,8 +62,7 @@ struct hash<Point> {
     }
 };
 
-
-inline int heuristic(Point a, Point b) {
+inline int calculate_heuristic(Point a, Point b) {
     /* Calculates the heuristic used for the A* algorithm */
     return abs(a.x - b.x) + abs(a.y - b.y);
 }
@@ -83,13 +82,27 @@ inline list<Point> grid_bfs(Point target, int height, int width) {
 }
 
 
+static PyObject *heuristic(PyObject *self, PyObject *args) {
+    /* Parse arguments */
+    struct Point a, b;
+    if (!PyArg_ParseTuple(args, "(ii)(ii)", &a.x, &a.y, &b.x, &b.y)) {
+        return NULL;
+    }
+
+    /* Heuristic logic */
+    int result = calculate_heuristic(a, b);
+
+    /* Return result */
+    return PyLong_FromLong(result);
+}
+
+
 static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     /* Parse arguments */
     PyArrayObject *grid = NULL;
     struct Point start, end;
     int obstacle_id = NULL;
     if (!PyArg_ParseTuple(args, "O(ii)(ii)i", &grid, &start.x, &start.y, &end.x, &end.y, &obstacle_id)) {
-        printf("Error while parsing args\n");
         return NULL;
     }
 
@@ -145,7 +158,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
                     total_costs[neighbour] = numeric_limits<int>::max();
                 } else {
                     // Set the total cost for the neighbour to f = g + h
-                    total_costs[neighbour] = distances.at(neighbour) + heuristic(current, neighbour);
+                    total_costs[neighbour] = distances.at(neighbour) + calculate_heuristic(current, neighbour);
                 }
 
                 // Add the neighbour to the priority queue
@@ -185,10 +198,31 @@ PyDoc_STRVAR(
     "    A list of points mapping out the shortest path from start to end."
 );
 
+PyDoc_STRVAR(
+    heuristic_docstring,
+    "Calculate the Manhattan distance between two points.\n\n"
+    "This preferable to the Euclidean distance since we can generate staircase-like "
+    "paths instead of straight line paths.\n\n"
+    "Further reading which may be useful:\n"
+    "`Manhattan distance <https://en.wikipedia.org/wiki/Taxicab_geometry>`_\n"
+    "`Euclidean distance <https://en.wikipedia.org/wiki/Euclidean_distance>`_\n\n"
+    "Parameters\n"
+    "----------\n"
+    "a: Point\n"
+    "    The first point.\n"
+    "b: Point\n"
+    "    The second point.\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The heuristic distance."
+);
+
 
 static PyMethodDef astarmethods[] = {
     /* Defines the metadata for methods accessible through Python */
     {"calculate_astar_path", calculate_astar_path, METH_VARARGS, astar_docstring},
+    {"heuristic", heuristic, METH_VARARGS, heuristic_docstring},
     {NULL, NULL, 0, NULL}
 };
 

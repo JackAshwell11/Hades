@@ -1,4 +1,4 @@
-"""Tests all functions in generation/astar.py."""
+"""Tests all functions in extensions/astar."""
 from __future__ import annotations
 
 # Builtin
@@ -10,7 +10,7 @@ import pytest
 
 # Custom
 from hades.constants.generation import TileType
-from hades.generation import astar
+from hades.extensions import calculate_astar_path, heuristic
 
 if TYPE_CHECKING:
     from hades.generation.primitives import Point
@@ -45,7 +45,7 @@ def test_heuristic(
     boundary_point: Point,
     invalid_point: Point,
 ) -> None:
-    """Test the heuristic function in astar.py.
+    """Test the heuristic function in astar.cpp.
 
     Parameters
     ----------
@@ -58,10 +58,10 @@ def test_heuristic(
     invalid_point: Point
         An invalid point used for testing.
     """
-    assert astar.heuristic(valid_point_one, valid_point_two) == 4
-    assert astar.heuristic(valid_point_one, boundary_point) == 8
+    assert heuristic(valid_point_one, valid_point_two) == 4
+    assert heuristic(valid_point_one, boundary_point) == 8
     with pytest.raises(TypeError):
-        astar.heuristic(invalid_point, invalid_point)
+        heuristic(invalid_point, invalid_point)
 
 
 def test_calculate_astar_path(
@@ -70,7 +70,7 @@ def test_calculate_astar_path(
     boundary_point: Point,
     invalid_point: Point,
 ) -> None:
-    """Test the calculate_astar_path function in astar.py.
+    """Test the calculate_astar_path function in astar.cpp.
 
     Parameters
     ----------
@@ -83,22 +83,32 @@ def test_calculate_astar_path(
     invalid_point: Point
         An invalid point used for testing.
     """
-    temp_result_one = astar.calculate_astar_path(
-        get_obstacle_grid(), valid_point_one, valid_point_two
+    temp_result_one = calculate_astar_path(
+        get_obstacle_grid(),
+        valid_point_one,
+        valid_point_two,
+        TileType.OBSTACLE,
     )
     assert (
         temp_result_one[0] == valid_point_two
         and temp_result_one[-1] == valid_point_one
-        and len(temp_result_one) >= astar.heuristic(valid_point_one, valid_point_two)
+        and len(temp_result_one) >= heuristic(valid_point_one, valid_point_two)
     )
-    temp_result_two = astar.calculate_astar_path(
-        get_obstacle_grid(), valid_point_one, boundary_point
+    temp_result_two = calculate_astar_path(
+        get_obstacle_grid(),
+        valid_point_one,
+        boundary_point,
+        TileType.OBSTACLE,
     )
     assert (
         temp_result_two[0] == boundary_point
         and temp_result_two[-1] == valid_point_one
-        and len(temp_result_two) >= astar.heuristic(valid_point_one, boundary_point)
+        and len(temp_result_two) >= heuristic(valid_point_one, boundary_point)
     )
-    assert not astar.calculate_astar_path(
-        get_obstacle_grid(), valid_point_one, invalid_point
-    )
+    with pytest.raises(TypeError):
+        calculate_astar_path(
+            get_obstacle_grid(),
+            valid_point_one,
+            invalid_point,
+            TileType.OBSTACLE,
+        )
