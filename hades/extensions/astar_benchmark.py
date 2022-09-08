@@ -1,18 +1,20 @@
+""""""
 import jps_py_astar as jpy
 import old_py_astar as opy
 
 
 def benchmark():
+    """"""
     import time
 
     from hades.generation.map import Map
 
-    N = 100
+    n = 100
     resulto = []
     resultj = []
 
-    for i in range(N):
-        print(f"Doing iteration {i+1} of {N}")
+    for i in range(n):
+        print(f"Doing iteration {i+1} of {n}")
         map_obj = Map(5)
         rooms = map_obj.split_bsp().generate_rooms()
         grid = map_obj.create_hallways(rooms)
@@ -27,14 +29,35 @@ def benchmark():
         print(f"Jump point search took {resultj[-1]} and A* took {resulto[-1]}")
 
     print(
-        f"Jump point search took {sum(resultj)/N} and A* took {sum(resulto)/N}. Which"
-        f" is {(sum(resulto)/N)/sum(resultj)/N}x faster"
+        f"Jump point search took {sum(resultj)/n} and A* took {sum(resulto)/n}. Which"
+        f" is {(sum(resultj)/n)/sum(resulto)/n}x faster"
     )
 
 
+def extend_jps():
+    """"""
+    from hades.generation.map import Map
+
+    n = 100
+    for i in range(n):
+        print(f"Doing iteration {i+1} of {n}")
+        map_obj = Map(500)
+        rooms = map_obj.split_bsp().generate_rooms()
+        grid = map_obj.create_hallways(rooms)
+
+        print(f"start = {rooms[0].center}, end = {rooms[-1].center}")
+        print(jpy.calculate_astar_path(grid, rooms[0].center, rooms[-1].center))
+        input()
+
+
 def run_jps():
+    """"""
+    import random
+
     import numpy as np
+
     from hades.generation.primitives import Point
+
     grid = [
         [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
         [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
@@ -47,25 +70,24 @@ def run_jps():
         [90, 91, 92, 93, 94, 95, 96, 97, 98, 99],
     ]
     N = 10
-    import random
     for _ in range(N):
         grid[random.randint(0, len(grid) - 1)][random.randint(0, len(grid[0]) - 1)] = -1
-    start = Point(random.randint(0, len(grid[0])-1), random.randint(0, len(grid)-1))
-    end = Point(random.randint(0, len(grid[0])-1), random.randint(0, len(grid)-1))
+    start = Point(random.randint(0, len(grid[0]) - 1), random.randint(0, len(grid) - 1))
+    end = Point(random.randint(0, len(grid[0]) - 1), random.randint(0, len(grid) - 1))
     grid = np.array(grid)
+    grid[start.y][start.x] = -2
+    grid[end.y][end.x] = -3
+    print(grid)
     res = jpy.calculate_astar_path(grid, start, end)
     for i in res:
         grid[i.y][i.x] = -5
     grid[start.y][start.x] = -2
     grid[end.y][end.x] = -3
-    if not res:
-        g = []
-        for u in grid:
-            g.append(list(u))
-        print(g)
-    else:
-        print(grid)
+    print(start, end)
+    print(list(reversed(res)))
+    print(grid)
 
 
-#run_jps()
-benchmark()
+run_jps()
+# extend_jps()
+# benchmark()

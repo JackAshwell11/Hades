@@ -1,19 +1,21 @@
 """Calculates the shortest path from one point to another using the A* algorithm."""
 from __future__ import annotations
 
-from heapq import heappop, heappush
-
 # Builtin
-from itertools import count
-from collections.abc import Generator
-
-# Pip
-import numpy as np
+from collections import deque
+from heapq import heappop, heappush
+from typing import TYPE_CHECKING
 
 # Custom
 from hades.common import grid_bfs
 from hades.constants.generation import TileType
 from hades.generation.primitives import Point
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    import numpy as np
+
 
 __all__ = ("calculate_astar_path",)
 
@@ -38,26 +40,23 @@ def heuristic(a: Point, b: Point) -> int:
     return abs(a.x - b.x) + abs(a.y - b.y)
 
 
-def is_within_bounds(x: int, y: int, height: int, width: int) -> bool:
-    return 0 <= x < width and 0 <= y < height
-
-
 def is_obstacle(grid: np.ndarray, x: int, y: int) -> bool:
-    return is_within_bounds(x, y, *grid.shape) and grid[y][x] == TileType.OBSTACLE
-
-
-def is_traversable(grid: np.ndarray, x: int, y: int) -> bool:
-    return is_within_bounds(x, y, *grid.shape) and not is_obstacle(grid, x, y)
+    try:
+        return grid[y][x] == TileType.OBSTACLE
+    except IndexError:
+        return False
 
 
 def find_neighbours(
     grid: np.ndarray, current: Point, parent: Point | None
 ) -> Generator[tuple[int, int], None, None]:
     if parent is None:
-        for i in list(grid_bfs(current, *grid.shape)):
-            yield i
+        yield from grid_bfs(current, *grid.shape)
     else:
-        dx, dy = (current.x - parent.x) // max(abs(current.x - parent.x), 1), (current.y - parent.y) // max(abs(current.y - parent.y), 1)
+        dx, dy = (
+            (current.x - parent.x) // max(abs(current.x - parent.x), 1),
+            (current.y - parent.y) // max(abs(current.y - parent.y), 1),
+        )
         if dx != 0:
             first_x, first_y = current.x, current.y - 1
             second_x, second_y = current.x, current.y + 1
@@ -67,35 +66,123 @@ def find_neighbours(
             second_x, second_y = current.x + 1, current.y
             third_x, third_y = current.x, current.y + dy
 
-        if not is_obstacle(grid, first_x, first_y):
+        if not is_obstacle(grid, first_x, first_y):  # noqa
             yield first_x, first_y
-        if not is_obstacle(grid, second_x, second_y):
+        if not is_obstacle(grid, second_x, second_y):  # noqa
             yield second_x, second_y
-        if not is_obstacle(grid, third_x, third_y):
+        if not is_obstacle(grid, third_x, third_y):  # noqa
             yield third_x, third_y
 
 
-def jump(grid: np.ndarray, current: Point, end: Point, parent: Point | None) -> Point | None:
-    if current == end:
-        return current
+def jump(
+    grid: np.ndarray, current_point: Point, end: Point, parent_point: Point | None
+) -> Point | None:
+    stack = deque["tuple[Point, Point | None, bool]"]()
+    stack.append((current_point, parent_point, False))
 
-    if not is_traversable(grid, current.x, current.y):
-        return None
+    while stack:
+        current, parent, is_parent_vertical = stack.pop()
+        print(f"current = {current}, parent = {parent}, end = {end}")
 
-    dx, dy = current.x - parent.x, current.y - parent.y
-    if dx != 0:
-        if (is_traversable(grid, current.x, current.y + 1) and not is_traversable(grid, current.x - dx, current.y + 1)) or (is_traversable(grid, current.x, current.y - 1) and not is_traversable(grid, current.x - dx, current.y - 1)):
-            return current
-    elif dy != 0:
-        if (is_traversable(grid, current.x + 1, current.y) and not is_traversable(grid, current.x + 1, current.y - dy)) or (is_traversable(grid, current.x - 1, current.y) and not is_traversable(grid, current.x - 1, current.y - dy)):
-            return current
+        if current == end:
+            print("found end")
+            if is_parent_vertical:
+                return parent
+            else:
+                return current
 
-        if (jump(grid, Point(current.x + 1, current.y), end, current) is not None) or (jump(grid, Point(current.x - 1, current.y), end, current) is not None):
-            return current
-    else:
-        return None
+        if (
+            0 > current.x
+            or current.x >= grid.shape[1]
+            or 0 > current.y
+            or current.y >= grid.shape[0]
+            or is_obstacle(grid, *current)
+        ):
+            print("out of bounds or obstacle")
+            continue
 
-    return jump(grid, Point(current.x + dx, current.y + dy), end, current)
+        dx, dy = current.x - parent.x, current.y - parent.y  # type: ignore
+        if dx != 0:
+            print(f"dx = {dx}")
+            if (
+                not is_obstacle(grid, current.x, current.y + 1)
+                and is_obstacle(grid, current.x - dx, current.y + 1)
+            ) or (
+                not is_obstacle(grid, current.x, current.y - 1)
+                and is_obstacle(grid, current.x - dx, current.y - 1)
+            ):
+                if is_parent_vertical:
+                    print("found on vertical horizontal")
+                    return parent
+                else:
+                    print("found on horizontal")
+                    return current
+
+            stack.append(
+                (Point(current.x + dx, current.y + dy), current, is_parent_vertical)
+            )
+        elif dy != 0:
+            print(f"dy = {dy}")
+            if (
+                not is_obstacle(grid, current.x + 1, current.y)
+                and is_obstacle(grid, current.x + 1, current.y - dy)
+            ) or (
+                not is_obstacle(grid, current.x - 1, current.y)
+                and is_obstacle(grid, current.x - 1, current.y - dy)
+            ):
+                print("found on vertical")
+                return current
+
+            print("vertical horizontal traversal")
+            stack.append(
+                (Point(current.x + dx, current.y + dy), current, is_parent_vertical)
+            )
+            stack.append((Point(current.x + 1, current.y), current, True))
+            stack.append((Point(current.x - 1, current.y), current, True))
+        else:
+            continue
+
+    return None
+
+
+# def jumpr(
+#     grid: np.ndarray, current: Point, end: Point, parent: Point | None
+# ) -> Point | None:
+#     if current == end:
+#         return current
+#
+#     if not is_traversable(grid, current.x, current.y):
+#         return None
+#
+#     dx, dy = current.x - parent.x, current.y - parent.y
+#     if dx != 0:
+#         if (
+#             is_traversable(grid, current.x, current.y + 1)
+#             and not is_traversable(grid, current.x - dx, current.y + 1)
+#         ) or (
+#             is_traversable(grid, current.x, current.y - 1)
+#             and not is_traversable(grid, current.x - dx, current.y - 1)
+#         ):
+#             return current
+#     elif dy != 0:
+#         if (
+#             is_traversable(grid, current.x + 1, current.y)
+#             and not is_traversable(grid, current.x + 1, current.y - dy)
+#         ) or (
+#             is_traversable(grid, current.x - 1, current.y)
+#             and not is_traversable(grid, current.x - 1, current.y - dy)
+#         ):
+#             return current
+#
+#         if (jump(grid, Point(current.x + 1, current.y), end, current) is not None) or
+#         (
+#             jump(grid, Point(current.x - 1, current.y), end, current) is not None
+#         ):
+#             return current
+#     else:
+#         return None
+#
+#     return jump(grid, Point(current.x + dx, current.y + dy), end, current)
 
 
 def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Point]:
@@ -148,7 +235,9 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
             #   f - The total cost of traversing the jump point.
             #   g - The distance between the start point and the jump point.
             #   h - The estimated distance from the jump point to the end point.
+            print(f"neighbour = {neighbour}")
             jump_point = jump(grid, Point(*neighbour), end, current)
+            print(f"jump point = {jump_point}")
             if jump_point is not None and jump_point not in came_from:
                 # Store the jump_point's parent
                 came_from[jump_point] = current

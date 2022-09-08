@@ -22,7 +22,12 @@ if __name__ == "__main__":
                 "astar",
                 [str(extension_path / "astar" / "astar.cpp")],
                 include_dirs=[np.get_include()],
-            )
+            ),
+            Extension(
+                "astarj",
+                [str(extension_path / "astarj" / "astar.cpp")],
+                include_dirs=[np.get_include()],
+            ),
         ],
         script_args=["build_ext"],
     )

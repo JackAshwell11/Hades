@@ -309,7 +309,6 @@ class Map:
         logger.debug(
             "Created %d obstacles in the 2D grid", self.map_constants["obstacle count"]
         )
-        return self.grid
 
         # # Create a complete graph out of rooms
         # connections: set[tuple[Point, Point, float]] = set()
