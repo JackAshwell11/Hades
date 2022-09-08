@@ -8,12 +8,11 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 
-using namespace std;
 
 template <class T>
 inline void hash_combine(size_t& seed, const T& v) {
     /* Allows multiple hashes to be combined for a struct */
-    hash<T> hasher;
+    std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
 
@@ -52,7 +51,7 @@ struct Neighbour {
 
 
 template<>
-struct hash<Point> {
+struct std::hash<Point> {
     /* Allows the Point struct to be hashed in a map */
     size_t operator()(const Point& pnt) const {
         size_t res = 0;
@@ -68,9 +67,9 @@ inline int calculate_heuristic(Point a, Point b) {
 }
 
 
-inline list<Point> grid_bfs(Point target, int height, int width) {
+inline std::list<Point> grid_bfs(Point target, int height, int width) {
     /* Gets a target's neighbours in a grid for use with the A* algorithm */
-    list<Point> result;
+    std::list<Point> result;
     for (int i = 0; i < 4; i++) {
         int x = target.x + CARDINAL_OFFSETS[i].x;
         int y = target.y + CARDINAL_OFFSETS[i].y;
@@ -108,12 +107,12 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
 
     /* A* algorithm logic */
     // Set up a few variables needed for the pathfinding
+    int f_cost;
     PyObject *result = PyList_New(0);
-    priority_queue<Neighbour> queue;
+    std::priority_queue<Neighbour> queue;
     queue.push({0, start});
-    unordered_map<Point, Point> came_from = {{start, start}};
-    unordered_map<Point, int> distances = {{start, 0}};
-    unordered_map<Point, int> total_costs = {{start, 0}};
+    std::unordered_map<Point, Point> came_from = {{start, start}};
+    std::unordered_map<Point, int> distances = {{start, 0}};
     int height = (int)PyArray_DIM(grid, 0);
     int width = (int)PyArray_DIM(grid, 1);
     int* array_data_pointer = (int*)PyArray_DATA(grid);
@@ -155,14 +154,14 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
                 // Check if the neighbour is an obstacle
                 if (array_data_pointer[neighbour.y*width + neighbour.x] == obstacle_id) {
                     // Set the total cost for the obstacle to infinity
-                    total_costs[neighbour] = numeric_limits<int>::max();
+                    f_cost = std::numeric_limits<int>::max();
                 } else {
                     // Set the total cost for the neighbour to f = g + h
-                    total_costs[neighbour] = distances.at(neighbour) + calculate_heuristic(current, neighbour);
+                    f_cost = distances.at(neighbour) + calculate_heuristic(current, neighbour);
                 }
 
                 // Add the neighbour to the priority queue
-                queue.push({total_costs.at(neighbour), neighbour});
+                queue.push({f_cost, neighbour});
             }
         }
     }
