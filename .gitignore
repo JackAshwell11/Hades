@@ -16,6 +16,9 @@ coverage.lcov
 # Mypy files
 .mypy_cache/
 
+# C extension binaries
+*.pyd
+
 # Log and save files
 logs/
 saves/

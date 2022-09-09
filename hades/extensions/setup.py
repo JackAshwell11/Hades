@@ -20,9 +20,13 @@ if __name__ == "__main__":
         ext_modules=[
             Extension(
                 "astar",
-                [str(extension_path / "astar" / "astar.cpp")],
+                [str(extension_path / "src" / "astar.cpp")],
                 include_dirs=[np.get_include()],
-            )
+            ),
+            Extension(
+                "vector_field",
+                [str(extension_path / "src" / "vector_field.cpp")],
+            ),
         ],
         script_args=["build_ext"],
     )
@@ -35,5 +39,3 @@ if __name__ == "__main__":
     # Delete the build folder
     print(f"Extensions moved. Deleting {build_path}")
     shutil.rmtree(build_path)
-
-# TODO: No idea what would happen with multiple modules, need more investigating

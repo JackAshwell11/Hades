@@ -1,12 +1,12 @@
 #define PY_SSIZE_T_CLEAN
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <iostream>
-#include <list>
-#include <unordered_map>
-#include <queue>
-#include <limits>
 #include <Python.h>
 #include <numpy/arrayobject.h>
+#include <limits>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+#include <iostream>
 
 
 template <class T>
@@ -61,15 +61,16 @@ struct std::hash<Point> {
     }
 };
 
+
 inline int calculate_heuristic(Point a, Point b) {
     /* Calculates the heuristic used for the A* algorithm */
     return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
 
-inline std::list<Point> grid_bfs(Point target, int height, int width) {
+std::vector<Point> astar_grid_bfs(Point target, int height, int width) {
     /* Gets a target's neighbours in a grid for use with the A* algorithm */
-    std::list<Point> result;
+    std::vector<Point> result;
     for (int i = 0; i < 4; i++) {
         int x = target.x + CARDINAL_OFFSETS[i].x;
         int y = target.y + CARDINAL_OFFSETS[i].y;
@@ -144,7 +145,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
         //   f - The total cost of traversing the neighbour.
         //   g - The distance between the start point and the neighbour point.
         //   h - The estimated distance from the neighbour point to the end point.
-        for (Point neighbour : grid_bfs(current, height, width)) {
+        for (Point neighbour : astar_grid_bfs(current, height, width)) {
             if (!came_from.count(neighbour)) {
                 // Store the neighbour's parent and calculate its distance from the
                 // start point
@@ -177,6 +178,7 @@ PyDoc_STRVAR(
     "algorithm.\n\n"
 );
 
+
 PyDoc_STRVAR(
     astar_docstring,
     "Calculate the shortest path in a grid from one point to another using the A* "
@@ -196,6 +198,7 @@ PyDoc_STRVAR(
     "list[Point]\n"
     "    A list of points mapping out the shortest path from start to end."
 );
+
 
 PyDoc_STRVAR(
     heuristic_docstring,
@@ -234,6 +237,7 @@ static struct PyModuleDef astarmodule = {
     -1,
     astarmethods,
 };
+
 
 PyMODINIT_FUNC PyInit_astar(void) {
     /* Initialises this module so Python can access it */

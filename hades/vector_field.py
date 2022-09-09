@@ -23,6 +23,10 @@ __all__ = ("VectorField",)
 logger = logging.getLogger(__name__)
 
 
+# TODO: MAY BE NEEDED https://github.com/Aspect1103/Hades/commit/4398659883b155d8a987b3\
+#  f20589590d377e90ff#diff-e444752a4382ac5712d3a5f16875c46e52a3de0e6b522414df9491335645\
+#  cddaL121
+
 intercardinal_offsets: tuple[tuple[int, int], ...] = (
     (-1, -1),
     (0, -1),
