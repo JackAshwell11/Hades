@@ -1,5 +1,11 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <unordered_map>
+#include <vector>
+#include "hades_common.h"
+
+int WIDTH = -1, HEIGHT = -1;
+std::unordered_map<Pair, int> WALLS_DICT = {};
 
 
 PyDoc_STRVAR(

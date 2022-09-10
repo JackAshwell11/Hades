@@ -1,4 +1,4 @@
-"""Tests all functions in extensions/setup.py."""
+"""Tests all functions in extensions/extensions.py."""
 from __future__ import annotations
 
 # Pip
@@ -8,5 +8,5 @@ __all__ = ()
 
 
 def test_setup_script() -> None:
-    """Test the setup.py script."""
+    """Test the extensions.py script."""
     pytest.fail("IMPROVE SETUP.PY")

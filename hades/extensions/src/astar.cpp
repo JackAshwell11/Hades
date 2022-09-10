@@ -6,41 +6,14 @@
 #include <queue>
 #include <unordered_map>
 #include <vector>
-#include <iostream>
-
-
-template <class T>
-inline void hash_combine(size_t& seed, const T& v) {
-    /* Allows multiple hashes to be combined for a struct */
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
-
-
-struct Point {
-    /* Represents a namedtuple describing a point in the grid */
-    int x, y;
-
-    inline bool operator==(const Point pnt) const {
-        // If two hashes are the same, we need to check if the two structs are the same
-        return x == pnt.x && y == pnt.y;
-    }
-};
-
-
-Point CARDINAL_OFFSETS[4] = {
-    {0, -1},
-    {-1, 0},
-    {1, 0},
-    {0, 1},
-};
+#include "hades_common.h"
 
 
 struct Neighbour {
-    /* Represents a namedtuple describing a grid point and its cost from the start
+    /* Represents a namedtuple describing a grid pair and its cost from the start
     position */
     int cost;
-    Point point;
+    Pair pair;
 
     inline bool operator<(const Neighbour nghbr) const {
         // The priority_queue data structure gets the maximum priority, so we need to
@@ -50,41 +23,15 @@ struct Neighbour {
 };
 
 
-template<>
-struct std::hash<Point> {
-    /* Allows the Point struct to be hashed in a map */
-    size_t operator()(const Point& pnt) const {
-        size_t res = 0;
-        hash_combine(res, pnt.x);
-        hash_combine(res, pnt.y);
-        return res;
-    }
-};
-
-
-inline int calculate_heuristic(Point a, Point b) {
+inline int calculate_heuristic(Pair a, Pair b) {
     /* Calculates the heuristic used for the A* algorithm */
     return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
 
-std::vector<Point> astar_grid_bfs(Point target, int height, int width) {
-    /* Gets a target's neighbours in a grid for use with the A* algorithm */
-    std::vector<Point> result;
-    for (int i = 0; i < 4; i++) {
-        int x = target.x + CARDINAL_OFFSETS[i].x;
-        int y = target.y + CARDINAL_OFFSETS[i].y;
-        if ((x >= 0 && x < width) && (y >= 0 && y < height)) {
-            result.push_back({x, y});
-        }
-    }
-    return result;
-}
-
-
 static PyObject *heuristic(PyObject *self, PyObject *args) {
     /* Parse arguments */
-    struct Point a, b;
+    struct Pair a, b;
     if (!PyArg_ParseTuple(args, "(ii)(ii)", &a.x, &a.y, &b.x, &b.y)) {
         return NULL;
     }
@@ -100,7 +47,7 @@ static PyObject *heuristic(PyObject *self, PyObject *args) {
 static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     /* Parse arguments */
     PyArrayObject *grid = NULL;
-    struct Point start, end;
+    struct Pair start, end;
     int obstacle_id = NULL;
     if (!PyArg_ParseTuple(args, "O(ii)(ii)i", &grid, &start.x, &start.y, &end.x, &end.y, &obstacle_id)) {
         return NULL;
@@ -112,43 +59,43 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     PyObject *result = PyList_New(0);
     std::priority_queue<Neighbour> queue;
     queue.push({0, start});
-    std::unordered_map<Point, Point> came_from = {{start, start}};
-    std::unordered_map<Point, int> distances = {{start, 0}};
+    std::unordered_map<Pair, Pair> came_from = {{start, start}};
+    std::unordered_map<Pair, int> distances = {{start, 0}};
     int height = (int)PyArray_DIM(grid, 0);
     int width = (int)PyArray_DIM(grid, 1);
     int* array_data_pointer = (int*)PyArray_DATA(grid);
 
     // Loop until the priority queue is empty
     while (!queue.empty()) {
-        // Get the lowest cost point from the priority queue
+        // Get the lowest cost pair from the priority queue
         Neighbour current_f = queue.top();
         queue.pop();
-        Point current = current_f.point;
+        Pair current = current_f.pair;
 
         // Check if we've reached our target
         if (current == end) {
             // Backtrack through came_from to get the path
             while (!(came_from.at(current) == current)) {
-                // Add the current point to the result list
+                // Add the current pair to the result list
                 PyList_Append(result, Py_BuildValue("(ii)", current.x, current.y));
 
-                // Get the next point in the path
+                // Get the next pair in the path
                 current = came_from.at(current);
             }
 
-            // Add the start point and exit out of the loop
+            // Add the start pair and exit out of the loop
             PyList_Append(result, Py_BuildValue("(ii)", start.x, start.y));
             break;
         }
 
         // Add all the neighbours to the heap with their cost being f = g + h:
         //   f - The total cost of traversing the neighbour.
-        //   g - The distance between the start point and the neighbour point.
-        //   h - The estimated distance from the neighbour point to the end point.
-        for (Point neighbour : astar_grid_bfs(current, height, width)) {
+        //   g - The distance between the start pair and the neighbour pair.
+        //   h - The estimated distance from the neighbour pair to the end pair.
+        for (Pair neighbour : grid_bfs(current, height, width)) {
             if (!came_from.count(neighbour)) {
                 // Store the neighbour's parent and calculate its distance from the
-                // start point
+                // start pair
                 came_from[neighbour] = current;
                 distances[neighbour] = distances.at(came_from.at(neighbour)) + 1;
 
@@ -174,14 +121,14 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
 
 PyDoc_STRVAR(
     astar_module_docstring,
-    "Calculate the shortest path in a grid from one point to another using the A* "
+    "Calculate the shortest path in a grid from one pair to another using the A* "
     "algorithm.\n\n"
 );
 
 
 PyDoc_STRVAR(
     astar_docstring,
-    "Calculate the shortest path in a grid from one point to another using the A* "
+    "Calculate the shortest path in a grid from one pair to another using the A* "
     "algorithm.\n\n"
     "Further reading which may be useful:\n"
     "`The A* algorithm <https://en.wikipedia.org/wiki/A*_search_algorithm>`_\n\n"
@@ -189,20 +136,20 @@ PyDoc_STRVAR(
     "----------\n"
     "grid: np.ndarray\n"
     "   The 2D grid which represents the dungeon.\n"
-    "start: Point\n"
-    "    The start point for the algorithm.\n"
-    "end: Point\n"
-    "    The end point for the algorithm.\n\n"
+    "start: Pair\n"
+    "    The start pair for the algorithm.\n"
+    "end: Pair\n"
+    "    The end pair for the algorithm.\n\n"
     "Returns\n"
     "-------\n"
-    "list[Point]\n"
-    "    A list of points mapping out the shortest path from start to end."
+    "list[Pair]\n"
+    "    A list of pairs mapping out the shortest path from start to end."
 );
 
 
 PyDoc_STRVAR(
     heuristic_docstring,
-    "Calculate the Manhattan distance between two points.\n\n"
+    "Calculate the Manhattan distance between two pairs.\n\n"
     "This preferable to the Euclidean distance since we can generate staircase-like "
     "paths instead of straight line paths.\n\n"
     "Further reading which may be useful:\n"
@@ -210,10 +157,10 @@ PyDoc_STRVAR(
     "`Euclidean distance <https://en.wikipedia.org/wiki/Euclidean_distance>`_\n\n"
     "Parameters\n"
     "----------\n"
-    "a: Point\n"
-    "    The first point.\n"
-    "b: Point\n"
-    "    The second point.\n\n"
+    "a: Pair\n"
+    "    The first pair.\n"
+    "b: Pair\n"
+    "    The second pair.\n\n"
     "Returns\n"
     "-------\n"
     "int\n"
