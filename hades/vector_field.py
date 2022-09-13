@@ -107,7 +107,7 @@ class VectorField:
         self.height: int = height
         self.walls_dict: dict[tuple[int, int], int] = {}
         self.distances: dict[tuple[int, int], int] = {}
-        self.vector_dict: dict[tuple[int, int], tuple[float, float]] = {}
+        self.vector_dict: dict[tuple[int, int], tuple[int, int]] = {}
         for wall in walls:
             self.walls_dict[self.get_tile_pos_for_pixel(wall.position)] = np.inf
 
@@ -242,7 +242,7 @@ class VectorField:
 
     def get_vector_direction(
         self, current_enemy_pos: tuple[float, float]
-    ) -> tuple[float, float]:
+    ) -> tuple[int, int]:
         """Get the vector the enemy should travel on based on their current position.
 
         Parameters
@@ -252,7 +252,7 @@ class VectorField:
 
         Returns
         -------
-        tuple[float, float[
+        tuple[int, int]
             The vector the enemy needs to travel in.
         """
         return self.vector_dict[self.get_tile_pos_for_pixel(current_enemy_pos)]

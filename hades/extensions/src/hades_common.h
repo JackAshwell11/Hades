@@ -6,25 +6,26 @@ inline void hash_combine(size_t& seed, const T& v) {
 }
 
 
-struct Pair {
+struct IntPair {
     /* Represents a namedtuple describing a pair of integers */
     int x, y;
 
-    inline bool operator==(const Pair pair) const {
+    inline bool operator==(const IntPair pair) const {
         // If two hashes are the same, we need to check if the two pairs are the same
         return x == pair.x && y == pair.y;
     }
 };
 
 
-std::vector<Pair> CARDINAL_OFFSETS = {
+std::vector<IntPair> CARDINAL_OFFSETS = {
         {0, -1},
         {-1, 0},
         {1, 0},
         {0, 1},
 };
 
-std::vector<Pair> INTERCARDINAL_OFFSETS = {
+
+std::vector<IntPair> INTERCARDINAL_OFFSETS = {
         {-1, -1},
         {0, -1},
         {1, -1},
@@ -37,9 +38,9 @@ std::vector<Pair> INTERCARDINAL_OFFSETS = {
 
 
 template<>
-struct std::hash<Pair> {
+struct std::hash<IntPair> {
     /* Allows the pair struct to be hashed in a map */
-    size_t operator()(const Pair& pnt) const {
+    size_t operator()(const IntPair &pnt) const {
         size_t res = 0;
         hash_combine(res, pnt.x);
         hash_combine(res, pnt.y);
@@ -48,9 +49,9 @@ struct std::hash<Pair> {
 };
 
 
-std::vector<Pair> grid_bfs(Pair target, int height, int width, std::vector<Pair> offsets = CARDINAL_OFFSETS) {
+std::vector<IntPair> grid_bfs(IntPair target, int height, int width, std::vector<IntPair> offsets = CARDINAL_OFFSETS) {
     /* Gets a target's neighbours in a grid */
-    std::vector<Pair> result;
+    std::vector<IntPair> result;
     for (int i = 0; i < offsets.size(); i++) {
         int x = target.x + offsets[i].x;
         int y = target.y + offsets[i].y;

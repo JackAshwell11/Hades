@@ -7,7 +7,8 @@ from pathlib import Path
 
 # Pip
 import numpy as np
-from setuptools import Extension, setup
+from pybind11.setup_helpers import Pybind11Extension
+from setuptools import setup
 
 if __name__ == "__main__":
     # Set up a few variables needed for the compiling
@@ -17,7 +18,7 @@ if __name__ == "__main__":
 
     # Build all the extensions
     ext_modules = [
-        Extension(
+        Pybind11Extension(
             path.stem,
             [str(path)],
             include_dirs=[np.get_include() if path.stem in NUMPY_EXTENSIONS else None],

@@ -13,7 +13,7 @@ struct Neighbour {
     /* Represents a namedtuple describing a grid pair and its cost from the start
     position */
     int cost;
-    Pair pair;
+    IntPair pair;
 
     inline bool operator<(const Neighbour nghbr) const {
         // The priority_queue data structure gets the maximum priority, so we need to
@@ -23,7 +23,7 @@ struct Neighbour {
 };
 
 
-inline int calculate_heuristic(Pair a, Pair b) {
+inline int calculate_heuristic(IntPair a, IntPair b) {
     /* Calculates the heuristic used for the A* algorithm */
     return abs(a.x - b.x) + abs(a.y - b.y);
 }
@@ -31,9 +31,9 @@ inline int calculate_heuristic(Pair a, Pair b) {
 
 static PyObject *heuristic(PyObject *self, PyObject *args) {
     /* Parse arguments */
-    struct Pair a, b;
+    struct IntPair a, b;
     if (!PyArg_ParseTuple(args, "(ii)(ii)", &a.x, &a.y, &b.x, &b.y)) {
-        return NULL;
+        return Py_BuildValue("");
     }
 
     /* Heuristic logic */
@@ -46,11 +46,11 @@ static PyObject *heuristic(PyObject *self, PyObject *args) {
 
 static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     /* Parse arguments */
-    PyArrayObject *grid = NULL;
-    struct Pair start, end;
-    int obstacle_id = NULL;
+    PyArrayObject *grid;
+    struct IntPair start, end;
+    int obstacle_id;
     if (!PyArg_ParseTuple(args, "O(ii)(ii)i", &grid, &start.x, &start.y, &end.x, &end.y, &obstacle_id)) {
-        return NULL;
+        return Py_BuildValue("");
     }
 
     /* A* algorithm logic */
@@ -59,8 +59,8 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     PyObject *result = PyList_New(0);
     std::priority_queue<Neighbour> queue;
     queue.push({0, start});
-    std::unordered_map<Pair, Pair> came_from = {{start, start}};
-    std::unordered_map<Pair, int> distances = {{start, 0}};
+    std::unordered_map<IntPair, IntPair> came_from = {{start, start}};
+    std::unordered_map<IntPair, int> distances = {{start, 0}};
     int height = (int)PyArray_DIM(grid, 0);
     int width = (int)PyArray_DIM(grid, 1);
     int* array_data_pointer = (int*)PyArray_DATA(grid);
@@ -70,7 +70,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
         // Get the lowest cost pair from the priority queue
         Neighbour current_f = queue.top();
         queue.pop();
-        Pair current = current_f.pair;
+        IntPair current = current_f.pair;
 
         // Check if we've reached our target
         if (current == end) {
@@ -92,7 +92,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
         //   f - The total cost of traversing the neighbour.
         //   g - The distance between the start pair and the neighbour pair.
         //   h - The estimated distance from the neighbour pair to the end pair.
-        for (Pair neighbour : grid_bfs(current, height, width)) {
+        for (IntPair neighbour : grid_bfs(current, height, width)) {
             if (!came_from.count(neighbour)) {
                 // Store the neighbour's parent and calculate its distance from the
                 // start pair
@@ -172,7 +172,7 @@ static PyMethodDef astarmethods[] = {
     /* Defines the metadata for methods accessible through Python */
     {"calculate_astar_path", calculate_astar_path, METH_VARARGS, astar_docstring},
     {"heuristic", heuristic, METH_VARARGS, heuristic_docstring},
-    {NULL, NULL, 0, NULL}
+    {NULL, NULL, 0, NULL},
 };
 
 
