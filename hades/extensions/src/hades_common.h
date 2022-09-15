@@ -1,9 +1,8 @@
-template <class T>
-inline void hash_combine(size_t& seed, const T& v) {
-    /* Allows multiple hashes to be combined for a struct */
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <limits>
+#include <unordered_map>
+#include <vector>
 
 
 struct IntPair {
@@ -17,6 +16,7 @@ struct IntPair {
 };
 
 
+/* Represents the north, south, east and west directions on a compass */
 std::vector<IntPair> CARDINAL_OFFSETS = {
         {0, -1},
         {-1, 0},
@@ -25,6 +25,8 @@ std::vector<IntPair> CARDINAL_OFFSETS = {
 };
 
 
+/* Represents the north, south, east, west, north-east, north-west, south-east and
+south-west directions on a compass */
 std::vector<IntPair> INTERCARDINAL_OFFSETS = {
         {-1, -1},
         {0, -1},
@@ -37,13 +39,21 @@ std::vector<IntPair> INTERCARDINAL_OFFSETS = {
 };
 
 
+template <class T>
+inline void hash_combine(size_t& seed, const T& v) {
+    /* Allows multiple hashes to be combined for a struct */
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
+
 template<>
 struct std::hash<IntPair> {
     /* Allows the pair struct to be hashed in a map */
-    size_t operator()(const IntPair &pnt) const {
+    size_t operator()(const IntPair &pair) const {
         size_t res = 0;
-        hash_combine(res, pnt.x);
-        hash_combine(res, pnt.y);
+        hash_combine(res, pair.x);
+        hash_combine(res, pair.y);
         return res;
     }
 };

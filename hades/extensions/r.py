@@ -1,8 +1,119 @@
-"""test."""
+import arcade
 from vector_field.vector_field import VectorField
 
-f = VectorField(1, 2, 3, [(4.5, 5.5), (6.5, 7.5)])
-print(f"class = {f}")
-print(f"width = {f.width}")
-print(f"height = {f.height}")
-print(f.recalculate_map((5.5, 6.6), 7))
+
+def t():
+    temp_spritelist = arcade.SpriteList()
+    temp_spritelist.extend(
+        [
+            arcade.Sprite(center_x=84.0, center_y=84.0),
+            arcade.Sprite(center_x=140.0, center_y=84.0),
+            arcade.Sprite(center_x=196.0, center_y=84.0),
+            arcade.Sprite(center_x=252.0, center_y=84.0),
+            arcade.Sprite(center_x=308.0, center_y=84.0),
+            arcade.Sprite(center_x=364.0, center_y=84.0),
+            arcade.Sprite(center_x=420.0, center_y=84.0),
+            arcade.Sprite(center_x=84.0, center_y=140.0),
+            arcade.Sprite(center_x=420.0, center_y=140.0),
+            arcade.Sprite(center_x=812.0, center_y=140.0),
+            arcade.Sprite(center_x=868.0, center_y=140.0),
+            arcade.Sprite(center_x=924.0, center_y=140.0),
+            arcade.Sprite(center_x=980.0, center_y=140.0),
+            arcade.Sprite(center_x=1036.0, center_y=140.0),
+            arcade.Sprite(center_x=84.0, center_y=196.0),
+            arcade.Sprite(center_x=420.0, center_y=196.0),
+            arcade.Sprite(center_x=812.0, center_y=196.0),
+            arcade.Sprite(center_x=1036.0, center_y=196.0),
+            arcade.Sprite(center_x=84.0, center_y=252.0),
+            arcade.Sprite(center_x=420.0, center_y=252.0),
+            arcade.Sprite(center_x=812.0, center_y=252.0),
+            arcade.Sprite(center_x=1036.0, center_y=252.0),
+            arcade.Sprite(center_x=84.0, center_y=308.0),
+            arcade.Sprite(center_x=420.0, center_y=308.0),
+            arcade.Sprite(center_x=812.0, center_y=308.0),
+            arcade.Sprite(center_x=1036.0, center_y=308.0),
+            arcade.Sprite(center_x=84.0, center_y=364.0),
+            arcade.Sprite(center_x=420.0, center_y=364.0),
+            arcade.Sprite(center_x=812.0, center_y=364.0),
+            arcade.Sprite(center_x=1036.0, center_y=364.0),
+            arcade.Sprite(center_x=84.0, center_y=420.0),
+            arcade.Sprite(center_x=420.0, center_y=420.0),
+            arcade.Sprite(center_x=756.0, center_y=420.0),
+            arcade.Sprite(center_x=812.0, center_y=420.0),
+            arcade.Sprite(center_x=1036.0, center_y=420.0),
+            arcade.Sprite(center_x=84.0, center_y=476.0),
+            arcade.Sprite(center_x=420.0, center_y=476.0),
+            arcade.Sprite(center_x=756.0, center_y=476.0),
+            arcade.Sprite(center_x=980.0, center_y=476.0),
+            arcade.Sprite(center_x=1036.0, center_y=476.0),
+            arcade.Sprite(center_x=84.0, center_y=532.0),
+            arcade.Sprite(center_x=420.0, center_y=532.0),
+            arcade.Sprite(center_x=700.0, center_y=532.0),
+            arcade.Sprite(center_x=756.0, center_y=532.0),
+            arcade.Sprite(center_x=980.0, center_y=532.0),
+            arcade.Sprite(center_x=84.0, center_y=588.0),
+            arcade.Sprite(center_x=140.0, center_y=588.0),
+            arcade.Sprite(center_x=364.0, center_y=588.0),
+            arcade.Sprite(center_x=420.0, center_y=588.0),
+            arcade.Sprite(center_x=700.0, center_y=588.0),
+            arcade.Sprite(center_x=980.0, center_y=588.0),
+            arcade.Sprite(center_x=140.0, center_y=644.0),
+            arcade.Sprite(center_x=364.0, center_y=644.0),
+            arcade.Sprite(center_x=588.0, center_y=644.0),
+            arcade.Sprite(center_x=644.0, center_y=644.0),
+            arcade.Sprite(center_x=700.0, center_y=644.0),
+            arcade.Sprite(center_x=924.0, center_y=644.0),
+            arcade.Sprite(center_x=980.0, center_y=644.0),
+            arcade.Sprite(center_x=1036.0, center_y=644.0),
+            arcade.Sprite(center_x=140.0, center_y=700.0),
+            arcade.Sprite(center_x=364.0, center_y=700.0),
+            arcade.Sprite(center_x=588.0, center_y=700.0),
+            arcade.Sprite(center_x=1036.0, center_y=700.0),
+            arcade.Sprite(center_x=28.0, center_y=756.0),
+            arcade.Sprite(center_x=84.0, center_y=756.0),
+            arcade.Sprite(center_x=140.0, center_y=756.0),
+            arcade.Sprite(center_x=364.0, center_y=756.0),
+            arcade.Sprite(center_x=420.0, center_y=756.0),
+            arcade.Sprite(center_x=476.0, center_y=756.0),
+            arcade.Sprite(center_x=532.0, center_y=756.0),
+            arcade.Sprite(center_x=588.0, center_y=756.0),
+            arcade.Sprite(center_x=1036.0, center_y=756.0),
+            arcade.Sprite(center_x=28.0, center_y=812.0),
+            arcade.Sprite(center_x=1036.0, center_y=812.0),
+            arcade.Sprite(center_x=28.0, center_y=868.0),
+            arcade.Sprite(center_x=1036.0, center_y=868.0),
+            arcade.Sprite(center_x=28.0, center_y=924.0),
+            arcade.Sprite(center_x=1036.0, center_y=924.0),
+            arcade.Sprite(center_x=28.0, center_y=980.0),
+            arcade.Sprite(center_x=420.0, center_y=980.0),
+            arcade.Sprite(center_x=476.0, center_y=980.0),
+            arcade.Sprite(center_x=532.0, center_y=980.0),
+            arcade.Sprite(center_x=588.0, center_y=980.0),
+            arcade.Sprite(center_x=1036.0, center_y=980.0),
+            arcade.Sprite(center_x=28.0, center_y=1036.0),
+            arcade.Sprite(center_x=84.0, center_y=1036.0),
+            arcade.Sprite(center_x=140.0, center_y=1036.0),
+            arcade.Sprite(center_x=196.0, center_y=1036.0),
+            arcade.Sprite(center_x=252.0, center_y=1036.0),
+            arcade.Sprite(center_x=308.0, center_y=1036.0),
+            arcade.Sprite(center_x=364.0, center_y=1036.0),
+            arcade.Sprite(center_x=420.0, center_y=1036.0),
+            arcade.Sprite(center_x=588.0, center_y=1036.0),
+            arcade.Sprite(center_x=644.0, center_y=1036.0),
+            arcade.Sprite(center_x=700.0, center_y=1036.0),
+            arcade.Sprite(center_x=756.0, center_y=1036.0),
+            arcade.Sprite(center_x=812.0, center_y=1036.0),
+            arcade.Sprite(center_x=868.0, center_y=1036.0),
+            arcade.Sprite(center_x=924.0, center_y=1036.0),
+            arcade.Sprite(center_x=980.0, center_y=1036.0),
+            arcade.Sprite(center_x=1036.0, center_y=1036.0),
+        ]
+    )
+    return temp_spritelist
+
+
+r = VectorField(t(), 5, 6, 7)
+print(f"class = {r}")
+print(f"width = {r.width}")
+print(f"height = {r.height}")
+print(f"walls dict = {r.walls_dict}")

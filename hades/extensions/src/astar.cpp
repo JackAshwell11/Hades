@@ -1,12 +1,59 @@
-#define PY_SSIZE_T_CLEAN
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <Python.h>
-#include <numpy/arrayobject.h>
-#include <limits>
-#include <queue>
-#include <unordered_map>
-#include <vector>
 #include "hades_common.h"
+#include <numpy/arrayobject.h>
+#include <queue>
+
+
+/* Stores the docstring for the astar module */
+PyDoc_STRVAR(
+    astar_module_docstring,
+    "Calculate the shortest path in a grid from one pair to another using the A* "
+    "algorithm.\n\n"
+);
+
+
+/* Stores the docstring for the calculate_astar_path method */
+PyDoc_STRVAR(
+    astar_docstring,
+    "Calculate the shortest path in a grid from one pair to another using the A* "
+    "algorithm.\n\n"
+    "Further reading which may be useful:\n"
+    "`The A* algorithm <https://en.wikipedia.org/wiki/A*_search_algorithm>`_\n\n"
+    "Parameters\n"
+    "----------\n"
+    "grid: np.ndarray\n"
+    "   The 2D grid which represents the dungeon.\n"
+    "start: Pair\n"
+    "    The start pair for the algorithm.\n"
+    "end: Pair\n"
+    "    The end pair for the algorithm.\n\n"
+    "Returns\n"
+    "-------\n"
+    "list[Pair]\n"
+    "    A list of pairs mapping out the shortest path from start to end."
+);
+
+
+/* Stores the docstring for the heuristic method */
+PyDoc_STRVAR(
+    heuristic_docstring,
+    "Calculate the Manhattan distance between two pairs.\n\n"
+    "This preferable to the Euclidean distance since we can generate staircase-like "
+    "paths instead of straight line paths.\n\n"
+    "Further reading which may be useful:\n"
+    "`Manhattan distance <https://en.wikipedia.org/wiki/Taxicab_geometry>`_\n"
+    "`Euclidean distance <https://en.wikipedia.org/wiki/Euclidean_distance>`_\n\n"
+    "Parameters\n"
+    "----------\n"
+    "a: Pair\n"
+    "    The first pair.\n"
+    "b: Pair\n"
+    "    The second pair.\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The heuristic distance."
+);
 
 
 struct Neighbour {
@@ -119,76 +166,34 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
 }
 
 
-PyDoc_STRVAR(
-    astar_module_docstring,
-    "Calculate the shortest path in a grid from one pair to another using the A* "
-    "algorithm.\n\n"
-);
-
-
-PyDoc_STRVAR(
-    astar_docstring,
-    "Calculate the shortest path in a grid from one pair to another using the A* "
-    "algorithm.\n\n"
-    "Further reading which may be useful:\n"
-    "`The A* algorithm <https://en.wikipedia.org/wiki/A*_search_algorithm>`_\n\n"
-    "Parameters\n"
-    "----------\n"
-    "grid: np.ndarray\n"
-    "   The 2D grid which represents the dungeon.\n"
-    "start: Pair\n"
-    "    The start pair for the algorithm.\n"
-    "end: Pair\n"
-    "    The end pair for the algorithm.\n\n"
-    "Returns\n"
-    "-------\n"
-    "list[Pair]\n"
-    "    A list of pairs mapping out the shortest path from start to end."
-);
-
-
-PyDoc_STRVAR(
-    heuristic_docstring,
-    "Calculate the Manhattan distance between two pairs.\n\n"
-    "This preferable to the Euclidean distance since we can generate staircase-like "
-    "paths instead of straight line paths.\n\n"
-    "Further reading which may be useful:\n"
-    "`Manhattan distance <https://en.wikipedia.org/wiki/Taxicab_geometry>`_\n"
-    "`Euclidean distance <https://en.wikipedia.org/wiki/Euclidean_distance>`_\n\n"
-    "Parameters\n"
-    "----------\n"
-    "a: Pair\n"
-    "    The first pair.\n"
-    "b: Pair\n"
-    "    The second pair.\n\n"
-    "Returns\n"
-    "-------\n"
-    "int\n"
-    "    The heuristic distance."
-);
-
-
-static PyMethodDef astarmethods[] = {
+static PyMethodDef astar_methods[] = {
     /* Defines the metadata for methods accessible through Python */
     {"calculate_astar_path", calculate_astar_path, METH_VARARGS, astar_docstring},
     {"heuristic", heuristic, METH_VARARGS, heuristic_docstring},
-    {NULL, NULL, 0, NULL},
+    {NULL},
 };
 
 
-static struct PyModuleDef astarmodule = {
+static struct PyModuleDef astar_module = {
     /* Defines the metadata for this extension module */
     PyModuleDef_HEAD_INIT,
     "astar",
     astar_module_docstring,
     -1,
-    astarmethods,
+    astar_methods,
 };
 
 
 PyMODINIT_FUNC PyInit_astar(void) {
     /* Initialises this module so Python can access it */
-    PyObject *module = PyModule_Create(&astarmodule);
+    // Initialise the C++ module and check if it's valid or not
+    PyObject *module = PyModule_Create(&astar_module);
+    if (module == NULL)
+        return NULL;
+
+    // Initialise the Numpy C-API
     import_array();
+
+    // Return the C++ initialised module
     return module;
 }

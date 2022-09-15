@@ -7,14 +7,12 @@ import arcade
 class VectorField:
     def __init__(
         self,
-        sprite_pixel_size: int,
-        grid_height: int,
-        grid_width: int,
         walls: arcade.SpriteList,
+        sprite_size: int,
+        height: int,
+        width: int,
     ) -> None: ...
-    def get_tile_pos_for_pixel(
-        self, position: tuple[float, float]
-    ) -> tuple[int, int]: ...
+    def pixel_to_tile_pos(self, position: tuple[float, float]) -> tuple[int, int]: ...
     def recalculate_map(
         self, player_pos: tuple[float, float], player_view_distance: int
     ) -> list[tuple[int, int]]: ...

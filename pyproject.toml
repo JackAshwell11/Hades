@@ -16,7 +16,6 @@ repository = "https://github.com/Aspect1103/Hades"
 python = "^3.10"
 arcade = "2.6.15"
 numpy = "1.23.3"
-pybind11 = "2.10.0"
 pymunk = "6.2.1"
 shapely = "1.8.4"
 
@@ -57,7 +56,9 @@ envlist = clean, py310, report
 
 [testenv]
 allowlist_externals = poetry
-commands = poetry run pytest --cov-append
+commands =
+    poetry run python ./hades/extensions/extensions.py
+    poetry run pytest --cov-append
 
 [testenv:clean]
 allowlist_externals = coverage
