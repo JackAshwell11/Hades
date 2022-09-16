@@ -231,7 +231,7 @@ class Game(BaseView):
                     self.item_sprites.append(instantiated_consumable)
                 else:
                     # Unknown type
-                    logger.warning("Unknown tiletype %r", x)
+                    logger.warning("Unknown TileType %r", x)
                     continue
 
         # Make sure the game map shape was set and the player was actually created

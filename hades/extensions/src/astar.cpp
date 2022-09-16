@@ -4,6 +4,12 @@
 #include <queue>
 
 
+// ----- CONSTANTS ------------------------------
+/* The ID of a TileType obstacle */
+int OBSTACLE_ID;
+
+
+// ----- DOCSTRINGS ------------------------------
 /* Stores the docstring for the astar module */
 PyDoc_STRVAR(
     astar_module_docstring,
@@ -56,6 +62,7 @@ PyDoc_STRVAR(
 );
 
 
+// ----- STRUCTURES ------------------------------
 struct Neighbour {
     /* Represents a namedtuple describing a grid pair and its cost from the start
     position */
@@ -70,12 +77,14 @@ struct Neighbour {
 };
 
 
+// ----- C METHODS ------------------------------
 inline int calculate_heuristic(IntPair a, IntPair b) {
     /* Calculates the heuristic used for the A* algorithm */
     return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
 
+// ----- PYCFUNCTIONS ------------------------------
 static PyObject *heuristic(PyObject *self, PyObject *args) {
     /* Parse arguments */
     struct IntPair a, b;
@@ -95,8 +104,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     /* Parse arguments */
     PyArrayObject *grid;
     struct IntPair start, end;
-    int obstacle_id;
-    if (!PyArg_ParseTuple(args, "O(ii)(ii)i", &grid, &start.x, &start.y, &end.x, &end.y, &obstacle_id)) {
+    if (!PyArg_ParseTuple(args, "O(ii)(ii)", &grid, &start.x, &start.y, &end.x, &end.y)) {
         return Py_BuildValue("");
     }
 
@@ -111,6 +119,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     int height = (int)PyArray_DIM(grid, 0);
     int width = (int)PyArray_DIM(grid, 1);
     int* array_data_pointer = (int*)PyArray_DATA(grid);
+    Py_DECREF(grid);
 
     // Loop until the priority queue is empty
     while (!queue.empty()) {
@@ -147,9 +156,9 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
                 distances[neighbour] = distances.at(came_from.at(neighbour)) + 1;
 
                 // Check if the neighbour is an obstacle
-                if (array_data_pointer[neighbour.y*width + neighbour.x] == obstacle_id) {
+                if (array_data_pointer[neighbour.y*width + neighbour.x] == OBSTACLE_ID) {
                     // Set the total cost for the obstacle to infinity
-                    f_cost = std::numeric_limits<int>::max();
+                    f_cost = INT_INFINITY;
                 } else {
                     // Set the total cost for the neighbour to f = g + h
                     f_cost = distances.at(neighbour) + calculate_heuristic(current, neighbour);
@@ -166,6 +175,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
 }
 
 
+// ----- GLOBAL METHOD DEFINITIONS ------------------------------
 static PyMethodDef astar_methods[] = {
     /* Defines the metadata for methods accessible through Python */
     {"calculate_astar_path", calculate_astar_path, METH_VARARGS, astar_docstring},
@@ -174,6 +184,7 @@ static PyMethodDef astar_methods[] = {
 };
 
 
+// ----- MODULE DEFINITION ------------------------------
 static struct PyModuleDef astar_module = {
     /* Defines the metadata for this extension module */
     PyModuleDef_HEAD_INIT,
@@ -184,12 +195,16 @@ static struct PyModuleDef astar_module = {
 };
 
 
+// ----- MODULE CREATION ------------------------------
 PyMODINIT_FUNC PyInit_astar(void) {
     /* Initialises this module so Python can access it */
     // Initialise the C++ module and check if it's valid or not
     PyObject *module = PyModule_Create(&astar_module);
     if (module == NULL)
         return NULL;
+
+    // Initialise the constants
+    OBSTACLE_ID = (int) PyLong_AsLong(get_global_constant("hades.constants.generation", {"TileType", "OBSTACLE", "value"}));
 
     // Initialise the Numpy C-API
     import_array();

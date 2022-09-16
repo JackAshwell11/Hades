@@ -5,10 +5,11 @@ from __future__ import annotations
 import arcade
 
 class VectorField:
+    vector_dict: dict[tuple[int, int], tuple[int, int]]
+
     def __init__(
         self,
         walls: arcade.SpriteList,
-        sprite_size: int,
         height: int,
         width: int,
     ) -> None: ...

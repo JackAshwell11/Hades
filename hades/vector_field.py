@@ -189,7 +189,7 @@ class VectorField:
             # Get the current tile's neighbours
             for neighbour in grid_bfs(current, self.height, self.width):
                 # Check if the neighbour is a wall or not
-                if self.distances.get((neighbour[0], neighbour[1]), -1) == np.inf:
+                if self.distances.get(neighbour, -1) == np.inf:
                     continue
 
                 # Test if the neighbour has already been reached or not. If it hasn't,

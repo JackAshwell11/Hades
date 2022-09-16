@@ -8,12 +8,25 @@ from pathlib import Path
 # Pip
 import numpy as np
 from setuptools import Extension, setup
+from setuptools.command.build import build
+
+# The build directory path
+EXTENSION_PATH = Path(__file__).parent
+BUILD_DIR = EXTENSION_PATH / "build"
+
+
+class OverrideBuildDir(build):
+    """Allows the build directory path to be overridden."""
+
+    def initialize_options(self) -> None:
+        """Override the build_base argument of setuptools changing the build path."""
+        build.initialize_options(self)
+        self.build_base = str(BUILD_DIR)
+
 
 if __name__ == "__main__":
     # Set up a few variables needed for the compiling
     NUMPY_EXTENSIONS = ["astar"]
-    extension_path = Path(__file__).parent
-    build_path = extension_path / "build"
 
     # Build all the extensions
     ext_modules = [
@@ -22,25 +35,26 @@ if __name__ == "__main__":
             [str(path)],
             include_dirs=[np.get_include() if path.stem in NUMPY_EXTENSIONS else None],
         )
-        for path in extension_path.joinpath("src").glob("*.cpp")
+        for path in EXTENSION_PATH.joinpath("src").glob("*.cpp")
     ]
     print(f"Building {len(ext_modules)} extensions")
     print("****************************************")
     setup(
         ext_modules=ext_modules,
         script_args=["build_ext"],
+        cmdclass={"build": OverrideBuildDir},
     )
     print("****************************************")
     print(f"Successfully built {len(ext_modules)} extensions. Beginning moving process")
 
     # Move the built binaries out of the build folder
-    for extension in ext_modules:
-        print(f"Moving {extension.name} to module directory")
-        dest_file = list(build_path.rglob("*.pyd"))[0]
-        target_dir = extension_path / extension.name / dest_file.name
-        shutil.move(dest_file, target_dir)
-        print(f"Successfully moved {dest_file} to {target_dir}")
+    built_extensions = list(BUILD_DIR.rglob("*.pyd"))
+    for extension in built_extensions:
+        target_dir = EXTENSION_PATH / extension.name.split(".")[0] / extension.name
+        target_dir.unlink(True)
+        shutil.move(extension, target_dir)
+        print(f"Successfully moved {extension} to {target_dir}")
 
     # Delete the build folder
-    print(f"{len(ext_modules)} extensions moved. Deleting {build_path}")
-    shutil.rmtree(build_path)
+    print(f"{len(ext_modules)} extensions moved. Deleting {BUILD_DIR}")
+    shutil.rmtree(BUILD_DIR)

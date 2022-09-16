@@ -5,6 +5,7 @@
 #include <vector>
 
 
+// ----- INTPAIR STRUCTURE DEFINITION ------------------------------
 struct IntPair {
     /* Represents a namedtuple describing a pair of integers */
     int x, y;
@@ -13,29 +14,6 @@ struct IntPair {
         // If two hashes are the same, we need to check if the two pairs are the same
         return x == pair.x && y == pair.y;
     }
-};
-
-
-/* Represents the north, south, east and west directions on a compass */
-std::vector<IntPair> CARDINAL_OFFSETS = {
-        {0, -1},
-        {-1, 0},
-        {1, 0},
-        {0, 1},
-};
-
-
-/* Represents the north, south, east, west, north-east, north-west, south-east and
-south-west directions on a compass */
-std::vector<IntPair> INTERCARDINAL_OFFSETS = {
-        {-1, -1},
-        {0, -1},
-        {1, -1},
-        {-1, 0},
-        {1, 0},
-        {-1, 1},
-        {0, 1},
-        {1, 1},
 };
 
 
@@ -59,6 +37,34 @@ struct std::hash<IntPair> {
 };
 
 
+// ----- CONSTANTS ------------------------------
+/* Represents the north, south, east and west directions on a compass */
+std::vector<IntPair> CARDINAL_OFFSETS = {
+        {0, -1},
+        {-1, 0},
+        {1, 0},
+        {0, 1},
+};
+
+
+/* Represents the north, south, east, west, north-east, north-west, south-east and
+south-west directions on a compass */
+std::vector<IntPair> INTERCARDINAL_OFFSETS = {
+        {-1, -1},
+        {0, -1},
+        {1, -1},
+        {-1, 0},
+        {1, 0},
+        {-1, 1},
+        {0, 1},
+        {1, 1},
+};
+
+/* The value of int infinity stored for easy access */
+int INT_INFINITY = std::numeric_limits<int>::infinity();
+
+
+// ----- C METHODS ------------------------------
 std::vector<IntPair> grid_bfs(IntPair target, int height, int width, std::vector<IntPair> offsets = CARDINAL_OFFSETS) {
     /* Gets a target's neighbours in a grid */
     std::vector<IntPair> result;
@@ -70,4 +76,16 @@ std::vector<IntPair> grid_bfs(IntPair target, int height, int width, std::vector
         }
     }
     return result;
+}
+
+
+PyObject* get_global_constant(const char* module_name, std::vector<std::string> constant_names) {
+    /* Gets a global variable from a Python module */
+    PyObject *temp_module = PyImport_ImportModule(module_name);
+    PyObject *global_var = PyImport_AddModule(module_name);
+    for (std::string constant : constant_names) {
+        global_var = PyObject_GetAttrString(global_var, constant.c_str());
+    }
+    Py_DECREF(temp_module);
+    return global_var;
 }

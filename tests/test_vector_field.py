@@ -46,7 +46,10 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
     vector_result = []
     player_screen_pos = 252.0, 812.0
     player_grid_pos = vector_field.get_tile_pos_for_pixel(player_screen_pos)
-    temp_possible_spawns_valid = vector_field.recalculate_map(player_screen_pos, 5)
+    player_view_distance = 5
+    temp_possible_spawns_valid = vector_field.recalculate_map(
+        player_screen_pos, player_view_distance
+    )
     vector_dict_items = list(vector_field.vector_dict.items())
     for index in np.random.choice(len(vector_dict_items), 20):
         current_pos, vector = vector_dict_items[index]
@@ -64,7 +67,12 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
 
     # Check that all possible spawns are 5 tiles away from the player
     for spawn in temp_possible_spawns_valid:
-        assert vector_field.distances[spawn] > 5
+        # Note that this is the Manhattan heuristic since the Dijkstra map calculates
+        # the Manhattan distance for every tile from the origin
+        distance = abs(player_grid_pos[0] - spawn[0]) + abs(
+            player_grid_pos[1] - spawn[1]
+        )
+        assert distance > player_view_distance
 
     # Make sure we test what happens if the player's view distance is zero or negative
     assert (4, 14) not in vector_field.recalculate_map(player_screen_pos, 0)

@@ -35,7 +35,7 @@ pytest-icdiff = "0.6"
 pytest-instafail = "0.4.2"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.5"
-pyupgrade = "v2.37.3"
+pyupgrade = "v2.38.0"
 tox = "3.26.0"
 
 [tool.pytest.ini_options]
@@ -51,13 +51,13 @@ exclude_lines = [
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-isolated_build = true
 envlist = clean, py310, report
+isolated_build = true
 
 [testenv]
 allowlist_externals = poetry
 commands =
-    poetry run python ./hades/extensions/extensions.py
+    python -m hades.extensions.extensions
     poetry run pytest --cov-append
 
 [testenv:clean]

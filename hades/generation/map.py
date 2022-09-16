@@ -368,7 +368,6 @@ class Map:
                 self.grid,
                 Point(*pair_source.center),
                 Point(*pair_destination.center),
-                TileType.OBSTACLE,
             ):
                 # Test if the current tile is a floor tile
                 path_point = Point(*path_point_tup)

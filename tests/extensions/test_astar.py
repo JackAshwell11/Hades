@@ -87,7 +87,6 @@ def test_calculate_astar_path(
         get_obstacle_grid(),
         valid_point_one,
         valid_point_two,
-        TileType.OBSTACLE,
     )
     assert (
         temp_result_one[0] == valid_point_two
@@ -98,7 +97,6 @@ def test_calculate_astar_path(
         get_obstacle_grid(),
         valid_point_one,
         boundary_point,
-        TileType.OBSTACLE,
     )
     assert (
         temp_result_two[0] == boundary_point
@@ -110,5 +108,4 @@ def test_calculate_astar_path(
             get_obstacle_grid(),
             valid_point_one,
             invalid_point,
-            TileType.OBSTACLE,
         )

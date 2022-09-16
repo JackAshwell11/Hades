@@ -5,10 +5,9 @@ from __future__ import annotations
 import numpy as np
 
 # Custom
-from hades.constants.generation import TileType
 from hades.generation.primitives import Point
 
 def calculate_astar_path(
-    grid: np.ndarray, start: Point, end: Point, obstacle_id: TileType
+    grid: np.ndarray, start: Point, end: Point
 ) -> list[tuple[int, int]]: ...
 def heuristic(a: Point, b: Point) -> int: ...

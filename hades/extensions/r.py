@@ -112,8 +112,7 @@ def t():
     return temp_spritelist
 
 
-r = VectorField(t(), 5, 6, 7)
+r = VectorField(t(), 5, 6)
 print(f"class = {r}")
-print(f"width = {r.width}")
-print(f"height = {r.height}")
-print(f"walls dict = {r.walls_dict}")
+print(f"vector dict = {r.vector_dict}")
+print(r.recalculate_map((252.0, 812.0), 5))
