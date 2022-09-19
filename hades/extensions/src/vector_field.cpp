@@ -1,14 +1,15 @@
 #include "hades_common.h"
-//#include <math.h>
 #include <structmember.h>
 #include <deque>
 #include <string>
+#include <stdexcept>
 #include <iostream>
 
 
 // ----- CONSTANTS ------------------------------
 /* The width, height and sprite size constants for use in the vector field */
-int WIDTH, HEIGHT, SPRITE_SIZE;
+int WIDTH, HEIGHT;
+int SPRITE_SIZE = 56;
 
 
 /* An unordered map of wall grid positions with the cost of traversing them. This is
@@ -83,11 +84,21 @@ PyDoc_STRVAR(
 /* Stores the docstring for the VectorField.recalculate_map method */
 PyDoc_STRVAR(
     recalculate_map_docstring,
-    ""
+    "Recalculates the vector field and produces a new path_dict.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "player_pos: tuple[float, float]\n"
+    "    The position of the player on the screen.\n"
+    "player_view_distance: int\n"
+    "    The player's view distance.\n\n"
+    "Returns\n"
+    "-------\n"
+    "list[tuple[int, int]]\n"
+    "    A list of the possible enemy spawns."
 );
 
 
-// ----- C STRUCTURES ------------------------------
+// ----- C STRUCTURE DEFINITIONS ------------------------------
 struct FloatPair {
     /* Represents a namedtuple describing a pair of floats */
     float x, y;
@@ -119,69 +130,96 @@ static PyObject *pixel_to_tile_pos(PyObject *self, PyObject *args) {
     /* Converting logic */
     IntPair tile_pos = get_tile_pos_for_pixel(position);
 
-    /* Return result and do cleanup */
-    return Py_BuildValue("(ii)", position.x, position.y);
+    /* Return result */
+    return Py_BuildValue("(ii)", tile_pos.x, tile_pos.y);
 }
 
 
-//static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
-//    /* Parse arguments */
-//    VectorField *self = (VectorField*) obj;
-//    FloatPair player_pos;
-//    int player_view_distance;
-//    if (!PyArg_ParseTuple(args, "(ff)i", &player_pos.x, &player_pos.y, &player_view_distance)) {
-//        return Py_BuildValue("");
-//    }
-//
-//    /* Vector field recalculation logic */
-//    // To recalculate the map, we need a few things:
-//    //      1. A distances dict to store the distances to each tile position from the
-//    //      destination tile position. This needs to only include the elements inside
-//    //      the walls dict.
-//    //      2. A vector_dict dict to store the paths for the vector field. We also need
-//    //      to make sure this is empty first.
-//    //      3. A queue object, so we can explore the grid.
-//    //      4. A possible_spawns list to hold all the grid positions where enemies can
-//    //      spawn.
-//    PyObject *start_tup = pixel_to_tile_pos(NULL, Py_BuildValue("(ff)", player_pos.x, player_pos.y));
-//    self->distances = PyDict_Copy(self->walls_dict);
-//    PyDict_SetItem(self->distances, start_tup, Py_BuildValue("i", 0));
-//    PyDict_Clear(self->vector_dict);
-//    PyObject *possible_spawns = PyList_New(0);
-//    std::deque<PyObject*> queue;
-//    queue.push_back(start_tup);
-//
-//    // Explore the grid using a breadth first search (or a flood fill) to generate the
-//    // Dijkstra distances
-//    while (!queue.empty()) {
-//        // Get the current tile to explore
-//        PyObject *current = queue.back();
-//        queue.pop_back();
-//
-//        // Get the current tile's neighbours
-//        for (PyObject *neighbour : vector_field_grid_bfs(current, self->height, self->width)) {
-//            // Check if the neighbour is a wall or not
-//            //PyObject *neighbour_tup = Py_BuildValue("(ii)", neighbour.x, neighbour.y);
-//            PyObject *distance = PyDict_GetItem(self->distances, neighbour);
-//            if (distance == Py_BuildValue("i", std::numeric_limits<int>::infinity())) {
-//                continue;
-//            }
-//
-//            // Test if the neighbour has already been reached or not. If it hasn't, add
-//            // it to the queue and set its distance
-//            if (distance == NULL) {
-//                queue.push_back(neighbour);
-//                PyDict_SetItem(self->distances, neighbour, 1 + PyDict_GetItem(self->distances, current));
-//            }
-//        }
-//    }
-//
-//    PyObject_Print(self->distances, stdout, 0);
-//    std::cout << "\n";
-//
-//    /* Return result and do cleanup */
-//    return Py_BuildValue("");
-//}
+static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
+    /* Parse arguments */
+    VectorField *self = (VectorField*) obj;
+    FloatPair player_pos;
+    int player_view_distance;
+    if (!PyArg_ParseTuple(args, "(ff)i", &player_pos.x, &player_pos.y, &player_view_distance)) {
+        return Py_BuildValue("");
+    }
+
+    /* Vector field recalculation logic */
+    // To recalculate the map, we need a few things:
+    //      1. A distances dict to store the distances to each tile position from the
+    //      destination tile position. This needs to only include the elements inside
+    //      the walls dict.
+    //      2. A vector_dict dict to store the paths for the vector field. We also need
+    //      to make sure this is empty first.
+    //      3. A queue object, so we can explore the grid.
+    //      4. A possible_spawns list to hold all the grid positions where enemies can
+    //      spawn.
+    IntPair start = get_tile_pos_for_pixel(player_pos);
+    std::unordered_map<IntPair, int> distances = WALLS_DICT;
+    distances[start] = 0;
+    PyDict_Clear(self->vector_dict);
+    PyObject *possible_spawns = PyList_New(0);
+    std::deque<IntPair> queue = {start};
+
+    // Explore the grid using a breadth first search to generate the Dijkstra distances
+    while (!queue.empty()) {
+        // Get the current tile to explore
+        IntPair current = queue.front();
+        queue.pop_front();
+
+        // Get the current tile's neighbours
+        for (IntPair neighbour: grid_bfs(current, HEIGHT, WIDTH)) {
+            // Check if the neighbour is a wall or not. If so, continue to the next
+            // iteration. However, if it doesn't exist, add it to the queue and set its
+            // distance
+            try {
+                if (distances.at(neighbour) == INT_INFINITY) {
+                    continue;
+                }
+            } catch (std::out_of_range) {
+                queue.push_back(neighbour);
+                distances[neighbour] = 1 + distances[current];
+            }
+        }
+    }
+
+    // Use the newly generated Dijkstra map to get a neighbour with the lowest Dijkstra
+    // distance at each tile. Then create a vector pointing in that direction
+    for (std::pair<IntPair, int> tile : distances) {
+        // If this tile is a wall tile, ignore it
+        if (tile.second == INT_INFINITY) {
+            continue;
+        }
+
+        // Find the tile's neighbour with the lowest Dijkstra distance
+        PyObject *py_tile = Py_BuildValue("(ii)", tile.first.x, tile.first.y);
+        IntPair min_tile = {0, 0};
+        int min_dist = INT_INFINITY;
+        for (IntPair neighbour : grid_bfs(tile.first, HEIGHT, WIDTH, INTERCARDINAL_OFFSETS)) {
+            // Test if the neighbour has the lowest Dijkstra distance
+            if (distances[neighbour] < min_dist) {
+                min_tile = neighbour;
+                min_dist = distances[neighbour];
+            }
+        }
+
+        // Now point the tile's vector in the direction of the tile with the lowest
+        // Dijkstra distance
+        PyDict_SetItem(self->vector_dict, py_tile, Py_BuildValue("(ii)", -(tile.first.x - min_tile.x), -(tile.first.y - min_tile.y)));
+
+        // Also test if the current tile is outside the player's fov
+        if (tile.second > player_view_distance) {
+            PyList_Append(possible_spawns, py_tile);
+        }
+    }
+
+    // Set the vector for the destination tile to avoid weird movement when the enemy
+    // is touching the player
+    PyDict_SetItem(self->vector_dict, Py_BuildValue("(ii)", start.x, start.y), Py_BuildValue("(ii)", 0, 0));
+
+    /* Return result */
+    return possible_spawns;
+}
 
 
 // ----- VECTORFIELD MAGIC METHODS ------------------------------
@@ -197,7 +235,7 @@ static PyObject *vector_field_repr(VectorField *self) {
 static int vector_field_init(VectorField *self, PyObject *args, PyObject *kwds) {
     /* Parse arguments */
     PyObject *walls;
-    if (!PyArg_ParseTuple(args, "Oii", &walls, &HEIGHT, &WIDTH)) {
+    if (!PyArg_ParseTuple(args, "Oii", &walls, &WIDTH, &HEIGHT)) {
         return -1;
     }
 
@@ -224,7 +262,7 @@ static int vector_field_init(VectorField *self, PyObject *args, PyObject *kwds) 
 static PyMethodDef vector_field_methods[] = {
     /* Defines the methods which belong to the VectorField type */
     {"pixel_to_tile_pos", pixel_to_tile_pos, METH_VARARGS | METH_STATIC, pixel_to_tile_pos_docstring},
-    //{"recalculate_map", recalculate_map, METH_VARARGS},
+    {"recalculate_map", recalculate_map, METH_VARARGS},
     {NULL},
 };
 
@@ -293,23 +331,16 @@ static struct PyModuleDef vector_field_module = {
 // ----- MODULE CREATION ------------------------------
 PyMODINIT_FUNC PyInit_vector_field(void) {
     /* Initialises this module so Python can access it */
-        // Initialise the C++ module and check if it's valid or not
+    // Initialise the C++ module and check if it's valid or not
     PyObject *module = PyModule_Create(&vector_field_module);
     if (module == NULL)
-        return NULL;
-
-    // Check if the VectorField object is ready to be initialised or not
-    if (PyType_Ready(&VectorFieldType) < 0)
         return NULL;
 
     // Initialise the constants
     SPRITE_SIZE = (int) PyFloat_AsDouble(get_global_constant("hades.constants.game_object", {"SPRITE_SIZE"}));
 
     // Initialise the VectorField object
-    Py_INCREF(&VectorFieldType);
-    if (PyModule_AddObject(module, "VectorField", (PyObject*) &VectorFieldType) < 0) {
-        Py_DECREF(&VectorFieldType);
-        Py_DECREF(module);
+    if (PyModule_AddType(module, &VectorFieldType) < 0) {
         return NULL;
     }
 

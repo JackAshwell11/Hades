@@ -1,118 +1,48 @@
+import time
+
 import arcade
-from vector_field.vector_field import VectorField
 
+import hades.extensions.vector_field.vector_field as c_field
+import hades.vector_field as py_field
+from hades.constants.generation import TileType
+from hades.generation.map import create_map
+from hades.textures import grid_pos_to_pixel
 
-def t():
-    temp_spritelist = arcade.SpriteList()
-    temp_spritelist.extend(
-        [
-            arcade.Sprite(center_x=84.0, center_y=84.0),
-            arcade.Sprite(center_x=140.0, center_y=84.0),
-            arcade.Sprite(center_x=196.0, center_y=84.0),
-            arcade.Sprite(center_x=252.0, center_y=84.0),
-            arcade.Sprite(center_x=308.0, center_y=84.0),
-            arcade.Sprite(center_x=364.0, center_y=84.0),
-            arcade.Sprite(center_x=420.0, center_y=84.0),
-            arcade.Sprite(center_x=84.0, center_y=140.0),
-            arcade.Sprite(center_x=420.0, center_y=140.0),
-            arcade.Sprite(center_x=812.0, center_y=140.0),
-            arcade.Sprite(center_x=868.0, center_y=140.0),
-            arcade.Sprite(center_x=924.0, center_y=140.0),
-            arcade.Sprite(center_x=980.0, center_y=140.0),
-            arcade.Sprite(center_x=1036.0, center_y=140.0),
-            arcade.Sprite(center_x=84.0, center_y=196.0),
-            arcade.Sprite(center_x=420.0, center_y=196.0),
-            arcade.Sprite(center_x=812.0, center_y=196.0),
-            arcade.Sprite(center_x=1036.0, center_y=196.0),
-            arcade.Sprite(center_x=84.0, center_y=252.0),
-            arcade.Sprite(center_x=420.0, center_y=252.0),
-            arcade.Sprite(center_x=812.0, center_y=252.0),
-            arcade.Sprite(center_x=1036.0, center_y=252.0),
-            arcade.Sprite(center_x=84.0, center_y=308.0),
-            arcade.Sprite(center_x=420.0, center_y=308.0),
-            arcade.Sprite(center_x=812.0, center_y=308.0),
-            arcade.Sprite(center_x=1036.0, center_y=308.0),
-            arcade.Sprite(center_x=84.0, center_y=364.0),
-            arcade.Sprite(center_x=420.0, center_y=364.0),
-            arcade.Sprite(center_x=812.0, center_y=364.0),
-            arcade.Sprite(center_x=1036.0, center_y=364.0),
-            arcade.Sprite(center_x=84.0, center_y=420.0),
-            arcade.Sprite(center_x=420.0, center_y=420.0),
-            arcade.Sprite(center_x=756.0, center_y=420.0),
-            arcade.Sprite(center_x=812.0, center_y=420.0),
-            arcade.Sprite(center_x=1036.0, center_y=420.0),
-            arcade.Sprite(center_x=84.0, center_y=476.0),
-            arcade.Sprite(center_x=420.0, center_y=476.0),
-            arcade.Sprite(center_x=756.0, center_y=476.0),
-            arcade.Sprite(center_x=980.0, center_y=476.0),
-            arcade.Sprite(center_x=1036.0, center_y=476.0),
-            arcade.Sprite(center_x=84.0, center_y=532.0),
-            arcade.Sprite(center_x=420.0, center_y=532.0),
-            arcade.Sprite(center_x=700.0, center_y=532.0),
-            arcade.Sprite(center_x=756.0, center_y=532.0),
-            arcade.Sprite(center_x=980.0, center_y=532.0),
-            arcade.Sprite(center_x=84.0, center_y=588.0),
-            arcade.Sprite(center_x=140.0, center_y=588.0),
-            arcade.Sprite(center_x=364.0, center_y=588.0),
-            arcade.Sprite(center_x=420.0, center_y=588.0),
-            arcade.Sprite(center_x=700.0, center_y=588.0),
-            arcade.Sprite(center_x=980.0, center_y=588.0),
-            arcade.Sprite(center_x=140.0, center_y=644.0),
-            arcade.Sprite(center_x=364.0, center_y=644.0),
-            arcade.Sprite(center_x=588.0, center_y=644.0),
-            arcade.Sprite(center_x=644.0, center_y=644.0),
-            arcade.Sprite(center_x=700.0, center_y=644.0),
-            arcade.Sprite(center_x=924.0, center_y=644.0),
-            arcade.Sprite(center_x=980.0, center_y=644.0),
-            arcade.Sprite(center_x=1036.0, center_y=644.0),
-            arcade.Sprite(center_x=140.0, center_y=700.0),
-            arcade.Sprite(center_x=364.0, center_y=700.0),
-            arcade.Sprite(center_x=588.0, center_y=700.0),
-            arcade.Sprite(center_x=1036.0, center_y=700.0),
-            arcade.Sprite(center_x=28.0, center_y=756.0),
-            arcade.Sprite(center_x=84.0, center_y=756.0),
-            arcade.Sprite(center_x=140.0, center_y=756.0),
-            arcade.Sprite(center_x=364.0, center_y=756.0),
-            arcade.Sprite(center_x=420.0, center_y=756.0),
-            arcade.Sprite(center_x=476.0, center_y=756.0),
-            arcade.Sprite(center_x=532.0, center_y=756.0),
-            arcade.Sprite(center_x=588.0, center_y=756.0),
-            arcade.Sprite(center_x=1036.0, center_y=756.0),
-            arcade.Sprite(center_x=28.0, center_y=812.0),
-            arcade.Sprite(center_x=1036.0, center_y=812.0),
-            arcade.Sprite(center_x=28.0, center_y=868.0),
-            arcade.Sprite(center_x=1036.0, center_y=868.0),
-            arcade.Sprite(center_x=28.0, center_y=924.0),
-            arcade.Sprite(center_x=1036.0, center_y=924.0),
-            arcade.Sprite(center_x=28.0, center_y=980.0),
-            arcade.Sprite(center_x=420.0, center_y=980.0),
-            arcade.Sprite(center_x=476.0, center_y=980.0),
-            arcade.Sprite(center_x=532.0, center_y=980.0),
-            arcade.Sprite(center_x=588.0, center_y=980.0),
-            arcade.Sprite(center_x=1036.0, center_y=980.0),
-            arcade.Sprite(center_x=28.0, center_y=1036.0),
-            arcade.Sprite(center_x=84.0, center_y=1036.0),
-            arcade.Sprite(center_x=140.0, center_y=1036.0),
-            arcade.Sprite(center_x=196.0, center_y=1036.0),
-            arcade.Sprite(center_x=252.0, center_y=1036.0),
-            arcade.Sprite(center_x=308.0, center_y=1036.0),
-            arcade.Sprite(center_x=364.0, center_y=1036.0),
-            arcade.Sprite(center_x=420.0, center_y=1036.0),
-            arcade.Sprite(center_x=588.0, center_y=1036.0),
-            arcade.Sprite(center_x=644.0, center_y=1036.0),
-            arcade.Sprite(center_x=700.0, center_y=1036.0),
-            arcade.Sprite(center_x=756.0, center_y=1036.0),
-            arcade.Sprite(center_x=812.0, center_y=1036.0),
-            arcade.Sprite(center_x=868.0, center_y=1036.0),
-            arcade.Sprite(center_x=924.0, center_y=1036.0),
-            arcade.Sprite(center_x=980.0, center_y=1036.0),
-            arcade.Sprite(center_x=1036.0, center_y=1036.0),
-        ]
-    )
-    return temp_spritelist
+N = 100
+c_time = []
+py_time = []
 
+for i in range(N):
+    print(f"Doing iteration {i+1} of {N}")
+    print("before map")
+    game_map, constants = create_map(500)
 
-r = VectorField(t(), 5, 6)
-print(f"class = {r}")
-print(f"vector dict = {r.vector_dict}")
-print(r.recalculate_map((252.0, 812.0), 5))
+    spritelist = arcade.SpriteList()
+    player = (-1, -1)
+
+    print("before loop")
+    for count_y, y in enumerate(game_map.grid):
+        for count_x, x in enumerate(y):
+            if x == TileType.WALL:
+                pos_x, pos_y = grid_pos_to_pixel(count_x, count_y)
+                spritelist.append(arcade.Sprite(center_x=pos_x, center_y=pos_y))
+            elif x == TileType.PLAYER:
+                player = grid_pos_to_pixel(count_x, count_y)
+
+    print("before c")
+    start = time.perf_counter()
+    c = c_field.VectorField(spritelist, constants.width, constants.height)
+    c.recalculate_map(player, 5)
+    c_time.append(time.perf_counter() - start)
+    print("after c")
+
+    start = time.perf_counter()
+    py = py_field.VectorField(constants.width, constants.height, spritelist)
+    py.recalculate_map(player, 5)
+    py_time.append(time.perf_counter() - start)
+    print("after py")
+
+print(
+    f"C++ implementation too {sum(c_time)/N} seconds whereas Python implementation took"
+    f" {sum(py_time)/N}. Which is {(sum(c_time)/N)/(sum(py_time)/N)}x faster"
+)

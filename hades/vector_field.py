@@ -223,7 +223,7 @@ class VectorField:
             # Dijkstra distance
             self.vector_dict[tile] = -(tile[0] - min_tile[0]), -(tile[1] - min_tile[1])
 
-            # Test if the current tile is within the player's fov
+            # Also test if the current tile is outside the player's fov
             if cost > player_view_distance:
                 possible_spawns.append(tile)
 

@@ -203,7 +203,7 @@ class Player(Entity):
             self.regenerate_armour(delta_time)
 
         # Check if the player has moved tile positions
-        new_tile_pos = self.game.vector_field.get_tile_pos_for_pixel(self.position)
+        new_tile_pos = self.game.vector_field.pixel_to_tile_pos(self.position)
         if self.current_tile_pos != new_tile_pos:
             # Player has moved tile positions so update vector field
             self.current_tile_pos = new_tile_pos

@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 from hades.constants.game_object import MOVEMENT_FORCE
 
 if TYPE_CHECKING:
+    from hades.extensions import VectorField
     from hades.game_objects.enemy import Enemy
-    from hades.vector_field import VectorField
 
 __all__ = ("EnemyMovementManager",)
 

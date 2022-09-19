@@ -5,7 +5,15 @@
 #include <vector>
 
 
-// ----- INTPAIR STRUCTURE DEFINITION ------------------------------
+// ----- C STRUCTURE DEFINITIONS ------------------------------
+template <class T>
+inline void hash_combine(size_t& seed, const T& v) {
+    /* Allows multiple hashes to be combined for a struct */
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
+
 struct IntPair {
     /* Represents a namedtuple describing a pair of integers */
     int x, y;
@@ -15,14 +23,6 @@ struct IntPair {
         return x == pair.x && y == pair.y;
     }
 };
-
-
-template <class T>
-inline void hash_combine(size_t& seed, const T& v) {
-    /* Allows multiple hashes to be combined for a struct */
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-}
 
 
 template<>
@@ -60,8 +60,9 @@ std::vector<IntPair> INTERCARDINAL_OFFSETS = {
         {1, 1},
 };
 
+
 /* The value of int infinity stored for easy access */
-int INT_INFINITY = std::numeric_limits<int>::infinity();
+int INT_INFINITY = std::numeric_limits<int>::max();
 
 
 // ----- C METHODS ------------------------------

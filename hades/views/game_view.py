@@ -30,6 +30,7 @@ from hades.constants.general import (
     TOTAL_ENEMY_COUNT,
 )
 from hades.constants.generation import WALL_REPLACEABLE_TILES, TileType
+from hades.extensions import VectorField
 from hades.game_objects.attack import AreaOfEffectAttack, MeleeAttack
 from hades.game_objects.enemy import Enemy
 from hades.game_objects.player import Player
@@ -37,7 +38,6 @@ from hades.game_objects.tile import Consumable, Floor, Wall
 from hades.generation.map import create_map
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
-from hades.vector_field import VectorField
 from hades.views.base_view import BaseView
 from hades.views.inventory_view import InventoryView
 from hades.views.shop_view import ShopView
@@ -257,21 +257,21 @@ class Game(BaseView):
 
         # Initialise the vector field
         self.vector_field = VectorField(
+            self.wall_sprites,
             self.level_constants.width,
             self.level_constants.height,
-            self.wall_sprites,
         )
         self.possible_enemy_spawns = self.vector_field.recalculate_map(
             self.player.position, self.player.entity_data.view_distance
         )
         logger.debug(
             "Created vector grid with height %d and width %d",
-            self.vector_field.height,
-            self.vector_field.width,
+            self.level_constants.height,
+            self.level_constants.width,
         )
 
         # Update the player's current tile position
-        self.player.current_tile_pos = self.vector_field.get_tile_pos_for_pixel(
+        self.player.current_tile_pos = self.vector_field.pixel_to_tile_pos(
             self.player.position
         )
 
