@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 # Custom
-from hades.vector_field import VectorField
+from hades.extensions import VectorField
 
 __all__ = ()
 
@@ -20,17 +20,17 @@ def test_vector_field_init(walls: arcade.SpriteList) -> None:
     walls: arcade.SpriteList
         The walls spritelist used for testing.
     """
-    assert repr(VectorField(20, 20, walls)) == "<VectorField (Width=20) (Height=20)>"
+    assert repr(VectorField(walls, 20, 20)) == "<VectorField (Width=20) (Height=20)>"
 
 
 def test_vector_field_get_tile_pos_for_pixel() -> None:
     """Test the get_tile_pos_for_pixel function in the VectorField class."""
-    assert VectorField.get_tile_pos_for_pixel((500, 500)) == (8, 8)
-    assert VectorField.get_tile_pos_for_pixel((0, 0)) == (0, 0)
-    with pytest.raises(ValueError):
-        VectorField.get_tile_pos_for_pixel((-500, -500))
-    with pytest.raises(TypeError):
-        VectorField.get_tile_pos_for_pixel(("test", "test"))  # type: ignore
+    assert VectorField.pixel_to_grid_pos((500, 500)) == (8, 8)
+    assert VectorField.pixel_to_grid_pos((0, 0)) == (0, 0)
+    with pytest.raises(SystemError):
+        VectorField.pixel_to_grid_pos((-500, -500))
+    with pytest.raises(SystemError):
+        VectorField.pixel_to_grid_pos(("test", "test"))  # type: ignore
 
 
 def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
@@ -45,7 +45,7 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
     # player origin
     vector_result = []
     player_screen_pos = 252.0, 812.0
-    player_grid_pos = vector_field.get_tile_pos_for_pixel(player_screen_pos)
+    player_grid_pos = vector_field.pixel_to_grid_pos(player_screen_pos)
     player_view_distance = 5
     temp_possible_spawns_valid = vector_field.recalculate_map(
         player_screen_pos, player_view_distance
@@ -75,21 +75,7 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
         assert distance > player_view_distance
 
     # Make sure we test what happens if the player's view distance is zero or negative
-    assert (4, 14) not in vector_field.recalculate_map(player_screen_pos, 0)
-    assert (4, 14) in vector_field.recalculate_map(player_screen_pos, -1)
-
-
-def test_vector_field_get_vector_direction(vector_field: VectorField) -> None:
-    """Test the get_vector_direction function in the VectorField class.
-
-    Parameters
-    ----------
-    vector_field: VectorField
-        The vector field used for testing.
-    """
-    vector_field.vector_dict[(8, 8)] = (-1, -1)
-    assert vector_field.get_vector_direction((500, 500)) == (-1, -1)
-    with pytest.raises(KeyError):
-        vector_field.get_vector_direction((0, 0))
-    with pytest.raises(TypeError):
-        vector_field.get_vector_direction(("test", "test"))  # type: ignore
+    with pytest.raises(SystemError):
+        vector_field.recalculate_map(player_screen_pos, 0)
+    with pytest.raises(SystemError):
+        vector_field.recalculate_map(player_screen_pos, -1)

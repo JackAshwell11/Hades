@@ -40,6 +40,7 @@ tox = "3.26.0"
 
 [tool.pytest.ini_options]
 addopts = "-vv --cov=hades --cov-report=term-missing --cov-branch"
+pythonpath = "src"
 testpaths = ["tests"]
 
 [tool.coverage.report]
@@ -53,14 +54,16 @@ legacy_tox_ini = """
 [tox]
 envlist = clean, py310, report
 isolated_build = true
+skipsdist = true
 
 [testenv]
 allowlist_externals =
     poetry
     pytest
 commands =
-    python -I -m hades.extensions.extensions
-    pytest --cov-append
+    poetry install -v
+    python -m hades.extensions.extensions
+    poetry run pytest --cov-append
 
 [testenv:clean]
 allowlist_externals = coverage

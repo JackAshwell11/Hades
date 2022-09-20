@@ -8,10 +8,10 @@ import pytest
 
 # Custom
 from hades.constants.generation import TileType
+from hades.extensions import VectorField
 from hades.generation.bsp import Leaf
 from hades.generation.map import Map
 from hades.generation.primitives import Point, Rect
-from hades.vector_field import VectorField
 
 __all__ = ()
 
@@ -259,4 +259,4 @@ def vector_field(walls: arcade.SpriteList) -> VectorField:
     VectorField
         The vector field for use in testing.
     """
-    return VectorField(20, 20, walls)
+    return VectorField(walls, 20, 20)

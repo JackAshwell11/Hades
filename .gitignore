@@ -31,4 +31,4 @@ window.dist/
 aseprite/
 
 # Temp files
-hades/TEMP-FILES/
+src/hades/TEMP-FILES/

@@ -3,9 +3,10 @@ from __future__ import annotations
 
 
 def dummy(*_) -> None:
-    """Allow faking the import of un-compiled C extensions."""
+    """Allow faking the import of un-compiled or non-functioning C extensions."""
     raise NotImplementedError(
-        "Extensions not compiled. Compile them before running Hades"
+        "Extensions not compiled or not functioning. Compile/fix them before running"
+        " Hades"
     )
 
 
@@ -15,7 +16,7 @@ try:
     from hades.extensions.astar.astar import calculate_astar_path, heuristic
     from hades.extensions.vector_field.vector_field import VectorField
 except ImportError:
-    calculate_astar_path, heuristic, VectorField = dummy, dummy, dummy
+    calculate_astar_path, heuristic, VectorField = dummy, dummy, dummy  # type: ignore
 
 
 __all__ = (

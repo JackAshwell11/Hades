@@ -7,9 +7,8 @@
 
 
 // ----- CONSTANTS ------------------------------
-/* The width, height and sprite size constants for use in the vector field */
-int WIDTH, HEIGHT;
-int SPRITE_SIZE = 56;
+/* The sprite size, width and height constants for use in the vector field */
+int SPRITE_SIZE, WIDTH, HEIGHT;
 
 
 /* An unordered map of wall grid positions with the cost of traversing them. This is
@@ -65,9 +64,10 @@ PyDoc_STRVAR(
     "    the enemy should follow when on that tile."
 );
 
-/* Stores the docstring for the VectorField.pixel_to_tile_pos method */
+
+/* Stores the docstring for the VectorField.pixel_to_grid_pos method */
 PyDoc_STRVAR(
-    pixel_to_tile_pos_docstring,
+    pixel_to_grid_pos_docstring,
     "Calculate the tile position from a given screen position.\n\n"
     "Parameters\n"
     "----------\n"
@@ -78,8 +78,10 @@ PyDoc_STRVAR(
     "    The inputs must be bigger than or equal to 0.\n\n"
     "Returns\n"
     "-------\n"
+    "tuple[int, int]\n"
     "    The path field grid tile position for the given sprite position."
 );
+
 
 /* Stores the docstring for the VectorField.recalculate_map method */
 PyDoc_STRVAR(
@@ -113,25 +115,31 @@ typedef struct {
 
 
 // ----- C METHODS ------------------------------
-IntPair get_tile_pos_for_pixel(FloatPair screen_position) {
+IntPair get_grid_pos_for_pixel(FloatPair screen_position) {
     /* Calculates the tile position from a given screen position */
     return {(int) floor(screen_position.x / SPRITE_SIZE), (int) floor(screen_position.y / SPRITE_SIZE)};
 }
 
 
 // ----- VECTORFIELD METHODS ------------------------------
-static PyObject *pixel_to_tile_pos(PyObject *self, PyObject *args) {
+static PyObject *pixel_to_grid_pos(PyObject *self, PyObject *args) {
     /* Parse arguments */
     FloatPair position;
     if (!PyArg_ParseTuple(args, "(ff)", &position.x, &position.y)) {
-        return Py_BuildValue("");
+        Py_RETURN_NONE;
+    }
+
+    // Do some validation checking on the given parameters
+    if (position.x < 0 || position.y < 0) {
+        PyErr_SetString(PyExc_ValueError, "Position must be bigger than 0");
+        Py_RETURN_NONE;
     }
 
     /* Converting logic */
-    IntPair tile_pos = get_tile_pos_for_pixel(position);
+    IntPair grid_pos = get_grid_pos_for_pixel(position);
 
     /* Return result */
-    return Py_BuildValue("(ii)", tile_pos.x, tile_pos.y);
+    return Py_BuildValue("(ii)", grid_pos.x, grid_pos.y);
 }
 
 
@@ -141,7 +149,13 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
     FloatPair player_pos;
     int player_view_distance;
     if (!PyArg_ParseTuple(args, "(ff)i", &player_pos.x, &player_pos.y, &player_view_distance)) {
-        return Py_BuildValue("");
+        Py_RETURN_NONE;
+    }
+
+    // Do some validation checking on the given parameters
+    if (player_view_distance <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Player view distance must be bigger than 0");
+        Py_RETURN_NONE;
     }
 
     /* Vector field recalculation logic */
@@ -154,12 +168,12 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
     //      3. A queue object, so we can explore the grid.
     //      4. A possible_spawns list to hold all the grid positions where enemies can
     //      spawn.
-    IntPair start = get_tile_pos_for_pixel(player_pos);
+    IntPair start = get_grid_pos_for_pixel(player_pos);
     std::unordered_map<IntPair, int> distances = WALLS_DICT;
+    std::deque<IntPair> queue = {start};
     distances[start] = 0;
     PyDict_Clear(self->vector_dict);
     PyObject *possible_spawns = PyList_New(0);
-    std::deque<IntPair> queue = {start};
 
     // Explore the grid using a breadth first search to generate the Dijkstra distances
     while (!queue.empty()) {
@@ -211,6 +225,7 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
         if (tile.second > player_view_distance) {
             PyList_Append(possible_spawns, py_tile);
         }
+        Py_DECREF(py_tile);
     }
 
     // Set the vector for the destination tile to avoid weird movement when the enemy
@@ -239,17 +254,34 @@ static int vector_field_init(VectorField *self, PyObject *args, PyObject *kwds) 
         return -1;
     }
 
+    // Do some validation checking on the given parameters
+    if (WIDTH <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Width must be bigger than 0");
+        return -1;
+    } else if (HEIGHT <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Height must be bigger than 0");
+        return -1;
+    } else if (PyObject_HasAttrString(walls, "sprite_list") == 0) {
+        PyErr_SetString(PyExc_AttributeError, "Walls must be a spritelist");
+        return -1;
+    }
+
     /* VectorField initialisation logic */
     // Convert each sprite's position in the spritelist to a grid position and store
     // it in walls_dict with infinity as the value
     self->vector_dict = PyDict_New();
     PyObject *sprite_list = PyObject_GetAttrString(walls, "sprite_list");
-    Py_DECREF(walls);
+    if (PyList_Size(sprite_list) <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Walls must be bigger than 0");
+        Py_DECREF(sprite_list);
+        return -1;
+    }
     for (int i = 0; i < PyList_Size(sprite_list); i++) {
         PyObject *py_screen_position = PyObject_GetAttrString(PyList_GetItem(sprite_list, i), "position");
         float x = (float) PyFloat_AsDouble(PyTuple_GetItem(py_screen_position, 0));
         float y = (float) PyFloat_AsDouble(PyTuple_GetItem(py_screen_position, 1));
-        WALLS_DICT[get_tile_pos_for_pixel({x, y})] = INT_INFINITY;
+        WALLS_DICT[get_grid_pos_for_pixel({x, y})] = INT_INFINITY;
+        Py_DECREF(py_screen_position);
     }
     Py_DECREF(sprite_list);
 
@@ -261,7 +293,7 @@ static int vector_field_init(VectorField *self, PyObject *args, PyObject *kwds) 
 // ----- VECTORFIELD DEFINITIONS ------------------------------
 static PyMethodDef vector_field_methods[] = {
     /* Defines the methods which belong to the VectorField type */
-    {"pixel_to_tile_pos", pixel_to_tile_pos, METH_VARARGS | METH_STATIC, pixel_to_tile_pos_docstring},
+    {"pixel_to_grid_pos", pixel_to_grid_pos, METH_VARARGS | METH_STATIC, pixel_to_grid_pos_docstring},
     {"recalculate_map", recalculate_map, METH_VARARGS},
     {NULL},
 };
@@ -337,7 +369,13 @@ PyMODINIT_FUNC PyInit_vector_field(void) {
         return NULL;
 
     // Initialise the constants
-    SPRITE_SIZE = (int) PyFloat_AsDouble(get_global_constant("hades.constants.game_object", {"SPRITE_SIZE"}));
+    PyObject *temp_sprite_size = get_global_constant("hades.constants.game_object", {"SPRITE_SIZE"});
+    if (temp_sprite_size == Py_None) {
+        return NULL;
+    } else {
+        SPRITE_SIZE = (int) PyFloat_AsDouble(temp_sprite_size);
+    }
+    Py_DECREF(temp_sprite_size);
 
     // Initialise the VectorField object
     if (PyModule_AddType(module, &VectorFieldType) < 0) {

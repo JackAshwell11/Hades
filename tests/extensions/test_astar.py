@@ -60,7 +60,7 @@ def test_heuristic(
     """
     assert heuristic(valid_point_one, valid_point_two) == 4
     assert heuristic(valid_point_one, boundary_point) == 8
-    with pytest.raises(TypeError):
+    with pytest.raises(SystemError):
         heuristic(invalid_point, invalid_point)
 
 
@@ -103,7 +103,7 @@ def test_calculate_astar_path(
         and temp_result_two[-1] == valid_point_one
         and len(temp_result_two) >= heuristic(valid_point_one, boundary_point)
     )
-    with pytest.raises(TypeError):
+    with pytest.raises(SystemError):
         calculate_astar_path(
             get_obstacle_grid(),
             valid_point_one,

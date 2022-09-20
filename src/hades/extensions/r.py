@@ -8,19 +8,17 @@ from hades.constants.generation import TileType
 from hades.generation.map import create_map
 from hades.textures import grid_pos_to_pixel
 
-N = 100
+N = 100000
 c_time = []
 py_time = []
 
 for i in range(N):
     print(f"Doing iteration {i+1} of {N}")
-    print("before map")
-    game_map, constants = create_map(500)
+    game_map, constants = create_map(1)
 
     spritelist = arcade.SpriteList()
     player = (-1, -1)
 
-    print("before loop")
     for count_y, y in enumerate(game_map.grid):
         for count_x, x in enumerate(y):
             if x == TileType.WALL:
@@ -29,20 +27,19 @@ for i in range(N):
             elif x == TileType.PLAYER:
                 player = grid_pos_to_pixel(count_x, count_y)
 
-    print("before c")
-    start = time.perf_counter()
-    c = c_field.VectorField(spritelist, constants.width, constants.height)
-    c.recalculate_map(player, 5)
-    c_time.append(time.perf_counter() - start)
-    print("after c")
+    c_start = time.perf_counter()
+    c_test = c_field.VectorField(spritelist, constants.width, constants.height)
+    c_test.recalculate_map(player, 5)
+    c_time.append(time.perf_counter() - c_start)
 
-    start = time.perf_counter()
-    py = py_field.VectorField(constants.width, constants.height, spritelist)
-    py.recalculate_map(player, 5)
-    py_time.append(time.perf_counter() - start)
-    print("after py")
+    py_start = time.perf_counter()
+    py_test = py_field.VectorField(constants.width, constants.height, spritelist)
+    py_test.recalculate_map(player, 5)
+    py_time.append(time.perf_counter() - py_start)
+    print(f"Current multiplier: {(sum(py_time) / N) / (sum(c_time) / N)}")
 
 print(
-    f"C++ implementation too {sum(c_time)/N} seconds whereas Python implementation took"
-    f" {sum(py_time)/N}. Which is {(sum(c_time)/N)/(sum(py_time)/N)}x faster"
+    f"C++ implementation took {sum(c_time) / N} seconds whereas Python implementation"
+    f" took {sum(py_time) / N}. Therefore, C++ is"
+    f" {(sum(py_time) / N) / (sum(c_time) / N)}x faster"
 )

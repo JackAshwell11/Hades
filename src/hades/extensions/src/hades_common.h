@@ -80,13 +80,22 @@ std::vector<IntPair> grid_bfs(IntPair target, int height, int width, std::vector
 }
 
 
-PyObject* get_global_constant(const char* module_name, std::vector<std::string> constant_names) {
+PyObject* get_global_constant(std::string module_name, std::vector<std::string> names) {
     /* Gets a global variable from a Python module */
-    PyObject *temp_module = PyImport_ImportModule(module_name);
-    PyObject *global_var = PyImport_AddModule(module_name);
-    for (std::string constant : constant_names) {
-        global_var = PyObject_GetAttrString(global_var, constant.c_str());
+    PyObject *next;
+    PyObject *res = PyImport_ImportModule(module_name.c_str());
+    if (res == nullptr) {
+        PyErr_SetString(PyExc_ImportError, (module_name + " doesn't exist").c_str());
+        return Py_BuildValue("");
     }
-    Py_DECREF(temp_module);
-    return global_var;
+    for (std::string name : names) {
+        next = PyObject_GetAttrString(res, name.c_str());
+        if (next == nullptr) {
+            PyErr_SetString(PyExc_AttributeError, (module_name + " doesn't have the attribute " + name).c_str());
+            return Py_BuildValue("");
+        }
+        Py_DECREF(res);
+        res = next;
+    }
+    return res;
 }

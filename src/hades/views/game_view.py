@@ -271,7 +271,7 @@ class Game(BaseView):
         )
 
         # Update the player's current tile position
-        self.player.current_tile_pos = self.vector_field.pixel_to_tile_pos(
+        self.player.current_tile_pos = self.vector_field.pixel_to_grid_pos(
             self.player.position
         )
 

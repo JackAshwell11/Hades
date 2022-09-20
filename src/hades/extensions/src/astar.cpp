@@ -2,6 +2,7 @@
 #include "hades_common.h"
 #include <numpy/arrayobject.h>
 #include <queue>
+#include <iostream>
 
 
 // ----- CONSTANTS ------------------------------
@@ -89,7 +90,7 @@ static PyObject *heuristic(PyObject *self, PyObject *args) {
     /* Parse arguments */
     struct IntPair a, b;
     if (!PyArg_ParseTuple(args, "(ii)(ii)", &a.x, &a.y, &b.x, &b.y)) {
-        return Py_BuildValue("");
+        Py_RETURN_NONE;
     }
 
     /* Heuristic logic */
@@ -105,7 +106,12 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     PyArrayObject *grid;
     struct IntPair start, end;
     if (!PyArg_ParseTuple(args, "O(ii)(ii)", &grid, &start.x, &start.y, &end.x, &end.y)) {
-        return Py_BuildValue("");
+        Py_RETURN_NONE;
+    }
+
+    // Do some validation checking on the given parameters
+    if (PyArray_Check(grid) == 0) {
+        Py_RETURN_NONE;
     }
 
     /* A* algorithm logic */
@@ -116,10 +122,8 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     queue.push({0, start});
     std::unordered_map<IntPair, IntPair> came_from = {{start, start}};
     std::unordered_map<IntPair, int> distances = {{start, 0}};
-    int height = (int)PyArray_DIM(grid, 0);
-    int width = (int)PyArray_DIM(grid, 1);
-    int* array_data_pointer = (int*)PyArray_DATA(grid);
-    Py_DECREF(grid);
+    int height = (int) PyArray_DIM(grid, 0);
+    int width = (int) PyArray_DIM(grid, 1);
 
     // Loop until the priority queue is empty
     while (!queue.empty()) {
@@ -156,7 +160,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
                 distances[neighbour] = distances.at(came_from.at(neighbour)) + 1;
 
                 // Check if the neighbour is an obstacle
-                if (array_data_pointer[neighbour.y*width + neighbour.x] == OBSTACLE_ID) {
+                if (*((int*)PyArray_GETPTR2(grid, neighbour.y, neighbour.x)) == OBSTACLE_ID) {
                     // Set the total cost for the obstacle to infinity
                     f_cost = INT_INFINITY;
                 } else {
@@ -175,7 +179,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
 }
 
 
-// ----- GLOBAL METHOD DEFINITIONS ------------------------------
+// ----- METHOD DEFINITIONS ------------------------------
 static PyMethodDef astar_methods[] = {
     /* Defines the metadata for methods accessible through Python */
     {"calculate_astar_path", calculate_astar_path, METH_VARARGS, astar_docstring},
@@ -204,7 +208,13 @@ PyMODINIT_FUNC PyInit_astar(void) {
         return NULL;
 
     // Initialise the constants
-    OBSTACLE_ID = (int) PyLong_AsLong(get_global_constant("hades.constants.generation", {"TileType", "OBSTACLE", "value"}));
+    PyObject *temp_obstacle_id = get_global_constant("hades.constants.generation", {"TileType", "OBSTACLE", "value"});
+    if (temp_obstacle_id == Py_None) {
+        return NULL;
+    } else {
+        OBSTACLE_ID = (int) PyLong_AsLong(temp_obstacle_id);
+    }
+    Py_DECREF(temp_obstacle_id);
 
     // Initialise the Numpy C-API
     import_array();
