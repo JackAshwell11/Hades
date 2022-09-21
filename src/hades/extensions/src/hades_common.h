@@ -69,9 +69,9 @@ int INT_INFINITY = std::numeric_limits<int>::max();
 std::vector<IntPair> grid_bfs(IntPair target, int height, int width, std::vector<IntPair> offsets = CARDINAL_OFFSETS) {
     /* Gets a target's neighbours in a grid */
     std::vector<IntPair> result;
-    for (int i = 0; i < offsets.size(); i++) {
-        int x = target.x + offsets[i].x;
-        int y = target.y + offsets[i].y;
+    for (IntPair offset : offsets) {
+        int x = target.x + offset.x;
+        int y = target.y + offset.y;
         if ((x >= 0 && x < width) && (y >= 0 && y < height)) {
             result.push_back({x, y});
         }

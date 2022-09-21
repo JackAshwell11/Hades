@@ -1,4 +1,4 @@
-"""Tests all functions in vector_field.py."""
+"""Tests all functions in extensions/vector_field.py."""
 from __future__ import annotations
 
 # Pip

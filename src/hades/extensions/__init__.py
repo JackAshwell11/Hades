@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def dummy(*_) -> None:
     """Allow faking the import of un-compiled or non-functioning C extensions."""
-    raise NotImplementedError(
+    raise NotImplementedError(  # pragma: no cover
         "Extensions not compiled or not functioning. Compile/fix them before running"
         " Hades"
     )
@@ -15,8 +15,10 @@ def dummy(*_) -> None:
 try:
     from hades.extensions.astar.astar import calculate_astar_path, heuristic
     from hades.extensions.vector_field.vector_field import VectorField
-except ImportError:
-    calculate_astar_path, heuristic, VectorField = dummy, dummy, dummy  # type: ignore
+except ImportError:  # pragma: no cover
+    calculate_astar_path = dummy  # type: ignore
+    heuristic = dummy  # type: ignore
+    VectorField = dummy  # type: ignore
 
 
 __all__ = (

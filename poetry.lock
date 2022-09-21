@@ -18,7 +18,7 @@ docs = ["Sphinx (==4.5.0)", "Pygments (==2.10.0)", "sphinx-copybutton (==0.5.0)"
 
 [[package]]
 name = "astroid"
-version = "2.12.9"
+version = "2.12.10"
 description = "An abstract syntax tree for Python with inference support."
 category = "dev"
 optional = false
@@ -258,7 +258,7 @@ setuptools = "*"
 
 [[package]]
 name = "nuitka"
-version = "1.0.6"
+version = "1.0.7"
 description = "Python compiler with full language support and CPython compatibility"
 category = "dev"
 optional = false
@@ -418,14 +418,14 @@ python-versions = "*"
 
 [[package]]
 name = "pylint"
-version = "2.15.2"
+version = "2.15.3"
 description = "python code static checker"
 category = "dev"
 optional = false
 python-versions = ">=3.7.2"
 
 [package.dependencies]
-astroid = ">=2.12.9,<=2.14.0-dev0"
+astroid = ">=2.12.10,<=2.14.0-dev0"
 colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 dill = ">=0.2"
 isort = ">=4.2.5,<6"
@@ -726,15 +726,15 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "e6f46b8cf575b93b8b8f12660349ae23035b820a222a0400f0099fec1645f820"
+content-hash = "b3430be03eb601fc6bc55489995eac402e8223ba963276a38e2f3296fd379b2f"
 
 [metadata.files]
 arcade = [
     {file = "arcade-2.6.15-py3-none-any.whl", hash = "sha256:86e3b3ca033085b2fffd1394ac3f64a9c9f7f5b1ca4da671f28920fbc7e8a9c5"},
 ]
 astroid = [
-    {file = "astroid-2.12.9-py3-none-any.whl", hash = "sha256:27a22f40e45af6d362498647a0940e8ae9c35f71cb572a1b6f8f810122a11918"},
-    {file = "astroid-2.12.9.tar.gz", hash = "sha256:0dafbfcf4ebdecd3c8f6d742c9d9c88508229ca823d5c98ab872d964f3321e56"},
+    {file = "astroid-2.12.10-py3-none-any.whl", hash = "sha256:997e0c735df60d4a4caff27080a3afc51f9bdd693d3572a4a0b7090b645c36c5"},
+    {file = "astroid-2.12.10.tar.gz", hash = "sha256:81f870105d892e73bf535da77a8261aa5bde838fa4ed12bb2f435291a098c581"},
 ]
 attrs = [
     {file = "attrs-22.1.0-py2.py3-none-any.whl", hash = "sha256:86efa402f67bf2df34f51a335487cf46b1ec130d02b8d39fd248abfd30da551c"},
@@ -1003,7 +1003,7 @@ nodeenv = [
     {file = "nodeenv-1.7.0.tar.gz", hash = "sha256:e0e7f7dfb85fc5394c6fe1e8fa98131a2473e04311a45afb6508f7cf1836fa2b"},
 ]
 nuitka = [
-    {file = "Nuitka-1.0.6.tar.gz", hash = "sha256:80203fa8816d187dde812ee35c6ad597423786b73ee512d8f6f62c72af227fa4"},
+    {file = "Nuitka-1.0.7.tar.gz", hash = "sha256:65da08b64330b8494bfcd2afa1c37bbc3a8e4a84c4e39861b443ab570c091672"},
 ]
 numpy = [
     {file = "numpy-1.23.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:c9f707b5bb73bf277d812ded9896f9512a43edff72712f31667d0a8c2f8e71ee"},
@@ -1128,8 +1128,8 @@ pyglet = [
     {file = "pyglet-2.0.dev18.zip", hash = "sha256:a367f9d47fd834e15c0386b1441b07b678eb29bc17d1f6de67f482610d71343b"},
 ]
 pylint = [
-    {file = "pylint-2.15.2-py3-none-any.whl", hash = "sha256:cc3da458ba810c49d330e09013dec7ced5217772dec8f043ccdd34dae648fde8"},
-    {file = "pylint-2.15.2.tar.gz", hash = "sha256:f63404a2547edb5247da263748771ac9a806ed1de4174cda01293c08ddbc2999"},
+    {file = "pylint-2.15.3-py3-none-any.whl", hash = "sha256:7f6aad1d8d50807f7bc64f89ac75256a9baf8e6ed491cc9bc65592bc3f462cf1"},
+    {file = "pylint-2.15.3.tar.gz", hash = "sha256:5fdfd44af182866999e6123139d265334267339f29961f00c89783155eacc60b"},
 ]
 pymunk = [
     {file = "pymunk-6.2.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:21c683995c7c9763070ef501cb90817e0158f1aacc95fe316338e02754f3a4bf"},

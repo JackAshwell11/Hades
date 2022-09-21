@@ -190,7 +190,7 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
                 if (distances.at(neighbour) == INT_INFINITY) {
                     continue;
                 }
-            } catch (std::out_of_range) {
+            } catch (std::out_of_range const&) {
                 queue.push_back(neighbour);
                 distances[neighbour] = 1 + distances[current];
             }

@@ -1,4 +1,4 @@
-"""Compiles the extensions used by the game."""
+"""Compiles the C++ extensions used by the game using setuptools."""
 from __future__ import annotations
 
 # Builtin
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     print(f"Successfully built {len(ext_modules)} extensions. Beginning moving process")
 
     # Move the built binaries out of the build folder
-    built_extensions = list(BUILD_DIR.rglob("*.pyd"))
+    built_extensions = list(BUILD_DIR.rglob("*.pyd")) + list(BUILD_DIR.rglob("*.so"))
     for extension in built_extensions:
         target_dir = EXTENSION_PATH / extension.name.split(".")[0] / extension.name
         target_dir.unlink(True)

@@ -29,7 +29,8 @@ jobs:
         virtualenvs-create: true
         virtualenvs-in-project: true
     - name: Run Tox
-      run:
+      run: |
+        pip install tox tox-gh-actions
         poetry run tox
     - name: Upload coverage report
       uses: coverallsapp/github-action@master
