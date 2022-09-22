@@ -1,4 +1,7 @@
+// Definitions
 #define PY_SSIZE_T_CLEAN
+
+// Includes
 #include <Python.h>
 #include <limits>
 #include <unordered_map>
@@ -6,11 +9,11 @@
 
 
 // ----- C STRUCTURE DEFINITIONS ------------------------------
-template <class T>
-inline void hash_combine(size_t& seed, const T& v) {
+template<class T>
+inline void hash_combine(size_t &seed, const T &v) {
     /* Allows multiple hashes to be combined for a struct */
     std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
 
@@ -40,24 +43,24 @@ struct std::hash<IntPair> {
 // ----- CONSTANTS ------------------------------
 /* Represents the north, south, east and west directions on a compass */
 std::vector<IntPair> CARDINAL_OFFSETS = {
-        {0, -1},
-        {-1, 0},
-        {1, 0},
-        {0, 1},
+    {0,  -1},
+    {-1, 0},
+    {1,  0},
+    {0,  1},
 };
 
 
 /* Represents the north, south, east, west, north-east, north-west, south-east and
 south-west directions on a compass */
 std::vector<IntPair> INTERCARDINAL_OFFSETS = {
-        {-1, -1},
-        {0, -1},
-        {1, -1},
-        {-1, 0},
-        {1, 0},
-        {-1, 1},
-        {0, 1},
-        {1, 1},
+    {-1, -1},
+    {0,  -1},
+    {1,  -1},
+    {-1, 0},
+    {1,  0},
+    {-1, 1},
+    {0,  1},
+    {1,  1},
 };
 
 
@@ -69,7 +72,7 @@ int INT_INFINITY = std::numeric_limits<int>::max();
 std::vector<IntPair> grid_bfs(IntPair target, int height, int width, std::vector<IntPair> offsets = CARDINAL_OFFSETS) {
     /* Gets a target's neighbours in a grid */
     std::vector<IntPair> result;
-    for (IntPair offset : offsets) {
+    for (IntPair offset: offsets) {
         int x = target.x + offset.x;
         int y = target.y + offset.y;
         if ((x >= 0 && x < width) && (y >= 0 && y < height)) {
@@ -80,7 +83,7 @@ std::vector<IntPair> grid_bfs(IntPair target, int height, int width, std::vector
 }
 
 
-PyObject* get_global_constant(std::string module_name, std::vector<std::string> names) {
+PyObject *get_global_constant(std::string module_name, std::vector<std::string> names) {
     /* Gets a global variable from a Python module */
     PyObject *next;
     PyObject *res = PyImport_ImportModule(module_name.c_str());
@@ -88,7 +91,7 @@ PyObject* get_global_constant(std::string module_name, std::vector<std::string> 
         PyErr_SetString(PyExc_ImportError, (module_name + " doesn't exist").c_str());
         return Py_BuildValue("");
     }
-    for (std::string name : names) {
+    for (std::string name: names) {
         next = PyObject_GetAttrString(res, name.c_str());
         if (next == nullptr) {
             PyErr_SetString(PyExc_AttributeError, (module_name + " doesn't have the attribute " + name).c_str());

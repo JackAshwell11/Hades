@@ -39,14 +39,14 @@ pyupgrade = "v2.38.0"
 tox = "3.26.0"
 
 [tool.pytest.ini_options]
-addopts = "-vv --cov=hades --cov-report=term-missing --cov-branch"
-pythonpath = "src"
+addopts = "-vv -ra --showlocals --cov=hades --cov-report=term-missing --cov-branch"
 testpaths = ["tests"]
 
-[tool.coverage.run]
-omit = [
-    "src/__main__.py",  # This file is only used for running the game via the CLI
-    "src/extensions/extensions.py",  # This file is only used for building the C++ extensions
+[tool.coverage.paths]
+source = [
+    "src",
+    ".tox/*/Lib/site-packages",
+    ".tox/*/lib/*/site-packages",
 ]
 
 [tool.coverage.report]
@@ -54,30 +54,44 @@ exclude_lines = [
     "if TYPE_CHECKING:",  # Exclude all type checking imports
     "pragma: no cover",  # Exclude all no cover blocks
 ]
+omit = [
+    "*/__main__.py",  # This is only used for running the game via the CLI
+    "*/extensions/extensions.py",  # This is only used for building the C++ extensions
+]
+precision = 2
+show_missing = true
 
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py310, report
+envlist = clean, py310, report
 isolated_build = true
+
+[base]
+deps = pytest-cov
 
 [gh-actions]
 python =
-    3.10: py310, report
+    3.10: clean, py310, report
 
 [testenv]
-allowlist_externals =
-    poetry
-    pytest
+allowlist_externals = pytest
+deps = {[base]deps}
 commands =
-    poetry install -v
-    python -m hades.extensions.extensions
-    poetry run pytest --cov-append
+    python -I -m hades.extensions.extensions
+    pytest --cov-append
+
+[testenv:clean]
+allowlist_externals = coverage
+skip_install = true
+deps = {[base]deps}
+commands = coverage erase
 
 [testenv:report]
 allowlist_externals = coverage
-commands =
-    coverage lcov
+skip_install = true
+deps = {[base]deps}
+commands = coverage lcov
 """
 
 [tool.black]

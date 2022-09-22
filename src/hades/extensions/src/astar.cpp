@@ -1,4 +1,7 @@
+// Definitions
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+
+// Includes
 #include "hades_common.h"
 #include <numpy/arrayobject.h>
 #include <queue>
@@ -152,7 +155,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
         //   f - The total cost of traversing the neighbour.
         //   g - The distance between the start pair and the neighbour pair.
         //   h - The estimated distance from the neighbour pair to the end pair.
-        for (IntPair neighbour : grid_bfs(current, height, width)) {
+        for (IntPair neighbour: grid_bfs(current, height, width)) {
             if (!came_from.count(neighbour)) {
                 // Store the neighbour's parent and calculate its distance from the
                 // start pair
@@ -160,7 +163,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
                 distances[neighbour] = distances.at(came_from.at(neighbour)) + 1;
 
                 // Check if the neighbour is an obstacle
-                if (*((int*)PyArray_GETPTR2(grid, neighbour.y, neighbour.x)) == OBSTACLE_ID) {
+                if (*((int *) PyArray_GETPTR2(grid, neighbour.y, neighbour.x)) == OBSTACLE_ID) {
                     // Set the total cost for the obstacle to infinity
                     f_cost = INT_INFINITY;
                 } else {

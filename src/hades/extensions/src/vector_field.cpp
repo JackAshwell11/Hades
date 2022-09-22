@@ -1,3 +1,4 @@
+// Includes
 #include "hades_common.h"
 #include <structmember.h>
 #include <deque>
@@ -145,7 +146,7 @@ static PyObject *pixel_to_grid_pos(PyObject *self, PyObject *args) {
 
 static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
     /* Parse arguments */
-    VectorField *self = (VectorField*) obj;
+    VectorField *self = (VectorField *) obj;
     FloatPair player_pos;
     int player_view_distance;
     if (!PyArg_ParseTuple(args, "(ff)i", &player_pos.x, &player_pos.y, &player_view_distance)) {
@@ -190,7 +191,7 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
                 if (distances.at(neighbour) == INT_INFINITY) {
                     continue;
                 }
-            } catch (std::out_of_range const&) {
+            } catch (std::out_of_range const &) {
                 queue.push_back(neighbour);
                 distances[neighbour] = 1 + distances[current];
             }
@@ -199,7 +200,7 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
 
     // Use the newly generated Dijkstra map to get a neighbour with the lowest Dijkstra
     // distance at each tile. Then create a vector pointing in that direction
-    for (std::pair<IntPair, int> tile : distances) {
+    for (std::pair<IntPair, int> tile: distances) {
         // If this tile is a wall tile, ignore it
         if (tile.second == INT_INFINITY) {
             continue;
@@ -209,7 +210,7 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
         PyObject *py_tile = Py_BuildValue("(ii)", tile.first.x, tile.first.y);
         IntPair min_tile = {0, 0};
         int min_dist = INT_INFINITY;
-        for (IntPair neighbour : grid_bfs(tile.first, HEIGHT, WIDTH, INTERCARDINAL_OFFSETS)) {
+        for (IntPair neighbour: grid_bfs(tile.first, HEIGHT, WIDTH, INTERCARDINAL_OFFSETS)) {
             // Test if the neighbour has the lowest Dijkstra distance
             if (distances[neighbour] < min_dist) {
                 min_tile = neighbour;
@@ -219,7 +220,8 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
 
         // Now point the tile's vector in the direction of the tile with the lowest
         // Dijkstra distance
-        PyDict_SetItem(self->vector_dict, py_tile, Py_BuildValue("(ii)", -(tile.first.x - min_tile.x), -(tile.first.y - min_tile.y)));
+        PyObject *py_vector = Py_BuildValue("(ii)", -(tile.first.x - min_tile.x), -(tile.first.y - min_tile.y));
+        PyDict_SetItem(self->vector_dict, py_tile, py_vector);
 
         // Also test if the current tile is outside the player's fov
         if (tile.second > player_view_distance) {
