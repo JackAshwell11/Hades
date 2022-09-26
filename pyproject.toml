@@ -14,7 +14,7 @@ repository = "https://github.com/Aspect1103/Hades"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade = "2.6.15"
+arcade = "2.6.16"
 numpy = "1.23.3"
 pymunk = "6.2.1"
 shapely = "1.8.2"
