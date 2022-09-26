@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from hades.constants.game_object import (
         EntityAttributeData,
         EntityAttributeSectionType,
+        InstantData,
         StatusEffectData,
     )
     from hades.game_objects.base import Entity
@@ -317,6 +318,11 @@ class EntityAttribute:
             new_value = new_status_effect.original + new_status_effect.value
             self.owner.pymunk.max_horizontal_velocity = new_value
             self.owner.pymunk.max_vertical_velocity = new_value
+        elif new_status_effect.status_effect_type in [
+            StatusEffectType.HEALTH,
+            StatusEffectType.ARMOUR,
+        ]:
+            self.owner.update_indicator_bars()
 
     def update_status_effect(self, delta_time: float) -> None:
         """Update the currently applied status effect.
@@ -335,6 +341,11 @@ class EntityAttribute:
         current_status_effect.time_counter += delta_time
 
         # Apply custom status effect update logic
+        if self.applied_status_effect.status_effect_type in [
+            StatusEffectType.HEALTH,
+            StatusEffectType.ARMOUR,
+        ]:
+            self.owner.update_indicator_bars()
 
         # Check if we need to remove the status effect
         if current_status_effect.time_counter >= current_status_effect.duration:
@@ -369,3 +380,38 @@ class EntityAttribute:
 
         # Clear the applied status effect
         self.applied_status_effect = None
+
+    def apply_instant_effect(self, instant_data: InstantData, level: int) -> bool:
+        """Apply an instant effect to the attribute if possible.
+
+        Parameters
+        ----------
+        instant_data: InstantData
+            The instant effect data to apply.
+        level: int
+            The level to initialise the instant effect at.
+
+        Returns
+        -------
+        bool
+            Whether the instant effect could be applied or not.
+        """
+        # Check if the attribute's value is already at max
+        if self.value == self.max_value:
+            logger.debug(
+                "%r for entity %r is already at max so instant effect can't be used",
+                self,
+                self.owner,
+            )
+            return False
+
+        # Add the instant effect to the attribute and check if the new value is over the
+        # max
+        self.value = self.value + instant_data.increase(level)
+        if self.value > self.max_value:
+            self.value = self.max_value
+            logger.debug("Set %r to max", self)
+        self.owner.update_indicator_bars()
+
+        # Instant effect successful
+        return True
