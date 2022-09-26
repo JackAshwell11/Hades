@@ -1,4 +1,4 @@
-"""Tests all functions in vector_field.py."""
+"""Holds fixtures and test data used by all tests."""
 from __future__ import annotations
 
 # Pip
@@ -7,9 +7,124 @@ import numpy as np
 import pytest
 
 # Custom
-from hades.vector_field import VectorField
+from hades.constants.generation import TileType
+from hades.extensions import VectorField
+from hades.generation.bsp import Leaf
+from hades.generation.map import Map
+from hades.generation.primitives import Point, Rect
 
 __all__ = ()
+
+
+@pytest.fixture
+def valid_point_one() -> Point:
+    """Initialise the first valid point for use in testing.
+
+    Returns
+    -------
+    Point
+        The first valid point used for testing.
+    """
+    return Point(3, 5)
+
+
+@pytest.fixture
+def valid_point_two() -> Point:
+    """Initialise the second valid point for use in testing.
+
+    Returns
+    -------
+    Point
+        The second valid point used for testing.
+    """
+    return Point(5, 7)
+
+
+@pytest.fixture
+def boundary_point() -> Point:
+    """Initialise a boundary point for use in testing.
+
+    Returns
+    -------
+    Point
+        The boundary point used for testing.
+    """
+    return Point(0, 0)
+
+
+@pytest.fixture
+def invalid_point() -> Point:
+    """Initialise an invalid point for use in testing.
+
+    Returns
+    -------
+    Point
+        The invalid point used for testing.
+    """
+    return Point("test", "test")  # type: ignore
+
+
+@pytest.fixture
+def grid() -> np.ndarray:
+    """Initialise a 2D numpy grid for use in testing.
+
+    Returns
+    -------
+    np.ndarray
+        The 2D numpy grid used for testing.
+    """
+    return np.full((50, 50), TileType.EMPTY, np.int8)
+
+
+@pytest.fixture
+def rect(valid_point_one: Point, valid_point_two: Point, grid: np.ndarray) -> Rect:
+    """Initialise a rect for use in testing.
+
+    Parameters
+    ----------
+    valid_point_one: Point
+        The first valid point used for testing.
+    valid_point_two: Point
+        The second valid point used for testing.
+    grid: np.ndarray
+        The 2D grid used for testing.
+
+    Returns
+    -------
+    Rect
+        The rect used for testing.
+    """
+    return Rect(grid, valid_point_one, valid_point_two)
+
+
+@pytest.fixture
+def leaf(boundary_point: Point, grid: np.ndarray) -> Leaf:
+    """Initialise a leaf for use in testing.
+
+    Parameters
+    ----------
+    boundary_point: Point
+        A boundary point used for testing.
+    grid: np.ndarray
+        The 2D grid used for testing.
+
+    Returns
+    -------
+        The leaf used for testing.
+    """
+    return Leaf(boundary_point, Point(grid.shape[1], grid.shape[0]), grid)
+
+
+@pytest.fixture
+def map_obj() -> Map:
+    """Initialise a map for use in testing.
+
+    Returns
+    -------
+    Map
+        The map used for testing.
+    """
+    return Map(0)
 
 
 @pytest.fixture
@@ -144,79 +259,4 @@ def vector_field(walls: arcade.SpriteList) -> VectorField:
     VectorField
         The vector field for use in testing.
     """
-    return VectorField(20, 20, walls)
-
-
-def test_vector_field_init(walls: arcade.SpriteList) -> None:
-    """Test the initialisation of the VectorField class in vector_field.py.
-
-    Parameters
-    ----------
-    walls: arcade.SpriteList
-        The walls spritelist used for testing.
-    """
-    assert repr(VectorField(20, 20, walls)) == "<VectorField (Width=20) (Height=20)>"
-
-
-def test_vector_field_get_tile_pos_for_pixel() -> None:
-    """Test the get_tile_pos_for_pixel function in the VectorField class."""
-    assert VectorField.get_tile_pos_for_pixel((500, 500)) == (8, 8)
-    assert VectorField.get_tile_pos_for_pixel((0, 0)) == (0, 0)
-    with pytest.raises(ValueError):
-        VectorField.get_tile_pos_for_pixel((-500, -500))
-    with pytest.raises(TypeError):
-        VectorField.get_tile_pos_for_pixel(("test", "test"))  # type: ignore
-
-
-def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
-    """Test the recalculate_map function in the VectorField class.
-
-    Parameters
-    ----------
-    vector_field: VectorField
-        The vector field used for testing.
-    """
-    # Pick 20 random positions and follow the vector dict checking if they reach the
-    # player origin
-    vector_result = []
-    player_screen_pos = 252.0, 812.0
-    player_grid_pos = vector_field.get_tile_pos_for_pixel(player_screen_pos)
-    temp_possible_spawns_valid = vector_field.recalculate_map(player_screen_pos, 5)
-    vector_dict_items = list(vector_field.vector_dict.items())
-    for index in np.random.choice(len(vector_dict_items), 20):
-        current_pos, vector = vector_dict_items[index]
-        while current_pos != player_grid_pos:
-            # We need to check if an error has occurred
-            if vector == (0, 0):
-                vector_result.append(False)
-                break
-
-            # Trace back through the vector dict
-            current_pos = current_pos[0] + vector[0], current_pos[1] + vector[1]
-            vector = vector_field.vector_dict[current_pos]
-        vector_result.append(True)
-    assert all(vector_result)
-
-    # Check that all possible spawns are 5 tiles away from the player
-    for spawn in temp_possible_spawns_valid:
-        assert vector_field.distances[spawn] > 5
-
-    # Make sure we test what happens if the player's view distance is zero or negative
-    assert (4, 14) not in vector_field.recalculate_map(player_screen_pos, 0)
-    assert (4, 14) in vector_field.recalculate_map(player_screen_pos, -1)
-
-
-def test_vector_field_get_vector_direction(vector_field: VectorField) -> None:
-    """Test the get_vector_direction function in the VectorField class.
-
-    Parameters
-    ----------
-    vector_field: VectorField
-        The vector field used for testing.
-    """
-    vector_field.vector_dict[(8, 8)] = (-1, -1)
-    assert vector_field.get_vector_direction((500, 500)) == (-1, -1)
-    with pytest.raises(KeyError):
-        vector_field.get_vector_direction((0, 0))
-    with pytest.raises(TypeError):
-        vector_field.get_vector_direction(("test", "test"))  # type: ignore
+    return VectorField(walls, 20, 20)

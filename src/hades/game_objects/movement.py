@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 from hades.constants.game_object import MOVEMENT_FORCE
 
 if TYPE_CHECKING:
+    from hades.extensions import VectorField
     from hades.game_objects.enemy import Enemy
-    from hades.vector_field import VectorField
 
 __all__ = ("EnemyMovementManager",)
 
@@ -56,9 +56,9 @@ class EnemyMovementManager:
             The calculated force to apply to the enemy.
         """
         # Get the vector direction the enemy needs to travel in
-        vector_direction_x, vector_direction_y = self.vector_field.get_vector_direction(
-            self.owner.position
-        )
+        vector_direction_x, vector_direction_y = self.vector_field.vector_dict[
+            self.vector_field.pixel_to_grid_pos(self.owner.position)
+        ]
 
         # Calculate the force to apply to the enemy and return it
         return (

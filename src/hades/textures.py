@@ -23,14 +23,14 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
-def grid_pos_to_pixel(x: float, y: float) -> tuple[float, float]:
+def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     """Calculate the x and y position based on the game map or vector field position.
 
     Parameters
     ----------
-    x: float
+    x: int
         The x position in the game map or vector field.
-    y: float
+    y: int
         The x position in the game map or vector field.
 
     Raises

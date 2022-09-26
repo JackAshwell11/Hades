@@ -27,7 +27,7 @@ from hades.constants.generation import (
     MAX_SPLIT_ITERATION,
     TileType,
 )
-from hades.generation.astar import calculate_astar_path
+from hades.extensions import calculate_astar_path
 from hades.generation.bsp import Leaf
 from hades.generation.primitives import Point, Rect
 
@@ -364,12 +364,13 @@ class Map:
         # hallways will always be odd in this implementation due to numpy indexing
         half_hallway_size = HALLWAY_SIZE // 2
         for pair_source, pair_destination in pairwise(rooms):
-            for path_point in calculate_astar_path(
+            for path_point_tup in calculate_astar_path(
                 self.grid,
                 Point(*pair_source.center),
                 Point(*pair_destination.center),
             ):
                 # Test if the current tile is a floor tile
+                path_point = Point(*path_point_tup)
                 if self.grid[path_point.y][path_point.x] is TileType.FLOOR:
                     # Current tile is a floor tile, so there is no point placing a rect
                     continue
