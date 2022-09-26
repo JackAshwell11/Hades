@@ -36,7 +36,7 @@ pytest-instafail = "0.4.2"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.5"
 pyupgrade = "v2.37.3"
-tox = "3.25.1"
+tox = "3.26.0"
 
 [tool.pytest.ini_options]
 addopts = "-vv --cov=hades --cov-report=term-missing --cov-branch"
