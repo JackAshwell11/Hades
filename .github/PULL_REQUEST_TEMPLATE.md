@@ -1,7 +1,7 @@
 ## Description of Changes
 
-<!-- Give a brief description of what this pull request aims to accomplish including any issues it may or may not
-reference -->
+<!-- Give a brief description of what this pull request aims to accomplish
+including any issues it may or may not reference -->
 
 ## Type of Changes
 
@@ -12,6 +12,7 @@ reference -->
 | ✓   | :bug: Bug Fix          |
 | ✓   | :sparkles: New Feature |
 | ✓   | :hammer: Refactoring   |
+| ✓   | :memo: Miscellaneous   |
 
 ## Tasks to Complete
 
@@ -21,6 +22,7 @@ reference -->
 
 ## Incomplete Tasks
 
-<!-- Give a list of tasks which either need more discussion/research or can't be completed at this time -->
+<!-- Give a list of tasks which either need more discussion/research or can't
+be completed at this time -->
 
 - [ ] Placeholder task.
