@@ -14,7 +14,7 @@ repository = "https://github.com/Aspect1103/Hades"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade = "2.6.15"
+arcade = "2.6.16"
 numpy = "1.23.3"
 pymunk = "6.2.1"
 shapely = "1.8.4"
@@ -24,7 +24,7 @@ black = "22.8.0"
 flake8 = "5.0.4"
 isort = "5.10.1"
 mypy = "v0.971"
-nuitka = "1.0.7"
+nuitka = "1.1"
 ordered-set = "4.1.0"
 pre-commit = "2.20.0"
 pydocstyle = "6.1.1"
@@ -35,7 +35,7 @@ pytest-icdiff = "0.6"
 pytest-instafail = "0.4.2"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.5"
-pyupgrade = "v2.38.0"
+pyupgrade = "v2.38.2"
 tox = "3.26.0"
 
 [tool.pytest.ini_options]
@@ -103,7 +103,7 @@ filter_files = true
 profile = "black"
 
 [tool.mypy]
-ignore_missing_imports = true
+ignore-missing-imports = true
 
 [tool.pylint."BASIC"]
 good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
@@ -126,7 +126,6 @@ load-plugins = [
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
-    "arguments-renamed",
     "attribute-defined-outside-init",
     "fixme",
     "import-error",
@@ -135,7 +134,6 @@ disable = [
     "no-name-in-module",
     "redefined-outer-name",
     "too-few-public-methods",
-    "too-many-ancestors",
     "too-many-arguments",
     "too-many-instance-attributes",
     "too-many-locals",
@@ -156,7 +154,3 @@ convention = "numpy"
 # redefined-outer-name - Pylint complaining about redefining outer names (this is used in pytest)
 # too-few-public-methods - Pylint complaining about too few public methods
 # too-many-ancestors - Pylint complaining about too many inherited classes
-# too-many-arguments - Pylint complaining about too many parameters
-# too-many-instance-attributes - Pylint complaining about too many instance attributes
-# too-many-locals - Pylint complaining about too many local variables
-# too-many-statements - Pylint complaining about too many statements
