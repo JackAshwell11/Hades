@@ -9,7 +9,7 @@ import pathlib
 import arcade
 
 # Custom
-from hades.constants.game_object import SPRITE_SIZE
+from hades.constants.game_objects import SPRITE_SIZE
 
 __all__ = (
     "grid_pos_to_pixel",

@@ -9,13 +9,13 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from hades.constants.game_object import ObjectID
+from hades.constants.game_objects import ObjectID
 
 if TYPE_CHECKING:
-    from hades.game_objects.attack import Bullet
+    from hades.game_objects.attacks import Bullet
     from hades.game_objects.base import Entity, Tile
-    from hades.game_objects.enemy import Enemy
-    from hades.game_objects.player import Player
+    from hades.game_objects.enemies import Enemy
+    from hades.game_objects.players import Player
 
 __all__ = ("PhysicsEngine",)
 

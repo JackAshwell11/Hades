@@ -15,7 +15,7 @@ from hades.views.base_view import BaseView
 
 if TYPE_CHECKING:
     from hades.game_objects.base import CollectibleTile
-    from hades.game_objects.player import Player
+    from hades.game_objects.players import Player
     from hades.window import Window
 
 __all__ = ("InventoryView",)

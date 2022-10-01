@@ -7,19 +7,19 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 # Custom
-from hades.constants.game_object import EntityAttributeType, StatusEffectType
+from hades.constants.game_objects import EntityAttributeType, StatusEffectType
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from hades.constants.game_object import (
+    from hades.constants.game_objects import (
         EntityAttributeData,
         EntityAttributeSectionType,
         InstantData,
         StatusEffectData,
     )
     from hades.game_objects.base import Entity
-    from hades.game_objects.player import Player
+    from hades.game_objects.players import Player
 
 __all__ = (
     "EntityAttribute",

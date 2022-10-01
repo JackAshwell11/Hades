@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from hades.constants.constructor import CONSUMABLES, ENEMY1, PLAYERS
-from hades.constants.game_object import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
+from hades.constants.constructors import CONSUMABLES, ENEMY1, PLAYERS
+from hades.constants.game_objects import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
 from hades.constants.general import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
@@ -31,10 +31,10 @@ from hades.constants.general import (
 )
 from hades.constants.generation import WALL_REPLACEABLE_TILES, TileType
 from hades.extensions import VectorField
-from hades.game_objects.attack import AreaOfEffectAttack, MeleeAttack
-from hades.game_objects.enemy import Enemy
-from hades.game_objects.player import Player
-from hades.game_objects.tile import Consumable, Floor, Wall
+from hades.game_objects.attacks import AreaOfEffectAttack, MeleeAttack
+from hades.game_objects.enemies import Enemy
+from hades.game_objects.players import Player
+from hades.game_objects.tiles import Consumable, Floor, Wall
 from hades.generation.map import create_map
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel

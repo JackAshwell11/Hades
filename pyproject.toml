@@ -56,7 +56,7 @@ exclude_lines = [
 ]
 omit = [
     "*/__main__.py",  # This is only used for running the game via the CLI
-    "*/extensions/extensions.py",  # This is only used for building the C++ extensions
+    "*/extensions/compile.py",  # This is only used for building the C++ extensions
 ]
 precision = 2
 show_missing = true
@@ -78,7 +78,7 @@ python =
 allowlist_externals = pytest
 deps = {[base]deps}
 commands =
-    python -I -m hades.extensions.extensions
+    python -I -m hades.extensions.compile
     pytest --cov-append
 
 [testenv:clean]

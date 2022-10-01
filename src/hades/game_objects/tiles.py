@@ -12,7 +12,7 @@ from hades.textures import non_moving_textures
 if TYPE_CHECKING:
     import arcade
 
-    from hades.constants.game_object import ConsumableData
+    from hades.constants.game_objects import ConsumableData
     from hades.views.game_view import Game
 
 __all__ = (

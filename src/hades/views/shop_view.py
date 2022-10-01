@@ -12,8 +12,8 @@ import arcade.gui
 from hades.views.base_view import BaseView
 
 if TYPE_CHECKING:
-    from hades.game_objects.attribute import UpgradablePlayerSection
-    from hades.game_objects.player import Player
+    from hades.game_objects.attributes import UpgradablePlayerSection
+    from hades.game_objects.players import Player
 
 __all__ = (
     "SectionUpgradeButton",

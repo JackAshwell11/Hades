@@ -10,27 +10,27 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from hades.constants.game_object import (
+from hades.constants.game_objects import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
     EntityAttributeType,
     ObjectID,
 )
-from hades.game_objects.attack import create_attack
+from hades.game_objects.attacks import create_attack
 from hades.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
-    from hades.constants.game_object import (
+    from hades.constants.game_objects import (
         AttackAlgorithmType,
         AttackData,
         BaseData,
         EntityAttributeData,
         EntityData,
     )
-    from hades.game_objects.attack import AttackBase
-    from hades.game_objects.attribute import EntityAttribute
-    from hades.game_objects.player import Player
+    from hades.game_objects.attacks import AttackBase
+    from hades.game_objects.attributes import EntityAttribute
+    from hades.game_objects.players import Player
     from hades.physics import PhysicsEngine
     from hades.views.game_view import Game
 

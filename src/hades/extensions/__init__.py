@@ -15,7 +15,8 @@ def dummy(*_) -> None:
 try:
     from hades.extensions.astar.astar import calculate_astar_path, heuristic
     from hades.extensions.vector_field.vector_field import VectorField
-except ImportError:  # pragma: no cover
+except ImportError as error:  # pragma: no cover
+    print(error)
     calculate_astar_path = dummy  # type: ignore
     heuristic = dummy  # type: ignore
     VectorField = dummy  # type: ignore

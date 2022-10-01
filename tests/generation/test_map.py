@@ -10,12 +10,13 @@ import numpy as np
 import pytest
 
 # Custom
-from hades.common import grid_bfs
 from hades.constants.generation import BASE_ITEM_COUNT, ITEM_DISTRIBUTION, TileType
 from hades.generation.map import LevelConstants, Map, create_map
 from hades.generation.primitives import Point
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from hades.generation.bsp import Leaf
 
 __all__ = ()
@@ -35,6 +36,46 @@ def count_items(grid: np.ndarray) -> int:
         The number of items in the grid.
     """
     return np.count_nonzero(np.isin(grid, list(ITEM_DISTRIBUTION.keys())))
+
+
+def grid_bfs(
+    target: tuple[int, int],
+    height: int,
+    width: int,
+) -> Generator[tuple[int, int], None, None]:
+    """Get a target's neighbours based on a given list of offsets.
+
+    Note that this uses the same logic as the grid_bfs() function in the C++ extensions,
+    however, it is much slower due to Python.
+
+    Parameters
+    ----------
+    target: tuple[int, int]
+        The target to get neighbours for.
+    height: int
+        The height of the grid.
+    width: int
+        The width of the grid.
+
+    Returns
+    -------
+    Generator[tuple[int, int], None, None]
+        A list of the target's neighbours.
+    """
+    # Get all the neighbour floor tile positions relative to the current target
+    for dx, dy in (
+        (0, -1),
+        (-1, 0),
+        (1, 0),
+        (0, 1),
+    ):
+        # Check if the neighbour position is within the boundaries of the grid or not
+        x, y = target[0] + dx, target[1] + dy
+        if (x < 0 or x >= width) or (y < 0 or y >= height):
+            continue
+
+        # Yield the neighbour tile position
+        yield x, y
 
 
 def get_possible_tiles(grid: np.ndarray) -> list[tuple[int, int]]:

@@ -371,7 +371,7 @@ PyMODINIT_FUNC PyInit_vector_field(void) {
         return NULL;
 
     // Initialise the constants
-    PyObject *temp_sprite_size = get_global_constant("hades.constants.game_object", {"SPRITE_SIZE"});
+    PyObject *temp_sprite_size = get_global_constant("hades.constants.game_objects", {"SPRITE_SIZE"});
     if (temp_sprite_size == Py_None) {
         return NULL;
     } else {

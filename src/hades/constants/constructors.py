@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Custom
-from hades.constants.game_object import (
+from hades.constants.game_objects import (
     AttackAlgorithmType,
     AttackData,
     BaseData,
