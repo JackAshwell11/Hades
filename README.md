@@ -1,9 +1,9 @@
 # Hades
 
-[![GitHub](https://img.shields.io/github/license/Aspect1103/Hades)](LICENSE)
 [![Run tests](https://github.com/Aspect1103/Hades/actions/workflows/test.yaml/badge.svg)](https://github.com/Aspect1103/Hades/actions/workflows/test.yaml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Aspect1103/Hades/master.svg)](https://results.pre-commit.ci/latest/github/Aspect1103/Hades/master)
 [![Coverage Status](https://coveralls.io/repos/github/Aspect1103/Hades/badge.svg?branch=master)](https://coveralls.io/github/Aspect1103/Hades?branch=master)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/Aspect1103/Hades.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Aspect1103/Hades/context:python)
+[![GitHub](https://img.shields.io/github/license/Aspect1103/Hades)](LICENSE)
 
 A procedurally generated bullet-hell dungeon crawler made in Python using Arcade.
 
@@ -38,11 +38,4 @@ You can also compile the game locally if you choose. To do so, follow these step
 
 ## Contributing
 
-Contributions are welcomed and greatly appreciated as they help to improve Hades and add more features. To start contributing, follow these steps:
-
-1. Clone the repository using `git clone https://github.com/Aspect1103/Hades.git`.
-2. Ensure [Poetry](https://python-poetry.org/) is installed and virtual environments are created in the project directory using `poetry config virtualenvs.in-project true --local`.
-3. Run `poetry install` to install all the dependencies.
-4. Run `pre-commit install` to install the pre-commit hooks.
-
-Contributions should be made through [issues](https://github.com/Aspect1103/Hades/issues) and [pull requests](https://github.com/Aspect1103/Hades/pulls).
+See [here](.github/CONTRIBUTING.md) for more details.
