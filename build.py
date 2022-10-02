@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 
 # Initialise some constants
-GAME_NAME = "hades"
+GAME_NAME = "src/hades"
 SOURCE_DIR = Path().absolute() / GAME_NAME / "window.py"
 RESOURCES_DIR = f"{GAME_NAME}/resources"
 OUTPUT_DIR = Path().absolute() / "build"

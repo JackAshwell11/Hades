@@ -30,10 +30,13 @@ update-venv: ${VENV_NAME}  # Updates the poetry virtual environment
 	poetry update
 
 pre-commit: ${VENV_NAME}  # Runs pre-commit
-	pre-commit run --all-files
+	poetry run pre-commit run --all-files
 
-test: ${VENV_NAME}  # Runs the tests using Tox
-	tox
+test: ${VENV_NAME}  # Runs the tests using Pytest
+	poetry run pytest
+
+tox: ${VENV_NAME}  # Runs the entire test suite using Tox
+	poetry run tox
 
 build: ${VENV_NAME}  # Builds the game into an executable form
-	python build.py
+	poetry run python -m build

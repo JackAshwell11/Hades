@@ -19,10 +19,3 @@ including any issues it may or may not reference -->
 <!-- Give a list of tasks which need to be completed for this pull request -->
 
 - [ ] Placeholder task.
-
-## Incomplete Tasks
-
-<!-- Give a list of tasks which either need more discussion/research or can't
-be completed at this time -->
-
-- [ ] Placeholder task.
