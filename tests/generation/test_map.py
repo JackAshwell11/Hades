@@ -10,7 +10,12 @@ import numpy as np
 import pytest
 
 # Custom
-from hades.constants.generation import BASE_ITEM_COUNT, ITEM_DISTRIBUTION, TileType
+from hades.constants.generation import (
+    ITEM_DISTRIBUTION,
+    MAP_GENERATION_COUNTS,
+    GenerationConstantType,
+    TileType,
+)
 from hades.generation.map import LevelConstants, Map, create_map
 from hades.generation.primitives import Point
 
@@ -97,25 +102,28 @@ def get_possible_tiles(grid: np.ndarray) -> list[tuple[int, int]]:
 
 def test_create_map() -> None:
     """Test the create_map function in map.py."""
+    base_item_count = MAP_GENERATION_COUNTS[
+        GenerationConstantType.ITEM_COUNT
+    ].base_value
     temp_positive = create_map(1)
     assert (
         isinstance(temp_positive[0].grid, np.ndarray)
         and isinstance(temp_positive[1], LevelConstants)
-        and count_items(temp_positive[0].grid) == BASE_ITEM_COUNT
+        and count_items(temp_positive[0].grid) == base_item_count
         and temp_positive[0].player_pos != (-1, -1)
     )
     temp_zero = create_map(0)
     assert (
         isinstance(temp_zero[0].grid, np.ndarray)
         and isinstance(temp_zero[1], LevelConstants)
-        and count_items(temp_zero[0].grid) == BASE_ITEM_COUNT
+        and count_items(temp_zero[0].grid) == base_item_count
         and temp_zero[0].player_pos != (-1, -1)
     )
     temp_negative = create_map(-1)
     assert (
         isinstance(temp_negative[0].grid, np.ndarray)
         and isinstance(temp_negative[1], LevelConstants)
-        and count_items(temp_negative[0].grid) == BASE_ITEM_COUNT
+        and count_items(temp_negative[0].grid) == base_item_count
         and temp_negative[0].player_pos != (-1, -1)
     )
     with pytest.raises(TypeError):
@@ -186,7 +194,9 @@ def test_map_split_bsp(map_obj: Map) -> None:
             room_gen_deque.append(current_leaf.right)
         else:
             result.append(current_leaf)
-    assert len(result) == map_obj.map_constants["split iteration"] + 1
+    assert (
+        len(result) == map_obj.map_constants[GenerationConstantType.SPLIT_ITERATION] + 1
+    )
 
     # Make sure we test what happens if the bsp is already split
     assert isinstance(map_obj.split_bsp(), Map)
@@ -271,4 +281,7 @@ def test_map_place_multiple(map_obj: Map) -> None:
     map_obj.place_multiple(ITEM_DISTRIBUTION, [])
     assert count_items(map_obj.grid) == 0
     map_obj.place_multiple(ITEM_DISTRIBUTION, possible_tiles)
-    assert count_items(map_obj.grid) == BASE_ITEM_COUNT
+    assert (
+        count_items(map_obj.grid)
+        == MAP_GENERATION_COUNTS[GenerationConstantType.ITEM_COUNT].base_value
+    )

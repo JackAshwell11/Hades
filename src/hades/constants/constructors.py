@@ -26,6 +26,7 @@ __all__ = (
     "CONSUMABLES",
     "ENEMY1",
     "PLAYERS",
+    "INDICATOR_BAR_TYPES",
 )
 
 # Player characters
@@ -230,3 +231,4 @@ CONSUMABLES = {
     TileType.SPEED_BOOST_POTION: SPEED_BOOST_POTION,
     TileType.FIRE_RATE_BOOST_POTION: FIRE_RATE_BOOST_POTION,
 }
+INDICATOR_BAR_TYPES = {EntityAttributeType.HEALTH, EntityAttributeType.ARMOUR}

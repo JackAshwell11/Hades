@@ -45,8 +45,6 @@ __all__ = (
 
 
 # Object IDs
-# noinspection PyArgumentList
-# TODO REMOVE ABOVE LINE ONCE BUG FIXED
 class ObjectID(Enum):
     """Stores the different types of game objects to make checking more efficient."""
 
@@ -57,8 +55,6 @@ class ObjectID(Enum):
 
 
 # Entity attribute types
-# noinspection PyArgumentList
-# TODO REMOVE ABOVE LINE ONCE BUG FIXED
 class EntityAttributeType(Enum):
     """Stores the types of attributes an entity can have."""
 
@@ -85,8 +81,6 @@ class EntityAttributeSectionType(Enum):
 
 
 # Attack algorithms
-# noinspection PyArgumentList
-# TODO REMOVE ABOVE LINE ONCE BUG FIXED
 class AttackAlgorithmType(Enum):
     """Stores the different types of attack algorithms that exist."""
 
@@ -116,6 +110,7 @@ class StatusEffectType(Enum):
     # POISON = "poison"
 
 
+# Entity constructor data
 class BaseData(NamedTuple):
     """The base class for constructing an entity.
 
@@ -256,6 +251,7 @@ class ConsumableData(NamedTuple):
     status_effects: list[StatusEffectData]
 
 
+# Potion constructor data
 class InstantData(NamedTuple):
     """Stores the data for an individual instant effect applied by a consumable.
 

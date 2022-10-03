@@ -2,33 +2,27 @@
 from __future__ import annotations
 
 # Custom
-from enum import IntEnum, auto
+from enum import Enum, IntEnum, auto
+
+# Builtin
+from typing import NamedTuple
 
 __all__ = (
-    "BASE_ITEM_COUNT",
-    "BASE_MAP_HEIGHT",
-    "BASE_MAP_WIDTH",
-    "BASE_OBSTACLE_COUNT",
-    "BASE_SPLIT_ITERATION",
     "HALLWAY_SIZE",
     "ITEM_DISTRIBUTION",
-    "MAX_ITEM_COUNT",
-    "MAX_MAP_HEIGHT",
-    "MAX_MAP_WIDTH",
-    "MAX_OBSTACLE_COUNT",
-    "MAX_SPLIT_ITERATION",
     "MIN_CONTAINER_SIZE",
     "MIN_ROOM_SIZE",
     "ITEM_PLACE_TRIES",
     "WALL_REPLACEABLE_TILES",
     "ROOM_RATIO",
     "TileType",
+    "MAP_GENERATION_COUNTS",
+    "GenerationConstantType",
+    "MapGenerationConstant",
 )
 
 
 # Tile types
-# noinspection PyArgumentList
-# TODO REMOVE ABOVE LINE ONCE BUG FIXED
 class TileType(IntEnum):
     """Stores the different types of tiles in the game map."""
 
@@ -46,6 +40,41 @@ class TileType(IntEnum):
     DEBUG_WALL = auto()
 
 
+# Map generation counts
+class GenerationConstantType(Enum):
+    """Stores the different types of map generation constants."""
+
+    WIDTH = auto()
+    HEIGHT = auto()
+    SPLIT_ITERATION = auto()
+    OBSTACLE_COUNT = auto()
+    ITEM_COUNT = auto()
+
+
+class MapGenerationConstant(NamedTuple):
+    """Stores a map generation constant which can be calculated.
+
+    base_value: int
+        The base value for the exponential calculation.
+    increase: float
+        The percentage increase for the constant.
+    max_value: int
+        The max value for the exponential calculation.
+    """
+
+    base_value: int
+    increase: float
+    max_value: int
+
+
+MAP_GENERATION_COUNTS = {
+    GenerationConstantType.WIDTH: MapGenerationConstant(30, 1.2, 150),
+    GenerationConstantType.HEIGHT: MapGenerationConstant(20, 1.2, 100),
+    GenerationConstantType.SPLIT_ITERATION: MapGenerationConstant(5, 1.2, 25),
+    GenerationConstantType.OBSTACLE_COUNT: MapGenerationConstant(50, 1.2, 200),
+    GenerationConstantType.ITEM_COUNT: MapGenerationConstant(3, 1.2, 15),
+}
+
 # Map generation item distribution
 ITEM_DISTRIBUTION = {
     TileType.HEALTH_POTION: 0.3,
@@ -55,18 +84,6 @@ ITEM_DISTRIBUTION = {
     TileType.SPEED_BOOST_POTION: 0.05,
     TileType.FIRE_RATE_BOOST_POTION: 0.05,
 }
-
-# Map generation counts
-BASE_MAP_WIDTH = 30
-BASE_MAP_HEIGHT = 20
-BASE_SPLIT_ITERATION = 5
-BASE_OBSTACLE_COUNT = 50
-BASE_ITEM_COUNT = 3
-MAX_MAP_WIDTH = 150
-MAX_MAP_HEIGHT = 100
-MAX_SPLIT_ITERATION = 25
-MAX_OBSTACLE_COUNT = 200
-MAX_ITEM_COUNT = 15
 
 # Bsp split constants
 MIN_CONTAINER_SIZE = 5

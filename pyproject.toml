@@ -39,8 +39,12 @@ pyupgrade = "v2.38.2"
 tox = "3.26.0"
 
 [tool.pytest.ini_options]
-addopts = "-vv -ra --showlocals --cov=hades --cov-report=term-missing --cov-branch"
+addopts = "-vv -ra --showlocals --cov-report term-missing --cov-branch"
 testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["hades"]
 
 [tool.coverage.paths]
 source = [

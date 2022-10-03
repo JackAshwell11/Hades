@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 # Custom
+from hades.constants.constructors import INDICATOR_BAR_TYPES
 from hades.constants.game_objects import EntityAttributeType, StatusEffectType
 
 if TYPE_CHECKING:
@@ -147,9 +148,7 @@ class UpgradablePlayerSection:
 
         # Now upgrade each entity attribute
         logger.debug("Upgrading section %r", self.attribute_section_type)
-        for (
-            entity_attribute
-        ) in self.attribute_section_type.value:  # type: EntityAttributeType
+        for entity_attribute in self.attribute_section_type.value:  # type: ignore
             # Calculate the diff between the current level and the next (this is
             # because some attribute may be variable or have status effects applied
             # to them)
@@ -318,10 +317,7 @@ class EntityAttribute:
             new_value = new_status_effect.original + new_status_effect.value
             self.owner.pymunk.max_horizontal_velocity = new_value
             self.owner.pymunk.max_vertical_velocity = new_value
-        elif new_status_effect.status_effect_type in [
-            StatusEffectType.HEALTH,
-            StatusEffectType.ARMOUR,
-        ]:
+        elif new_status_effect.status_effect_type.value in INDICATOR_BAR_TYPES:
             self.owner.update_indicator_bars()
 
     def update_status_effect(self, delta_time: float) -> None:
@@ -341,10 +337,7 @@ class EntityAttribute:
         current_status_effect.time_counter += delta_time
 
         # Apply custom status effect update logic
-        if self.applied_status_effect.status_effect_type in [
-            StatusEffectType.HEALTH,
-            StatusEffectType.ARMOUR,
-        ]:
+        if self.applied_status_effect.status_effect_type.value in INDICATOR_BAR_TYPES:
             self.owner.update_indicator_bars()
 
         # Check if we need to remove the status effect
@@ -377,6 +370,8 @@ class EntityAttribute:
         if current_status_effect.status_effect_type is StatusEffectType.SPEED:
             self.owner.pymunk.max_horizontal_velocity = current_status_effect.original
             self.owner.pymunk.max_vertical_velocity = current_status_effect.original
+        elif current_status_effect.status_effect_type.value in INDICATOR_BAR_TYPES:
+            self.owner.update_indicator_bars()
 
         # Clear the applied status effect
         self.applied_status_effect = None
@@ -411,7 +406,10 @@ class EntityAttribute:
         if self.value > self.max_value:
             self.value = self.max_value
             logger.debug("Set %r to max", self)
-        self.owner.update_indicator_bars()
+
+        # Apply custom instant effect apply logic
+        if instant_data.instant_type.value in INDICATOR_BAR_TYPES:
+            self.owner.update_indicator_bars()
 
         # Instant effect successful
         return True

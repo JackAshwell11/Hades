@@ -25,4 +25,5 @@ jobs:
       - name: Autobuild
         uses: github/codeql-action/autobuild@v2
       - name: Perform CodeQL Analysis
+        setup-python-dependencies: false
         uses: github/codeql-action/analyze@v2

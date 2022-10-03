@@ -12,19 +12,11 @@ import numpy as np
 
 # Custom
 from hades.constants.generation import (
-    BASE_ITEM_COUNT,
-    BASE_MAP_HEIGHT,
-    BASE_MAP_WIDTH,
-    BASE_OBSTACLE_COUNT,
-    BASE_SPLIT_ITERATION,
     HALLWAY_SIZE,
     ITEM_DISTRIBUTION,
     ITEM_PLACE_TRIES,
-    MAX_ITEM_COUNT,
-    MAX_MAP_HEIGHT,
-    MAX_MAP_WIDTH,
-    MAX_OBSTACLE_COUNT,
-    MAX_SPLIT_ITERATION,
+    MAP_GENERATION_COUNTS,
+    GenerationConstantType,
     TileType,
 )
 from hades.extensions import calculate_astar_path
@@ -104,7 +96,7 @@ class Map:
 
     Attributes
     ----------
-    map_constants: dict[TileType | str, int]
+    map_constants: dict[TileType | GenerationConstantType, int]
         A mapping of constant name to value. These constants are 'width', 'height',
         'split iteration' (how many times the bsp should split) and the counts for each
         item type (accessed through TileType).
@@ -127,15 +119,23 @@ class Map:
 
     def __init__(self, level: int) -> None:
         self.level: int = level
-        self.map_constants: dict[TileType | str, int] = self.generate_constants()
+        self.map_constants: dict[
+            TileType | GenerationConstantType, int
+        ] = self.generate_constants()
         self.grid: np.ndarray = np.full(
-            (self.map_constants["height"], self.map_constants["width"]),
+            (
+                self.map_constants[GenerationConstantType.HEIGHT],
+                self.map_constants[GenerationConstantType.WIDTH],
+            ),
             TileType.EMPTY,
             TileType,
         )
         self.bsp: Leaf = Leaf(
             Point(0, 0),
-            Point(self.map_constants["width"] - 1, self.map_constants["height"] - 1),
+            Point(
+                self.map_constants[GenerationConstantType.WIDTH] - 1,
+                self.map_constants[GenerationConstantType.HEIGHT] - 1,
+            ),
             self.grid,
         )
         self.player_pos: tuple[int, int] = (-1, -1)
@@ -143,10 +143,10 @@ class Map:
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
         return (
-            f"<Map (Width={self.map_constants['width']})"
-            f" (Height={self.map_constants['height']}) (Split"
-            f" count={self.map_constants['split iteration']}) (Item"
-            f" count={self.map_constants['item count']})>"
+            f"<Map (Width={self.map_constants[GenerationConstantType.WIDTH]})"
+            f" (Height={self.map_constants[GenerationConstantType.HEIGHT]}) (Split"
+            f" count={self.map_constants[GenerationConstantType.SPLIT_ITERATION]})"
+            f" (Item count={self.map_constants[GenerationConstantType.ITEM_COUNT]})>"
         )
 
     @property
@@ -179,38 +179,30 @@ class Map:
         # Return the shape
         return self.grid.shape[0]
 
-    def generate_constants(self) -> dict[TileType | str, int]:
+    def generate_constants(self) -> dict[TileType | GenerationConstantType, int]:
         """Generate the needed constants based on a given game level.
 
         Returns
         -------
-        dict[TileType | str, int]
+        dict[TileType | GenerationConstantType, int]
             The generated constants.
         """
         # Create the generation constants
-        generation_constants: dict[TileType | str, int] = {
-            "width": np.minimum(
-                int(np.round(BASE_MAP_WIDTH * 1.2**self.level)), MAX_MAP_WIDTH
-            ),
-            "height": np.minimum(
-                int(np.round(BASE_MAP_HEIGHT * 1.2**self.level)), MAX_MAP_HEIGHT
-            ),
-            "split iteration": np.minimum(
-                int(np.round(BASE_SPLIT_ITERATION * 1.5**self.level)),
-                MAX_SPLIT_ITERATION,
-            ),
-            "obstacle count": np.minimum(
-                int(np.round(BASE_OBSTACLE_COUNT * 1.3**self.level)),
-                MAX_OBSTACLE_COUNT,
-            ),
-            "item count": np.minimum(
-                int(np.round(BASE_ITEM_COUNT * 1.1**self.level)), MAX_ITEM_COUNT
-            ),
+        generation_constants: dict[TileType | GenerationConstantType, int] = {
+            key: np.minimum(
+                int(np.round(value.base_value * value.increase**self.level)),
+                value.max_value,
+            )
+            for key, value in MAP_GENERATION_COUNTS.items()
         }
 
         # Create the dictionary which will hold the counts for each item type
         item_dict: dict[TileType, int] = {
-            key: int(np.round(value * generation_constants["item count"]))
+            key: int(
+                np.round(
+                    value * generation_constants[GenerationConstantType.ITEM_COUNT]
+                )
+            )
             for key, value in ITEM_DISTRIBUTION.items()
         }
 
@@ -231,7 +223,7 @@ class Map:
         # Start the splitting using deque
         deque_obj = deque["Leaf"]()
         deque_obj.append(self.bsp)
-        split_iteration = self.map_constants["split iteration"]
+        split_iteration = self.map_constants[GenerationConstantType.SPLIT_ITERATION]
         while split_iteration and deque_obj:
             # Get the current leaf from the deque object
             current = deque_obj.popleft()
@@ -304,10 +296,13 @@ class Map:
         """
         # Place random obstacles in the grid
         y, x = np.where(self.grid == TileType.EMPTY)
-        arr_index = np.random.choice(len(y), self.map_constants["obstacle count"])
+        arr_index = np.random.choice(
+            len(y), self.map_constants[GenerationConstantType.OBSTACLE_COUNT]
+        )
         self.grid[y[arr_index], x[arr_index]] = TileType.OBSTACLE
         logger.debug(
-            "Created %d obstacles in the 2D grid", self.map_constants["obstacle count"]
+            "Created %d obstacles in the 2D grid",
+            self.map_constants[GenerationConstantType.OBSTACLE_COUNT],
         )
 
         # # Create a complete graph out of rooms
