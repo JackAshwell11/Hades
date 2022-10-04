@@ -55,6 +55,7 @@ def create_map(level: int) -> tuple[Map, LevelConstants]:
     # Create the rooms and hallways
     temp_map = Map(level)
     temp_map.create_hallways(temp_map.split_bsp().generate_rooms())
+    print(temp_map.grid)
 
     # Place the game objects
     possible_tiles: list[tuple[int, int]] = list(  # noqa
@@ -127,7 +128,7 @@ class Map:
                 self.map_constants[GenerationConstantType.HEIGHT],
                 self.map_constants[GenerationConstantType.WIDTH],
             ),
-            TileType.EMPTY,
+            TileType.EMPTY,  # type: ignore
             TileType,
         )
         self.bsp: Leaf = Leaf(

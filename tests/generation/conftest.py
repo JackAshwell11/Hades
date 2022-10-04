@@ -41,7 +41,7 @@ def grid() -> np.ndarray:
     np.ndarray
         The 2D numpy grid used for testing.
     """
-    return np.full((50, 50), TileType.EMPTY, np.int8)
+    return np.full((50, 50), TileType.EMPTY, TileType)  # type: ignore
 
 
 @pytest.fixture

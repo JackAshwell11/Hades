@@ -30,8 +30,8 @@ def get_obstacle_grid() -> np.ndarray:
     # Map._create_hallways()
     temp_grid = np.full(
         (10, 10),
-        TileType.EMPTY,
-        np.int8,
+        TileType.EMPTY,  # type: ignore
+        TileType,
     )
     y, x = np.where(temp_grid == TileType.EMPTY)
     arr_index = np.random.choice(len(y), 25)

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Custom
-from enum import Enum, IntEnum, auto
+from enum import Enum, auto
 
 # Builtin
 from typing import NamedTuple
@@ -22,8 +22,8 @@ __all__ = (
 )
 
 
-# Tile types
-class TileType(IntEnum):
+# Tile types  # TODO: CHANGING THIS TO ENUM SEEMS TO CREATE DIAGONALS THROUGH WALLS
+class TileType(Enum):
     """Stores the different types of tiles in the game map."""
 
     EMPTY = auto()
@@ -70,9 +70,9 @@ class MapGenerationConstant(NamedTuple):
 MAP_GENERATION_COUNTS = {
     GenerationConstantType.WIDTH: MapGenerationConstant(30, 1.2, 150),
     GenerationConstantType.HEIGHT: MapGenerationConstant(20, 1.2, 100),
-    GenerationConstantType.SPLIT_ITERATION: MapGenerationConstant(5, 1.2, 25),
-    GenerationConstantType.OBSTACLE_COUNT: MapGenerationConstant(50, 1.2, 200),
-    GenerationConstantType.ITEM_COUNT: MapGenerationConstant(3, 1.2, 15),
+    GenerationConstantType.SPLIT_ITERATION: MapGenerationConstant(5, 1.5, 25),
+    GenerationConstantType.OBSTACLE_COUNT: MapGenerationConstant(50, 1.3, 200),
+    GenerationConstantType.ITEM_COUNT: MapGenerationConstant(3, 1.1, 15),
 }
 
 # Map generation item distribution

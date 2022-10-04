@@ -4,6 +4,7 @@ from __future__ import annotations
 # Builtin
 import logging
 import math
+from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 # Pip
@@ -95,7 +96,7 @@ class Bullet(arcade.SpriteSolidColor):
             logger.debug("Removed %r after passing max range %f", self, self.max_range)
 
 
-class AttackBase:
+class AttackBase(metaclass=ABCMeta):
     """The base class for all attack algorithms.
 
     Parameters
@@ -122,6 +123,7 @@ class AttackBase:
         """Return a human-readable representation of this object."""
         return f"<AttackBase (Owner={self.owner})>"
 
+    @abstractmethod
     def process_attack(self, *args: Any) -> None:
         """Perform an attack by the owner entity.
 
@@ -177,7 +179,7 @@ class RangedAttack(AttackBase):
             arcade.color.RED,
             self.owner,
             self.attack_data.damage,
-            self.attack_data.attack_range * SPRITE_SIZE,
+            self.attack_data.extra.max_bullet_range * SPRITE_SIZE,
         )
         physics: PhysicsEngine = self.owner.physics_engines[0]
         physics.add_bullet(new_bullet)
@@ -302,9 +304,22 @@ def create_attack(
         The attack algorithm to create.
     attack_data: AttackData
         The attack data for this attack.
+
+    Raises
+    ------
+    TypeError
+        Invalid attack type parameter.
+
+    Returns
+    -------
+    AttackBase
+        The instantiated attack algorithm.
     """
     # Get the attack algorithm class type which matches the given attack type
-    cls = ATTACKS[attack_type]
+    cls: type[AttackBase] | None = ATTACKS.get(attack_type)
+    if cls is None:
+        logger.debug("Unknown attack type %r", attack_type)
+        raise TypeError(f"The attack type {attack_type} is invalid")
     logger.debug(
         "Selected attack algorithm %r for given attack algorithm type %r",
         cls,

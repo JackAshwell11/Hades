@@ -164,11 +164,11 @@ def test_map_generate_constants(map_obj: Map) -> None:
     """
     temp_result = set(map_obj.generate_constants().keys())
     assert temp_result == {
-        "width",
-        "height",
-        "split iteration",
-        "obstacle count",
-        "item count",
+        GenerationConstantType.WIDTH,
+        GenerationConstantType.HEIGHT,
+        GenerationConstantType.SPLIT_ITERATION,
+        GenerationConstantType.OBSTACLE_COUNT,
+        GenerationConstantType.ITEM_COUNT,
     }.union(ITEM_DISTRIBUTION.keys())
 
 

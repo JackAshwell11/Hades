@@ -4,6 +4,7 @@ from __future__ import annotations
 # Builtin
 import contextlib
 import logging
+from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING
 
 # Pip
@@ -378,7 +379,7 @@ class GameObject(arcade.Sprite):
         return f"<GameObject (Position=({self.center_x}, {self.center_y}))>"
 
 
-class Entity(GameObject):
+class Entity(GameObject, metaclass=ABCMeta):
     """Represents an entity in the game.
 
     Parameters
@@ -559,6 +560,11 @@ class Entity(GameObject):
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialise the entity's state dict.
 
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+
         Returns
         -------
         dict[EntityAttributeType, EntityAttribute]
@@ -573,11 +579,6 @@ class Entity(GameObject):
         ----------
         delta_time: float
             Time interval since the last time the function was called.
-
-        Raises
-        ------
-        NotImplementedError
-            The function is not implemented.
         """
         # Make sure variables needed are valid
         assert self.game.vector_field is not None
@@ -678,6 +679,7 @@ class Entity(GameObject):
             new_armour_fullness = self.armour.value / self.armour.max_value
             self.armour_bar.fullness = new_armour_fullness
 
+    @abstractmethod
     def post_on_update(self, delta_time: float) -> None:
         """Process custom entity logic.
 
@@ -693,6 +695,7 @@ class Entity(GameObject):
         """
         raise NotImplementedError
 
+    @abstractmethod
     def move(self, delta_time: float) -> None:
         """Process the needed actions for the entity to move.
 
@@ -708,6 +711,7 @@ class Entity(GameObject):
         """
         raise NotImplementedError
 
+    @abstractmethod
     def attack(self) -> None:
         """Run the entity's current attack algorithm.
 
@@ -793,6 +797,7 @@ class UsableTile(InteractiveTile):
         """Return a human-readable representation of this object."""
         return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
 
+    @abstractmethod
     def item_use(self) -> bool:
         """Process item use functionality.
 

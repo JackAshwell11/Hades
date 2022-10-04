@@ -200,7 +200,8 @@ class AttackData(NamedTuple):
     attack_cooldown: int
         The time duration between attacks.
     attack_range: int
-        The range this attack has. This is the radius of the circle, not the diameter.
+        The range this attack has. This is currently only used to limit the enemy's
+        reach when attacking the player.
     extra: RangedAttackData | None
         The extra data about this entity's attack.
     """
