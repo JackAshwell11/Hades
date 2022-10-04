@@ -24,22 +24,22 @@ black = "22.8.0"
 flake8 = "5.0.4"
 isort = "5.10.1"
 mypy = "v0.971"
-nuitka = "1.1"
+nuitka = "1.1.1"
 ordered-set = "4.1.0"
 pre-commit = "2.20.0"
 pydocstyle = "6.1.1"
-pylint = "v2.15.3"
+pylint = "v2.14.5"
 pytest = "7.1.3"
-pytest-cov = "3.0.0"
+pytest-cov = "4.0.0"
 pytest-icdiff = "0.6"
 pytest-instafail = "0.4.2"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.5"
-pyupgrade = "v2.38.2"
+pyupgrade = "v2.37.3"
 tox = "3.26.0"
 
 [tool.pytest.ini_options]
-addopts = "-vv -ra --showlocals --cov-report term-missing --cov-branch"
+addopts = "-vv -ra --showlocals --cov hades --cov-report term-missing"
 testpaths = ["tests"]
 
 [tool.coverage.run]
