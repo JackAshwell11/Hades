@@ -6,9 +6,15 @@ updates:
     schedule:
       interval: "weekly"
     rebase-strategy: "disabled"
+    labels:
+      - "priority: medium"
+      - "type: dependency"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     rebase-strategy: "disabled"
+    labels:
+      - "priority: medium"
+      - "type: dependency"
