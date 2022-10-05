@@ -10,17 +10,18 @@ import numpy as np
 import pytest
 
 # Custom
-from hades.common import grid_bfs
 from hades.constants.generation import (
-    BASE_ITEM_COUNT,
-    ENEMY_DISTRIBUTION,
     ITEM_DISTRIBUTION,
+    MAP_GENERATION_COUNTS,
+    GenerationConstantType,
     TileType,
 )
-from hades.generation.map import GameMapShape, Map, create_map
+from hades.generation.map import LevelConstants, Map, create_map
 from hades.generation.primitives import Point
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from hades.generation.bsp import Leaf
 
 __all__ = ()
@@ -42,6 +43,46 @@ def count_items(grid: np.ndarray) -> int:
     return np.count_nonzero(np.isin(grid, list(ITEM_DISTRIBUTION.keys())))
 
 
+def grid_bfs(
+    target: tuple[int, int],
+    height: int,
+    width: int,
+) -> Generator[tuple[int, int], None, None]:
+    """Get a target's neighbours based on a given list of offsets.
+
+    Note that this uses the same logic as the grid_bfs() function in the C++ extensions,
+    however, it is much slower due to Python.
+
+    Parameters
+    ----------
+    target: tuple[int, int]
+        The target to get neighbours for.
+    height: int
+        The height of the grid.
+    width: int
+        The width of the grid.
+
+    Returns
+    -------
+    Generator[tuple[int, int], None, None]
+        A list of the target's neighbours.
+    """
+    # Get all the neighbour floor tile positions relative to the current target
+    for dx, dy in (
+        (0, -1),
+        (-1, 0),
+        (1, 0),
+        (0, 1),
+    ):
+        # Check if the neighbour position is within the boundaries of the grid or not
+        x, y = target[0] + dx, target[1] + dy
+        if (x < 0 or x >= width) or (y < 0 or y >= height):
+            continue
+
+        # Yield the neighbour tile position
+        yield x, y
+
+
 def get_possible_tiles(grid: np.ndarray) -> list[tuple[int, int]]:
     """Get the possible tiles that a game object can be placed into.
 
@@ -61,45 +102,45 @@ def get_possible_tiles(grid: np.ndarray) -> list[tuple[int, int]]:
 
 def test_create_map() -> None:
     """Test the create_map function in map.py."""
+    base_item_count = MAP_GENERATION_COUNTS[
+        GenerationConstantType.ITEM_COUNT
+    ].base_value
     temp_positive = create_map(1)
     assert (
         isinstance(temp_positive[0].grid, np.ndarray)
-        and isinstance(temp_positive[1], GameMapShape)
-        and count_items(temp_positive[0].grid) == BASE_ITEM_COUNT
+        and isinstance(temp_positive[1], LevelConstants)
+        and count_items(temp_positive[0].grid) == base_item_count
         and temp_positive[0].player_pos != (-1, -1)
     )
     temp_zero = create_map(0)
     assert (
         isinstance(temp_zero[0].grid, np.ndarray)
-        and isinstance(temp_zero[1], GameMapShape)
-        and count_items(temp_zero[0].grid) == BASE_ITEM_COUNT
+        and isinstance(temp_zero[1], LevelConstants)
+        and count_items(temp_zero[0].grid) == base_item_count
         and temp_zero[0].player_pos != (-1, -1)
     )
     temp_negative = create_map(-1)
     assert (
         isinstance(temp_negative[0].grid, np.ndarray)
-        and isinstance(temp_negative[1], GameMapShape)
-        and count_items(temp_negative[0].grid) == BASE_ITEM_COUNT
+        and isinstance(temp_negative[1], LevelConstants)
+        and count_items(temp_negative[0].grid) == base_item_count
         and temp_negative[0].player_pos != (-1, -1)
     )
     with pytest.raises(TypeError):
         create_map("test")  # type: ignore
 
 
-def test_game_map_shape() -> None:
-    """Test the GameMapShape class in map.py."""
-    temp_game_map_shape_one = GameMapShape(0, 0)
-    assert temp_game_map_shape_one == (0, 0)
-    temp_game_map_shape_two = GameMapShape("test", "test")  # type: ignore
-    assert temp_game_map_shape_two == ("test", "test")
+def test_level_constants() -> None:
+    """Test the LevelConstants class in map.py."""
+    temp_level_constants_one = LevelConstants(0, 0, 0)
+    assert temp_level_constants_one == (0, 0, 0)
+    temp_level_constants_two = LevelConstants("test", "test", "test")  # type: ignore
+    assert temp_level_constants_two == ("test", "test", "test")
 
 
 def test_map_init() -> None:
     """Test the initialisation of the Map class in map.py."""
-    assert (
-        repr(Map(0))
-        == "<Map (Width=30) (Height=20) (Split count=5) (Enemy count=7) (Item count=3)>"
-    )
+    assert repr(Map(0)) == "<Map (Width=30) (Height=20) (Split count=5) (Item count=3)>"
 
 
 def test_map_properties(map_obj: Map) -> None:
@@ -123,13 +164,12 @@ def test_map_generate_constants(map_obj: Map) -> None:
     """
     temp_result = set(map_obj.generate_constants().keys())
     assert temp_result == {
-        "width",
-        "height",
-        "split iteration",
-        "obstacle count",
-        "enemy count",
-        "item count",
-    }.union(ENEMY_DISTRIBUTION.keys()).union(ITEM_DISTRIBUTION.keys())
+        GenerationConstantType.WIDTH,
+        GenerationConstantType.HEIGHT,
+        GenerationConstantType.SPLIT_ITERATION,
+        GenerationConstantType.OBSTACLE_COUNT,
+        GenerationConstantType.ITEM_COUNT,
+    }.union(ITEM_DISTRIBUTION.keys())
 
 
 def test_map_split_bsp(map_obj: Map) -> None:
@@ -154,7 +194,9 @@ def test_map_split_bsp(map_obj: Map) -> None:
             room_gen_deque.append(current_leaf.right)
         else:
             result.append(current_leaf)
-    assert len(result) == map_obj.map_constants["split iteration"] + 1
+    assert (
+        len(result) == map_obj.map_constants[GenerationConstantType.SPLIT_ITERATION] + 1
+    )
 
     # Make sure we test what happens if the bsp is already split
     assert isinstance(map_obj.split_bsp(), Map)
@@ -187,8 +229,7 @@ def test_map_create_hallways(map_obj: Map) -> None:
     map_obj.create_hallways(rooms)
     hallway_gen_deque = deque["Point"]()
     hallway_gen_deque.append(rooms[0].center)
-    visited = set()
-    reached = set()
+    visited, reached = set(), set()
     centers = [room.center for room in rooms]
     while hallway_gen_deque:
         current_point: Point = hallway_gen_deque.popleft()
@@ -240,4 +281,7 @@ def test_map_place_multiple(map_obj: Map) -> None:
     map_obj.place_multiple(ITEM_DISTRIBUTION, [])
     assert count_items(map_obj.grid) == 0
     map_obj.place_multiple(ITEM_DISTRIBUTION, possible_tiles)
-    assert count_items(map_obj.grid) == BASE_ITEM_COUNT
+    assert (
+        count_items(map_obj.grid)
+        == MAP_GENERATION_COUNTS[GenerationConstantType.ITEM_COUNT].base_value
+    )

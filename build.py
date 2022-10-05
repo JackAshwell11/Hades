@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 
 # Initialise some constants
-GAME_NAME = "hades"
+GAME_NAME = "src/hades"
 SOURCE_DIR = Path().absolute() / GAME_NAME / "window.py"
 RESOURCES_DIR = f"{GAME_NAME}/resources"
 OUTPUT_DIR = Path().absolute() / "build"
@@ -28,7 +28,6 @@ COMMANDS = [
     f'nuitka "{SOURCE_DIR}"',
     "--standalone",
     "--assume-yes-for-downloads",
-    "--follow-imports",
     f"--include-data-dir={RESOURCES_DIR}={RESOURCES_DIR}",
     f'--output-dir="{OUTPUT_DIR}"',
     "--plugin-enable=numpy",
