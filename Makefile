@@ -40,3 +40,6 @@ tox: ${VENV_NAME}  # Runs the entire test suite using Tox
 
 build: ${VENV_NAME}  # Builds the game into an executable form
 	poetry run python -m build
+
+compile: ${VENV_NAME}  # Compiles the extensions so they can be accessed in Python
+	poetry run python -m hades.extensions.compile

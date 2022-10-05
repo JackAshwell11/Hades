@@ -20,31 +20,35 @@ pymunk = "6.2.1"
 shapely = "1.8.4"
 
 [tool.poetry.dev-dependencies]
-black = "22.8.0"
+black = "22.10.0"
 flake8 = "5.0.4"
 isort = "5.10.1"
-mypy = "v0.971"
-nuitka = "1.1.1"
+mypy = "v0.982"
+nuitka = "1.1.2"
 ordered-set = "4.1.0"
 pre-commit = "2.20.0"
 pydocstyle = "6.1.1"
-pylint = "v2.14.5"
+pylint = "v2.15.3"
 pytest = "7.1.3"
 pytest-cov = "4.0.0"
 pytest-icdiff = "0.6"
 pytest-instafail = "0.4.2"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.5"
-pyupgrade = "v2.37.3"
+pyupgrade = "v3.0.0"
 tox = "3.26.0"
 
-[tool.pytest.ini_options]
-addopts = "-vv -ra --showlocals --cov hades --cov-report term-missing"
-testpaths = ["tests"]
+[tool.bandit]
+skips = [
+    "B101",  # Allow assert statements (useful for mypy)
+    "B311",  # Allow use of the random library
+    "B404",  # Allow use of the subprocess library
+    "B603",  # Allow use of subprocess.run with shell=True
+]
 
-[tool.coverage.run]
-branch = true
-source = ["hades"]
+[tool.black]
+preview = true
+target_version = ["py310"]
 
 [tool.coverage.paths]
 source = [
@@ -57,6 +61,8 @@ source = [
 exclude_lines = [
     "if TYPE_CHECKING:",  # Exclude all type checking imports
     "pragma: no cover",  # Exclude all no cover blocks
+    "raise NotImplementedError",  # Exclude all base functions
+    "if __name__ == .__main__.:",  # Exclude script definitions
 ]
 omit = [
     "*/__main__.py",  # This is only used for running the game via the CLI
@@ -64,6 +70,60 @@ omit = [
 ]
 precision = 2
 show_missing = true
+
+[tool.coverage.run]
+branch = true
+source = ["hades"]
+
+[tool.isort]
+filter_files = true
+profile = "black"
+
+[tool.mypy]
+ignore_missing_imports = true
+python_version = "3.10"
+
+[tool.pydocstyle]
+convention = "numpy"
+
+[tool.pylint."BASIC"]
+good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
+
+[tool.pylint."FORMAT"]
+max-line-length = 88
+
+[tool.pylint."MASTER"]
+ignore = "TEMP-FILES"
+load-plugins = [
+    "pylint.extensions.bad_builtin",  # Disallow the use of deprecated builtin functions
+    "pylint.extensions.check_elif",  # Disallow the use of following an else statement with an if
+    "pylint.extensions.comparison_placement",  # Disallow placing the constant on the left of the comparison
+    "pylint.extensions.confusing_elif",  # Disallow placing an elif after an indented block (could be hard to understand)
+    "pylint.extensions.consider_ternary_expression",  # Disallow spreading multiple assignment statements across if/else blocks
+    "pylint.extensions.emptystring",  # Disallow comparisons to empty strings
+    "pylint.extensions.for_any_all",  # Disallow using a for loop to check for a condition and return a bool
+    "pylint.extensions.set_membership",  # Disallow not using sets for membership tests
+]
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+    "attribute-defined-outside-init",  # Allow attributes being defined outside __init__ (sometimes this needs to happen)
+    "fixme",  # Allow to-do statements
+    "import-error",  # Sometimes pylint can't import a package correctly
+    "no-else-return",  # Allow else statement after a return
+    "no-member",  # Allow BaseView to set the window attribute
+    "no-name-in-module",  # Pylint can't infer imports from the extensions
+    "redefined-outer-name",  # Allow redefining outer names (this is used in pytest)
+    "too-few-public-methods",  # Stop Pylint complaining about too few public methods
+    "too-many-arguments",  # Stop Pylint complaining about too many parameters
+    "too-many-instance-attributes",  # Stop Pylint complaining about too many instance attributes
+    "too-many-locals",  # Stop Pylint complaining about too many local variables
+    "too-many-statements",  # Stop Pylint complaining about too many statements
+]
+
+[tool.pytest.ini_options]
+addopts = "-vv -ra --showlocals --cov hades --cov-report term-missing"
+testpaths = ["tests"]
 
 [tool.tox]
 legacy_tox_ini = """
@@ -97,64 +157,3 @@ skip_install = true
 deps = {[base]deps}
 commands = coverage lcov
 """
-
-[tool.black]
-preview = true
-target-version = ["py310"]
-
-[tool.isort]
-filter_files = true
-profile = "black"
-
-[tool.mypy]
-ignore-missing-imports = true
-
-[tool.pylint."BASIC"]
-good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
-
-[tool.pylint."FORMAT"]
-max-line-length = 88
-
-[tool.pylint."MASTER"]
-ignore = "TEMP-FILES"
-load-plugins = [
-    "pylint.extensions.bad_builtin",
-    "pylint.extensions.check_elif",
-    "pylint.extensions.comparison_placement",
-    "pylint.extensions.confusing_elif",
-    "pylint.extensions.consider_ternary_expression",
-    "pylint.extensions.emptystring",
-    "pylint.extensions.for_any_all",
-    "pylint.extensions.set_membership",
-]
-
-[tool.pylint."MESSAGES CONTROL"]
-disable = [
-    "attribute-defined-outside-init",
-    "fixme",
-    "import-error",
-    "no-else-return",
-    "no-member",
-    "no-name-in-module",
-    "redefined-outer-name",
-    "too-few-public-methods",
-    "too-many-arguments",
-    "too-many-instance-attributes",
-    "too-many-locals",
-    "too-many-statements"
-]
-
-[tool.pydocstyle]
-convention = "numpy"
-
-# Pylint codes:
-# arguments-renamed - Pylint complaining about inhertied function parameters being renamed
-# attribute-defined-outside-init - Pylint complaining about attributes being defined outside __init__ (sometimes this needs to happen)
-# fix_me - Pylint complaining about to-do statements
-# import-error - Pylint not being able to import packages
-# no-else-return - Pylint complaining about an unnecessary else after a return
-# no-member - Pylint complaining about BaseView setting window
-# no-name-in-module - Pylint can't infer imports from the extensions module
-# redefined-outer-name - Pylint complaining about redefining outer names (this is used in pytest)
-# too-few-public-methods - Pylint complaining about too few public methods
-# too-many-ancestors - Pylint complaining about too many inherited classes

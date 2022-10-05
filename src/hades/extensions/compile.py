@@ -50,10 +50,12 @@ if __name__ == "__main__":
     # Move the built binaries out of the build folder
     built_extensions = list(BUILD_DIR.rglob("*.pyd")) + list(BUILD_DIR.rglob("*.so"))
     for extension in built_extensions:
-        target_dir = EXTENSION_PATH / extension.name.split(".")[0] / extension.name
-        target_dir.unlink(True)
-        shutil.move(extension, target_dir)
-        print(f"Successfully moved {extension} to {target_dir}")
+        target_dir = EXTENSION_PATH / extension.name.split(".")[0]
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_file = target_dir / extension.name
+        target_file.unlink(True)
+        shutil.move(extension, target_file)
+        print(f"Successfully moved {extension} to {target_file}")
 
     # Delete the build folder
     print(f"{len(ext_modules)} extensions moved. Deleting {BUILD_DIR}")

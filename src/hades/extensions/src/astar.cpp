@@ -89,21 +89,6 @@ inline int calculate_heuristic(IntPair a, IntPair b) {
 
 
 // ----- PYCFUNCTIONS ------------------------------
-static PyObject *heuristic(PyObject *self, PyObject *args) {
-    /* Parse arguments */
-    struct IntPair a, b;
-    if (!PyArg_ParseTuple(args, "(ii)(ii)", &a.x, &a.y, &b.x, &b.y)) {
-        Py_RETURN_NONE;
-    }
-
-    /* Heuristic logic */
-    int result = calculate_heuristic(a, b);
-
-    /* Return result */
-    return PyLong_FromLong(result);
-}
-
-
 static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     /* Parse arguments */
     PyArrayObject *grid;
@@ -186,7 +171,6 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
 static PyMethodDef astar_methods[] = {
     /* Defines the metadata for methods accessible through Python */
     {"calculate_astar_path", calculate_astar_path, METH_VARARGS, astar_docstring},
-    {"heuristic", heuristic, METH_VARARGS, heuristic_docstring},
     {NULL},
 };
 

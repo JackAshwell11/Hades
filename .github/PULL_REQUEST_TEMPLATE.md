@@ -3,6 +3,14 @@
 <!-- Give a brief description of what this pull request aims to accomplish
 including any issues it may or may not reference -->
 
+<!-- If this PR references an issue and fixes it: -->
+
+Closes #XXXX
+
+<!-- If this PR references an issue without fixing it: -->
+
+Refs #XXXX
+
 ## Type of Changes
 
 <!-- Select the type of changes that this pull request includes -->
@@ -13,9 +21,3 @@ including any issues it may or may not reference -->
 | ✓   | :sparkles: New Feature |
 | ✓   | :hammer: Refactoring   |
 | ✓   | :memo: Miscellaneous   |
-
-## Tasks to Complete
-
-<!-- Give a list of tasks which need to be completed for this pull request -->
-
-- [ ] Placeholder task.

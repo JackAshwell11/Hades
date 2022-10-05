@@ -10,7 +10,7 @@ import pytest
 
 # Custom
 from hades.constants.generation import TileType
-from hades.extensions import calculate_astar_path, heuristic
+from hades.extensions import calculate_astar_path
 
 if TYPE_CHECKING:
     from hades.generation.primitives import Point
@@ -39,29 +39,24 @@ def get_obstacle_grid() -> np.ndarray:
     return temp_grid
 
 
-def test_heuristic(
-    valid_point_one: Point,
-    valid_point_two: Point,
-    boundary_point: Point,
-    invalid_point: Point,
-) -> None:
-    """Test the heuristic function in astar.cpp.
+def heuristic(a: Point, b: Point) -> int:
+    """Calculate the Manhattan distance between two pairs.
+
+    This uses the same logic as the heuristic function in the C++ extension.
 
     Parameters
     ----------
-    valid_point_one: Point
-        The first valid point used for testing.
-    valid_point_two: Point
-        The second valid point used for testing.
-    boundary_point: Point
-        A boundary point used for testing.
-    invalid_point: Point
-        An invalid point used for testing.
+    a: Point
+        The first point.
+    b: Point
+        The second point.
+
+    Returns
+    -------
+    int
+        The heuristic distance.
     """
-    assert heuristic(valid_point_one, valid_point_two) == 4
-    assert heuristic(valid_point_one, boundary_point) == 8
-    with pytest.raises(SystemError):
-        heuristic(invalid_point, invalid_point)
+    return abs(a.x - b.x) + abs(a.y - b.y)
 
 
 def test_calculate_astar_path(
