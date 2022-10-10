@@ -354,6 +354,7 @@ class Map:
         #         for _ in range(round(len(removed_edges) * 0.15))
         #     }
         # )
+        return self.grid
 
         # Use the A* algorithm with to connect each pair of rooms making sure to avoid
         # the obstacles giving us natural looking hallways. Note that the width of the

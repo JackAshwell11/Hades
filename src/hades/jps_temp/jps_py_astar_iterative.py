@@ -1,0 +1,245 @@
+"""Calculates the shortest path from one point to another using the A* algorithm."""
+from __future__ import annotations
+
+# Builtin
+from collections import deque
+from heapq import heappop, heappush
+from typing import TYPE_CHECKING
+
+# Custom
+from hades.constants.generation import TileType
+from hades.generation.primitives import Point
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    import numpy as np
+
+
+__all__ = ("calculate_astar_path",)
+
+
+def grid_bfs(
+    target: tuple[int, int],
+    height: int,
+    width: int,
+) -> Generator[tuple[int, int], None, None]:
+    """Get a target's neighbours based on a given list of offsets.
+
+    Note that this uses the same logic as the grid_bfs() function in the C++ extensions,
+    however, it is much slower due to Python.
+
+    Parameters
+    ----------
+    target: tuple[int, int]
+        The target to get neighbours for.
+    height: int
+        The height of the grid.
+    width: int
+        The width of the grid.
+
+    Returns
+    -------
+    Generator[tuple[int, int], None, None]
+        A list of the target's neighbours.
+    """
+    # Get all the neighbour floor tile positions relative to the current target
+    for dx, dy in (
+        (-1, -1),
+        (0, -1),
+        (1, -1),
+        (-1, 0),
+        (1, 0),
+        (-1, 1),
+        (0, 1),
+        (1, 1),
+    ):
+        # Check if the neighbour position is within the boundaries of the grid or not
+        x, y = target[0] + dx, target[1] + dy
+        if (x < 0 or x >= width) or (y < 0 or y >= height):
+            continue
+
+        # Yield the neighbour tile position
+        yield x, y
+
+
+def heuristic(a: Point, b: Point) -> int:
+    """Calculate the Manhattan distance between two points.
+
+     This preferable to the Euclidean distance since we can generate staircase-like
+     paths instead of straight line paths.
+
+     Further reading which may be useful:
+     `Manhattan distance <https://en.wikipedia.org/wiki/Taxicab_geometry>`_
+     `Euclidean distance <https://en.wikipedia.org/wiki/Euclidean_distance>`_
+
+    Parameters
+    ----------
+    a: Point
+        The first point.
+    b: Point
+        The second point.
+    """
+    return abs(a.x - b.x) + abs(a.y - b.y)
+
+
+def reachable(grid: np.ndarray, x: int, y: int) -> bool:
+    return (
+        0 <= x < grid.shape[1]
+        and 0 <= y < grid.shape[0]
+        and grid[y][x] != TileType.OBSTACLE
+    )
+
+
+def find_neighbours(
+    grid: np.ndarray, current: Point, parent: Point | None
+) -> Generator[tuple[int, int], None, None]:
+    if parent:
+        dx, dy = (
+            int((current.x - parent.x) / max(abs(current.x - parent.x), 1)),
+            int((current.y - parent.y) / max(abs(current.y - parent.y), 1)),
+        )
+        # print(f"not start find neighbours, dx={dx}, dy={dy}")
+
+        if dx != 0 and dy != 0:
+            x_mods = (dx, 0, dx)
+            y_mods = (0, dy, dy)
+        elif dx != 0:
+            x_mods = (dx, dx, dx)
+            y_mods = (0, 1, -1)
+        else:
+            x_mods = (0, 1, -1)
+            y_mods = (dy, dy, dy)
+        for x_mod, y_mod in zip(x_mods, y_mods):
+            new_pnt = current.x + x_mod, current.y + y_mod
+            if 0 <= new_pnt[0] < grid.shape[1] and 0 <= new_pnt[1] < grid.shape[0]:
+                yield new_pnt
+    else:
+        # print("start find neighbours")
+        yield from grid_bfs(current, *grid.shape)
+
+
+def jump(grid: np.ndarray, origin: Point, px: int, py: int, end: Point) -> Point | None:
+    dx = origin.x - px
+    dy = origin.y - py
+    # print(f"current jump origin={origin}, dx={dx}, dy={dy}")
+    if not reachable(grid, *origin):
+        # print("out of bounds or obstacle")
+        return None
+    # print(f"val={grid[origin.y][origin.x]}")
+
+    if origin == end:
+        # print("end found in jump")
+        return origin
+
+    if dx != 0 and dy != 0:
+        # print("diagonal forced neighbour check")
+        if jump(grid, Point(origin.x + dx, origin.y), origin.x, origin.y, end) or jump(
+            grid, Point(origin.x, origin.y + dy), origin.x, origin.y, end
+        ):
+            return origin
+    elif dx != 0:
+        # print("horizontal forced neighbour check")
+        if (
+            not reachable(grid, origin.x - dx, origin.y - 1)
+            and reachable(grid, origin.x, origin.y - 1)
+        ) or (
+            not reachable(grid, origin.x - dx, origin.y + 1)
+            and reachable(grid, origin.x, origin.y + 1)
+        ):
+            return origin
+    else:
+        # print("vertical forced neighbour check")
+        if (
+            not reachable(grid, origin.x - 1, origin.y - dy)
+            and reachable(grid, origin.x - 1, origin.y)
+        ) or (
+            not reachable(grid, origin.x + 1, origin.y - dy)
+            and reachable(grid, origin.x + 1, origin.y)
+        ):
+            return origin
+
+    if reachable(grid, origin.x + dx, origin.y) and reachable(
+        grid, origin.x, origin.y + dy
+    ):
+        return jump(grid, Point(origin.x + dx, origin.y + dy), origin.x, origin.y, end)
+    else:
+        return None
+
+
+def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Point]:
+    """Calculate the shortest path from one point to another using the A* algorithm.
+
+    Further reading which may be useful:
+    `The A* algorithm <https://en.wikipedia.org/wiki/A*_search_algorithm>`_
+
+    Parameters
+    ----------
+    grid: np.ndarray
+        The 2D grid which represents the dungeon.
+    start: Point
+        The start point for the algorithm.
+    end: Point
+        The end point for the algorithm.
+
+    Returns
+    -------
+    list[Point]
+        A list of points mapping out the shortest path from start to end.
+    """
+    # Initialise a few variables needed for the pathfinding
+    heap: list[tuple[int, Point, Point | None]] = [(0, start, None)]
+    came_from: dict[Point, Point] = {start: start}
+    distances: dict[Point, int] = {start: 0}
+
+    # Loop until the heap is empty
+    while heap:
+        # Get the lowest-cost point from the heap
+        _, current, parent = heappop(heap)
+        # print(f"current={current}")
+
+        # Check if we've reached our target
+        if current == end:
+            # Backtrack through came_from to get the path and return the result
+            result = []
+            while True:
+                # Add the path to the result list
+                result.append(current)
+
+                # Test if we've hit the starting point
+                if came_from[current] != current:
+                    current = came_from[current]
+                else:
+                    break
+            return result
+
+        for neighbour in find_neighbours(grid, current, parent):
+            # Add the jump point to the heap with their cost being f = g + h:
+            #   f - The total cost of traversing the jump point.
+            #   g - The distance between the start point and the jump point.
+            #   h - The estimated distance from the jump point to the end point.
+            # print(f"neighbour={neighbour} ({grid[neighbour[1]][neighbour[0]]})")
+            jump_point = jump(
+                grid,
+                Point(*neighbour),
+                current.x,
+                current.y,
+                end,
+            )
+            if jump_point is not None and jump_point not in came_from:
+                # print(f"jump point={jump_point} ({grid[jump_point.y][jump_point.x]})")
+                # Store the jump_point's parent
+                came_from[jump_point] = current
+
+                # Calculate the total cost for traversing this jump point
+                distances[jump_point] = distances[came_from[jump_point]] + 1
+                f_cost = distances[jump_point] + heuristic(current, jump_point)
+
+                # Add this jump point to the heap
+                heappush(heap, (f_cost, jump_point, current))
+            else:
+                pass
+                # print("invalid jump point, bad neighbour")
+
+    # A path can't be found
+    return []
