@@ -13,8 +13,8 @@ pymunk = ">=6.2.1,<6.3.0"
 pytiled-parser = "2.2.0"
 
 [package.extras]
-dev = ["pytest", "flake8", "mypy", "coverage", "coveralls", "pytest-mock", "pytest-cov", "Sphinx (==4.5.0)", "Pygments (==2.10.0)", "sphinx-copybutton (==0.5.0)", "sphinx-sitemap (==2.2.0)", "dirsync (==2.2.5)", "pyyaml (==6.0)", "docutils (<0.18)", "sphinx-sitemap", "furo", "sphinx-copybutton", "dirsync", "wheel"]
-docs = ["Sphinx (==4.5.0)", "Pygments (==2.10.0)", "sphinx-copybutton (==0.5.0)", "sphinx-sitemap (==2.2.0)", "dirsync (==2.2.5)", "pyyaml (==6.0)", "docutils (<0.18)", "sphinx-sitemap", "furo", "sphinx-copybutton", "dirsync", "wheel"]
+dev = ["Pygments (==2.10.0)", "Sphinx (==4.5.0)", "coverage", "coveralls", "dirsync", "dirsync (==2.2.5)", "docutils (<0.18)", "flake8", "furo", "mypy", "pytest", "pytest-cov", "pytest-mock", "pyyaml (==6.0)", "sphinx-copybutton", "sphinx-copybutton (==0.5.0)", "sphinx-sitemap", "sphinx-sitemap (==2.2.0)", "wheel"]
+docs = ["Pygments (==2.10.0)", "Sphinx (==4.5.0)", "dirsync", "dirsync (==2.2.5)", "docutils (<0.18)", "furo", "pyyaml (==6.0)", "sphinx-copybutton", "sphinx-copybutton (==0.5.0)", "sphinx-sitemap", "sphinx-sitemap (==2.2.0)", "wheel"]
 
 [[package]]
 name = "astroid"
@@ -40,10 +40,10 @@ optional = false
 python-versions = ">=3.5"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "zope-interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit", "cloudpickle"]
-docs = ["furo", "sphinx", "zope-interface", "sphinx-notfound-page"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "zope-interface", "cloudpickle"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "cloudpickle"]
+dev = ["cloudpickle", "coverage[toml] (>=5.0.2)", "furo", "hypothesis", "mypy (>=0.900,!=0.940)", "pre-commit", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "sphinx", "sphinx-notfound-page", "zope.interface"]
+docs = ["furo", "sphinx", "sphinx-notfound-page", "zope.interface"]
+tests = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "zope.interface"]
+tests_no_zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins"]
 
 [[package]]
 name = "black"
@@ -198,10 +198,10 @@ optional = false
 python-versions = ">=3.6.1,<4.0"
 
 [package.extras]
-pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
-requirements_deprecated_finder = ["pipreqs", "pip-api"]
 colors = ["colorama (>=0.4.3,<0.5.0)"]
+pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
 plugins = ["setuptools"]
+requirements_deprecated_finder = ["pip-api", "pipreqs"]
 
 [[package]]
 name = "lazy-object-proxy"
@@ -257,8 +257,8 @@ python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*
 setuptools = "*"
 
 [[package]]
-name = "nuitka"
-version = "1.1.2"
+name = "Nuitka"
+version = "1.1.3"
 description = "Python compiler with full language support and CPython compatibility"
 category = "dev"
 optional = false
@@ -281,7 +281,7 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-dev = ["mypy", "black", "pytest"]
+dev = ["black", "mypy", "pytest"]
 
 [[package]]
 name = "packaging"
@@ -323,8 +323,8 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-docs = ["furo (>=2021.7.5b38)", "proselint (>=0.10.2)", "sphinx-autodoc-typehints (>=1.12)", "sphinx (>=4)"]
-test = ["appdirs (==1.4.4)", "pytest-cov (>=2.7)", "pytest-mock (>=3.6)", "pytest (>=6)"]
+docs = ["furo (>=2021.7.5b38)", "proselint (>=0.10.2)", "sphinx (>=4)", "sphinx-autodoc-typehints (>=1.12)"]
+test = ["appdirs (==1.4.4)", "pytest (>=6)", "pytest-cov (>=2.7)", "pytest-mock (>=3.6)"]
 
 [[package]]
 name = "pluggy"
@@ -335,8 +335,8 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-testing = ["pytest-benchmark", "pytest"]
-dev = ["tox", "pre-commit"]
+dev = ["pre-commit", "tox"]
+testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "pprintpp"
@@ -450,7 +450,7 @@ python-versions = ">=3.6"
 cffi = ">=1.15.0"
 
 [package.extras]
-dev = ["pyglet", "pygame", "sphinx", "aafigure", "wheel", "matplotlib"]
+dev = ["aafigure", "matplotlib", "pygame", "pyglet", "sphinx", "wheel"]
 
 [[package]]
 name = "pyparsing"
@@ -461,7 +461,7 @@ optional = false
 python-versions = ">=3.6.8"
 
 [package.extras]
-diagrams = ["railroad-diagrams", "jinja2"]
+diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pytest"
@@ -496,7 +496,7 @@ coverage = {version = ">=5.2.1", extras = ["toml"]}
 pytest = ">=4.6"
 
 [package.extras]
-testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtualenv"]
+testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
 
 [[package]]
 name = "pytest-icdiff"
@@ -559,10 +559,10 @@ attrs = ">=18.2.0"
 typing-extensions = "*"
 
 [package.extras]
-zstd = ["zstd (==1.4.8.1)"]
-tests = ["isort (>=4.2.5,<5)", "mypy", "flake8", "black", "pytest-cov", "pytest"]
-docs = ["furo", "myst-parser", "sphinx-sitemap", "sphinx"]
 build = ["build"]
+docs = ["furo", "myst-parser", "sphinx", "sphinx-sitemap"]
+tests = ["black", "flake8", "isort (>=4.2.5,<5)", "mypy", "pytest", "pytest-cov"]
+zstd = ["zstd (==1.4.8.1)"]
 
 [[package]]
 name = "pyupgrade"
@@ -592,9 +592,9 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-docs = ["sphinx (>=3.5)", "jaraco.packaging (>=9)", "rst.linker (>=1.9)", "jaraco.tidelift (>=1.4)", "sphinx-notfound-page (==0.8.3)", "sphinx-hoverxref (<2)", "pygments-github-lexers (==0.0.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-reredirects", "sphinxcontrib-towncrier", "furo"]
-testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "flake8 (<5)", "pytest-enabler (>=1.3)", "pytest-perf", "mock", "flake8-2020", "virtualenv (>=13.0.0)", "wheel", "pip (>=19.1)", "jaraco.envs (>=2.2)", "pytest-xdist", "jaraco.path (>=3.2.0)", "build", "filelock (>=3.4.0)", "pip-run (>=8.8)", "ini2toml[lite] (>=0.9)", "tomli-w (>=1.0.0)", "pytest-black (>=0.3.7)", "pytest-cov", "pytest-mypy (>=0.9.1)"]
-testing-integration = ["pytest", "pytest-xdist", "pytest-enabler", "virtualenv (>=13.0.0)", "tomli", "wheel", "jaraco.path (>=3.2.0)", "jaraco.envs (>=2.2)", "build", "filelock (>=3.4.0)"]
+docs = ["furo", "jaraco.packaging (>=9)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-hoverxref (<2)", "sphinx-inline-tabs", "sphinx-notfound-page (==0.8.3)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
+testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8 (<5)", "flake8-2020", "ini2toml[lite] (>=0.9)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "mock", "pip (>=19.1)", "pip-run (>=8.8)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.3)", "pytest-flake8", "pytest-mypy (>=0.9.1)", "pytest-perf", "pytest-xdist", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
+testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
 name = "shapely"
@@ -605,7 +605,7 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-all = ["pytest", "pytest-cov", "numpy"]
+all = ["numpy", "pytest", "pytest-cov"]
 test = ["pytest", "pytest-cov"]
 vectorized = ["numpy"]
 
@@ -634,7 +634,7 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-tests = ["pytest-cov", "pytest"]
+tests = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "tokenize-rt"
@@ -688,7 +688,7 @@ virtualenv = ">=16.0.0,<20.0.0 || >20.0.0,<20.0.1 || >20.0.1,<20.0.2 || >20.0.2,
 
 [package.extras]
 docs = ["pygments-github-lexers (>=0.0.5)", "sphinx (>=2.0.0)", "sphinxcontrib-autoprogram (>=0.1.5)", "towncrier (>=18.5.0)"]
-testing = ["flaky (>=3.4.0)", "freezegun (>=0.3.11)", "pytest (>=4.0.0)", "pytest-cov (>=2.5.1)", "pytest-mock (>=1.10.0)", "pytest-randomly (>=1.0.0)", "psutil (>=5.6.1)", "pathlib2 (>=2.3.3)"]
+testing = ["flaky (>=3.4.0)", "freezegun (>=0.3.11)", "pathlib2 (>=2.3.3)", "psutil (>=5.6.1)", "pytest (>=4.0.0)", "pytest-cov (>=2.5.1)", "pytest-mock (>=1.10.0)", "pytest-randomly (>=1.0.0)"]
 
 [[package]]
 name = "typing-extensions"
@@ -726,7 +726,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "ba9c9d9699647a5ef1d43095099906cba153feb2fa10c7e1b20dda1a74a59bf2"
+content-hash = "d3a3bae289d643a59e1755ab803902d4b04c21940a40314dfe87988e1f7e81b3"
 
 [metadata.files]
 arcade = [
@@ -1001,8 +1001,8 @@ nodeenv = [
     {file = "nodeenv-1.7.0-py2.py3-none-any.whl", hash = "sha256:27083a7b96a25f2f5e1d8cb4b6317ee8aeda3bdd121394e5ac54e498028a042e"},
     {file = "nodeenv-1.7.0.tar.gz", hash = "sha256:e0e7f7dfb85fc5394c6fe1e8fa98131a2473e04311a45afb6508f7cf1836fa2b"},
 ]
-nuitka = [
-    {file = "Nuitka-1.1.2.tar.gz", hash = "sha256:f978fa89c6225a73d160071c2d0c542e20c45d8703ffd0577575d92703a44b93"},
+Nuitka = [
+    {file = "Nuitka-1.1.3.tar.gz", hash = "sha256:b1634a7be1df21e63b80146d179e7e8b7c432fd9ceaa3ee390753492894b49ef"},
 ]
 numpy = [
     {file = "numpy-1.23.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:c9f707b5bb73bf277d812ded9896f9512a43edff72712f31667d0a8c2f8e71ee"},
@@ -1218,6 +1218,13 @@ pyyaml = [
     {file = "PyYAML-6.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:f84fbc98b019fef2ee9a1cb3ce93e3187a6df0b2538a651bfb890254ba9f90b5"},
     {file = "PyYAML-6.0-cp310-cp310-win32.whl", hash = "sha256:2cd5df3de48857ed0544b34e2d40e9fac445930039f3cfe4bcc592a1f836d513"},
     {file = "PyYAML-6.0-cp310-cp310-win_amd64.whl", hash = "sha256:daf496c58a8c52083df09b80c860005194014c3698698d1a57cbcfa182142a3a"},
+    {file = "PyYAML-6.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:d4b0ba9512519522b118090257be113b9468d804b19d63c71dbcf4a48fa32358"},
+    {file = "PyYAML-6.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:81957921f441d50af23654aa6c5e5eaf9b06aba7f0a19c18a538dc7ef291c5a1"},
+    {file = "PyYAML-6.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:afa17f5bc4d1b10afd4466fd3a44dc0e245382deca5b3c353d8b757f9e3ecb8d"},
+    {file = "PyYAML-6.0-cp311-cp311-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:dbad0e9d368bb989f4515da330b88a057617d16b6a8245084f1b05400f24609f"},
+    {file = "PyYAML-6.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:432557aa2c09802be39460360ddffd48156e30721f5e8d917f01d31694216782"},
+    {file = "PyYAML-6.0-cp311-cp311-win32.whl", hash = "sha256:bfaef573a63ba8923503d27530362590ff4f576c626d86a9fed95822a8255fd7"},
+    {file = "PyYAML-6.0-cp311-cp311-win_amd64.whl", hash = "sha256:01b45c0191e6d66c470b6cf1b9531a771a83c1c4208272ead47a3ae4f2f603bf"},
     {file = "PyYAML-6.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:897b80890765f037df3403d22bab41627ca8811ae55e9a722fd0392850ec4d86"},
     {file = "PyYAML-6.0-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:50602afada6d6cbfad699b0c7bb50d5ccffa7e46a3d738092afddc1f9758427f"},
     {file = "PyYAML-6.0-cp36-cp36m-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:48c346915c114f5fdb3ead70312bd042a953a8ce5c7106d5bfb1a5254e47da92"},
@@ -1254,6 +1261,7 @@ shapely = [
     {file = "Shapely-1.8.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:79da29fde8ad2ca791b324f2cc3e75093573f69488ade7b524f79d781b042699"},
     {file = "Shapely-1.8.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:eac2d08c0a02dccffd7f836901ea1d1b0f8e7ff3878b2c7a45443f0a34e7f087"},
     {file = "Shapely-1.8.4-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:007f0d51d045307dc3addd1c318d18f450c565c8ea96ea41304e020ca34d85b7"},
+    {file = "Shapely-1.8.4-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:04f416aa8ca9480b5cd74d2184fe43d4196a5941046661f7be27fe5c10f89ede"},
     {file = "Shapely-1.8.4-cp310-cp310-win32.whl", hash = "sha256:f6801a33897fb54ce39d5e841214192ecf95f4ddf8458d17e196a314fefe43bb"},
     {file = "Shapely-1.8.4-cp310-cp310-win_amd64.whl", hash = "sha256:e018163500109ab4c9ad51d018ba28abb1aed5b0451476859e189fbb00c46c7b"},
     {file = "Shapely-1.8.4-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:687520cf1db1fac2970cca5eb2ea037c1862b2e6938a514f9f6106c9d4ac0445"},
@@ -1271,6 +1279,7 @@ shapely = [
     {file = "Shapely-1.8.4-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:1f071175777f87d9220c24e4576dcf972b14f93dffd05a1d72ee0555dfa2a799"},
     {file = "Shapely-1.8.4-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:7855ac13c5a951bcef1f3834d1affeeacea42a4abd2c0f46b341229b350f2406"},
     {file = "Shapely-1.8.4-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:d7a6fd1329f75e290b858e9faeef15ae76d7ea05a02648fe216fec3c3bed4eb0"},
+    {file = "Shapely-1.8.4-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:20c40085835fbd5b12566b9b0a6d718b0b6a4d308ff1fff5b19d7cf29f75cc77"},
     {file = "Shapely-1.8.4-cp38-cp38-win32.whl", hash = "sha256:41e1395bb3865e42ca3dec857669ed3ab90806925fce38c47d7f92bd4276f7cd"},
     {file = "Shapely-1.8.4-cp38-cp38-win_amd64.whl", hash = "sha256:34765b0495c6297adb95d7de8fc62790f8eaf8e7fb96260dd644cf11d37b3d21"},
     {file = "Shapely-1.8.4-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:53d453f40e5b1265b8806ac7e5f3ce775b758e5c42c24239e3d8de6e861b7699"},
@@ -1278,6 +1287,7 @@ shapely = [
     {file = "Shapely-1.8.4-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:033b9eaf50c9de4c87b0d1ffa532edcf7420b70a329c630431da50071be939d9"},
     {file = "Shapely-1.8.4-cp39-cp39-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:b1756c28a48a61e5581720171a89d69ae303d5faffc58efef0dab498e16a50f1"},
     {file = "Shapely-1.8.4-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:a352f00637dda1354c549b602d9dcc69a7048d5d64dcdaf3b5e702d0bf5faad2"},
+    {file = "Shapely-1.8.4-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b70463ef505f509809b92ffb1202890a1236ce9f21666020de289fed911fdeaf"},
     {file = "Shapely-1.8.4-cp39-cp39-win32.whl", hash = "sha256:5b77a7fd5bbf051a640d25db85fc062d245ef03cd80081321b6b87213a8b0892"},
     {file = "Shapely-1.8.4-cp39-cp39-win_amd64.whl", hash = "sha256:5d629bcf68b45dfdfd85cc0dc37f5325d4ce9341b235f16969c1a76599476e84"},
     {file = "Shapely-1.8.4.tar.gz", hash = "sha256:a195e51caafa218291f2cbaa3fef69fd3353c93ec4b65b2a4722c4cf40c3198c"},
