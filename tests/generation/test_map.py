@@ -50,7 +50,7 @@ def grid_bfs(
 ) -> Generator[tuple[int, int], None, None]:
     """Get a target's neighbours based on a given list of offsets.
 
-    Note that this uses the same logic as the grid_bfs() function in the C++ extensions,
+    Note that this uses the same logic as the grid_bfs() function in the C++ extension,
     however, it is much slower due to Python.
 
     Parameters
