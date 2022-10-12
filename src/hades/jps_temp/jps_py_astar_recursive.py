@@ -6,6 +6,7 @@ from heapq import heappop, heappush
 from typing import TYPE_CHECKING
 
 # Custom
+from hades.constants.generation import TileType
 from hades.generation.primitives import Point
 
 if TYPE_CHECKING:
@@ -81,13 +82,6 @@ def heuristic(a: Point, b: Point) -> int:
     return abs(a.x - b.x) + abs(a.y - b.y)
 
 
-def is_obstacle(grid: np.ndarray, x: int, y: int) -> bool:
-    try:
-        return grid[y][x] == -1
-    except IndexError:
-        return False
-
-
 def find_neighbours(
     grid: np.ndarray, current: Point, parent: Point | None
 ) -> Generator[tuple[int, int], None, None]:
@@ -101,71 +95,65 @@ def find_neighbours(
             x_mods = (dx, 0, dx)
             y_mods = (0, dy, dy)
         elif dx != 0:
-            x_mods = (0, 0, dx)
-            y_mods = (-1, 1, 0)
+            x_mods = (dx, dx, dx)
+            y_mods = (0, 1, -1)
         else:
-            x_mods = (-1, 1, 0)
-            y_mods = (0, 0, dy)
-        for x_mod, y_mod in zip(x_mods, y_mods):
-            new_pnt = current.x + x_mod, current.y + y_mod
-            if not is_obstacle(grid, *new_pnt):
-                yield new_pnt
+            x_mods = (0, 1, -1)
+            y_mods = (dy, dy, dy)
+        yield from (
+            (current.x + x_mod, current.y + y_mod)
+            for x_mod, y_mod in zip(x_mods, y_mods)
+        )
     else:
         yield from grid_bfs(current, *grid.shape)
 
 
-def jump(
-    grid: np.ndarray, current_point: Point, end: Point, parent_point: Point | None
-) -> Point | None:
-    if current_point == end:
-        return current_point
+def reachable(grid: np.ndarray, x: int, y: int) -> bool:
+    return (
+        0 <= x < grid.shape[1]
+        and 0 <= y < grid.shape[0]
+        and grid[y][x] != TileType.OBSTACLE
+    )
 
-    if (
-        0 > current_point.x
-        or current_point.x >= grid.shape[1]
-        or 0 > current_point.y
-        or current_point.y >= grid.shape[0]
-        or is_obstacle(grid, *current_point)
-    ):
-        print("out of bounds or obstacle")
+
+def jump(grid: np.ndarray, origin: Point, parent: Point, end: Point) -> Point | None:
+    dx, dy = origin.x - parent.x, origin.y - parent.y
+    if not reachable(grid, *origin):
         return None
 
-    print("jump")
-    print(f"current={current_point} ({grid[current_point.y][current_point.x]})")
-    dx, dy = current_point.x - parent_point.x, current_point.y - parent_point.y
+    if origin == end:
+        return origin
 
     if dx != 0 and dy != 0:
-        print("diagonal")
-        if jump(
-            grid, Point(current_point.x + dx, current_point.y), end, current_point
-        ) or jump(
-            grid, Point(current_point.x, current_point.y + dy), end, current_point
+        if jump(grid, Point(origin.x + dx, origin.y), origin, end) or jump(
+            grid, Point(origin.x, origin.y + dy), origin, end
         ):
-            return current_point
+            return origin
     elif dx != 0:
-        print(f"horizontal dx={dx}, dy={dy}")
         if (
-            not is_obstacle(grid, current_point.x, current_point.y + 1)
-            and is_obstacle(grid, current_point.x - dx, current_point.y + 1)
+            not reachable(grid, origin.x - dx, origin.y - 1)
+            and reachable(grid, origin.x, origin.y - 1)
         ) or (
-            not is_obstacle(grid, current_point.x, current_point.y - 1)
-            and is_obstacle(grid, current_point.x - dx, current_point.y - 1)
+            not reachable(grid, origin.x - dx, origin.y + 1)
+            and reachable(grid, origin.x, origin.y + 1)
         ):
-            return current_point
+            return origin
     else:
-        print(f"vertical dx={dx}, dy={dy}")
         if (
-            not is_obstacle(grid, current_point.x + 1, current_point.y)
-            and is_obstacle(grid, current_point.x + 1, current_point.y - dy)
+            not reachable(grid, origin.x - 1, origin.y - dy)
+            and reachable(grid, origin.x - 1, origin.y)
         ) or (
-            not is_obstacle(grid, current_point.x - 1, current_point.y)
-            and is_obstacle(grid, current_point.x - 1, current_point.y - dy)
+            not reachable(grid, origin.x + 1, origin.y - dy)
+            and reachable(grid, origin.x + 1, origin.y)
         ):
-            return current_point
+            return origin
 
-    return jump(
-        grid, Point(current_point.x + dx, current_point.y + dy), end, current_point
-    )
+    if reachable(grid, origin.x + dx, origin.y) and reachable(
+        grid, origin.x, origin.y + dy
+    ):
+        return jump(grid, Point(origin.x + dx, origin.y + dy), origin, end)
+    else:
+        return None
 
 
 def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Point]:
@@ -197,7 +185,6 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
     while heap:
         # Get the lowest-cost point from the heap
         _, current, parent = heappop(heap)
-        print(f"current={current}")
 
         # Check if we've reached our target
         if current == end:
@@ -219,11 +206,8 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
             #   f - The total cost of traversing the jump point.
             #   g - The distance between the start point and the jump point.
             #   h - The estimated distance from the jump point to the end point.
-            print(f"neighbour={neighbour}")
-            print(f"neighbour val={grid[neighbour[1]][neighbour[0]]}")
-            jump_point = jump(grid, Point(*neighbour), end, current)
+            jump_point = jump(grid, Point(*neighbour), current, end)
             if jump_point is not None and jump_point not in came_from:
-                print(f"jump point={jump_point} ({grid[jump_point.y][jump_point.x]})")
                 # Store the jump_point's parent
                 came_from[jump_point] = current
 
@@ -236,6 +220,3 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
 
     # A path can't be found
     return []
-
-
-# TODO: SEEMS LIKE THE CODE MISSES THE FIRST JUMP POINT FOR SOME REASON

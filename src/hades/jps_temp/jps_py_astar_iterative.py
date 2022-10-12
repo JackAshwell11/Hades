@@ -83,24 +83,20 @@ def heuristic(a: Point, b: Point) -> int:
     return abs(a.x - b.x) + abs(a.y - b.y)
 
 
-def reachable(grid: np.ndarray, x: int, y: int) -> bool:
-    return (
-        0 <= x < grid.shape[1]
-        and 0 <= y < grid.shape[0]
-        and grid[y][x] != TileType.OBSTACLE
-    )
-
-
 def find_neighbours(
     grid: np.ndarray, current: Point, parent: Point | None
 ) -> Generator[tuple[int, int], None, None]:
+    """Find all the neighbours based on the current point and the direction."""
+    # Test if origin is the starting point
     if parent:
+        # Origin is not the starting point so calculate the direction
         dx, dy = (
             int((current.x - parent.x) / max(abs(current.x - parent.x), 1)),
             int((current.y - parent.y) / max(abs(current.y - parent.y), 1)),
         )
-        # print(f"not start find neighbours, dx={dx}, dy={dy}")
 
+        # Return all neighbours in the front of the origin based on the direction we're
+        # moving in
         if dx != 0 and dy != 0:
             x_mods = (dx, 0, dx)
             y_mods = (0, dy, dy)
@@ -110,61 +106,67 @@ def find_neighbours(
         else:
             x_mods = (0, 1, -1)
             y_mods = (dy, dy, dy)
-        for x_mod, y_mod in zip(x_mods, y_mods):
-            new_pnt = current.x + x_mod, current.y + y_mod
-            if 0 <= new_pnt[0] < grid.shape[1] and 0 <= new_pnt[1] < grid.shape[0]:
-                yield new_pnt
+        yield from (
+            (current.x + x_mod, current.y + y_mod)
+            for x_mod, y_mod in zip(x_mods, y_mods)
+        )
     else:
-        # print("start find neighbours")
+        # Origin is starting point so return all neighbours
         yield from grid_bfs(current, *grid.shape)
 
 
-def jump(grid: np.ndarray, origin: Point, px: int, py: int, end: Point) -> Point | None:
-    dx = origin.x - px
-    dy = origin.y - py
-    # print(f"current jump origin={origin}, dx={dx}, dy={dy}")
-    if not reachable(grid, *origin):
-        # print("out of bounds or obstacle")
-        return None
-    # print(f"val={grid[origin.y][origin.x]}")
+def walkable(grid: np.ndarray, x: int, y: int) -> bool:
+    """Determine if a point exists in the grid and is not an obstacle."""
+    return (
+        0 <= x < grid.shape[1]
+        and 0 <= y < grid.shape[0]
+        and grid[y][x] != TileType.OBSTACLE
+    )
 
-    if origin == end:
-        # print("end found in jump")
-        return origin
 
-    if dx != 0 and dy != 0:
-        # print("diagonal forced neighbour check")
-        if jump(grid, Point(origin.x + dx, origin.y), origin.x, origin.y, end) or jump(
-            grid, Point(origin.x, origin.y + dy), origin.x, origin.y, end
-        ):
-            return origin
-    elif dx != 0:
-        # print("horizontal forced neighbour check")
-        if (
-            not reachable(grid, origin.x - dx, origin.y - 1)
-            and reachable(grid, origin.x, origin.y - 1)
-        ) or (
-            not reachable(grid, origin.x - dx, origin.y + 1)
-            and reachable(grid, origin.x, origin.y + 1)
-        ):
-            return origin
-    else:
-        # print("vertical forced neighbour check")
-        if (
-            not reachable(grid, origin.x - 1, origin.y - dy)
-            and reachable(grid, origin.x - 1, origin.y)
-        ) or (
-            not reachable(grid, origin.x + 1, origin.y - dy)
-            and reachable(grid, origin.x + 1, origin.y)
-        ):
+def jump(grid: np.ndarray, origin: Point, parent: Point, end: Point) -> Point | None:
+    """Determine the next jump point based on the current point."""
+    stack: deque[tuple[Point, Point]] = deque((origin, parent))
+
+    while stack:
+        current, current_parent = stack.pop()
+        if not walkable(grid, *current):
+            continue
+
+        if current == end:
             return origin
 
-    if reachable(grid, origin.x + dx, origin.y) and reachable(
-        grid, origin.x, origin.y + dy
-    ):
-        return jump(grid, Point(origin.x + dx, origin.y + dy), origin.x, origin.y, end)
-    else:
-        return None
+        dx, dy = current.x - current_parent.x, current.y - current_parent.y
+        if dx != 0 and dy != 0:
+            stack.append((Point(current.x + dx, current.y), current))
+            stack.append((Point(current.x, current.y + dy), current))
+        elif dx != 0:
+            if (
+                not walkable(grid, current.x - dx, current.y - 1)
+                and walkable(grid, current.x, current.y - 1)
+            ) or (
+                not walkable(grid, current.x - dx, current.y + 1)
+                and walkable(grid, current.x, current.y + 1)
+            ):
+                return origin
+        else:
+            if (
+                not walkable(grid, current.x - 1, current.y - dy)
+                and walkable(grid, current.x - 1, current.y)
+            ) or (
+                not walkable(grid, current.x + 1, current.y - dy)
+                and walkable(grid, current.x + 1, current.y)
+            ):
+                return origin
+
+        if walkable(grid, current.x + dx, current.y) and walkable(
+            grid, current.x, current.y + dy
+        ):
+            stack.append((Point(current.x + dx, current.y + dy), current))
+        else:
+            return None
+
+    return None
 
 
 def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Point]:
@@ -196,7 +198,6 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
     while heap:
         # Get the lowest-cost point from the heap
         _, current, parent = heappop(heap)
-        # print(f"current={current}")
 
         # Check if we've reached our target
         if current == end:
@@ -218,16 +219,8 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
             #   f - The total cost of traversing the jump point.
             #   g - The distance between the start point and the jump point.
             #   h - The estimated distance from the jump point to the end point.
-            # print(f"neighbour={neighbour} ({grid[neighbour[1]][neighbour[0]]})")
-            jump_point = jump(
-                grid,
-                Point(*neighbour),
-                current.x,
-                current.y,
-                end,
-            )
+            jump_point = jump(grid, Point(*neighbour), current, end)
             if jump_point is not None and jump_point not in came_from:
-                # print(f"jump point={jump_point} ({grid[jump_point.y][jump_point.x]})")
                 # Store the jump_point's parent
                 came_from[jump_point] = current
 
@@ -237,9 +230,6 @@ def calculate_astar_path(grid: np.ndarray, start: Point, end: Point) -> list[Poi
 
                 # Add this jump point to the heap
                 heappush(heap, (f_cost, jump_point, current))
-            else:
-                pass
-                # print("invalid jump point, bad neighbour")
 
     # A path can't be found
     return []

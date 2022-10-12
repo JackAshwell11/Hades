@@ -15,7 +15,7 @@ def benchmark():
 
     for i in range(n):
         print(f"Doing iteration {i+1} of {n}")
-        map_obj = Map(5)
+        map_obj = Map(500)
         rooms = map_obj.split_bsp().generate_rooms()
         grid = map_obj.create_hallways(rooms)
 
@@ -96,6 +96,6 @@ def run_jps():
     print(f"result grid=\n{grid}")
 
 
-# run_jps()
-extend_jps()
+run_jps()
+# extend_jps()
 # benchmark()
