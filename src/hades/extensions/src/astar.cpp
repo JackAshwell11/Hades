@@ -44,28 +44,6 @@ PyDoc_STRVAR(
 );
 
 
-/* Stores the docstring for the heuristic method */
-PyDoc_STRVAR(
-    heuristic_docstring,
-    "Calculate the Manhattan distance between two pairs.\n\n"
-    "This preferable to the Euclidean distance since we can generate staircase-like "
-    "paths instead of straight line paths.\n\n"
-    "Further reading which may be useful:\n"
-    "`Manhattan distance <https://en.wikipedia.org/wiki/Taxicab_geometry>`_\n"
-    "`Euclidean distance <https://en.wikipedia.org/wiki/Euclidean_distance>`_\n\n"
-    "Parameters\n"
-    "----------\n"
-    "a: Pair\n"
-    "    The first pair.\n"
-    "b: Pair\n"
-    "    The second pair.\n\n"
-    "Returns\n"
-    "-------\n"
-    "int\n"
-    "    The heuristic distance."
-);
-
-
 // ----- STRUCTURES ------------------------------
 struct Neighbour {
     /* Represents a namedtuple describing a grid pair and its cost from the start
@@ -79,13 +57,6 @@ struct Neighbour {
         return cost > nghbr.cost;
     }
 };
-
-
-// ----- C METHODS ------------------------------
-inline int calculate_heuristic(IntPair a, IntPair b) {
-    /* Calculates the heuristic used for the A* algorithm */
-    return abs(a.x - b.x) + abs(a.y - b.y);
-}
 
 
 // ----- PYCFUNCTIONS ------------------------------
@@ -104,7 +75,6 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
 
     /* A* algorithm logic */
     // Set up a few variables needed for the pathfinding
-    int f_cost;
     PyObject *result = PyList_New(0);
     std::priority_queue<Neighbour> queue;
     queue.push({0, start});
@@ -116,19 +86,18 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
     // Loop until the priority queue is empty
     while (!queue.empty()) {
         // Get the lowest cost pair from the priority queue
-        Neighbour current_f = queue.top();
+        IntPair current = queue.top().pair;
         queue.pop();
-        IntPair current = current_f.pair;
 
         // Check if we've reached our target
         if (current == end) {
             // Backtrack through came_from to get the path
-            while (!(came_from.at(current) == current)) {
+            while (!(came_from[current] == current)) {
                 // Add the current pair to the result list
                 PyList_Append(result, Py_BuildValue("(ii)", current.x, current.y));
 
                 // Get the next pair in the path
-                current = came_from.at(current);
+                current = came_from[current];
             }
 
             // Add the start pair and exit out of the loop
@@ -145,15 +114,16 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
                 // Store the neighbour's parent and calculate its distance from the
                 // start pair
                 came_from[neighbour] = current;
-                distances[neighbour] = distances.at(came_from.at(neighbour)) + 1;
+                distances[neighbour] = distances[current] + 1;
 
                 // Check if the neighbour is an obstacle
+                int f_cost;
                 if (*((int *) PyArray_GETPTR2(grid, neighbour.y, neighbour.x)) == OBSTACLE_ID) {
                     // Set the total cost for the obstacle to infinity
                     f_cost = INT_INFINITY;
                 } else {
                     // Set the total cost for the neighbour to f = g + h
-                    f_cost = distances.at(neighbour) + calculate_heuristic(current, neighbour);
+                    f_cost = distances[neighbour] + (abs(current.x - neighbour.x) + abs(current.y - neighbour.y));
                 }
 
                 // Add the neighbour to the priority queue
