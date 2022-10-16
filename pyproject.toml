@@ -15,27 +15,40 @@ repository = "https://github.com/Aspect1103/Hades"
 [tool.poetry.dependencies]
 python = "^3.10"
 arcade = "2.6.16"
-numpy = "1.23.3"
+numpy = "1.23.4"
 pymunk = "6.2.1"
-shapely = "1.8.4"
+shapely = "1.8.5.post1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.build]
+optional = true
+
+[tool.poetry.group.build.dependencies]
+nuitka = "1.1.3"
+ordered-set = "4.1.0"
+
+[tool.poetry.group.pre-commit]
+optional = true
+
+[tool.poetry.group.pre-commit.dependencies]
 black = "22.10.0"
 flake8 = "5.0.4"
 isort = "5.10.1"
 mypy = "v0.982"
-nuitka = "1.1.3"
-ordered-set = "4.1.0"
 pre-commit = "2.20.0"
 pydocstyle = "6.1.1"
 pylint = "v2.15.3"
+pyupgrade = "v3.0.0"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
 pytest = "7.1.3"
 pytest-cov = "4.0.0"
 pytest-icdiff = "0.6"
 pytest-instafail = "0.4.2"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.5"
-pyupgrade = "v3.0.0"
 tox = "3.26.0"
 
 [tool.bandit]

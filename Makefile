@@ -16,15 +16,18 @@ export PATH := ${VENV_PATH}/$(VENV_SUBDIR):${PATH}
 
 .PHONY:  # Ensures this only runs if a virtual environment doesn't exist
 ${VENV_NAME}:
-	poetry install
+	poetry install --with build,pre-commit,test
 
 
 # -------------------- Builds --------------------
-prepare-venv: ${VENV_NAME}  # Creates a virtual environment if one doesn't exist
+basic-venv:  # Creates a virtual environment with only the required dependencies
+	poetry install
 
 fresh-venv:  # Creates a fresh virtual environment
 	$(DEL) "$(VENV_PATH)"
-	make prepare-venv
+	make full-venv
+
+full-venv: ${VENV_NAME} # Creates a virtual environment with all dependencies installed
 
 update-venv: ${VENV_NAME}  # Updates the poetry virtual environment
 	poetry update
