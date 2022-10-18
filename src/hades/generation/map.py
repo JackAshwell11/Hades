@@ -4,7 +4,8 @@ from __future__ import annotations
 # Builtin
 import logging
 from collections import deque
-from itertools import pairwise
+from heapq import heappop, heappush
+from itertools import pairwise, permutations
 from typing import TYPE_CHECKING, NamedTuple
 
 # Pip
@@ -305,64 +306,88 @@ class Map:
             self.map_constants[GenerationConstantType.OBSTACLE_COUNT],
         )
 
-        # # Create a complete graph out of rooms
-        # connections: set[tuple[Point, Point, float]] = set()
-        # complete_graph: dict[Point, list[tuple[Point, float]]] = {}
-        # from itertools import permutations
-        # from heapq import heappop, heappush
-        # for source, destination in permutations(rooms, 2):
-        #     cost = source.get_distance_to(destination)
-        #     source_center = source.center
-        #     destination_center = destination.center
-        #     complete_graph.update(
-        #         {
-        #             source_center: complete_graph.get(source_center, [])
-        #             + [(destination_center, cost)]
-        #         }
-        #     )
-        #     connections.add((source_center, destination_center, cost))
-        #
-        # # Use Prim's algorithm to construct a minimum spanning tree of complete_graph
-        # visited: set[Point] = set()
-        # start = next(iter(complete_graph))
-        # unexplored: list[tuple[float, Point, Point]] = [(0, start, start)]
-        # mst: set[tuple[Point, Point, float]] = set()
-        # while unexplored:
-        #     # Get the neighbour with the lowest cost
-        #     cost, source, destination = heappop(unexplored)
-        #
-        #     # Check if the neighbour is already visited or not
-        #     if destination not in visited:
-        #         # Neighbour isn't visited so mark them as visited and add their
-        #         # neighbours to the heap
-        #         visited.add(destination)
-        #         for neighbour, neighbour_cost in complete_graph[destination]:
-        #             if neighbour not in visited:
-        #                 heappush(unexplored, (neighbour_cost, destination, neighbour))
-        #
-        #         # Add a new edge towards the lowest cost neighbour onto the mst
-        #         if source != destination:
-        #             mst.add((source, destination, cost))
-        #
-        # # Add some removed edges back into the graph, so it's not as sparsely
-        # # populated
-        # removed_edges = connections - connections.intersection(mst)
-        # hallway_connections = mst.copy().union(
-        #     {
-        #         removed_edges.pop()
-        #         for _ in range(round(len(removed_edges) * 0.15))
-        #     }
-        # )
+        # Create a complete graph out of rooms
+        connections: set[tuple[Point, Point]] = set()
+        complete_graph: dict[Point, list[tuple[float, Point]]] = {}
+        for source, destination in permutations(rooms, 2):
+            complete_graph.update(
+                {
+                    source.center: complete_graph.get(source.center, [])
+                    + [(source.get_distance_to(destination), destination.center)]
+                }
+            )
+            connections.add((source.center, destination.center))
+
+        # Use Prim's algorithm to construct a minimum spanning tree from connections
+        start = next(iter(complete_graph))
+        visited: set[Point] = set()
+        unexplored: list[tuple[float, Point, Point]] = [(0, start, start)]
+        mst: set[tuple[Point, Point]] = set()
+        while unexplored:
+            # Get the neighbour with the lowest cost
+            cost, source, destination = heappop(unexplored)
+
+            # Check if the neighbour is already visited or not
+            if destination in visited:
+                continue
+
+            # Neighbour isn't visited so mark them as visited and add their neighbours
+            # to the heap
+            visited.add(destination)
+            for neighbour_cost, neighbour in complete_graph[destination]:
+                if neighbour not in visited:
+                    heappush(unexplored, (neighbour_cost, destination, neighbour))
+
+            # Add a new edge towards the lowest cost neighbour onto the mst
+            if source != destination:
+                mst.add((source, destination))
+
+        print([room.center for room in rooms])
+        print([(i[0], i[1]) for i in mst])
+
+        # Delete the remaining connections which will create a symmetric relation
+        mst_non_symmetric: set[tuple[Point, Point]] = {
+            connection
+            for connection in connections
+            for i in mst
+            if connection[0] != i[1] or connection[1] != i[0]
+        }
+
+        # Delete the remaining connections which will create a transitive relation
+        mst_non_transitive: set[tuple[Point, Point]] = {
+            connection
+            for connection in mst_non_symmetric
+            for i in mst
+            for j in mst
+            if connection[1] != i[0] or connection[0] != j[1] or i[1] != j[0]
+        }
+
+        # Add some removed edges back into the graph, so it's not as sparsely
+        # populated
+        hallway_connections = mst.copy().union(
+            {
+                mst_non_symmetric.pop()
+                for _ in range(round(len(mst_non_symmetric) * 0.15))
+            }
+        )
+        r = [[i.value for i in row] for row in self.grid]
+        for i in r:
+            print(i)
+        print([(i[0], i[1]) for i in hallway_connections])
+
+        # TODO: MAY ONLY GET RID OF SYMMETRIC AND NOT TRANSITIVE, NEEDS MORE THOUGHT
+        # TODO: CELLULAR AUTOMATA MAY SOLVE RANDOM WALLS AND UNREACHABLE PATHS, NEEDS
+        #  MORE THOUGHT
 
         # Use the A* algorithm with to connect each pair of rooms making sure to avoid
         # the obstacles giving us natural looking hallways. Note that the width of the
         # hallways will always be odd in this implementation due to numpy indexing
         half_hallway_size = HALLWAY_SIZE // 2
-        for pair_source, pair_destination in pairwise(rooms):
+        for pair_source, pair_destination in hallway_connections:
             for path_point_tup in calculate_astar_path(
                 self.grid,
-                Point(*pair_source.center),
-                Point(*pair_destination.center),
+                pair_source,
+                pair_destination,
             ):
                 # Test if the current tile is a floor tile
                 path_point = Point(*path_point_tup)
