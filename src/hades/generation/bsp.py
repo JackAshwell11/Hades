@@ -73,7 +73,7 @@ class Leaf:
         self.right: Leaf | None = None
         self.parent: Leaf | None = parent
         self.grid: np.ndarray = grid
-        self.container: Rect = Rect(grid, top_left, bottom_right)
+        self.container: Rect = Rect(top_left, bottom_right)
         self.room: Rect | None = None
         self.split_vertical: bool | None = None
 
@@ -209,15 +209,13 @@ class Leaf:
 
         # Create the room rect and test if its width to height ratio will make an
         # oddly-shaped room
-        rect = Rect(
-            self.grid, Point(x_pos, y_pos), Point(x_pos + width - 1, y_pos + height - 1)
-        )
+        rect = Rect(Point(x_pos, y_pos), Point(x_pos + width - 1, y_pos + height - 1))
         if (min(rect.width, rect.height) / max(rect.width, rect.height)) < ROOM_RATIO:
             return False
 
         # Width to height ratio is fine so store the rect and place it in the 2D grid
         self.room = rect
-        self.room.place_rect()
+        self.room.place_rect(self.grid)
 
         # Successful room creation
         return True
