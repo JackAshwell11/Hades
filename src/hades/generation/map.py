@@ -13,10 +13,12 @@ import numpy as np
 
 # Custom
 from hades.constants.generation import (
+    EXTRA_MAXIMUM_PERCENTAGE,
     HALLWAY_SIZE,
     ITEM_DISTRIBUTION,
     ITEM_PLACE_TRIES,
     MAP_GENERATION_COUNTS,
+    REMOVED_CONNECTION_LIMIT,
     GenerationConstantType,
     TileType,
 )
@@ -53,9 +55,36 @@ def create_map(level: int) -> tuple[Map, LevelConstants]:
     tuple[Map, LevelConstants]
         The generated map and a named tuple containing the width and height.
     """
-    # Create the rooms and hallways
+    # Create the rooms
     temp_map = Map(level)
-    temp_map.create_hallways(temp_map.split_bsp().generate_rooms())
+    rooms = temp_map.split_bsp().generate_rooms()
+
+    # Create the connections for the hallways
+    complete_graph: dict[Rect, list[Rect]] = {}
+    for source, destination in permutations(rooms, 2):
+        complete_graph.update({source: complete_graph.get(source, []) + [destination]})
+    temp_map.create_hallways(
+        temp_map.add_extra_connections(
+            complete_graph, temp_map.create_mst(complete_graph)
+        )
+    )
+
+    # f = {}
+    # i = 0
+    # for key, value in complete_graph.items():
+    #     if f.get(key, -1) == -1:
+    #         f[key] = i
+    #         i += 1
+    #     for j in value:
+    #         if f.get(j, -1) == -1:
+    #             f[j] = i
+    #             i += 1
+    #
+    # print([f"{room.center} - {f[room]}" for room in rooms])
+    # print([(f[i[1]], f[i[2]]) for i in mst])
+    # print([(f[i[1]], f[i[2]]) for i in hallway_connections])
+    # for i in [[i.value for i in row] for row in self.grid]:
+    #     print(i)
 
     # Place the game objects
     possible_tiles: list[tuple[int, int]] = list(  # noqa
@@ -242,16 +271,16 @@ class Map:
         # Return the map object
         return self
 
-    def generate_rooms(self) -> list[Rect]:
+    def generate_rooms(self) -> set[Rect]:
         """Generate the rooms for a given game level using the bsp.
 
         Returns
         -------
-        list[Rect]
+        set[Rect]
             The generated rooms.
         """
         # Create the rooms. We can use the same deque object since it is currently empty
-        rooms: list[Rect] = []
+        rooms: set[Rect] = set()
         deque_obj = deque["Leaf"]()
         deque_obj.append(self.bsp)
         while deque_obj:
@@ -277,47 +306,35 @@ class Map:
 
                 # Add the created room to the rooms list
                 assert current.room  # Have to make sure its actually created first
-                rooms.append(current.room)
+                rooms.add(current.room)
 
         # Return all the created rooms
         return rooms
 
-    def create_hallways(self, rooms: list[Rect]) -> Map:
-        """Create the hallways by placing random obstacles and pathfinding around them.
+    @staticmethod
+    def create_mst(
+        complete_graph: dict[Rect, list[Rect]]
+    ) -> set[tuple[float, Rect, Rect]]:
+        """Create a minimum spanning tree from a set of rects using Prim's algorithm.
+
+        Further reading which may be useful:
+        `Prim's algorithm <https://en.wikipedia.org/wiki/Prim's_algorithm>`_
 
         Parameters
         ----------
-        rooms: list[Rects]
-            The rooms to make hallways between using the A* algorithm.
+        complete_graph: dict[Rect, list[Rect]]
+            An adjacency list which represents a complete graph.
 
         Returns
         -------
-        Map
-            The map object which represents the dungeon.
+        set[tuple[float, Rect, Rect]]
+            A set of connections and their costs which form the minimum spanning tree.
         """
-        # Place random obstacles in the grid
-        y, x = np.where(self.grid == TileType.EMPTY)
-        arr_index = np.random.choice(
-            len(y), self.map_constants[GenerationConstantType.OBSTACLE_COUNT]
-        )
-        self.grid[y[arr_index], x[arr_index]] = TileType.OBSTACLE
-        logger.debug(
-            "Created %d obstacles in the 2D grid",
-            self.map_constants[GenerationConstantType.OBSTACLE_COUNT],
-        )
-
-        # Create a complete graph out of rooms
-        complete_graph: dict[Rect, list[Rect]] = {}
-        for source, destination in permutations(rooms, 2):
-            complete_graph.update(
-                {source: complete_graph.get(source, []) + [destination]}
-            )
-
         # Use Prim's algorithm to construct a minimum spanning tree from complete_graph
         start = next(iter(complete_graph))
         visited: set[Rect] = set()
         unexplored: list[tuple[float, Rect, Rect]] = [(0, start, start)]
-        mst: set[tuple[Rect, Rect]] = set()
+        mst: set[tuple[float, Rect, Rect]] = set()
         while len(mst) < len(complete_graph) - 1:
             # Get the neighbour with the lowest cost
             cost, source, destination = heappop(unexplored)
@@ -342,79 +359,95 @@ class Map:
 
             # Add a new edge towards the lowest cost neighbour onto the mst
             if source != destination:
-                mst.add((source, destination))
+                mst.add((cost, source, destination))
 
-        # Delete every connection that will create a symmetric relation
-        mst_non_symmetric: set[tuple[Rect, Rect]] = set()
+        # Return the mst
+        return mst
+
+    @staticmethod
+    def add_extra_connections(
+        complete_graph: dict[Rect, list[Rect]], mst: set[tuple[float, Rect, Rect]]
+    ) -> set[tuple[float, Rect, Rect]]:
+        """Add extra connections back into the minimum spanning tree.
+
+        Parameters
+        ----------
+        complete_graph: dict[Rect, list[Rect]]
+            An adjacency list which represents a complete graph.
+        mst: set[tuple[float, Rect, Rect]]
+            The minimum spanning tree to add connections too.
+
+        Returns
+        -------
+        set[tuple[float, Rect, Rect]]
+            The expanded minimum spanning tree with more connections.
+        """
+        # Find the maximum cost that an extra connection can be. This is the maximum
+        # cost a mst connection is + EXTRA_CONNECTION_PERCENTAGE
+        maximum_mst_cost = (
+            sorted(mst, key=lambda mst_cost: mst_cost[0], reverse=True)[0][0]
+            * EXTRA_MAXIMUM_PERCENTAGE
+        )
+
+        # Delete every connection that will create a symmetric relation and whose cost
+        # is greater than the maximum_mst_cost
+        mst_non_symmetric: set[tuple[float, Rect, Rect]] = set()
         for source, connections in complete_graph.items():
             for connection in connections:
-                complete_relation = source, connection
+                # Get the distance between the two rooms and check if its greater or
+                # equal to maximum_mst_cost
+                connection_cost = source.get_distance_to(connection)
+                if connection_cost >= maximum_mst_cost:
+                    continue
+
+                # Check if this connection will create a symmetric relation. If not,
+                # save it
+                complete_relation = connection_cost, source, connection
                 if complete_relation not in mst and (
+                    connection_cost,
                     connection,
                     source,
                 ) not in mst.union(mst_non_symmetric):
                     mst_non_symmetric.add(complete_relation)
 
-        # # Delete the remaining connections which will create a transitive relation
-        # mst_non_transitive: set[tuple[Rect, Rect]] = set()
-        # for connection in mst_non_symmetric:
-        #     for i in mst:
-        #         for j in mst:
-        #             if i[1] == j[0] and i[0] == connection[0] and j[1] == connection[1]:
-        #                 print(f"start mst: {i[0].center}, 1st mst: {i[1].center}, final mst: {j[1].center}")
-        #                 print(f"start connection: {connection[0].center}, end connection: {connection[1].center}")
-        #                 mst_non_transitive.add(connection)
-        #             else:
-        #                 print(f"failed: {connection[0].center} -> {connection[1].center}")
-
-        # mst_non_transitive: set[tuple[Rect, Rect]] = {
-        #     connection
-        #     for connection in mst_non_symmetric
-        #     for i in mst
-        #     for j in mst
-        #     if connection[1] != i[0] or connection[0] != j[1] or i[1] != j[0]
-        # }
-
-        # TODO: USE DEPTH FIRST SEARCH TO FIND ROOMS WHICH ARE 3 OR MORE (USE CONSTANT)
-        #  CONNECTIONS AWAY. IF THAT CONNECTION IS IN MST_NON_SYMMETRIC, THEN SAVE IT.
-        #  NOT SURE ABOUT TRANSISTIVE
-
-        f = {}
-        i = 0
-        for key, value in complete_graph.items():
-            if f.get(key, -1) == -1:
-                f[key] = i
-                i += 1
-            for j in value:
-                if f.get(j, -1) == -1:
-                    f[j] = i
-                    i += 1
-
-        print([f"{room.center} - {f[room]}" for room in rooms])
-        print([(f[i[0]], f[i[1]]) for i in mst])
-        # print([(f[i[0]], f[i[1]]) for i in mst_non_transitive])
-
-        # Add some removed edges back into the graph, so it's not as sparsely
-        # populated
-        hallway_connections = mst.copy().union(
+        # Add some removed connections back into the graph and return the result, so the
+        # dungeon is not as sparsely populated
+        return mst.union(
             {
                 mst_non_symmetric.pop()
-                for _ in range(round(len(mst_non_symmetric) * 0.15))
+                for _ in range(round(len(mst_non_symmetric) * REMOVED_CONNECTION_LIMIT))
             }
         )
-        r = [[i.value for i in row] for row in self.grid]
-        for i in r:
-            print(i)
 
-        # TODO: MAY ONLY GET RID OF SYMMETRIC AND NOT TRANSITIVE, NEEDS MORE THOUGHT
-        # TODO: CELLULAR AUTOMATA MAY SOLVE RANDOM WALLS AND UNREACHABLE PATHS, NEEDS
-        #  MORE THOUGHT
+    def create_hallways(self, connections: set[tuple[float, Rect, Rect]]) -> Map:
+        """Create the hallways by placing random obstacles and pathfinding around them.
+
+        Parameters
+        ----------
+        connections: set[Rects]
+            The connections to pathfind using the A* algorithm.
+
+        Returns
+        -------
+        Map
+            The map object which represents the dungeon.
+        """
+        # Place random obstacles in the grid
+        y, x = np.where(self.grid == TileType.EMPTY)
+        arr_index = np.random.choice(
+            len(y), self.map_constants[GenerationConstantType.OBSTACLE_COUNT]
+        )
+        self.grid[y[arr_index], x[arr_index]] = TileType.OBSTACLE
+        logger.debug(
+            "Created %d obstacles in the 2D grid",
+            self.map_constants[GenerationConstantType.OBSTACLE_COUNT],
+        )
 
         # Use the A* algorithm with to connect each pair of rooms making sure to avoid
         # the obstacles giving us natural looking hallways. Note that the width of the
         # hallways will always be odd in this implementation due to numpy indexing
         half_hallway_size = HALLWAY_SIZE // 2
-        for pair_source, pair_destination in hallway_connections:
+        for _, pair_source, pair_destination in connections:
             for path_point_tup in calculate_astar_path(
                 self.grid,
                 pair_source.center,

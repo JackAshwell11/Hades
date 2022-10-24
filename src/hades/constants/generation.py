@@ -8,6 +8,7 @@ from enum import Enum, auto
 from typing import NamedTuple
 
 __all__ = (
+    "EXTRA_MAXIMUM_PERCENTAGE",
     "HALLWAY_SIZE",
     "ITEM_DISTRIBUTION",
     "MIN_CONTAINER_SIZE",
@@ -17,6 +18,7 @@ __all__ = (
     "ROOM_RATIO",
     "TileType",
     "MAP_GENERATION_COUNTS",
+    "REMOVED_CONNECTION_LIMIT",
     "GenerationConstantType",
     "MapGenerationConstant",
 )
@@ -91,6 +93,8 @@ MIN_ROOM_SIZE = 4
 ROOM_RATIO = 0.625
 
 # Room, hallway and entity generation constants
+EXTRA_MAXIMUM_PERCENTAGE = 1.5
+REMOVED_CONNECTION_LIMIT = 0.2
 WALL_REPLACEABLE_TILES = [TileType.EMPTY, TileType.OBSTACLE, TileType.DEBUG_WALL]
 HALLWAY_SIZE = 5
 ITEM_PLACE_TRIES = 5

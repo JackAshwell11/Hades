@@ -35,6 +35,8 @@ class Rect(NamedTuple):
     Containers include the split wall in their sizes whereas rooms don't so
     MIN_CONTAINER_SIZE must be bigger than MIN_ROOM_SIZE.
 
+    # TODO: REDO THIS DOCSTRING
+
     top_left: Point
         The top-left position.
     bottom_right: Point
@@ -108,7 +110,7 @@ class Rect(NamedTuple):
         return Point(self.center_x, self.center_y)
 
     def get_distance_to(self, other: Rect) -> float:
-        """Get the Euclidean distance to another rect.
+        """Get the Manhattan distance to another rect.
 
         Parameters
         ----------
@@ -118,9 +120,9 @@ class Rect(NamedTuple):
         Returns
         -------
         float
-            The Euclidean distance between this rect and the given rect.
+            The Manhattan distance between this rect and the given rect.
         """
-        return np.hypot(other.center_x - self.center_x, other.center_y - self.center_y)
+        return abs(self.center_x - other.center_x) + abs(self.center_y - other.center_y)
 
     def place_rect(self, grid: np.ndarray) -> None:
         """Places the rect in the 2D grid.
