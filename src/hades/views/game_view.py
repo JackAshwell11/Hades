@@ -186,10 +186,10 @@ class Game(BaseView):
         )
 
         # Create the game map
-        game_map, self.level_constants = create_map(level)
+        grid, self.level_constants = create_map(level)
 
         # Assign sprites to the game map and initialise the vector grid
-        for count_y, y in enumerate(reversed(game_map.grid)):
+        for count_y, y in enumerate(reversed(grid)):
             for count_x, x in enumerate(y):
                 # Determine if the tile is empty
                 if x in WALL_REPLACEABLE_TILES:

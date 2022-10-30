@@ -183,7 +183,7 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
         queue.pop_front();
 
         // Get the current tile's neighbours
-        for (IntPair neighbour: grid_bfs(current, HEIGHT, WIDTH)) {
+        for (IntPair neighbour: grid_bfs(current, HEIGHT, WIDTH, CARDINAL_OFFSETS)) {
             // Check if the neighbour is a wall or not. If so, continue to the next
             // iteration. However, if it doesn't exist, add it to the queue and set its
             // distance
@@ -210,7 +210,7 @@ static PyObject *recalculate_map(PyObject *obj, PyObject *args) {
         PyObject *py_tile = Py_BuildValue("(ii)", tile.first.x, tile.first.y);
         IntPair min_tile = {0, 0};
         int min_dist = INT_INFINITY;
-        for (IntPair neighbour: grid_bfs(tile.first, HEIGHT, WIDTH, INTERCARDINAL_OFFSETS)) {
+        for (IntPair neighbour: grid_bfs(tile.first, HEIGHT, WIDTH)) {
             // Test if the neighbour has the lowest Dijkstra distance
             if (distances[neighbour] < min_dist) {
                 min_tile = neighbour;

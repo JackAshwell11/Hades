@@ -109,7 +109,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
         //   f - The total cost of traversing the neighbour.
         //   g - The distance between the start pair and the neighbour pair.
         //   h - The estimated distance from the neighbour pair to the end pair.
-        for (IntPair neighbour: grid_bfs(current, height, width, INTERCARDINAL_OFFSETS)) {
+        for (IntPair neighbour: grid_bfs(current, height, width)) {
             if (!came_from.count(neighbour)) {
                 // Store the neighbour's parent and calculate its distance from the
                 // start pair
