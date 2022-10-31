@@ -6,13 +6,14 @@ import logging
 from collections import deque
 from heapq import heappop, heappush
 from itertools import permutations
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 # Pip
 import numpy as np
 
 # Custom
 from hades.constants.generation import (
+    CELLULAR_AUTOMATA_SIMULATION_COUNT,
     EXTRA_MAXIMUM_PERCENTAGE,
     HALLWAY_SIZE,
     ITEM_DISTRIBUTION,
@@ -26,6 +27,9 @@ from hades.extensions import calculate_astar_path
 from hades.generation.bsp import Leaf
 from hades.generation.primitives import Point, Rect
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 __all__ = (
     "LevelConstants",
     "create_map",
@@ -36,6 +40,46 @@ logger = logging.getLogger(__name__)
 
 # Set the numpy print formatting to allow pretty printing (for debugging)
 np.set_printoptions(threshold=1, edgeitems=50, linewidth=10000)
+
+
+def grid_bfs(
+    target: tuple[int, int],
+    height: int,
+    width: int,
+) -> Generator[tuple[int, int], None, None]:
+    """Get a target's neighbours based on a given list of offsets.
+
+    Note that this uses the same logic as the grid_bfs() function in the C++ extension,
+    however, it is much slower due to Python.
+
+    Parameters
+    ----------
+    target: tuple[int, int]
+        The target to get neighbours for.
+    height: int
+        The height of the grid.
+    width: int
+        The width of the grid.
+
+    Returns
+    -------
+    Generator[tuple[int, int], None, None]
+        A list of the target's neighbours.
+    """
+    # Get all the neighbour floor tile positions relative to the current target
+    for dx, dy in (
+        (0, -1),
+        (-1, 0),
+        (1, 0),
+        (0, 1),
+    ):
+        # Check if the neighbour position is within the boundaries of the grid or not
+        x, y = target[0] + dx, target[1] + dy
+        if (x < 0 or x >= width) or (y < 0 or y >= height):
+            continue
+
+        # Yield the neighbour tile position
+        yield x, y
 
 
 class LevelConstants(NamedTuple):
@@ -74,7 +118,7 @@ def create_map(level: int) -> tuple[np.ndarray, LevelConstants]:
             map_constants[GenerationConstantType.HEIGHT],
             map_constants[GenerationConstantType.WIDTH],
         ),
-        TileType.EMPTY,  # type: ignore
+        TileType.EMPTY,
         TileType,
     )
     bsp = Leaf(
@@ -91,7 +135,7 @@ def create_map(level: int) -> tuple[np.ndarray, LevelConstants]:
         split_bsp(bsp, map_constants[GenerationConstantType.SPLIT_ITERATION])
     )
 
-    # Create the connections for the hallways
+    # Create the hallways between the rooms
     complete_graph: dict[Rect, list[Rect]] = {}
     for source, destination in permutations(rooms, 2):
         complete_graph.update({source: complete_graph.get(source, []) + [destination]})
@@ -100,6 +144,38 @@ def create_map(level: int) -> tuple[np.ndarray, LevelConstants]:
         add_extra_connections(complete_graph, create_mst(complete_graph)),
         map_constants[GenerationConstantType.OBSTACLE_COUNT],
     )
+
+    g = [
+        [
+            0
+            if column in {TileType.EMPTY, TileType.OBSTACLE, TileType.DEBUG_WALL}
+            else column.value
+            for column in row
+        ]
+        for row in grid
+    ]
+    for i in g:
+        print(i)
+
+    # Run CELLULAR_AUTOMATA_SIMULATION_COUNT cellular automata simulations
+    f = grid.copy()
+    for _ in range(15):
+        do_cellular_automata_simulation(grid)
+    print("break")
+    print(grid == f)
+
+    # Place all the walls in the grid
+    g = [
+        [
+            0
+            if column in {TileType.EMPTY, TileType.OBSTACLE, TileType.DEBUG_WALL}
+            else column.value
+            for column in row
+        ]
+        for row in grid
+    ]
+    for i in g:
+        print(i)
 
     # Get all the tiles which can support items being placed on them
     possible_tiles: list[tuple[int, int]] = list(  # noqa
@@ -140,7 +216,7 @@ def generate_constants(level: int) -> dict[TileType | GenerationConstantType, in
         The generated constants.
     """
     # Create the generation constants
-    generation_constants: dict[TileType | GenerationConstantType, int] = {
+    generation_constants: dict[GenerationConstantType, int] = {
         key: np.minimum(
             int(np.round(value.base_value * value.increase**level)),
             value.max_value,
@@ -398,6 +474,26 @@ def create_hallways(
                     path_point.y + half_hallway_size,
                 ),
             ).place_rect(grid)
+
+
+def do_cellular_automata_simulation(grid: np.ndarray):
+    for y, row in enumerate(grid):
+        for x, column in enumerate(row):
+            alive = 0
+            from hades.constants.generation import WALL_REPLACEABLE_TILES
+
+            for neighbour_x, neighbour_y in grid_bfs((x, y), *grid.shape):
+                if grid[neighbour_y][neighbour_x] == TileType.FLOOR:
+                    alive += 1
+            if column == TileType.FLOOR:
+                # alive
+                pass
+            elif column in WALL_REPLACEABLE_TILES and alive >= 3:
+                # turn to alive
+                grid[y][x] = TileType.FLOOR
+            else:
+                # turn to dead
+                grid[y][x] = TileType.EMPTY
 
 
 def place_tile(

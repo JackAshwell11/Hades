@@ -256,8 +256,10 @@ class Game(BaseView):
         self.physics_engine.setup(self.player, self.tile_sprites)
 
         # Initialise the vector field
+        d = arcade.SpriteList()
+        d.append(arcade.Sprite())
         self.vector_field = VectorField(
-            self.wall_sprites,
+            d,
             self.level_constants.width,
             self.level_constants.height,
         )
