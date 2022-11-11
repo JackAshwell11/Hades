@@ -196,7 +196,7 @@ class Game(BaseView):
                     continue
 
                 # Determine if the tile is a wall
-                if x == TileType.WALL:
+                if x is TileType.WALL:
                     wall = Wall(self, count_x, count_y)
                     self.wall_sprites.append(wall)
                     self.tile_sprites.append(wall)
@@ -207,7 +207,7 @@ class Game(BaseView):
                 self.tile_sprites.append(floor)
 
                 # Skip to the next iteration if the tile is a floor
-                if x == TileType.FLOOR:
+                if x is TileType.FLOOR:
                     continue
 
                 # Determine if the tile is a player or a consumable
@@ -256,10 +256,8 @@ class Game(BaseView):
         self.physics_engine.setup(self.player, self.tile_sprites)
 
         # Initialise the vector field
-        d = arcade.SpriteList()
-        d.append(arcade.Sprite())
         self.vector_field = VectorField(
-            d,
+            self.wall_sprites,
             self.level_constants.width,
             self.level_constants.height,
         )

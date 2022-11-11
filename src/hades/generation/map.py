@@ -3,17 +3,17 @@ from __future__ import annotations
 
 # Builtin
 import logging
+import random
 from collections import deque
 from heapq import heappop, heappush
 from itertools import permutations
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 # Pip
 import numpy as np
 
 # Custom
 from hades.constants.generation import (
-    CELLULAR_AUTOMATA_SIMULATION_COUNT,
     EXTRA_MAXIMUM_PERCENTAGE,
     HALLWAY_SIZE,
     ITEM_DISTRIBUTION,
@@ -27,9 +27,6 @@ from hades.extensions import calculate_astar_path
 from hades.generation.bsp import Leaf
 from hades.generation.primitives import Point, Rect
 
-if TYPE_CHECKING:
-    from collections.abc import Generator
-
 __all__ = (
     "LevelConstants",
     "create_map",
@@ -40,46 +37,6 @@ logger = logging.getLogger(__name__)
 
 # Set the numpy print formatting to allow pretty printing (for debugging)
 np.set_printoptions(threshold=1, edgeitems=50, linewidth=10000)
-
-
-def grid_bfs(
-    target: tuple[int, int],
-    height: int,
-    width: int,
-) -> Generator[tuple[int, int], None, None]:
-    """Get a target's neighbours based on a given list of offsets.
-
-    Note that this uses the same logic as the grid_bfs() function in the C++ extension,
-    however, it is much slower due to Python.
-
-    Parameters
-    ----------
-    target: tuple[int, int]
-        The target to get neighbours for.
-    height: int
-        The height of the grid.
-    width: int
-        The width of the grid.
-
-    Returns
-    -------
-    Generator[tuple[int, int], None, None]
-        A list of the target's neighbours.
-    """
-    # Get all the neighbour floor tile positions relative to the current target
-    for dx, dy in (
-        (0, -1),
-        (-1, 0),
-        (1, 0),
-        (0, 1),
-    ):
-        # Check if the neighbour position is within the boundaries of the grid or not
-        x, y = target[0] + dx, target[1] + dy
-        if (x < 0 or x >= width) or (y < 0 or y >= height):
-            continue
-
-        # Yield the neighbour tile position
-        yield x, y
 
 
 class LevelConstants(NamedTuple):
@@ -98,19 +55,30 @@ class LevelConstants(NamedTuple):
     height: int
 
 
-def create_map(level: int) -> tuple[np.ndarray, LevelConstants]:
+def create_map(
+    level: int, seed: int | str | None = None
+) -> tuple[np.ndarray, LevelConstants]:
     """Generate the game map for a given game level.
 
     Parameters
     ----------
     level: int
         The game level to generate a map for.
+    seed: int | str | None
+        The seed to initialise the random generator. If it is None, then one will be
+        generated.
 
     Returns
     -------
     tuple[np.ndarray, LevelConstants]
         The generated map and a named tuple containing the level, width and height.
     """
+    # Create the random generator. If seed is None, then get a random 64-bit integer
+    if seed is None:
+        seed = random.getrandbits(64)
+    random_generator = random.Random(1000)
+    logger.debug("Generated state %r from seed %r", random_generator.getstate(), seed)
+
     # Initialise a few variables needed for the map generation
     map_constants = generate_constants(level)
     grid = np.full(
@@ -128,6 +96,7 @@ def create_map(level: int) -> tuple[np.ndarray, LevelConstants]:
             map_constants[GenerationConstantType.HEIGHT] - 1,
         ),
         grid,
+        random_generator,
     )
 
     # Split the bsp and create the rooms
@@ -141,47 +110,15 @@ def create_map(level: int) -> tuple[np.ndarray, LevelConstants]:
         complete_graph.update({source: complete_graph.get(source, []) + [destination]})
     create_hallways(
         grid,
+        random_generator,
         add_extra_connections(complete_graph, create_mst(complete_graph)),
         map_constants[GenerationConstantType.OBSTACLE_COUNT],
     )
 
-    g = [
-        [
-            0
-            if column in {TileType.EMPTY, TileType.OBSTACLE, TileType.DEBUG_WALL}
-            else column.value
-            for column in row
-        ]
-        for row in grid
-    ]
-    for i in g:
-        print(i)
-
-    # Run CELLULAR_AUTOMATA_SIMULATION_COUNT cellular automata simulations
-    f = grid.copy()
-    for _ in range(15):
-        do_cellular_automata_simulation(grid)
-    print("break")
-    print(grid == f)
-
-    # Place all the walls in the grid
-    g = [
-        [
-            0
-            if column in {TileType.EMPTY, TileType.OBSTACLE, TileType.DEBUG_WALL}
-            else column.value
-            for column in row
-        ]
-        for row in grid
-    ]
-    for i in g:
-        print(i)
-
     # Get all the tiles which can support items being placed on them
-    possible_tiles: list[tuple[int, int]] = list(  # noqa
+    possible_tiles: set[tuple[int, int]] = set(  # noqa
         zip(*np.nonzero(grid == TileType.FLOOR))
     )
-    np.random.shuffle(possible_tiles)
 
     # Place the player tile and all the items tiles
     place_tile(grid, TileType.PLAYER, possible_tiles)
@@ -423,7 +360,10 @@ def add_extra_connections(
 
 
 def create_hallways(
-    grid: np.ndarray, connections: set[tuple[float, Rect, Rect]], obstacle_count: int
+    grid: np.ndarray,
+    random_generator: random.Random,
+    connections: set[tuple[float, Rect, Rect]],
+    obstacle_count: int,
 ) -> None:
     """Create the hallways by placing random obstacles and pathfinding around them.
 
@@ -431,6 +371,8 @@ def create_hallways(
     ----------
     grid: np.ndarray
         The 2D grid which represents the dungeon.
+    random_generator: random.Random
+        The random generator used to pick the positions for the obstacles.
     connections: set[Rects]
         The connections to pathfind using the A* algorithm.
     obstacle_count: int
@@ -438,12 +380,13 @@ def create_hallways(
     """
     # Place random obstacles in the grid
     y, x = np.where(grid == TileType.EMPTY)
-    arr_index = np.random.choice(len(y), obstacle_count)
-    grid[y[arr_index], x[arr_index]] = TileType.OBSTACLE
-    logger.debug(
-        "Created %d obstacles in the 2D grid",
-        obstacle_count,
-    )
+    for _ in range(obstacle_count):
+        grid[
+            y[random_generator.choice(y)], y[random_generator.choice(x)]
+        ] = TileType.OBSTACLE
+    logger.debug("Created %d obstacles in the 2D grid", obstacle_count)
+
+    # TODO: USE THIS TO UPDATE TESTS
 
     # Use the A* algorithm with to connect each pair of rooms making sure to avoid
     # the obstacles giving us natural looking hallways. Note that the width of the
@@ -476,28 +419,8 @@ def create_hallways(
             ).place_rect(grid)
 
 
-def do_cellular_automata_simulation(grid: np.ndarray):
-    for y, row in enumerate(grid):
-        for x, column in enumerate(row):
-            alive = 0
-            from hades.constants.generation import WALL_REPLACEABLE_TILES
-
-            for neighbour_x, neighbour_y in grid_bfs((x, y), *grid.shape):
-                if grid[neighbour_y][neighbour_x] == TileType.FLOOR:
-                    alive += 1
-            if column == TileType.FLOOR:
-                # alive
-                pass
-            elif column in WALL_REPLACEABLE_TILES and alive >= 3:
-                # turn to alive
-                grid[y][x] = TileType.FLOOR
-            else:
-                # turn to dead
-                grid[y][x] = TileType.EMPTY
-
-
 def place_tile(
-    grid: np.ndarray, target_tile: TileType, possible_tiles: list[tuple[int, int]]
+    grid: np.ndarray, target_tile: TileType, possible_tiles: set[tuple[int, int]]
 ) -> tuple:
     """Places a given tile in the 2D grid.
 
@@ -507,7 +430,7 @@ def place_tile(
         The 2D grid which represents the dungeon.
     target_tile: TileType
         The tile to place in the 2D grid.
-    possible_tiles: list[tuple[int, int]]
+    possible_tiles: set[tuple[int, int]]
         The possible tiles that the tile can be placed into.
 
     Returns

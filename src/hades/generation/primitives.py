@@ -30,12 +30,10 @@ class Point(NamedTuple):
 
 
 class Rect(NamedTuple):
-    """Represents a rectangle of any size useful for creating the dungeon.
+    """Represents a rectangle of any size useful for the interacting with the 2D grid.
 
-    Containers include the split wall in their sizes whereas rooms don't so
-    MIN_CONTAINER_SIZE must be bigger than MIN_ROOM_SIZE.
-
-    # TODO: REDO THIS DOCSTRING
+    When creating a container, the split wall is included in the rect size, whereas,
+    rooms don't so MIN_CONTAINER_SIZE must be bigger than MIN_ROOM_SIZE.
 
     top_left: Point
         The top-left position.
@@ -132,8 +130,20 @@ class Rect(NamedTuple):
         grid: np.ndarray
             The 2D grid which represents the dungeon.
         """
-        # Place the floors
+        # Get the width and height of the grid
+        grid_height, grid_width = grid.shape
+
+        # Place the walls
+        temp_wall = grid[
+            max(self.top_left.y, 0) : min(self.bottom_right.y + 1, grid_height),
+            max(self.top_left.x, 0) : min(self.bottom_right.x + 1, grid_width),
+        ]
+        temp_wall[np.isin(temp_wall, WALL_REPLACEABLE_TILES)] = TileType.WALL
+
+        # Place the floors. The ranges must be -1 in all directions since we don't want
+        # to overwrite the walls keeping the player in, but we still want to overwrite
+        # walls that block the path for hallways
         grid[
-            max(self.top_left.y, 0) : min(self.bottom_right.y + 1, grid.shape[0]),
-            max(self.top_left.x, 0) : min(self.bottom_right.x + 1, grid.shape[1]),
+            max(self.top_left.y + 1, 1) : min(self.bottom_right.y, grid_height - 1),
+            max(self.top_left.x + 1, 1) : min(self.bottom_right.x, grid_width - 1),
         ] = TileType.FLOOR

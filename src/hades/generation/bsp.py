@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 # Builtin
-import random
 from typing import TYPE_CHECKING
 
 # Custom
@@ -16,6 +15,8 @@ from hades.constants.generation import (
 from hades.generation.primitives import Point, Rect
 
 if TYPE_CHECKING:
+    import random
+
     import numpy as np
 
 __all__ = ("Leaf",)
@@ -32,6 +33,8 @@ class Leaf:
         The bottom-right position
     grid: np.ndarray
         The 2D grid which represents the dungeon.
+    random_generator: random.Random
+        The random generator used to generate the bsp.
     parent: Leaf | None
         The parent leaf object.
 
@@ -56,9 +59,10 @@ class Leaf:
         "left",
         "right",
         "parent",
+        "grid",
+        "random_generator",
         "container",
         "room",
-        "grid",
         "split_vertical",
     )
 
@@ -67,12 +71,14 @@ class Leaf:
         top_left: Point,
         bottom_right: Point,
         grid: np.ndarray,
+        random_generator: random.Random,
         parent: Leaf | None = None,
     ) -> None:
         self.left: Leaf | None = None
         self.right: Leaf | None = None
-        self.parent: Leaf | None = parent
         self.grid: np.ndarray = grid
+        self.random_generator: random.Random = random_generator
+        self.parent: Leaf | None = parent
         self.container: Rect = Rect(top_left, bottom_right)
         self.room: Rect | None = None
         self.split_vertical: bool | None = None
@@ -100,7 +106,7 @@ class Leaf:
         # To determine the direction of split, we test if the width is 25% larger than
         # the height, if so we split vertically. However, if the height is 25% larger
         # than the width, we split horizontally. Otherwise, we split randomly
-        split_vertical = bool(random.getrandbits(1))
+        split_vertical = bool(self.random_generator.getrandbits(1))
         if (
             self.container.width > self.container.height
             and self.container.width / self.container.height >= 1.25
@@ -126,7 +132,7 @@ class Leaf:
 
         # Create the split position. This ensures that there will be MIN_CONTAINER_SIZE
         # on each side
-        pos = random.randint(MIN_CONTAINER_SIZE, max_size)
+        pos = self.random_generator.randint(MIN_CONTAINER_SIZE, max_size)
 
         # Split the container
         if split_vertical:
@@ -143,12 +149,14 @@ class Leaf:
                 Point(self.container.top_left.x, self.container.top_left.y),
                 Point(pos - 1, self.container.bottom_right.y),
                 self.grid,
+                self.random_generator,
                 self,
             )
             self.right = Leaf(
                 Point(pos + 1, self.container.top_left.y),
                 Point(self.container.bottom_right.x, self.container.bottom_right.y),
                 self.grid,
+                self.random_generator,
                 self,
             )
         else:
@@ -165,12 +173,14 @@ class Leaf:
                 Point(self.container.top_left.x, self.container.top_left.y),
                 Point(self.container.bottom_right.x, pos - 1),
                 self.grid,
+                self.random_generator,
                 self,
             )
             self.right = Leaf(
                 Point(self.container.top_left.x, pos + 1),
                 Point(self.container.bottom_right.x, self.container.bottom_right.y),
                 self.grid,
+                self.random_generator,
                 self,
             )
 
@@ -195,16 +205,16 @@ class Leaf:
 
         # Pick a random width and height making sure it is at least MIN_ROOM_SIZE but
         # doesn't exceed the container
-        width = random.randint(MIN_ROOM_SIZE, int(self.container.width))
-        height = random.randint(MIN_ROOM_SIZE, int(self.container.height))
+        width = self.random_generator.randint(MIN_ROOM_SIZE, self.container.width)
+        height = self.random_generator.randint(MIN_ROOM_SIZE, self.container.height)
 
         # Use the width and height to find a suitable x and y position which can create
         # the room
-        x_pos = random.randint(
-            int(self.container.top_left.x), int(self.container.bottom_right.x - width)
+        x_pos = self.random_generator.randint(
+            self.container.top_left.x, self.container.bottom_right.x - width
         )
-        y_pos = random.randint(
-            int(self.container.top_left.y), int(self.container.bottom_right.y - height)
+        y_pos = self.random_generator.randint(
+            self.container.top_left.y, self.container.bottom_right.y - height
         )
 
         # Create the room rect and test if its width to height ratio will make an
