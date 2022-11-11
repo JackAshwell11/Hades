@@ -645,7 +645,7 @@ class Game(BaseView):
                 break
 
             # Enemy has failed to generate
-            logger.debug("%d failed to be generated", enemy)
+            logger.debug("%r failed to be generated", enemy)
 
     def center_camera_on_player(self) -> None:
         """Centers the camera on the player."""
