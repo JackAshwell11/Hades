@@ -13,7 +13,6 @@ __all__ = (
     "ITEM_DISTRIBUTION",
     "MIN_CONTAINER_SIZE",
     "MIN_ROOM_SIZE",
-    "ITEM_PLACE_TRIES",
     "WALL_REPLACEABLE_TILES",
     "ROOM_RATIO",
     "TileType",
@@ -74,7 +73,7 @@ MAP_GENERATION_COUNTS = {
     GenerationConstantType.HEIGHT: MapGenerationConstant(20, 1.2, 100),
     GenerationConstantType.SPLIT_ITERATION: MapGenerationConstant(5, 1.5, 25),
     GenerationConstantType.OBSTACLE_COUNT: MapGenerationConstant(50, 1.3, 200),
-    GenerationConstantType.ITEM_COUNT: MapGenerationConstant(3, 1.1, 15),
+    GenerationConstantType.ITEM_COUNT: MapGenerationConstant(5, 1.1, 30),
 }
 
 # Map generation item distribution
@@ -97,4 +96,3 @@ EXTRA_MAXIMUM_PERCENTAGE = 1.5
 REMOVED_CONNECTION_LIMIT = 0.2
 WALL_REPLACEABLE_TILES = [TileType.EMPTY, TileType.OBSTACLE, TileType.DEBUG_WALL]
 HALLWAY_SIZE = 5
-ITEM_PLACE_TRIES = 5

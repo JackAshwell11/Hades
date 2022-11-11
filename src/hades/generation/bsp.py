@@ -23,7 +23,7 @@ __all__ = ("Leaf",)
 
 
 class Leaf:
-    """A binary spaced partition leaf used to generate the dungeon's rooms..
+    """A binary spaced partition leaf used to generate the dungeon's rooms.
 
     Parameters
     ----------

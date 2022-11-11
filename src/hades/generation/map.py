@@ -17,7 +17,6 @@ from hades.constants.generation import (
     EXTRA_MAXIMUM_PERCENTAGE,
     HALLWAY_SIZE,
     ITEM_DISTRIBUTION,
-    ITEM_PLACE_TRIES,
     MAP_GENERATION_COUNTS,
     REMOVED_CONNECTION_LIMIT,
     GenerationConstantType,
@@ -29,7 +28,14 @@ from hades.generation.primitives import Point, Rect
 
 __all__ = (
     "LevelConstants",
+    "add_extra_connections",
+    "create_hallways",
     "create_map",
+    "create_mst",
+    "generate_constants",
+    "generate_rooms",
+    "place_tile",
+    "split_bsp",
 )
 
 # Get the logger
@@ -68,15 +74,24 @@ def create_map(
         The seed to initialise the random generator. If it is None, then one will be
         generated.
 
+    Raises
+    ------
+    ValueError
+        Level must be bigger than or equal to 0.
+
     Returns
     -------
     tuple[np.ndarray, LevelConstants]
         The generated map and a named tuple containing the level, width and height.
     """
+    # Check that the level number is valid
+    if level < 0:
+        raise ValueError("Level must be bigger than or equal to 0")
+
     # Create the random generator. If seed is None, then get a random 64-bit integer
     if seed is None:
         seed = random.getrandbits(64)
-    random_generator = random.Random(1000)
+    random_generator = random.Random(seed)
     logger.debug("Generated state %r from seed %r", random_generator.getstate(), seed)
 
     # Initialise a few variables needed for the map generation
@@ -124,16 +139,10 @@ def create_map(
     place_tile(grid, TileType.PLAYER, possible_tiles)
     for tile in ITEM_DISTRIBUTION:
         tiles_placed = 0
-        tries = ITEM_PLACE_TRIES
-        while tiles_placed < map_constants[tile] and tries != 0:
-            if place_tile(grid, tile, possible_tiles):
-                # Tile placed
-                logger.debug("One of multiple %r placed in the 2D grid", tile)
-                tiles_placed += 1
-            else:
-                # Tile not placed
-                logger.debug("Can't place one of multiple %r in the 2D grid", tile)
-                tries -= 1
+        while tiles_placed < map_constants[tile]:
+            place_tile(grid, tile, possible_tiles)
+            logger.debug("One of multiple %r placed in the 2D grid", tile)
+            tiles_placed += 1
 
     # Return the map object and a GameMapShape object
     return grid, LevelConstants(level, grid.shape[1], grid.shape[0])
@@ -386,8 +395,6 @@ def create_hallways(
         ] = TileType.OBSTACLE
     logger.debug("Created %d obstacles in the 2D grid", obstacle_count)
 
-    # TODO: USE THIS TO UPDATE TESTS
-
     # Use the A* algorithm with to connect each pair of rooms making sure to avoid
     # the obstacles giving us natural looking hallways. Note that the width of the
     # hallways will always be odd in this implementation due to numpy indexing
@@ -421,7 +428,7 @@ def create_hallways(
 
 def place_tile(
     grid: np.ndarray, target_tile: TileType, possible_tiles: set[tuple[int, int]]
-) -> tuple:
+) -> None:
     """Places a given tile in the 2D grid.
 
     Parameters
@@ -432,20 +439,8 @@ def place_tile(
         The tile to place in the 2D grid.
     possible_tiles: set[tuple[int, int]]
         The possible tiles that the tile can be placed into.
-
-    Returns
-    -------
-    tuple
-        The player position or an empty tuple.
     """
     # Get a random floor position and place the target tile
     y, x = possible_tiles.pop()
     grid[y][x] = target_tile
     logger.debug("Placed tile %r in the 2D grid", target_tile)
-
-    # Check if the target tile is the player. If so, we need to store its position
-    if target_tile is TileType.PLAYER:
-        return x, y
-
-    # Target tile is a normal tile so return empty tuple
-    return ()
