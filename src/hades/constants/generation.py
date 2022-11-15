@@ -72,7 +72,7 @@ MAP_GENERATION_COUNTS = {
     GenerationConstantType.WIDTH: MapGenerationConstant(30, 1.2, 150),
     GenerationConstantType.HEIGHT: MapGenerationConstant(20, 1.2, 100),
     GenerationConstantType.SPLIT_ITERATION: MapGenerationConstant(5, 1.5, 25),
-    GenerationConstantType.OBSTACLE_COUNT: MapGenerationConstant(50, 1.3, 200),
+    GenerationConstantType.OBSTACLE_COUNT: MapGenerationConstant(20, 1.3, 200),
     GenerationConstantType.ITEM_COUNT: MapGenerationConstant(5, 1.1, 30),
 }
 

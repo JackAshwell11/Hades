@@ -144,7 +144,7 @@ def test_create_map() -> None:
         isinstance(temp_zero[0], np.ndarray)
         and isinstance(temp_zero[1], LevelConstants)
         and count_items(temp_zero[0]) == 5
-        and get_player_pos(temp_zero[0]) == (15, 21)
+        and get_player_pos(temp_zero[0]) == (12, 4)
     )
     temp_rand_seed = create_map(0)
     assert isinstance(temp_rand_seed[0], np.ndarray) and isinstance(
@@ -172,7 +172,7 @@ def test_map_generate_constants() -> None:
         GenerationConstantType.WIDTH: 30,
         GenerationConstantType.HEIGHT: 20,
         GenerationConstantType.SPLIT_ITERATION: 5,
-        GenerationConstantType.OBSTACLE_COUNT: 50,
+        GenerationConstantType.OBSTACLE_COUNT: 20,
         GenerationConstantType.ITEM_COUNT: 5,
         TileType.HEALTH_POTION: 2,
         TileType.ARMOUR_POTION: 2,

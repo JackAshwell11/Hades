@@ -108,7 +108,7 @@ class Rect(NamedTuple):
         return Point(self.center_x, self.center_y)
 
     def get_distance_to(self, other: Rect) -> float:
-        """Get the Manhattan distance to another rect.
+        """Get the Euclidean distance to another rect.
 
         Parameters
         ----------
@@ -118,9 +118,12 @@ class Rect(NamedTuple):
         Returns
         -------
         float
-            The Manhattan distance between this rect and the given rect.
+            The Euclidean distance between this rect and the given rect.
         """
-        return abs(self.center_x - other.center_x) + abs(self.center_y - other.center_y)
+        return np.sqrt(
+            (self.center_x - other.center_x) ** 2
+            + (self.center_y - other.center_x) ** 2
+        )
 
     def place_rect(self, grid: np.ndarray) -> None:
         """Places the rect in the 2D grid.

@@ -93,7 +93,10 @@ def test_rect_get_distance_to(
     rect: Rect
         The rect used for testing.
     """
-    assert Rect(valid_point_one, boundary_point).get_distance_to(rect) == 6
+    assert (
+        Rect(valid_point_one, boundary_point).get_distance_to(rect)
+        == 2.8284271247461903
+    )
     with pytest.raises(TypeError):
         Rect(valid_point_one, invalid_point).get_distance_to(rect)
 

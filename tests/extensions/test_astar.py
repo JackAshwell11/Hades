@@ -40,9 +40,11 @@ def get_obstacle_grid() -> np.ndarray:
 
 
 def heuristic(a: Point, b: Point) -> int:
-    """Calculate the Manhattan distance between two pairs.
+    """Calculate the Euclidean distance between two pairs.
 
-    This uses the same logic as the heuristic function in the C++ extension.
+    This uses a different heuristic to the C++ extension since in some cases the
+    distance can be Euclidean instead of Manhattan (diagonal line of sight between start
+    and end) so we need to get the minimum size that a path can have.
 
     Parameters
     ----------
@@ -54,9 +56,9 @@ def heuristic(a: Point, b: Point) -> int:
     Returns
     -------
     int
-        The heuristic distance.
+        The Euclidean distance.
     """
-    return abs(a.x - b.x) + abs(a.y - b.y)
+    return np.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 
 
 def test_calculate_astar_path(

@@ -101,7 +101,7 @@ def create_map(
             map_constants[GenerationConstantType.HEIGHT],
             map_constants[GenerationConstantType.WIDTH],
         ),
-        TileType.EMPTY,
+        TileType.EMPTY,  # type: ignore
         TileType,
     )
     bsp = Leaf(
@@ -388,10 +388,10 @@ def create_hallways(
         The number of obstacles to place in the 2D grid.
     """
     # Place random obstacles in the grid
-    y, x = np.where(grid == TileType.EMPTY)
+    obstacle_positions = list(zip(*np.where(grid == TileType.EMPTY)))
     for _ in range(obstacle_count):
         grid[
-            y[random_generator.choice(y)], y[random_generator.choice(x)]
+            obstacle_positions.pop(random_generator.randrange(len(obstacle_positions)))
         ] = TileType.OBSTACLE
     logger.debug("Created %d obstacles in the 2D grid", obstacle_count)
 
