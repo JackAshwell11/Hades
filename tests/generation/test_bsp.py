@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 # Builtin
+import random
 from typing import TYPE_CHECKING
 
 # Custom
@@ -29,12 +30,26 @@ def test_bsp_init(
         The 2D grid used for testing.
     """
     assert (
-        repr(Leaf(boundary_point, Point(grid.shape[1], grid.shape[0]), grid))
+        repr(
+            Leaf(
+                boundary_point,
+                Point(grid.shape[1], grid.shape[0]),
+                grid,
+                random.Random(1),
+            )
+        )
         == "<Leaf (Left=None) (Right=None) (Top-left position=Point(x=0, y=0))"
         " (Bottom-right position=Point(x=50, y=50))>"
     )
     assert (
-        repr(Leaf(invalid_point, Point(grid.shape[1], grid.shape[0]), grid))
+        repr(
+            Leaf(
+                invalid_point,
+                Point(grid.shape[1], grid.shape[0]),
+                grid,
+                random.Random(1),
+            )
+        )
         == "<Leaf (Left=None) (Right=None) (Top-left position=Point(x='test',"
         " y='test')) (Bottom-right position=Point(x=50, y=50))>"
     )
@@ -66,7 +81,7 @@ def test_leaf_split(leaf: Leaf) -> None:
     # Make sure we test what happens if the container's width and height are both less
     # than MIN_CONTAINER_SIZE
     leaf.left = leaf.right = leaf.split_vertical = None
-    leaf.container = Rect(leaf.container.grid, leaf.container.top_left, Point(-1, -1))
+    leaf.container = Rect(leaf.container.top_left, Point(-1, -1))
     assert not leaf.split()
 
 

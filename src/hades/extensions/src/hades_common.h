@@ -69,7 +69,9 @@ int INT_INFINITY = std::numeric_limits<int>::max();
 
 
 // ----- C METHODS ------------------------------
-std::vector<IntPair> grid_bfs(IntPair target, int height, int width, std::vector<IntPair> offsets = CARDINAL_OFFSETS) {
+std::vector<IntPair> grid_bfs(
+    IntPair target, int height, int width, std::vector<IntPair> offsets = INTERCARDINAL_OFFSETS
+) {
     /* Gets a target's neighbours in a grid */
     std::vector<IntPair> result;
     for (IntPair offset: offsets) {

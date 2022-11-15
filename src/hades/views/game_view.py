@@ -186,17 +186,17 @@ class Game(BaseView):
         )
 
         # Create the game map
-        game_map, self.level_constants = create_map(level)
+        grid, self.level_constants = create_map(level)
 
         # Assign sprites to the game map and initialise the vector grid
-        for count_y, y in enumerate(reversed(game_map.grid)):
+        for count_y, y in enumerate(reversed(grid)):
             for count_x, x in enumerate(y):
                 # Determine if the tile is empty
                 if x in WALL_REPLACEABLE_TILES:
                     continue
 
                 # Determine if the tile is a wall
-                if x == TileType.WALL:
+                if x is TileType.WALL:
                     wall = Wall(self, count_x, count_y)
                     self.wall_sprites.append(wall)
                     self.tile_sprites.append(wall)
@@ -207,7 +207,7 @@ class Game(BaseView):
                 self.tile_sprites.append(floor)
 
                 # Skip to the next iteration if the tile is a floor
-                if x == TileType.FLOOR:
+                if x is TileType.FLOOR:
                     continue
 
                 # Determine if the tile is a player or a consumable

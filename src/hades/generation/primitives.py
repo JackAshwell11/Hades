@@ -30,20 +30,17 @@ class Point(NamedTuple):
 
 
 class Rect(NamedTuple):
-    """Represents a rectangle of any size useful for creating the dungeon.
+    """Represents a rectangle of any size useful for the interacting with the 2D grid.
 
-    Containers include the split wall in their sizes whereas rooms don't so
-    MIN_CONTAINER_SIZE must be bigger than MIN_ROOM_SIZE.
+    When creating a container, the split wall is included in the rect size, whereas,
+    rooms don't so MIN_CONTAINER_SIZE must be bigger than MIN_ROOM_SIZE.
 
-    grid: np.ndarray
-        The 2D grid which represents the dungeon.
     top_left: Point
         The top-left position.
     bottom_right: Point
         The bottom-right position.
     """
 
-    grid: np.ndarray
     top_left: Point
     bottom_right: Point
 
@@ -123,15 +120,24 @@ class Rect(NamedTuple):
         float
             The Euclidean distance between this rect and the given rect.
         """
-        return np.hypot(other.center_x - self.center_x, other.center_y - self.center_y)
+        return np.sqrt(
+            (self.center_x - other.center_x) ** 2
+            + (self.center_y - other.center_x) ** 2
+        )
 
-    def place_rect(self) -> None:
-        """Places the rect in the 2D grid."""
+    def place_rect(self, grid: np.ndarray) -> None:
+        """Places the rect in the 2D grid.
+
+        Parameters
+        ----------
+        grid: np.ndarray
+            The 2D grid which represents the dungeon.
+        """
         # Get the width and height of the grid
-        grid_height, grid_width = self.grid.shape
+        grid_height, grid_width = grid.shape
 
         # Place the walls
-        temp_wall = self.grid[
+        temp_wall = grid[
             max(self.top_left.y, 0) : min(self.bottom_right.y + 1, grid_height),
             max(self.top_left.x, 0) : min(self.bottom_right.x + 1, grid_width),
         ]
@@ -140,7 +146,7 @@ class Rect(NamedTuple):
         # Place the floors. The ranges must be -1 in all directions since we don't want
         # to overwrite the walls keeping the player in, but we still want to overwrite
         # walls that block the path for hallways
-        self.grid[
+        grid[
             max(self.top_left.y + 1, 1) : min(self.bottom_right.y, grid_height - 1),
             max(self.top_left.x + 1, 1) : min(self.bottom_right.x, grid_width - 1),
         ] = TileType.FLOOR
