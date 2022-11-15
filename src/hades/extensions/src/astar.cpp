@@ -108,7 +108,8 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
         // Add all the neighbours to the heap with their cost being f = g + h:
         //   f - The total cost of traversing the neighbour.
         //   g - The distance between the start pair and the neighbour pair.
-        //   h - The estimated distance from the neighbour pair to the end pair.
+        //   h - The estimated distance from the neighbour pair to the end pair. We're using the Manhattan distance for
+        //       this.
         for (IntPair neighbour: grid_bfs(current, height, width)) {
             if (!came_from.count(neighbour)) {
                 // Store the neighbour's parent and calculate its distance from the

@@ -67,8 +67,9 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
 
     # Check that all possible spawns are 5 tiles away from the player
     for spawn in temp_possible_spawns_valid:
-        # Note that this is the Manhattan heuristic since the Dijkstra map calculates
-        # the Manhattan distance for every tile from the origin
+        # Note that this is the exact same logic as the Manhattan heuristic. This is
+        # because the Dijkstra map technically calculates the Manhattan distance for
+        # every tile from the origin tile
         distance = abs(player_grid_pos[0] - spawn[0]) + abs(
             player_grid_pos[1] - spawn[1]
         )
