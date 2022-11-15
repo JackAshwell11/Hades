@@ -33,7 +33,7 @@ log_dir = pathlib.Path(__file__).resolve().parent.parent / "logs"
 log_dir.mkdir(parents=True, exist_ok=True)
 
 # Logging constants
-GAME_LOGGER = "game"
+GAME_LOGGER = "hades"
 LOGGING_DICT_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,

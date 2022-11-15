@@ -14,12 +14,12 @@ class DummyImport:
         The target to fake.
     """
 
-    def __init__(self, target: str) -> None:
+    def __init__(self, target: str) -> None:  # pragma: no cover
         self.target: str = target
 
-    def __call__(self, *args: Any, **kwargs: Any) -> None:
+    def __call__(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover
         """Is called whenever the faked import is called/initialised."""
-        raise NotImplementedError(  # pragma: no cover
+        raise NotImplementedError(
             f"{self.target} is not compiled or functioning. Compile/fix it before "
             "running Hades"
         )
