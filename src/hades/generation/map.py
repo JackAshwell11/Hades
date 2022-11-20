@@ -405,14 +405,9 @@ def create_hallways(
             pair_source.center,
             pair_destination.center,
         ):
-            # Test if the current tile is a floor tile
-            path_point = Point(*path_point_tup)
-            if grid[path_point.y][path_point.x] is TileType.FLOOR:
-                # Current tile is a floor tile, so there is no point placing a rect
-                continue
-
             # Place a rect box around the path_point using HALLWAY_SIZE to determine
             # the width and height
+            path_point = Point(*path_point_tup)
             logger.debug("Creating path from %r to %r", pair_source, pair_destination)
             Rect(
                 Point(
