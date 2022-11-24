@@ -107,10 +107,6 @@ class Consumable(UsableTile, CollectibleTile):
         self.consumable_type: ConsumableData = consumable_type
         self.texture: arcade.Texture = self.consumable_type.texture
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<Consumable (Position=({self.center_x}, {self.center_y}))>"
-
     @property
     def name(self) -> str:
         """Get the name of this consumable.
@@ -168,3 +164,7 @@ class Consumable(UsableTile, CollectibleTile):
         # Effect was successful
         logger.info("Used %r potion", self.consumable_type.name)
         return True
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<Consumable (Position=({self.center_x}, {self.center_y}))>"

@@ -131,10 +131,6 @@ class Player(Entity):
         self.up_pressed: bool = False
         self.down_pressed: bool = False
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<Player (Position=({self.center_x}, {self.center_y}))>"
-
     @property
     def player_data(self) -> PlayerData:
         """Get the player data if it exists.
@@ -321,3 +317,7 @@ class Player(Entity):
         # Add successful
         logger.info("Adding item %r to inventory", item)
         return True
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<Player (Position=({self.center_x}, {self.center_y}))>"

@@ -89,10 +89,6 @@ class StartMenu(BaseView):
             )
         )
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<StartMenu (Current window={self.window})>"
-
     def on_draw(self) -> None:
         """Render the screen."""
         # Clear the screen
@@ -103,3 +99,7 @@ class StartMenu(BaseView):
 
         # Draw the UI elements
         self.ui_manager.draw()
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<StartMenu (Current window={self.window})>"

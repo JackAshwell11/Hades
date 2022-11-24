@@ -28,10 +28,6 @@ class EnemyMovementManager:
     def __init__(self, owner: Enemy) -> None:
         self.owner: Enemy = owner
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<EnemyMovement (Owner={self.owner})>"
-
     @property
     def vector_field(self) -> VectorField:
         """Get the vector field for easy access.
@@ -76,3 +72,7 @@ class EnemyMovementManager:
             The calculated force to apply to the enemy.
         """
         return 0, 0
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<EnemyMovement (Owner={self.owner})>"

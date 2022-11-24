@@ -106,28 +106,26 @@ class StatusEffectType(Enum):
     ARMOUR = EntityAttributeType.ARMOUR
     SPEED = EntityAttributeType.SPEED
     FIRE_RATE = EntityAttributeType.FIRE_RATE_PENALTY
-    # BURN = "burn"
-    # POISON = "poison"
 
 
-# Entity constructor data
-class BaseData(NamedTuple):
-    """The base class for constructing an entity.
+class EntityAttributeData(NamedTuple):
+    """Stores an attribute that is available to the entity.
 
-    entity_type: EntityType
-        The data specifying the entity's attributes.
-    attacks: dict[AttackAlgorithmType, AttackData]
-        The data about the entity's attacks.
-    player_data: PlayerData | None
-        The data about the player entity.
-    enemy_data: EnemyData | None
-        The data about the enemy entity.
+    increase: Callable[[int], float]
+        The exponential lambda function which calculates the next level's value based on
+        the current level.
+    maximum: bool
+        Whether this attribute has a maximum level or not.
+    status_effect: bool
+        Whether this attribute can have a status effect applied to it or not.
+    variable: bool
+        Whether this attribute can change from it current value or not.
     """
 
-    entity_data: EntityData
-    attacks: dict[AttackAlgorithmType, AttackData]
-    player_data: PlayerData | None = None
-    enemy_data: EnemyData | None = None
+    increase: Callable[[int], float]
+    maximum: bool = True
+    status_effect: bool = False
+    variable: bool = False
 
 
 class EntityData(NamedTuple):
@@ -155,26 +153,6 @@ class EntityData(NamedTuple):
     attribute_data: dict[EntityAttributeType, EntityAttributeData]
 
 
-class EntityAttributeData(NamedTuple):
-    """Stores an attribute that is available to the entity.
-
-    increase: Callable[[int], float]
-        The exponential lambda function which calculates the next level's value based on
-        the current level.
-    maximum: bool
-        Whether this attribute has a maximum level or not.
-    status_effect: bool
-        Whether this attribute can have a status effect applied to it or not.
-    variable: bool
-        Whether this attribute can change from it current value or not.
-    """
-
-    increase: Callable[[int], float]
-    maximum: bool = True
-    status_effect: bool = False
-    variable: bool = False
-
-
 class PlayerData(NamedTuple):
     """Stores data about a specific player type.
 
@@ -190,6 +168,16 @@ class PlayerData(NamedTuple):
 
 class EnemyData(NamedTuple):
     """Stores data about a specific enemy type."""
+
+
+class RangedAttackData(NamedTuple):
+    """Stores extra data about an entity's ranged attack.
+
+    max_bullet_range: int
+        The max range of the bullet.
+    """
+
+    max_bullet_range: int
 
 
 class AttackData(NamedTuple):
@@ -210,46 +198,28 @@ class AttackData(NamedTuple):
     attack_cooldown: int
     attack_range: int
     extra: RangedAttackData | None = None
+    # BURN = "burn"
+    # POISON = "poison"
 
 
-class RangedAttackData(NamedTuple):
-    """Stores extra data about an entity's ranged attack.
+# Entity constructor data
+class BaseData(NamedTuple):
+    """The base class for constructing an entity.
 
-    max_bullet_range: int
-        The max range of the bullet.
+    entity_type: EntityType
+        The data specifying the entity's attributes.
+    attacks: dict[AttackAlgorithmType, AttackData]
+        The data about the entity's attacks.
+    player_data: PlayerData | None
+        The data about the player entity.
+    enemy_data: EnemyData | None
+        The data about the enemy entity.
     """
 
-    max_bullet_range: int
-
-
-# class MeleeAttackData(NamedTuple):
-#     """Stores data about an entity's melee attack."""
-#
-#
-# class AreaOfEffectAttackData(NamedTuple):
-#     """Stores data about an entity's area of effect attack."""
-
-
-class ConsumableData(NamedTuple):
-    """The base class for constructing a consumable with multiple levels.
-
-    name: str
-        The name of the consumable.
-    texture: arcade.Texture
-        The texture for this consumable.
-    level_limit: int
-        The maximum level this consumable can go to.
-    instant: list[InstantData]
-        The instant effects that this consumable gives.
-    status_effects: list[StatusEffectData]
-        The status effects that this consumable gives.
-    """
-
-    name: str
-    texture: arcade.Texture
-    level_limit: int
-    instant: list[InstantData]
-    status_effects: list[StatusEffectData]
+    entity_data: EntityData
+    attacks: dict[AttackAlgorithmType, AttackData]
+    player_data: PlayerData | None = None
+    enemy_data: EnemyData | None = None
 
 
 # Potion constructor data
@@ -285,6 +255,36 @@ class StatusEffectData(NamedTuple):
     status_type: StatusEffectType
     increase: Callable[[int], float]
     duration: Callable[[int], float]
+
+
+# class MeleeAttackData(NamedTuple):
+#     """Stores data about an entity's melee attack."""
+#
+#
+# class AreaOfEffectAttackData(NamedTuple):
+#     """Stores data about an entity's area of effect attack."""
+
+
+class ConsumableData(NamedTuple):
+    """The base class for constructing a consumable with multiple levels.
+
+    name: str
+        The name of the consumable.
+    texture: arcade.Texture
+        The texture for this consumable.
+    level_limit: int
+        The maximum level this consumable can go to.
+    instant: list[InstantData]
+        The instant effects that this consumable gives.
+    status_effects: list[StatusEffectData]
+        The status effects that this consumable gives.
+    """
+
+    name: str
+    texture: arcade.Texture
+    level_limit: int
+    instant: list[InstantData]
+    status_effects: list[StatusEffectData]
 
 
 # Sprite sizes

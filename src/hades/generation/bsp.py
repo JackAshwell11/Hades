@@ -83,14 +83,6 @@ class Leaf:
         self.room: Rect | None = None
         self.split_vertical: bool | None = None
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return (
-            f"<Leaf (Left={self.left}) (Right={self.right}) (Top-left"
-            f" position={self.container.top_left}) (Bottom-right"
-            f" position={self.container.bottom_right})>"
-        )
-
     def split(self) -> bool:
         """Split a container either horizontally or vertically.
 
@@ -229,3 +221,11 @@ class Leaf:
 
         # Successful room creation
         return True
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            f"<Leaf (Left={self.left}) (Right={self.right}) (Top-left"
+            f" position={self.container.top_left}) (Bottom-right"
+            f" position={self.container.bottom_right})>"
+        )

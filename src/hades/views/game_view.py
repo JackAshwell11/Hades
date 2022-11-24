@@ -149,10 +149,6 @@ class Game(BaseView):
             20,
         )
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<Game (Current window={self.window})>"
-
     def post_hide_view(self) -> None:
         """Process post hide view functionality."""
         # Make sure variables needed are valid
@@ -687,3 +683,7 @@ class Game(BaseView):
         if self.game_camera.position != new_position:
             # Move the camera to the new position
             self.game_camera.move_to(new_position)
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<Game (Current window={self.window})>"

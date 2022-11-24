@@ -44,21 +44,13 @@ class Rect(NamedTuple):
     top_left: Point
     bottom_right: Point
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return (
-            f"<Rect (Top left position={self.top_left}) (Bottom right"
-            f" position={self.bottom_right}) (Center position={self.center})"
-            f" (Width={self.width}) (Height={self.height})>"
-        )
-
     @property
     def width(self) -> int:
         """Get the width of the rect.
 
         Returns
         -------
-        float
+        int
             The width of the rect.
         """
         return abs(self.bottom_right.x - self.top_left.x)
@@ -150,3 +142,11 @@ class Rect(NamedTuple):
             max(self.top_left.y + 1, 1) : min(self.bottom_right.y, grid_height - 1),
             max(self.top_left.x + 1, 1) : min(self.bottom_right.x, grid_width - 1),
         ] = TileType.FLOOR
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            f"<Rect (Top left position={self.top_left}) (Bottom right"
+            f" position={self.bottom_right}) (Center position={self.center})"
+            f" (Width={self.width}) (Height={self.height})>"
+        )

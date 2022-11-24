@@ -61,93 +61,6 @@ class LevelConstants(NamedTuple):
     height: int
 
 
-def create_map(
-    level: int, seed: int | str | None = None
-) -> tuple[np.ndarray, LevelConstants]:
-    """Generate the game map for a given game level.
-
-    Parameters
-    ----------
-    level: int
-        The game level to generate a map for.
-    seed: int | str | None
-        The seed to initialise the random generator. If it is None, then one will be
-        generated.
-
-    Raises
-    ------
-    ValueError
-        Level must be bigger than or equal to 0.
-
-    Returns
-    -------
-    tuple[np.ndarray, LevelConstants]
-        The generated map and a named tuple containing the level, width and height.
-    """
-    # Check that the level number is valid
-    if level < 0:
-        raise ValueError("Level must be bigger than or equal to 0")
-
-    # Create the random generator. If seed is None, then get a random 64-bit integer
-    if seed is None:
-        seed = random.getrandbits(64)
-    random_generator = random.Random(seed)
-    logger.debug("Generated state %r from seed %r", random_generator.getstate(), seed)
-
-    # Initialise a few variables needed for the map generation
-    map_constants = generate_constants(level)
-    grid = np.full(
-        (
-            map_constants[GenerationConstantType.HEIGHT],
-            map_constants[GenerationConstantType.WIDTH],
-        ),
-        TileType.EMPTY,  # type: ignore
-        TileType,
-    )
-    bsp = Leaf(
-        Point(0, 0),
-        Point(
-            map_constants[GenerationConstantType.WIDTH] - 1,
-            map_constants[GenerationConstantType.HEIGHT] - 1,
-        ),
-        grid,
-        random_generator,
-    )
-
-    # Split the bsp and create the rooms
-    rooms = generate_rooms(
-        split_bsp(bsp, map_constants[GenerationConstantType.SPLIT_ITERATION])
-    )
-
-    # Create the hallways between the rooms
-    complete_graph: dict[Rect, list[Rect]] = {}
-    for source, destination in permutations(rooms, 2):
-        complete_graph.update({source: complete_graph.get(source, []) + [destination]})
-    create_hallways(
-        grid,
-        random_generator,
-        add_extra_connections(complete_graph, create_mst(complete_graph)),
-        map_constants[GenerationConstantType.OBSTACLE_COUNT],
-    )
-
-    # Get all the tiles which can support items being placed on them
-    possible_tiles: set[tuple[int, int]] = set(  # noqa
-        zip(*np.nonzero(grid == TileType.FLOOR))
-    )
-
-    # Place the player tile and all the items tiles
-    place_tile(grid, TileType.PLAYER, possible_tiles)
-    for tile in ITEM_DISTRIBUTION:
-        tiles_placed = 0
-        while tiles_placed < map_constants[tile]:
-            place_tile(grid, tile, possible_tiles)
-            logger.debug("One of multiple %r placed in the 2D grid", tile)
-            tiles_placed += 1
-
-    # Return the map object and a GameMapShape object
-    return grid, LevelConstants(level, grid.shape[1], grid.shape[0])
-
-
 def generate_constants(level: int) -> dict[TileType | GenerationConstantType, int]:
     """Generate the needed constants based on a given game level.
 
@@ -439,3 +352,90 @@ def place_tile(
     y, x = possible_tiles.pop()
     grid[y][x] = target_tile
     logger.debug("Placed tile %r in the 2D grid", target_tile)
+
+
+def create_map(
+    level: int, seed: int | str | None = None
+) -> tuple[np.ndarray, LevelConstants]:
+    """Generate the game map for a given game level.
+
+    Parameters
+    ----------
+    level: int
+        The game level to generate a map for.
+    seed: int | str | None
+        The seed to initialise the random generator. If it is None, then one will be
+        generated.
+
+    Raises
+    ------
+    ValueError
+        Level must be bigger than or equal to 0.
+
+    Returns
+    -------
+    tuple[np.ndarray, LevelConstants]
+        The generated map and a named tuple containing the level, width and height.
+    """
+    # Check that the level number is valid
+    if level < 0:
+        raise ValueError("Level must be bigger than or equal to 0")
+
+    # Create the random generator. If seed is None, then get a random 64-bit integer
+    if seed is None:
+        seed = random.getrandbits(64)
+    random_generator = random.Random(seed)
+    logger.debug("Generated state %r from seed %r", random_generator.getstate(), seed)
+
+    # Initialise a few variables needed for the map generation
+    map_constants = generate_constants(level)
+    grid = np.full(
+        (
+            map_constants[GenerationConstantType.HEIGHT],
+            map_constants[GenerationConstantType.WIDTH],
+        ),
+        TileType.EMPTY,  # type: ignore
+        TileType,
+    )
+    bsp = Leaf(
+        Point(0, 0),
+        Point(
+            map_constants[GenerationConstantType.WIDTH] - 1,
+            map_constants[GenerationConstantType.HEIGHT] - 1,
+        ),
+        grid,
+        random_generator,
+    )
+
+    # Split the bsp and create the rooms
+    rooms = generate_rooms(
+        split_bsp(bsp, map_constants[GenerationConstantType.SPLIT_ITERATION])
+    )
+
+    # Create the hallways between the rooms
+    complete_graph: dict[Rect, list[Rect]] = {}
+    for source, destination in permutations(rooms, 2):
+        complete_graph.update({source: complete_graph.get(source, []) + [destination]})
+    create_hallways(
+        grid,
+        random_generator,
+        add_extra_connections(complete_graph, create_mst(complete_graph)),
+        map_constants[GenerationConstantType.OBSTACLE_COUNT],
+    )
+
+    # Get all the tiles which can support items being placed on them
+    possible_tiles: set[tuple[int, int]] = set(  # noqa
+        zip(*np.nonzero(grid == TileType.FLOOR))
+    )
+
+    # Place the player tile and all the items tiles
+    place_tile(grid, TileType.PLAYER, possible_tiles)
+    for tile in ITEM_DISTRIBUTION:
+        tiles_placed = 0
+        while tiles_placed < map_constants[tile]:
+            place_tile(grid, tile, possible_tiles)
+            logger.debug("One of multiple %r placed in the 2D grid", tile)
+            tiles_placed += 1
+
+    # Return the map object and a GameMapShape object
+    return grid, LevelConstants(level, grid.shape[1], grid.shape[0])

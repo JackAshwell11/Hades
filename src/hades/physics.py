@@ -192,13 +192,6 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             "Initialised physics engine with %d items", len(self.sprites.keys())
         )
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return (
-            f"<PhysicsEngine (Damping={self.damping}) (Sprite"
-            f" count={len(self.sprites)})>"
-        )
-
     def add_bullet(self, bullet: Bullet) -> None:
         """Add a bullet to the physics engine.
 
@@ -231,3 +224,10 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             max_vertical_velocity=int(enemy.max_velocity.value),
         )
         logger.debug("Added %r to physics engine", enemy)
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            f"<PhysicsEngine (Damping={self.damping}) (Sprite"
+            f" count={len(self.sprites)})>"
+        )

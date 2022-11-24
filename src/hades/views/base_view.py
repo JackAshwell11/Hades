@@ -97,10 +97,6 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
 
         super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<DisappearingInfoBox (Text={self._text_area.text})>"
-
     def on_update(self, delta_time: float) -> None:
         """Update the internal time counter and see if the box should disappear.
 
@@ -122,16 +118,13 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         self._parent_view.current_info_box = None
         logger.info("Info box has disappeared with text %s", self._text_area.text)
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<DisappearingInfoBox (Text={self._text_area.text})>"
+
 
 class BackButton(arcade.gui.UIFlatButton):
     """A button which will switch back to the game view."""
-
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return (
-            f"<BackButton (Position=({self.center_x}, {self.center_y}))"
-            f" (Width={self.width}) (Height={self.height})>"
-        )
 
     def on_click(self, _) -> None:
         """Return to the game when the button is clicked."""
@@ -141,6 +134,13 @@ class BackButton(arcade.gui.UIFlatButton):
         # Show the game view
         game_view: Game = window.views["Game"]  # noqa
         window.show_view(game_view)
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            f"<BackButton (Position=({self.center_x}, {self.center_y}))"
+            f" (Width={self.width}) (Height={self.height})>"
+        )
 
 
 class BaseView(arcade.View):
@@ -162,10 +162,6 @@ class BaseView(arcade.View):
         self.ui_manager: UIManager = UIManager()
         self.background_color: arcade.Color = arcade.color.BABY_BLUE
         self.current_info_box: DisappearingInfoBox | None = None
-
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<BaseView (Current window={self.window})>"
 
     def on_show_view(self) -> None:
         """Process show view functionality."""
@@ -208,3 +204,7 @@ class BaseView(arcade.View):
             The UIBoxLayout to add the back button too.
         """
         vertical_box.add(BackButton(text="Back", width=200).with_space_around(top=20))
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<BaseView (Current window={self.window})>"

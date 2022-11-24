@@ -30,13 +30,6 @@ class InventoryBox(arcade.gui.UITextureButton):
     # Class variables
     item_ref: CollectibleTile | UsableTile | None = None
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return (
-            f"<InventoryBox (Position=({self.center_x}, {self.center_y}))"
-            f" (Width={self.width}) (Height={self.height})>"
-        )
-
     def on_click(self, _) -> None:
         """Use an item in the player's inventory."""
         # Stop slots being clicked on if they're empty
@@ -68,6 +61,13 @@ class InventoryBox(arcade.gui.UITextureButton):
             self.trigger_full_render()
 
             logger.info("Item use for %r successful", self.item_ref)
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            f"<InventoryBox (Position=({self.center_x}, {self.center_y}))"
+            f" (Width={self.width}) (Height={self.height})>"
+        )
 
 
 class InventoryView(BaseView):
@@ -108,10 +108,6 @@ class InventoryView(BaseView):
             )
         )
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<InventoryView (Current window={self.window})>"
-
     def on_draw(self) -> None:
         """Render the screen."""
         # Clear the screen
@@ -146,3 +142,7 @@ class InventoryView(BaseView):
             "Updated inventory grid with %d item textures and %d empty textures",
             *result,
         )
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<InventoryView (Current window={self.window})>"

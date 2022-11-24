@@ -84,16 +84,16 @@ class Bullet(arcade.SpriteSolidColor):
         self.start_position: tuple[float, float] = self.center_x, self.center_y
         self.angle: float = owner.direction
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
-
     def on_update(self, _: float = 1 / 60) -> None:
         """Process bullet logic."""
         # Check if the bullet is pass the max range
         if math.dist(self.position, self.start_position) >= self.max_range:
             self.remove_from_sprite_lists()
             logger.debug("Removed %r after passing max range %f", self, self.max_range)
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
 
 
 class AttackBase(metaclass=ABCMeta):
@@ -107,21 +107,17 @@ class AttackBase(metaclass=ABCMeta):
         The data for this attack.
     """
 
-    # Class variables
-    attack_type: AttackAlgorithmType = AttackAlgorithmType.BASE
-
     __slots__ = (
         "owner",
         "attack_data",
     )
 
+    # Class variables
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.BASE
+
     def __init__(self, owner: Entity, attack_data: AttackData) -> None:
         self.owner: Entity = owner
         self.attack_data: AttackData = attack_data
-
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<AttackBase (Owner={self.owner})>"
 
     @abstractmethod
     def process_attack(self, *args: Any) -> None:
@@ -139,18 +135,18 @@ class AttackBase(metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<AttackBase (Owner={self.owner})>"
+
 
 class RangedAttack(AttackBase):
     """Creates a bullet in the direction the entity is facing with a set velocity."""
 
-    # Class variables
-    attack_type: AttackAlgorithmType = AttackAlgorithmType.RANGED
-
     __slots__ = ()
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<RangedAttack (Owner={self.owner})>"
+    # Class variables
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.RANGED
 
     def process_attack(self, *args: Any) -> None:
         """Perform a ranged attack in the direction the entity is facing.
@@ -199,18 +195,18 @@ class RangedAttack(AttackBase):
             (change_x, change_y),
         )
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<RangedAttack (Owner={self.owner})>"
+
 
 class MeleeAttack(AttackBase):
     """Performs a melee attack dealing damage to any entity in front of the owner."""
 
-    # Class variables
-    attack_type: AttackAlgorithmType = AttackAlgorithmType.MELEE
-
     __slots__ = ()
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<MeleeAttack (Owner={self.owner})>"
+    # Class variables
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.MELEE
 
     def process_attack(self, *args: Any) -> None:
         """Perform a melee attack in the direction the entity is facing.
@@ -230,18 +226,18 @@ class MeleeAttack(AttackBase):
         for entity in targets:
             entity.deal_damage(self.attack_data.damage)
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<MeleeAttack (Owner={self.owner})>"
+
 
 class AreaOfEffectAttack(AttackBase):
     """Creates an area around the entity dealing damage to all entities within range."""
 
-    # Class variables
-    attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
-
     __slots__ = ()
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<AreaOfEffectAttack (Owner={self.owner})>"
+    # Class variables
+    attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
 
     def process_attack(self, *args: Any) -> None:
         """Perform an area of effect attack around the entity.
@@ -282,6 +278,10 @@ class AreaOfEffectAttack(AttackBase):
             ):  # type: Entity
                 # Deal damage to all the enemies within range
                 entity.deal_damage(self.attack_data.damage)
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<AreaOfEffectAttack (Owner={self.owner})>"
 
 
 ATTACKS = {

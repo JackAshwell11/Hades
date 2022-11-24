@@ -66,14 +66,6 @@ class MeleeShader:
         self.query: Query | None = None
         self.walls_framebuffer: Framebuffer | None = None
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        # Make sure the walls framebuffer is valid
-        assert self.walls_framebuffer is not None
-
-        # Return the repr
-        return f"<MeleeShader (Wall framebuffer size={self.walls_framebuffer.size})>"
-
     @property
     def ctx(self) -> ArcadeContext:
         """Get the arcade context object for running OpenGL programs.
@@ -219,6 +211,13 @@ class MeleeShader:
         # No sprites found
         return []
 
+    # Still seems like there is a bug and that it sometimes works and sometimes doesn't.
+    # Need to fix this
 
-# Still seems like there is a bug and that it sometimes works and sometimes doesn't.
-# Need to fix this
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        # Make sure the walls framebuffer is valid
+        assert self.walls_framebuffer is not None
+
+        # Return the repr
+        return f"<MeleeShader (Wall framebuffer size={self.walls_framebuffer.size})>"

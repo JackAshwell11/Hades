@@ -83,13 +83,6 @@ class Enemy(Entity):
         )
         self.player_within_range: bool = False
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return (
-            f"<Enemy (Position=({self.center_x}, {self.center_y})) (Enemy"
-            f" level={self.enemy_level})>"
-        )
-
     @property
     def enemy_data(self) -> EnemyData:
         """Get the enemy data if it exists.
@@ -247,4 +240,11 @@ class Enemy(Entity):
             (self.game.player.center_x, self.game.player.center_y),
             self.game.wall_sprites,
             max_tile_range * SPRITE_SIZE,
+        )
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            f"<Enemy (Position=({self.center_x}, {self.center_y})) (Enemy"
+            f" level={self.enemy_level})>"
         )

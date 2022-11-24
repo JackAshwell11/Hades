@@ -96,14 +96,6 @@ class UpgradablePlayerSection:
         self.cost_function: Callable[[int], float] = cost_function
         self.current_level: int = current_level
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return (
-            "<UpgradablePlayerSection (Attribute section"
-            f" type={self.attribute_section_type}) (Current level={self.current_level})"
-            f" (Level limit={self.level_limit})>"
-        )
-
     @property
     def next_level_cost(self) -> int:
         """Get the cost for the next level.
@@ -172,6 +164,14 @@ class UpgradablePlayerSection:
         # Upgrade successful
         return True
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return (
+            "<UpgradablePlayerSection (Attribute section"
+            f" type={self.attribute_section_type}) (Current level={self.current_level})"
+            f" (Level limit={self.level_limit})>"
+        )
+
 
 class EntityAttribute:
     """Represents an attribute that is part of an entity.
@@ -212,10 +212,6 @@ class EntityAttribute:
             else float("inf")
         )
         self.applied_status_effect: StatusEffect | None = None
-
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<EntityAttribute (Value={self._value})>"
 
     @property
     def value(self) -> float:
@@ -413,3 +409,7 @@ class EntityAttribute:
 
         # Instant effect successful
         return True
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<EntityAttribute (Value={self._value})>"

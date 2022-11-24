@@ -21,7 +21,7 @@ ${VENV_NAME}:
 
 # -------------------- Builds --------------------
 basic-venv:  # Creates a virtual environment with only the required dependencies
-	poetry install
+	poetry install -vvv
 
 fresh-venv:  # Creates a fresh virtual environment
 	$(DEL) "$(VENV_PATH)"
@@ -30,7 +30,7 @@ fresh-venv:  # Creates a fresh virtual environment
 full-venv: ${VENV_NAME} # Creates a virtual environment with all dependencies installed
 
 update-venv: ${VENV_NAME}  # Updates the poetry virtual environment
-	poetry update
+	poetry update -vvv
 
 pre-commit: ${VENV_NAME}  # Runs pre-commit
 	poetry run pre-commit run --all-files

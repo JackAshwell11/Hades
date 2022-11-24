@@ -129,10 +129,6 @@ class IndicatorBar:
         self.position = position
         self.scale = scale
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<IndicatorBar (Owner={self.owner})>"
-
     @property
     def background_box(self) -> arcade.SpriteSolidColor:
         """Get the background box object of the indicator bar.
@@ -340,6 +336,10 @@ class IndicatorBar:
             self.background_box.scale = value
             self.full_box.scale = value
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<IndicatorBar (Owner={self.owner})>"
+
 
 class GameObject(arcade.Sprite):
     """The base class for all game objects.
@@ -417,6 +417,21 @@ class Entity(GameObject, metaclass=ABCMeta):
         The time since the entity last regenerated armour.
     """
 
+    def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
+        """Initialise the entity's state dict.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+
+        Returns
+        -------
+        dict[EntityAttributeType, EntityAttribute]
+            The initialised entity state.
+        """
+        raise NotImplementedError
+
     def __init__(
         self,
         game: Game,
@@ -442,10 +457,6 @@ class Entity(GameObject, metaclass=ABCMeta):
         self.time_since_last_attack: float = 0
         self.time_out_of_combat: float = 0
         self.time_since_armour_regen: float = self.armour_regen_cooldown.value
-
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
 
     @property
     def entity_data(self) -> EntityData:
@@ -556,21 +567,6 @@ class Entity(GameObject, metaclass=ABCMeta):
             The entity's fire rate penalty.
         """
         return self.entity_state[EntityAttributeType.FIRE_RATE_PENALTY]
-
-    def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
-        """Initialise the entity's state dict.
-
-        Raises
-        ------
-        NotImplementedError
-            The function is not implemented.
-
-        Returns
-        -------
-        dict[EntityAttributeType, EntityAttribute]
-            The initialised entity state.
-        """
-        raise NotImplementedError
 
     def on_update(self, delta_time: float = 1 / 60) -> None:
         """Process enemy logic.
@@ -722,6 +718,10 @@ class Entity(GameObject, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
+
 
 class Tile(GameObject):
     """Represents a tile that does not move in the game.
@@ -767,10 +767,6 @@ class InteractiveTile(Tile):
     # Class variables
     item_text: str = ""
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<InteractiveTile (Position=({self.center_x}, {self.center_y}))>"
-
     @property
     def player(self) -> Player:
         """Get the player object for ease of access.
@@ -786,16 +782,16 @@ class InteractiveTile(Tile):
         # Return the player object
         return self.game.player
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<InteractiveTile (Position=({self.center_x}, {self.center_y}))>"
+
 
 class UsableTile(InteractiveTile):
     """Represents a tile that can be used/activated by the player."""
 
     # Class variables
     item_text: str = "Press R to activate"
-
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
 
     @abstractmethod
     def item_use(self) -> bool:
@@ -813,16 +809,16 @@ class UsableTile(InteractiveTile):
         """
         raise NotImplementedError
 
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
+
 
 class CollectibleTile(InteractiveTile):
     """Represents a tile that can be picked up by the player."""
 
     # Class variables
     item_text: str = "Press E to pick up"
-
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<CollectibleTile (Position=({self.center_x}, {self.center_y}))>"
 
     def item_pick_up(self) -> bool:
         """Process item pick up functionality.
@@ -843,3 +839,7 @@ class CollectibleTile(InteractiveTile):
             # Add not successful due to full inventory
             self.game.display_info_box("Inventory is full")
             return False
+
+    def __repr__(self) -> str:
+        """Return a human-readable representation of this object."""
+        return f"<CollectibleTile (Position=({self.center_x}, {self.center_y}))>"
