@@ -20,7 +20,7 @@ pymunk = "6.2.1"
 shapely = "1.8.5.post1"
 
 [tool.poetry.dev-dependencies]
-bandit = "1.7.3"
+bandit = "1.7.4"
 black = "22.10.0"
 flake8 = "6.0.0"
 isort = "5.10.1"
