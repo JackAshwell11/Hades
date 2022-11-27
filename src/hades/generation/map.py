@@ -11,6 +11,7 @@ from typing import NamedTuple
 
 # Pip
 import numpy as np
+import numpy.typing as npt
 
 # Custom
 from hades.constants.generation import (
@@ -76,8 +77,8 @@ def generate_constants(level: int) -> dict[TileType | GenerationConstantType, in
     """
     # Create the generation constants
     generation_constants: dict[GenerationConstantType, int] = {
-        key: np.minimum(
-            int(np.round(value.base_value * value.increase**level)),
+        key: min(
+            int(round(value.base_value * value.increase**level)),
             value.max_value,
         )
         for key, value in MAP_GENERATION_COUNTS.items()
@@ -85,9 +86,7 @@ def generate_constants(level: int) -> dict[TileType | GenerationConstantType, in
 
     # Create the dictionary which will hold the counts for each item type
     item_dict: dict[TileType, int] = {
-        key: int(
-            np.round(value * generation_constants[GenerationConstantType.ITEM_COUNT])
-        )
+        key: int(round(value * generation_constants[GenerationConstantType.ITEM_COUNT]))
         for key, value in ITEM_DISTRIBUTION.items()
     }
 
@@ -282,7 +281,7 @@ def add_extra_connections(
 
 
 def create_hallways(
-    grid: np.ndarray,
+    grid: npt.NDArray[np.int8],
     random_generator: random.Random,
     connections: set[tuple[float, Rect, Rect]],
     obstacle_count: int,
@@ -291,7 +290,7 @@ def create_hallways(
 
     Parameters
     ----------
-    grid: np.ndarray
+    grid: npt.NDArray[np.int8]
         The 2D grid which represents the dungeon.
     random_generator: random.Random
         The random generator used to pick the positions for the obstacles.
@@ -335,13 +334,15 @@ def create_hallways(
 
 
 def place_tile(
-    grid: np.ndarray, target_tile: TileType, possible_tiles: set[tuple[int, int]]
+    grid: npt.NDArray[np.int8],
+    target_tile: TileType,
+    possible_tiles: set[tuple[int, int]],
 ) -> None:
     """Places a given tile in the 2D grid.
 
     Parameters
     ----------
-    grid: np.ndarray
+    grid: npt.NDArray[np.int8]
         The 2D grid which represents the dungeon.
     target_tile: TileType
         The tile to place in the 2D grid.
@@ -356,7 +357,7 @@ def place_tile(
 
 def create_map(
     level: int, seed: int | str | None = None
-) -> tuple[np.ndarray, LevelConstants]:
+) -> tuple[npt.NDArray[np.int8], LevelConstants]:
     """Generate the game map for a given game level.
 
     Parameters
@@ -374,7 +375,7 @@ def create_map(
 
     Returns
     -------
-    tuple[np.ndarray, LevelConstants]
+    tuple[npt.NDArray[np.int8], LevelConstants]
         The generated map and a named tuple containing the level, width and height.
     """
     # Check that the level number is valid
@@ -394,7 +395,7 @@ def create_map(
             map_constants[GenerationConstantType.HEIGHT],
             map_constants[GenerationConstantType.WIDTH],
         ),
-        TileType.EMPTY,  # type: ignore
+        TileType.EMPTY,
         TileType,
     )
     bsp = Leaf(

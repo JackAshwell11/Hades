@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 # Pip
 import arcade
+import pyglet.math
 
 # Custom
 from hades.constants.constructors import CONSUMABLES, ENEMY1, PLAYERS
@@ -29,7 +30,7 @@ from hades.constants.general import (
     LEVEL_GENERATOR_INTERVAL,
     TOTAL_ENEMY_COUNT,
 )
-from hades.constants.generation import WALL_REPLACEABLE_TILES, TileType
+from hades.constants.generation import REPLACEABLE_TILES, TileType
 from hades.extensions import VectorField
 from hades.game_objects.attacks import AreaOfEffectAttack, MeleeAttack
 from hades.game_objects.enemies import Enemy
@@ -188,7 +189,7 @@ class Game(BaseView):
         for count_y, y in enumerate(reversed(grid)):
             for count_x, x in enumerate(y):
                 # Determine if the tile is empty
-                if x in WALL_REPLACEABLE_TILES:
+                if x in REPLACEABLE_TILES:
                     continue
 
                 # Determine if the tile is a wall
@@ -592,6 +593,7 @@ class Game(BaseView):
         """Generate an enemy outside the player's fov."""
         # Make sure variables needed are valid
         assert self.level_constants is not None
+        assert self.player is not None
         assert self.physics_engine is not None
 
         # Check if we've reached the max amount of enemies
@@ -675,9 +677,7 @@ class Game(BaseView):
             screen_center_y = 0
         elif screen_center_y > upper_camera_y:
             screen_center_y = upper_camera_y
-        new_position = arcade.pymunk_physics_engine.Vec2(
-            screen_center_x, screen_center_y
-        )
+        new_position = pyglet.math.Vec2(screen_center_x, screen_center_y)
 
         # Check if the camera position has changed
         if self.game_camera.position != new_position:

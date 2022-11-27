@@ -723,6 +723,9 @@ class Entity(GameObject, metaclass=ABCMeta):
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
 
 
+# TODO: REDO INHERITANCE TREE BELOW
+
+
 class Tile(GameObject):
     """Represents a tile that does not move in the game.
 

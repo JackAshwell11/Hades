@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 # Builtin
+import math
 from typing import NamedTuple
 
 # Pip
 import numpy as np
+import numpy.typing as npt
 
 # Custom
-from hades.constants.generation import WALL_REPLACEABLE_TILES, TileType
+from hades.constants.generation import REPLACEABLE_TILES, TileType
 
 __all__ = (
     "Point",
@@ -112,17 +114,17 @@ class Rect(NamedTuple):
         float
             The Euclidean distance between this rect and the given rect.
         """
-        return np.sqrt(
+        return math.sqrt(
             (self.center_x - other.center_x) ** 2
             + (self.center_y - other.center_x) ** 2
         )
 
-    def place_rect(self, grid: np.ndarray) -> None:
+    def place_rect(self, grid: npt.NDArray[np.int8]) -> None:
         """Places the rect in the 2D grid.
 
         Parameters
         ----------
-        grid: np.ndarray
+        grid: npt.NDArray[np.int8]
             The 2D grid which represents the dungeon.
         """
         # Get the width and height of the grid
@@ -133,7 +135,7 @@ class Rect(NamedTuple):
             max(self.top_left.y, 0) : min(self.bottom_right.y + 1, grid_height),
             max(self.top_left.x, 0) : min(self.bottom_right.x + 1, grid_width),
         ]
-        temp_wall[np.isin(temp_wall, WALL_REPLACEABLE_TILES)] = TileType.WALL
+        temp_wall[np.isin(temp_wall, REPLACEABLE_TILES)] = TileType.WALL
 
         # Place the floors. The ranges must be -1 in all directions since we don't want
         # to overwrite the walls keeping the player in, but we still want to overwrite

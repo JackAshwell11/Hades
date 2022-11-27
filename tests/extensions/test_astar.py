@@ -1,7 +1,10 @@
 """Tests all functions in extensions/astar."""
 from __future__ import annotations
 
+import math
+
 # Builtin
+import random
 from typing import TYPE_CHECKING
 
 # Pip
@@ -27,19 +30,21 @@ def get_obstacle_grid() -> np.ndarray:
         The 2D numpy grid.
     """
     # Create a temporary grid with some obstacles. This uses the same code from
-    # Map._create_hallways()
+    # Map.create_hallways()
     temp_grid = np.full(
         (10, 10),
         TileType.EMPTY,  # type: ignore
         TileType,
     )
-    y, x = np.where(temp_grid == TileType.EMPTY)
-    arr_index = np.random.choice(len(y), 25)
-    temp_grid[y[arr_index], x[arr_index]] = TileType.OBSTACLE
+    obstacle_positions = list(zip(*np.where(temp_grid == TileType.EMPTY)))
+    for _ in range(25):
+        temp_grid[
+            obstacle_positions.pop(random.randrange(len(obstacle_positions)))
+        ] = TileType.OBSTACLE
     return temp_grid
 
 
-def heuristic(a: Point, b: Point) -> int:
+def heuristic(a: Point, b: Point) -> float:
     """Calculate the Euclidean distance between two pairs.
 
     This uses a different heuristic to the C++ extension since in some cases the
@@ -55,10 +60,10 @@ def heuristic(a: Point, b: Point) -> int:
 
     Returns
     -------
-    int
+    float
         The Euclidean distance.
     """
-    return np.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+    return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 
 
 def test_calculate_astar_path(

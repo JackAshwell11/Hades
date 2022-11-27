@@ -133,7 +133,7 @@ class Consumable(UsableTile, CollectibleTile):
         # Apply all the instant effects linked to this consumable
         for instant in self.consumable_type.instant:
             if not self.player.entity_state[
-                instant.instant_type.value  # type: ignore
+                instant.instant_type.value
             ].apply_instant_effect(instant, adjusted_level):
                 self.game.display_info_box(
                     f"Your {instant.instant_type.name} is already at max"
@@ -154,7 +154,7 @@ class Consumable(UsableTile, CollectibleTile):
 
             # Apply the status effect
             effect_value = effect.status_type.value
-            self.player.entity_state[effect_value].apply_status_effect(  # type: ignore
+            self.player.entity_state[effect_value].apply_status_effect(
                 effect, adjusted_level
             )
 

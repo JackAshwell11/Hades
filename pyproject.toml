@@ -82,8 +82,25 @@ filter_files = true
 profile = "black"
 
 [tool.mypy]
+check_untyped_defs = true
+disallow_any_explicit = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
 ignore_missing_imports = true
+implicit_reexport = false
+pretty = true
 python_version = "3.10"
+show_column_numbers = true
+show_error_context = true
+strict_equality = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
 
 [tool.pydocstyle]
 convention = "numpy"

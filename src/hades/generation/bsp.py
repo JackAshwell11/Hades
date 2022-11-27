@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     import random
 
     import numpy as np
+    import numpy.typing as npt
 
 __all__ = ("Leaf",)
 
@@ -31,7 +32,7 @@ class Leaf:
         The top-left position.
     bottom_right: Point
         The bottom-right position
-    grid: np.ndarray
+    grid: npt.NDArray[np.int8]
         The 2D grid which represents the dungeon.
     random_generator: random.Random
         The random generator used to generate the bsp.
@@ -70,13 +71,13 @@ class Leaf:
         self,
         top_left: Point,
         bottom_right: Point,
-        grid: np.ndarray,
+        grid: npt.NDArray[np.int8],
         random_generator: random.Random,
         parent: Leaf | None = None,
     ) -> None:
         self.left: Leaf | None = None
         self.right: Leaf | None = None
-        self.grid: np.ndarray = grid
+        self.grid: npt.NDArray[np.int8] = grid
         self.random_generator: random.Random = random_generator
         self.parent: Leaf | None = parent
         self.container: Rect = Rect(top_left, bottom_right)

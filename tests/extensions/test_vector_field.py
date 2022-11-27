@@ -1,9 +1,11 @@
 """Tests all functions in extensions/vector_field.py."""
 from __future__ import annotations
 
+# Builtin
+import random
+
 # Pip
 import arcade
-import numpy as np
 import pytest
 
 # Custom
@@ -51,8 +53,7 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
         player_screen_pos, player_view_distance
     )
     vector_dict_items = list(vector_field.vector_dict.items())
-    for index in np.random.choice(len(vector_dict_items), 20):
-        current_pos, vector = vector_dict_items[index]
+    for current_pos, vector in random.choices(vector_dict_items, k=20):
         while current_pos != player_grid_pos:
             # We need to check if an error has occurred
             if vector == (0, 0):
