@@ -12,6 +12,8 @@ import arcade.gui
 from hades.views.base_view import BaseView
 
 if TYPE_CHECKING:
+    from arcade.gui.events import UIOnClickEvent
+
     from hades.game_objects.attributes import UpgradablePlayerSection
     from hades.game_objects.players import Player
 
@@ -29,7 +31,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
 
     section_ref: UpgradablePlayerSection | None = None
 
-    def on_click(self, _) -> None:
+    def on_click(self, _: UIOnClickEvent) -> None:
         """Upgrade a player attribute section."""
         # Make sure variables needed are valid
         assert self.section_ref is not None

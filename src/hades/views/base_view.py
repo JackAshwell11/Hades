@@ -16,6 +16,8 @@ from arcade.gui import (
 )
 
 if TYPE_CHECKING:
+    from arcade.gui.events import UIOnClickEvent
+
     from hades.views.game_view import Game
     from hades.window import Window
 
@@ -114,6 +116,10 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
 
     def remove_box(self) -> None:
         """Remove the box from the UI manager."""
+        # Make sure variables needed are valid
+        assert self.parent is not None
+
+        # Remove the box
         self.parent.remove(self)
         self._parent_view.current_info_box = None
         logger.info("Info box has disappeared with text %s", self._text_area.text)
@@ -126,7 +132,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
 class BackButton(arcade.gui.UIFlatButton):
     """A button which will switch back to the game view."""
 
-    def on_click(self, _) -> None:
+    def on_click(self, _: UIOnClickEvent) -> None:
         """Return to the game when the button is clicked."""
         # Get the current window and view
         window: Window = arcade.get_window()

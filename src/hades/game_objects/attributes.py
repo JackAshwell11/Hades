@@ -140,7 +140,7 @@ class UpgradablePlayerSection:
 
         # Now upgrade each entity attribute
         logger.debug("Upgrading section %r", self.attribute_section_type)
-        for entity_attribute in self.attribute_section_type.value:  # type: ignore
+        for entity_attribute in self.attribute_section_type.value:
             # Calculate the diff between the current level and the next (this is
             # because some attribute may be variable or have status effects applied
             # to them)

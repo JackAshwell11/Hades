@@ -12,6 +12,9 @@ import arcade
 from hades.constants.game_objects import ObjectID
 
 if TYPE_CHECKING:
+    from pymunk.arbiter import Arbiter
+    from pymunk.space import Space
+
     from hades.game_objects.attacks import Bullet
     from hades.game_objects.base import Entity, Tile
     from hades.game_objects.enemies import Enemy
@@ -23,7 +26,9 @@ __all__ = ("PhysicsEngine",)
 logger = logging.getLogger(__name__)
 
 
-def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
+def wall_bullet_begin_handler(
+    wall: Tile, bullet: Bullet, *_: tuple[Arbiter, Space]
+) -> bool:
     """Handle collision between a wall tile and a bullet sprite as they touch.
 
     This uses the begin_handler which processes collision when two shapes are touching
@@ -55,7 +60,9 @@ def wall_bullet_begin_handler(wall: Tile, bullet: Bullet, *_) -> bool:
     return False
 
 
-def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
+def enemy_bullet_begin_handler(
+    enemy: Entity, bullet: Bullet, *_: tuple[Arbiter, Space]
+) -> bool:
     """Handle collision between an enemy entity and a bullet sprite as they touch.
 
     This uses the begin_handler which processes collision when two shapes are touching
@@ -92,7 +99,9 @@ def enemy_bullet_begin_handler(enemy: Entity, bullet: Bullet, *_) -> bool:
     return False
 
 
-def player_bullet_begin_handler(player: Player, bullet: Bullet, *_) -> bool:
+def player_bullet_begin_handler(
+    player: Player, bullet: Bullet, *_: tuple[Arbiter, Space]
+) -> bool:
     """Handle collision between a player entity and a bullet sprite as they touch.
 
     This uses the begin_handler which processes collision when two shapes are touching

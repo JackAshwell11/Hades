@@ -14,6 +14,8 @@ from hades.game_objects.base import UsableTile
 from hades.views.base_view import BaseView
 
 if TYPE_CHECKING:
+    from arcade.gui.events import UIOnClickEvent
+
     from hades.game_objects.base import CollectibleTile
     from hades.game_objects.players import Player
     from hades.window import Window
@@ -30,7 +32,7 @@ class InventoryBox(arcade.gui.UITextureButton):
     # Class variables
     item_ref: CollectibleTile | UsableTile | None = None
 
-    def on_click(self, _) -> None:
+    def on_click(self, _: UIOnClickEvent) -> None:
         """Use an item in the player's inventory."""
         # Stop slots being clicked on if they're empty
         if not self.item_ref:

@@ -534,14 +534,14 @@ class Game(BaseView):
             case arcade.key.D:
                 self.player.right_pressed = False
 
-    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
+    def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
         """Process mouse button functionality.
 
         Parameters
         ----------
-        x: float
+        x: int
             The x position of the mouse.
-        y: float
+        y: int
             The y position of the mouse.
         button: int
             Which button was hit.
@@ -564,14 +564,14 @@ class Game(BaseView):
             # Make the player attack
             self.player.attack()
 
-    def on_mouse_motion(self, x: float, y: float, *_) -> None:
+    def on_mouse_motion(self, x: int, y: int, *_: tuple[int, int]) -> None:
         """Process mouse motion functionality.
 
         Parameters
         ----------
-        x: float
+        x: int
             The x position of the mouse.
-        y: float
+        y: int
             The y position of the mouse.
         """
         # Make sure variables needed are valid
