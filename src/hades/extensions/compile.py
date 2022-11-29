@@ -8,10 +8,20 @@ from pathlib import Path
 # Pip
 import numpy as np
 from setuptools import Extension, setup
+from setuptools.command.build import build
 
 # The build directory path
 EXTENSION_PATH = Path(__file__).parent
 BUILD_DIR = EXTENSION_PATH / "build"
+
+
+class OverrideBuildDir(build):
+    """Allows the build directory path to be overridden."""
+
+    def initialize_options(self) -> None:
+        """Override the build_base argument of setuptools changing the build path."""
+        build.initialize_options(self)
+        self.build_base = str(BUILD_DIR)
 
 
 if __name__ == "__main__":
@@ -32,6 +42,7 @@ if __name__ == "__main__":
     setup(
         ext_modules=ext_modules,
         script_args=["build_ext"],
+        cmdclass={"build": OverrideBuildDir},
     )
     print("****************************************")
     print(f"Successfully built {len(ext_modules)} extensions. Beginning moving process")
