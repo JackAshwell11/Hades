@@ -9,6 +9,7 @@ from itertools import permutations
 from typing import TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 
 # Pip
 import pytest
@@ -41,12 +42,12 @@ if TYPE_CHECKING:
 __all__ = ()
 
 
-def count_items(grid: np.ndarray) -> int:
+def count_items(grid: npt.NDArray[np.int8]) -> int:
     """Count the number of items generated in a given numpy grid.
 
     Parameters
     ----------
-    grid: np.ndarray
+    grid: npt.NDArray[np.int8]
         The numpy grid to count items in.
 
     Returns
@@ -57,12 +58,12 @@ def count_items(grid: np.ndarray) -> int:
     return np.count_nonzero(np.isin(grid, list(ITEM_DISTRIBUTION.keys())))
 
 
-def get_player_pos(grid: np.ndarray) -> tuple[int, int]:
+def get_player_pos(grid: npt.NDArray[np.int8]) -> tuple[int, int]:
     """Get the player position in a given 2D array.
 
     Parameters
     ----------
-    grid: np.ndarray
+    grid: npt.NDArray[np.int8]
         The numpy grid to find the player in.
 
     Returns
@@ -70,7 +71,7 @@ def get_player_pos(grid: np.ndarray) -> tuple[int, int]:
     tuple[int, int]
         The player position. If one is not found, this will be empty.
     """
-    return np.where(grid == TileType.PLAYER)
+    return np.where(grid == TileType.PLAYER)  # type: ignore
 
 
 def grid_bfs(
@@ -113,12 +114,12 @@ def grid_bfs(
         yield x, y
 
 
-def get_possible_tiles(grid: np.ndarray) -> set[tuple[int, int]]:
+def get_possible_tiles(grid: npt.NDArray[np.int8]) -> set[tuple[int, int]]:
     """Get the possible tiles that a game object can be placed into.
 
     Parameters
     ----------
-    grid: np.ndarray
+    grid: npt.NDArray[np.int8]
         The numpy grid to get possible tiles from.
 
     Returns

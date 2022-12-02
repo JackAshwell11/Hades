@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 # Pip
 import numpy as np
+import numpy.typing as npt
 import pytest
 
 # Custom
@@ -21,19 +22,19 @@ if TYPE_CHECKING:
 __all__ = ()
 
 
-def get_obstacle_grid() -> np.ndarray:
+def get_obstacle_grid() -> npt.NDArray[np.int8]:
     """Get a 2D numpy grid with some obstacles for use in testing.
 
     Returns
     -------
-    np.ndarray
+    npt.NDArray[np.int8]
         The 2D numpy grid.
     """
     # Create a temporary grid with some obstacles. This uses the same code from
     # Map.create_hallways()
     temp_grid = np.full(
         (10, 10),
-        TileType.EMPTY,  # type: ignore
+        TileType.EMPTY,
         TileType,
     )
     obstacle_positions = list(zip(*np.where(temp_grid == TileType.EMPTY)))

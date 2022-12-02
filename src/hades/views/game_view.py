@@ -193,7 +193,7 @@ class Game(BaseView):
                     continue
 
                 # Determine if the tile is a wall
-                if x is TileType.WALL:
+                if x == TileType.WALL:
                     wall = Wall(self, count_x, count_y)
                     self.wall_sprites.append(wall)
                     self.tile_sprites.append(wall)
@@ -204,7 +204,7 @@ class Game(BaseView):
                 self.tile_sprites.append(floor)
 
                 # Skip to the next iteration if the tile is a floor
-                if x is TileType.FLOOR:
+                if x == TileType.FLOOR:
                     continue
 
                 # Determine if the tile is a player or a consumable
@@ -564,7 +564,7 @@ class Game(BaseView):
             # Make the player attack
             self.player.attack()
 
-    def on_mouse_motion(self, x: int, y: int, *_: tuple[int, int]) -> None:
+    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
         """Process mouse motion functionality.
 
         Parameters
@@ -573,6 +573,10 @@ class Game(BaseView):
             The x position of the mouse.
         y: int
             The y position of the mouse.
+        dx: int
+            The change in x.
+        dy: int
+            The change in y.
         """
         # Make sure variables needed are valid
         assert self.player is not None

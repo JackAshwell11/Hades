@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 # Pip
 import numpy as np
+import numpy.typing as npt
 import pytest
 
 # Custom
@@ -22,26 +23,26 @@ __all__ = ()
 
 
 @pytest.fixture
-def grid() -> np.ndarray:
+def grid() -> npt.NDArray[np.int8]:
     """Initialise a 2D numpy grid for use in testing.
 
     Returns
     -------
-    np.ndarray
+    npt.NDArray[np.int8]
         The 2D numpy grid used for testing.
     """
-    return np.full((50, 50), TileType.EMPTY, TileType)  # type: ignore
+    return np.full((50, 50), TileType.EMPTY, TileType)
 
 
 @pytest.fixture
-def leaf(boundary_point: Point, grid: np.ndarray) -> Leaf:
+def leaf(boundary_point: Point, grid: npt.NDArray[np.int8]) -> Leaf:
     """Initialise a leaf for use in testing.
 
     Parameters
     ----------
     boundary_point: Point
         A boundary point used for testing.
-    grid: np.ndarray
+    grid: npt.NDArray[np.int8]
         The 2D grid used for testing.
 
     Returns

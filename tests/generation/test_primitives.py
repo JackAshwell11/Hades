@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # Pip
 import numpy as np
+import numpy.typing as npt
 import pytest
 
 # Custom
@@ -101,14 +102,14 @@ def test_rect_get_distance_to(
         Rect(valid_point_one, invalid_point).get_distance_to(rect)
 
 
-def test_rect_place_rect(rect: Rect, grid: np.ndarray) -> None:
+def test_rect_place_rect(rect: Rect, grid: npt.NDArray[np.int8]) -> None:
     """Test the place_rect function in the Rect class.
 
     Parameters
     ----------
     rect: Rect
         The rect used for testing.
-    grid: np.ndarray
+    grid: npt.NDArray[np.int8]
         The 2D grid used for testing.
     """
     # Check if the place_rect function places a rect inside the 2D array

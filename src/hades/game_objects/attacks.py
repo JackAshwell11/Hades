@@ -1,3 +1,5 @@
+# TODO: REWRITE THIS FILE
+
 """Stores the different attack algorithms that are available to the entities."""
 from __future__ import annotations
 

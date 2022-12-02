@@ -425,6 +425,7 @@ def create_map(
     )
 
     # Get all the tiles which can support items being placed on them
+    # TODO: TRY AND REMOVE NOQA
     possible_tiles: set[tuple[int, int]] = set(  # noqa
         zip(*np.nonzero(grid == TileType.FLOOR))
     )

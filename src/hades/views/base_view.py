@@ -138,7 +138,7 @@ class BackButton(arcade.gui.UIFlatButton):
         window: Window = arcade.get_window()
 
         # Show the game view
-        game_view: Game = window.views["Game"]  # noqa
+        game_view = window.views["Game"]
         window.show_view(game_view)
 
     def __repr__(self) -> str:

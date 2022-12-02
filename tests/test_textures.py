@@ -32,20 +32,22 @@ def test_textures_script() -> None:
     # Compare the non_moving_filenames dict to the non_moving_textures dict
     for section_name, non_moving_type in non_moving_filenames.items():
         for section_count, texture_filename in enumerate(non_moving_type):
-            compare_texture = non_moving_textures[section_name][section_count]
+            compare_non_moving_texture = non_moving_textures[section_name][
+                section_count
+            ]
             assert (
-                isinstance(compare_texture, arcade.Texture)
-                and texture_filename in compare_texture.name
+                isinstance(compare_non_moving_texture, arcade.Texture)
+                and texture_filename in compare_non_moving_texture.name
             )
 
     # Compare the moving_filenames dict to the moving_textures dict
     for section_name, moving_type in moving_filenames.items():
         for animation_type, filenames in moving_type.items():
             for texture_count, texture_filename in enumerate(filenames):
-                compare_texture = moving_textures[section_name][animation_type][
+                compare_moving_texture = moving_textures[section_name][animation_type][
                     texture_count
                 ]
-                for texture in compare_texture:
+                for texture in compare_moving_texture:
                     assert (
                         isinstance(texture, arcade.Texture)
                         and texture_filename in texture.name

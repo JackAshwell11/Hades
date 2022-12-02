@@ -11,12 +11,13 @@ from hades.generation.primitives import Point, Rect
 
 if TYPE_CHECKING:
     import numpy as np
+    import numpy.typing as npt
 
 __all__ = ()
 
 
 def test_bsp_init(
-    boundary_point: Point, invalid_point: Point, grid: np.ndarray
+    boundary_point: Point, invalid_point: Point, grid: npt.NDArray[np.int8]
 ) -> None:
     """Test the initialisation of the Leaf class in bsp.py.
 
@@ -26,7 +27,7 @@ def test_bsp_init(
         A boundary point used for testing.
     invalid_point: Point
         An invalid point used for testing.
-    grid: np.ndarray
+    grid: npt.NDArray[np.int8]
         The 2D grid used for testing.
     """
     assert (

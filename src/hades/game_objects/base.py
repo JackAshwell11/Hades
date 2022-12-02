@@ -744,8 +744,8 @@ class Tile(GameObject):
 
     # Class variables
     object_id: ObjectID = ObjectID.TILE
-    raw_texture: arcade.Texture | None = None
     blocking: bool = False
+    raw_texture: arcade.Texture
 
     def __init__(
         self,

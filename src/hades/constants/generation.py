@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Custom
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 
 # Builtin
 from typing import NamedTuple
@@ -24,7 +24,7 @@ __all__ = (
 
 
 # Tile types  # TODO: CHANGING THIS TO ENUM SEEMS TO CREATE DIAGONALS THROUGH WALLS
-class TileType(Enum):
+class TileType(IntEnum):
     """Stores the different types of tiles in the game map."""
 
     EMPTY = auto()

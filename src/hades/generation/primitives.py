@@ -136,6 +136,12 @@ class Rect(NamedTuple):
             max(self.top_left.x, 0) : min(self.bottom_right.x + 1, grid_width),
         ]
         temp_wall[np.isin(temp_wall, REPLACEABLE_TILES)] = TileType.WALL
+        # TODO: DECIDE
+        """
+        p = [(count_row, count_column) for count_row, row in enumerate(grid) for count_column, column in enumerate(row) if column in REPLACEABLE_TILES]
+        temp_wall[p] = TileType.WALL
+        temp_wall[np.isin(temp_wall, REPLACEABLE_TILES)] = TileType.WALL
+        """
 
         # Place the floors. The ranges must be -1 in all directions since we don't want
         # to overwrite the walls keeping the player in, but we still want to overwrite
