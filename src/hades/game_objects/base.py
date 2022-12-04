@@ -15,6 +15,7 @@ from hades.constants.game_objects import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
+    SPRITE_SIZE,
     EntityAttributeType,
     ObjectID,
 )
@@ -745,7 +746,9 @@ class Tile(GameObject):
     # Class variables
     object_id: ObjectID = ObjectID.TILE
     blocking: bool = False
-    raw_texture: arcade.Texture
+    raw_texture: arcade.Texture = arcade.Texture.create_empty(
+        "empty", (int(SPRITE_SIZE), int(SPRITE_SIZE))
+    )
 
     def __init__(
         self,

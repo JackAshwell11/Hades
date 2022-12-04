@@ -2,7 +2,6 @@
 #include "hades_common.h"
 #include <structmember.h>
 #include <deque>
-#include <string>
 #include <stdexcept>
 #include <iostream>
 

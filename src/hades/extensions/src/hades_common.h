@@ -3,9 +3,10 @@
 
 // Includes
 #include <Python.h>
-#include <limits>
-#include <unordered_map>
 #include <vector>
+#include <limits>
+#include <string>
+#include <unordered_map>
 
 
 // ----- C STRUCTURE DEFINITIONS ------------------------------

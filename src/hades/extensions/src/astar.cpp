@@ -5,7 +5,7 @@
 #include "hades_common.h"
 #include <numpy/arrayobject.h>
 #include <queue>
-#include <iostream>
+#include <algorithm>
 
 
 // ----- CONSTANTS ------------------------------
@@ -108,7 +108,7 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
         // Add all the neighbours to the heap with their cost being f = g + h:
         //   f - The total cost of traversing the neighbour.
         //   g - The distance between the start pair and the neighbour pair.
-        //   h - The estimated distance from the neighbour pair to the end pair. We're using the Manhattan distance for
+        //   h - The estimated distance from the neighbour pair to the end pair. We're using the Chebyshev distance for
         //       this.
         for (IntPair neighbour: grid_bfs(current, height, width)) {
             if (!came_from.count(neighbour)) {
@@ -124,7 +124,9 @@ static PyObject *calculate_astar_path(PyObject *self, PyObject *args) {
                     f_cost = INT_INFINITY;
                 } else {
                     // Set the total cost for the neighbour to f = g + h
-                    f_cost = distances[neighbour] + (abs(current.x - neighbour.x) + abs(current.y - neighbour.y));
+                    f_cost = distances[neighbour] + std::max(
+                        abs(neighbour.x - current.x), abs(neighbour.y - current.y)
+                    );
                 }
 
                 // Add the neighbour to the priority queue

@@ -127,7 +127,6 @@ load-plugins = [
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
     "attribute-defined-outside-init",  # Allow attributes being defined outside __init__ (sometimes this needs to happen)
-    "fixme",  # Allow to-do statements
     "import-error",  # Sometimes pylint can't import a package correctly
     "no-else-return",  # Allow else statement after a return
     "no-member",  # Allow BaseView to set the window attribute
