@@ -18,7 +18,6 @@ from arcade.gui import (
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent
 
-    from hades.views.game_view import Game
     from hades.window import Window
 
 __all__ = ("BaseView",)

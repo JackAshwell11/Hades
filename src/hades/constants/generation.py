@@ -23,7 +23,7 @@ __all__ = (
 )
 
 
-# Tile types  # TODO: CHANGING THIS TO ENUM SEEMS TO CREATE DIAGONALS THROUGH WALLS
+# Tile types
 class TileType(IntEnum):
     """Stores the different types of tiles in the game map."""
 

@@ -125,6 +125,7 @@ load-plugins = [
 ]
 
 [tool.pylint."MESSAGES CONTROL"]
+enable = "useless-suppression"
 disable = [
     "attribute-defined-outside-init",  # Allow attributes being defined outside __init__ (sometimes this needs to happen)
     "import-error",  # Sometimes pylint can't import a package correctly

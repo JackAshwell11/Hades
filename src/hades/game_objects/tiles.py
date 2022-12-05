@@ -3,10 +3,11 @@ from __future__ import annotations
 
 # Builtin
 import logging
+from abc import ABCMeta
 from typing import TYPE_CHECKING
 
 # Custom
-from hades.game_objects.base import CollectibleTile, Tile, UsableTile
+from hades.game_objects.base import CollectibleTile, Tile
 from hades.textures import non_moving_textures
 
 if TYPE_CHECKING:
@@ -25,7 +26,7 @@ __all__ = (
 logger = logging.getLogger(__name__)
 
 
-class Floor(Tile):
+class Floor(Tile, metaclass=ABCMeta):
     """Represents a floor tile in the game."""
 
     # Class variables
@@ -36,7 +37,7 @@ class Floor(Tile):
         return f"<Floor (Position=({self.center_x}, {self.center_y}))>"
 
 
-class Wall(Tile):
+class Wall(Tile, metaclass=ABCMeta):
     """Represents a wall tile in the game."""
 
     # Class variables
@@ -74,7 +75,7 @@ class Wall(Tile):
 #         return True
 
 
-class Consumable(UsableTile, CollectibleTile):
+class Consumable(CollectibleTile):
     """Represents a consumable that can be consumed by the player in the game.
 
     Parameters

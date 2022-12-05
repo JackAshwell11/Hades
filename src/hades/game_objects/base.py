@@ -40,9 +40,7 @@ __all__ = (
     "CollectibleTile",
     "Entity",
     "IndicatorBar",
-    "InteractiveTile",
     "Tile",
-    "UsableTile",
 )
 
 # Get the logger
@@ -724,11 +722,10 @@ class Entity(GameObject, metaclass=ABCMeta):
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
 
 
-# TODO: REDO INHERITANCE TREE BELOW
-
-
 class Tile(GameObject):
-    """Represents a tile that does not move in the game.
+    """Represents a tile in the game.
+
+    This should not be instantiated, instead subclass it and override its methods.
 
     Parameters
     ----------
@@ -739,8 +736,12 @@ class Tile(GameObject):
 
     Attributes
     ----------
+    blocking: bool
+        Whether the tile blocks the player or not.
     texture: arcade.Texture
         The sprite which represents this tile.
+    item_text: str
+        The text to display to the user if they touch this tile.
     """
 
     # Class variables
@@ -749,6 +750,7 @@ class Tile(GameObject):
     raw_texture: arcade.Texture = arcade.Texture.create_empty(
         "empty", (int(SPRITE_SIZE), int(SPRITE_SIZE))
     )
+    item_text: str = ""
 
     def __init__(
         self,
@@ -758,20 +760,6 @@ class Tile(GameObject):
     ) -> None:
         super().__init__(game, x, y)
         self.texture: arcade.Texture = self.raw_texture
-
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
-
-
-class InteractiveTile(Tile):
-    """Represents a tile that can be interacted with by the player.
-
-    This is only meant to be inherited from and should not be initialised on its own.
-    """
-
-    # Class variables
-    item_text: str = ""
 
     @property
     def player(self) -> Player:
@@ -788,20 +776,8 @@ class InteractiveTile(Tile):
         # Return the player object
         return self.game.player
 
-    def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
-        return f"<InteractiveTile (Position=({self.center_x}, {self.center_y}))>"
-
-
-class UsableTile(InteractiveTile):
-    """Represents a tile that can be used/activated by the player."""
-
-    # Class variables
-    item_text: str = "Press R to activate"
-
-    @abstractmethod
     def item_use(self) -> bool:
-        """Process item use functionality.
+        """Override this to add item use functionality.
 
         Returns
         -------
@@ -815,13 +791,31 @@ class UsableTile(InteractiveTile):
         """
         raise NotImplementedError
 
+    def item_pick_up(self) -> bool:
+        """Override this to add item pick up functionality.
+
+        Returns
+        -------
+        bool
+            Whether the collectible pickup was successful or not.
+
+        Raises
+        ------
+        NotImplementedError
+            The function is not implemented.
+        """
+        raise NotImplementedError
+
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
-        return f"<UsableTile (Position=({self.center_x}, {self.center_y}))>"
+        return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
 
 
-class CollectibleTile(InteractiveTile):
-    """Represents a tile that can be picked up by the player."""
+class CollectibleTile(Tile, metaclass=ABCMeta):
+    """Represents a tile that can be picked up by the player.
+
+    This should not be instantiated, instead subclass it and override its methods.
+    """
 
     # Class variables
     item_text: str = "Press E to pick up"

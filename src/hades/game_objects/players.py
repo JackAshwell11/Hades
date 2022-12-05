@@ -63,7 +63,7 @@ class Player(Entity):
         around the player based on their direction.
     upgrade_sections: list[UpgradablePlayerSection]
         Stores the upgradable section objects for each of the player's upgrade sections.
-    inventory: list[CollectibleTile]
+    inventory: list[Tile]
         The list which stores the player's inventory.
     inventory_capacity: int
         The total capacity of the inventory.

@@ -10,13 +10,12 @@ import arcade.gui
 
 # Custom
 from hades.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
-from hades.game_objects.base import UsableTile
+from hades.game_objects.base import CollectibleTile
 from hades.views.base_view import BaseView
 
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent
 
-    from hades.game_objects.base import CollectibleTile
     from hades.game_objects.players import Player
     from hades.window import Window
 
@@ -30,7 +29,7 @@ class InventoryBox(arcade.gui.UITextureButton):
     """Represents an individual box showing an item in the player's inventory."""
 
     # Class variables
-    item_ref: CollectibleTile | UsableTile | None = None
+    item_ref: CollectibleTile | None = None
 
     def on_click(self, _: UIOnClickEvent) -> None:
         """Use an item in the player's inventory."""
@@ -39,7 +38,7 @@ class InventoryBox(arcade.gui.UITextureButton):
             return
 
         # Check if the item can be used or not
-        if issubclass(type(self.item_ref), UsableTile):
+        if issubclass(type(self.item_ref), CollectibleTile):
             # Use it
             if not self.item_ref.item_use():
                 # Use was not successful

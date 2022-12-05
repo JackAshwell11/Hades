@@ -44,7 +44,7 @@ from hades.views.inventory_view import InventoryView
 from hades.views.shop_view import ShopView
 
 if TYPE_CHECKING:
-    from hades.game_objects.base import CollectibleTile, UsableTile
+    from hades.game_objects.base import Tile
     from hades.generation.map import LevelConstants
 
 __all__ = ("Game",)
@@ -104,7 +104,7 @@ class Game(BaseView):
         The vector field which allows for easy pathfinding for the enemy AI.
     physics_engine: PhysicsEngine | None
         The physics engine which processes wall collision.
-    nearest_item: CollectibleTile | UsableTile | None
+    nearest_item: Tile | None
         Stores the nearest item so the player can activate it.
     possible_enemy_spawns: list[tuple[int, int]]
         A list of possible positions that enemies can spawn in.
@@ -134,7 +134,7 @@ class Game(BaseView):
         )
         self.vector_field: VectorField | None = None
         self.physics_engine: PhysicsEngine | None = None
-        self.nearest_item: CollectibleTile | UsableTile | None = None
+        self.nearest_item: Tile | None = None
         self.possible_enemy_spawns: list[tuple[int, int]] = []
         self.player_status_text: arcade.Text = arcade.Text(
             "Money: 0",
