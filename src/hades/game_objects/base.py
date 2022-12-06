@@ -510,7 +510,7 @@ class Entity(GameObject, metaclass=ABCMeta):
         PhysicsEngine
             The entity's physics engine
         """
-        return self.physics_engines[0]
+        return self.physics_engines[0]  # type: ignore
 
     @property
     def health(self) -> EntityAttribute:
