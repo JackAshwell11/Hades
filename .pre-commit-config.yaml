@@ -55,11 +55,11 @@ repos:
       - id: pydocstyle
         additional_dependencies: ["toml"]
   - repo: "https://github.com/PyCQA/pylint"
-    rev: v2.15.6
+    rev: v2.15.8
     hooks:
       - id: pylint
   - repo: "https://github.com/asottile/pyupgrade"
-    rev: v3.2.2
+    rev: v3.3.0
     hooks:
       - id: pyupgrade
         args: ["--py310-plus"]
