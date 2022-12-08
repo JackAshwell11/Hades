@@ -47,7 +47,6 @@ class InventoryBox(arcade.gui.UITextureButton):
 
             # Get the current window, current view and game view
             window: Window = arcade.get_window()
-            # TODO: TRY AND REMOVE NOQA
             current_view: InventoryView = window.current_view  # noqa
 
             # Remove the item from the player's inventory and clear the item ref and the

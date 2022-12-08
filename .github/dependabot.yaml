@@ -9,6 +9,7 @@ updates:
     labels:
       - "priority: medium"
       - "type: dependency"
+      - "status: pending"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -18,3 +19,4 @@ updates:
     labels:
       - "priority: medium"
       - "type: dependency"
+      - "status: pending"

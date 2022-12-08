@@ -104,6 +104,10 @@ no_implicit_reexport = true
 strict_equality = true
 strict_concatenate = true
 
+exclude = [
+    "inventory_view.py"
+]
+
 [tool.pydocstyle]
 convention = "numpy"
 

@@ -127,8 +127,13 @@ def get_possible_tiles(grid: npt.NDArray[np.int8]) -> set[tuple[int, int]]:
     set[tuple[int, int]]
         The set of possible tiles.
     """
-    # This uses the same code from Map.generate_map()
-    return set(zip(*np.nonzero(grid == TileType.FLOOR)))  # type: ignore
+    # Note that this uses the same code from Map.generate_map()
+    return {
+        (count_y, count_x)
+        for count_y, y in enumerate(grid)
+        for count_x, x in enumerate(y)
+        if x == TileType.FLOOR
+    }
 
 
 def test_create_map() -> None:
@@ -282,7 +287,7 @@ def test_map_create_hallways(
         for bfs_neighbour in grid_bfs(current_point, *leaf.grid.shape):
             neighbour = Point(*bfs_neighbour)
             if (
-                leaf.grid[neighbour.y][neighbour.x] is TileType.FLOOR
+                leaf.grid[neighbour.y][neighbour.x] is TileType.FLOOR.value
                 and neighbour not in visited
             ):
                 hallway_gen_deque.append(neighbour)

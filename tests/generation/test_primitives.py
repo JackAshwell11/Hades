@@ -94,10 +94,7 @@ def test_rect_get_distance_to(
     rect: Rect
         The rect used for testing.
     """
-    assert (
-        Rect(valid_point_one, boundary_point).get_distance_to(rect)
-        == 2.8284271247461903
-    )
+    assert Rect(valid_point_one, boundary_point).get_distance_to(rect) == 4
     with pytest.raises(TypeError):
         Rect(valid_point_one, invalid_point).get_distance_to(rect)
 
@@ -124,3 +121,6 @@ def test_rect_place_rect(rect: Rect, grid: npt.NDArray[np.int8]) -> None:
         )
         and grid[rect.center_y][rect.center_x] == TileType.FLOOR
     )
+
+
+# TODO: GO OVER ALL TESTS/ TILETYPE USAGE TO CHECK IF CORRECT

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 # Builtin
-import math
 from typing import NamedTuple
 
 # Pip
@@ -114,9 +113,8 @@ class Rect(NamedTuple):
         float
             The Euclidean distance between this rect and the given rect.
         """
-        return math.sqrt(
-            (self.center_x - other.center_x) ** 2
-            + (self.center_y - other.center_x) ** 2
+        return max(
+            abs(self.center_x - other.center_x), abs(self.center_y - other.center_y)
         )
 
     def place_rect(self, grid: npt.NDArray[np.int8]) -> None:
@@ -135,7 +133,7 @@ class Rect(NamedTuple):
             max(self.top_left.y, 0) : min(self.bottom_right.y + 1, grid_height),
             max(self.top_left.x, 0) : min(self.bottom_right.x + 1, grid_width),
         ]
-        temp_wall[np.isin(temp_wall, REPLACEABLE_TILES)] = TileType.WALL
+        temp_wall[np.isin(temp_wall, REPLACEABLE_TILES)] = TileType.WALL.value
 
         # Place the floors. The ranges must be -1 in all directions since we don't want
         # to overwrite the walls keeping the player in, but we still want to overwrite
@@ -143,7 +141,7 @@ class Rect(NamedTuple):
         grid[
             max(self.top_left.y + 1, 1) : min(self.bottom_right.y, grid_height - 1),
             max(self.top_left.x + 1, 1) : min(self.bottom_right.x, grid_width - 1),
-        ] = TileType.FLOOR
+        ] = TileType.FLOOR.value
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""

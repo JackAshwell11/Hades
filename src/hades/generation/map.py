@@ -300,11 +300,16 @@ def create_hallways(
         The number of obstacles to place in the 2D grid.
     """
     # Place random obstacles in the grid
-    obstacle_positions = list(zip(*np.where(grid == TileType.EMPTY)))
+    obstacle_positions = [
+        (count_y, count_x)
+        for count_y, y in enumerate(grid)
+        for count_x, x in enumerate(y)
+        if x == TileType.EMPTY
+    ]
     for _ in range(obstacle_count):
         grid[
             obstacle_positions.pop(random_generator.randrange(len(obstacle_positions)))
-        ] = TileType.OBSTACLE
+        ] = TileType.OBSTACLE.value
     logger.debug("Created %d obstacles in the 2D grid", obstacle_count)
 
     # Use the A* algorithm with to connect each pair of rooms making sure to avoid
@@ -351,7 +356,7 @@ def place_tile(
     """
     # Get a random floor position and place the target tile
     y, x = possible_tiles.pop()
-    grid[y][x] = target_tile
+    grid[y][x] = target_tile.value
     logger.debug("Placed tile %r in the 2D grid", target_tile)
 
 
@@ -425,10 +430,12 @@ def create_map(
     )
 
     # Get all the tiles which can support items being placed on them
-    # TODO: TRY AND REMOVE NOQA
-    possible_tiles: set[tuple[int, int]] = set(  # noqa
-        zip(*np.nonzero(grid == TileType.FLOOR))
-    )
+    possible_tiles: set[tuple[int, int]] = {
+        (count_y, count_x)
+        for count_y, y in enumerate(grid)
+        for count_x, x in enumerate(y)
+        if x == TileType.FLOOR
+    }
 
     # Place the player tile and all the items tiles
     place_tile(grid, TileType.PLAYER, possible_tiles)

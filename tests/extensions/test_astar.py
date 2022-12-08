@@ -1,8 +1,6 @@
 """Tests all functions in extensions/astar."""
 from __future__ import annotations
 
-import math
-
 # Builtin
 import random
 from typing import TYPE_CHECKING
@@ -64,7 +62,7 @@ def heuristic(a: Point, b: Point) -> float:
     float
         The Euclidean distance.
     """
-    return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+    return max(abs(a.x - b.x), abs(a.y - b.y))
 
 
 def test_calculate_astar_path(
