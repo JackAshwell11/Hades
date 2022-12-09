@@ -38,7 +38,7 @@ pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.6"
 pyupgrade = "v3.2.2"
 ssort = "v0.11.6"
-tox = "3.27.1"
+tox = "4.0.3"
 
 [tool.bandit]
 skips = [
