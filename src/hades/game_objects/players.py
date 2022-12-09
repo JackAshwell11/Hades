@@ -26,13 +26,7 @@ from hades.game_objects.base import Entity, IndicatorBar
 from hades.melee_shader import MeleeShader
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from hades.constants.game_objects import (
-        BaseData,
-        EntityAttributeSectionType,
-        PlayerData,
-    )
+    from hades.constants.game_objects import BaseData, PlayerData
     from hades.game_objects.base import CollectibleTile
     from hades.views.game_view import Game
 
@@ -88,9 +82,9 @@ class Player(Entity):
         super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.upgrade_sections: list[UpgradablePlayerSection] = [
-            UpgradablePlayerSection(self, attribute_section_type, cost_function, 0)
+            UpgradablePlayerSection(self, section_type, cost_function, 0)
             for (
-                attribute_section_type,
+                section_type,
                 cost_function,
             ) in self.player_data.section_upgrade_data.items()
         ]
@@ -145,19 +139,6 @@ class Player(Entity):
 
         # Return the player data
         return self.entity_type.player_data
-
-    @property
-    def section_upgrade_data(
-        self,
-    ) -> dict[EntityAttributeSectionType, Callable[[int], float]]:
-        """Get the section upgrade data for the player.
-
-        Returns
-        -------
-        dict[EntityAttributeSectionType, Callable[[int], float]]
-            The section upgrade data.
-        """
-        return self.player_data.section_upgrade_data
 
     @property
     def money(self) -> EntityAttribute:

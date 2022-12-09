@@ -39,25 +39,25 @@ PLAYER = BaseData(
         view_distance=5,
         attribute_data={
             EntityAttributeType.HEALTH: EntityAttributeData(
-                increase=lambda current_level: 100 * 1.4**current_level,
+                increase=lambda level: 100 * 1.4**level,
                 status_effect=True,
                 variable=True,
             ),
             EntityAttributeType.SPEED: EntityAttributeData(
-                increase=lambda current_level: 150 * 1.4**current_level,
+                increase=lambda level: 150 * 1.4**level,
                 status_effect=True,
             ),
             EntityAttributeType.ARMOUR: EntityAttributeData(
-                increase=lambda current_level: 20 * 1.4**current_level,
+                increase=lambda level: 20 * 1.4**level,
                 status_effect=True,
                 variable=True,
             ),
             EntityAttributeType.REGEN_COOLDOWN: EntityAttributeData(
-                increase=lambda current_level: 2 * 0.5**current_level,
+                increase=lambda level: 2 * 0.5**level,
                 status_effect=True,
             ),
             EntityAttributeType.FIRE_RATE_PENALTY: EntityAttributeData(
-                increase=lambda current_level: 1 * 0.9**current_level,
+                increase=lambda level: 1 * 0.9**level,
                 status_effect=True,
             ),
             EntityAttributeType.MONEY: EntityAttributeData(
@@ -84,10 +84,10 @@ PLAYER = BaseData(
     player_data=PlayerData(
         melee_degree=60,
         section_upgrade_data={
-            EntityAttributeSectionType.ENDURANCE: lambda current_level: 1
-            * 3**current_level,
-            EntityAttributeSectionType.DEFENCE: lambda current_level: 1
-            * 3**current_level,
+            EntityAttributeSectionType.ENDURANCE: lambda level: 1  # type: ignore
+            * 3**level,
+            EntityAttributeSectionType.DEFENCE: lambda level: 1  # type: ignore
+            * 3**level,
         },
     ),
 )
@@ -102,25 +102,25 @@ ENEMY1 = BaseData(
         view_distance=5,
         attribute_data={
             EntityAttributeType.HEALTH: EntityAttributeData(
-                increase=lambda current_level: 10 * 1.4**current_level,
+                increase=lambda level: 10 * 1.4**level,
                 status_effect=True,
                 variable=True,
             ),
             EntityAttributeType.SPEED: EntityAttributeData(
-                increase=lambda current_level: 50 * 1.4**current_level,
+                increase=lambda level: 50 * 1.4**level,
                 status_effect=True,
             ),
             EntityAttributeType.ARMOUR: EntityAttributeData(
-                increase=lambda current_level: 10 * 1.4**current_level,
+                increase=lambda level: 10 * 1.4**level,
                 status_effect=True,
                 variable=True,
             ),
             EntityAttributeType.REGEN_COOLDOWN: EntityAttributeData(
-                increase=lambda current_level: 3 * 0.6**current_level,
+                increase=lambda level: 3 * 0.6**level,
                 status_effect=True,
             ),
             EntityAttributeType.FIRE_RATE_PENALTY: EntityAttributeData(
-                increase=lambda current_level: 1 * 0.95**current_level,
+                increase=lambda level: 1 * 0.95**level,
                 status_effect=True,
             ),
         },
@@ -144,7 +144,7 @@ HEALTH_POTION = ConsumableData(
     instant=[
         InstantData(
             instant_type=InstantEffectType.HEALTH,
-            increase=lambda current_level: 10 * 1.5**current_level,
+            increase=lambda level: 10 * 1.5**level,
         ),
     ],
     status_effects=[],
@@ -157,7 +157,7 @@ ARMOUR_POTION = ConsumableData(
     instant=[
         InstantData(
             instant_type=InstantEffectType.ARMOUR,
-            increase=lambda current_level: 10 * 1.5**current_level,
+            increase=lambda level: 10 * 1.5**level,
         ),
     ],
     status_effects=[],
@@ -172,8 +172,8 @@ HEALTH_BOOST_POTION = ConsumableData(
     status_effects=[
         StatusEffectData(
             status_type=StatusEffectType.HEALTH,
-            increase=lambda current_level: 25 * 1.3**current_level,
-            duration=lambda current_level: 5 * 1.3**current_level,
+            increase=lambda level: 25 * 1.3**level,
+            duration=lambda level: 5 * 1.3**level,
         )
     ],
 )
@@ -186,8 +186,8 @@ ARMOUR_BOOST_POTION = ConsumableData(
     status_effects=[
         StatusEffectData(
             status_type=StatusEffectType.ARMOUR,
-            increase=lambda current_level: 10 * 1.3**current_level,
-            duration=lambda current_level: 5 * 1.3**current_level,
+            increase=lambda level: 10 * 1.3**level,
+            duration=lambda level: 5 * 1.3**level,
         )
     ],
 )
@@ -200,8 +200,8 @@ SPEED_BOOST_POTION = ConsumableData(
     status_effects=[
         StatusEffectData(
             status_type=StatusEffectType.SPEED,
-            increase=lambda current_level: 25 * 1.3**current_level,
-            duration=lambda current_level: 2 * 1.3**current_level,
+            increase=lambda level: 25 * 1.3**level,
+            duration=lambda level: 2 * 1.3**level,
         )
     ],
 )
@@ -214,8 +214,8 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
     status_effects=[
         StatusEffectData(
             status_type=StatusEffectType.FIRE_RATE,
-            increase=lambda current_level: -0.05 * 1.1**current_level,
-            duration=lambda current_level: 2 * 1.3**current_level,
+            increase=lambda level: -0.05 * 1.1**level,
+            duration=lambda level: 2 * 1.3**level,
         )
     ],
 )

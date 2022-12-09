@@ -39,7 +39,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
         # Upgrade the section if possible
         if self.section_ref.upgrade_section():
             self.text = (
-                f"{self.section_ref.attribute_section_type.name} -"
+                f"{self.section_ref.section_type.name} -"
                 f" {self.section_ref.next_level_cost}"
             )
 
@@ -71,7 +71,7 @@ class ShopView(BaseView):
         for upgradable_player_section in self.player.upgrade_sections:
             upgrade_section_button = SectionUpgradeButton(
                 text=(
-                    f"{upgradable_player_section.attribute_section_type.name} -"
+                    f"{upgradable_player_section.section_type.name} -"
                     f" {upgradable_player_section.next_level_cost}"
                 ),
                 width=200,

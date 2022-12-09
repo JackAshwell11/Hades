@@ -68,7 +68,7 @@ class UpgradablePlayerSection:
     ----------
     player: Player
         The reference to the player object used for upgrading the entity attributes.
-    attribute_section_type: EntityAttributeSectionType
+    section_type: EntityAttributeSectionType
         The attribute section type this upgradable section represents.
     cost_function: Callable[[int], float]
         The cost function for this upgradable section used for calculating the next
@@ -79,7 +79,7 @@ class UpgradablePlayerSection:
 
     __slots__ = (
         "player",
-        "attribute_section_type",
+        "section_type",
         "cost_function",
         "current_level",
     )
@@ -87,12 +87,12 @@ class UpgradablePlayerSection:
     def __init__(
         self,
         player: Player,
-        attribute_section_type: EntityAttributeSectionType,
+        section_type: EntityAttributeSectionType,
         cost_function: Callable[[int], float],
         current_level: int,
     ) -> None:
         self.player: Player = player
-        self.attribute_section_type: EntityAttributeSectionType = attribute_section_type
+        self.section_type: EntityAttributeSectionType = section_type
         self.cost_function: Callable[[int], float] = cost_function
         self.current_level: int = current_level
 
@@ -139,8 +139,8 @@ class UpgradablePlayerSection:
         self.current_level += 1
 
         # Now upgrade each entity attribute
-        logger.debug("Upgrading section %r", self.attribute_section_type)
-        for entity_attribute in self.attribute_section_type.value:
+        logger.debug("Upgrading section %r", self.section_type)
+        for entity_attribute in self.section_type.value:
             # Calculate the diff between the current level and the next (this is
             # because some attribute may be variable or have status effects applied
             # to them)
@@ -168,7 +168,7 @@ class UpgradablePlayerSection:
         """Return a human-readable representation of this object."""
         return (
             "<UpgradablePlayerSection (Attribute section"
-            f" type={self.attribute_section_type}) (Current level={self.current_level})"
+            f" type={self.section_type}) (Current level={self.current_level})"
             f" (Level limit={self.level_limit})>"
         )
 
