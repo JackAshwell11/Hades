@@ -212,11 +212,13 @@ class Enemy(Entity):
         # selected
         self.time_since_last_attack = 0
         if self.current_attack.attack_type is AttackAlgorithmType.RANGED:
-            self.current_attack.process_attack(self.game.bullet_sprites)
+            self.current_attack.process_attack(
+                target_spritelist=self.game.bullet_sprites
+            )
         elif self.current_attack.attack_type is AttackAlgorithmType.MELEE:
-            self.current_attack.process_attack([self.game.player])
+            self.current_attack.process_attack(target_entities=[self.game.player])
         elif self.current_attack.attack_type is AttackAlgorithmType.AREA_OF_EFFECT:
-            self.current_attack.process_attack(self.game.player)
+            self.current_attack.process_attack(target_entity=self.game.player)
 
     def check_line_of_sight(self, max_tile_range: int) -> bool:
         """Check if the enemy has line of sight with the player.

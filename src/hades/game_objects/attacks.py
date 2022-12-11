@@ -1,5 +1,3 @@
-# TODO: REWRITE THIS FILE
-
 """Stores the different attack algorithms that are available to the entities."""
 from __future__ import annotations
 
@@ -7,7 +5,7 @@ from __future__ import annotations
 import logging
 import math
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 # Pip
 import arcade
@@ -122,13 +120,23 @@ class AttackBase(metaclass=ABCMeta):
         self.attack_data: AttackData = attack_data
 
     @abstractmethod
-    def process_attack(self, *args: Any) -> None:
+    def process_attack(
+        self,
+        *,
+        target_spritelist: arcade.SpriteList | None = None,
+        target_entities: list[Entity] | None = None,
+        target_entity: Entity | None = None,
+    ) -> None:
         """Perform an attack by the owner entity.
 
         Parameters
         ----------
-        args: Any
-            A tuple containing the parameters needed for the attack.
+        target_spritelist: arcade.SpriteList | None
+            The target spritelist to attack.
+        target_entities: list[Entity] | None
+            The target entities to attack.
+        target_entity: Entity | None
+            The target entity to attack.
 
         Raises
         ------
@@ -150,19 +158,35 @@ class RangedAttack(AttackBase):
     # Class variables
     attack_type: AttackAlgorithmType = AttackAlgorithmType.RANGED
 
-    def process_attack(self, *args: Any) -> None:
+    def process_attack(
+        self,
+        *,
+        target_spritelist: arcade.SpriteList | None = None,
+        target_entities: list[Entity] | None = None,
+        target_entity: Entity | None = None,
+    ) -> None:
         """Perform a ranged attack in the direction the entity is facing.
 
         Parameters
         ----------
-        args: Any
-            A tuple containing the parameters needed for the attack.
+        target_spritelist: arcade.SpriteList | None
+            The target spritelist to attack.
+        target_entities: list[Entity] | None
+            The target entities to attack.
+        target_entity: Entity | None
+            The target entity to attack.
+
+        Raises
+        ------
+        ValueError
+            Target spritelist is invalid or not given.
         """
         # Make sure variables needed are valid
         assert self.attack_data.extra is not None
 
         # Make sure the needed parameters are valid
-        bullet_list: arcade.SpriteList = args[0]
+        if target_spritelist is None:
+            raise ValueError("Target spritelist is invalid or not given")
         logger.info("Entity %r is performing a ranged attack", self.owner)
 
         # Reset the time counter
@@ -181,7 +205,7 @@ class RangedAttack(AttackBase):
         )
         physics: PhysicsEngine = self.owner.physics_engines[0]
         physics.add_bullet(new_bullet)
-        bullet_list.append(new_bullet)
+        target_spritelist.append(new_bullet)
 
         # Calculate its velocity
         angle_radians = self.owner.direction * math.pi / 180
@@ -210,22 +234,40 @@ class MeleeAttack(AttackBase):
     # Class variables
     attack_type: AttackAlgorithmType = AttackAlgorithmType.MELEE
 
-    def process_attack(self, *args: Any) -> None:
+    def process_attack(
+        self,
+        *,
+        target_spritelist: arcade.SpriteList | None = None,
+        target_entities: list[Entity] | None = None,
+        target_entity: Entity | None = None,
+    ) -> None:
         """Perform a melee attack in the direction the entity is facing.
 
         Parameters
         ----------
-        args: Any
-            A tuple containing the parameters needed for the attack.
+        target_spritelist: arcade.SpriteList | None
+            The target spritelist to attack.
+        target_entities: list[Entity] | None
+            The target entities to attack.
+        target_entity: Entity | None
+            The target entity to attack.
+
+        Raises
+        ------
+        ValueError
+            Target entities is invalid or not given.
         """
         # Make sure the needed parameters are valid
-        targets: list[Entity] = args[0]
+        if target_entities is None:
+            raise ValueError("Target entities is invalid or not given")
         logger.info(
-            "Entity %r is performing a melee attack on targets %r", self.owner, targets
+            "Entity %r is performing a melee attack on targets %r",
+            self.owner,
+            target_entities,
         )
 
         # Deal damage to all entities within range
-        for entity in targets:
+        for entity in target_entities:
             entity.deal_damage(self.attack_data.damage)
 
     def __repr__(self) -> str:
@@ -241,16 +283,34 @@ class AreaOfEffectAttack(AttackBase):
     # Class variables
     attack_type: AttackAlgorithmType = AttackAlgorithmType.AREA_OF_EFFECT
 
-    def process_attack(self, *args: Any) -> None:
+    def process_attack(
+        self,
+        *,
+        target_spritelist: arcade.SpriteList | None = None,
+        target_entities: list[Entity] | None = None,
+        target_entity: Entity | None = None,
+    ) -> None:
         """Perform an area of effect attack around the entity.
 
         Parameters
         ----------
-        args: Any
-            A tuple containing the parameters needed for the attack.
+        target_spritelist: arcade.SpriteList | None
+            The target spritelist to attack.
+        target_entities: list[Entity] | None
+            The target entities to attack.
+        target_entity: Entity | None
+            The target entity to attack.
+
+        Raises
+        ------
+        ValueError
+            Target spritelist or target entity is invalid or not given
         """
         # Make sure the needed parameters are valid
-        target_entity: arcade.SpriteList | Entity = args[0]
+        if target_entity is None or target_spritelist is None:
+            raise ValueError(
+                "Target spritelist or target entity is invalid or not given"
+            )
         logger.info(
             "Entity %r is performing an area of effect attack on %r",
             self.owner,
@@ -259,24 +319,23 @@ class AreaOfEffectAttack(AttackBase):
 
         # Create a sprite with an empty texture
         base_size = int(self.attack_data.attack_range * 2 * SPRITE_SIZE)
-        empty_texture = arcade.Texture.create_empty(
-            "",
-            (base_size, base_size),
-        )
         area_of_effect_sprite = arcade.Sprite(
             center_x=self.owner.center_x,
             center_y=self.owner.center_y,
-            texture=empty_texture,
+            texture=arcade.Texture.create_empty(
+                "",
+                (base_size, base_size),
+            ),
         )
 
-        # Detect a collision/collisions between the area_of_effect_sprite and the target
+        # Detect collisions between the area_of_effect_sprite and the target
         try:
             if arcade.check_for_collision(area_of_effect_sprite, target_entity):
                 # Target is the player so deal damage
                 target_entity.deal_damage(self.attack_data.damage)
         except TypeError:
             for entity in arcade.check_for_collision_with_list(
-                area_of_effect_sprite, target_entity
+                area_of_effect_sprite, target_spritelist
             ):  # type: Entity
                 # Deal damage to all the enemies within range
                 entity.deal_damage(self.attack_data.damage)
