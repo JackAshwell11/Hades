@@ -17,7 +17,7 @@ python = "^3.10"
 arcade = "2.6.16"
 numpy = "1.23.5"
 pymunk = "6.2.1"
-shapely = "1.8.5.post1"
+shapely = "2.0.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "1.7.4"
