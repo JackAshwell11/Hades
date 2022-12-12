@@ -309,7 +309,7 @@ def create_hallways(
     for _ in range(obstacle_count):
         grid[
             obstacle_positions.pop(random_generator.randrange(len(obstacle_positions)))
-        ] = TileType.OBSTACLE.value
+        ] = TileType.OBSTACLE
     logger.debug("Created %d obstacles in the 2D grid", obstacle_count)
 
     # Use the A* algorithm with to connect each pair of rooms making sure to avoid

@@ -35,7 +35,12 @@ def get_obstacle_grid() -> npt.NDArray[np.int8]:
         TileType.EMPTY,
         TileType,
     )
-    obstacle_positions = list(zip(*np.where(temp_grid == TileType.EMPTY)))
+    obstacle_positions = [
+        (count_y, count_x)
+        for count_y, y in enumerate(temp_grid)
+        for count_x, x in enumerate(y)
+        if x == TileType.EMPTY
+    ]
     for _ in range(25):
         temp_grid[
             obstacle_positions.pop(random.randrange(len(obstacle_positions)))

@@ -121,6 +121,3 @@ def test_rect_place_rect(rect: Rect, grid: npt.NDArray[np.int8]) -> None:
         )
         and grid[rect.center_y][rect.center_x] == TileType.FLOOR
     )
-
-
-# TODO: GO OVER ALL TESTS/ TILETYPE USAGE TO CHECK IF CORRECT

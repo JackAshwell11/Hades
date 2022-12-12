@@ -82,13 +82,18 @@ filter_files = true
 profile = "black"
 
 [tool.mypy]
-# disallow_any_explicit = true
-# disallow_untyped_calls = true
+# TODO: Once Arcade releases 2.7 (or a bugfix release with types), these flags can be
+#  re-evaluated to get strict mypy typing
+#disallow_any_explicit = true
+#disallow_subclassing_any = true
+#disallow_untyped_calls = true
+#disallow_untyped_decorators = true
+#warn_return_any = true
+#warn_unused_ignores = true
+
 check_untyped_defs = true
 disallow_any_generics = true
 disallow_incomplete_defs = true
-disallow_subclassing_any = true
-disallow_untyped_decorators = true
 disallow_untyped_defs = true
 exclude = [
     "inventory_view.py"
@@ -102,9 +107,7 @@ show_error_context = true
 strict_concatenate = true
 strict_equality = true
 warn_redundant_casts = true
-warn_return_any = true
 warn_unused_configs = true
-warn_unused_ignores = true
 
 [tool.pydocstyle]
 convention = "numpy"

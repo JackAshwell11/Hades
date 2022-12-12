@@ -581,6 +581,9 @@ class Game(BaseView):
         # Make sure variables needed are valid
         assert self.player is not None
 
+        # Ignore dx and dy due to mypy warning
+        _ = dx, dy
+
         # Calculate the new angle in degrees
         camera_x, camera_y = self.game_camera.position
         vec_x, vec_y = (

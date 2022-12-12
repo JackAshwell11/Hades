@@ -218,7 +218,6 @@ class Player(Entity):
             self.physics.apply_force(self, resultant_force)
 
         # Check if the player is in combat
-        # TODO: TRY AND REMOVE NOQA
         self.in_combat = any(
             enemy.player_within_range for enemy in self.game.enemy_sprites  # noqa
         )

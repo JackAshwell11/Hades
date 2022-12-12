@@ -135,7 +135,7 @@ class Leaf:
             if DEBUG_GAME:  # pragma: no branch
                 self.grid[
                     self.container.top_left.y : self.container.bottom_right.y + 1, pos
-                ] = TileType.DEBUG_WALL.value
+                ] = TileType.DEBUG_WALL
 
             # Create child leafs
             self.left = Leaf(
@@ -159,7 +159,7 @@ class Leaf:
             if DEBUG_GAME:  # pragma: no branch
                 self.grid[
                     pos, self.container.top_left.x : self.container.bottom_right.x + 1
-                ] = TileType.DEBUG_WALL.value
+                ] = TileType.DEBUG_WALL
 
             # Create child leafs
             self.left = Leaf(

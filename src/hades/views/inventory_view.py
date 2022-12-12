@@ -47,8 +47,7 @@ class InventoryBox(arcade.gui.UITextureButton):
 
             # Get the current window, current view and game view
             window: Window = arcade.get_window()
-            # TODO: REMOVE ALL NOQAS
-            current_view: InventoryView = window.current_view  # noqa
+            current_view: InventoryView = window.current_view
 
             # Remove the item from the player's inventory and clear the item ref and the
             # inventory box texture
@@ -131,8 +130,7 @@ class InventoryView(BaseView):
                 array_pos = column_count + row_count * 3
 
                 # Set the inventory box object to the inventory item
-                # TODO: REMOVE ALL NOQAS
-                inventory_box_obj: InventoryBox = ui_border_obj.children[0]  # noqa
+                inventory_box_obj: InventoryBox = ui_border_obj.children[0]
                 try:
                     item = self.player.inventory[array_pos]
                     inventory_box_obj.item_ref = item
