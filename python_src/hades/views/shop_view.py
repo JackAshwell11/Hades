@@ -13,7 +13,6 @@ from hades.views.base_view import BaseView
 
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent
-
     from hades.game_objects.attributes import UpgradablePlayerSection
     from hades.game_objects.players import Player
 

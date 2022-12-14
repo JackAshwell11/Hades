@@ -12,13 +12,12 @@ import arcade
 from hades.constants.game_objects import ObjectID
 
 if TYPE_CHECKING:
-    from pymunk.arbiter import Arbiter
-    from pymunk.space import Space
-
     from hades.game_objects.attacks import Bullet
     from hades.game_objects.base import Entity, Tile
     from hades.game_objects.enemies import Enemy
     from hades.game_objects.players import Player
+    from pymunk.arbiter import Arbiter
+    from pymunk.space import Space
 
 __all__ = ("PhysicsEngine",)
 

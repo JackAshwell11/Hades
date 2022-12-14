@@ -159,4 +159,4 @@ window.dist/
 aseprite/
 
 # Temp files
-src/hades/TEMP-FILES/
+python_src/hades/TEMP-FILES/

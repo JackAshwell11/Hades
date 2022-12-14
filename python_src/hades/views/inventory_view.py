@@ -15,7 +15,6 @@ from hades.views.base_view import BaseView
 
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent
-
     from hades.game_objects.players import Player
     from hades.window import Window
 
