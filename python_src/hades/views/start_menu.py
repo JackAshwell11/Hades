@@ -10,8 +10,8 @@ import arcade.gui
 
 # Custom
 from hades.constants.general import DEBUG_GAME
-from hades.views.base_view import BaseView
-from hades.views.game_view import Game
+from hades.views.base import BaseView
+from hades.views.game import Game
 
 if TYPE_CHECKING:
     from hades.window import Window

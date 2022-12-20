@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from arcade import ArcadeContext
     from arcade.gl import Buffer, Framebuffer, Program, Query
     from hades.game_objects.enemies import Enemy
-    from hades.views.game_view import Game
+    from hades.views.game import Game
 
 __all__ = ("MeleeShader",)
 

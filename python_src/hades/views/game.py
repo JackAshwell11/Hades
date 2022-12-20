@@ -39,9 +39,9 @@ from hades.game_objects.tiles import Consumable, Floor, Wall
 from hades.generation.map import create_map
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
-from hades.views.base_view import BaseView
-from hades.views.inventory_view import InventoryView
-from hades.views.shop_view import ShopView
+from hades.views.base import BaseView
+from hades.views.inventory import InventoryView
+from hades.views.shop import ShopView
 
 if TYPE_CHECKING:
     from hades.game_objects.base import Tile

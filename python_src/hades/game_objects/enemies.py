@@ -27,7 +27,7 @@ from hades.game_objects.movements import EnemyMovementManager
 
 if TYPE_CHECKING:
     from hades.constants.game_objects import BaseData, EnemyData
-    from hades.views.game_view import Game
+    from hades.views.game import Game
 
 __all__ = ("Enemy",)
 

@@ -28,7 +28,7 @@ from hades.melee_shader import MeleeShader
 if TYPE_CHECKING:
     from hades.constants.game_objects import BaseData, PlayerData
     from hades.game_objects.base import CollectibleTile
-    from hades.views.game_view import Game
+    from hades.views.game import Game
 
 __all__ = ("Player",)
 

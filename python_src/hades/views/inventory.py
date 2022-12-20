@@ -11,7 +11,7 @@ import arcade.gui
 # Custom
 from hades.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from hades.game_objects.base import CollectibleTile
-from hades.views.base_view import BaseView
+from hades.views.base import BaseView
 
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent

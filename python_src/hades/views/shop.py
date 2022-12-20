@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from hades.views.base_view import BaseView
+from hades.views.base import BaseView
 
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent

@@ -10,10 +10,10 @@ import arcade
 
 # Custom
 from hades.constants.general import GAME_LOGGER, LOGGING_DICT_CONFIG
-from hades.views.start_menu_view import StartMenu
+from hades.views.start_menu import StartMenu
 
 if TYPE_CHECKING:
-    from hades.views.base_view import BaseView
+    from hades.views.base import BaseView
 
 __all__ = ("Window",)
 

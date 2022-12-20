@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from hades.game_objects.attributes import EntityAttribute
     from hades.game_objects.players import Player
     from hades.physics import PhysicsEngine
-    from hades.views.game_view import Game
+    from hades.views.game import Game
 
 __all__ = (
     "CollectibleTile",
