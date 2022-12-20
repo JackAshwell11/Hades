@@ -30,7 +30,7 @@ repos:
           - flake8-type-checking
           - pep8-naming
   - repo: "https://github.com/pycqa/isort"
-    rev: 5.11.1
+    rev: v5.11.3
     hooks:
       - id: isort
   - repo: "https://github.com/pre-commit/mirrors-mypy"
@@ -55,7 +55,7 @@ repos:
       - id: pydocstyle
         additional_dependencies: ["toml"]
   - repo: "https://github.com/PyCQA/pylint"
-    rev: v2.15.8
+    rev: v2.15.9
     hooks:
       - id: pylint
   - repo: "https://github.com/asottile/pyupgrade"
