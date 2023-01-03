@@ -50,7 +50,7 @@ repos:
         args: ["--autofix"]
       - id: trailing-whitespace
   - repo: "https://github.com/pycqa/pydocstyle"
-    rev: 6.1.1
+    rev: 6.2.0
     hooks:
       - id: pydocstyle
         additional_dependencies: ["toml"]
