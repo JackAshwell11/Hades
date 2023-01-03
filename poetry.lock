@@ -327,7 +327,7 @@ setuptools = "*"
 
 [[package]]
 name = "nuitka"
-version = "1.3.3"
+version = "1.3.5"
 description = "Python compiler with full language support and CPython compatibility"
 category = "dev"
 optional = false
@@ -814,7 +814,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "1d9d32b7ae521bfe913a670ce62b8135681796da7127802929d3bf4cbe9e5784"
+content-hash = "9afcbb984ef0468782d41525c45ecfb7ec581a37768a1f8deaee7e8e5a6af81a"
 
 [metadata.files]
 arcade = [
@@ -1093,7 +1093,7 @@ nodeenv = [
     {file = "nodeenv-1.7.0.tar.gz", hash = "sha256:e0e7f7dfb85fc5394c6fe1e8fa98131a2473e04311a45afb6508f7cf1836fa2b"},
 ]
 nuitka = [
-    {file = "Nuitka-1.3.3.tar.gz", hash = "sha256:383c475dd280a19556db10b447efb2a87ad47806f2180bd543e5265fedbbf1a5"},
+    {file = "Nuitka-1.3.5.tar.gz", hash = "sha256:5c7438638b5186e278f40db03c83b198b5fad81c192dffe86f0624101f379158"},
 ]
 numpy = [
     {file = "numpy-1.24.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:179a7ef0889ab769cc03573b6217f54c8bd8e16cef80aad369e1e8185f994cd7"},
