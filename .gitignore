@@ -151,6 +151,10 @@ cython_debug/
 logs/
 saves/
 
+# CMake files
+cmake-build-debug/
+cmake-build-release/
+
 # Nuitka files
 window.build/
 window.dist/

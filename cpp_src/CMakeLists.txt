@@ -9,25 +9,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find the Python interpreter
-find_package(PythonInterp REQUIRED)
+# Create a shared library which is used by the python module and the tests
+set(CPP_LIB hades_extensions_lib)
+set(PY_MODULE hades_extensions_py)
+set(TEST_MODULE hades_extensions_tests)
 
-# Fetch the pybind11 repository and initialise it
-include(FetchContent)
-FetchContent_Declare(
-        pybind11_source
-        GIT_REPOSITORY https://github.com/pybind/pybind11.git
-        GIT_TAG v2.10.3
-)
-FetchContent_GetProperties(pybind11_source)
-FetchContent_Populate(pybind11_source)
-add_subdirectory(
-        ${pybind11_source_SOURCE_DIR}
-        ${pybind11_source_BINARY_DIR}
-)
+# Add the src and test directories to the project
+add_subdirectory(src)
+add_subdirectory(test)
 
-# Initialise the module with pybind11
-pybind11_add_module(hades_extensions src/map.cpp)
+# Enable support for unit testing in the "test" subdirectory
+enable_testing()
 
 
 # TODO: https://github.com/sdispater/pendulum/blob/master/meson.build
