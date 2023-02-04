@@ -1,5 +1,7 @@
+// Ensure this file is only included once
+#pragma once
+
 // Std includes
-#include <algorithm>
 #include <cmath>
 
 // ----- ENUMS ------------------------------
@@ -40,7 +42,7 @@ struct MapGenerationConstant {
   /// -------
   /// The generated valued.
   inline int generate_value(int level) const {
-    return (int)std::min(round(base_value * pow(increase, level)), max_value);
+    return (int) std::min(round(base_value * pow(increase, level)), max_value);
   }
 };
 
@@ -66,7 +68,7 @@ const MapGenerationConstants MAP_GENERATION_CONSTANTS = {
 
 // Defines the probabilities for each item
 const std::pair<TileType, double> ITEM_PROBABILITIES[6] = {
-    {TileType::HealthPotion, 0.3},      {TileType::ArmourPotion, 0.3},
+    {TileType::HealthPotion, 0.3}, {TileType::ArmourPotion, 0.3},
     {TileType::HealthBoostPotion, 0.2}, {TileType::ArmourBoostPotion, 0.1},
     {TileType::SpeedBoostPotion, 0.05}, {TileType::FireRateBoostPotion, 0.05},
 };

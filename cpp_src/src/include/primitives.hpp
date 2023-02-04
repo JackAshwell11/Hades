@@ -2,14 +2,15 @@
 #pragma once
 
 // Std includes
-#include <unordered_map>
+#include <vector>
 
 // Custom includes
-#include "constants.h"
+#include "constants.hpp"
 
 // ----- STRUCTURES ------------------------------
 /// Allows multiple hashes to be combined for a struct
-template <class T> inline void hash_combine(size_t &seed, const T &v) {
+template<class T>
+inline void hash_combine(size_t &seed, const T &v) {
   std::hash<T> hasher;
   seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
@@ -53,9 +54,7 @@ struct Point {
   /// Returns
   /// -------
   /// The sum of two points.
-  inline std::pair<int, int> sum(Point &other) const {
-    return std::make_pair(x + other.x, y + other.y);
-  }
+  std::pair<int, int> sum(Point &other) const;
 
   /// Calculate the absolute difference between two points.
   ///
@@ -66,13 +65,12 @@ struct Point {
   /// Returns
   /// -------
   /// The absolute difference between two points.
-  inline std::pair<int, int> abs_diff(Point &other) const {
-    return std::make_pair(abs(x - other.x), abs(y - other.y));
-  }
+  std::pair<int, int> abs_diff(Point &other) const;
 };
 
 /// Allows the point struct to be hashed in a map.
-template <> struct std::hash<Point> {
+template<>
+struct std::hash<Point> {
   size_t operator()(const Point &pnt) const {
     size_t res = 0;
     hash_combine(res, pnt.x);
@@ -95,11 +93,11 @@ template <> struct std::hash<Point> {
 /// height - The height of the rect.
 struct Rect {
   // Parameters
-  Point top_left, bottom_right;
+  Point top_left{}, bottom_right{};
 
   // Attributes
-  Point center;
-  int width, height;
+  Point center{};
+  int width{}, height{};
 
   inline bool operator==(const Rect rct) const {
     return top_left == rct.top_left && bottom_right == rct.bottom_right;
@@ -127,8 +125,8 @@ struct Rect {
     std::pair<int, int> diff = top_left_val.abs_diff(bottom_right_val);
     top_left = top_left_val;
     bottom_right = bottom_right_val;
-    center = Point((int)round(((double)sum.first) / 2.0),
-                   (int)round(((double)sum.second) / 2.0));
+    center = Point((int) round(((double) sum.first) / 2.0),
+                   (int) round(((double) sum.second) / 2.0));
     width = diff.first;
     height = diff.second;
   }
@@ -142,48 +140,19 @@ struct Rect {
   /// Returns
   /// -------
   /// The Chebyshev distance between this rect and the given rect.
-  inline int get_distance_to(Rect &other) const {
-    return std::max(abs(center.x - other.center.x),
-                    abs(center.y - other.center.y));
-  }
+  int get_distance_to(Rect &other) const;
 
   /// Place the rect in the 2D grid.
   ///
   /// Parameters
   /// ----------
   /// grid - The 2D grid which represents the dungeon.
-  void place_rect(std::vector<std::vector<TileType>> &grid) const {
-    // Get the width and height of the grid
-    int grid_height = (int)grid.size();
-    int grid_width = (int)grid[0].size();
-
-    // Place the walls
-    for (int y = std::max(top_left.y, 0);
-         y < std::min(bottom_right.y + 1, grid_height); y++) {
-      for (int x = std::max(top_left.x, 0);
-           x < std::min(bottom_right.x + 1, grid_width); x++) {
-        if (std::count(std::begin(REPLACEABLE_TILES),
-                       std::end(REPLACEABLE_TILES), grid[y][x]) > 0) {
-          grid[y][x] = TileType::Wall;
-        }
-      }
-    }
-
-    // Place the floors. The ranges must be -1 in all directions since we don't
-    // want to overwrite the walls keeping the player in, but we still want to
-    // overwrite walls that block the path for hallways
-    for (int y = std::max(top_left.y + 1, 1);
-         y < std::min(bottom_right.y, grid_height - 1); y++) {
-      for (int x = std::max(top_left.x + 1, 1);
-           x < std::min(bottom_right.x, grid_width - 1); x++) {
-        grid[y][x] = TileType::Floor;
-      }
-    }
-  }
+  void place_rect(std::vector<std::vector<TileType>> &grid) const;
 };
 
 /// Allows the rect struct to be hashed in a map.
-template <> struct std::hash<Rect> {
+template<>
+struct std::hash<Rect> {
   size_t operator()(const Rect &rct) const {
     size_t res = 0;
     hash_combine(res, rct.top_left);

@@ -1,39 +1,10 @@
 // Std includes
 #include <execution>
-#include <unordered_set>
+#include <queue>
 
 // Custom includes
-#include "include/astar.h"
-#include "include/bsp.h"
-
-// ----- STRUCTURES ------------------------------
-/// Represents an undirected weighted edge in a graph.
-struct Edge {
-  int cost;
-  Rect source, destination;
-
-  inline bool operator<(const Edge edg) const {
-    // The priority_queue data structure gets the maximum priority, so we need
-    // to override that functionality to get the minimum priority
-    return cost > edg.cost;
-  }
-
-  inline bool operator==(const Edge edg) const {
-    return cost == edg.cost && source == edg.source &&
-           destination == edg.destination;
-  }
-};
-
-/// Allows the edge struct to be hashed in a map.
-template <> struct std::hash<Edge> {
-  size_t operator()(const Edge &edg) const {
-    size_t res = 0;
-    hash_combine(res, edg.cost);
-    hash_combine(res, edg.source);
-    hash_combine(res, edg.destination);
-    return res;
-  }
-};
+#include "include/astar.hpp"
+#include "include/map.hpp"
 
 // ----- FUNCTIONS ------------------------------
 /// Collect all points in a given grid that match the target.
@@ -212,7 +183,7 @@ void place_tile(std::vector<std::vector<TileType>> &grid,
                 std::vector<Point> &possible_tiles) {
   // Get a random floor position and place the target tile
   std::uniform_int_distribution<> possible_tiles_distribution(
-      0, (int)possible_tiles.size() - 1);
+      0, (int) possible_tiles.size() - 1);
   int possible_tile_index = possible_tiles_distribution(random_generator);
   Point possible_tile = possible_tiles.at(possible_tile_index);
   possible_tiles.erase(possible_tiles.begin() + possible_tile_index);
@@ -245,17 +216,17 @@ void create_hallways(std::vector<std::vector<TileType>> &grid,
   path_points.resize(connections.size());
   std::transform(std::execution::par, connections.begin(), connections.end(),
                  path_points.begin(), [&grid](Edge connection) {
-                   return calculate_astar_path(grid, connection.source.center,
-                                               connection.destination.center);
-                 });
+        return calculate_astar_path(grid, connection.source.center,
+                                    connection.destination.center);
+      });
   for (const std::vector<Point> &path : path_points) {
     for (Point path_point : path) {
       // Place a rect box around the path_point using HALLWAY_SIZE to determine
       // the width and height
       Rect{Point{
-               path_point.x - HALF_HALLWAY_SIZE,
-               path_point.y - HALF_HALLWAY_SIZE,
-           },
+          path_point.x - HALF_HALLWAY_SIZE,
+          path_point.y - HALF_HALLWAY_SIZE,
+      },
            Point{
                path_point.x + HALF_HALLWAY_SIZE,
                path_point.y + HALF_HALLWAY_SIZE,
@@ -312,7 +283,7 @@ create_map(int level, unsigned int seed) {
   std::vector<Point> possible_tiles = collect_positions(grid, TileType::Floor);
   place_tile(grid, random_generator, TileType::Player, possible_tiles);
   for (std::pair<TileType, double> item : ITEM_PROBABILITIES) {
-    int tile_limit = (int)round((double)(item.second * item_limit));
+    int tile_limit = (int) round((double) (item.second * item_limit));
     int tiles_placed = 0;
     while (tiles_placed < tile_limit) {
       place_tile(grid, random_generator, item.first, possible_tiles);

@@ -14,6 +14,9 @@ set(CPP_LIB hades_extensions_lib)
 set(PY_MODULE hades_extensions_py)
 set(TEST_MODULE hades_extensions_tests)
 
+# Enable support for unit testing in the "test" subdirectory
+enable_testing()
+
 # Add the src and test directories to the project
 add_subdirectory(src)
 add_subdirectory(test)
@@ -21,6 +24,6 @@ add_subdirectory(test)
 # Enable support for unit testing in the "test" subdirectory
 enable_testing()
 
-
 # TODO: https://github.com/sdispater/pendulum/blob/master/meson.build
 # TODO: https://mesonbuild.com/CMake-module.html
+

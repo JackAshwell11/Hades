@@ -10,7 +10,7 @@ add_library(GTest::GTest INTERFACE IMPORTED)
 target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
 # Create an executable from our test code
-add_executable(${TEST_MODULE} main.cpp)
+add_executable(${TEST_MODULE} test_astar.cpp test_bsp.cpp test_map.cpp test_primitives.cpp)
 
 # Link the test executable against GoogleTest and the C++ shared library
 target_link_libraries(
@@ -18,4 +18,6 @@ target_link_libraries(
         gtest_main
         ${CPP_LIB}
 )
-add_test(hadesExtensionsTests ${TEST_MODULE})
+add_test(NAME Tests COMMAND ${TEST_MODULE})
+
+# TODO: PYTHON INTERFACE IS BROKEN AND NEED TO GET LCOV COVERAGE FILE

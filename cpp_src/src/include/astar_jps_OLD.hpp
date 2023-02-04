@@ -4,7 +4,7 @@
 #include <queue>
 
 // Custom includes
-#include "primitives.h"
+#include "primitives.hpp"
 
 // ----- CONSTANTS ------------------------------
 /* Represents the north, south, east, west, north-east, north-west, south-east
@@ -35,7 +35,7 @@ struct Neighbour {
 // ----- FUNCTIONS ------------------------------
 inline bool walkable(std::vector<std::vector<TileType>> &grid, int x, int y) {
   return ((0 <= x) && (x < grid[0].size()) && (0 <= y) && (y < grid.size()) &&
-          (grid[y][x] != TileType::Obstacle));
+      (grid[y][x] != TileType::Obstacle));
 }
 
 std::optional<Point> jump(std::vector<std::vector<TileType>> &grid,
@@ -51,9 +51,9 @@ std::optional<Point> jump(std::vector<std::vector<TileType>> &grid,
   int dx = current.x - parent.x, dy = current.y - parent.y;
   if (dx != 0 && dy != 0) {
     if ((!walkable(grid, current.x - dx, current.y) &&
-         walkable(grid, current.x - dx, current.y + dy)) or
+        walkable(grid, current.x - dx, current.y + dy)) or
         (!walkable(grid, current.x, current.y - dy) &&
-         walkable(grid, current.x + dx, current.y - dy))) {
+            walkable(grid, current.x + dx, current.y - dy))) {
       return current;
     }
 
@@ -63,16 +63,16 @@ std::optional<Point> jump(std::vector<std::vector<TileType>> &grid,
     }
   } else if (dx != 0) {
     if ((!walkable(grid, current.x, current.y - 1) &&
-         walkable(grid, current.x + dx, current.y - 1)) or
+        walkable(grid, current.x + dx, current.y - 1)) or
         (!walkable(grid, current.x, current.y + 1) &&
-         walkable(grid, current.x + dx, current.y + 1))) {
+            walkable(grid, current.x + dx, current.y + 1))) {
       return current;
     }
   } else {
     if ((!walkable(grid, current.x - 1, current.y) &&
-         walkable(grid, current.x - 1, current.y - dy)) or
+        walkable(grid, current.x - 1, current.y - dy)) or
         (!walkable(grid, current.x + 1, current.y) &&
-         walkable(grid, current.x + 1, current.y - dy))) {
+            walkable(grid, current.x + 1, current.y - dy))) {
       return current;
     }
   }
@@ -138,7 +138,7 @@ calculate_astar_path(std::vector<std::vector<TileType>> &grid, Point &start,
   std::priority_queue<Neighbour> queue;
   std::unordered_map<Point, Point> came_from = {{start, start}};
   std::unordered_map<Point, int> distances = {{start, 0}};
-  queue.push({0, start});
+  queue.push({0, start, start});
 
   // Loop until the priority queue is empty
   while (!queue.empty()) {
@@ -179,8 +179,8 @@ calculate_astar_path(std::vector<std::vector<TileType>> &grid, Point &start,
         // Check if the jump_point is an obstacle. If so, set the total cost to
         // infinity, otherwise, set it to f = g + h
         int f_cost = distances[jump_point.value()] +
-                     std::max(abs(jump_point->x - current.x),
-                              abs(jump_point->y - current.y));
+            std::max(abs(jump_point->x - current.x),
+                     abs(jump_point->y - current.y));
 
         // Add the jump_point to the priority queue
         queue.push({f_cost, jump_point.value(), current});

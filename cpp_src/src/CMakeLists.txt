@@ -1,5 +1,6 @@
 # Create the shared C++ library which will be used by pybind11 and the tests
-add_library(${CPP_LIB} SHARED map.cpp)
+add_library(${CPP_LIB} STATIC astar.cpp bsp.cpp map.cpp primitives.cpp)
+target_include_directories(${CPP_LIB} PUBLIC include)
 
 # Find the Python interpreter
 find_package(PythonInterp REQUIRED)
