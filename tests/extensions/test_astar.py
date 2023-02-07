@@ -42,9 +42,9 @@ def get_obstacle_grid() -> npt.NDArray[np.int8]:
         if x == TileType.EMPTY
     ]
     for _ in range(25):
-        temp_grid[
-            obstacle_positions.pop(random.randrange(len(obstacle_positions)))
-        ] = TileType.OBSTACLE
+        temp_grid[obstacle_positions.pop(random.randrange(len(obstacle_positions)))] = (
+            TileType.OBSTACLE
+        )
     return temp_grid
 
 

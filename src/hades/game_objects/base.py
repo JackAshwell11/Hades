@@ -441,9 +441,9 @@ class Entity(GameObject, metaclass=ABCMeta):
         super().__init__(game, x, y)
         self.entity_type: BaseData = entity_type
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
-        self.entity_state: dict[
-            EntityAttributeType, EntityAttribute
-        ] = self._initialise_entity_state()
+        self.entity_state: dict[EntityAttributeType, EntityAttribute] = (
+            self._initialise_entity_state()
+        )
         self.attack_algorithms: list[AttackBase] = [
             create_attack(self, attack_type, attack_data)
             for attack_type, attack_data in self.attacks.items()
