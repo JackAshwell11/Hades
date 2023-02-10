@@ -1,3 +1,6 @@
+// Std includes
+#include <stdexcept>
+
 // Custom includes
 #include "primitives.hpp"
 
@@ -16,7 +19,7 @@ int Rect::get_distance_to(Rect &other) const {
 }
 
 void Rect::place_rect(std::vector<std::vector<TileType>> &grid) const {
-  // Get the width and height of the grid
+  // Get the width and height
   int grid_height = (int) grid.size();
   int grid_width = (int) grid[0].size();
 

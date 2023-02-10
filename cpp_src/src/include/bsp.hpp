@@ -17,7 +17,6 @@
 /// right - The right container of this leaf. If this is null, we have reached
 /// the end of the branch.
 /// room - The rect object for representing the room inside this leaf.
-/// split_vertical - Whether the leaf was split vertically or not.
 struct Leaf {
   // Parameters
   Rect container{};
@@ -25,7 +24,10 @@ struct Leaf {
   // Attributes
   Leaf *left{}, *right{};
   Rect *room{};
-  bool split_vertical{};
+
+  inline bool operator==(const Leaf lef) const {
+    return container == lef.container && left == lef.left && right == lef.right;
+  }
 
   /// Default constructor for a Leaf object. This should not be used.
   Leaf() = default;

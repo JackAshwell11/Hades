@@ -14,20 +14,20 @@ bool Leaf::split(std::vector<std::vector<TileType>> &grid,
   // larger than the width, we split horizontally. Otherwise, we split
   // randomly
   std::uniform_int_distribution<> split_vertical_distribution(0, 1);
-  bool split_vertical_val = split_vertical_distribution(random_generator);
+  bool split_vertical = split_vertical_distribution(random_generator);
   if ((container.width > container.height) &&
       (((double) container.width / container.height) >= CONTAINER_RATIO)) {
-    split_vertical_val = true;
+    split_vertical = true;
   } else if ((container.height > container.width) &&
       (((double) container.height / container.width) >=
           CONTAINER_RATIO)) {
-    split_vertical_val = false;
+    split_vertical = false;
   }
 
   // To determine the range of values that we could split on, we need to find
   // out if the container is too small. Once we've done that, we can use the
   // x1, y1, x2 and y2 coordinates to specify the range of values
-  int max_size = (split_vertical_val) ? container.width - MIN_CONTAINER_SIZE
+  int max_size = (split_vertical) ? container.width - MIN_CONTAINER_SIZE
                                       : container.height - MIN_CONTAINER_SIZE;
   if (max_size <= MIN_CONTAINER_SIZE) {
     // Container too small to split
@@ -41,13 +41,12 @@ bool Leaf::split(std::vector<std::vector<TileType>> &grid,
   int pos = pos_distribution(random_generator);
 
   // Split the container
-  if (split_vertical_val) {
+  if (split_vertical) {
     // Split vertically making sure to adjust pos, so it can be within range
     // of the actual container
     pos += container.top_left.x;
     if (debug_game) {
-      for (int y = container.top_left.y; y < container.bottom_right.y + 1;
-           y++) {
+      for (int y = container.top_left.y; y < container.bottom_right.y + 1; y++) {
         grid[y][pos] = TileType::DebugWall;
       }
     }
@@ -69,8 +68,7 @@ bool Leaf::split(std::vector<std::vector<TileType>> &grid,
     // of the actual container
     pos += container.top_left.y;
     if (debug_game) {
-      for (int x = container.top_left.x; x < container.bottom_right.x + 1;
-           x++) {
+      for (int x = container.top_left.x; x < container.bottom_right.x + 1; x++) {
         grid[pos][x] = TileType::DebugWall;
       }
     }
@@ -88,9 +86,6 @@ bool Leaf::split(std::vector<std::vector<TileType>> &grid,
         },
              Point{container.bottom_right.x, container.bottom_right.y}}};
   }
-
-  // Set the leaf's split direction
-  split_vertical = split_vertical_val;
 
   // Successful split
   return true;

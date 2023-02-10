@@ -1,3 +1,18 @@
+# Determine if coverage can be used
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message("-- GCC detected, coverage will use gcov")
+    set(CMAKE_C_FLAGS "-g -fprofile-arcs -ftest-coverage")
+    set(CMAKE_CXX_FLAGS "-g -fprofile-arcs -ftest-coverage")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    message("-- MSVC detected, coverage will use llvm-cov")
+    set(CMAKE_C_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
+    set(CMAKE_CXX_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
+endif()
+
+# Enable support for unit testing
+include(CTest)
+enable_testing()
+
 # Fetch the GoogleTest repository and initialise it
 include(FetchContent)
 FetchContent_Declare(
@@ -19,5 +34,3 @@ target_link_libraries(
         ${CPP_LIB}
 )
 add_test(NAME Tests COMMAND ${TEST_MODULE})
-
-# TODO: PYTHON INTERFACE IS BROKEN AND NEED TO GET LCOV COVERAGE FILE

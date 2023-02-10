@@ -1,23 +1,13 @@
 // Std includes
-#include <unordered_map>
 #include <queue>
+#include <stdexcept>
+#include <iostream>
+#include <unordered_map>
 
 // Custom includes
 #include "astar.hpp"
 
 // ----- FUNCTIONS ------------------------------
-/// Get a target's neighbours based on a given list of offsets.
-///
-/// Parameters
-/// ----------
-/// target - The target to get neighbours for.
-/// height - The height of the grid.
-/// width - The width of the grid.
-/// offsets - The offsets to used to calculate the neighbours.
-///
-/// Returns
-/// -------
-/// A vector of the target's neighbours.
 std::vector<Point> grid_bfs(Point &target, int height, int width) {
   // Create a vector to store the neighbours
   std::vector<Point> result;
@@ -35,25 +25,14 @@ std::vector<Point> grid_bfs(Point &target, int height, int width) {
   return result;
 }
 
-/// Calculate the shortest path in a grid from one pair to another using the A*
-/// algorithm.
-///
-/// Further reading which may be useful:
-/// `The A* algorithm <https://en.wikipedia.org/wiki/A*_search_algorithm>`_
-///
-/// Parameters
-/// ----------
-/// grid - The 2D grid which represents the dungeon.
-/// start - The start pair for the algorithm.
-/// end - The end pair for the algorithm.
-///
-/// Returns
-/// -------
-/// A vector of points mapping out the shortest path from start to end.
 std::vector<Point>
 calculate_astar_path(std::vector<std::vector<TileType>> &grid, Point &start,
                      Point &end) {
-  // Set up a few variables needed for the pathfinding
+  // Check if the grid size is not zero, if not, set up a few variables needed
+  // for the pathfinding
+  if (grid.empty()) {
+    throw std::length_error("Grid size must be bigger than 0.");
+  }
   std::vector<Point> result;
   std::priority_queue<Neighbour> queue;
   std::unordered_map<Point, Point> came_from = {{start, start}};
@@ -91,23 +70,28 @@ calculate_astar_path(std::vector<std::vector<TileType>> &grid, Point &start,
     //   We're using the Chebyshev distance for
     //       this.
     for (Point neighbour : grid_bfs(current, height, width)) {
-      if (!came_from.count(neighbour)) {
-        // Store the neighbour's parent and calculate its distance from the
-        // start pair
-        came_from.emplace(neighbour, current);
-        distances.emplace(neighbour, distances[current] + 1);
+      //if (!came_from.count(neighbour)) {
+        // Try and store the new distance. If it already exists, do nothing
+        distances.try_emplace(neighbour, std::numeric_limits<int>::max());
 
         // Check if the neighbour is an obstacle. If so, set the total cost to
         // infinity, otherwise, set it to f = g + h
-        int f_cost =
-            (grid[neighbour.y][neighbour.x] == TileType::Obstacle)
-            ? std::numeric_limits<int>::max()
-            : distances[neighbour] + std::max(abs(neighbour.x - current.x),
-                                              abs(neighbour.y - current.y));
+        int f_cost = (grid[neighbour.y][neighbour.x] == TileType::Obstacle)
+                     ? std::numeric_limits<int>::max()
+                     : distances[current] + 1 + std::max(abs(neighbour.x - current.x),
+                                                       abs(neighbour.y - current.y));
 
-        // Add the neighbour to the priority queue
-        queue.push({f_cost, neighbour});
-      }
+        // See if we've found a quicker path
+        if (f_cost <= distances[neighbour]) {
+          // Store the neighbour's parent and calculate its distance from the
+          // start pair
+          came_from.emplace(neighbour, current);
+          distances[neighbour] = distances[current] + 1;
+
+          // Add the neighbour to the priority queue
+          queue.push({f_cost, neighbour});
+        }
+     // }
     }
   }
 

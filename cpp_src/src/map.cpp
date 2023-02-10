@@ -1,24 +1,15 @@
 // Std includes
 #include <execution>
+#include <optional>
 #include <queue>
+#include <iostream>
 
 // Custom includes
 #include "include/astar.hpp"
 #include "include/map.hpp"
 
 // ----- FUNCTIONS ------------------------------
-/// Collect all points in a given grid that match the target.
-///
-/// Parameters
-/// ----------
-/// grid - The 2D grid which represents the dungeon.
-/// target - The TileType to test for.
-///
-/// Returns
-/// -------
-/// A vector of points which match the target.
-inline std::vector<Point>
-collect_positions(std::vector<std::vector<TileType>> &grid, TileType target) {
+std::vector<Point> collect_positions(std::vector<std::vector<TileType>> &grid, TileType target) {
   // Iterate over grid and check each position
   std::vector<Point> result;
   for (int y = 0; y < grid.size(); y++) {
@@ -33,14 +24,6 @@ collect_positions(std::vector<std::vector<TileType>> &grid, TileType target) {
   return result;
 }
 
-/// Split the bsp based on the generated constants.
-///
-/// Parameters
-/// ----------
-/// bsp - The root leaf for the binary space partition.
-/// grid - The 2D grid which represents the dungeon.
-/// random_generator - The random generator used to generate the bsp.
-/// split_iteration - The number of splits to perform.
 void split_bsp(Leaf &bsp, std::vector<std::vector<TileType>> &grid,
                std::mt19937 &random_generator, int split_iteration) {
   // Start the splitting using a queue
@@ -64,17 +47,6 @@ void split_bsp(Leaf &bsp, std::vector<std::vector<TileType>> &grid,
   }
 }
 
-/// Generate the rooms for a given game level using the bsp.
-///
-/// Parameters
-/// ----------
-/// bsp - The root leaf for the binary space partition.
-/// grid - The 2D grid which represents the dungeon.
-/// random_generator - The random generator used to generate the bsp.
-///
-/// Returns
-/// -------
-/// The generated rooms.
 std::vector<Rect> generate_rooms(Leaf &bsp,
                                  std::vector<std::vector<TileType>> &grid,
                                  std::mt19937 &random_generator) {
@@ -114,29 +86,21 @@ std::vector<Rect> generate_rooms(Leaf &bsp,
   return rooms;
 }
 
-/// Create a set of connections between all the rects ensuring that every rect
-/// is reachable.
-///
-/// Further reading which may be useful:
-/// `Prim's algorithm <https://en.wikipedia.org/wiki/Prim's_algorithm>`_
-///
-/// Parameters
-/// ----------
-/// complete_graph - An adjacency list which represents a complete graph.
-///
-/// Returns
-/// -------
-/// A set of edges which form the connections between rects.
 std::unordered_set<Edge> create_connections(
     std::unordered_map<Rect, std::vector<Rect>> &complete_graph) {
+  // Check if complete_graph is valid
+  if (complete_graph.empty()) {
+    throw std::length_error("Complete graph size must be bigger than 0.");
+  }
+
   // Use Prim's algorithm to construct a minimum spanning tree from
   // complete_graph
   Rect start = complete_graph.begin()->first;
   std::priority_queue<Edge> unexplored;
   std::unordered_set<Rect> visited;
   std::unordered_set<Edge> mst;
-  unexplored.push(Edge{0, start, start});
-  while (mst.size() < complete_graph.size() - 1 && !unexplored.empty()) {
+  unexplored.emplace(0, start, start);
+  while (mst.size() < complete_graph.size() && !unexplored.empty()) {
     // Get the neighbour with the lowest cost
     Edge lowest = unexplored.top();
     unexplored.pop();
@@ -151,11 +115,11 @@ std::unordered_set<Edge> create_connections(
     visited.insert(lowest.destination);
     for (Rect neighbour : complete_graph.at(lowest.destination)) {
       if (!visited.count(neighbour)) {
-        unexplored.push(Edge{
+        unexplored.emplace(
             lowest.destination.get_distance_to(neighbour),
             lowest.destination,
-            neighbour,
-        });
+            neighbour
+        );
       }
     }
 
@@ -170,17 +134,14 @@ std::unordered_set<Edge> create_connections(
   return mst;
 }
 
-/// Places a given tile in the 2D grid.
-///
-/// Parameters
-/// ----------
-/// grid - The 2D grid which represents the dungeon.
-/// random_generator - The random generator used to pick the position.
-/// target_tile - The tile to place in the 2D grid.
-/// possible_tiles - The possible tiles that the tile can be placed into.
 void place_tile(std::vector<std::vector<TileType>> &grid,
                 std::mt19937 &random_generator, TileType target_tile,
                 std::vector<Point> &possible_tiles) {
+  // Check if at least one tile exists
+  if (possible_tiles.empty()) {
+    throw std::length_error("Possible tiles size must be bigger than 0.");
+  }
+
   // Get a random floor position and place the target tile
   std::uniform_int_distribution<> possible_tiles_distribution(
       0, (int) possible_tiles.size() - 1);
@@ -190,14 +151,6 @@ void place_tile(std::vector<std::vector<TileType>> &grid,
   grid[possible_tile.y][possible_tile.x] = target_tile;
 }
 
-/// Create the hallways by placing random obstacles and pathfinding around them.
-///
-/// Parameters
-/// ----------
-/// grid - The 2D grid which represents the dungeon.
-/// random_generator - The random generator used to pick the obstacle positions.
-/// connections - The connections to pathfind using the A* algorithm.
-/// obstacle_count - The number of obstacles to place in the 2D grid.
 void create_hallways(std::vector<std::vector<TileType>> &grid,
                      std::mt19937 &random_generator,
                      std::unordered_set<Edge> &connections,
@@ -236,22 +189,28 @@ void create_hallways(std::vector<std::vector<TileType>> &grid,
   }
 }
 
-/// Generate the game map for a given game level.
-///
-/// Parameters
-/// ----------
-/// level - The game level to generate a map for.
-/// seed - The seed to initialise the random generator.
-///
-/// Returns
-/// -------
-/// A tuple containing the generated map and the level constants.
 std::pair<std::vector<std::vector<TileType>>, std::tuple<int, int, int>>
-create_map(int level, unsigned int seed) {
+create_map(int level, std::optional<unsigned int> seed) {
+  // Check that the level number is valid
+  if (level < 0) {
+    throw std::length_error("Level must be bigger than or equal to 0");
+  }
+
+  // Create the random generator. If seed is None, then get a random unsigned integer
+  unsigned int valid_seed;
+  if (!seed.has_value()) {
+    std::random_device random_device;
+    std::mt19937_64 seed_generator(random_device());
+    std::uniform_int_distribution<unsigned int> seed_distribution;
+    valid_seed = seed_distribution(seed_generator);
+  } else {
+    valid_seed = seed.value();
+  }
+  std::mt19937 random_generator(valid_seed);
+
   // Initialise a few variables needed for the map generation
   int grid_width = MAP_GENERATION_CONSTANTS.width.generate_value(level);
   int grid_height = MAP_GENERATION_CONSTANTS.height.generate_value(level);
-  std::mt19937 random_generator(seed);
   std::vector<std::vector<TileType>> grid(
       grid_height, std::vector<TileType>(grid_width, TileType::Empty));
   Leaf bsp = Leaf{Rect{Point{0, 0}, Point{grid_width - 1, grid_height - 1}}};
