@@ -24,7 +24,7 @@ struct Point {
   }
 
   inline bool operator!=(const Point pnt) const {
-    return x != pnt.x && y != pnt.y;
+    return x != pnt.x || y != pnt.y;
   }
 
   /// Default constructor for a Point object. This should not be used.
@@ -104,7 +104,7 @@ struct Rect {
   }
 
   inline bool operator!=(const Rect rct) const {
-    return top_left != rct.top_left && bottom_right != rct.bottom_right;
+    return top_left != rct.top_left || bottom_right != rct.bottom_right;
   }
 
   /// Default constructor for a Rect object. This should not be used.

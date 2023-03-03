@@ -81,9 +81,6 @@ TEST_F(Fixtures, TestMapGenerateRoomsRoomExist) {
 }
 
 TEST_F(Fixtures, TestMapCreateConnectionsValid) {
-  // TODO: THIS SHOULD HAVE 3 CONNECTIONS
-  // TODO: FIX RESULT
-  // TODO: I THINK PRIMS ALGORITHM IS WRONG
   // Create a complete graph with 4 nodes and 6 connections
   std::unordered_map<Rect, std::vector<Rect>> complete_graph;
   Rect temp_rect_one = Rect{Point{0, 0}, Point{3, 3}}, temp_rect_two = Rect{Point{10, 10}, Point{12, 12}};
@@ -98,7 +95,7 @@ TEST_F(Fixtures, TestMapCreateConnectionsValid) {
 
   // Test how many connections are created
   std::unordered_set<Edge> connections_result =
-      {{2, valid_rect_two, temp_rect_one}, {7, valid_rect_one, temp_rect_two}};
+      {{7, valid_rect_one, temp_rect_two}, {3, valid_rect_two, valid_rect_one}, {2, temp_rect_one, valid_rect_two}};
   ASSERT_EQ(create_connections(complete_graph), connections_result);
 }
 

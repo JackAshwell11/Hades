@@ -2,7 +2,6 @@
 #include <execution>
 #include <optional>
 #include <queue>
-#include <iostream>
 
 // Custom includes
 #include "include/astar.hpp"
