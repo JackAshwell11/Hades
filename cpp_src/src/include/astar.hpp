@@ -7,8 +7,9 @@
 // ----- CONSTANTS ------------------------------
 /* Represents the north, south, east, west, north-east, north-west, south-east
  * and south-west directions on a compass */
+// TODO: THE ORDER THIS IS ITERATED THROUGH DEPENDS HOW THE PATH LOOKS LIKE. NEED TO FIND A WAY TO ITERATE UNORDERED
 const std::vector<Point> INTERCARDINAL_OFFSETS = {
-    {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1},
+    {-1, -1}, {1, -1}, {-1, 1}, {1, 1}, {0, -1}, {-1, 0}, {1, 0}, {0, 1},
 };
 
 // ----- STRUCTURES ------------------------------
@@ -25,7 +26,7 @@ struct Neighbour {
   inline bool operator<(const Neighbour nghbr) const {
     // The priority_queue data structure gets the maximum priority, so we need
     // to override that functionality to get the minimum priority
-    return cost >= nghbr.cost;
+    return cost > nghbr.cost;
   }
 };
 

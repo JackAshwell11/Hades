@@ -23,8 +23,7 @@ TEST_F(Fixtures, TestGridBFSEdge) {
 
 TEST_F(Fixtures, TestCalculateAstarPathNoObstacles) {
   // Test A* in a grid with no obstacles
-  // TODO: FIX RESULT
-  std::vector<Point> no_obstacles_result = {{4, 0}, {4, 1}, {4, 2}, {5, 3}, {4, 4}, {3, 5}};
+  std::vector<Point> no_obstacles_result = {{4, 0}, {5, 1}, {6, 2}, {5, 3}, {4, 4}, {3, 5}};
   ASSERT_EQ(calculate_astar_path(grid, valid_point_one, boundary_point), no_obstacles_result);
 }
 

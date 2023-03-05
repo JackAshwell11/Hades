@@ -1,7 +1,6 @@
 // Std includes
 #include <queue>
 #include <stdexcept>
-#include <iostream>
 #include <unordered_map>
 
 // Custom includes
@@ -67,31 +66,25 @@ calculate_astar_path(std::vector<std::vector<TileType>> &grid, Point &start,
     //   f - The total cost of traversing the neighbour.
     //   g - The distance between the start pair and the neighbour pair.
     //   h - The estimated distance from the neighbour pair to the end pair.
-    //   We're using the Chebyshev distance for
-    //       this.
+    //   We're using the Chebyshev distance for this.
     for (Point neighbour : grid_bfs(current, height, width)) {
-      //if (!came_from.count(neighbour)) {
-        // Try and store the new distance. If it already exists, do nothing
-        distances.try_emplace(neighbour, std::numeric_limits<int>::max());
+      // Test if the neighbour is an obstacle or not. If so, skip to the next
+      // neighbour as we want to move around it
+      if (grid[neighbour.y][neighbour.x] == TileType::Obstacle) {
+        continue;
+      }
 
-        // Check if the neighbour is an obstacle. If so, set the total cost to
-        // infinity, otherwise, set it to f = g + h
-        int f_cost = (grid[neighbour.y][neighbour.x] == TileType::Obstacle)
-                     ? std::numeric_limits<int>::max()
-                     : distances[current] + 1 + std::max(abs(neighbour.x - current.x),
-                                                       abs(neighbour.y - current.y));
+      // Calculate the distance from the start
+      int distance = distances[current] + 1;
 
-        // See if we've found a quicker path
-        if (f_cost <= distances[neighbour]) {
-          // Store the neighbour's parent and calculate its distance from the
-          // start pair
-          came_from.emplace(neighbour, current);
-          distances[neighbour] = distances[current] + 1;
+      // Check if we need to add a new neighbour to the heap
+      if ((!came_from.contains(neighbour)) || distance < distances.at(neighbour)) {
+        came_from[neighbour] = current;
+        distances[neighbour] = distance;
 
-          // Add the neighbour to the priority queue
-          queue.push({f_cost, neighbour});
-        }
-     // }
+        // Add the neighbour to the priority queue
+        queue.push({distance + std::max(abs(end.x - neighbour.x), abs(end.y - neighbour.y)), neighbour});
+      }
     }
   }
 
