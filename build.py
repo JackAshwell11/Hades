@@ -43,7 +43,7 @@ class CMakeBuild(build_ext):
             [
                 "cmake",
                 current_dir.joinpath(ext.sources[0]),
-                f"-DDO_TESTS=false",
+                "-DDO_TESTS=false",
                 f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
             ],
             cwd=build_temp,
@@ -112,12 +112,11 @@ def cpp() -> None:
         script_args=["bdist_wheel"],
         ext_modules=[Extension("hades_extensions", ["cpp_src"])],
         cmdclass={"build_ext": CMakeBuild},
+        data_files=[("", ["cpp_src/hades_extensions.pyi"])],
     )
-    # subprocess.run(
-
-
-#     f'pip install "{Path.cwd().joinpath(dist.dist_files[0][2])}"', check=True
-# )
+    subprocess.run(
+        f'pip install "{Path.cwd().joinpath(dist.dist_files[0][2])}"', check=True
+    )
 
 
 def build(_: dict[str, Any]) -> None:
