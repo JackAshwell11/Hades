@@ -1,18 +1,12 @@
-// Std includes
-#include <stdexcept>
-
 // Custom includes
 #include "primitives.hpp"
 
-// ----- STRUCTURES ------------------------------
-std::pair<int, int> Point::sum(Point &other) const {
-  return std::make_pair(x + other.x, y + other.y);
-}
+// ----- CONSTANTS ------------------------------
+// Defines constants for hallway and entity generation
+const TileType REPLACEABLE_TILES[3] = {TileType::Empty, TileType::Obstacle,
+                                       TileType::DebugWall};
 
-std::pair<int, int> Point::abs_diff(Point &other) const {
-  return std::make_pair(abs(x - other.x), abs(y - other.y));
-}
-
+// ----- FUNCTIONS ------------------------------
 int Rect::get_distance_to(Rect &other) const {
   return std::max(abs(center.x - other.center.x),
                   abs(center.y - other.center.y));

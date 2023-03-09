@@ -41,6 +41,7 @@ struct Edge {
   }
 };
 
+// ----- FUNCTIONS ------------------------------
 /// Allows the edge struct to be hashed in a map.
 template<>
 struct std::hash<Edge> {

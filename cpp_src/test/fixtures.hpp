@@ -17,7 +17,7 @@ class Fixtures : public testing::Test {
       {TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
       {TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle},
       {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty},
+      {TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Obstacle, TileType::Obstacle, TileType::Empty},
       {TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty},
       {TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Obstacle},
       {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Obstacle, TileType::Empty},
@@ -25,7 +25,6 @@ class Fixtures : public testing::Test {
       {TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
   };
   std::vector<std::vector<TileType>> grid, small_grid, empty_grid;
-
 
   void SetUp() override {
     grid = std::vector<std::vector<TileType>>(20, std::vector<TileType>(20, TileType::Empty));

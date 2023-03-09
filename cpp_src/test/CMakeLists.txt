@@ -7,11 +7,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     message("-- MSVC detected, coverage will use llvm-cov")
     set(CMAKE_C_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
     set(CMAKE_CXX_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
-endif()
-
-# Enable support for unit testing
-include(CTest)
-enable_testing()
+endif ()
 
 # Fetch the GoogleTest repository and initialise it
 include(FetchContent)

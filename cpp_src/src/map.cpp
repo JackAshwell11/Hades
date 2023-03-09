@@ -7,6 +7,61 @@
 #include "include/astar.hpp"
 #include "include/map.hpp"
 
+// ----- STRUCTURES ------------------------------
+/// Stores a map generation constant which can be calculated.
+///
+/// Parameters
+/// ----------
+/// base_value - The base value for the exponential calculation.
+/// increase - The percentage increase for the constant.
+/// max_value - The max value for the exponential calculation.
+struct MapGenerationConstant {
+  double base_value, increase, max_value;
+
+  /// Generate a value based on the exponential equation.
+  ///
+  /// Parameters
+  /// ----------
+  /// level - The game level to generate a value for.
+  ///
+  /// Returns
+  /// -------
+  /// The generated valued.
+  [[nodiscard]] inline int generate_value(int level) const {
+    return (int) std::min(round(base_value * pow(increase, level)), max_value);
+  }
+};
+
+/// Stores the map generation constants
+///
+/// Parameters
+/// ----------
+/// width - The width of the 2D grid.
+/// height - The height of the 2D grid.
+/// split_iteration - The amount of splits to perform.
+/// obstacle_count - The amount of obstacles to place in the 2D grid.
+/// item_count - The amount of items to place in the 2D grid.
+struct MapGenerationConstants {
+  MapGenerationConstant width, height, split_iteration, obstacle_count,
+      item_count;
+};
+
+// ----- CONSTANTS ------------------------------
+// Defines constants for hallway and entity generation
+#define HALLWAY_SIZE 5
+
+// Defines the probabilities for each item
+const std::pair<TileType, double> ITEM_PROBABILITIES[6] = {
+    {TileType::HealthPotion, 0.3}, {TileType::ArmourPotion, 0.3},
+    {TileType::HealthBoostPotion, 0.2}, {TileType::ArmourBoostPotion, 0.1},
+    {TileType::SpeedBoostPotion, 0.05}, {TileType::FireRateBoostPotion, 0.05},
+};
+
+// Defines the constants for the map generation
+const MapGenerationConstants MAP_GENERATION_CONSTANTS = {
+    {30, 1.2, 150}, {20, 1.2, 100}, {5, 1.5, 25}, {20, 1.3, 200}, {5, 1.1, 30},
+};
+
 // ----- FUNCTIONS ------------------------------
 std::vector<Point> collect_positions(std::vector<std::vector<TileType>> &grid, TileType target) {
   // Iterate over grid and check each position
@@ -105,7 +160,7 @@ std::unordered_set<Edge> create_connections(
     unexplored.pop();
 
     // Check if the neighbour is already visited or not
-    if (visited.count(lowest.destination)) {
+    if (visited.contains(lowest.destination)) {
       continue;
     }
 
@@ -113,13 +168,7 @@ std::unordered_set<Edge> create_connections(
     // the heap
     visited.insert(lowest.destination);
     for (Rect neighbour : complete_graph.at(lowest.destination)) {
-      if (!visited.count(neighbour)) {
-        unexplored.emplace(
-            lowest.destination.get_distance_to(neighbour),
-            lowest.destination,
-            neighbour
-        );
-      }
+      unexplored.emplace(lowest.destination.get_distance_to(neighbour), lowest.destination, neighbour);
     }
 
     // Add a new edge towards the lowest cost neighbour onto the mst
@@ -166,24 +215,28 @@ void create_hallways(std::vector<std::vector<TileType>> &grid,
   const int HALF_HALLWAY_SIZE = HALLWAY_SIZE / 2;
   std::vector<std::vector<Point>> path_points;
   path_points.resize(connections.size());
-  std::transform(std::execution::par, connections.begin(), connections.end(),
-                 path_points.begin(), [&grid](Edge connection) {
-        return calculate_astar_path(grid, connection.source.center,
-                                    connection.destination.center);
-      });
+  std::transform(std::execution::par,
+                 connections.begin(),
+                 connections.end(),
+                 path_points.begin(),
+                 [&grid](Edge connection) {
+                   return calculate_astar_path(grid,
+                                               connection.source.center,
+                                               connection.destination.center);
+                 });
   for (const std::vector<Point> &path : path_points) {
     for (Point path_point : path) {
       // Place a rect box around the path_point using HALLWAY_SIZE to determine
       // the width and height
-      Rect{Point{
-          path_point.x - HALF_HALLWAY_SIZE,
-          path_point.y - HALF_HALLWAY_SIZE,
-      },
-           Point{
+      Rect{{
+               path_point.x - HALF_HALLWAY_SIZE,
+               path_point.y - HALF_HALLWAY_SIZE,
+           },
+           {
                path_point.x + HALF_HALLWAY_SIZE,
                path_point.y + HALF_HALLWAY_SIZE,
-           }}
-          .place_rect(grid);
+           }
+      }.place_rect(grid);
     }
   }
 }
@@ -212,7 +265,7 @@ create_map(int level, std::optional<unsigned int> seed) {
   int grid_height = MAP_GENERATION_CONSTANTS.height.generate_value(level);
   std::vector<std::vector<TileType>> grid(
       grid_height, std::vector<TileType>(grid_width, TileType::Empty));
-  Leaf bsp = Leaf{Rect{Point{0, 0}, Point{grid_width - 1, grid_height - 1}}};
+  Leaf bsp = Leaf{{{0, 0}, {grid_width - 1, grid_height - 1}}};
 
   // Split the bsp and create the rooms
   split_bsp(bsp, grid, random_generator,

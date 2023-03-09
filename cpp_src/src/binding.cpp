@@ -3,7 +3,6 @@
 #include <pybind11/stl.h>
 
 // Custom includes
-#include "include/constants.hpp"
 #include "include/map.hpp"
 
 // ----- PYTHON MODULE CREATION ------------------------------

@@ -19,6 +19,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Enable support for unit testing
+include(CTest)
+enable_testing()
+
 # Add the src and test directories to the project
 add_subdirectory(src)
 if (DO_TESTS)

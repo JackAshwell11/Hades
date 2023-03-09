@@ -2,19 +2,27 @@
 #pragma once
 
 // Std includes
+#include <cmath>
 #include <vector>
 
-// Custom includes
-#include "constants.hpp"
+// ----- ENUMS ------------------------------
+/// Stores the different types of tiles in the game map.
+enum class TileType {
+  DebugWall,
+  Empty,
+  Floor,
+  Wall,
+  Obstacle,
+  Player,
+  HealthPotion,
+  ArmourPotion,
+  HealthBoostPotion,
+  ArmourBoostPotion,
+  SpeedBoostPotion,
+  FireRateBoostPotion
+};
 
 // ----- STRUCTURES ------------------------------
-/// Allows multiple hashes to be combined for a struct
-template<class T>
-inline void hash_combine(size_t &seed, const T &v) {
-  std::hash<T> hasher;
-  seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-}
-
 /// Represents a point in the grid.
 struct Point {
   int x, y;
@@ -25,6 +33,14 @@ struct Point {
 
   inline bool operator!=(const Point pnt) const {
     return x != pnt.x || y != pnt.y;
+  }
+
+  inline Point operator+(const Point pnt) const {
+    return {x + pnt.x, y + pnt.y};
+  }
+
+  inline Point operator-(const Point pnt) const {
+    return {abs(x - pnt.x), abs(y - pnt.y)};
   }
 
   /// Default constructor for a Point object. This should not be used.
@@ -43,39 +59,6 @@ struct Point {
   Point(int x_val, int y_val) {
     x = x_val;
     y = y_val;
-  }
-
-  /// Calculate the sum of two points.
-  ///
-  /// Parameters
-  /// ----------
-  /// other - The point to calculate the sum with.
-  ///
-  /// Returns
-  /// -------
-  /// The sum of two points.
-  std::pair<int, int> sum(Point &other) const;
-
-  /// Calculate the absolute difference between two points.
-  ///
-  /// Parameters
-  /// ----------
-  /// other - The point to calculate the absolute difference with.
-  ///
-  /// Returns
-  /// -------
-  /// The absolute difference between two points.
-  std::pair<int, int> abs_diff(Point &other) const;
-};
-
-/// Allows the point struct to be hashed in a map.
-template<>
-struct std::hash<Point> {
-  size_t operator()(const Point &pnt) const {
-    size_t res = 0;
-    hash_combine(res, pnt.x);
-    hash_combine(res, pnt.y);
-    return res;
   }
 };
 
@@ -121,14 +104,14 @@ struct Rect {
   /// -------
   /// A Rect object.
   Rect(Point top_left_val, Point bottom_right_val) {
-    std::pair<int, int> sum = top_left_val.sum(bottom_right_val);
-    std::pair<int, int> diff = top_left_val.abs_diff(bottom_right_val);
+    Point sum = top_left_val + bottom_right_val;
+    Point diff = top_left_val - bottom_right_val;
     top_left = top_left_val;
     bottom_right = bottom_right_val;
-    center = Point((int) round(((double) sum.first) / 2.0),
-                   (int) round(((double) sum.second) / 2.0));
-    width = diff.first;
-    height = diff.second;
+    center = Point((int) round(((double) sum.x) / 2.0),
+                   (int) round(((double) sum.y) / 2.0));
+    width = diff.x;
+    height = diff.y;
   }
 
   /// Get the Chebyshev distance to another rect.
@@ -150,7 +133,26 @@ struct Rect {
   void place_rect(std::vector<std::vector<TileType>> &grid) const;
 };
 
-/// Allows the rect struct to be hashed in a map.
+// ----- FUNCTIONS ------------------------------
+/// Allows multiple hashes to be combined for a struct
+template<class T>
+inline void hash_combine(size_t &seed, const T &v) {
+  std::hash<T> hasher;
+  seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+/// Allows the Point struct to be hashed in a map
+template<>
+struct std::hash<Point> {
+  size_t operator()(const Point &pnt) const {
+    size_t res = 0;
+    hash_combine(res, pnt.x);
+    hash_combine(res, pnt.y);
+    return res;
+  }
+};
+
+/// Allows the Rect struct to be hashed in a map
 template<>
 struct std::hash<Rect> {
   size_t operator()(const Rect &rct) const {

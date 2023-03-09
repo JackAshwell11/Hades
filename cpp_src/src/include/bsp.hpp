@@ -49,7 +49,6 @@ struct Leaf {
   /// ----------
   /// grid - The 2D grid which represents the dungeon.
   /// random_generator - The random generator used to generate the bsp.
-  /// min_container_size - The minimum size one side of a container can be.
   /// debug_game - Whether the game is in debug mode or not.
   ///
   /// Returns
@@ -57,5 +56,15 @@ struct Leaf {
   /// Whether the split was successful or not.
   bool split(std::vector<std::vector<TileType>> &grid, std::mt19937 &random_generator, bool debug_game);
 
+  /// Create a random sized room inside a container.
+  ///
+  /// Parameters
+  /// ----------
+  /// grid - The 2D grid which represents the dungeon.
+  /// random_generator - The random generator used to generate the bsp.
+  ///
+  /// Returns
+  /// -------
+  /// Whether the room creation was successful or not.
   bool create_room(std::vector<std::vector<TileType>> &grid, std::mt19937 &random_generator);
 };
