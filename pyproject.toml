@@ -16,6 +16,7 @@ packages = [
 ]
 
 [tool.poetry.build]
+# generate-setup-file = false
 script = "build.py"
 
 [tool.poetry.dependencies]
@@ -23,6 +24,7 @@ python = "^3.10"
 arcade = "2.6.16"
 maturin = "0.14.6"
 numpy = "1.23.5"
+pybind11 = "2.10.3"
 pymunk = "6.2.1"
 shapely = "2.0.0"
 

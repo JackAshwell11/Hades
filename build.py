@@ -9,6 +9,49 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
+# Pip
+from setuptools import Extension, setup
+from setuptools.command.build_ext import build_ext
+
+
+class CMakeBuild(build_ext):
+    """A custom build_ext command which allows CMake projects to be built."""
+
+    def build_extension(self, ext: Extension) -> None:
+        """Build a CMake extension.
+
+        Parameters
+        ----------
+        ext: Extension
+            The extension to build.
+        """
+        # Determine where the extension should be transferred to after it has been
+        # compiled
+        current_dir = Path.cwd()
+        build_dir = current_dir.joinpath(self.get_ext_fullpath(ext.name)).parent
+
+        # Determine the profile to build the CMake extension with
+        profile = "Release"
+
+        # Make sure the build directory exists
+        build_temp = Path(self.build_temp).joinpath(ext.name)
+        if not build_temp.exists():
+            build_temp.mkdir(parents=True)
+
+        # Compile and build the CMake extension
+        subprocess.run(
+            [
+                "cmake",
+                current_dir.joinpath(ext.sources[0]),
+                f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
+            ],
+            cwd=build_temp,
+            check=True,
+        )
+        subprocess.run(
+            ["cmake", "--build", ".", f"--config {profile}"], cwd=build_temp, check=True
+        )
+
 
 def executable() -> None:
     """Compiles the game into an executable format for portable use."""
@@ -61,9 +104,22 @@ def rust() -> None:
     subprocess.run("maturin develop -r", check=True)
 
 
+def cpp() -> None:
+    """Compiles the C++ extensions and installs them into the virtual environment."""
+    dist = setup(
+        name="hades_extensions",
+        script_args=["bdist_wheel"],
+        ext_modules=[Extension("hades_extensions", ["cpp_src"])],
+        cmdclass={"build_ext": CMakeBuild},
+    )
+    subprocess.run(
+        f'pip install "{Path.cwd().joinpath(dist.dist_files[0][2])}"', check=True
+    )
+
+
 def build(_: dict[str, Any]) -> None:
-    """Allow Poetry to automatically build the Rust extensions upon installation."""
-    rust()
+    """Allow Poetry to automatically build the C++ extensions upon installation."""
+    cpp()
 
 
 if __name__ == "__main__":
@@ -84,6 +140,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Compiles the Rust extensions and installs them",
     )
+    build_group.add_argument(
+        "-c",
+        "--cpp",
+        action="store_true",
+        help="Compiles the C++ extensions and installs them",
+    )
     args = parser.parse_args()
 
     # Determine which argument was selected
@@ -91,3 +153,5 @@ if __name__ == "__main__":
         executable()
     elif args.rust:
         rust()
+    elif args.cpp:
+        cpp()
