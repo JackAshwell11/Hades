@@ -117,11 +117,9 @@ fn generate_rooms(
             queue.push_back(current.left.as_mut().unwrap());
             queue.push_back(current.right.as_mut().unwrap());
         } else {
-            // Create a room in the current leaf and save the rect
-            while !current.create_room(grid, random_generator) {
-                // Width to height ratio is outside of range so try again
-                continue;
-            }
+            // Create a room in the current leaf and save the rect. If a room cannot be created, the
+            // width to height ratio is outside of range so try again
+            while !current.create_room(grid, random_generator) {}
 
             // Add the created room to the rooms list
             rooms.push(current.room.unwrap());
@@ -157,7 +155,7 @@ fn create_connections(complete_graph: &HashMap<Rect, Vec<Rect>, RandomState>) ->
             continue;
         }
 
-        // Neighbour isn't visited so mark it as visited and add it's neighbours to the heap
+        // Neighbour isn't visited so mark it as visited and add its neighbours to the heap
         visited.insert(lowest.2);
         for neighbour in &complete_graph[&lowest.2] {
             if !visited.contains(&neighbour) {
@@ -180,6 +178,25 @@ fn create_connections(complete_graph: &HashMap<Rect, Vec<Rect>, RandomState>) ->
     return mst;
 }
 
+/// Places a given tile in the 2D grid.
+///
+/// # Parameters
+/// * `grid` - The 2D grid which represents the dungeon.
+/// * `random_generator` - The random generator used to pick the positions for the obstacles.
+/// * `target_tile` - The tile to place in the 2D grid.
+/// * `possible_tiles` - The possible tiles that the tile can be placed into.
+fn place_tile(
+    grid: &mut Array2<TileType>,
+    random_generator: &mut StdRng,
+    target_tile: &TileType,
+    possible_tiles: &mut Vec<Point>,
+) {
+    // Get a random floor position and place the target tile
+    let tile_point: Point =
+        possible_tiles.swap_remove(random_generator.gen_range(0..possible_tiles.len()));
+    grid[[tile_point.x as usize, tile_point.y as usize]] = target_tile.clone();
+}
+
 /// Create the hallways by placing random obstacles and pathfinding around them.
 ///
 /// # Parameters
@@ -196,14 +213,11 @@ fn create_hallways(
     // Place random obstacles in the grid
     let mut obstacle_positions: Vec<Point> = collect_positions(grid, &TileType::Empty);
     for _ in 0..obstacle_count {
-        let obstacle_point: Point =
-            obstacle_positions.swap_remove(random_generator.gen_range(0..obstacle_positions.len()));
-        grid[[obstacle_point.x as usize, obstacle_point.y as usize]] = TileType::Obstacle;
+        place_tile(grid, random_generator, &TileType::Obstacle, &mut obstacle_positions);
     }
 
     // Use the A* algorithm with to connect each pair of rooms making sure to avoid the obstacles
-    // giving us natural looking hallways. Note that the width of the hallways will always be odd in
-    // this implementation due to numpy indexing
+    // giving us natural looking hallways
     const HALF_HALLWAY_SIZE: i32 = HALLWAY_SIZE / 2;
     let path_points: Vec<Point> = connections
         .par_iter()
@@ -228,24 +242,6 @@ fn create_hallways(
     }
 }
 
-/// Places a given tile in the 2D grid.
-///
-/// # Parameters
-/// * `grid` - The 2D grid which represents the dungeon.
-/// * `random_generator` - The random generator used to pick the positions for the obstacles.
-/// * `target_tile` - The tile to place in the 2D grid.
-/// * `possible_tiles` - The possible tiles that the tile can be placed into.
-fn place_tile(
-    grid: &mut Array2<TileType>,
-    random_generator: &mut StdRng,
-    target_tile: &TileType,
-    possible_tiles: &mut Vec<Point>,
-) {
-    // Get a random floor position and place the target tile
-    let tile_point: Point =
-        possible_tiles.swap_remove(random_generator.gen_range(0..possible_tiles.len()));
-    grid[[tile_point.x as usize, tile_point.y as usize]] = target_tile.clone();
-}
 
 /// Generate the game map for a given game level.
 ///

@@ -6,6 +6,18 @@ use ndarray::Array2;
 use std::cmp::{max, Ordering};
 use std::collections::{BinaryHeap, HashMap};
 
+// Represents the north, south, east, west, north-east, north-west, south-east and south-west directions on a compass
+const INTERCARDINAL_OFFSETS: [Point; 8] = [
+    Point { x: -1, y: -1 },
+    Point { x: 0, y: -1 },
+    Point { x: 1, y: -1 },
+    Point { x: -1, y: 0 },
+    Point { x: 1, y: 0 },
+    Point { x: -1, y: 1 },
+    Point { x: 0, y: 1 },
+    Point { x: 1, y: 1 },
+];
+
 /// Represents a grid position and its costs from the start position
 ///
 /// # Parameters
@@ -46,16 +58,7 @@ fn grid_bfs(target: &Point, height: i32, width: i32) -> Vec<Point> {
     let mut result: Vec<Point> = vec![];
 
     // Iterate over each offset and check if it's a valid neighbour
-    for offset in [
-        Point { x: -1, y: -1 },
-        Point { x: 0, y: -1 },
-        Point { x: 1, y: -1 },
-        Point { x: -1, y: 0 },
-        Point { x: 1, y: 0 },
-        Point { x: -1, y: 1 },
-        Point { x: 0, y: 1 },
-        Point { x: 1, y: 1 },
-    ] {
+    for offset in INTERCARDINAL_OFFSETS {
         let x: i32 = target.x + offset.x;
         let y: i32 = target.y + offset.y;
         if (x >= 0 && x < width) && (y >= 0 && y < height) {

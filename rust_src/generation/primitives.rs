@@ -80,7 +80,7 @@ impl Rect {
     /// A Rect object.
     pub fn new(top_left: Point, bottom_right: Point) -> Rect {
         let sum: (i32, i32) = top_left.sum(&bottom_right);
-        let diff: (i32, i32) = bottom_right.abs_diff(&top_left);
+        let diff: (i32, i32) = top_left.abs_diff(&bottom_right);
         Rect {
             top_left,
             bottom_right,
