@@ -11,6 +11,16 @@ updates:
       - "type: dependency"
       - "status: pending"
 
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "disabled"
+    labels:
+      - "priority: medium"
+      - "type: dependency"
+      - "status: pending"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
