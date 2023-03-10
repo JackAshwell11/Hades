@@ -1,5 +1,7 @@
 /// Creates a binary space partition used for generating the rooms.
-use crate::generation::constants::{TileType, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, ROOM_RATIO};
+use crate::generation::constants::{
+    TileType, CONTAINER_RATIO, MIN_CONTAINER_SIZE, MIN_ROOM_SIZE, ROOM_RATIO,
+};
 use crate::generation::primitives::{Point, Rect};
 use ndarray::{s, Array2};
 use rand::rngs::StdRng;
@@ -71,11 +73,11 @@ impl Leaf {
         // if so we split vertically. However, if the height is 25% larger than the width, we split
         // horizontally. Otherwise, we split randomly
         let split_vertical: bool = if (self.container.width > self.container.height)
-            && ((self.container.width / self.container.height) as f64 >= 1.25)
+            && ((self.container.width / self.container.height) as f64 >= CONTAINER_RATIO)
         {
             true
         } else if (self.container.height > self.container.width)
-            && ((self.container.height / self.container.width) as f64 >= 1.25)
+            && ((self.container.height / self.container.width) as f64 >= CONTAINER_RATIO)
         {
             false
         } else {

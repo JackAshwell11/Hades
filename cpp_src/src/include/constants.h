@@ -72,6 +72,7 @@ const std::pair<TileType, double> ITEM_PROBABILITIES[6] = {
 };
 
 // Defines constants for the binary space partition
+const double CONTAINER_RATIO = 1.25;
 const int MIN_CONTAINER_SIZE = 5;
 const int MIN_ROOM_SIZE = 4;
 const double ROOM_RATIO = 0.625;

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 # Custom
 from hades.constants.general import DEBUG_GAME
 from hades.constants.generation import (
+    CONTAINER_RATIO,
     MIN_CONTAINER_SIZE,
     MIN_ROOM_SIZE,
     ROOM_RATIO,
@@ -102,12 +103,12 @@ class Leaf:
         split_vertical = bool(self.random_generator.getrandbits(1))
         if (
             self.container.width > self.container.height
-            and self.container.width / self.container.height >= 1.25
+            and self.container.width / self.container.height >= CONTAINER_RATIO
         ):
             split_vertical = True
         elif (
             self.container.height > self.container.width
-            and self.container.height / self.container.width >= 1.25
+            and self.container.height / self.container.width >= CONTAINER_RATIO
         ):
             split_vertical = False
 

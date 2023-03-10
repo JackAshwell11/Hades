@@ -28,3 +28,7 @@ add_subdirectory(
 
 # Initialise the module with pybind11
 pybind11_add_module(hades_extensions src/map.cpp)
+
+
+# TODO: https://github.com/sdispater/pendulum/blob/master/meson.build
+# TODO: https://mesonbuild.com/CMake-module.html

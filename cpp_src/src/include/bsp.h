@@ -17,12 +17,12 @@
 /// split_vertical - Whether the leaf was split vertically or not.
 struct Leaf {
   // Parameters
-  Rect container;
+  Rect container{};
 
   // Attributes
-  Leaf *left, *right;
-  Rect *room;
-  bool split_vertical;
+  Leaf *left{}, *right{};
+  Rect *room{};
+  bool split_vertical{};
 
   /// Default constructor for a Leaf object. This should not be used.
   Leaf() = default;
@@ -64,10 +64,10 @@ struct Leaf {
     std::uniform_int_distribution<> split_vertical_distribution(0, 1);
     bool split_vertical_val = split_vertical_distribution(random_generator);
     if ((container.width > container.height) &&
-        (((double)container.width / container.height) >= 1.25)) {
+        (((double)container.width / container.height) >= CONTAINER_RATIO)) {
       split_vertical_val = true;
     } else if ((container.height > container.width) &&
-               (((double)container.height / container.width) >= 1.25)) {
+               (((double)container.height / container.width) >= CONTAINER_RATIO)) {
       split_vertical_val = false;
     }
 

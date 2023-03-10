@@ -1,5 +1,5 @@
 /// Manages the generation of the dungeon and placing of game objects.
-use crate::generation::astar::calculate_astar_path;
+use crate::generation::astar_jps::calculate_astar_path;
 use crate::generation::bsp::Leaf;
 use crate::generation::constants::{
     TileType, HALLWAY_SIZE, ITEM_PROBABILITIES, MAP_GENERATION_CONSTANTS,
@@ -213,7 +213,12 @@ fn create_hallways(
     // Place random obstacles in the grid
     let mut obstacle_positions: Vec<Point> = collect_positions(grid, &TileType::Empty);
     for _ in 0..obstacle_count {
-        place_tile(grid, random_generator, &TileType::Obstacle, &mut obstacle_positions);
+        place_tile(
+            grid,
+            random_generator,
+            &TileType::Obstacle,
+            &mut obstacle_positions,
+        );
     }
 
     // Use the A* algorithm with to connect each pair of rooms making sure to avoid the obstacles
@@ -241,7 +246,6 @@ fn create_hallways(
         .place_rect(grid);
     }
 }
-
 
 /// Generate the game map for a given game level.
 ///

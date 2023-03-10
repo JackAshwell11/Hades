@@ -105,6 +105,7 @@ pub const ITEM_PROBABILITIES: [(TileType, f32); 6] = [
 ];
 
 // Defines constants for the binary space partition
+pub const CONTAINER_RATIO: f64 = 1.25;
 pub const MIN_CONTAINER_SIZE: i32 = 5;
 pub const MIN_ROOM_SIZE: i32 = 4;
 pub const ROOM_RATIO: f32 = 0.625;
