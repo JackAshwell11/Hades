@@ -16,15 +16,15 @@ TEST_F(Fixtures, TestBspSplitValid) {
 
 TEST_F(Fixtures, TestBspSplitDebug) {
   // Initialise the resultant 2D grid where the x=10 column is a debug wall
-  std::vector<std::vector<TileType>> result_grid(20, std::vector<TileType>(20, TileType::Empty));
+  Grid result_grid = {20, 20};
   for (int y = 0; y < 20; y++) {
-    result_grid[y][10] = TileType::DebugWall;
+    result_grid.set_value(10, y, TileType::DebugWall);
   }
 
   // Test the result of 2 debug splits
   leaf.split(grid, random_generator, true);
   leaf.split(grid, random_generator, true);
-  ASSERT_EQ(grid, result_grid);
+  ASSERT_EQ(grid.grid, result_grid.grid);
 }
 
 TEST_F(Fixtures, TestBspSplitSmallWidthHeight) {

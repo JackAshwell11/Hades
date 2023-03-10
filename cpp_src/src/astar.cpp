@@ -32,17 +32,15 @@ const std::vector<Point> INTERCARDINAL_OFFSETS = {
 };
 
 // ----- FUNCTIONS ------------------------------
-std::vector<Point>
-calculate_astar_path(std::vector<std::vector<TileType>> &grid, const Point start, const Point end) {
+std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Point end) {
   // Check if the grid size is not zero, if not, set up a few variables needed
   // for the pathfinding
-  if (grid.empty()) {
+  if (!grid.width) {
     throw std::length_error("Grid size must be bigger than 0.");
   }
   std::vector<Point> result;
   std::priority_queue<Neighbour> queue;
   std::unordered_map<Point, Neighbour> neighbours = {{start, {0, start}}};
-  Point grid_size = {(int) grid[0].size(), (int) grid.size()};
   queue.push({0, start});
 
   // Loop until the priority queue is empty
@@ -76,13 +74,13 @@ calculate_astar_path(std::vector<std::vector<TileType>> &grid, const Point start
       // Calculate the neighbour's position and check if its valid excluding the
       // boundaries as that produces weird paths
       Point neighbour = current + offset;
-      if (neighbour.x < 0 || neighbour.x >= grid_size.x || neighbour.y < 0 || neighbour.y >= grid_size.y) {
+      if (neighbour.x < 0 || neighbour.x >= grid.width || neighbour.y < 0 || neighbour.y >= grid.height) {
         continue;
       }
 
       // Test if the neighbour is an obstacle or not. If so, skip to the next
       // neighbour as we want to move around it
-      if (grid[neighbour.y][neighbour.x] == TileType::Obstacle) {
+      if (grid.get_value(neighbour.x, neighbour.y) == TileType::Obstacle) {
         continue;
       }
 

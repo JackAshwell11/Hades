@@ -107,13 +107,13 @@ TEST_F(Fixtures, TestMapCreateConnectionsEmpty) {
 
 TEST_F(Fixtures, TestMapPlaceTileValid) {
   // Initialise the resultant 2D grid with the player tile in (4, 2)
-  std::vector<std::vector<TileType>> place_tile_valid_result(9, std::vector<TileType>(6, TileType::Empty));
-  place_tile_valid_result[2][4] = TileType::Player;
+  Grid place_tile_valid_result = {6, 9};
+  place_tile_valid_result.set_value(4, 2, TileType::Player);
 
   // Test if a tile is correctly placed in the 2D grid
   std::vector<Point> possible_tiles = {{5, 6}, {4, 2}};
   place_tile(small_grid, random_generator, TileType::Player, possible_tiles);
-  ASSERT_EQ(small_grid, place_tile_valid_result);
+  ASSERT_EQ(small_grid.grid, place_tile_valid_result.grid);
 }
 
 TEST_F(Fixtures, TestMapPlaceTileEmpty) {
@@ -126,166 +126,166 @@ TEST_F(Fixtures, TestMapCreateHallwaysValid) {
   // Test if a connection is correctly drawn in the 2D grid with obstacles
   std::unordered_set<Edge> connections = {{0, valid_rect_one, valid_rect_two}};
   create_hallways(small_grid, random_generator, connections, 10);
-  std::vector<std::vector<TileType>> create_hallways_valid_result = {
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall},
-      {TileType::Empty, TileType::Wall, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Wall, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall},
+  std::vector<TileType> create_hallways_valid_result = {
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Empty, TileType::Wall, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Wall, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
   };
-  ASSERT_EQ(small_grid, create_hallways_valid_result);
+  ASSERT_EQ(small_grid.grid, create_hallways_valid_result);
 }
 
 TEST_F(Fixtures, TestMapCreateHallwaysNoObstacles) {
   // Test if a connection is correctly drawn in the 2D grid without obstacles
   std::unordered_set<Edge> connections = {{0, valid_rect_one, valid_rect_two}};
   create_hallways(small_grid, random_generator, connections, 0);
-  std::vector<std::vector<TileType>> create_hallways_no_obstacles_result = {
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall},
+  std::vector<TileType> create_hallways_no_obstacles_result = {
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
   };
-  ASSERT_EQ(small_grid, create_hallways_no_obstacles_result);
+  ASSERT_EQ(small_grid.grid, create_hallways_no_obstacles_result);
 }
 
 TEST_F(Fixtures, TestMapCreateHallwaysNoConnections) {
   // Test if nothing gets drawn in the 2D grid except from obstacles
   std::unordered_set<Edge> connections = {};
   create_hallways(small_grid, random_generator, connections, 5);
-  std::vector<std::vector<TileType>> create_hallways_no_connections_result = {
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle},
-      {TileType::Empty, TileType::Obstacle, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
+  std::vector<TileType> create_hallways_no_connections_result = {
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle,
+      TileType::Empty, TileType::Obstacle, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
-  ASSERT_EQ(small_grid, create_hallways_no_connections_result);
+  ASSERT_EQ(small_grid.grid, create_hallways_no_connections_result);
 }
 
 TEST_F(Fixtures, TestMapCreateMapValid) {
   // Initialise the resultant 2D grid
-  std::vector<std::vector<TileType>> create_map_valid_result = {
-      {TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
-       TileType::Wall, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Wall, TileType::Wall,
-       TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
-       TileType::Wall, TileType::Wall, TileType::Obstacle, TileType::DebugWall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::DebugWall, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Player, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::HealthPotion, TileType::Floor, TileType::Wall, TileType::Wall,
-       TileType::Wall, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall,
-       TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
-       TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
-       TileType::Wall, TileType::Wall, TileType::HealthBoostPotion, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-       TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-       TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::DebugWall,
-       TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::DebugWall,
-       TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::Wall,
-       TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Wall, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-       TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Obstacle,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
-       TileType::Wall, TileType::Wall, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::DebugWall,
-       TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-       TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-       TileType::Floor, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-       TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Wall, TileType::Wall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-       TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Obstacle, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
-       TileType::Floor, TileType::HealthPotion, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall,
-       TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Wall,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::DebugWall,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Obstacle,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
-       TileType::Floor, TileType::ArmourBoostPotion, TileType::ArmourPotion, TileType::Wall, TileType::Empty,
-       TileType::DebugWall, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-       TileType::Empty},
-      {TileType::Wall, TileType::ArmourPotion, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
-       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty, TileType::DebugWall,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty},
-      {TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
-       TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Empty, TileType::DebugWall,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Obstacle, TileType::Empty,
-       TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall,
-       TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall,
-       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
+  std::vector<TileType> create_map_valid_result = {
+      TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Wall, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Wall, TileType::Wall,
+      TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Wall, TileType::Wall, TileType::Obstacle, TileType::DebugWall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::DebugWall, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Player, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::HealthPotion, TileType::Floor, TileType::Wall, TileType::Wall,
+      TileType::Wall, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall,
+      TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Wall, TileType::Wall, TileType::HealthBoostPotion, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::DebugWall,
+      TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::DebugWall,
+      TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::Wall,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Obstacle,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
+      TileType::Wall, TileType::Wall, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::DebugWall,
+      TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::DebugWall, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Wall, TileType::Wall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Obstacle, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
+      TileType::Floor, TileType::HealthPotion, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall,
+      TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Wall,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::DebugWall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Obstacle,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
+      TileType::Floor, TileType::ArmourBoostPotion, TileType::ArmourPotion, TileType::Wall, TileType::Empty,
+      TileType::DebugWall, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty,
+      TileType::Wall, TileType::ArmourPotion, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty, TileType::DebugWall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Wall, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
+      TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Empty, TileType::DebugWall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Obstacle, TileType::Empty,
+      TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall,
+      TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::DebugWall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
 
   // Test if a map is correctly generated
-  std::pair<std::vector<std::vector<TileType>>, std::tuple<int, int, int>> create_map_valid = create_map(0, 5);
+  std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_valid = create_map(0, 5);
   ASSERT_EQ(create_map_valid.first, create_map_valid_result);
   ASSERT_EQ(create_map_valid.second, std::make_tuple(0, 30, 20));
 }
@@ -299,16 +299,14 @@ TEST_F(Fixtures, TestMapCreateMapEmptySeed) {
   // Test if a map is correctly generated without a given seed. We can't test it
   // against a set result since the seed is randomly generated
   std::optional<unsigned int> empty_seed;
-  std::pair<std::vector<std::vector<TileType>>, std::tuple<int, int, int>>
-      create_map_empty_seed = create_map(0, empty_seed);
+  std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_empty_seed = create_map(0, empty_seed);
   ASSERT_EQ(create_map_empty_seed.second, std::make_tuple(0, 30, 20));
 
   // Test if the player exists in the 2D grid
   bool has_player = false;
-  for (std::vector<TileType> row : create_map_empty_seed.first) {
-    if (std::find(row.begin(), row.end(), TileType::Player) != row.end()) {
-      has_player = true;
-    }
+  if (std::find(create_map_empty_seed.first.begin(), create_map_empty_seed.first.end(), TileType::Player)
+      != create_map_empty_seed.first.end()) {
+    has_player = true;
   }
   ASSERT_TRUE(has_player);
 }

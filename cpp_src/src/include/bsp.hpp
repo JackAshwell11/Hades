@@ -54,7 +54,7 @@ struct Leaf {
   /// Returns
   /// -------
   /// Whether the split was successful or not.
-  bool split(std::vector<std::vector<TileType>> &grid, std::mt19937 &random_generator, bool debug_game);
+  bool split(Grid &grid, std::mt19937 &random_generator, bool debug_game);
 
   /// Create a random sized room inside a container.
   ///
@@ -66,5 +66,5 @@ struct Leaf {
   /// Returns
   /// -------
   /// Whether the room creation was successful or not.
-  bool create_room(std::vector<std::vector<TileType>> &grid, std::mt19937 &random_generator);
+  bool create_room(Grid &grid, std::mt19937 &random_generator);
 };

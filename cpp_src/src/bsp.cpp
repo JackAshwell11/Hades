@@ -9,8 +9,7 @@
 #define ROOM_RATIO 0.625
 
 // ----- FUNCTIONS ------------------------------
-bool Leaf::split(std::vector<std::vector<TileType>> &grid,
-                 std::mt19937 &random_generator, bool debug_game) {
+bool Leaf::split(Grid &grid, std::mt19937 &random_generator, bool debug_game) {
   // Check if this leaf is already split or not
   if (left && right) {
     return false;
@@ -55,7 +54,7 @@ bool Leaf::split(std::vector<std::vector<TileType>> &grid,
     pos += container.top_left.x;
     if (debug_game) {
       for (int y = container.top_left.y; y < container.bottom_right.y + 1; y++) {
-        grid[y][pos] = TileType::DebugWall;
+        grid.set_value(pos, y, TileType::DebugWall);
       }
     }
 
@@ -78,7 +77,7 @@ bool Leaf::split(std::vector<std::vector<TileType>> &grid,
     pos += container.top_left.y;
     if (debug_game) {
       for (int x = container.top_left.x; x < container.bottom_right.x + 1; x++) {
-        grid[pos][x] = TileType::DebugWall;
+        grid.set_value(x, pos, TileType::DebugWall);
       }
     }
 
@@ -101,8 +100,7 @@ bool Leaf::split(std::vector<std::vector<TileType>> &grid,
   return true;
 }
 
-bool Leaf::create_room(std::vector<std::vector<TileType>> &grid,
-                       std::mt19937 &random_generator) {
+bool Leaf::create_room(Grid &grid, std::mt19937 &random_generator) {
   // Test if this container is already split or not. If it is, we do not want
   // to create a room inside it otherwise it will overwrite other rooms
   if (left && right) {

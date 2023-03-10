@@ -23,6 +23,69 @@ enum class TileType {
 };
 
 // ----- STRUCTURES ------------------------------
+/// Represents a 2D grid with a set width and height through a 1D vector.
+///
+/// Attributes
+/// ----------
+/// width - The width of the 2D grid.
+/// height - The height of the 2D grid.
+struct Grid {
+  // Parameters
+  int width{}, height{};
+
+  // Attributes
+  std::vector<TileType> grid{};
+
+  /// Default constructor for a Grid object. This should not be used.
+  Grid() = default;
+
+  /// Construct a Grid object.
+  ///
+  /// Parameters
+  /// ----------
+  /// width - The width of the 2D grid.
+  /// height - The height of the 2D grid.
+  ///
+  /// Returns
+  /// -------
+  /// A Grid object.
+  Grid(int width_val, int height_val) {
+    width = width_val;
+    height = height_val;
+    grid = std::vector<TileType>(width * height, TileType::Empty);
+  }
+
+  /// Get a value in the 2D grid from a given position.
+  ///
+  /// Parameters
+  /// ----------
+  /// x - The x position.
+  /// y - The y position.
+  ///
+  /// Throws
+  /// ------
+  /// std::out_of_range
+  ///     Position must be within range
+  ///
+  /// Returns
+  /// -------
+  /// The value at the given position.
+  [[nodiscard]] TileType get_value(int x, int y) const;
+
+  /// Set a value in the 2D grid from a given position.
+  ///
+  /// Throws
+  /// ------
+  /// std::out_of_range
+  ///     Position must be within range
+  ///
+  /// Parameters
+  /// ----------
+  /// x - The x position.
+  /// y - The y position.
+  void set_value(int x, int y, TileType target);
+};
+
 /// Represents a point in the grid.
 struct Point {
   int x, y;
@@ -130,7 +193,7 @@ struct Rect {
   /// Parameters
   /// ----------
   /// grid - The 2D grid which represents the dungeon.
-  void place_rect(std::vector<std::vector<TileType>> &grid) const;
+  void place_rect(Grid &grid) const;
 };
 
 // ----- FUNCTIONS ------------------------------

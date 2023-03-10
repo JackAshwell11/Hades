@@ -24,16 +24,52 @@ TEST_F(Fixtures, TestRectGetDistanceToValidZero) {
 TEST_F(Fixtures, TestRectPlaceRect) {
   // Test if the place_rect function places a rect correctly in the grid
   valid_rect_one.place_rect(small_grid);
-  std::vector<std::vector<TileType>> target_result = {
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall},
-      {TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty},
+  std::vector<TileType> target_result = {
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
-  ASSERT_EQ(small_grid, target_result);
+  ASSERT_EQ(small_grid.grid, target_result);
 }
+
+TEST_F(Fixtures, TestGridGetValueMiddle) {
+  // Test if a position in the middle can be got correctly
+  grid.grid[191] = TileType::Player;
+  ASSERT_EQ(grid.get_value(11, 9), TileType::Player);
+}
+
+TEST_F(Fixtures, TestGridGetValueBoundary) {
+  // Test if a position on the edge can be got correctly
+  grid.grid[120] = TileType::Player;
+  ASSERT_EQ(grid.get_value(0, 6), TileType::Player);
+}
+
+TEST_F(Fixtures, TestGridGetValueInvalid) {
+  // Test if getting a position outside the array throws an exception
+  ASSERT_THROW(grid.get_value(22, 22), std::out_of_range);
+}
+
+TEST_F(Fixtures, TestGridSetValueMiddle) {
+  // Test if a position in the middle can be set correctly
+  grid.set_value(12, 7, TileType::Player);
+  ASSERT_EQ(grid.grid[152], TileType::Player);
+}
+
+TEST_F(Fixtures, TestGridSetValueBoundary) {
+  // Test if a position on the edge can be set correctly
+  grid.set_value(20, 5, TileType::Player);
+  ASSERT_EQ(grid.grid[120], TileType::Player);
+}
+
+TEST_F(Fixtures, TestGridSetValueInvalid) {
+  // Test if setting a position outside the array throws an exception
+  ASSERT_THROW(grid.set_value(-1, 5, TileType::Player), std::out_of_range);
+}
+
+// TODO: DO LOTS MORE TESTS FOR GET/SET VALUE

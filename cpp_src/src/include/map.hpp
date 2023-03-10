@@ -65,7 +65,7 @@ struct std::hash<Edge> {
 /// Returns
 /// -------
 /// A vector of points which match the target.
-std::vector<Point> collect_positions(std::vector<std::vector<TileType>> &grid, TileType target);
+std::vector<Point> collect_positions(Grid &grid, TileType target);
 
 /// Split the bsp based on the generated constants.
 ///
@@ -75,10 +75,7 @@ std::vector<Point> collect_positions(std::vector<std::vector<TileType>> &grid, T
 /// grid - The 2D grid which represents the dungeon.
 /// random_generator - The random generator used to generate the bsp.
 /// split_iteration - The number of splits to perform.
-void split_bsp(Leaf &bsp,
-               std::vector<std::vector<TileType>> &grid,
-               std::mt19937 &random_generator,
-               int split_iteration);
+void split_bsp(Leaf &bsp, Grid &grid, std::mt19937 &random_generator, int split_iteration);
 
 /// Generate the rooms for a given game level using the bsp.
 ///
@@ -91,7 +88,7 @@ void split_bsp(Leaf &bsp,
 /// Returns
 /// -------
 /// The generated rooms.
-std::vector<Rect> generate_rooms(Leaf &bsp, std::vector<std::vector<TileType>> &grid, std::mt19937 &random_generator);
+std::vector<Rect> generate_rooms(Leaf &bsp, Grid &grid, std::mt19937 &random_generator);
 
 /// Create a set of connections between all the rects ensuring that every rect
 /// is reachable.
@@ -124,10 +121,7 @@ std::unordered_set<Edge> create_connections(std::unordered_map<Rect, std::vector
 /// Throws
 /// ------
 /// std::length_error - Possible tiles size must be bigger than 0.
-void place_tile(std::vector<std::vector<TileType>> &grid,
-                std::mt19937 &random_generator,
-                TileType target_tile,
-                std::vector<Point> &possible_tiles);
+void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile, std::vector<Point> &possible_tiles);
 
 /// Create the hallways by placing random obstacles and pathfinding around them.
 ///
@@ -137,7 +131,7 @@ void place_tile(std::vector<std::vector<TileType>> &grid,
 /// random_generator - The random generator used to pick the obstacle positions.
 /// connections - The connections to pathfind using the A* algorithm.
 /// obstacle_count - The number of obstacles to place in the 2D grid.
-void create_hallways(std::vector<std::vector<TileType>> &grid,
+void create_hallways(Grid &grid,
                      std::mt19937 &random_generator,
                      std::unordered_set<Edge> &connections,
                      int obstacle_count);
@@ -153,5 +147,5 @@ void create_hallways(std::vector<std::vector<TileType>> &grid,
 /// Returns
 /// -------
 /// A tuple containing the generated map and the level constants.
-std::pair<std::vector<std::vector<TileType>>, std::tuple<int, int, int>> create_map(int level,
-                                                                                    std::optional<unsigned int> seed);
+std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(int level,
+                                                                       std::optional<unsigned int> seed = std::nullopt);

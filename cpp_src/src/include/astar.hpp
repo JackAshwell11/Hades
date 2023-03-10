@@ -24,4 +24,4 @@
 /// Returns
 /// -------
 /// A vector of points mapping out the shortest path from start to end.
-std::vector<Point> calculate_astar_path(std::vector<std::vector<TileType>> &grid, Point start, Point end);
+std::vector<Point> calculate_astar_path(Grid &grid, Point start, Point end);
