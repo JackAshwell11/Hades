@@ -58,7 +58,7 @@ def executable() -> None:
 def rust() -> None:
     """Compiles the Rust extensions and installs them into the virtual environment."""
     # Compile the Rust extensions and install them
-    subprocess.run("maturin develop", check=True)
+    subprocess.run("maturin develop -r", check=True)
 
 
 def build(_: dict[str, Any]) -> None:
@@ -76,13 +76,13 @@ if __name__ == "__main__":
         "-e",
         "--executable",
         action="store_true",
-        help="compiles the game into an executable format",
+        help="Compiles the game into an executable format",
     )
     build_group.add_argument(
         "-r",
         "--rust",
         action="store_true",
-        help="compiles the Rust extensions and installs them",
+        help="Compiles the Rust extensions and installs them",
     )
     args = parser.parse_args()
 

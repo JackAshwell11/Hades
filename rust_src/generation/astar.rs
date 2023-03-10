@@ -1,5 +1,8 @@
+/// Calculate the shortest path in a grid from one pair to another using the A* algorithm
+use crate::generation::constants::TileType;
 use crate::generation::primitives::Point;
-use pyo3::prelude::*;
+use ahash::RandomState;
+use ndarray::Array2;
 use std::cmp::{max, Ordering};
 use std::collections::{BinaryHeap, HashMap};
 
@@ -8,7 +11,7 @@ use std::collections::{BinaryHeap, HashMap};
 /// # Parameters
 /// * `cost` - The cost to traverse to this neighbour.
 /// * `pair` - The position in the grid.
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq)]
 struct Neighbour {
     cost: i32,
     pair: Point,
@@ -40,9 +43,9 @@ impl Ord for Neighbour {
 /// A vector of the target's neighbours.
 fn grid_bfs(target: &Point, height: i32, width: i32) -> Vec<Point> {
     // Create a vector to store the neighbours
-    let mut result: Vec<Point> = Vec::new();
+    let mut result: Vec<Point> = vec![];
 
-    // Iterate over each offset and check if its a valid neighbour
+    // Iterate over each offset and check if it's a valid neighbour
     for offset in [
         Point { x: -1, y: -1 },
         Point { x: 0, y: -1 },
@@ -67,50 +70,38 @@ fn grid_bfs(target: &Point, height: i32, width: i32) -> Vec<Point> {
 /// Calculate the shortest path in a grid from one pair to another using the A* algorithm.
 ///
 /// Further reading which may be useful:
-/// `The A* algorithm <https://en.wikipedia.org/wiki/A*_search_algorithm>`_
+/// * `The A* algorithm <https://en.wikipedia.org/wiki/A*_search_algorithm>`_
 ///
-/// Parameters
-/// ----------
-/// grid: list[list[int]]
-///     The 2D grid which represents the dungeon.
-/// start: Point
-///     The start pair for the algorithm.
-/// end: Point
-///     The end pair for the algorithm.
-/// obstacle_id: int
-///     The id of an obstacle tile.
+/// # Parameters
+/// * `grid` - The 2D grid which represents the dungeon.
+/// * `start` - The start pair for the algorithm.
+/// * `end` - The end pair for the algorithm.
 ///
-/// Returns
-/// -------
-/// list[Point]
-///     A list of pairs mapping out the shortest path from start to end.
-#[pyfunction]
-pub fn calculate_astar_path(
-    grid: Vec<Vec<i32>>,
-    start: Point,
-    end: Point,
-    obstacle_id: i32,
-) -> Vec<Point> {
+/// # Returns
+/// A vector of points mapping out the shortest path from start to end.
+pub fn calculate_astar_path(grid: &Array2<TileType>, start: &Point, end: &Point) -> Vec<Point> {
     // Set up a few variables needed for the pathfinding
-    let mut result: Vec<Point> = Vec::new();
+    let mut result: Vec<Point> = vec![];
     let mut queue: BinaryHeap<Neighbour> = BinaryHeap::from([Neighbour {
         cost: 0,
-        pair: start,
+        pair: *start,
     }]);
-    let mut came_from: HashMap<Point, Point> = HashMap::from([(start, start)]);
-    let mut distances: HashMap<Point, i32> = HashMap::from([(start, 0)]);
-    let height: i32 = grid.capacity() as i32;
-    let width: i32 = grid[0].capacity() as i32;
+    let mut came_from: HashMap<Point, Point, RandomState> = HashMap::default();
+    let mut distances: HashMap<Point, i32, RandomState> = HashMap::default();
+    let height: i32 = *grid.shape().get(0).unwrap() as i32;
+    let width: i32 = *grid.shape().get(1).unwrap() as i32;
+    came_from.insert(*start, *start);
+    distances.insert(*start, 0);
 
     // Loop until the priority queue is empty
     while !queue.is_empty() {
-        // Get the lowest cost pair from the queue
+        // Get the lowest cost pair from the priority queue
         let mut current: Point = queue.pop().unwrap().pair;
 
         // Check if we've reached our target
-        if current == end {
+        if current == *end {
             // Backtrack through came_from to get the path
-            while !(came_from[&current] == current) {
+            while came_from[&current] != current {
                 // Add the current pair to the result list
                 result.push(Point {
                     x: current.x,
@@ -142,16 +133,16 @@ pub fn calculate_astar_path(
 
                 // Check if the neighbour is an obstacle. If so, set the total cost to infinity,
                 // otherwise, set it to f = g + h
-                let f_cost: i32 = if grid[neighbour.y as usize][neighbour.x as usize] == obstacle_id
-                {
-                    i32::MAX
-                } else {
-                    distances[&neighbour]
-                        + max(
-                            (neighbour.x - current.x).abs(),
-                            (neighbour.y - current.y).abs(),
-                        )
-                };
+                let f_cost: i32 =
+                    if grid[[neighbour.y as usize, neighbour.x as usize]] == TileType::Obstacle {
+                        i32::MAX
+                    } else {
+                        distances[&neighbour]
+                            + max(
+                                (neighbour.x - current.x).abs(),
+                                (neighbour.y - current.y).abs(),
+                            )
+                    };
 
                 // Add the neighbour to the priority queue
                 queue.push(Neighbour {
@@ -165,6 +156,3 @@ pub fn calculate_astar_path(
     // Return the result
     return result;
 }
-
-// TODO: GO OVER DOCUMENTATION AND MAKE SURE ITS DISPLAYED IN PYTHON (INCLUDING STUBS). MAYBE CHANGE
-//  STYLE TOO
