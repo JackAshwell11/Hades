@@ -7,9 +7,9 @@ set(PY_MODULE hades_extensions)
 set(CPP_LIB hades_extensions_lib)
 set(TEST_MODULE hades_extensions_tests)
 
-# Define a boolean which determines if the tests should be compiled with the C++
-# library
+# Define some environment variables to determine what should be compiled
 SET(DO_TESTS true CACHE BOOL "Compiles the tests with the C++ library")
+SET(DO_PYTHON false CACHE BOOL "Compiles the Python module with the C++ library")
 
 # Define the project
 project(${PY_MODULE} LANGUAGES CXX)
@@ -28,7 +28,3 @@ add_subdirectory(src)
 if (DO_TESTS)
     add_subdirectory(test)
 endif()
-
-# TODO: https://github.com/sdispater/pendulum/blob/master/meson.build
-# TODO: https://mesonbuild.com/CMake-module.html
-

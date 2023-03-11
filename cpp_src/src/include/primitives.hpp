@@ -55,6 +55,23 @@ struct Grid {
     grid = std::vector<TileType>(width * height, TileType::Empty);
   }
 
+  /// Convert a 2D grid position to a 1D grid position.
+  ///
+  /// Parameters
+  /// ----------
+  /// x - The x position.
+  /// y - The y position.
+  ///
+  /// Throws
+  /// ------
+  /// std::out_of_range
+  ///     Position must be within range.
+  ///
+  /// Returns
+  /// -------
+  /// The 1D grid position.
+  [[nodiscard]] int convert_position(int x, int y) const;
+
   /// Get a value in the 2D grid from a given position.
   ///
   /// Parameters
@@ -65,7 +82,7 @@ struct Grid {
   /// Throws
   /// ------
   /// std::out_of_range
-  ///     Position must be within range
+  ///     Position must be within range.
   ///
   /// Returns
   /// -------
@@ -74,15 +91,15 @@ struct Grid {
 
   /// Set a value in the 2D grid from a given position.
   ///
-  /// Throws
-  /// ------
-  /// std::out_of_range
-  ///     Position must be within range
-  ///
   /// Parameters
   /// ----------
   /// x - The x position.
   /// y - The y position.
+  ///
+  /// Throws
+  /// ------
+  /// std::out_of_range
+  ///     Position must be within range.
   void set_value(int x, int y, TileType target);
 };
 

@@ -92,8 +92,6 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
         neighbours[neighbour] = {distance, current};
 
         // Add the neighbour to the priority queue
-        // TODO: DECIDE BETWEEN MANHATTAN AND CHEBYSHEV (PROBABLY CHEBYSHEV DUE TO WACKY HALLWAYS)
-        // (abs(end.x - neighbour.x) + abs(end.y - neighbour.y))
         queue.push({distance + std::max(abs(end.x - neighbour.x), abs(end.y - neighbour.y)), neighbour});
       }
     }

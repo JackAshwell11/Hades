@@ -1,7 +1,8 @@
+// Std includes
+#include <stdexcept>
+
 // Custom includes
 #include "primitives.hpp"
-
-#include <iostream>
 
 // ----- CONSTANTS ------------------------------
 // Defines constants for hallway and entity generation
@@ -39,15 +40,20 @@ void Rect::place_rect(Grid &grid) const {
   }
 }
 
+int Grid::convert_position(int x, int y) const {
+  // Check if the position is valid, if so, return the calculated index, if not, throw an exception
+  if (x < 0 || x >= width || y < 0 || y >= height) {
+    throw std::out_of_range("Position must be within range");
+  }
+  return width * y + x;
+}
+
 TileType Grid::get_value(int x, int y) const {
   // Convert the 2D position to 1D and return the value at that position
-  return grid.at(width * y + x);
+  return grid[convert_position(x, y)];
 }
 
 void Grid::set_value(int x, int y, TileType target) {
   // Convert the 2D position to 1D and set the value at that position to target
-  if (x < 0 || x >= width || y < 0 || y >= height) {
-    throw std::out_of_range("Position must be within range");
-  }
-  grid[width * y + x] = target;
+  grid[convert_position(x, y)] = target;
 }

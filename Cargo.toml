@@ -1,10 +1,10 @@
 [package]
-name = "hades-extensions"
+name = "hades-extensions-rust"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "hades_extensions"
+name = "hades_extensions_rust"
 path = "rust_src/lib.rs"
 crate-type = ["cdylib"]
 
