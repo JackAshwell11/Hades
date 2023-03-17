@@ -54,7 +54,7 @@ bool Leaf::split(Grid &grid, std::mt19937 &random_generator, bool debug_game) {
     pos += container.top_left.x;
     if (debug_game) {
       for (int y = container.top_left.y; y < container.bottom_right.y + 1; y++) {
-        grid.set_value(pos, y, TileType::DebugWall);
+        grid.set_value({pos, y}, TileType::DebugWall);
       }
     }
 
@@ -77,7 +77,7 @@ bool Leaf::split(Grid &grid, std::mt19937 &random_generator, bool debug_game) {
     pos += container.top_left.y;
     if (debug_game) {
       for (int x = container.top_left.x; x < container.bottom_right.x + 1; x++) {
-        grid.set_value(x, pos, TileType::DebugWall);
+        grid.set_value({x, pos}, TileType::DebugWall);
       }
     }
 

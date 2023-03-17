@@ -14,8 +14,8 @@
 /// Parameters
 /// ----------
 /// grid - The 2D grid which represents the dungeon.
-/// start - The start pair for the algorithm.
-/// end - The end pair for the algorithm.
+/// start - The start point for the algorithm.
+/// end - The end point for the algorithm.
 ///
 /// Throws
 /// ------

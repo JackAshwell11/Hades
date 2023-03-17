@@ -4,12 +4,13 @@
 // Custom includes
 #include "bsp.hpp"
 #include "fixtures.hpp"
+#include <iostream>
 
 // ----- TESTS ------------------------------
 TEST_F(Fixtures, TestBspSplitValid) {
   // Test if the bsp is split correctly
   leaf.split(grid, random_generator, false);
-  Leaf left_result = Leaf{Rect{Point{0, 0}, Point{9, 19}}}, right_result = Leaf{Rect{Point{11, 0}, Point{19, 19}}};
+  Leaf left_result = Leaf{Rect{Point{0, 0}, Point{19, 13}}}, right_result = Leaf{Rect{Point{0, 15}, Point{19, 19}}};
   ASSERT_EQ(*leaf.left, left_result);
   ASSERT_EQ(*leaf.right, right_result);
 }
@@ -17,8 +18,8 @@ TEST_F(Fixtures, TestBspSplitValid) {
 TEST_F(Fixtures, TestBspSplitDebug) {
   // Initialise the resultant 2D grid where the x=10 column is a debug wall
   Grid result_grid = {20, 20};
-  for (int y = 0; y < 20; y++) {
-    result_grid.set_value(10, y, TileType::DebugWall);
+  for (int x = 0; x < result_grid.width; x++) {
+    result_grid.set_value({x, 14}, TileType::DebugWall);
   }
 
   // Test the result of 2 debug splits

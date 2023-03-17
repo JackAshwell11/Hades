@@ -68,7 +68,7 @@ std::vector<Point> collect_positions(Grid &grid, TileType target) {
   std::vector<Point> result;
   for (int y = 0; y < grid.height; y++) {
     for (int x = 0; x < grid.width; x++) {
-      if (grid.get_value(x, y) == target) {
+      if (grid.get_value({x, y}) == target) {
         result.emplace_back(x, y);
       }
     }
@@ -190,7 +190,7 @@ void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile
   int possible_tile_index = possible_tiles_distribution(random_generator);
   Point possible_tile = possible_tiles.at(possible_tile_index);
   possible_tiles.erase(possible_tiles.begin() + possible_tile_index);
-  grid.set_value(possible_tile.x, possible_tile.y, target_tile);
+  grid.set_value(possible_tile, target_tile);
 }
 
 void create_hallways(Grid &grid,

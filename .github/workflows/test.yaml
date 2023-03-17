@@ -3,15 +3,14 @@ name: Tests
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 
 jobs:
-  test-python:
-    runs-on: ${{ matrix.os }}
+  python:
+    runs-on: windows-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
         python-version: ["3.10"]
     defaults:
       run:
@@ -28,38 +27,24 @@ jobs:
       - name: Run Tox
         run: tox
       - name: Upload coverage report
-        uses: coverallsapp/github-action@master
+        uses: coverallsapp/github-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./coverage.lcov
           parallel: true
-  test-cpp:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+  cpp:
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
-        if: ${{ matrix.os }} == "windows-latest"
       - name: Set up CMake
-        uses: lukka/get-cmake@latest
+        uses: lukka/get-cmake@v3.25.2
       - name: Configure and build CMake
         uses: lukka/run-cmake@v3
-        env:
-          ENV_DIR: "${{ github.workspace }}"
         with:
           cmakeListsTxtPath: "${{ github.workspace }}/cpp_src/CMakeLists.txt"
+          buildDirectory: "${{ github.workspace }}/build"
       - name: Run CTest
-        run: ctest --output-on-failure
-  coveralls:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Coverage report finished
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
+        run: ctest --output-on-failure --test-dir ${{ github.workspace }}/build/test

@@ -23,86 +23,6 @@ enum class TileType {
 };
 
 // ----- STRUCTURES ------------------------------
-/// Represents a 2D grid with a set width and height through a 1D vector.
-///
-/// Attributes
-/// ----------
-/// width - The width of the 2D grid.
-/// height - The height of the 2D grid.
-struct Grid {
-  // Parameters
-  int width{}, height{};
-
-  // Attributes
-  std::vector<TileType> grid{};
-
-  /// Default constructor for a Grid object. This should not be used.
-  Grid() = default;
-
-  /// Construct a Grid object.
-  ///
-  /// Parameters
-  /// ----------
-  /// width - The width of the 2D grid.
-  /// height - The height of the 2D grid.
-  ///
-  /// Returns
-  /// -------
-  /// A Grid object.
-  Grid(int width_val, int height_val) {
-    width = width_val;
-    height = height_val;
-    grid = std::vector<TileType>(width * height, TileType::Empty);
-  }
-
-  /// Convert a 2D grid position to a 1D grid position.
-  ///
-  /// Parameters
-  /// ----------
-  /// x - The x position.
-  /// y - The y position.
-  ///
-  /// Throws
-  /// ------
-  /// std::out_of_range
-  ///     Position must be within range.
-  ///
-  /// Returns
-  /// -------
-  /// The 1D grid position.
-  [[nodiscard]] int convert_position(int x, int y) const;
-
-  /// Get a value in the 2D grid from a given position.
-  ///
-  /// Parameters
-  /// ----------
-  /// x - The x position.
-  /// y - The y position.
-  ///
-  /// Throws
-  /// ------
-  /// std::out_of_range
-  ///     Position must be within range.
-  ///
-  /// Returns
-  /// -------
-  /// The value at the given position.
-  [[nodiscard]] TileType get_value(int x, int y) const;
-
-  /// Set a value in the 2D grid from a given position.
-  ///
-  /// Parameters
-  /// ----------
-  /// x - The x position.
-  /// y - The y position.
-  ///
-  /// Throws
-  /// ------
-  /// std::out_of_range
-  ///     Position must be within range.
-  void set_value(int x, int y, TileType target);
-};
-
 /// Represents a point in the grid.
 struct Point {
   int x, y;
@@ -140,6 +60,83 @@ struct Point {
     x = x_val;
     y = y_val;
   }
+};
+
+/// Represents a 2D grid with a set width and height through a 1D vector.
+///
+/// Attributes
+/// ----------
+/// width - The width of the 2D grid.
+/// height - The height of the 2D grid.
+struct Grid {
+  // Parameters
+  int width{}, height{};
+
+  // Attributes
+  std::vector<TileType> grid{};
+
+  /// Default constructor for a Grid object. This should not be used.
+  Grid() = default;
+
+  /// Construct a Grid object.
+  ///
+  /// Parameters
+  /// ----------
+  /// width - The width of the 2D grid.
+  /// height - The height of the 2D grid.
+  ///
+  /// Returns
+  /// -------
+  /// A Grid object.
+  Grid(int width_val, int height_val) {
+    width = width_val;
+    height = height_val;
+    grid = std::vector<TileType>(width * height, TileType::Empty);
+  }
+
+  /// Convert a 2D grid position to a 1D grid position.
+  ///
+  /// Parameters
+  /// ----------
+  /// pos - The position to convert.
+  ///
+  /// Throws
+  /// ------
+  /// std::out_of_range
+  ///     Position must be within range.
+  ///
+  /// Returns
+  /// -------
+  /// The 1D grid position.
+  [[nodiscard]] int convert_position(const Point &pos) const;
+
+  /// Get a value in the 2D grid from a given position.
+  ///
+  /// Parameters
+  /// ----------
+  /// pos - The position to get the value for.
+  ///
+  /// Throws
+  /// ------
+  /// std::out_of_range
+  ///     Position must be within range.
+  ///
+  /// Returns
+  /// -------
+  /// The value at the given position.
+  [[nodiscard]] TileType get_value(const Point &pos) const;
+
+  /// Set a value in the 2D grid from a given position.
+  ///
+  /// Parameters
+  /// ----------
+  /// pos - The position to set.
+  ///
+  /// Throws
+  /// ------
+  /// std::out_of_range
+  ///     Position must be within range.
+  void set_value(const Point &pos, TileType target);
 };
 
 /// Represents a rectangle of any size useful for the interacting with the 2D
@@ -203,7 +200,7 @@ struct Rect {
   /// Returns
   /// -------
   /// The Chebyshev distance between this rect and the given rect.
-  int get_distance_to(Rect &other) const;
+  [[nodiscard]] int get_distance_to(const Rect &other) const;
 
   /// Place the rect in the 2D grid.
   ///

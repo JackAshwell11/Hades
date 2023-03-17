@@ -12,13 +12,11 @@ class Fixtures : public testing::Test {
   Rect valid_rect_one{valid_point_one, valid_point_two}, valid_rect_two{valid_point_one, boundary_point},
       zero_size_rect{zero_point, zero_point};
   Leaf leaf{{{0, 0}, {19, 19}}};
-  Grid grid, small_grid, empty_grid, detailed_grid = {6, 9};
+  Grid empty_grid, grid = {20, 20}, small_grid = {6, 9}, detailed_grid = {6, 9};
   std::mt19937 random_generator;
 
   void SetUp() override {
     random_generator.seed(0);
-    grid = {20, 20};
-    small_grid = {6, 9};
     detailed_grid.grid = {
         TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
         TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle,

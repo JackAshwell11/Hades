@@ -1,14 +1,3 @@
-# Determine if coverage can be used
-#if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#    message("-- GCC detected, coverage will use gcov")
-#    set(CMAKE_C_FLAGS "-g -fprofile-arcs -ftest-coverage")
-#    set(CMAKE_CXX_FLAGS "-g -fprofile-arcs -ftest-coverage")
-#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-#    message("-- MSVC detected, coverage will use llvm-cov")
-#    set(CMAKE_C_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
-#    set(CMAKE_CXX_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
-#endif ()
-
 # Fetch the GoogleTest repository and initialise it
 include(FetchContent)
 FetchContent_Declare(

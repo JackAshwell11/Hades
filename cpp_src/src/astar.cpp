@@ -51,7 +51,7 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
 
     // Check if we've reached our target
     if (current == end) {
-      // Backtrack through came_from to get the path
+      // Backtrack through neighbours to get the path
       while (!(neighbours[current].destination == current)) {
         // Add the current pair to the result list
         result.emplace_back(current.x, current.y);
@@ -60,7 +60,7 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
         current = neighbours[current].destination;
       }
 
-      // Add the start pair and exit out of the loop
+      // Add the start point and exit out of the loop
       result.emplace_back(start.x, start.y);
       break;
     }
@@ -74,13 +74,13 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
       // Calculate the neighbour's position and check if its valid excluding the
       // boundaries as that produces weird paths
       Point neighbour = current + offset;
-      if (neighbour.x < 0 || neighbour.x >= grid.width || neighbour.y < 0 || neighbour.y >= grid.height) {
+      if (neighbour.x < 1 || neighbour.x >= grid.width - 1 || neighbour.y < 1 || neighbour.y >= grid.height - 1) {
         continue;
       }
 
       // Test if the neighbour is an obstacle or not. If so, skip to the next
       // neighbour as we want to move around it
-      if (grid.get_value(neighbour.x, neighbour.y) == TileType::Obstacle) {
+      if (grid.get_value(neighbour) == TileType::Obstacle) {
         continue;
       }
 
