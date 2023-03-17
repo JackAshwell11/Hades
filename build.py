@@ -44,6 +44,7 @@ class CMakeBuild(build_ext):
                 "cmake",
                 current_dir.joinpath(ext.sources[0]),
                 "-DDO_TESTS=false",
+                "-DDO_PYTHON=true",
                 f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
             ],
             cwd=build_temp,

@@ -6,7 +6,6 @@ import shutil
 from pathlib import Path
 
 # Pip
-import numpy as np
 from setuptools import Extension, setup
 
 # The build directory path
@@ -15,15 +14,11 @@ BUILD_DIR = EXTENSION_PATH / "build"
 
 
 if __name__ == "__main__":
-    # Set up a few variables needed for the compiling
-    NUMPY_EXTENSIONS = ["astar"]
-
     # Build all the extensions
     ext_modules = [
         Extension(
             path.stem,
             [str(path)],
-            include_dirs=[np.get_include() if path.stem in NUMPY_EXTENSIONS else None],
         )
         for path in EXTENSION_PATH.joinpath("src").glob("*.cpp")
     ]

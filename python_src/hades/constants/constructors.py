@@ -19,8 +19,8 @@ from hades.constants.game_objects import (
     StatusEffectData,
     StatusEffectType,
 )
-from hades.constants.generation import TileType
 from hades.textures import moving_textures, non_moving_textures
+from hades_extensions import TileType
 
 __all__ = (
     "CONSUMABLES",
@@ -222,13 +222,13 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
 
 
 # Constructor mappings
-PLAYERS = {TileType.PLAYER: PLAYER}
+PLAYERS = {TileType.Player: PLAYER}
 CONSUMABLES = {
-    TileType.HEALTH_POTION: HEALTH_POTION,
-    TileType.ARMOUR_POTION: ARMOUR_POTION,
-    TileType.HEALTH_BOOST_POTION: HEALTH_BOOST_POTION,
-    TileType.ARMOUR_BOOST_POTION: ARMOUR_POTION,
-    TileType.SPEED_BOOST_POTION: SPEED_BOOST_POTION,
-    TileType.FIRE_RATE_BOOST_POTION: FIRE_RATE_BOOST_POTION,
+    TileType.HealthPotion: HEALTH_POTION,
+    TileType.ArmourPotion: ARMOUR_POTION,
+    TileType.HealthBoostPotion: HEALTH_BOOST_POTION,
+    TileType.ArmourBoostPotion: ARMOUR_POTION,
+    TileType.SpeedBoostPotion: SPEED_BOOST_POTION,
+    TileType.FireRateBoostPotion: FIRE_RATE_BOOST_POTION,
 }
 INDICATOR_BAR_TYPES = {EntityAttributeType.HEALTH, EntityAttributeType.ARMOUR}

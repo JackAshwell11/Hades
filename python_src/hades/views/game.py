@@ -7,7 +7,7 @@ import logging
 import math
 import random
 from functools import cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 # Pip
 import arcade
@@ -30,22 +30,20 @@ from hades.constants.general import (
     LEVEL_GENERATOR_INTERVAL,
     TOTAL_ENEMY_COUNT,
 )
-from hades.constants.generation import REPLACEABLE_TILES, TileType
 from hades.extensions import VectorField
 from hades.game_objects.attacks import AreaOfEffectAttack, MeleeAttack
 from hades.game_objects.enemies import Enemy
 from hades.game_objects.players import Player
 from hades.game_objects.tiles import Consumable, Floor, Wall
-from hades.generation.map import create_map
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
 from hades.views.base import BaseView
 from hades.views.inventory import InventoryView
 from hades.views.shop import ShopView
+from hades_extensions import TileType, create_map
 
 if TYPE_CHECKING:
     from hades.game_objects.base import Tile
-    from hades.generation.map import LevelConstants
 
 __all__ = ("Game",)
 
@@ -68,6 +66,22 @@ def get_upper_bound(level: int) -> int:
         The upper bound.
     """
     return (level // LEVEL_GENERATOR_INTERVAL) + 1
+
+
+class LevelConstants(NamedTuple):
+    """Holds the constants for a specific level.
+
+    level: int
+        The level of this game.
+    width: int
+        The width of the game map.
+    height: int
+        The height of the game map.
+    """
+
+    level: int
+    width: int
+    height: int
 
 
 class Game(BaseView):
@@ -183,53 +197,109 @@ class Game(BaseView):
         )
 
         # Create the game map
-        grid, self.level_constants = create_map(level)
+        generation_result = create_map(level, None)
+        # TODO: MAKE SURE SEED CAN BE EMPTY
+        grid, self.level_constants = generation_result[0], LevelConstants(
+            *generation_result[1]
+        )
+
+        for count, item in enumerate(grid):
+            # Determine if the tile is empty
+            if item in {TileType.Empty, TileType.Obstacle, TileType.DebugWall}:
+                continue
+
+            # Get the x and y positions
+            count_x, count_y = (
+                count % self.level_constants.width,
+                count // self.level_constants.width,
+            )
+
+            # Determine if the tile is a wall
+            if item == TileType.Wall:
+                wall = Wall(self, count_x, count_y)
+                self.wall_sprites.append(wall)
+                self.tile_sprites.append(wall)
+                continue
+
+            # The tile's backdrop should be a floor
+            floor = Floor(self, count_x, count_y)
+            self.tile_sprites.append(floor)
+
+            # Skip to the next iteration if the tile is a floor
+            if item == TileType.Floor:
+                continue
+
+            # Determine if the tile is a player or a consumable
+            if item in PLAYERS:
+                self.player = Player(self, count_x, count_y, PLAYERS[item])
+            elif item in CONSUMABLES:
+                target_constructor = CONSUMABLES[item]
+                instantiated_consumable = Consumable(
+                    self,
+                    count_x,
+                    count_y,
+                    target_constructor,
+                    min(
+                        random.randint(consumable_lower_bound, consumable_upper_bound),
+                        target_constructor.level_limit,
+                    ),
+                )
+                self.tile_sprites.append(instantiated_consumable)
+                self.item_sprites.append(instantiated_consumable)
+            else:
+                # Unknown type
+                logger.warning("Unknown TileType %r", item)
+                continue
 
         # Assign sprites to the game map and initialise the vector grid
-        for count_y, y in enumerate(reversed(grid)):
-            for count_x, x in enumerate(y):
-                # Determine if the tile is empty
-                if x in REPLACEABLE_TILES:
-                    continue
-
-                # Determine if the tile is a wall
-                if x == TileType.WALL:
-                    wall = Wall(self, count_x, count_y)
-                    self.wall_sprites.append(wall)
-                    self.tile_sprites.append(wall)
-                    continue
-
-                # The tile's backdrop should be a floor
-                floor = Floor(self, count_x, count_y)
-                self.tile_sprites.append(floor)
-
-                # Skip to the next iteration if the tile is a floor
-                if x == TileType.FLOOR:
-                    continue
-
-                # Determine if the tile is a player or a consumable
-                if x in PLAYERS:
-                    self.player = Player(self, count_x, count_y, PLAYERS[x])
-                elif x in CONSUMABLES:
-                    target_constructor = CONSUMABLES[x]
-                    instantiated_consumable = Consumable(
-                        self,
-                        count_x,
-                        count_y,
-                        target_constructor,
-                        min(
-                            random.randint(
-                                consumable_lower_bound, consumable_upper_bound
-                            ),
-                            target_constructor.level_limit,
-                        ),
-                    )
-                    self.tile_sprites.append(instantiated_consumable)
-                    self.item_sprites.append(instantiated_consumable)
-                else:
-                    # Unknown type
-                    logger.warning("Unknown TileType %r", x)
-                    continue
+        # for count_y in range(self.level_constants.height):
+        #     for count_x in range(self.level_constants.width):
+        #         # Get the current item
+        #         print(count_x, count_y)
+        #         item = grid[self.level_constants.width * count_y + count_x]
+        #
+        #         # Determine if the tile is empty
+        #         if item in {TileType.Empty, TileType.Obstacle, TileType.DebugWall}:
+        #             continue
+        #
+        #         # Determine if the tile is a wall
+        #         if item == TileType.Wall:
+        #             wall = Wall(self, count_x, count_y)
+        #             self.wall_sprites.append(wall)
+        #             self.tile_sprites.append(wall)
+        #             continue
+        #
+        #         # The tile's backdrop should be a floor
+        #         floor = Floor(self, count_x, count_y)
+        #         self.tile_sprites.append(floor)
+        #
+        #         # Skip to the next iteration if the tile is a floor
+        #         if item == TileType.Floor:
+        #             continue
+        #
+        #         # Determine if the tile is a player or a consumable
+        #         if item in PLAYERS:
+        #             self.player = Player(self, count_x, count_y, PLAYERS[item])
+        #         elif item in CONSUMABLES:
+        #             target_constructor = CONSUMABLES[item]
+        #             instantiated_consumable = Consumable(
+        #                 self,
+        #                 count_x,
+        #                 count_y,
+        #                 target_constructor,
+        #                 min(
+        #                     random.randint(
+        #                         consumable_lower_bound, consumable_upper_bound
+        #                     ),
+        #                     target_constructor.level_limit,
+        #                 ),
+        #             )
+        #             self.tile_sprites.append(instantiated_consumable)
+        #             self.item_sprites.append(instantiated_consumable)
+        #         else:
+        #             # Unknown type
+        #             logger.warning("Unknown TileType %r", item)
+        #             continue
 
         # Make sure the game map shape was set and the player was actually created
         assert self.level_constants is not None
