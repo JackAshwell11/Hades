@@ -84,10 +84,12 @@ PLAYER = BaseData(
     player_data=PlayerData(
         melee_degree=60,
         section_upgrade_data={
-            EntityAttributeSectionType.ENDURANCE: lambda level: 1  # type: ignore
-            * 3**level,
-            EntityAttributeSectionType.DEFENCE: lambda level: 1  # type: ignore
-            * 3**level,
+            EntityAttributeSectionType.ENDURANCE: (
+                lambda level: 1 * 3**level  # type: ignore
+            ),
+            EntityAttributeSectionType.DEFENCE: (
+                lambda level: 1 * 3**level  # type: ignore
+            ),
         },
     ),
 )
