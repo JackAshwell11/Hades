@@ -100,12 +100,6 @@ def executable() -> None:
         print(f"Output of {zip_output_name} was unsuccessful")
 
 
-def rust() -> None:
-    """Compiles the Rust extensions and installs them into the virtual environment."""
-    # Compile the Rust extensions and install them
-    subprocess.run("maturin develop -r", check=True)
-
-
 def cpp() -> None:
     """Compiles the C++ extensions and installs them into the virtual environment."""
     dist = setup(
@@ -138,12 +132,6 @@ if __name__ == "__main__":
         help="Compiles the game into an executable format",
     )
     build_group.add_argument(
-        "-r",
-        "--rust",
-        action="store_true",
-        help="Compiles the Rust extensions and installs them",
-    )
-    build_group.add_argument(
         "-c",
         "--cpp",
         action="store_true",
@@ -154,7 +142,5 @@ if __name__ == "__main__":
     # Determine which argument was selected
     if args.executable:
         executable()
-    elif args.rust:
-        rust()
     elif args.cpp:
         cpp()

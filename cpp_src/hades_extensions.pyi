@@ -19,5 +19,5 @@ class TileType(int, Enum):
     FireRateBoostPotion = auto()
 
 def create_map(
-    level: int, seed: int | None
+    level: int, seed: int | None = None
 ) -> tuple[list[list[int]], tuple[int, int, int]]: ...

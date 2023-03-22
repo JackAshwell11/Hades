@@ -1,3 +1,6 @@
+// Std includes
+#include <optional>
+
 // External includes
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -11,7 +14,10 @@ PYBIND11_MODULE(hades_extensions, m) {
   m.doc() = "Generates the dungeon and places game objects in it.";
 
   // Add the create_map function to the module
-  m.def("create_map", &create_map,
+  m.def("create_map",
+        &create_map,
+        pybind11::arg("level"),
+        pybind11::arg("seed") = pybind11::none(),
         ("Generate the game map for a given game level.\n\n"
          "Parameters\n"
          "----------\n"

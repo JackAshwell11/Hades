@@ -47,5 +47,5 @@ tox: ${VENV_NAME}  # Runs the entire test suite using Tox
 executable: ${VENV_NAME}  # Builds the game into an executable form
 	python -m build --executable
 
-rust: ${VENV_NAME}  # Compiles the rust extensions and installs them into the virtual environment
-	python -m build --rust
+cpp: ${VENV_NAME}  # Compiles the C++ extensions and installs them into the virtual environment
+	python -m build --cpp
