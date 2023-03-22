@@ -197,8 +197,7 @@ class Game(BaseView):
         )
 
         # Create the game map
-        generation_result = create_map(level, None)
-        # TODO: MAKE SURE SEED CAN BE EMPTY
+        generation_result = create_map(level)
         grid, self.level_constants = generation_result[0], LevelConstants(
             *generation_result[1]
         )
@@ -349,7 +348,7 @@ class Game(BaseView):
         # every ENEMY_GENERATE_INTERVAL seconds
         for _ in range(TOTAL_ENEMY_COUNT // 2):
             self.generate_enemy()
-        arcade.schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
+        arcade.schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)  # type: ignore
 
     def on_draw(self) -> None:
         """Render the screen."""

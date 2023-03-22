@@ -46,7 +46,7 @@ class InventoryBox(arcade.gui.UITextureButton):
 
             # Get the current window, current view and game view
             window: Window = arcade.get_window()
-            current_view: InventoryView = window.current_view
+            current_view: InventoryView = window.current_view  # type: ignore
 
             # Remove the item from the player's inventory and clear the item ref and the
             # inventory box texture

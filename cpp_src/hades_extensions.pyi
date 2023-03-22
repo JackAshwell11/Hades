@@ -4,7 +4,7 @@ from __future__ import annotations
 # Builtin
 from enum import Enum, auto
 
-class TileType(int, Enum):
+class TileType(Enum):
     DebugWall = auto()
     Empty = auto()
     Floor = auto()
@@ -20,4 +20,4 @@ class TileType(int, Enum):
 
 def create_map(
     level: int, seed: int | None = None
-) -> tuple[list[list[int]], tuple[int, int, int]]: ...
+) -> tuple[list[TileType], tuple[int, int, int]]: ...
