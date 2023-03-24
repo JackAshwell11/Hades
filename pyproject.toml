@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.0.0", "setuptools"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
@@ -11,6 +11,13 @@ license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/Aspect1103/Hades"
 repository = "https://github.com/Aspect1103/Hades"
+packages = [
+    { include = "hades", from = "python_src" }
+]
+
+[tool.poetry.build]
+# generate-setup-file = false
+script = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -46,6 +53,7 @@ skips = [
     "B311",  # Allow use of the random library
     "B404",  # Allow use of the subprocess library
     "B603",  # Allow use of subprocess.run with shell=True
+    "B607",  # Allow use of subprocess calling `maturin develop`
 ]
 
 [tool.black]
@@ -54,7 +62,7 @@ target_version = ["py310"]
 
 [tool.coverage.paths]
 source = [
-    "src",
+    "python_src",
     ".tox/*/Lib/site-packages",
     ".tox/*/lib/*/site-packages",
 ]
@@ -148,7 +156,7 @@ disable = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-vv -ra --showlocals --cov hades --cov-report term-missing"
+addopts = "-vv -ra --showlocals --cov --cov-report term-missing"
 testpaths = ["tests"]
 
 [tool.tox]
@@ -157,29 +165,21 @@ legacy_tox_ini = """
 envlist = clean, py310, report
 isolated_build = true
 
-[base]
-deps = pytest-cov
-
 [gh-actions]
 python =
     3.10: clean, py310, report
 
 [testenv]
-allowlist_externals = pytest
-deps = {[base]deps}
+deps = pytest-cov
 commands =
     python -I -m hades.extensions.compile
     pytest --cov-append
 
 [testenv:clean]
-allowlist_externals = coverage
-skip_install = true
-deps = {[base]deps}
+deps = pytest-cov
 commands = coverage erase
 
 [testenv:report]
-allowlist_externals = coverage
-skip_install = true
-deps = {[base]deps}
+deps = pytest-cov
 commands = coverage lcov
 """

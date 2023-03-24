@@ -16,7 +16,7 @@ export PATH := ${VENV_PATH}/$(VENV_SUBDIR):${PATH}
 
 .PHONY:  # Ensures this only runs if a virtual environment doesn't exist
 ${VENV_NAME}:
-	poetry install --with build,pre-commit,test
+	poetry install
 
 
 # -------------------- Builds --------------------
@@ -32,17 +32,20 @@ full-venv: ${VENV_NAME} # Creates a virtual environment with all dependencies in
 update-venv: ${VENV_NAME}  # Updates the poetry virtual environment
 	poetry update -vvv
 
-pre-commit: ${VENV_NAME}  # Runs pre-commit
-	poetry run pre-commit run --all-files
-
 test: ${VENV_NAME}  # Runs the tests using Pytest
 	poetry run pytest
 
-tox: ${VENV_NAME}  # Runs the entire test suite using Tox
-	poetry run tox
-
-build: ${VENV_NAME}  # Builds the game into an executable form
-	poetry run python -m build
-
 compile: ${VENV_NAME}  # Compiles the extensions so they can be accessed in Python
 	poetry run python -m hades.extensions.compile
+
+pre-commit: ${VENV_NAME}  # Runs pre-commit
+	pre-commit run --all-files
+
+tox: ${VENV_NAME}  # Runs the entire test suite using Tox
+	tox
+
+executable: ${VENV_NAME}  # Builds the game into an executable form
+	python -m build --executable
+
+cpp: ${VENV_NAME}  # Compiles the C++ extensions and installs them into the virtual environment
+	python -m build --cpp
