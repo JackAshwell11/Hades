@@ -4,7 +4,6 @@
 // Custom includes
 #include "bsp.hpp"
 #include "fixtures.hpp"
-#include <iostream>
 
 // ----- TESTS ------------------------------
 TEST_F(Fixtures, TestBspSplitValid) {

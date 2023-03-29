@@ -19,7 +19,7 @@ enum class TileType {
   HealthBoostPotion,
   ArmourBoostPotion,
   SpeedBoostPotion,
-  FireRateBoostPotion
+  FireRateBoostPotion,
 };
 
 // ----- STRUCTURES ------------------------------
