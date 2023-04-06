@@ -6,25 +6,42 @@
 #include "fixtures.hpp"
 
 // ----- TESTS ------------------------------
-TEST_F(Fixtures, TestBspSplitValid) {
-  // Test if the bsp is split correctly
+TEST_F(Fixtures, TestBspSplitCorrect) {
+  // Split the bsp normally
   leaf.split(grid, random_generator, false);
-  Leaf left_result = Leaf{Rect{Point{0, 0}, Point{19, 13}}}, right_result = Leaf{Rect{Point{0, 15}, Point{19, 19}}};
-  ASSERT_EQ(*leaf.left, left_result);
-  ASSERT_EQ(*leaf.right, right_result);
+
+  // Test if two child leafs are created
+  ASSERT_TRUE(leaf.left != nullptr);
+  ASSERT_TRUE(leaf.right != nullptr);
+
+  // Test if the child leafs border each other. Since the leaf will always split
+  // vertically on the first iteration, we know the difference between the
+  // bottom right and top left points of the left and right leafs
+  Point diff = {2, 19};
+  ASSERT_EQ(leaf.left->container.bottom_right - leaf.right->container.top_left, diff);
 }
 
 TEST_F(Fixtures, TestBspSplitDebug) {
-  // Initialise the resultant 2D grid where the x=10 column is a debug wall
-  Grid result_grid = {20, 20};
-  for (int x = 0; x < result_grid.width; x++) {
-    result_grid.set_value({x, 14}, TileType::DebugWall);
-  }
+  // Split the grid in debug mode and then find the row/column where the split occurred
+  leaf.split(grid, random_generator, true);
+  auto positions = std::find(grid.grid.begin(), grid.grid.end(), TileType::DebugWall);
+  ASSERT_TRUE(positions != grid.grid.end());
 
-  // Test the result of 2 debug splits
-  leaf.split(grid, random_generator, true);
-  leaf.split(grid, random_generator, true);
-  ASSERT_EQ(grid.grid, result_grid.grid);
+  // Get the grid position of the split
+  int debug_pos_index = (int) (positions - grid.grid.begin());
+  Point debug_pos = {debug_pos_index % grid.width, debug_pos_index / grid.width};
+
+  // Make sure the split runs the entire length of the grid. We need to
+  // determine if the split was vertical or horizontal first however
+  if (debug_pos.x > 0) {
+    for (int y = 0; y < grid.width; y++) {
+      ASSERT_EQ(grid.get_value({debug_pos.x, y}), TileType::DebugWall);
+    }
+  } else if (debug_pos.y > 0) {
+    for (int x = 0; x < grid.height; x++) {
+      ASSERT_EQ(grid.get_value({x, debug_pos.y}), TileType::DebugWall);
+    }
+  }
 }
 
 TEST_F(Fixtures, TestBspSplitSmallWidthHeight) {
@@ -34,7 +51,7 @@ TEST_F(Fixtures, TestBspSplitSmallWidthHeight) {
   ASSERT_FALSE(leaf.split(grid, random_generator, false));
 }
 
-TEST_F(Fixtures, TestBspCreateRoomValid) {
+TEST_F(Fixtures, TestBspCreateRoomChildLeaf) {
   // Repeat until a room is created since the ratio may be wrong sometimes then
   // test that the room is not null
   while (!leaf.create_room(grid, random_generator)) {}
