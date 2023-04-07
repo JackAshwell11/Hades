@@ -43,37 +43,50 @@ TEST_F(Fixtures, TestMapSplitBspZeroSplit) {
   ASSERT_TRUE(leaf.right == nullptr);
 }
 
-TEST_F(Fixtures, TestMapSplitBspLargeSplit) {
+TEST_F(Fixtures, TestMapSplitBspThreeChildren) {
+  // Split the bsp 2 times. This should generate two child leafs under the left
+  // child and one child leaf on the right
+  split_bsp(leaf, grid, random_generator, 2);
+
+  // Test if the child leafs were generated
+  ASSERT_TRUE(leaf.left->left->left == nullptr);
+  ASSERT_TRUE(leaf.left->left->right == nullptr);
+  ASSERT_TRUE(leaf.left->right->left == nullptr);
+  ASSERT_TRUE(leaf.left->right->right == nullptr);
+  ASSERT_TRUE(leaf.right->left == nullptr);
+  ASSERT_TRUE(leaf.right->right == nullptr);
+}
+
+TEST_F(Fixtures, TestMapSplitBspMaxSplit) {
   // Split the bsp with a split iteration of 10. We want to keep splitting the
   // bsp until it is no longer possible so this value should ensure that
   split_bsp(leaf, grid, random_generator, 10);
 
-  // Keep looping until we've found all the child leaves, so we can count the
-  // number of splits and the number of child leafs
-  int split_count = 0, child_count = 0;
+  // Collect all the child leafs so that we can test them
+  std::vector<Leaf *> children;
   std::queue<Leaf *> split_queue;
-  split_queue.push(leaf.left);
-  split_queue.push(leaf.right);
+  split_queue.push(&leaf);
   while (!split_queue.empty()) {
     // Get the current leaf
     Leaf *current = split_queue.front();
     split_queue.pop();
 
     // Check if current has children. If so, push its children into the queue,
-    // otherwise, increment the counter since we've found a child
+    // otherwise, add the child leaf to the children vector
     if (current->left && current->right) {
       split_queue.push(current->left);
       split_queue.push(current->right);
-      split_count++;
     } else {
-      child_count++;
+      children.emplace_back(current);
     }
   }
 
-  // There should always be 3 splits for this size grid and approximately 4-8
-  // children depending on the toolchain
-  ASSERT_TRUE(split_count == 3);
-  ASSERT_TRUE(child_count >= 4 || child_count <= 8);
+  // Test that each child leaf cannot be split anymore and that there are
+  // approximately 4-8 children (this varies based on the toolchain)
+  for (Leaf *child : children) {
+    ASSERT_FALSE(child->split(grid, random_generator, false));
+  }
+  ASSERT_TRUE(children.size() >= 4 || children.size() <= 8);
 }
 
 TEST_F(Fixtures, TestMapGenerateRoomsSetLeaf) {
