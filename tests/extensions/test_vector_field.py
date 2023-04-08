@@ -50,7 +50,8 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
     player_grid_pos = vector_field.pixel_to_grid_pos(player_screen_pos)
     player_view_distance = 5
     temp_possible_spawns_valid = vector_field.recalculate_map(
-        player_screen_pos, player_view_distance
+        player_screen_pos,
+        player_view_distance,
     )
     vector_dict_items = list(vector_field.vector_dict.items())
     for current_pos, vector in random.choices(vector_dict_items, k=20):
@@ -72,7 +73,7 @@ def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
         # because the Dijkstra map technically calculates the Manhattan distance for
         # every tile from the origin tile
         distance = abs(player_grid_pos[0] - spawn[0]) + abs(
-            player_grid_pos[1] - spawn[1]
+            player_grid_pos[1] - spawn[1],
         )
         assert distance > player_view_distance
 

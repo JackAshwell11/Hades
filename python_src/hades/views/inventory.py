@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from hades.game_objects.players import Player
     from hades.window import Window
 
-__all__ = ("InventoryView",)
+__all__ = ("Inventory",)
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class InventoryBox(arcade.gui.UITextureButton):
 
             # Get the current window, current view and game view
             window: Window = arcade.get_window()
-            current_view: InventoryView = window.current_view  # type: ignore
+            current_view: Inventory = window.current_view  # type: ignore[assignment]
 
             # Remove the item from the player's inventory and clear the item ref and the
             # inventory box texture
@@ -70,7 +70,7 @@ class InventoryBox(arcade.gui.UITextureButton):
         )
 
 
-class InventoryView(BaseView):
+class Inventory(BaseView):
     """Displays the player's inventory allowing them to manage it and equip items.
 
     Parameters
@@ -94,7 +94,7 @@ class InventoryView(BaseView):
             horizontal_box = arcade.gui.UIBoxLayout(vertical=False)
             for _ in range(INVENTORY_WIDTH):
                 horizontal_box.add(
-                    InventoryBox(width=64, height=64).with_border(width=4)
+                    InventoryBox(width=64, height=64).with_border(width=4),
                 )
             self.vertical_box.add(horizontal_box)
 
@@ -104,8 +104,10 @@ class InventoryView(BaseView):
         # Register the UI elements
         self.ui_manager.add(
             arcade.gui.UIAnchorWidget(
-                anchor_x="center_x", anchor_y="center_y", child=self.vertical_box
-            )
+                anchor_x="center_x",
+                anchor_y="center_y",
+                child=self.vertical_box,
+            ),
         )
 
     def on_draw(self) -> None:
@@ -145,4 +147,4 @@ class InventoryView(BaseView):
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
-        return f"<InventoryView (Current window={self.window})>"
+        return f"<Inventory (Current window={self.window})>"

@@ -185,7 +185,8 @@ class Player(Entity):
             # Player has moved tile positions so update vector field
             self.current_tile_pos = new_tile_pos
             self.game.possible_enemy_spawns = self.game.vector_field.recalculate_map(
-                self.position, self.entity_data.view_distance
+                self.position,
+                self.entity_data.view_distance,
             )
 
         # Make the player move
@@ -219,7 +220,7 @@ class Player(Entity):
 
         # Check if the player is in combat
         self.in_combat = any(
-            enemy.player_within_range for enemy in self.game.enemy_sprites  # noqa
+            enemy.player_within_range for enemy in self.game.enemy_sprites
         )
         if self.in_combat:
             self.time_out_of_combat = 0
@@ -243,12 +244,10 @@ class Player(Entity):
         # player can attack or not
         if self.current_attack.attack_type is AttackAlgorithmType.RANGED:
             self.current_attack.process_attack(
-                target_spritelist=self.game.bullet_sprites
+                target_spritelist=self.game.bullet_sprites,
             )
         elif self.current_attack.attack_type is AttackAlgorithmType.MELEE:
             # # Update the framebuffer to ensure collision detection is accurate
-            # self.melee_shader.update_collision()
-            # result = self.melee_shader.run_shader()
             result = []
             for enemy in self.game.enemy_sprites:  # type: Entity
                 vec_x, vec_y = (
@@ -272,7 +271,7 @@ class Player(Entity):
             self.current_attack.process_attack(target_entities=result)
         elif self.current_attack.attack_type is AttackAlgorithmType.AREA_OF_EFFECT:
             self.current_attack.process_attack(
-                target_spritelist=self.game.enemy_sprites
+                target_spritelist=self.game.enemy_sprites,
             )
 
     def add_item_to_inventory(self, item: CollectibleTile) -> bool:

@@ -266,7 +266,7 @@ class IndicatorBar:
         # Check if new_fullness if valid
         if new_fullness < 0.0 or new_fullness > 1.0:
             raise ValueError(
-                f"Got {new_fullness}, but fullness must be between 0.0 and 1.0."
+                f"Got {new_fullness}, but fullness must be between 0.0 and 1.0.",
             )
 
         # Set the size of the bar
@@ -651,7 +651,9 @@ class Entity(GameObject, metaclass=ABCMeta):
                     self.time_since_armour_regen = 0
                     self.update_indicator_bars()
                     logger.debug(
-                        "Regenerated %d armour for %r", ARMOUR_REGEN_AMOUNT, self
+                        "Regenerated %d armour for %r",
+                        ARMOUR_REGEN_AMOUNT,
+                        self,
                     )
             else:
                 # Increment the counter since not enough time has passed
@@ -748,7 +750,8 @@ class Tile(GameObject):
     object_id: ObjectID = ObjectID.TILE
     blocking: bool = False
     raw_texture: arcade.Texture = arcade.Texture.create_empty(
-        "empty", (int(SPRITE_SIZE), int(SPRITE_SIZE))
+        "empty",
+        (int(SPRITE_SIZE), int(SPRITE_SIZE)),
     )
     item_text: str = ""
 

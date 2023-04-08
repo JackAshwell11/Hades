@@ -75,21 +75,21 @@ PLAYER = BaseData(
             extra=RangedAttackData(max_bullet_range=10),
         ),
         AttackAlgorithmType.MELEE: AttackData(
-            damage=10, attack_cooldown=1, attack_range=3
+            damage=10,
+            attack_cooldown=1,
+            attack_range=3,
         ),
         AttackAlgorithmType.AREA_OF_EFFECT: AttackData(
-            damage=10, attack_cooldown=10, attack_range=3
+            damage=10,
+            attack_cooldown=10,
+            attack_range=3,
         ),
     },
     player_data=PlayerData(
         melee_degree=60,
         section_upgrade_data={
-            EntityAttributeSectionType.ENDURANCE: (
-                lambda level: 1 * 3**level  # type: ignore
-            ),
-            EntityAttributeSectionType.DEFENCE: (
-                lambda level: 1 * 3**level  # type: ignore
-            ),
+            EntityAttributeSectionType.ENDURANCE: lambda level: 1 * 3**level,
+            EntityAttributeSectionType.DEFENCE: lambda level: 1 * 3**level,
         },
     ),
 )
@@ -133,7 +133,7 @@ ENEMY1 = BaseData(
             attack_cooldown=5,
             attack_range=5,
             extra=RangedAttackData(max_bullet_range=10),
-        )
+        ),
     },
     enemy_data=EnemyData(),
 )
@@ -176,7 +176,7 @@ HEALTH_BOOST_POTION = ConsumableData(
             status_type=StatusEffectType.HEALTH,
             increase=lambda level: 25 * 1.3**level,
             duration=lambda level: 5 * 1.3**level,
-        )
+        ),
     ],
 )
 
@@ -190,7 +190,7 @@ ARMOUR_BOOST_POTION = ConsumableData(
             status_type=StatusEffectType.ARMOUR,
             increase=lambda level: 10 * 1.3**level,
             duration=lambda level: 5 * 1.3**level,
-        )
+        ),
     ],
 )
 
@@ -204,7 +204,7 @@ SPEED_BOOST_POTION = ConsumableData(
             status_type=StatusEffectType.SPEED,
             increase=lambda level: 25 * 1.3**level,
             duration=lambda level: 2 * 1.3**level,
-        )
+        ),
     ],
 )
 
@@ -218,7 +218,7 @@ FIRE_RATE_BOOST_POTION = ConsumableData(
             status_type=StatusEffectType.FIRE_RATE,
             increase=lambda level: -0.05 * 1.1**level,
             duration=lambda level: 2 * 1.3**level,
-        )
+        ),
     ],
 )
 

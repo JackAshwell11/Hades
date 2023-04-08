@@ -88,11 +88,15 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
             ],
         ).with_background(
             arcade.Texture.create_filled(
-                "background color", (int(width), int(height)), background_color
-            )
+                "background color",
+                (int(width), int(height)),
+                background_color,
+            ),
         )
         logger.info(
-            "Created info box with text `%s` and time %f", message_text, disappear_time
+            "Created info box with text `%s` and time %f",
+            message_text,
+            disappear_time,
         )
 
         super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)

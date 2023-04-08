@@ -21,10 +21,10 @@ def test_grid_pos_to_pixel() -> None:
     """Test the grid_pos_to_pixel function in textures.py."""
     assert grid_pos_to_pixel(500, 500) == (28028.0, 28028.0)
     assert grid_pos_to_pixel(0, 0) == (28.0, 28.0)
-    with pytest.raises(ValueError):
+    with pytest.raises(expected_exception=ValueError):
         grid_pos_to_pixel(-500, -500)
-    with pytest.raises(TypeError):
-        grid_pos_to_pixel("test", "test")  # type: ignore
+    with pytest.raises(expected_exception=TypeError):
+        grid_pos_to_pixel("test", "test")  # type: ignore[arg-type]
 
 
 def test_textures_script() -> None:
@@ -35,10 +35,8 @@ def test_textures_script() -> None:
             compare_non_moving_texture = non_moving_textures[section_name][
                 section_count
             ]
-            assert (
-                isinstance(compare_non_moving_texture, arcade.Texture)
-                and texture_filename in compare_non_moving_texture.name
-            )
+            assert isinstance(compare_non_moving_texture, arcade.Texture)
+            assert texture_filename in compare_non_moving_texture.name
 
     # Compare the moving_filenames dict to the moving_textures dict
     for section_name, moving_type in moving_filenames.items():
@@ -48,7 +46,5 @@ def test_textures_script() -> None:
                     texture_count
                 ]
                 for texture in compare_moving_texture:
-                    assert (
-                        isinstance(texture, arcade.Texture)
-                        and texture_filename in texture.name
-                    )
+                    assert isinstance(texture, arcade.Texture)
+                    assert texture_filename in texture.name

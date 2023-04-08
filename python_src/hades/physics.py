@@ -26,7 +26,9 @@ logger = logging.getLogger(__name__)
 
 
 def wall_bullet_begin_handler(
-    wall: Tile, bullet: Bullet, *_: tuple[Arbiter, Space]
+    wall: Tile,
+    bullet: Bullet,
+    *_: tuple[Arbiter, Space],
 ) -> bool:
     """Handle collision between a wall tile and a bullet sprite as they touch.
 
@@ -53,14 +55,18 @@ def wall_bullet_begin_handler(
     except AttributeError:
         # An error randomly occurs here so just ignore it
         logger.warning(
-            "An error occurred while removing %r after hitting %r", bullet, wall
+            "An error occurred while removing %r after hitting %r",
+            bullet,
+            wall,
         )
     # Stop collision processing
     return False
 
 
 def enemy_bullet_begin_handler(
-    enemy: Entity, bullet: Bullet, *_: tuple[Arbiter, Space]
+    enemy: Entity,
+    bullet: Bullet,
+    *_: tuple[Arbiter, Space],
 ) -> bool:
     """Handle collision between an enemy entity and a bullet sprite as they touch.
 
@@ -92,14 +98,18 @@ def enemy_bullet_begin_handler(
     except AttributeError:
         # An error randomly occurs here so just ignore it
         logger.warning(
-            "An error occurred while removing %r after hitting %r", bullet, enemy
+            "An error occurred while removing %r after hitting %r",
+            bullet,
+            enemy,
         )
     # Stop collision processing
     return False
 
 
 def player_bullet_begin_handler(
-    player: Player, bullet: Bullet, *_: tuple[Arbiter, Space]
+    player: Player,
+    bullet: Bullet,
+    *_: tuple[Arbiter, Space],
 ) -> bool:
     """Handle collision between a player entity and a bullet sprite as they touch.
 
@@ -131,7 +141,9 @@ def player_bullet_begin_handler(
     except AttributeError:
         # An error randomly occurs here so just ignore it
         logger.warning(
-            "An error occurred while removing %r after hitting %r", bullet, player
+            "An error occurred while removing %r after hitting %r",
+            bullet,
+            player,
         )
     # Stop collision processing
     return False
@@ -188,16 +200,23 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
 
         # Add collision handlers
         self.add_collision_handler(
-            "wall", "bullet", begin_handler=wall_bullet_begin_handler
+            "wall",
+            "bullet",
+            begin_handler=wall_bullet_begin_handler,
         )
         self.add_collision_handler(
-            "enemy", "bullet", begin_handler=enemy_bullet_begin_handler
+            "enemy",
+            "bullet",
+            begin_handler=enemy_bullet_begin_handler,
         )
         self.add_collision_handler(
-            "player", "bullet", begin_handler=player_bullet_begin_handler
+            "player",
+            "bullet",
+            begin_handler=player_bullet_begin_handler,
         )
         logger.info(
-            "Initialised physics engine with %d items", len(self.sprites.keys())
+            "Initialised physics engine with %d items",
+            len(self.sprites.keys()),
         )
 
     def add_bullet(self, bullet: Bullet) -> None:

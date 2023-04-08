@@ -52,11 +52,8 @@ class Wall(Tile, metaclass=ABCMeta):
 #     """Represents a shop tile in the game."""
 #
 #     # Class variables
-#     raw_texture: arcade.Texture = non_moving_textures["items"][6]
-#     blocking: bool = True
 #
 #     def __repr__(self) -> str:
-#         return f"<Shop (Position=({self.center_x}, {self.center_y}))>"
 #
 #     def item_use(self) -> bool:
 #         """
@@ -68,10 +65,8 @@ class Wall(Tile, metaclass=ABCMeta):
 #             Whether the item activation was successful or not.
 #         """
 #         # Show the shop view and enable it's UIManager
-#         self.game.window.show_view(self.game.window.views["ShopView"])
 #
 #         # Return true since activation will always be successful
-#         return True
 
 
 class Consumable(CollectibleTile):
@@ -136,7 +131,7 @@ class Consumable(CollectibleTile):
                 instant.instant_type.value
             ].apply_instant_effect(instant, adjusted_level):
                 self.game.display_info_box(
-                    f"Your {instant.instant_type.name} is already at max"
+                    f"Your {instant.instant_type.name} is already at max",
                 )
 
         # Apply all the status effects linked to this consumable
@@ -147,7 +142,7 @@ class Consumable(CollectibleTile):
                 for attribute in self.player.entity_state.values()
             ]:
                 self.game.display_info_box(
-                    f"A {effect.status_type.value} status effect is already applied"
+                    f"A {effect.status_type.value} status effect is already applied",
                 )
                 logger.debug("%r already applied to player", effect.status_type)
                 return False
@@ -155,7 +150,8 @@ class Consumable(CollectibleTile):
             # Apply the status effect
             effect_value = effect.status_type.value
             self.player.entity_state[effect_value].apply_status_effect(
-                effect, adjusted_level
+                effect,
+                adjusted_level,
             )
 
         # Remove the item

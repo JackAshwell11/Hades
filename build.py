@@ -51,7 +51,9 @@ class CMakeBuild(build_ext):
             check=True,
         )
         subprocess.run(
-            ["cmake", "--build", ".", f"--config {profile}"], cwd=build_temp, check=True
+            ["cmake", "--build", ".", f"--config {profile}"],
+            cwd=build_temp,
+            check=True,
         )
 
 
@@ -67,8 +69,10 @@ def executable() -> None:
 
     # Display some info about the system and the environment
     print(
-        f"System information: {platform.system()} {platform.version()}. Python version:"
-        f" {platform.python_implementation()} {platform.python_version()}"
+        (
+            f"System information: {platform.system()} {platform.version()}. Python"
+            f" version: {platform.python_implementation()} {platform.python_version()}"
+        ),
     )
     print(f"Current directory: {Path().absolute()}")
 
@@ -110,7 +114,8 @@ def cpp() -> None:
         data_files=[("", ["cpp_src/hades_extensions.pyi"])],
     )
     subprocess.run(
-        f'pip install "{Path.cwd().joinpath(dist.dist_files[0][2])}"', check=True
+        f'pip install "{Path.cwd().joinpath(dist.dist_files[0][2])}"',
+        check=True,
     )
 
 
@@ -122,7 +127,7 @@ def build(_: dict[str, Any]) -> None:
 if __name__ == "__main__":
     # Build the argument parser and start parsing arguments
     parser = argparse.ArgumentParser(
-        description="Simplifies building/compiling related to Hades"
+        description="Simplifies building/compiling related to Hades",
     )
     build_group = parser.add_mutually_exclusive_group()
     build_group.add_argument(

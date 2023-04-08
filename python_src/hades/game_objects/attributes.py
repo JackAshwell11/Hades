@@ -145,7 +145,7 @@ class UpgradablePlayerSection:
             # because some attribute may be variable or have status effects applied
             # to them)
             diff = self.cost_function(self.current_level) - self.cost_function(
-                self.current_level - 1
+                self.current_level - 1,
             )
 
             # Apply that diff to the target entity attribute's value and max value
@@ -201,7 +201,10 @@ class EntityAttribute:
     )
 
     def __init__(
-        self, owner: Entity, attribute_data: EntityAttributeData, level: int
+        self,
+        owner: Entity,
+        attribute_data: EntityAttributeData,
+        level: int,
     ) -> None:
         self.owner: Entity = owner
         self.attribute_data: EntityAttributeData = attribute_data
@@ -277,7 +280,9 @@ class EntityAttribute:
             self._max_value += diff
 
     def apply_status_effect(
-        self, status_effect_data: StatusEffectData, level: int
+        self,
+        status_effect_data: StatusEffectData,
+        level: int,
     ) -> None:
         """Apply a status effect to the attribute if possible.
 
@@ -295,7 +300,9 @@ class EntityAttribute:
 
         # Apply the status effect to this attribute
         logger.debug(
-            "Applying status effect %r to %r", status_effect_data.status_type, self
+            "Applying status effect %r to %r",
+            status_effect_data.status_type,
+            self,
         )
         new_status_effect = StatusEffect(
             self,

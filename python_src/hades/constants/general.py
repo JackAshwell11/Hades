@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # Builtin
-import pathlib
 from datetime import datetime
+from pathlib import Path
 
 # Pip
 import arcade
@@ -29,7 +29,7 @@ __all__ = (
 
 # Create the log directory making sure it exists. Then create the path for the current
 # log file
-log_dir = pathlib.Path(__file__).resolve().parent.parent / "logs"
+log_dir = Path(__file__).resolve().parent.parent / "logs"
 log_dir.mkdir(parents=True, exist_ok=True)
 
 # Logging constants
@@ -43,7 +43,7 @@ LOGGING_DICT_CONFIG = {
                 "[%(asctime)s %(levelname)s] [%(filename)s:%(funcName)s():%(lineno)d] -"
                 " %(message)s"
             ),
-        }
+        },
     },
     "handlers": {
         "console": {

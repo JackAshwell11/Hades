@@ -11,7 +11,7 @@ from hades.extensions import VectorField
 __all__ = ()
 
 
-@pytest.fixture
+@pytest.fixture()
 def walls() -> arcade.SpriteList:
     """Initialise the walls spritelist for use in testing.
 
@@ -124,12 +124,12 @@ def walls() -> arcade.SpriteList:
             arcade.Sprite(center_x=924.0, center_y=1036.0),
             arcade.Sprite(center_x=980.0, center_y=1036.0),
             arcade.Sprite(center_x=1036.0, center_y=1036.0),
-        ]
+        ],
     )
     return temp_spritelist
 
 
-@pytest.fixture
+@pytest.fixture()
 def vector_field(walls: arcade.SpriteList) -> VectorField:
     """Initialise a vector field for use in testing.
 

@@ -64,10 +64,6 @@ class EntityAttributeType(Enum):
     REGEN_COOLDOWN = auto()
     FIRE_RATE_PENALTY = auto()
     MONEY = auto()
-    # POTION_DURATION = auto()
-    # MELEE_ATTACK = auto()
-    # AREA_OF_EFFECT_ATTACK = auto()
-    # RANGED_ATTACK = auto()
 
 
 # Entity attribute sections types
@@ -76,8 +72,6 @@ class EntityAttributeSectionType(Enum):
 
     ENDURANCE = [EntityAttributeType.HEALTH, EntityAttributeType.SPEED]
     DEFENCE = [EntityAttributeType.ARMOUR, EntityAttributeType.REGEN_COOLDOWN]
-    # STRENGTH = []
-    # INTELLIGENCE = []
 
 
 # Attack algorithms
@@ -198,8 +192,6 @@ class AttackData(NamedTuple):
     attack_cooldown: int
     attack_range: int
     extra: RangedAttackData | None = None
-    # BURN = "burn"
-    # POISON = "poison"
 
 
 # Entity constructor data

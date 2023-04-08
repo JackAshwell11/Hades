@@ -3,8 +3,8 @@ from __future__ import annotations
 
 # Builtin
 import logging
-import pathlib
 import struct
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 # Custom
@@ -22,7 +22,7 @@ __all__ = ("MeleeShader",)
 logger = logging.getLogger(__name__)
 
 # Create the paths to the shader scripts
-base_path = pathlib.Path(__file__).parent / "resources" / "shader scripts"
+base_path = Path(__file__).parent / "resources" / "shader scripts"
 vertex_path = base_path / "melee_vertex.glsl"
 geometry_path = base_path / "melee_geometry.glsl"
 
@@ -85,8 +85,8 @@ class MeleeShader:
         # which is within a specific distance. It then checks if the player has line of
         # sight with each enemy that has a line drawn to them
         with (
-            open(vertex_path, encoding="utf8") as vertex_file,
-            open(geometry_path, encoding="utf8") as geometry_file,
+            Path.open(vertex_path, encoding="utf8") as vertex_file,
+            Path.open(geometry_path, encoding="utf8") as geometry_file,
         ):
             self.program = self.ctx.program(
                 vertex_shader=vertex_file.read(),
@@ -121,8 +121,8 @@ class MeleeShader:
         # can load the wall textures into that framebuffer
         self.walls_framebuffer = self.ctx.framebuffer(
             color_attachments=[
-                self.ctx.texture((self.view.window.width, self.view.window.height))
-            ]
+                self.ctx.texture((self.view.window.width, self.view.window.height)),
+            ],
         )
         self.update_collision()
         logger.info(
@@ -144,7 +144,8 @@ class MeleeShader:
             fbo.clear()
             self.view.wall_sprites.draw()
         logger.debug(
-            "Updated the walls framebuffer with size %r", self.walls_framebuffer.size
+            "Updated the walls framebuffer with size %r",
+            self.walls_framebuffer.size,
         )
 
     def run_shader(self) -> list[Enemy]:

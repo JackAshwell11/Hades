@@ -25,34 +25,22 @@ pymunk = "6.4.0"
 shapely = "2.0.1"
 
 [tool.poetry.dev-dependencies]
-bandit = "1.7.5"
-black = "23.1.0"
-flake8 = "6.0.0"
+black = "23.3.0"
 isort = "5.12.0"
-mypy = "1.1.1"
-nuitka = "1.5.3"
+mypy = "1.2.0"
+nuitka = "1.5.4"
 ordered-set = "4.1.0"
-pre-commit = "3.2.0"
-pydocstyle = "6.3.0"
-pylint = "2.17.1"
+pre-commit = "3.2.2"
+pylint = "2.17.2"
 pytest = "7.2.2"
 pytest-cov = "4.0.0"
 pytest-icdiff = "0.6"
-pytest-instafail = "0.4.2"
+pytest-instafail = "0.5.0"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.6"
-pyupgrade = "3.3.1"
+ruff = "0.0.261"
 ssort = "v0.11.6"
-tox = "4.4.7"
-
-[tool.bandit]
-skips = [
-    "B101",  # Allow assert statements (useful for mypy)
-    "B311",  # Allow use of the random library
-    "B404",  # Allow use of the subprocess library
-    "B603",  # Allow use of subprocess.run with shell=True
-    "B607",  # Allow use of subprocess calling `cmake`
-]
+tox = "4.4.11"
 
 [tool.black]
 preview = true
@@ -88,8 +76,8 @@ filter_files = true
 profile = "black"
 
 [tool.mypy]
-# TODO: Once Arcade releases 2.7 (or a bugfix release with types), these flags can be
-#  re-evaluated to get strict mypy typing
+# TODO: Once Arcade releases 2.7 (or a bugfix release with types), these flags
+#  can be re-evaluated to get strict mypy typing
 #disallow_any_explicit = true
 #disallow_subclassing_any = true
 #disallow_untyped_calls = true
@@ -102,7 +90,7 @@ disallow_any_generics = true
 disallow_incomplete_defs = true
 disallow_untyped_defs = true
 exclude = [
-    "inventory_view.py"
+    "inventory_view.py",
 ]
 ignore_missing_imports = true
 no_implicit_reexport = true
@@ -115,9 +103,7 @@ strict_equality = true
 warn_redundant_casts = true
 warn_unused_configs = true
 
-[tool.pydocstyle]
-convention = "numpy"
-
+# TODO: Once Ruff implements all of Pylint's rules, switch Pylint out for Ruff
 [tool.pylint."BASIC"]
 good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
 
@@ -157,15 +143,90 @@ disable = [
 addopts = "-vv -ra --showlocals --cov --cov-report term-missing"
 testpaths = ["tests"]
 
+[tool.ruff]
+extend-exclude = [
+    "*vector_field*",
+]
+extend-ignore = [
+    "ANN101",  # Allow the `self` parameter to be untyped
+    "S101",  # Allow assert statements (useful for mypy)
+    "S311",  # Allow use of the random library
+    "RET505",  # Stop Ruff complaining about an unnecessary else after a return statement
+]
+line-length = 88
+select = [
+    "A",  # Enable flake8-builtins
+    "ANN",  # Enable flake8-annotations
+    "ARG",  # Enable flake8-unused-arguments
+    "B",  # Enable flake8-bugbear
+    "BLE",  # Enable flake8-blind-except
+    "C4",  # Enable flake8-comprehensions
+    "C90",  # Enable mccabe
+    "COM",  # Enable flake8-commas
+    "D",  # Enable pydocstyle
+    "E",  # Enable pycodestyle errors
+    #"EM",  # Enable flake8-errmsg
+    "ERA",  # Enable eradicate
+    "F",  # Enable Pyflakes
+    "FBT",  # Enable flake8-boolean-trap
+    "G",  # Enable flake8-logging-format
+    "ICN",  # Enable flake8-import-conventions
+    "INP",  # Enable flake8-no-pep420
+    "ISC",  # Enable flake8-implicit-str-concat
+    "N",  # Enable pep8-naming
+    "PGH",  # Enable pygrep-hooks
+    "PIE",  # Enable flake8-pie
+    "PLC",  # Enable Pylint convention
+    "PLE",  # Enable Pylint error
+    "PLR",  # Enable Pylint refactor
+    "PLW",  # Enable Pylint warning
+    "PT",  # Enable flake8-pytest-style
+    "PTH",  # Enable flake8-use-pathlib
+    "PYI",  # Enable flake8-pyi
+    "RET",  # Enable flake8-return
+    "RSE",  # Enable flake8-raise
+    "RUF",  # Enable Ruff-specific rules
+    "S",  # Enable flake8-bandit
+    "SIM",  # Enable flake8-simplify
+    "SLF",  # Enable flake8-self
+    "T20",  # Enable flake8-print
+    "TCH",  # Enable flake8-type-checking
+    "TID",  # Enable flake8-tidy-imports
+    "TRY",  # Enable tryceratops
+    "UP",  # Enable pyupgrade
+    "W",  # Enable pycodestyle warnings
+]
+show-fixes = true
+show-source = true
+src = ["python_src"]
+
+[tool.ruff.per-file-ignores]
+"build.py" = [
+    "T201",  # Ignore flake8-print print rule
+]
+"python_src/hades/extensions/compile.py" = [
+    "T201",  # Ignore flake8-print print rule
+]
+"cpp_src/hades_extensions.pyi" = [
+    "D100",  # Ignore pydocstyle module docstring rule
+    "D101",  # Ignore pydocstyle class docstring rule
+    "D103",  # Ignore pydocstyle method docstring rule
+    "PIE796",  # Ignore flake8-pie duplicate enum values rule
+]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = clean, py310, report
+envlist = clean, py310, py311, report
 isolated_build = true
 
 [gh-actions]
 python =
     3.10: clean, py310, report
+    3.11: clean, py311, report
 
 [testenv]
 deps = pytest-cov

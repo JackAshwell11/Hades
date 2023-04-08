@@ -38,8 +38,8 @@ from hades.game_objects.tiles import Consumable, Floor, Wall
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
 from hades.views.base import BaseView
-from hades.views.inventory import InventoryView
-from hades.views.shop import ShopView
+from hades.views.inventory import Inventory
+from hades.views.shop import Shop
 from hades_extensions import TileType, create_map
 
 if TYPE_CHECKING:
@@ -141,10 +141,12 @@ class Game(BaseView):
         self.enemy_indicator_bar_sprites: arcade.SpriteList = arcade.SpriteList()
         self.player_gui_sprites: arcade.SpriteList = arcade.SpriteList()
         self.game_camera: arcade.Camera = arcade.Camera(
-            self.window.width, self.window.height
+            self.window.width,
+            self.window.height,
         )
         self.gui_camera: arcade.Camera = arcade.Camera(
-            self.window.width, self.window.height
+            self.window.width,
+            self.window.height,
         )
         self.vector_field: VectorField | None = None
         self.physics_engine: PhysicsEngine | None = None
@@ -199,7 +201,7 @@ class Game(BaseView):
         # Create the game map
         generation_result = create_map(level)
         grid, self.level_constants = generation_result[0], LevelConstants(
-            *generation_result[1]
+            *generation_result[1],
         )
 
         for count, item in enumerate(grid):
@@ -254,34 +256,20 @@ class Game(BaseView):
         # for count_y in range(self.level_constants.height):
         #     for count_x in range(self.level_constants.width):
         #         # Get the current item
-        #         print(count_x, count_y)
-        #         item = grid[self.level_constants.width * count_y + count_x]
         #
         #         # Determine if the tile is empty
         #         if item in {TileType.Empty, TileType.Obstacle, TileType.DebugWall}:
-        #             continue
         #
         #         # Determine if the tile is a wall
         #         if item == TileType.Wall:
-        #             wall = Wall(self, count_x, count_y)
-        #             self.wall_sprites.append(wall)
-        #             self.tile_sprites.append(wall)
-        #             continue
         #
         #         # The tile's backdrop should be a floor
-        #         floor = Floor(self, count_x, count_y)
-        #         self.tile_sprites.append(floor)
         #
         #         # Skip to the next iteration if the tile is a floor
         #         if item == TileType.Floor:
-        #             continue
         #
         #         # Determine if the tile is a player or a consumable
         #         if item in PLAYERS:
-        #             self.player = Player(self, count_x, count_y, PLAYERS[item])
-        #         elif item in CONSUMABLES:
-        #             target_constructor = CONSUMABLES[item]
-        #             instantiated_consumable = Consumable(
         #                 self,
         #                 count_x,
         #                 count_y,
@@ -292,13 +280,7 @@ class Game(BaseView):
         #                     ),
         #                     target_constructor.level_limit,
         #                 ),
-        #             )
-        #             self.tile_sprites.append(instantiated_consumable)
-        #             self.item_sprites.append(instantiated_consumable)
-        #         else:
         #             # Unknown type
-        #             logger.warning("Unknown TileType %r", item)
-        #             continue
 
         # Make sure the game map shape was set and the player was actually created
         assert self.level_constants is not None
@@ -308,12 +290,12 @@ class Game(BaseView):
         logger.debug("Initialised game view with  %d tiles", len(self.tile_sprites))
 
         # Set up the inventory view
-        inventory_view = InventoryView(self.player)
+        inventory_view = Inventory(self.player)
         self.window.views["InventoryView"] = inventory_view
         logger.info("Initialised inventory view")
 
         # Set up the shop view
-        shop_view = ShopView(self.player)
+        shop_view = Shop(self.player)
         self.window.views["ShopView"] = shop_view
         logger.info("Initialised shop view")
 
@@ -328,7 +310,8 @@ class Game(BaseView):
             self.level_constants.height,
         )
         self.possible_enemy_spawns = self.vector_field.recalculate_map(
-            self.player.position, self.player.entity_data.view_distance
+            self.player.position,
+            self.player.entity_data.view_distance,
         )
         logger.debug(
             "Created vector grid with height %d and width %d",
@@ -338,17 +321,19 @@ class Game(BaseView):
 
         # Update the player's current tile position
         self.player.current_tile_pos = self.vector_field.pixel_to_grid_pos(
-            self.player.position
+            self.player.position,
         )
 
         # Set up the melee shader
-        # self.player.melee_shader.setup_shader()
 
         # Generate half of the total enemies and then schedule the function to run
         # every ENEMY_GENERATE_INTERVAL seconds
         for _ in range(TOTAL_ENEMY_COUNT // 2):
             self.generate_enemy()
-        arcade.schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)  # type: ignore
+        arcade.schedule(
+            self.generate_enemy,
+            ENEMY_GENERATE_INTERVAL,  # type: ignore[arg-type]
+        )
 
     def on_draw(self) -> None:
         """Render the screen."""
@@ -461,7 +446,7 @@ class Game(BaseView):
                     (
                         source_screen_x + vector[0] * SPRITE_SIZE,
                         source_screen_y + vector[1] * SPRITE_SIZE,
-                    )
+                    ),
                 )
             arcade.draw_lines(lines, DEBUG_VECTOR_FIELD_LINE)
 
@@ -497,7 +482,6 @@ class Game(BaseView):
 
         # Check if the game should end
         # if self.player.health.value <= 0 or not self.enemy_sprites:
-        #     arcade.exit()
 
         # Process logic for the player
         self.player.on_update(delta_time)
@@ -516,7 +500,8 @@ class Game(BaseView):
 
         # Check for any nearby items
         item_collision = arcade.check_for_collision_with_list(
-            self.player, self.item_sprites
+            self.player,
+            self.item_sprites,
         )
         if item_collision:
             # Set nearest_item since we are colliding with an item
@@ -570,7 +555,8 @@ class Game(BaseView):
                 )
             case arcade.key.Z:
                 self.player.current_attack_index = max(
-                    self.player.current_attack_index - 1, 0
+                    self.player.current_attack_index - 1,
+                    0,
                 )
             case arcade.key.T:
                 self.window.show_view(self.window.views["ShopView"])
@@ -591,7 +577,9 @@ class Game(BaseView):
 
         # Find out what key was released
         logger.debug(
-            "Received key release with key %r and modifiers %r", key, modifiers
+            "Received key release with key %r and modifiers %r",
+            key,
+            modifiers,
         )
         match key:
             case arcade.key.W:
@@ -704,10 +692,11 @@ class Game(BaseView):
                 # other enemies or the player
                 enemy.position = grid_pos_to_pixel(*self.possible_enemy_spawns.pop())
                 if enemy.collides_with_list(
-                    self.enemy_sprites
+                    self.enemy_sprites,
                 ) or enemy.collides_with_sprite(self.player):
                     logger.debug(
-                        "%r encountered a collision during generation. Retrying", enemy
+                        "%r encountered a collision during generation. Retrying",
+                        enemy,
                     )
                     tries -= 1
                     continue

@@ -1,10 +1,8 @@
 # Platform constants
 ifeq ($(OS), Windows_NT)
-	PY = python
 	VENV_SUBDIR = Scripts
 	DEL = rmdir /Q /S
 else
-	PY = python3
 	VENV_SUBDIR = bin
 	DEL = rm -rf
 endif
@@ -35,17 +33,20 @@ update-venv: ${VENV_NAME}  # Updates the poetry virtual environment
 test: ${VENV_NAME}  # Runs the tests using Pytest
 	poetry run pytest
 
-compile: ${VENV_NAME}  # Compiles the extensions so they can be accessed in Python
-	poetry run python -m hades.extensions.compile
-
 pre-commit: ${VENV_NAME}  # Runs pre-commit
 	pre-commit run --all-files
 
 tox: ${VENV_NAME}  # Runs the entire test suite using Tox
 	tox
 
+ruff: ${VENV_NAME}  # Runs Ruff on the entire project in fix mode
+	ruff --fix .
+
 executable: ${VENV_NAME}  # Builds the game into an executable form
 	python -m build --executable
 
 cpp: ${VENV_NAME}  # Compiles the C++ extensions and installs them into the virtual environment
 	python -m build --cpp
+
+compile: ${VENV_NAME}  # Compiles the extensions so they can be accessed in Python
+	poetry run python -m hades.extensions.compile

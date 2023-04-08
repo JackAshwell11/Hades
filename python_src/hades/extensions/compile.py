@@ -38,7 +38,7 @@ if __name__ == "__main__":
         target_dir = EXTENSION_PATH / extension.name.split(".")[0]
         target_dir.mkdir(parents=True, exist_ok=True)
         target_file = target_dir / extension.name
-        target_file.unlink(True)
+        target_file.unlink(missing_ok=True)
         shutil.move(extension, target_file)
         print(f"Successfully moved {extension} to {target_file}")
 

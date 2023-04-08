@@ -309,7 +309,7 @@ class AreaOfEffectAttack(AttackBase):
         # Make sure the needed parameters are valid
         if target_entity is None or target_spritelist is None:
             raise ValueError(
-                "Target spritelist or target entity is invalid or not given"
+                "Target spritelist or target entity is invalid or not given",
             )
         logger.info(
             "Entity %r is performing an area of effect attack on %r",
@@ -335,7 +335,8 @@ class AreaOfEffectAttack(AttackBase):
                 target_entity.deal_damage(self.attack_data.damage)
         except TypeError:
             for entity in arcade.check_for_collision_with_list(
-                area_of_effect_sprite, target_spritelist
+                area_of_effect_sprite,
+                target_spritelist,
             ):  # type: Entity
                 # Deal damage to all the enemies within range
                 entity.deal_damage(self.attack_data.damage)
@@ -353,7 +354,9 @@ ATTACKS = {
 
 
 def create_attack(
-    owner: Entity, attack_type: AttackAlgorithmType, attack_data: AttackData
+    owner: Entity,
+    attack_type: AttackAlgorithmType,
+    attack_data: AttackData,
 ) -> AttackBase:
     """Determine which attack algorithm should be created based on a given attack type.
 

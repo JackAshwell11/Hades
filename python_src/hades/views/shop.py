@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "SectionUpgradeButton",
-    "ShopView",
+    "Shop",
 )
 
 # Get the logger
@@ -50,7 +50,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
         )
 
 
-class ShopView(BaseView):
+class Shop(BaseView):
     """
     Displays the shop UI so the player can upgrade their attributes.
 
@@ -84,8 +84,10 @@ class ShopView(BaseView):
         # Register the UI elements
         self.ui_manager.add(
             arcade.gui.UIAnchorWidget(
-                anchor_x="center_x", anchor_y="center_y", child=vertical_box
-            )
+                anchor_x="center_x",
+                anchor_y="center_y",
+                child=vertical_box,
+            ),
         )
 
     def on_draw(self) -> None:
@@ -98,4 +100,4 @@ class ShopView(BaseView):
 
     def __repr__(self) -> str:
         """Return a human-readable representation of this object."""
-        return f"<ShopView (Current window={self.window})>"
+        return f"<Shop (Current window={self.window})>"

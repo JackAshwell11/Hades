@@ -64,7 +64,12 @@ class Enemy(Entity):
     object_id: ObjectID = ObjectID.ENEMY
 
     def __init__(
-        self, game: Game, x: int, y: int, enemy_type: BaseData, enemy_level: int = 0
+        self,
+        game: Game,
+        x: int,
+        y: int,
+        enemy_type: BaseData,
+        enemy_level: int = 0,
     ) -> None:
         self.enemy_level: int = enemy_level
         super().__init__(game, x, y, enemy_type)
@@ -213,7 +218,7 @@ class Enemy(Entity):
         self.time_since_last_attack = 0
         if self.current_attack.attack_type is AttackAlgorithmType.RANGED:
             self.current_attack.process_attack(
-                target_spritelist=self.game.bullet_sprites
+                target_spritelist=self.game.bullet_sprites,
             )
         elif self.current_attack.attack_type is AttackAlgorithmType.MELEE:
             self.current_attack.process_attack(target_entities=[self.game.player])

@@ -1,4 +1,3 @@
-"""Holds stub data for vector_field.cpp to help with type inference."""
 from __future__ import annotations
 
 # Pip
@@ -15,8 +14,10 @@ class VectorField:
     ) -> None: ...
     @staticmethod
     def pixel_to_grid_pos(
-        position: tuple[float, float] | list[float]
+        position: tuple[float, float] | list[float],
     ) -> tuple[int, int]: ...
     def recalculate_map(
-        self, player_pos: tuple[float, float] | list[float], player_view_distance: int
+        self,
+        player_pos: tuple[float, float] | list[float],
+        player_view_distance: int,
     ) -> list[tuple[int, int]]: ...

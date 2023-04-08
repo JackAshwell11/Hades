@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # Builtin
 import logging
-import pathlib
+from pathlib import Path
 
 # Pip
 import arcade
@@ -55,7 +55,7 @@ def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
 
 
 # Create the texture path
-texture_path = pathlib.Path(__file__).resolve().parent / "resources" / "textures"
+texture_path = Path(__file__).resolve().parent / "resources" / "textures"
 
 # Create a dictionary to hold all the filenames for the non-moving textures
 non_moving_filenames: dict[str, list[str]] = {
@@ -90,7 +90,8 @@ non_moving_textures: dict[str, list[arcade.Texture]] = {
     for key, value in non_moving_filenames.items()
 }
 logger.info(
-    "Created non moving texture dict with %d sections", len(non_moving_textures)
+    "Created non moving texture dict with %d sections",
+    len(non_moving_textures),
 )
 
 # Create the moving textures
