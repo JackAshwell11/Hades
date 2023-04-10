@@ -12,10 +12,19 @@ class DummyImport:
     """
 
     def __init__(self, target: str) -> None:  # pragma: no cover
+        """Initialise the object."""
         self.target: str = target
 
     def __call__(self, *args: str, **kwargs: str) -> None:  # pragma: no cover
-        """Is called whenever the faked import is called/initialised."""
+        """Is called whenever the faked import is called/initialised.
+
+        Parameters
+        ----------
+        args: str
+            The arguments to the function.
+        kwargs: str
+            The keyword arguments to the function.
+        """
         raise NotImplementedError
 
 

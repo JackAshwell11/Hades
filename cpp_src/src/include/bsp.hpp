@@ -10,13 +10,12 @@
 // ----- STRUCTURES ------------------------------
 /// A binary spaced partition leaf used to generate the dungeon's rooms.
 ///
-/// Attributes
-/// ----------
-/// left - The left container of this leaf. If this is null, we have reached the
-/// end of the branch.
-/// right - The right container of this leaf. If this is null, we have reached
-/// the end of the branch.
-/// room - The rect object for representing the room inside this leaf.
+/// @details left - The left container of this leaf. If this is null, we
+/// have reached the end of the branch.
+/// @details right - The right container of this leaf. If this is null,
+/// we have reached the end of the branch.
+/// @details room - The rect object for representing the room inside this
+/// leaf.
 struct Leaf {
   // Parameters
   Rect container{};
@@ -34,37 +33,22 @@ struct Leaf {
 
   /// Constructs a Leaf object.
   ///
-  /// Parameters
-  /// ----------
-  /// container - The rect object for representing this leaf.
-  ///
-  /// Returns
-  /// -------
-  /// A Leaf object.
+  /// @param container - The rect object for representing this leaf.
+  /// @return A Leaf object.
   explicit Leaf(Rect container_val) { container = container_val; }
 
   /// Split a container either horizontally or vertically.
   ///
-  /// Parameters
-  /// ----------
-  /// grid - The 2D grid which represents the dungeon.
-  /// random_generator - The random generator used to generate the bsp.
-  /// debug_game - Whether the game is in debug mode or not.
-  ///
-  /// Returns
-  /// -------
-  /// Whether the split was successful or not.
+  /// @param grid - The 2D grid which represents the dungeon.
+  /// @param random_generator - The random generator used to generate the bsp.
+  /// @param debug_game - Whether the game is in debug mode or not.
+  /// @return Whether the split was successful or not.
   bool split(Grid &grid, std::mt19937 &random_generator, bool debug_game);
 
   /// Create a random sized room inside a container.
   ///
-  /// Parameters
-  /// ----------
-  /// grid - The 2D grid which represents the dungeon.
-  /// random_generator - The random generator used to generate the bsp.
-  ///
-  /// Returns
-  /// -------
-  /// Whether the room creation was successful or not.
+  /// @param grid - The 2D grid which represents the dungeon.
+  /// @param random_generator - The random generator used to generate the bsp.
+  /// @return Whether the room creation was successful or not.
   bool create_room(Grid &grid, std::mt19937 &random_generator);
 };

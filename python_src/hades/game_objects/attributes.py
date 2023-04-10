@@ -57,25 +57,13 @@ class StatusEffect:
     time_counter: float = field(init=False)
 
     def __post_init__(self) -> None:
+        """Initialise the object after its initial initialization."""
         self.original = self.entity_attribute.value
         self.time_counter = 0
 
 
 class UpgradablePlayerSection:
-    """Represents a player attribute section that can be upgraded.
-
-    Parameters
-    ----------
-    player: Player
-        The reference to the player object used for upgrading the entity attributes.
-    section_type: EntityAttributeSectionType
-        The attribute section type this upgradable section represents.
-    cost_function: Callable[[int], float]
-        The cost function for this upgradable section used for calculating the next
-        level's cost.
-    current_level: int
-        The current level for this upgradable section.
-    """
+    """Represents a player attribute section that can be upgraded."""
 
     __slots__ = (
         "player",
@@ -91,6 +79,20 @@ class UpgradablePlayerSection:
         cost_function: Callable[[int], float],
         current_level: int,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        player: Player
+            The reference to the player object used for upgrading the entity attributes.
+        section_type: EntityAttributeSectionType
+            The attribute section type this upgradable section represents.
+        cost_function: Callable[[int], float]
+            The cost function for this upgradable section used for calculating the next
+            level's cost.
+        current_level: int
+            The current level for this upgradable section.
+        """
         self.player: Player = player
         self.section_type: EntityAttributeSectionType = section_type
         self.cost_function: Callable[[int], float] = cost_function
@@ -165,7 +167,13 @@ class UpgradablePlayerSection:
         return True
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return (
             "<UpgradablePlayerSection (Attribute section"
             f" type={self.section_type}) (Current level={self.current_level})"
@@ -175,16 +183,6 @@ class UpgradablePlayerSection:
 
 class EntityAttribute:
     """Represents an attribute that is part of an entity.
-
-    Parameters
-    ----------
-    owner: Entity
-        The reference to the entity object that owns this attribute.
-    attribute_data: EntityAttributeData
-        The data for this attribute.
-    level: int
-        The level to initialise the attribute at. These should start at 0 and increase
-        over the game time.
 
     Attributes
     ----------
@@ -206,6 +204,18 @@ class EntityAttribute:
         attribute_data: EntityAttributeData,
         level: int,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        owner: Entity
+            The reference to the entity object that owns this attribute.
+        attribute_data: EntityAttributeData
+            The data for this attribute.
+        level: int
+            The level to initialise the attribute at. These should start at 0 and
+            increase over the game time.
+        """
         self.owner: Entity = owner
         self.attribute_data: EntityAttributeData = attribute_data
         self._value: float = attribute_data.increase(level)
@@ -418,5 +428,11 @@ class EntityAttribute:
         return True
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<EntityAttribute (Value={self._value})>"

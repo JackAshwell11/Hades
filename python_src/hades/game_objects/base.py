@@ -48,29 +48,7 @@ logger = logging.getLogger(__name__)
 
 
 class IndicatorBar:
-    """Represents a bar which can display information about an entity.
-
-    Parameters
-    ----------
-    owner: Entity
-        The owner of this indicator bar.
-    target_spritelist: arcade.SpriteList
-        The spritelist that the indicator bar sprites should be added too.
-    position: tuple[float, float]
-        The initial position of the bar.
-    full_color: arcade.Color
-        The color of the bar.
-    background_color: arcade.Color
-        The background color of the bar.
-    width: int
-        The width of the bar.
-    height: int
-        The height of the bar.
-    border_size: int
-        The size of the bar's border.
-    scale: float
-        The scale of the indicator bar.
-    """
+    """Represents a bar which can display information about an entity."""
 
     __slots__ = (
         "owner",
@@ -97,6 +75,29 @@ class IndicatorBar:
         border_size: int = 4,
         scale: float = 1.0,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        owner: Entity
+            The owner of this indicator bar.
+        target_spritelist: arcade.SpriteList
+            The spritelist that the indicator bar sprites should be added too.
+        position: tuple[float, float]
+            The initial position of the bar.
+        full_color: arcade.Color
+            The color of the bar.
+        background_color: arcade.Color
+            The background color of the bar.
+        width: int
+            The width of the bar.
+        height: int
+            The height of the bar.
+        border_size: int
+            The size of the bar's border.
+        scale: float
+            The scale of the indicator bar.
+        """
         # Store the reference to the owner and the target spritelist
         self.owner: Entity = owner
         self.target_spritelist: arcade.SpriteList = target_spritelist
@@ -336,21 +337,18 @@ class IndicatorBar:
             self.full_box.scale = value
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<IndicatorBar (Owner={self.owner})>"
 
 
 class GameObject(arcade.Sprite):
     """The base class for all game objects.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the object can have a reference to it.
-    x: int
-        The x position of the object in the game map.
-    y: int
-        The y position of the object in the game map.
 
     Attributes
     ----------
@@ -369,28 +367,34 @@ class GameObject(arcade.Sprite):
         x: int,
         y: int,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        game: Game
+            The game view. This is passed so the object can have a reference to it.
+        x: int
+            The x position of the object in the game map.
+        y: int
+            The y position of the object in the game map.
+        """
         super().__init__(scale=SPRITE_SCALE)
         self.game: Game = game
         self.center_x, self.center_y = grid_pos_to_pixel(x, y)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<GameObject (Position=({self.center_x}, {self.center_y}))>"
 
 
 class Entity(GameObject, metaclass=ABCMeta):
     """Represents an entity in the game.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the entity can have a reference to it.
-    x: int
-        The x position of the entity in the game map.
-    y: int
-        The y position of the entity in the game map.
-    entity_type: BaseData
-        The raw data for this entity.
 
     Attributes
     ----------
@@ -438,6 +442,19 @@ class Entity(GameObject, metaclass=ABCMeta):
         y: int,
         entity_type: BaseData,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        game: Game
+            The game view. This is passed so the entity can have a reference to it.
+        x: int
+            The x position of the entity in the game map.
+        y: int
+            The y position of the entity in the game map.
+        entity_type: BaseData
+            The raw data for this entity.
+        """
         super().__init__(game, x, y)
         self.entity_type: BaseData = entity_type
         self.texture: arcade.Texture = self.entity_data.textures["idle"][0][0]
@@ -720,7 +737,13 @@ class Entity(GameObject, metaclass=ABCMeta):
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Entity (Position=({self.center_x}, {self.center_y}))>"
 
 
@@ -728,13 +751,6 @@ class Tile(GameObject):
     """Represents a tile in the game.
 
     This should not be instantiated, instead subclass it and override its methods.
-
-    Parameters
-    ----------
-    x: int
-        The x position of the tile in the game map.
-    y: int
-        The y position of the tile in the game map.
 
     Attributes
     ----------
@@ -761,6 +777,15 @@ class Tile(GameObject):
         x: int,
         y: int,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        x: int
+            The x position of the tile in the game map.
+        y: int
+            The y position of the tile in the game map.
+        """
         super().__init__(game, x, y)
         self.texture: arcade.Texture = self.raw_texture
 
@@ -810,7 +835,13 @@ class Tile(GameObject):
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Tile (Position=({self.center_x}, {self.center_y}))>"
 
 
@@ -844,5 +875,11 @@ class CollectibleTile(Tile, metaclass=ABCMeta):
             return False
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<CollectibleTile (Position=({self.center_x}, {self.center_y}))>"

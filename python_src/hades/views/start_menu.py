@@ -44,7 +44,13 @@ class StartButton(arcade.gui.UIFlatButton):
         window.show_view(new_game)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return (
             f"<StartButton (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"
@@ -60,7 +66,13 @@ class QuitButton(arcade.gui.UIFlatButton):
         arcade.exit()
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return (
             f"<QuitButton (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"
@@ -71,6 +83,7 @@ class StartMenu(BaseView):
     """Creates a start menu useful for picking the game mode and options."""
 
     def __init__(self) -> None:
+        """Initialise the object."""
         super().__init__()
         vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
 
@@ -103,5 +116,11 @@ class StartMenu(BaseView):
         self.ui_manager.draw()
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<StartMenu (Current window={self.window})>"

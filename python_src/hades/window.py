@@ -32,11 +32,18 @@ class Window(arcade.Window):
     """
 
     def __init__(self) -> None:
+        """Initialise the object."""
         super().__init__()
         self.views: dict[str, BaseView] = {}
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Window (Width={self.width}) (Height={self.height})>"
 
 

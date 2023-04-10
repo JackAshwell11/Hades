@@ -129,6 +129,7 @@ class Game(BaseView):
     """
 
     def __init__(self) -> None:
+        """Initialise the object."""
         super().__init__()
         self.background_color = arcade.color.BLACK
         self.level_constants: LevelConstants | None = None
@@ -750,5 +751,11 @@ class Game(BaseView):
             self.game_camera.move_to(new_position)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Game (Current window={self.window})>"

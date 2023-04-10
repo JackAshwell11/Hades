@@ -30,12 +30,6 @@ geometry_path = base_path / "melee_geometry.glsl"
 class MeleeShader:
     """Eases setting up the ray-casting shader for the player's melee attack.
 
-    Parameters
-    ----------
-    view: Game
-        The game view. This is used to access various parts of the game needed for the
-        shader to work correctly.
-
     Attributes
     ----------
     program: Program | None
@@ -59,6 +53,14 @@ class MeleeShader:
     )
 
     def __init__(self, view: Game) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        view: Game
+            The game view. This is used to access various parts of the game needed for
+            the shader to work correctly.
+        """
         self.view: Game = view
         self.program: Program | None = None
         self.result_buffer: Buffer | None = None
@@ -218,7 +220,13 @@ class MeleeShader:
     # Need to fix this
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         # Make sure the walls framebuffer is valid
         assert self.walls_framebuffer is not None
 

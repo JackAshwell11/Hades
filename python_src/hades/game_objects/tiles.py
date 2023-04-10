@@ -32,7 +32,13 @@ class Floor(Tile, metaclass=ABCMeta):
     raw_texture: arcade.Texture = non_moving_textures["tiles"][0]
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Floor (Position=({self.center_x}, {self.center_y}))>"
 
 
@@ -44,7 +50,13 @@ class Wall(Tile, metaclass=ABCMeta):
     blocking: bool = True
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Wall (Position=({self.center_x}, {self.center_y}))>"
 
 
@@ -70,21 +82,7 @@ class Wall(Tile, metaclass=ABCMeta):
 
 
 class Consumable(CollectibleTile):
-    """Represents a consumable that can be consumed by the player in the game.
-
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the consumable can have a reference to it.
-    x: int
-        The x position of the consumable in the game map.
-    y: int
-        The y position of the consumable in the game map.
-    consumable_type: ConsumableData
-        The type of this consumable.
-    consumable_level: int
-        The level of this consumable.
-    """
+    """Represents a consumable that can be consumed by the player in the game."""
 
     # Class variables
     item_text: str = "Press E to pick up and R to activate"
@@ -97,6 +95,21 @@ class Consumable(CollectibleTile):
         consumable_type: ConsumableData,
         consumable_level: int = 0,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        game: Game
+            The game view. This is passed so the consumable can have a reference to it.
+        x: int
+            The x position of the consumable in the game map.
+        y: int
+            The y position of the consumable in the game map.
+        consumable_type: ConsumableData
+            The type of this consumable.
+        consumable_level: int
+            The level of this consumable.
+        """
         self.consumable_level: int = consumable_level
         super().__init__(game, x, y)
         self.consumable_type: ConsumableData = consumable_type
@@ -162,5 +175,11 @@ class Consumable(CollectibleTile):
         return True
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Consumable (Position=({self.center_x}, {self.center_y}))>"

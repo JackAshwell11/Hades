@@ -38,19 +38,6 @@ logger = logging.getLogger(__name__)
 class Enemy(Entity):
     """Represents a hostile character in the game.
 
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the enemy can have a reference to it.
-    x: int
-        The x position of the enemy in the game map.
-    y: int
-        The y position of the enemy in the game map.
-    enemy_level: int
-        The level of this enemy.
-    enemy_type: BaseData
-        The raw data for this enemy.
-
     Attributes
     ----------
     movement_ai: EnemyMovementManager
@@ -71,6 +58,21 @@ class Enemy(Entity):
         enemy_type: BaseData,
         enemy_level: int = 0,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        game: Game
+            The game view. This is passed so the enemy can have a reference to it.
+        x: int
+            The x position of the enemy in the game map.
+        y: int
+            The y position of the enemy in the game map.
+        enemy_level: int
+            The level of this enemy.
+        enemy_type: BaseData
+            The raw data for this enemy.
+        """
         self.enemy_level: int = enemy_level
         super().__init__(game, x, y, enemy_type)
         self.movement_ai: EnemyMovementManager = EnemyMovementManager(self)
@@ -250,7 +252,13 @@ class Enemy(Entity):
         )
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return (
             f"<Enemy (Position=({self.center_x}, {self.center_y})) (Enemy"
             f" level={self.enemy_level})>"

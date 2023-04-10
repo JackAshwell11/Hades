@@ -38,25 +38,6 @@ logger = logging.getLogger(__name__)
 class Bullet(arcade.SpriteSolidColor):
     """Represents a bullet in the game.
 
-    Parameters
-    ----------
-    x: float
-        The starting x position of the bullet.
-    y: float
-        The starting y position of the bullet.
-    width: int
-        Width of the bullet.
-    height: int
-        Height of the bullet.
-    color: tuple[int, int, int]
-        The color of the bullet.
-    owner: Entity
-        The entity which shot the bullet.
-    damage: int
-        The damage this bullet deals.
-    max_range: float
-        The max range of the bullet.
-
     Attributes
     ----------
     start_position: tuple[float, float]
@@ -75,6 +56,27 @@ class Bullet(arcade.SpriteSolidColor):
         damage: int,
         max_range: float,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        x: float
+            The starting x position of the bullet.
+        y: float
+            The starting y position of the bullet.
+        width: int
+            Width of the bullet.
+        height: int
+            Height of the bullet.
+        color: tuple[int, int, int]
+            The color of the bullet.
+        owner: Entity
+            The entity which shot the bullet.
+        damage: int
+            The damage this bullet deals.
+        max_range: float
+            The max range of the bullet.
+        """
         super().__init__(width, height, color)
         self.center_x: float = x
         self.center_y: float = y
@@ -92,20 +94,18 @@ class Bullet(arcade.SpriteSolidColor):
             logger.debug("Removed %r after passing max range %f", self, self.max_range)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Bullet (Position=({self.center_x}, {self.center_y}))>"
 
 
 class AttackBase(metaclass=ABCMeta):
-    """The base class for all attack algorithms.
-
-    Parameters
-    ----------
-    owner: Entity
-        The reference to the enemy object that manages this attack algorithm.
-    attack_data: AttackData
-        The data for this attack.
-    """
+    """The base class for all attack algorithms."""
 
     __slots__ = (
         "owner",
@@ -116,6 +116,15 @@ class AttackBase(metaclass=ABCMeta):
     attack_type: AttackAlgorithmType = AttackAlgorithmType.BASE
 
     def __init__(self, owner: Entity, attack_data: AttackData) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        owner: Entity
+            The reference to the enemy object that manages this attack algorithm.
+        attack_data: AttackData
+            The data for this attack.
+        """
         self.owner: Entity = owner
         self.attack_data: AttackData = attack_data
 
@@ -146,7 +155,13 @@ class AttackBase(metaclass=ABCMeta):
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<AttackBase (Owner={self.owner})>"
 
 
@@ -222,7 +237,13 @@ class RangedAttack(AttackBase):
         )
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<RangedAttack (Owner={self.owner})>"
 
 
@@ -271,7 +292,13 @@ class MeleeAttack(AttackBase):
             entity.deal_damage(self.attack_data.damage)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<MeleeAttack (Owner={self.owner})>"
 
 
@@ -342,7 +369,13 @@ class AreaOfEffectAttack(AttackBase):
                 entity.deal_damage(self.attack_data.damage)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<AreaOfEffectAttack (Owner={self.owner})>"
 
 

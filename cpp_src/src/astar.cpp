@@ -10,10 +10,8 @@
 // ----- STRUCTURES ------------------------------
 /// Represents a grid position and its costs from the start position
 ///
-/// Parameters
-/// ----------
-/// cost - The cost to traverse to this neighbour.
-/// destination - The destination point in the grid.
+/// @param cost - The cost to traverse to this neighbour.
+/// @param destination - The destination point in the grid.
 struct Neighbour {
   int cost;
   Point destination;

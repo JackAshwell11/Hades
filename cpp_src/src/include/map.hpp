@@ -14,15 +14,10 @@ struct Edge {
 
   /// Construct an Edge object.
   ///
-  /// Parameters
-  /// ----------
-  /// cost - The cost to traverse this edge.
-  /// source - The starting node.
-  /// destination - The ending node.
-  ///
-  /// Returns
-  /// -------
-  /// An Edge object.
+  /// @param cost - The cost to traverse this edge.
+  /// @param source - The starting node.
+  /// @param destination - The ending node.
+  /// @return An Edge object.
   Edge(int cost_val, Rect source_val, Rect destination_val) {
     cost = cost_val;
     source = source_val;
@@ -57,80 +52,52 @@ struct std::hash<Edge> {
 // ----- DEFINITIONS ------------------------------
 /// Collect all points in a given grid that match the target.
 ///
-/// Parameters
-/// ----------
-/// grid - The 2D grid which represents the dungeon.
-/// target - The TileType to test for.
-///
-/// Returns
-/// -------
-/// A vector of points which match the target.
+/// @param grid - The 2D grid which represents the dungeon.
+/// @param target - The TileType to test for.
+/// @return A vector of points which match the target.
 std::vector<Point> collect_positions(Grid &grid, TileType target);
 
 /// Split the bsp based on the generated constants.
 ///
-/// Parameters
-/// ----------
-/// bsp - The root leaf for the binary space partition.
-/// grid - The 2D grid which represents the dungeon.
-/// random_generator - The random generator used to generate the bsp.
-/// split_iteration - The number of splits to perform.
+/// @param bsp - The root leaf for the binary space partition.
+/// @param grid - The 2D grid which represents the dungeon.
+/// @param random_generator - The random generator used to generate the bsp.
+/// @param split_iteration - The number of splits to perform.
 void split_bsp(Leaf &bsp, Grid &grid, std::mt19937 &random_generator, int split_iteration);
 
 /// Generate the rooms for a given game level using the bsp.
 ///
-/// Parameters
-/// ----------
-/// bsp - The root leaf for the binary space partition.
-/// grid - The 2D grid which represents the dungeon.
-/// random_generator - The random generator used to generate the bsp.
-///
-/// Returns
-/// -------
-/// The generated rooms.
+/// @param bsp - The root leaf for the binary space partition.
+/// @param grid - The 2D grid which represents the dungeon.
+/// @param random_generator - The random generator used to generate the bsp.
+/// @return The generated rooms.
 std::vector<Rect> generate_rooms(Leaf &bsp, Grid &grid, std::mt19937 &random_generator);
 
 /// Create a set of connections between all the rects ensuring that every rect
 /// is reachable.
 ///
-/// Further reading which may be useful:
-/// `Prim's algorithm <https://en.wikipedia.org/wiki/Prim's_algorithm>`_
+/// @details https://en.wikipedia.org/wiki/Prim's_algorithm
 ///
-/// Parameters
-/// ----------
-/// complete_graph - An adjacency list which represents a complete graph.
-///
-/// Throws
-/// ------
-/// std::length_error - Complete graph size must be bigger than 0.
-///
-/// Returns
-/// -------
-/// A set of edges which form the connections between rects.
+/// @param complete_graph - An adjacency list which represents a complete graph.
+/// @throws std::length_error - Complete graph size must be bigger than 0.
+/// @return A set of edges which form the connections between rects.
 std::unordered_set<Edge> create_connections(std::unordered_map<Rect, std::vector<Rect>> &complete_graph);
 
 /// Places a given tile in the 2D grid.
 ///
-/// Parameters
-/// ----------
-/// grid - The 2D grid which represents the dungeon.
-/// random_generator - The random generator used to pick the position.
-/// target_tile - The tile to place in the 2D grid.
-/// possible_tiles - The possible tiles that the tile can be placed into.
-///
-/// Throws
-/// ------
-/// std::length_error - Possible tiles size must be bigger than 0.
+/// @param grid - The 2D grid which represents the dungeon.
+/// @param random_generator - The random generator used to pick the position.
+/// @param target_tile - The tile to place in the 2D grid.
+/// @param possible_tiles - The possible tiles that the tile can be placed into.
+/// @throws std::length_error - Possible tiles size must be bigger than 0.
 void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile, std::vector<Point> &possible_tiles);
 
 /// Create the hallways by placing random obstacles and pathfinding around them.
 ///
-/// Parameters
-/// ----------
-/// grid - The 2D grid which represents the dungeon.
-/// random_generator - The random generator used to pick the obstacle positions.
-/// connections - The connections to pathfind using the A* algorithm.
-/// obstacle_count - The number of obstacles to place in the 2D grid.
+/// @param grid - The 2D grid which represents the dungeon.
+/// @param random_generator - The random generator used to pick the obstacle positions.
+/// @param connections - The connections to pathfind using the A* algorithm.
+/// @param obstacle_count - The number of obstacles to place in the 2D grid.
 void create_hallways(Grid &grid,
                      std::mt19937 &random_generator,
                      std::unordered_set<Edge> &connections,
@@ -138,14 +105,9 @@ void create_hallways(Grid &grid,
 
 /// Generate the game map for a given game level.
 ///
-/// Parameters
-/// ----------
-/// level - The game level to generate a map for.
-/// seed - The seed to initialise the random generator. If this is empty, then
+/// @param level - The game level to generate a map for.
+/// @param seed - The seed to initialise the random generator. If this is empty, then
 /// one will be generated.
-///
-/// Returns
-/// -------
-/// A tuple containing the generated map and the level constants.
+/// @return A tuple containing the generated map and the level constants.
 std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(int level,
                                                                        std::optional<unsigned int> seed = std::nullopt);

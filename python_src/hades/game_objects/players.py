@@ -39,17 +39,6 @@ logger = logging.getLogger(__name__)
 class Player(Entity):
     """Represents the player character in the game.
 
-    Parameters
-    ----------
-    game: Game
-        The game view. This is passed so the player can have a reference to it.
-    x: int
-        The x position of the player in the game map.
-    y: int
-        The y position of the player in the game map.
-    player_type: BaseData
-        The raw data for this player.
-
     Attributes
     ----------
     melee_shader: MeleeShader
@@ -79,6 +68,19 @@ class Player(Entity):
     object_id: ObjectID = ObjectID.PLAYER
 
     def __init__(self, game: Game, x: int, y: int, player_type: BaseData) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        game: Game
+            The game view. This is passed so the player can have a reference to it.
+        x: int
+            The x position of the player in the game map.
+        y: int
+            The y position of the player in the game map.
+        player_type: BaseData
+            The raw data for this player.
+        """
         super().__init__(game, x, y, player_type)
         self.melee_shader: MeleeShader = MeleeShader(self.game)
         self.upgrade_sections: list[UpgradablePlayerSection] = [
@@ -303,5 +305,11 @@ class Player(Entity):
         return True
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Player (Position=({self.center_x}, {self.center_y}))>"

@@ -150,16 +150,17 @@ def player_bullet_begin_handler(
 
 
 class PhysicsEngine(arcade.PymunkPhysicsEngine):
-    """A helper class to ease setting up the Pymunk physics engine for a top-down game.
-
-    Parameters
-    ----------
-    damping: float
-        The amount of speed which is kept to the next tick. A value of 1.0 means no
-        speed is lost, while 0.9 means 10% of speed is lost.
-    """
+    """A class which eases setting up the Pymunk physics engine for a top-down game."""
 
     def __init__(self, damping: float) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        damping: float
+            The amount of speed which is kept to the next tick. A value of 1.0 means no
+            speed is lost, while 0.9 means 10% of speed is lost.
+        """
         super().__init__(damping=damping)
         self.damping: float = damping
 
@@ -253,7 +254,13 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         logger.debug("Added %r to physics engine", enemy)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return (
             f"<PhysicsEngine (Damping={self.damping}) (Sprite"
             f" count={len(self.sprites)})>"

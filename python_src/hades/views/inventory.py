@@ -63,7 +63,13 @@ class InventoryBox(arcade.gui.UITextureButton):
             logger.info("Item use for %r successful", self.item_ref)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return (
             f"<InventoryBox (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"
@@ -73,11 +79,6 @@ class InventoryBox(arcade.gui.UITextureButton):
 class Inventory(BaseView):
     """Displays the player's inventory allowing them to manage it and equip items.
 
-    Parameters
-    ----------
-    player: Player
-        The player object used for accessing the inventory.
-
     Attributes
     ----------
     vertical_box: arcade.gui.UIBoxLayout
@@ -85,6 +86,13 @@ class Inventory(BaseView):
     """
 
     def __init__(self, player: Player) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        player: Player
+            The player object used for accessing the inventory.
+        """
         super().__init__()
         self.player: Player = player
         self.vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
@@ -146,5 +154,11 @@ class Inventory(BaseView):
         )
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Inventory (Current window={self.window})>"

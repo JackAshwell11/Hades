@@ -26,25 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
-    """Represents a simple dialog box that displays a message then disappears.
-
-    Parameters
-    ----------
-    parent_view: BaseView
-        The parent view which created this box.
-    width: float
-        The width of the message box.
-    height: float
-        The height of the message box.
-    message_text: str
-        The text to display.
-    text_color: int
-        The color of the text in the box.
-    background_color: arcade.Color
-        The color of the background of the box.
-    disappear_time: float
-        The time before the box should disappear.
-    """
+    """Represents a simple dialog box that displays a message then disappears."""
 
     def __init__(
         self,
@@ -57,6 +39,25 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         background_color: arcade.Color = arcade.color.BABY_BLUE,
         disappear_time: float = 3,
     ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        parent_view: BaseView
+            The parent view which created this box.
+        width: float
+            The width of the message box.
+        height: float
+            The height of the message box.
+        message_text: str
+            The text to display.
+        text_color: int
+            The color of the text in the box.
+        background_color: arcade.Color
+            The color of the background of the box.
+        disappear_time: float
+            The time before the box should disappear.
+        """
         # The offset used for the anchoring
         anchor_offset = 10
 
@@ -127,7 +128,13 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         logger.info("Info box has disappeared with text %s", self._text_area.text)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<DisappearingInfoBox (Text={self._text_area.text})>"
 
 
@@ -144,7 +151,13 @@ class BackButton(arcade.gui.UIFlatButton):
         window.show_view(game_view)
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return (
             f"<BackButton (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"
@@ -165,6 +178,7 @@ class BaseView(arcade.View):
     """
 
     def __init__(self) -> None:
+        """Initialise the object."""
         super().__init__()
         self.window: Window = self.window
         self.ui_manager: UIManager = UIManager()
@@ -214,5 +228,11 @@ class BaseView(arcade.View):
         vertical_box.add(BackButton(text="Back", width=200).with_space_around(top=20))
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<BaseView (Current window={self.window})>"

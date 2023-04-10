@@ -48,14 +48,9 @@ struct Point {
 
   /// Construct a Point object.
   ///
-  /// Parameters
-  /// ----------
-  /// x - The x position.
-  /// y - The y position.
-  ///
-  /// Returns
-  /// -------
-  /// A Point object.
+  /// @param x - The x position.
+  /// @param y - The y position.
+  /// @return A Point object.
   Point(int x_val, int y_val) {
     x = x_val;
     y = y_val;
@@ -64,10 +59,8 @@ struct Point {
 
 /// Represents a 2D grid with a set width and height through a 1D vector.
 ///
-/// Attributes
-/// ----------
-/// width - The width of the 2D grid.
-/// height - The height of the 2D grid.
+/// @details width - The width of the 2D grid.
+/// @details height - The height of the 2D grid.
 struct Grid {
   // Parameters
   int width{}, height{};
@@ -80,14 +73,9 @@ struct Grid {
 
   /// Construct a Grid object.
   ///
-  /// Parameters
-  /// ----------
-  /// width - The width of the 2D grid.
-  /// height - The height of the 2D grid.
-  ///
-  /// Returns
-  /// -------
-  /// A Grid object.
+  /// @param width - The width of the 2D grid.
+  /// @param height - The height of the 2D grid.
+  /// @return A Grid object.
   Grid(int width_val, int height_val) {
     width = width_val;
     height = height_val;
@@ -96,46 +84,22 @@ struct Grid {
 
   /// Convert a 2D grid position to a 1D grid position.
   ///
-  /// Parameters
-  /// ----------
-  /// pos - The position to convert.
-  ///
-  /// Throws
-  /// ------
-  /// std::out_of_range
-  ///     Position must be within range.
-  ///
-  /// Returns
-  /// -------
-  /// The 1D grid position.
+  /// @param pos - The position to convert.
+  /// @throws std::out_of_range - Position must be within range.
+  /// @return The 1D grid position.
   [[nodiscard]] int convert_position(const Point &pos) const;
 
   /// Get a value in the 2D grid from a given position.
   ///
-  /// Parameters
-  /// ----------
-  /// pos - The position to get the value for.
-  ///
-  /// Throws
-  /// ------
-  /// std::out_of_range
-  ///     Position must be within range.
-  ///
-  /// Returns
-  /// -------
-  /// The value at the given position.
+  /// @param pos - The position to get the value for.
+  /// @throws std::out_of_range - Position must be within range.
+  /// @return The value at the given position.
   [[nodiscard]] TileType get_value(const Point &pos) const;
 
   /// Set a value in the 2D grid from a given position.
   ///
-  /// Parameters
-  /// ----------
-  /// pos - The position to set.
-  ///
-  /// Throws
-  /// ------
-  /// std::out_of_range
-  ///     Position must be within range.
+  /// @param pos - The position to set.
+  /// @throws std::out_of_range - Position must be within range.
   void set_value(const Point &pos, TileType target);
 };
 
@@ -146,11 +110,9 @@ struct Grid {
 /// whereas, rooms don't so MIN_CONTAINER_SIZE must be bigger than
 /// MIN_ROOM_SIZE.
 ///
-/// Attributes
-/// ----------
-/// center - The center position of the rect.
-/// width - The width of the rect.
-/// height - The height of the rect.
+/// @details center - The center position of the rect.
+/// @details width - The width of the rect.
+/// @details height - The height of the rect.
 struct Rect {
   // Parameters
   Point top_left{}, bottom_right{};
@@ -172,14 +134,9 @@ struct Rect {
 
   /// Construct a Rect object.
   ///
-  /// Parameters
-  /// ----------
-  /// top-left - The top-left position.
-  /// bottom-right - The bottom-right position.
-  ///
-  /// Returns
-  /// -------
-  /// A Rect object.
+  /// @param top-left - The top-left position.
+  /// @param bottom-right - The bottom-right position.
+  /// @return A Rect object.
   Rect(Point top_left_val, Point bottom_right_val) {
     Point sum = top_left_val + bottom_right_val;
     Point diff = top_left_val - bottom_right_val;
@@ -193,20 +150,13 @@ struct Rect {
 
   /// Get the Chebyshev distance to another rect.
   ///
-  /// Parameters
-  /// ----------
-  /// other - The rect to find the distance to.
-  ///
-  /// Returns
-  /// -------
-  /// The Chebyshev distance between this rect and the given rect.
+  /// @param other - The rect to find the distance to.
+  /// @return The Chebyshev distance between this rect and the given rect.
   [[nodiscard]] int get_distance_to(const Rect &other) const;
 
   /// Place the rect in the 2D grid.
   ///
-  /// Parameters
-  /// ----------
-  /// grid - The 2D grid which represents the dungeon.
+  /// @param grid - The 2D grid which represents the dungeon.
   void place_rect(Grid &grid) const;
 };
 

@@ -10,23 +10,16 @@
 // ----- STRUCTURES ------------------------------
 /// Stores a map generation constant which can be calculated.
 ///
-/// Parameters
-/// ----------
-/// base_value - The base value for the exponential calculation.
-/// increase - The percentage increase for the constant.
-/// max_value - The max value for the exponential calculation.
+/// @param base_value - The base value for the exponential calculation.
+/// @param increase - The percentage increase for the constant.
+/// @param max_value - The max value for the exponential calculation.
 struct MapGenerationConstant {
   double base_value, increase, max_value;
 
   /// Generate a value based on the exponential equation.
   ///
-  /// Parameters
-  /// ----------
-  /// level - The game level to generate a value for.
-  ///
-  /// Returns
-  /// -------
-  /// The generated valued.
+  /// @param level - The game level to generate a value for.
+  /// @return The generated value.
   [[nodiscard]] inline int generate_value(int level) const {
     return (int) std::min(round(base_value * pow(increase, level)), max_value);
   }
@@ -34,13 +27,11 @@ struct MapGenerationConstant {
 
 /// Stores the map generation constants
 ///
-/// Parameters
-/// ----------
-/// width - The width of the 2D grid.
-/// height - The height of the 2D grid.
-/// split_iteration - The amount of splits to perform.
-/// obstacle_count - The amount of obstacles to place in the 2D grid.
-/// item_count - The amount of items to place in the 2D grid.
+/// @param width - The width of the 2D grid.
+/// @param height - The height of the 2D grid.
+/// @param split_iteration - The amount of splits to perform.
+/// @param obstacle_count - The amount of obstacles to place in the 2D grid.
+/// @param item_count - The amount of items to place in the 2D grid.
 struct MapGenerationConstants {
   MapGenerationConstant width, height, split_iteration, obstacle_count,
       item_count;

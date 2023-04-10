@@ -43,7 +43,13 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
             )
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return (
             f"<SectionUpgradeButton (Position=({self.center_x}, {self.center_y}))"
             f" (Width={self.width}) (Height={self.height})>"
@@ -51,16 +57,16 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
 
 
 class Shop(BaseView):
-    """
-    Displays the shop UI so the player can upgrade their attributes.
-
-    Parameters
-    ----------
-    player: Player
-        The player object used for accessing the inventory.
-    """
+    """Display the shop UI so the player can upgrade their attributes."""
 
     def __init__(self, player: Player) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        player: Player
+            The player object used for accessing the inventory.
+        """
         super().__init__()
         self.player: Player = player
         vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
@@ -99,5 +105,11 @@ class Shop(BaseView):
         self.ui_manager.draw()
 
     def __repr__(self) -> str:
-        """Return a human-readable representation of this object."""
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
         return f"<Shop (Current window={self.window})>"
