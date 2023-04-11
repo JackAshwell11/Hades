@@ -31,10 +31,10 @@ from hades.constants.general import (
     TOTAL_ENEMY_COUNT,
 )
 from hades.extensions import VectorField
-from hades.game_objects.attacks import AreaOfEffectAttack, MeleeAttack
-from hades.game_objects.enemies import Enemy
-from hades.game_objects.players import Player
-from hades.game_objects.tiles import Consumable, Floor, Wall
+from hades.game_objects_OLD.attacks import AreaOfEffectAttack, MeleeAttack
+from hades.game_objects_OLD.enemies import Enemy
+from hades.game_objects_OLD.players import Player
+from hades.game_objects_OLD.tiles import Consumable, Floor, Wall
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
 from hades.views.base import BaseView
