@@ -5,6 +5,9 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING
 
+# Custom
+from hades.exceptions import SpaceError
+
 if TYPE_CHECKING:
     from hades.game_objects.enums import InventoryData
     from hades.game_objects.objects import GameObject
@@ -13,7 +16,7 @@ __all__ = ("ActionableMixin", "CollectibleMixin", "Inventory")
 
 
 class Inventory:
-    """Allow a game object to have a fixed size inventory."""
+    """Allows a game object to have a fixed size inventory."""
 
     __slots__ = (
         "inventory_data",
@@ -41,14 +44,14 @@ class Inventory:
 
         Raises
         ------
-        ValueError
-            Not enough space in the inventory
+        SpaceError
+            The inventory container does not have enough room
         """
         if (
             len(self.inventory)
             == self.inventory_data.width * self.inventory_data.height
         ):
-            raise ValueError("Not enough space in the inventory")
+            raise SpaceError(self.__class__.__name__.lower())
         self.inventory.append(item)
 
     def remove_item_from_inventory(self: type[Inventory], index: int) -> int:
@@ -59,18 +62,24 @@ class Inventory:
         index: int
             The index to remove an item at.
 
+
+        Raises
+        ------
+        SpaceError
+            The inventory container does not have enough room
+
         Returns
         -------
         ValueError
             Not enough space in the inventory
         """
         if len(self.inventory) < index:
-            raise ValueError("Not enough space in the inventory")
+            raise SpaceError(self.__class__.__name__.lower())
         return self.inventory.pop(index)
 
 
 class ActionableMixin(metaclass=ABCMeta):
-    """Allow a game object to have an action when interacted with."""
+    """Allows a game object to have an action when interacted with."""
 
     @abstractmethod
     def action_use(self: type[GameObject]) -> None:
@@ -79,7 +88,7 @@ class ActionableMixin(metaclass=ABCMeta):
 
 
 class CollectibleMixin(metaclass=ABCMeta):
-    """Allow a game object to be collected when interacted with."""
+    """Allows a game object to be collected when interacted with."""
 
     @abstractmethod
     def collect_use(self: type[GameObject]) -> None:

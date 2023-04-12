@@ -5,7 +5,6 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import NamedTuple
 
-
 __all__ = (
     "ComponentType",
     "ActionableData",
@@ -122,6 +121,7 @@ class GameObjectData(NamedTuple):
 
     name: str
     component_data: dict[ComponentType, type[ComponentData]]
+
 
 # TODO: Textures, armour_regen, level_limit, view_distance, entity attributes, player
 #  upgrades, instant effects, status effects

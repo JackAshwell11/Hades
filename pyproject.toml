@@ -146,6 +146,7 @@ testpaths = ["tests"]
 [tool.ruff]
 extend-exclude = [
     "*vector_field*",
+    "python_src/hades/game_objects_OLD"
 ]
 extend-ignore = [
     #"ANN101",  # Allow the `self` parameter to be untyped

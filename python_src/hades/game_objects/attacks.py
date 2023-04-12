@@ -73,7 +73,7 @@ class Bullet(arcade.SpriteSolidColor):
 
 
 class Attacker:
-    """Allow a game object to attack another game object."""
+    """Allows a game object to attack another game object."""
 
     __slots__ = ("attacker_data", "time_since_last_attack", "time_out_of_combat")
 
@@ -89,7 +89,7 @@ class Attacker:
 
 
 class RangedAttackMixin:
-    """Perform a ranged attack in the direction the entity is facing."""
+    """Performs a ranged attack in the direction the entity is facing."""
 
     def do_ranged_attack(self: type[GameObject]) -> None:
         """Perform a ranged attack in the direction the entity is facing."""
@@ -105,7 +105,7 @@ class MeleeAttackMixin:
 
 
 class AreaOfEffectAttackMixin:
-    """Perform an area of effect attack around the entity."""
+    """Performs an area of effect attack around the entity."""
 
     def do_area_of_effect_attack(self: type[GameObject]) -> None:
         """Perform an area of effect attack around the entity."""

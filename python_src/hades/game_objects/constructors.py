@@ -4,14 +4,11 @@ from __future__ import annotations
 # Custom
 from hades.game_objects.enums import GameObjectData
 
-
 __all__ = ()
 
 PLAYER = GameObjectData(
     name="Player",
-    component_data={
-
-    },
+    component_data={},
     #         EntityAttributeType.HEALTH: EntityAttributeData(
     #         ),
     #         EntityAttributeType.SPEED: EntityAttributeData(

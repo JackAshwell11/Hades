@@ -11,7 +11,7 @@ __all__ = ()
 
 
 class SteeringMixin:
-    """Allow a game object to steer around the game map."""
+    """Allows a game object to steer around the game map."""
 
     def calculate_steering_force(self: type[GameObject]) -> tuple[float, float]:
         """TODO.
