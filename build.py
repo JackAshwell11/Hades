@@ -17,7 +17,7 @@ from setuptools.command.build_ext import build_ext
 class CMakeBuild(build_ext):
     """A custom build_ext command which allows CMake projects to be built."""
 
-    def build_extension(self, ext: Extension) -> None:
+    def build_extension(self: CMakeBuild, ext: Extension) -> None:
         """Build a CMake extension.
 
         Parameters

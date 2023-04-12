@@ -11,11 +11,15 @@ class DummyImport:
         The target to fake.
     """
 
-    def __init__(self, target: str) -> None:  # pragma: no cover
+    def __init__(self: DummyImport, target: str) -> None:  # pragma: no cover
         """Initialise the object."""
         self.target: str = target
 
-    def __call__(self, *args: str, **kwargs: str) -> None:  # pragma: no cover
+    def __call__(
+        self: DummyImport,
+        *args: str,
+        **kwargs: str,
+    ) -> None:  # pragma: no cover
         """Is called whenever the faked import is called/initialised.
 
         Parameters

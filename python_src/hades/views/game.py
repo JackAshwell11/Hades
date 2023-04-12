@@ -50,6 +50,9 @@ __all__ = ("Game",)
 # Get the logger
 logger = logging.getLogger(__name__)
 
+NINETY_DEGREES = 90
+TWO_HUNDRED_SEVENTY_DEGREES = 270
+
 
 @cache
 def get_upper_bound(level: int) -> int:
@@ -128,7 +131,7 @@ class Game(BaseView):
         The text object used for displaying info about the nearest item.
     """
 
-    def __init__(self) -> None:
+    def __init__(self: Game) -> None:
         """Initialise the object."""
         super().__init__()
         self.background_color = arcade.color.BLACK
@@ -167,7 +170,7 @@ class Game(BaseView):
             20,
         )
 
-    def post_hide_view(self) -> None:
+    def post_hide_view(self: Game) -> None:
         """Process post hide view functionality."""
         # Make sure variables needed are valid
         assert self.player is not None
@@ -177,7 +180,7 @@ class Game(BaseView):
             self.player.right_pressed
         ) = self.player.up_pressed = self.player.down_pressed = False
 
-    def setup(self, level: int) -> None:
+    def setup(self: Game, level: int) -> None:
         """Set up the game.
 
         Parameters
@@ -336,7 +339,7 @@ class Game(BaseView):
             ENEMY_GENERATE_INTERVAL,  # type: ignore[arg-type]
         )
 
-    def on_draw(self) -> None:
+    def on_draw(self: Game) -> None:
         """Render the screen."""
         # Make sure variables needed are valid
         assert self.player is not None
@@ -469,7 +472,7 @@ class Game(BaseView):
         # Draw the UI elements
         self.ui_manager.draw()
 
-    def on_update(self, delta_time: float) -> None:
+    def on_update(self: Game, delta_time: float) -> None:
         """Process movement and game logic.
 
         Parameters
@@ -513,7 +516,7 @@ class Game(BaseView):
             # is not colliding with
             self.nearest_item = None
 
-    def on_key_press(self, key: int, modifiers: int) -> None:
+    def on_key_press(self: Game, key: int, modifiers: int) -> None:
         """Process key press functionality.
 
         Parameters
@@ -562,7 +565,7 @@ class Game(BaseView):
             case arcade.key.T:
                 self.window.show_view(self.window.views["ShopView"])
 
-    def on_key_release(self, key: int, modifiers: int) -> None:
+    def on_key_release(self: Game, key: int, modifiers: int) -> None:
         """Process key release functionality.
 
         Parameters
@@ -592,7 +595,7 @@ class Game(BaseView):
             case arcade.key.D:
                 self.player.right_pressed = False
 
-    def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
+    def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
         """Process mouse button functionality.
 
         Parameters
@@ -622,7 +625,7 @@ class Game(BaseView):
             # Make the player attack
             self.player.attack()
 
-    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
+    def on_mouse_motion(self: Game, x: int, y: int, dx: int, dy: int) -> None:
         """Process mouse motion functionality.
 
         Parameters
@@ -652,9 +655,13 @@ class Game(BaseView):
         if angle < 0:
             angle += 360
         self.player.direction = angle
-        self.player.facing = FACING_LEFT if 90 <= angle <= 270 else FACING_RIGHT
+        self.player.facing = (
+            FACING_LEFT
+            if NINETY_DEGREES <= angle <= TWO_HUNDRED_SEVENTY_DEGREES
+            else FACING_RIGHT
+        )
 
-    def generate_enemy(self, _: float = 1 / 60) -> None:
+    def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
         # Make sure variables needed are valid
         assert self.level_constants is not None
@@ -711,7 +718,7 @@ class Game(BaseView):
             # Enemy has failed to generate
             logger.debug("%r failed to be generated", enemy)
 
-    def center_camera_on_player(self) -> None:
+    def center_camera_on_player(self: Game) -> None:
         """Centers the camera on the player."""
         # Make sure variables needed are valid
         assert self.level_constants is not None
@@ -750,7 +757,7 @@ class Game(BaseView):
             # Move the camera to the new position
             self.game_camera.move_to(new_position)
 
-    def __repr__(self) -> str:
+    def __repr__(self: Game) -> str:
         """Return a human-readable representation of this object.
 
         Returns

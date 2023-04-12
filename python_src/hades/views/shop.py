@@ -30,7 +30,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
 
     section_ref: UpgradablePlayerSection | None = None
 
-    def on_click(self, _: UIOnClickEvent) -> None:
+    def on_click(self: SectionUpgradeButton, _: UIOnClickEvent) -> None:
         """Upgrade a player attribute section."""
         # Make sure variables needed are valid
         assert self.section_ref is not None
@@ -42,7 +42,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
                 f" {self.section_ref.next_level_cost}"
             )
 
-    def __repr__(self) -> str:
+    def __repr__(self: SectionUpgradeButton) -> str:
         """Return a human-readable representation of this object.
 
         Returns
@@ -59,7 +59,7 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
 class Shop(BaseView):
     """Display the shop UI so the player can upgrade their attributes."""
 
-    def __init__(self, player: Player) -> None:
+    def __init__(self: Shop, player: Player) -> None:
         """Initialise the object.
 
         Parameters
@@ -96,7 +96,7 @@ class Shop(BaseView):
             ),
         )
 
-    def on_draw(self) -> None:
+    def on_draw(self: Shop) -> None:
         """Render the screen."""
         # Clear the screen
         self.clear()
@@ -104,7 +104,7 @@ class Shop(BaseView):
         # Draw the UI elements
         self.ui_manager.draw()
 
-    def __repr__(self) -> str:
+    def __repr__(self: Shop) -> str:
         """Return a human-readable representation of this object.
 
         Returns

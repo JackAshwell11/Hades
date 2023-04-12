@@ -52,7 +52,7 @@ class MeleeShader:
         "walls_framebuffer",
     )
 
-    def __init__(self, view: Game) -> None:
+    def __init__(self: MeleeShader, view: Game) -> None:
         """Initialise the object.
 
         Parameters
@@ -68,7 +68,7 @@ class MeleeShader:
         self.walls_framebuffer: Framebuffer | None = None
 
     @property
-    def ctx(self) -> ArcadeContext:
+    def ctx(self: MeleeShader) -> ArcadeContext:
         """Get the arcade context object for running OpenGL programs.
 
         Returns
@@ -78,7 +78,7 @@ class MeleeShader:
         """
         return self.view.window.ctx
 
-    def setup_shader(self) -> None:
+    def setup_shader(self: MeleeShader) -> None:
         """Set up the shader and it's needed attributes."""
         # Make sure variables needed are valid
         assert self.view.player is not None
@@ -136,7 +136,7 @@ class MeleeShader:
             self.walls_framebuffer.size,
         )
 
-    def update_collision(self) -> None:
+    def update_collision(self: MeleeShader) -> None:
         """Update the wall framebuffer to ensure collision detection is accurate."""
         # Make sure variables needed are valid
         assert self.walls_framebuffer is not None
@@ -150,7 +150,7 @@ class MeleeShader:
             self.walls_framebuffer.size,
         )
 
-    def run_shader(self) -> list[Enemy]:
+    def run_shader(self: MeleeShader) -> list[Enemy]:
         """Run the shader to find all enemies within range of the player's melee attack.
 
         Returns
@@ -219,7 +219,7 @@ class MeleeShader:
     # Still seems like there is a bug and that it sometimes works and sometimes doesn't.
     # Need to fix this
 
-    def __repr__(self) -> str:
+    def __repr__(self: MeleeShader) -> str:
         """Return a human-readable representation of this object.
 
         Returns

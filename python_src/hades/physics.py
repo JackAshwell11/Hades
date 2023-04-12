@@ -152,7 +152,7 @@ def player_bullet_begin_handler(
 class PhysicsEngine(arcade.PymunkPhysicsEngine):
     """A class which eases setting up the Pymunk physics engine for a top-down game."""
 
-    def __init__(self, damping: float) -> None:
+    def __init__(self: PhysicsEngine, damping: float) -> None:
         """Initialise the object.
 
         Parameters
@@ -165,7 +165,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         self.damping: float = damping
 
     def setup(
-        self,
+        self: PhysicsEngine,
         player: Entity,
         tile_list: arcade.SpriteList,
     ) -> None:
@@ -220,7 +220,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
             len(self.sprites.keys()),
         )
 
-    def add_bullet(self, bullet: Bullet) -> None:
+    def add_bullet(self: PhysicsEngine, bullet: Bullet) -> None:
         """Add a bullet to the physics engine.
 
         Parameters
@@ -236,7 +236,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         )
         logger.debug("Added bullet %r to physics engine", bullet)
 
-    def add_enemy(self, enemy: Enemy) -> None:
+    def add_enemy(self: PhysicsEngine, enemy: Enemy) -> None:
         """Add an enemy to the physics engine.
 
         Parameters
@@ -253,7 +253,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         )
         logger.debug("Added %r to physics engine", enemy)
 
-    def __repr__(self) -> str:
+    def __repr__(self: PhysicsEngine) -> str:
         """Return a human-readable representation of this object.
 
         Returns

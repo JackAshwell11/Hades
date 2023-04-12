@@ -30,7 +30,7 @@ class InventoryBox(arcade.gui.UITextureButton):
     # Class variables
     item_ref: CollectibleTile | None = None
 
-    def on_click(self, _: UIOnClickEvent) -> None:
+    def on_click(self: InventoryBox, _: UIOnClickEvent) -> None:
         """Use an item in the player's inventory."""
         # Stop slots being clicked on if they're empty
         if not self.item_ref:
@@ -62,7 +62,7 @@ class InventoryBox(arcade.gui.UITextureButton):
 
             logger.info("Item use for %r successful", self.item_ref)
 
-    def __repr__(self) -> str:
+    def __repr__(self: InventoryBox) -> str:
         """Return a human-readable representation of this object.
 
         Returns
@@ -85,7 +85,7 @@ class Inventory(BaseView):
         The arcade box layout responsible for organising the different ui elements.
     """
 
-    def __init__(self, player: Player) -> None:
+    def __init__(self: Inventory, player: Player) -> None:
         """Initialise the object.
 
         Parameters
@@ -118,7 +118,7 @@ class Inventory(BaseView):
             ),
         )
 
-    def on_draw(self) -> None:
+    def on_draw(self: Inventory) -> None:
         """Render the screen."""
         # Clear the screen
         self.clear()
@@ -126,7 +126,7 @@ class Inventory(BaseView):
         # Draw the UI elements
         self.ui_manager.draw()
 
-    def update_grid(self) -> None:
+    def update_grid(self: Inventory) -> None:
         """Update the inventory grid with the player's current inventory."""
         result = [0, 0]
         for row_count, box_layout in enumerate(self.vertical_box.children):
@@ -153,7 +153,7 @@ class Inventory(BaseView):
             *result,
         )
 
-    def __repr__(self) -> str:
+    def __repr__(self: Inventory) -> str:
         """Return a human-readable representation of this object.
 
         Returns

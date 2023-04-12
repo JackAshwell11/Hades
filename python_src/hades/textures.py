@@ -10,6 +10,7 @@ import arcade
 
 # Custom
 from hades.constants.game_objects import SPRITE_SIZE
+from hades.exceptions import BiggerThanError
 
 __all__ = (
     "grid_pos_to_pixel",
@@ -35,8 +36,8 @@ def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
 
     Raises
     ------
-    ValueError
-        The inputs must be bigger than or equal to 0.
+    BiggerThanError
+        The input must be bigger than or equal to 0
 
     Returns
     -------
@@ -45,7 +46,7 @@ def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     """
     # Check if the inputs are negative
     if x < 0 or y < 0:
-        raise ValueError("The inputs must be bigger than or equal to 0.")
+        raise BiggerThanError(0)
 
     # Calculate the position on screen
     return (

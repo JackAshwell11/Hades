@@ -166,7 +166,7 @@ select = [
     "COM",  # Enable flake8-commas
     "D",  # Enable pydocstyle
     "E",  # Enable pycodestyle errors
-    #"EM",  # Enable flake8-errmsg
+    "EM",  # Enable flake8-errmsg
     "ERA",  # Enable eradicate
     "F",  # Enable Pyflakes
     "FBT",  # Enable flake8-boolean-trap
