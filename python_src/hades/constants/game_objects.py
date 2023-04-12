@@ -74,16 +74,6 @@ class EntityAttributeSectionType(Enum):
     DEFENCE = [EntityAttributeType.ARMOUR, EntityAttributeType.REGEN_COOLDOWN]
 
 
-# Attack algorithms
-class AttackAlgorithmType(Enum):
-    """Stores the different types of attack algorithms that exist."""
-
-    BASE = auto()
-    RANGED = auto()
-    MELEE = auto()
-    AREA_OF_EFFECT = auto()
-
-
 # Instant effect types
 class InstantEffectType(Enum):
     """Stores the type of instant effects that can be applied to an entity."""

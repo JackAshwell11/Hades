@@ -148,7 +148,7 @@ extend-exclude = [
     "*vector_field*",
 ]
 extend-ignore = [
-    "ANN101",  # Allow the `self` parameter to be untyped
+    #"ANN101",  # Allow the `self` parameter to be untyped
     "S101",  # Allow assert statements (useful for mypy)
     "S311",  # Allow use of the random library
     "RET505",  # Stop Ruff complaining about an unnecessary else after a return statement
