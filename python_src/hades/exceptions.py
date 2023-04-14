@@ -1,7 +1,7 @@
 """Finds enemies within melee range of the player using a ray-casting shader program."""
 from __future__ import annotations
 
-__all__ = ("BiggerThanError", "SpaceError")
+__all__ = ("BiggerThanError", "NonVariableError", "SpaceError")
 
 
 class BiggerThanError(Exception):
@@ -30,3 +30,11 @@ class SpaceError(Exception):
             The name of the container that does not have enough room.
         """
         super().__init__(f"The `{name}` container does not have enough room")
+
+
+class NonVariableError(Exception):
+    """Raised when an entity attribute cannot be set."""
+
+    def __init__(self: NonVariableError) -> None:
+        """Initialise the object."""
+        super().__init__("The attribute cannot be set")

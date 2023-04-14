@@ -5,8 +5,15 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import TYPE_CHECKING, NamedTuple
 
+# Custom
+from hades.game_objects.attacks import Attacker, RangedAttackMixin, MeleeAttackMixin, AreaOfEffectAttackMixin
+from hades.game_objects.attributes import Health, Armour
+from hades.game_objects.components import ActionableMixin, CollectibleMixin, Inventory
+
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from arcade import Texture
+
+    from hades.textures import MovingTextureType, NonMovingTextureType
 
 __all__ = (
     "ActionableData",
@@ -25,26 +32,32 @@ __all__ = (
 class ComponentType(Enum):
     """Stores the different types of components available."""
 
-    ACTIONABLE = auto()
-    AREA_OF_EFFECT_ATTACK = auto()
-    ARMOUR = auto()
+    ACTIONABLE = ActionableMixin
+    AREA_OF_EFFECT_ATTACK = AreaOfEffectAttackMixin
+    ARMOUR = Armour
     ARMOUR_REGEN = auto()
-    ATTACKER = auto()
-    COLLECTIBLE = auto()
+    ATTACKER = Attacker
+    COLLECTIBLE = CollectibleMixin
     FIRE_RATE_PENALTY = auto()
-    HEALTH = auto()
-    INVENTORY = auto()
-    MELEE_ATTACK = auto()
+    HEALTH = Health
+    INVENTORY = Inventory
+    MELEE_ATTACK = MeleeAttackMixin
     MONEY = auto()
-    RANGED_ATTACK = auto()
+    RANGED_ATTACK = RangedAttackMixin
     SPEED_MULTIPLIER = auto()
 
 
-class ComponentData(NamedTuple):
-    """The base class for data about a component."""
+# class InstantEffectType(Enum):
+#     """Stores the type of instant effects that can be applied to an entity."""
+#
+#
+#
+# class StatusEffectType(Enum):
+#     """Stores the type of status effects that can be applied to an entity."""
+#
 
 
-class ActionableData(ComponentData):
+class ActionableData(NamedTuple):
     """Stores data about the actionable component.
 
     item_text: str
@@ -52,7 +65,7 @@ class ActionableData(ComponentData):
     """
 
 
-class AreaOfEffectAttackData(ComponentData):
+class AreaOfEffectAttackData(NamedTuple):
     """Stores data about the area of effect attack component.
 
     damage: int
@@ -68,11 +81,11 @@ class AreaOfEffectAttackData(ComponentData):
     attack_range: int
 
 
-class AttackerData(ComponentData):
+class AttackerData(NamedTuple):
     """Stores data about the attacker component."""
 
 
-class CollectibleData(ComponentData):
+class CollectibleData(NamedTuple):
     """Stores data about the collectible component.
 
     item_text: str
@@ -82,34 +95,30 @@ class CollectibleData(ComponentData):
     item_text: str = "Press E to pick up"
 
 
-class EntityAttributeData(ComponentData):
+class EntityAttributeData(NamedTuple):
     """Stores data about the entity attribute components.
 
-    increase: Callable[[int], float]
-        The exponential lambda function which calculates the next level's value based on
-        the current level.
+    value: float
+        The attribute's initial value.
     maximum: bool
         Whether this attribute has a maximum level or not.
-    status_effect: bool
-        Whether this attribute can have a status effect applied to it or not.
     variable: bool
         Whether this attribute can change from it current value or not.
     """
 
-    increase: Callable[[int], float]
-    maximum: bool = True
-    status_effect: bool = False
-    variable: bool = False
+    value: float
+    maximum: bool
+    variable: bool
 
 
-class InventoryData(ComponentData):
+class InventoryData(NamedTuple):
     """Stores data about the inventory component."""
 
     width: int
     height: int
 
 
-class MeleeAttackData(ComponentData):
+class MeleeAttackData(NamedTuple):
     """Stores data about the melee attack component.
 
     damage: int
@@ -125,7 +134,7 @@ class MeleeAttackData(ComponentData):
     attack_range: int
 
 
-class RangedAttackData(ComponentData):
+class RangedAttackData(NamedTuple):
     """Stores data about the ranged attack component.
 
     damage: int
@@ -146,14 +155,18 @@ class GameObjectData(NamedTuple):
 
     name: str
         The name of the game object.
+    textures: dict[MovingTextureType |NonMovingTextureType, Texture | list[Texture]]
+        The moving or non-moving textures associated with this game object.
     component_data: dict[ComponentType, type[ComponentData]]
         The components that are available to this game object.
+    static: bool
+        Whether the game object is allowed to move or not.
     """
 
     name: str
-    textures: list
-    component_data: dict[ComponentType, type[ComponentData]]
+    textures: dict[MovingTextureType, NonMovingTextureType, Texture | list[Texture]]
+    component_data: dict[ComponentType, ActionableData | AreaOfEffectAttackData | AttackerData | CollectibleData | EntityAttributeData | InventoryData | MeleeAttackData | RangedAttackData]
+    static: bool = False
 
 
 # TODO: armour_regen, level_limit, view_distance, player upgrades, instant effects, status effects
-# TODO: Should try and redo textures script

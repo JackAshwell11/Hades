@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # Builtin
 import logging
+from enum import Enum
 from pathlib import Path
 
 # Pip
@@ -13,15 +14,36 @@ from hades.constants.game_objects import SPRITE_SIZE
 from hades.exceptions import BiggerThanError
 
 __all__ = (
+    "MovingTextureType",
+    "NonMovingTextureType",
     "grid_pos_to_pixel",
-    "moving_filenames",
     "moving_textures",
-    "non_moving_filenames",
     "non_moving_textures",
 )
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+
+class NonMovingTextureType(Enum):
+    """Stores the different types of non-moving textures that exist."""
+
+    FLOOR = "floor.png"
+    WALL = "wall.png"
+    HEALTH_POTION = "health_potion.png"
+    ARMOUR_POTION = "armour_potion.png"
+    HEALTH_BOOST_POTION = "health_boost_potion.png"
+    ARMOUR_BOOST_POTION = "armour_boost_potion.png"
+    SPEED_BOOST_POTION = "speed_boost_potion.png"
+    FIRE_RATE_BOOST_POTION = "fire_rate_boost_potion.png"
+    SHOP = "shop.png"
+
+
+class MovingTextureType(Enum):
+    """Stores the different types of moving textures that exist."""
+
+    PLAYER_IDLE = "player_idle.png"
+    ENEMY_IDLE = "enemy_idle.png"
 
 
 def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
@@ -58,47 +80,14 @@ def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
 # Create the texture path
 texture_path = Path(__file__).resolve().parent / "resources" / "textures"
 
-# Create a dictionary to hold all the filenames for the non-moving textures
-non_moving_filenames: dict[str, list[str]] = {
-    "tiles": [
-        "floor.png",
-        "wall.png",
-    ],
-    "items": [
-        "health_potion.png",
-        "armour_potion.png",
-        "health_boost_potion.png",
-        "armour_boost_potion.png",
-        "speed_boost_potion.png",
-        "fire_rate_boost_potion.png",
-        "shop.png",
-    ],
-}
-
-# Create a dictionary to hold all the filenames for the non-moving textures
-moving_filenames: dict[str, dict[str, list[str]]] = {
-    "player": {
-        "idle": ["player_idle.png"],
-    },
-    "enemy": {
-        "idle": ["enemy_idle.png"],
-    },
-}
-
 # Create the non-moving textures
-non_moving_textures: dict[str, list[arcade.Texture]] = {
-    key: [arcade.load_texture(texture_path.joinpath(filename)) for filename in value]
-    for key, value in non_moving_filenames.items()
+non_moving_textures: dict[NonMovingTextureType, arcade.Texture] = {
+    non_moving_type: arcade.load_texture(texture_path.joinpath(non_moving_type.value))
+    for non_moving_type in NonMovingTextureType
 }
 
 # Create the moving textures
-moving_textures: dict[str, dict[str, list[list[arcade.Texture]]]] = {
-    key: {
-        animation_type: [
-            arcade.load_texture_pair(texture_path.joinpath(filename))
-            for filename in sublist
-        ]
-        for animation_type, sublist in value.items()
-    }
-    for key, value in moving_filenames.items()
+moving_textures: dict[MovingTextureType, list[arcade.Texture]] = {
+    moving_type: arcade.load_texture_pair(texture_path.joinpath(moving_type.value))
+    for moving_type in MovingTextureType
 }

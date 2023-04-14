@@ -5,11 +5,12 @@ from __future__ import annotations
 import pytest
 
 # Custom
+from hades.exceptions import BiggerThanError
 from hades.textures import (
+    MovingTextureType,
+    NonMovingTextureType,
     grid_pos_to_pixel,
-    moving_filenames,
     moving_textures,
-    non_moving_filenames,
     non_moving_textures,
 )
 
@@ -28,7 +29,7 @@ def test_grid_pos_to_pixel_zero() -> None:
 
 def test_grid_pos_to_pixel_negative() -> None:
     """Test that a negative position is converted correctly."""
-    with pytest.raises(expected_exception=ValueError):
+    with pytest.raises(expected_exception=BiggerThanError):
         grid_pos_to_pixel(-500, -500)
 
 
@@ -40,20 +41,45 @@ def test_grid_pos_to_pixel_string() -> None:
 
 def test_textures_non_moving() -> None:
     """Test the textures.py script produces a correct non-moving textures dict."""
-    # Compare the non_moving_texture dict to the non_moving_filenames dict
-    for section_name, texture_list in non_moving_textures.items():
-        for section_count, texture in enumerate(texture_list):
-            assert non_moving_filenames[section_name][section_count] in texture.name
+    assert {
+        key: value.name.split("\\")[-1] for key, value in non_moving_textures.items()
+    } == {
+        NonMovingTextureType.FLOOR: "floor.png-0-0-0-0-False-False-False-Simple ",
+        NonMovingTextureType.WALL: "wall.png-0-0-0-0-False-False-False-Simple ",
+        NonMovingTextureType.HEALTH_POTION: (
+            "health_potion.png-0-0-0-0-False-False-False-Simple "
+        ),
+        NonMovingTextureType.ARMOUR_POTION: (
+            "armour_potion.png-0-0-0-0-False-False-False-Simple "
+        ),
+        NonMovingTextureType.HEALTH_BOOST_POTION: (
+            "health_boost_potion.png-0-0-0-0-False-False-False-Simple "
+        ),
+        NonMovingTextureType.ARMOUR_BOOST_POTION: (
+            "armour_boost_potion.png-0-0-0-0-False-False-False-Simple "
+        ),
+        NonMovingTextureType.SPEED_BOOST_POTION: (
+            "speed_boost_potion.png-0-0-0-0-False-False-False-Simple "
+        ),
+        NonMovingTextureType.FIRE_RATE_BOOST_POTION: (
+            "fire_rate_boost_potion.png-0-0-0-0-False-False-False-Simple "
+        ),
+        NonMovingTextureType.SHOP: "shop.png-0-0-0-0-False-False-False-Simple ",
+    }
 
 
 def test_textures_moving() -> None:
     """Test the textures.py script produces a correct moving textures dict."""
-    # Compare the moving_filenames dict to the moving_textures dict
-    for section_name, animations in moving_textures.items():
-        for animation_type, texture_list in animations.items():
-            for texture_count, textures in enumerate(texture_list):
-                for flipped_texture in textures:
-                    assert (
-                        moving_filenames[section_name][animation_type][texture_count]
-                        in flipped_texture.name
-                    )
+    assert {
+        key: [texture.name.split("\\")[-1] for texture in value]
+        for key, value in moving_textures.items()
+    } == {
+        MovingTextureType.PLAYER_IDLE: [
+            "player_idle.png-0-0-0-0-False-False-False-Simple ",
+            "player_idle.png-0-0-0-0-True-False-False-Simple ",
+        ],
+        MovingTextureType.ENEMY_IDLE: [
+            "enemy_idle.png-0-0-0-0-False-False-False-Simple ",
+            "enemy_idle.png-0-0-0-0-True-False-False-Simple ",
+        ],
+    }

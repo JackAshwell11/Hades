@@ -29,7 +29,7 @@ class GameObject(arcade.Sprite):
     """
 
     def __init__(
-        self: GameObject, x: int, y: int, game_object_data: GameObjectData
+        self: GameObject, x: int, y: int, game_object_data: GameObjectData,
     ) -> None:
         """Initialise the object.
 
@@ -45,7 +45,15 @@ class GameObject(arcade.Sprite):
         super().__init__(scale=SPRITE_SCALE)
         self.center_x, self.center_y = grid_pos_to_pixel(x, y)
         self.game_object_data: GameObjectData = game_object_data
-        print(game_object_data)
+
+        from hades.game_objects.attributes import Health
+
+        Health.__init__()
+
+        self.components
+        for component_type, component_data in self.game_object_data.component_data.items():
+            print(component_type, component_data)
+
 
     def __repr__(self: GameObject) -> str:
         """Return a human-readable representation of this object."""
