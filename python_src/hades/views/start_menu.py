@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class StartButton(arcade.gui.UIFlatButton):
     """A button which when clicked will start the game."""
 
-    def on_click(self, _: arcade.gui.UIOnClickEvent) -> None:
+    def on_click(self: StartButton, _: arcade.gui.UIOnClickEvent) -> None:
         """Create a game instance when the button is clicked."""
         # Get the current window and view
         window: Window = arcade.get_window()
@@ -43,7 +43,7 @@ class StartButton(arcade.gui.UIFlatButton):
         # Show the new game
         window.show_view(new_game)
 
-    def __repr__(self) -> str:
+    def __repr__(self: StartButton) -> str:
         """Return a human-readable representation of this object.
 
         Returns
@@ -60,12 +60,12 @@ class StartButton(arcade.gui.UIFlatButton):
 class QuitButton(arcade.gui.UIFlatButton):
     """A button which when clicked will quit the game."""
 
-    def on_click(self, _: arcade.gui.UIOnClickEvent) -> None:
+    def on_click(self: QuitButton, _: arcade.gui.UIOnClickEvent) -> None:
         """Exit the game when the button is clicked."""
         logger.info("Exiting game")
         arcade.exit()
 
-    def __repr__(self) -> str:
+    def __repr__(self: QuitButton) -> str:
         """Return a human-readable representation of this object.
 
         Returns
@@ -82,7 +82,7 @@ class QuitButton(arcade.gui.UIFlatButton):
 class StartMenu(BaseView):
     """Creates a start menu useful for picking the game mode and options."""
 
-    def __init__(self) -> None:
+    def __init__(self: StartMenu) -> None:
         """Initialise the object."""
         super().__init__()
         vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
@@ -104,7 +104,7 @@ class StartMenu(BaseView):
             ),
         )
 
-    def on_draw(self) -> None:
+    def on_draw(self: StartMenu) -> None:
         """Render the screen."""
         # Clear the screen
         self.clear()
@@ -115,7 +115,7 @@ class StartMenu(BaseView):
         # Draw the UI elements
         self.ui_manager.draw()
 
-    def __repr__(self) -> str:
+    def __repr__(self: StartMenu) -> str:
         """Return a human-readable representation of this object.
 
         Returns

@@ -31,12 +31,12 @@ class Window(arcade.Window):
         Holds all the views used by the game.
     """
 
-    def __init__(self) -> None:
+    def __init__(self: Window) -> None:
         """Initialise the object."""
         super().__init__()
         self.views: dict[str, BaseView] = {}
 
-    def __repr__(self) -> str:
+    def __repr__(self: Window) -> str:
         """Return a human-readable representation of this object.
 
         Returns

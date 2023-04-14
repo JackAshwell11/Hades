@@ -29,7 +29,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
     """Represents a simple dialog box that displays a message then disappears."""
 
     def __init__(
-        self,
+        self: DisappearingInfoBox,
         parent_view: BaseView,
         *,
         width: float = 400,
@@ -102,7 +102,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
 
         super().__init__(child=group, anchor_y="bottom", align_y=anchor_offset)
 
-    def on_update(self, delta_time: float) -> None:
+    def on_update(self: DisappearingInfoBox, delta_time: float) -> None:
         """Update the internal time counter and see if the box should disappear.
 
         Parameters
@@ -117,7 +117,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         if self._time_counter <= 0:
             self.remove_box()
 
-    def remove_box(self) -> None:
+    def remove_box(self: DisappearingInfoBox) -> None:
         """Remove the box from the UI manager."""
         # Make sure variables needed are valid
         assert self.parent is not None
@@ -127,7 +127,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
         self._parent_view.current_info_box = None
         logger.info("Info box has disappeared with text %s", self._text_area.text)
 
-    def __repr__(self) -> str:
+    def __repr__(self: DisappearingInfoBox) -> str:
         """Return a human-readable representation of this object.
 
         Returns
@@ -141,7 +141,7 @@ class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
 class BackButton(arcade.gui.UIFlatButton):
     """A button which will switch back to the game view."""
 
-    def on_click(self, _: UIOnClickEvent) -> None:
+    def on_click(self: BackButton, _: UIOnClickEvent) -> None:
         """Return to the game when the button is clicked."""
         # Get the current window and view
         window: Window = arcade.get_window()
@@ -150,7 +150,7 @@ class BackButton(arcade.gui.UIFlatButton):
         game_view = window.views["Game"]
         window.show_view(game_view)
 
-    def __repr__(self) -> str:
+    def __repr__(self: BackButton) -> str:
         """Return a human-readable representation of this object.
 
         Returns
@@ -177,7 +177,7 @@ class BaseView(arcade.View):
         The currently displayed info box.
     """
 
-    def __init__(self) -> None:
+    def __init__(self: BaseView) -> None:
         """Initialise the object."""
         super().__init__()
         self.window: Window = self.window
@@ -185,26 +185,26 @@ class BaseView(arcade.View):
         self.background_color: arcade.Color = arcade.color.BABY_BLUE
         self.current_info_box: DisappearingInfoBox | None = None
 
-    def on_show_view(self) -> None:
+    def on_show_view(self: BaseView) -> None:
         """Process show view functionality."""
         self.window.background_color = self.background_color
         self.ui_manager.enable()
         self.post_show_view()
         logger.info("Shown view %r", self)
 
-    def on_hide_view(self) -> None:
+    def on_hide_view(self: BaseView) -> None:
         """Process hide view functionality."""
         self.ui_manager.disable()
         self.post_hide_view()
         logger.info("Hid view %r", self)
 
-    def post_show_view(self) -> None:
+    def post_show_view(self: BaseView) -> None:
         """Process post show view functionality."""
 
-    def post_hide_view(self) -> None:
+    def post_hide_view(self: BaseView) -> None:
         """Process post hide view functionality."""
 
-    def display_info_box(self, text: str) -> None:
+    def display_info_box(self: BaseView, text: str) -> None:
         """Display an info box that disappears after a set amount of time.
 
         Parameters
@@ -227,7 +227,7 @@ class BaseView(arcade.View):
         """
         vertical_box.add(BackButton(text="Back", width=200).with_space_around(top=20))
 
-    def __repr__(self) -> str:
+    def __repr__(self: BaseView) -> str:
         """Return a human-readable representation of this object.
 
         Returns
