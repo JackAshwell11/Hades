@@ -3,14 +3,19 @@ from __future__ import annotations
 
 # Builtin
 from enum import Enum, auto
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 __all__ = (
-    "ComponentType",
     "ActionableData",
     "AreaOfEffectAttackData",
     "AttackerData",
     "CollectibleData",
+    "ComponentType",
+    "EntityAttributeData",
+    "GameObjectData",
     "InventoryData",
     "MeleeAttackData",
     "RangedAttackData",
@@ -22,11 +27,17 @@ class ComponentType(Enum):
 
     ACTIONABLE = auto()
     AREA_OF_EFFECT_ATTACK = auto()
+    ARMOUR = auto()
+    ARMOUR_REGEN = auto()
     ATTACKER = auto()
     COLLECTIBLE = auto()
+    FIRE_RATE_PENALTY = auto()
+    HEALTH = auto()
     INVENTORY = auto()
     MELEE_ATTACK = auto()
+    MONEY = auto()
     RANGED_ATTACK = auto()
+    SPEED_MULTIPLIER = auto()
 
 
 class ComponentData(NamedTuple):
@@ -69,6 +80,26 @@ class CollectibleData(ComponentData):
     """
 
     item_text: str = "Press E to pick up"
+
+
+class EntityAttributeData(ComponentData):
+    """Stores data about the entity attribute components.
+
+    increase: Callable[[int], float]
+        The exponential lambda function which calculates the next level's value based on
+        the current level.
+    maximum: bool
+        Whether this attribute has a maximum level or not.
+    status_effect: bool
+        Whether this attribute can have a status effect applied to it or not.
+    variable: bool
+        Whether this attribute can change from it current value or not.
+    """
+
+    increase: Callable[[int], float]
+    maximum: bool = True
+    status_effect: bool = False
+    variable: bool = False
 
 
 class InventoryData(ComponentData):
@@ -120,12 +151,9 @@ class GameObjectData(NamedTuple):
     """
 
     name: str
+    textures: list
     component_data: dict[ComponentType, type[ComponentData]]
 
 
-# TODO: Textures, armour_regen, level_limit, view_distance, entity attributes, player
-#  upgrades, instant effects, status effects
-# TODO: Should try and redo textures script and not sure about characteristic base in
-#  draw.io diagram
-# TODO: Maybe just have the constructor data be in the class instead of trying to
-#  dynamically load it
+# TODO: armour_regen, level_limit, view_distance, player upgrades, instant effects, status effects
+# TODO: Should try and redo textures script

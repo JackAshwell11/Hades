@@ -16,7 +16,13 @@ __all__ = ("ActionableMixin", "CollectibleMixin", "Inventory")
 
 
 class Inventory:
-    """Allows a game object to have a fixed size inventory."""
+    """Allows a game object to have a fixed size inventory.
+
+    Attributes
+    ----------
+    inventory: list[int]
+        The game object's inventory.
+    """
 
     __slots__ = (
         "inventory_data",
