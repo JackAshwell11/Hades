@@ -6,13 +6,21 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, NamedTuple
 
 # Custom
-from hades.game_objects.attacks import Attacker, RangedAttackMixin, MeleeAttackMixin, AreaOfEffectAttackMixin
-from hades.game_objects.attributes import Health, Armour
-from hades.game_objects.components import ActionableMixin, CollectibleMixin, Inventory
+from hades.game_objects.attacks import (
+    AreaOfEffectAttackMixin,
+    AttackerMixin,
+    MeleeAttackMixin,
+    RangedAttackMixin,
+)
+from hades.game_objects.attributes import Armour, Health
+from hades.game_objects.components import (
+    ActionableMixin,
+    CollectibleMixin,
+    InventoryMixin,
+)
 
 if TYPE_CHECKING:
     from arcade import Texture
-
     from hades.textures import MovingTextureType, NonMovingTextureType
 
 __all__ = (
@@ -36,11 +44,11 @@ class ComponentType(Enum):
     AREA_OF_EFFECT_ATTACK = AreaOfEffectAttackMixin
     ARMOUR = Armour
     ARMOUR_REGEN = auto()
-    ATTACKER = Attacker
+    ATTACKER = AttackerMixin
     COLLECTIBLE = CollectibleMixin
     FIRE_RATE_PENALTY = auto()
     HEALTH = Health
-    INVENTORY = Inventory
+    INVENTORY = InventoryMixin
     MELEE_ATTACK = MeleeAttackMixin
     MONEY = auto()
     RANGED_ATTACK = RangedAttackMixin
@@ -165,7 +173,17 @@ class GameObjectData(NamedTuple):
 
     name: str
     textures: dict[MovingTextureType, NonMovingTextureType, Texture | list[Texture]]
-    component_data: dict[ComponentType, ActionableData | AreaOfEffectAttackData | AttackerData | CollectibleData | EntityAttributeData | InventoryData | MeleeAttackData | RangedAttackData]
+    component_data: dict[
+        ComponentType,
+        ActionableData
+        | AreaOfEffectAttackData
+        | AttackerData
+        | CollectibleData
+        | EntityAttributeData
+        | InventoryData
+        | MeleeAttackData
+        | RangedAttackData,
+    ]
     static: bool = False
 
 

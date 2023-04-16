@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Custom
-from hades.game_objects.enums import GameObjectData
+from hades.game_objects.enumsOLD import GameObjectData
 
 __all__ = ()
 

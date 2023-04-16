@@ -9,12 +9,12 @@ from typing import TYPE_CHECKING
 import arcade
 
 if TYPE_CHECKING:
-    from hades.game_objects.enums import AttackerData
+    from hades.game_objects.enumsOLD import AttackerData
     from hades.game_objects.objects import GameObject
 
 
 __all__ = (
-    "Attacker",
+    "AttackerMixin",
     "RangedAttackMixin",
     "MeleeAttackMixin",
     "AreaOfEffectAttackMixin",
@@ -72,12 +72,12 @@ class Bullet(arcade.SpriteSolidColor):
         return f"<Bullet (Position={self.position})>"
 
 
-class Attacker:
+class AttackerMixin:
     """Allows a game object to attack another game object."""
 
     __slots__ = ("attacker_data", "time_since_last_attack", "time_out_of_combat")
 
-    def __init__(self: type[Attacker], attacker_data: AttackerData) -> None:
+    def __init__(self: type[AttackerMixin], attacker_data: AttackerData) -> None:
         """Initialise the object.
 
         Parameters

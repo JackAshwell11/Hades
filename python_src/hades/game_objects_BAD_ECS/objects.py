@@ -1,9 +1,6 @@
 """Manages the base classes used by all game objects."""
 from __future__ import annotations
 
-# Builtin
-from typing import TYPE_CHECKING
-
 # Pip
 import arcade
 
@@ -11,8 +8,8 @@ import arcade
 from hades.constants.game_objects import SPRITE_SCALE
 from hades.textures import grid_pos_to_pixel
 
-if TYPE_CHECKING:
-    from hades.game_objects.enums import GameObjectData
+# Builtin
+
 
 __all__ = ("GameObject",)
 
@@ -28,9 +25,7 @@ class GameObject(arcade.Sprite):
         The y position of the object on the screen.
     """
 
-    def __init__(
-        self: GameObject, x: int, y: int, game_object_data: GameObjectData,
-    ) -> None:
+    def __init__(self: GameObject, x: int, y: int, **kwargs) -> None:
         """Initialise the object.
 
         Parameters
@@ -39,22 +34,11 @@ class GameObject(arcade.Sprite):
             The x position of the object in the game map.
         y: int
             The y position of the object in the game map.
-        game_object_data: GameObjectData
-            The data related to this game object.
         """
-        super().__init__(scale=SPRITE_SCALE)
+        super().__init__(scale=SPRITE_SCALE, **kwargs)
         self.center_x, self.center_y = grid_pos_to_pixel(x, y)
-        self.game_object_data: GameObjectData = game_object_data
-
-        from hades.game_objects.attributes import Health
-
-        Health.__init__()
-
-        self.components
-        for component_type, component_data in self.game_object_data.component_data.items():
-            print(component_type, component_data)
-
+        print("game object", kwargs)
 
     def __repr__(self: GameObject) -> str:
         """Return a human-readable representation of this object."""
-        return f"<{self.game_object_data.name} (Position={self.position})>"
+        return f"<GameObject (Position={self.position})>"

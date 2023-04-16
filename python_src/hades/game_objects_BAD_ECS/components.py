@@ -9,13 +9,13 @@ from typing import TYPE_CHECKING
 from hades.exceptions import SpaceError
 
 if TYPE_CHECKING:
-    from hades.game_objects.enums import InventoryData
+    from hades.game_objects.enumsOLD import InventoryData
     from hades.game_objects.objects import GameObject
 
-__all__ = ("ActionableMixin", "CollectibleMixin", "Inventory")
+__all__ = ("ActionableMixin", "CollectibleMixin", "InventoryMixin")
 
 
-class Inventory:
+class InventoryMixin:
     """Allows a game object to have a fixed size inventory.
 
     Attributes
@@ -29,7 +29,7 @@ class Inventory:
         "inventory",
     )
 
-    def __init__(self: type[Inventory], inventory_data: InventoryData) -> None:
+    def __init__(self: type[InventoryMixin], inventory_data: InventoryData) -> None:
         """Initialise the object.
 
         Parameters
@@ -40,7 +40,7 @@ class Inventory:
         self.inventory_data: InventoryData = inventory_data
         self.inventory: list[int] = []
 
-    def add_item_to_inventory(self: type[Inventory], item: int) -> None:
+    def add_item_to_inventory(self: type[InventoryMixin], item: int) -> None:
         """Add an item to the inventory.
 
         Parameters
@@ -60,7 +60,7 @@ class Inventory:
             raise SpaceError(self.__class__.__name__.lower())
         self.inventory.append(item)
 
-    def remove_item_from_inventory(self: type[Inventory], index: int) -> int:
+    def remove_item_from_inventory(self: type[InventoryMixin], index: int) -> int:
         """Remove an item at a specific index.
 
         Parameters
