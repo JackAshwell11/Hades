@@ -27,7 +27,8 @@ class System:
         self._next_game_object_id = 0
         self._components: dict[ComponentType, set[int]] = {}
         self._game_objects: dict[
-            int, dict[ComponentType, type[GameObjectComponent]],
+            int,
+            dict[ComponentType, type[GameObjectComponent]],
         ] = {}
 
     def add_game_object(self: System) -> None:
