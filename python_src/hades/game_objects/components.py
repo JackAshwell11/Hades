@@ -1,16 +1,14 @@
 """Manages various components available to the game objects."""
 from __future__ import annotations
 
-# Builtin
-from abc import ABCMeta, abstractmethod
-
 # Custom
 from hades.exceptions import SpaceError
+from hades.game_objects.base import ComponentType, GameObjectComponent
 
-__all__ = ("Actionable", "Collectible", "InventoryMixin")
+__all__ = ("Inventory",)
 
 
-class InventoryMixin:
+class Inventory(GameObjectComponent):
     """Allows a game object to have a fixed size inventory.
 
     Attributes
@@ -25,7 +23,10 @@ class InventoryMixin:
         "inventory",
     )
 
-    def __init__(self: InventoryMixin, width: int, height: int) -> None:
+    # Class variables
+    component_type: ComponentType = ComponentType.INVENTORY
+
+    def __init__(self: Inventory, width: int, height: int) -> None:
         """Initialise the object.
 
         Parameters
@@ -39,7 +40,7 @@ class InventoryMixin:
         self.height: int = height
         self.inventory: list[int] = []
 
-    def add_item_to_inventory(self: InventoryMixin, item: int) -> None:
+    def add_item_to_inventory(self: Inventory, item: int) -> None:
         """Add an item to the inventory.
 
         Parameters
@@ -56,7 +57,7 @@ class InventoryMixin:
             raise SpaceError(self.__class__.__name__.lower())
         self.inventory.append(item)
 
-    def remove_item_from_inventory(self: InventoryMixin, index: int) -> int:
+    def remove_item_from_inventory(self: Inventory, index: int) -> int:
         """Remove an item at a specific index.
 
         Parameters
@@ -79,20 +80,23 @@ class InventoryMixin:
             raise SpaceError(self.__class__.__name__.lower())
         return self.inventory.pop(index)
 
+    def __repr__(self: Inventory) -> str:
+        """Return a human-readable representation of this object.
 
-class Actionable(metaclass=ABCMeta):
-    """Allows a game object to have an action when interacted with."""
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
+        return f"<Inventory (Width={self.width}) (Height={self.height})>"
 
-    @abstractmethod
-    def action_use(self: Actionable) -> None:
-        """Process the game object's action."""
-        raise NotImplementedError
 
+# TODO: So system will have collection of game objects which are represented with a dict
+#  with key being component enum and value being instantiated component. Arcade.sprite
+#  should be a graphics component and will be added to a spritelist on initialisation.
+#  Game objects can be put into groups inside system (entities, tiles, particles). USE
+#  https://github.com/avikor/entity_component_system/tree/master/ecs AND
+#  https://github.com/benmoran56/esper/blob/master/esper/__init__.py (MAINLY THIS ONE)
 
-class Collectible(metaclass=ABCMeta):
-    """Allows a game object to be collected when interacted with."""
-
-    @abstractmethod
-    def collect_use(self: Collectible) -> None:
-        """Process the game object's collection."""
-        raise NotImplementedError
+# TODO: DETERMINE HOW TO STORE COMPONENTS AND GAME OBJECTS. SHOULD PROCESSORS BE USED?
+#  SHOULD GAMEOBJECTCOMPONENT BE USED? SHOULD _COMPONENTS AND _GAME_OBJECTS BE USED?
