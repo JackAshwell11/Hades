@@ -1,21 +1,7 @@
-"""Finds enemies within melee range of the player using a ray-casting shader program."""
+"""Stores the different exceptions that can be raised by the game."""
 from __future__ import annotations
 
-__all__ = ("BiggerThanError", "NonVariableError", "SpaceError")
-
-
-class BiggerThanError(Exception):
-    """Raised when a value is less than a required value."""
-
-    def __init__(self: BiggerThanError, min_value: float) -> None:
-        """Initialise the object.
-
-        Parameters
-        ----------
-        min_value: float
-            The minimum value that is allowed.
-        """
-        super().__init__(f"The input must be bigger than or equal to {min_value}")
+__all__ = ("AlreadyAddedComponentError", "BiggerThanError", "SpaceError")
 
 
 class SpaceError(Exception):
@@ -29,12 +15,26 @@ class SpaceError(Exception):
         name: str
             The name of the container that does not have enough room.
         """
-        super().__init__(f"The `{name}` container does not have enough room")
+        super().__init__(f"The `{name}` container does not have enough room.")
 
 
-class NonVariableError(Exception):
-    """Raised when an entity attribute cannot be set."""
+class AlreadyAddedComponentError(Exception):
+    """Raised when a component that is already added is added again."""
 
-    def __init__(self: NonVariableError) -> None:
+    def __init__(self: SpaceError) -> None:
         """Initialise the object."""
-        super().__init__("The attribute cannot be set")
+        super().__init__("Component already added.")
+
+
+class BiggerThanError(Exception):
+    """Raised when a value is less than a required value."""
+
+    def __init__(self: BiggerThanError, min_value: float) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        min_value: float
+            The minimum value that is allowed.
+        """
+        super().__init__(f"The input must be bigger than or equal to {min_value}.")

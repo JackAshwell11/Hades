@@ -5,27 +5,31 @@ from __future__ import annotations
 import pytest
 
 # Custom
-from hades.exceptions import BiggerThanError, NonVariableError, SpaceError
+from hades.exceptions import (
+    AlreadyAddedComponentError,
+    BiggerThanError,
+    SpaceError,
+)
 
 __all__ = ()
+
+
+def test_raise_already_added_component_error() -> None:
+    """Test that BiggerThanError is raised correctly."""
+    with pytest.raises(
+        expected_exception=AlreadyAddedComponentError,
+        match="Component already added.",
+    ):
+        raise AlreadyAddedComponentError
 
 
 def test_raise_bigger_than_error() -> None:
     """Test that BiggerThanError is raised correctly."""
     with pytest.raises(
         expected_exception=BiggerThanError,
-        match="The input must be bigger than or equal to 10",
+        match="The input must be bigger than or equal to 10.",
     ):
         raise BiggerThanError(10)
-
-
-def test_raise_non_variable_error() -> None:
-    """Test that NonVariableError is raised correctly."""
-    with pytest.raises(
-        expected_exception=NonVariableError,
-        match="The attribute cannot be set",
-    ):
-        raise NonVariableError
 
 
 def test_raise_space_error() -> None:
@@ -33,6 +37,6 @@ def test_raise_space_error() -> None:
     name = "test"
     with pytest.raises(
         expected_exception=SpaceError,
-        match="The `test` container does not have enough room",
+        match="The `test` container does not have enough room.",
     ):
         raise SpaceError(name)

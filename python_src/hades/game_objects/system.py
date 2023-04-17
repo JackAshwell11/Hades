@@ -4,6 +4,9 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING
 
+# Custom
+from hades.exceptions import AlreadyAddedComponentError
+
 if TYPE_CHECKING:
     from hades.game_objects.base import (
         ComponentType,
@@ -45,13 +48,6 @@ class EntityComponentSystem:
         *components: type[GameObjectComponent],
     ) -> int:
         """Add a game object to the system with optional components.
-
-        Parameters
-        ----------
-        *components: type[GameObjectComponent]
-            A list of instantiated game object component subclasses which belong to the
-            game object.
-
 
         Returns
         -------
@@ -102,12 +98,12 @@ class EntityComponentSystem:
 
         Raises
         ------
-        KeyError
-            The game object does not exist in the system.
+        AlreadyAddedComponentError
+            Component already added.
         """
         # Check if the component type is already added to the game object
         if component.component_type in self.game_objects[game_object_id]:
-            raise KeyError("Component already added")
+            raise AlreadyAddedComponentError
 
         # Add the component to the game object
         self.game_objects[game_object_id][component.component_type] = component
@@ -124,7 +120,7 @@ class EntityComponentSystem:
         ----------
         game_object_id: int
             The ID of the game object.
-        component_type: ComponentType:
+        component_type: ComponentType
             The component type to remove from the game object.
 
         Raises
@@ -168,7 +164,7 @@ class EntityComponentSystem:
         """
         # Remove all instances of processors that have a type of processor_type
         for processor in self.processors:
-            if processor_type is processor.component_type:
+            if processor.component_type is processor_type:
                 self.processors.remove(processor)
 
     def __repr__(self: EntityComponentSystem) -> str:

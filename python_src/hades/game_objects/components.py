@@ -1,11 +1,17 @@
 """Manages various components available to the game objects."""
 from __future__ import annotations
 
+# Builtin
+from typing import TypeVar
+
 # Custom
 from hades.exceptions import SpaceError
 from hades.game_objects.base import ComponentType, GameObjectComponent
 
 __all__ = ("Inventory",)
+
+# Define a generic type for the inventory
+T = TypeVar("T")
 
 
 class Inventory(GameObjectComponent):
@@ -13,7 +19,7 @@ class Inventory(GameObjectComponent):
 
     Attributes
     ----------
-    inventory: list[int]
+    inventory: list[T]
         The game object's inventory.
     """
 
@@ -38,26 +44,26 @@ class Inventory(GameObjectComponent):
         """
         self.width: int = width
         self.height: int = height
-        self.inventory: list[int] = []
+        self.inventory: list[T] = []
 
-    def add_item_to_inventory(self: Inventory, item: int) -> None:
+    def add_item_to_inventory(self: Inventory, item: T) -> None:
         """Add an item to the inventory.
 
         Parameters
         ----------
-        item: int
+        item: T
             The item to add to the inventory.
 
         Raises
         ------
         SpaceError
-            The inventory container does not have enough room
+            The inventory container does not have enough room.
         """
         if len(self.inventory) == self.width * self.height:
             raise SpaceError(self.__class__.__name__.lower())
         self.inventory.append(item)
 
-    def remove_item_from_inventory(self: Inventory, index: int) -> int:
+    def remove_item_from_inventory(self: Inventory, index: int) -> T:
         """Remove an item at a specific index.
 
         Parameters
@@ -65,16 +71,15 @@ class Inventory(GameObjectComponent):
         index: int
             The index to remove an item at.
 
-
         Raises
         ------
         SpaceError
-            The inventory container does not have enough room
+            The inventory container does not have enough room.
 
         Returns
         -------
-        ValueError
-            Not enough space in the inventory
+        T
+            The item at position `index` in the inventory.
         """
         if len(self.inventory) < index:
             raise SpaceError(self.__class__.__name__.lower())

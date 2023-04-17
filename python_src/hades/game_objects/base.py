@@ -48,7 +48,7 @@ class GameObjectComponent:
 class ProcessorComponent(GameObjectComponent):
     """The base class for all processor components."""
 
-    def process(self: type[GameObjectComponent], *args, **kwargs) -> None:
+    def process(self: type[GameObjectComponent], **kwargs) -> None:
         """Process the update event for the processor."""
         raise NotImplementedError
 
@@ -61,15 +61,15 @@ class Actionable(GameObjectComponent):
     # Class variables
     component_type: ComponentType = ComponentType.ACTIONABLE
 
-    def __init__(self: Actionable, action_func: Callable[[None], bool]) -> None:
+    def __init__(self: Actionable, action_func: Callable[[], bool]) -> None:
         """Initialise the object.
 
         Parameters
         ----------
-        action_func: Callable[[None], bool]
+        action_func: Callable[[], bool]
             The callable which processes the action for this game object.
         """
-        self.do_action: Callable[[None], bool] = action_func
+        self.do_action: Callable[[], bool] = action_func
 
 
 class Collectible(GameObjectComponent):
@@ -80,12 +80,12 @@ class Collectible(GameObjectComponent):
     # Class variables
     component_type: ComponentType = ComponentType.COLLECTIBLE
 
-    def __init__(self: Collectible, collect_func: Callable[[None], bool]) -> None:
+    def __init__(self: Collectible, collect_func: Callable[[], bool]) -> None:
         """Initialise the object.
 
         Parameters
         ----------
-        collect_func: Callable[[None], bool]
+        collect_func: Callable[[], bool]
             The callable which processes the collection for this game object.
         """
-        self.do_collect: Callable[[None], bool] = collect_func
+        self.do_collect: Callable[[], bool] = collect_func

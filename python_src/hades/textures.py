@@ -59,7 +59,7 @@ def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     Raises
     ------
     BiggerThanError
-        The input must be bigger than or equal to 0
+        The input must be bigger than or equal to 0.
 
     Returns
     -------
