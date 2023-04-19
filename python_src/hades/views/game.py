@@ -12,11 +12,9 @@ from typing import TYPE_CHECKING, NamedTuple
 # Pip
 import arcade
 import pyglet.math
+from hades_extensions import TileType, create_map
 
-# Custom
-from hades.constants.constructors import CONSUMABLES, ENEMY1, PLAYERS
-from hades.constants.game_objects import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
-from hades.constants.general import (
+from hades.constants import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
     DEBUG_ATTACK_DISTANCE,
@@ -27,9 +25,15 @@ from hades.constants.general import (
     DEBUG_VIEW_DISTANCE,
     ENEMY_GENERATE_INTERVAL,
     ENEMY_RETRY_COUNT,
+    FACING_LEFT,
+    FACING_RIGHT,
     LEVEL_GENERATOR_INTERVAL,
+    SPRITE_SIZE,
     TOTAL_ENEMY_COUNT,
 )
+
+# Custom
+from hades.constants_OLD.constructors import CONSUMABLES, ENEMY1, PLAYERS
 from hades.extensions import VectorField
 from hades.game_objects_OLD.attacks import AreaOfEffectAttack, MeleeAttack
 from hades.game_objects_OLD.enemies import Enemy
@@ -40,7 +44,6 @@ from hades.textures import grid_pos_to_pixel
 from hades.views.base import BaseView
 from hades.views.inventory import Inventory
 from hades.views.shop import Shop
-from hades_extensions import TileType, create_map
 
 if TYPE_CHECKING:
     from hades.game_objects.base import Tile

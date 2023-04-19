@@ -5,7 +5,7 @@ from __future__ import annotations
 import arcade
 
 # Custom
-from hades.constants.game_objects import SPRITE_SCALE
+from hades.constants_OLD.game_objects import SPRITE_SCALE
 from hades.textures import grid_pos_to_pixel
 
 # Builtin

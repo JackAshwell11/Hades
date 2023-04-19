@@ -6,9 +6,27 @@ import pytest
 
 # Custom
 from hades.exceptions import SpaceError
-from hades.game_objects.components import Inventory
+from hades.game_objects.components import Graphics, Inventory
+from hades.textures import TextureType
 
 __all__ = ()
+
+
+def test_graphics_init_zero_textures() -> None:
+    """Test that graphics is initialised correctly with zero textures."""
+    graphics = Graphics(set())
+    assert repr(graphics) == "<Graphics (Texture count=0) (Blocking=False)>"
+    assert graphics.textures == {}
+
+
+def test_graphics_init_multiple_textures() -> None:
+    """Test that graphics is initialised correctly with multiple textures."""
+    graphics = Graphics({TextureType.WALL, TextureType.FLOOR}, blocking=True)
+    assert repr(graphics) == "<Graphics (Texture count=2) (Blocking=True)>"
+    assert graphics.textures == {
+        TextureType.WALL.name: TextureType.WALL.value,
+        TextureType.FLOOR.name: TextureType.FLOOR.value,
+    }
 
 
 def test_inventory_init() -> None:
@@ -20,17 +38,13 @@ def test_inventory_init() -> None:
 
 def test_inventory_add_item_to_inventory_valid() -> None:
     """Test that a valid item is added to the inventory correctly."""
-    # Create the inventory and add an item
     inventory = Inventory(5, 6)
     inventory.add_item_to_inventory(1)
-
-    # Check if the item was added correctly
     assert inventory.inventory == [1]
 
 
 def test_inventory_add_item_to_inventory_zero_size() -> None:
     """Test that a valid item is not added to a zero size inventory."""
-    # Create the zero-size inventory and add an item
     inventory = Inventory(0, 3)
     with pytest.raises(expected_exception=SpaceError):
         inventory.add_item_to_inventory("test")
@@ -38,26 +52,19 @@ def test_inventory_add_item_to_inventory_zero_size() -> None:
 
 def test_inventory_remove_item_from_inventory_valid() -> None:
     """Test that a valid item is removed from the inventory correctly."""
-    # Create the inventory and add a few items
     inventory = Inventory(2, 4)
     inventory.add_item_to_inventory(1)
     inventory.add_item_to_inventory("test")
     inventory.add_item_to_inventory(3.14)
-
-    # Check if an item can be removed correctly
     assert inventory.remove_item_from_inventory(1) == "test"
     assert inventory.inventory == [1, 3.14]
 
 
 def test_inventory_remove_item_from_inventory_large_index() -> None:
     """Test that an exception is raised if a large index is provided."""
-    # Create the inventory and add a few items
     inventory = Inventory(7, 2)
     inventory.add_item_to_inventory(5.9)
     inventory.add_item_to_inventory("temp")
     inventory.add_item_to_inventory(10)
-
-    # Check if an exception is raised when an index larger than the inventory is
-    # provided
     with pytest.raises(expected_exception=SpaceError):
         inventory.remove_item_from_inventory(10)

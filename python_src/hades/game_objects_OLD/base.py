@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from hades.constants.game_objects import (
+from hades.constants_OLD.game_objects import (
     ARMOUR_REGEN_AMOUNT,
     ARMOUR_REGEN_WAIT,
     SPRITE_SCALE,
@@ -23,7 +23,7 @@ from hades.game_objects.attacks import create_attack
 from hades.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
-    from hades.constants.game_objects import (
+    from hades.constants_OLD.game_objects import (
         AttackAlgorithmType,
         AttackData,
         BaseData,

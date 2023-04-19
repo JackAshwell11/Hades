@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from hades.constants.general import GAME_LOGGER, LOGGING_DICT_CONFIG
+from hades.constants import GAME_LOGGER, LOGGING_DICT_CONFIG
 from hades.views.start_menu import StartMenu
 
 if TYPE_CHECKING:

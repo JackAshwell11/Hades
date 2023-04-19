@@ -9,12 +9,13 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from hades.constants.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
+from hades.constants_OLD.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from hades.game_objects.base import CollectibleTile
 from hades.views.base import BaseView
 
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent
+
     from hades.game_objects.players import Player
     from hades.window import Window
 

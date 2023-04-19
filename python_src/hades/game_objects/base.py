@@ -15,7 +15,6 @@ __all__ = (
     "Collectible",
     "ComponentType",
     "GameObjectComponent",
-    "ProcessorComponent",
 )
 
 
@@ -23,18 +22,9 @@ class ComponentType(Enum):
     """Stores the different types of components available."""
 
     ACTIONABLE = auto()
-    AREA_OF_EFFECT_ATTACK = auto()
-    ARMOUR = auto()
-    ARMOUR_REGEN = auto()
-    ATTACKER = auto()
     COLLECTIBLE = auto()
-    FIRE_RATE_PENALTY = auto()
-    HEALTH = auto()
     INVENTORY = auto()
-    MELEE_ATTACK = auto()
-    MONEY = auto()
-    RANGED_ATTACK = auto()
-    SPEED_MULTIPLIER = auto()
+    GRAPHICS = auto()
 
 
 class GameObjectComponent:
@@ -43,14 +33,6 @@ class GameObjectComponent:
     # Class variables
     system: EntityComponentSystem
     component_type: ComponentType
-
-
-class ProcessorComponent(GameObjectComponent):
-    """The base class for all processor components."""
-
-    def process(self: type[GameObjectComponent], **kwargs) -> None:
-        """Process the update event for the processor."""
-        raise NotImplementedError
 
 
 class Actionable(GameObjectComponent):

@@ -1,8 +1,11 @@
 """Stores all the constructors used to make the game objects."""
 from __future__ import annotations
 
+# Pip
+from hades_extensions import TileType
+
 # Custom
-from hades.constants.game_objects import (
+from hades.constants_OLD.game_objects import (
     AttackAlgorithmType,
     AttackData,
     BaseData,
@@ -20,7 +23,6 @@ from hades.constants.game_objects import (
     StatusEffectType,
 )
 from hades.textures import moving_textures, non_moving_textures
-from hades_extensions import TileType
 
 __all__ = (
     "CONSUMABLES",

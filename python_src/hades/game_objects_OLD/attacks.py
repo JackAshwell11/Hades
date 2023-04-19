@@ -11,14 +11,14 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
-from hades.constants.game_objects import (
+from hades.constants_OLD.game_objects import (
     BULLET_VELOCITY,
     SPRITE_SIZE,
     AttackAlgorithmType,
 )
 
 if TYPE_CHECKING:
-    from hades.constants.game_objects import AttackData
+    from hades.constants_OLD.game_objects import AttackData
     from hades.game_objects.base import Entity
     from hades.physics import PhysicsEngine
 

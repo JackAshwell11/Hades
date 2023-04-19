@@ -2,16 +2,72 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
+
+# Pip
+import arcade
 
 # Custom
+from hades.constants import SPRITE_SCALE
 from hades.exceptions import SpaceError
 from hades.game_objects.base import ComponentType, GameObjectComponent
 
-__all__ = ("Inventory",)
+if TYPE_CHECKING:
+    from hades.textures import TextureType
+
+__all__ = ("Graphics", "Inventory")
 
 # Define a generic type for the inventory
 T = TypeVar("T")
+
+
+class Graphics(arcade.Sprite, GameObjectComponent):
+    """Allows a game object to be drawn on the screen and interact with Arcade.
+
+    Attributes
+    ----------
+    textures: dict[TextureType, arcade.Texture]
+        The textures which represent this game object.
+    """
+
+    # Class variables
+    component_type: ComponentType = ComponentType.GRAPHICS
+
+    def __init__(
+        self: Graphics,
+        texture_types: set[TextureType],
+        *,
+        blocking: bool = False,
+    ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        texture_types: set[TextureType]
+            The
+        blocking: bool
+            Whether this component is blocking or not.
+        """
+        super().__init__(scale=SPRITE_SCALE)
+        self.textures: dict[TextureType, arcade.Texture] = {
+            texture.name: texture.value for texture in texture_types
+        }
+        self.blocking: bool = blocking
+
+        # TODO: STILL NEED POSITIONING AND SPRITELIST ADDING
+
+    def __repr__(self: Graphics) -> str:
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
+        return (
+            f"<Graphics (Texture count={len(self.textures)})"
+            f" (Blocking={self.blocking})>"
+        )
 
 
 class Inventory(GameObjectComponent):
@@ -96,12 +152,5 @@ class Inventory(GameObjectComponent):
         return f"<Inventory (Width={self.width}) (Height={self.height})>"
 
 
-# TODO: So system will have collection of game objects which are represented with a dict
-#  with key being component enum and value being instantiated component. Arcade.sprite
-#  should be a graphics component and will be added to a spritelist on initialisation.
-#  Game objects can be put into groups inside system (entities, tiles, particles). USE
-#  https://github.com/avikor/entity_component_system/tree/master/ecs AND
-#  https://github.com/benmoran56/esper/blob/master/esper/__init__.py (MAINLY THIS ONE)
-
-# TODO: DETERMINE HOW TO STORE COMPONENTS AND GAME OBJECTS. SHOULD PROCESSORS BE USED?
-#  SHOULD GAMEOBJECTCOMPONENT BE USED? SHOULD _COMPONENTS AND _GAME_OBJECTS BE USED?
+# TODO: General attributes to implement:
+#       level_limit (this could be part of a consumable component and all entity attributes)

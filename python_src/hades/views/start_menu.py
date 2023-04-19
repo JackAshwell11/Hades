@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import arcade.gui
 
 # Custom
-from hades.constants.general import DEBUG_GAME
+from hades.constants import DEBUG_GAME
 from hades.views.base import BaseView
 from hades.views.game import Game
 

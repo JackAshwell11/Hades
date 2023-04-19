@@ -26,7 +26,6 @@ shapely = "2.0.1"
 
 [tool.poetry.dev-dependencies]
 black = "23.3.0"
-isort = "5.12.0"
 mypy = "1.2.0"
 nuitka = "1.5.4"
 ordered-set = "4.1.0"
@@ -63,6 +62,9 @@ exclude_lines = [
 omit = [
     "*/__main__.py",  # This is only used for running the game via the CLI
     "*/extensions/compile.py",  # This is only used for building the C++ extensions
+    "*/game_objects_BAD_ECS/*",
+    "*/game_objects_OLD/*",
+    "*/constants_OLD/*",
 ]
 precision = 2
 show_missing = true
@@ -70,10 +72,6 @@ show_missing = true
 [tool.coverage.run]
 branch = true
 source = ["hades"]
-
-[tool.isort]
-filter_files = true
-profile = "black"
 
 [tool.mypy]
 # TODO: Once Arcade releases 2.7 (or a bugfix release with types), these flags
@@ -171,6 +169,7 @@ select = [
     "F",  # Enable Pyflakes
     "FBT",  # Enable flake8-boolean-trap
     "G",  # Enable flake8-logging-format
+    "I",  # Enable isort
     "ICN",  # Enable flake8-import-conventions
     "INP",  # Enable flake8-no-pep420
     "ISC",  # Enable flake8-implicit-str-concat

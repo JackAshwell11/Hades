@@ -273,7 +273,7 @@ class ConsumableData(NamedTuple):
 SPRITE_SCALE = 0.4375
 SPRITE_SIZE = 128 * SPRITE_SCALE
 
-# Other game object constants
+# Other game object constants_
 MOVEMENT_FORCE = 1000000
 FACING_RIGHT = 0
 FACING_LEFT = 1

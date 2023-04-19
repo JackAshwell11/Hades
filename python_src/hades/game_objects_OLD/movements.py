@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from hades.constants.game_objects import MOVEMENT_FORCE
+from hades.constants_OLD.game_objects import MOVEMENT_FORCE
 
 if TYPE_CHECKING:
     from hades.extensions import VectorField

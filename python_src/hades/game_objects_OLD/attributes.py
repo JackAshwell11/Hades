@@ -7,13 +7,13 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 # Custom
-from hades.constants.constructors import INDICATOR_BAR_TYPES
-from hades.constants.game_objects import EntityAttributeType, StatusEffectType
+from hades.constants_OLD.constructors import INDICATOR_BAR_TYPES
+from hades.constants_OLD.game_objects import EntityAttributeType, StatusEffectType
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from hades.constants.game_objects import (
+    from hades.constants_OLD.game_objects import (
         EntityAttributeData,
         EntityAttributeSectionType,
         InstantData,

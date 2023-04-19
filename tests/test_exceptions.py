@@ -5,11 +5,7 @@ from __future__ import annotations
 import pytest
 
 # Custom
-from hades.exceptions import (
-    AlreadyAddedComponentError,
-    BiggerThanError,
-    SpaceError,
-)
+from hades.exceptions import AlreadyAddedComponentError, BiggerThanError, SpaceError
 
 __all__ = ()
 
