@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Builtin
-from enum import Enum, auto
+from enum import Flag, auto
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -15,10 +15,11 @@ __all__ = (
     "Collectible",
     "ComponentType",
     "GameObjectComponent",
+    "Processor",
 )
 
 
-class ComponentType(Enum):
+class ComponentType(Flag):
     """Stores the different types of components available."""
 
     ACTIONABLE = auto()
@@ -33,6 +34,16 @@ class GameObjectComponent:
     # Class variables
     system: EntityComponentSystem
     component_type: ComponentType
+
+
+class Processor:
+    """The base class for all processors."""
+
+    # Class variables
+    system: EntityComponentSystem
+    entities: set[int]
+
+    # TODO: USE PYGLET EVENTS TO MANAGE PROCESSOR UPDATES
 
 
 class Actionable(GameObjectComponent):
