@@ -1,7 +1,7 @@
 """Stores the different exceptions that can be raised by the game."""
 from __future__ import annotations
 
-__all__ = ("AlreadyAddedComponentError", "BiggerThanError", "SpaceError")
+__all__ = ("BiggerThanError", "SpaceError")
 
 
 class SpaceError(Exception):
@@ -16,14 +16,6 @@ class SpaceError(Exception):
             The name of the container that does not have enough room.
         """
         super().__init__(f"The `{name}` container does not have enough room.")
-
-
-class AlreadyAddedComponentError(Exception):
-    """Raised when a component that is already added is added again."""
-
-    def __init__(self: SpaceError) -> None:
-        """Initialise the object."""
-        super().__init__("Component already added.")
 
 
 class BiggerThanError(Exception):

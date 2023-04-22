@@ -2,24 +2,23 @@
 from __future__ import annotations
 
 # Builtin
-from enum import Flag, auto
+from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from hades.game_objects.system import EntityComponentSystem
+    from hades.game_objects.system import ECS
 
 __all__ = (
     "Actionable",
     "Collectible",
     "ComponentType",
     "GameObjectComponent",
-    "Processor",
 )
 
 
-class ComponentType(Flag):
+class ComponentType(Enum):
     """Stores the different types of components available."""
 
     ACTIONABLE = auto()
@@ -32,18 +31,8 @@ class GameObjectComponent:
     """The base class for all game object components."""
 
     # Class variables
-    system: EntityComponentSystem
+    system: ECS
     component_type: ComponentType
-
-
-class Processor:
-    """The base class for all processors."""
-
-    # Class variables
-    system: EntityComponentSystem
-    entities: set[int]
-
-    # TODO: USE PYGLET EVENTS TO MANAGE PROCESSOR UPDATES
 
 
 class Actionable(GameObjectComponent):

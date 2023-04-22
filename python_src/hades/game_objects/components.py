@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 # Pip
 import arcade
@@ -70,7 +70,7 @@ class Graphics(arcade.Sprite, GameObjectComponent):
         )
 
 
-class Inventory(GameObjectComponent):
+class Inventory(Generic[T], GameObjectComponent):
     """Allows a game object to have a fixed size inventory.
 
     Attributes

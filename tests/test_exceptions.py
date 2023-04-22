@@ -5,18 +5,9 @@ from __future__ import annotations
 import pytest
 
 # Custom
-from hades.exceptions import AlreadyAddedComponentError, BiggerThanError, SpaceError
+from hades.exceptions import BiggerThanError, SpaceError
 
 __all__ = ()
-
-
-def test_raise_already_added_component_error() -> None:
-    """Test that BiggerThanError is raised correctly."""
-    with pytest.raises(
-        expected_exception=AlreadyAddedComponentError,
-        match="Component already added.",
-    ):
-        raise AlreadyAddedComponentError
 
 
 def test_raise_bigger_than_error() -> None:
