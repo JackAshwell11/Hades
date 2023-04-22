@@ -3,14 +3,40 @@ from __future__ import annotations
 
 # Builtin
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
 
     from hades.game_objects.base import ComponentType, GameObjectComponent
 
-__all__ = ("ECS",)
+__all__ = ("ECS", "NotRegisteredError")
+
+# Define a generic type for the exception
+T = TypeVar("T")
+
+
+class NotRegisteredError(Exception):
+    """Raised when a game object/component type/event is not registered."""
+
+    def __init__(
+        self: NotRegisteredError,
+        *,
+        not_registered_type: str,
+        value: T,
+    ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        not_registered_type: str
+            The game object/component type/event that is not registered.
+        value: T
+            The value that is not registered.
+        """
+        super().__init__(
+            f"The {not_registered_type} `{value}` is not registered with the ECS.",
+        )
 
 
 class ECS:
@@ -32,6 +58,22 @@ class ECS:
         self._components: defaultdict[ComponentType, set[int]] = defaultdict(set)
         self._event_handlers: defaultdict[str, set[Callable]] = defaultdict(set)
 
+    @staticmethod
+    def _get_event_names(component: GameObjectComponent) -> Generator[str, str, None]:
+        """Get a component's events.
+
+        Parameters
+        ----------
+        component: GameObjectComponent
+            The component to get events for.
+
+        Returns
+        -------
+        Generator[str, str, None]
+            A generator of the component's events.
+        """
+        return (i for i in dir(component) if i.startswith("on_"))
+
     def add_game_object(self: ECS, *components: GameObjectComponent) -> int:
         """Add a game object to the system with optional components.
 
@@ -49,12 +91,12 @@ class ECS:
         # Create the game object
         self._game_objects[self._next_game_object_id] = set()
 
-        # Add the optional components to the system
+        # Add the optional components and their events to the system
         for component in components:
             self._components[component.component_type].add(self._next_game_object_id)
             self._game_objects[self._next_game_object_id].add(component)
             component.system = self
-            for event_name in (i for i in component.__dir__() if i.startswith("on_")):
+            for event_name in self._get_event_names(component):
                 self._event_handlers[event_name].add(getattr(component, event_name))
 
         # Increment _next_game_object_id and return the current game object ID
@@ -76,15 +118,15 @@ class ECS:
         """
         # Remove all events relating to this game object
         for component in self._game_objects[game_object_id]:
-            for name, handler in component.events:
-                self._event_handlers[name].remove(handler)
+            for name in self._get_event_names(component):
+                self._event_handlers[name].remove(getattr(component, name))
 
         # Delete the game object from the system
         del self._game_objects[game_object_id]
         for component in self._components.values():
             component.remove(game_object_id)
 
-    def dispatch_event(self: ECS, event: str, **kwargs) -> None:
+    def dispatch_event(self: ECS, event: str, **kwargs: T) -> None:
         """Dispatch an event with keyword arguments.
 
         Parameters
@@ -92,8 +134,88 @@ class ECS:
         event: str
             The event name.
         """
+        if event not in self._event_handlers:
+            raise NotRegisteredError(not_registered_type="event", value=event)
         for handler in self._event_handlers.get(event, []):
             handler(**kwargs)
+
+    def get_components_for_game_object(
+        self: ECS,
+        game_object_id: int,
+    ) -> set[GameObjectComponent]:
+        """Get a game object's components.
+
+        Parameters
+        ----------
+        game_object_id: int
+            The game object ID.
+
+        Raises
+        ------
+        NotRegisteredError
+            The game object is not registered.
+
+        Returns
+        -------
+        set[GameObjectComponent]
+            The game object's components.
+        """
+        if game_object_id not in self._game_objects:
+            raise NotRegisteredError(
+                not_registered_type="game object",
+                value=game_object_id,
+            )
+        return self._game_objects[game_object_id]
+
+    def get_game_objects_for_component_type(
+        self: ECS,
+        component_type: ComponentType,
+    ) -> set[int]:
+        """Get a component type's game objects.
+
+        Parameters
+        ----------
+        component_type: ComponentType
+            The component type.
+
+        Raises
+        ------
+        NotRegisteredError
+            The game object is not registered.
+
+        Returns
+        -------
+        set[int]
+            The component type's game objects.
+        """
+        if component_type not in self._components:
+            raise NotRegisteredError(
+                not_registered_type="component type",
+                value=component_type.name,
+            )
+        return self._components[component_type]
+
+    def get_handlers_for_event_name(self: ECS, event: str) -> set[Callable]:
+        """Get an event's handlers.
+
+        Parameters
+        ----------
+        event: str
+            The event name.
+
+        Raises
+        ------
+        NotRegisteredError
+            The event is not registered.
+
+        Returns
+        -------
+        set[Callable]
+            The event's handlers.
+        """
+        if event not in self._event_handlers:
+            raise NotRegisteredError(not_registered_type="event", value=event)
+        return self._event_handlers[event]
 
     def __repr__(self: ECS) -> str:
         """Return a human-readable representation of this object.

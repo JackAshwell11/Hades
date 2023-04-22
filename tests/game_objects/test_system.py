@@ -3,16 +3,20 @@ from __future__ import annotations
 
 # Builtin
 from enum import Enum, auto
-from typing import TYPE_CHECKING
+from typing import TypeVar
+
+# Pip
+import pytest
 
 # Custom
 from hades.game_objects.base import GameObjectComponent
-from hades.game_objects.system import ECS
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from hades.game_objects.system import ECS, NotRegisteredError
 
 __all__ = ()
+
+
+# Define a generic type for the kwargs
+T = TypeVar("T")
 
 
 class ComponentType(Enum):
@@ -36,30 +40,49 @@ class GameObjectComponentTwo(GameObjectComponent):
     component_type: ComponentType = ComponentType.VALUE_TWO
 
 
-class GameObjectComponentEvent(GameObjectComponent):
-    """Represents a valid game object component useful for testing."""
+class GameObjectComponentInvalid:
+    """Represents an invalid game object component useful for testing."""
+
+
+class GameObjectComponentEventOne(GameObjectComponent):
+    """Represents a valid game object component with events useful for testing."""
 
     # Class variables
     component_type: ComponentType = ComponentType.VALUE_ONE
 
-    def __init__(self: GameObjectComponentEvent) -> None:
-        """Initialise the object."""
-        self.events: set[tuple[str, Callable]] = {("on_test_event", self.on_test_event)}
+    @staticmethod
+    def on_test_no_kwarg() -> None:
+        """Simulate a non-kwarg event for testing."""
+        assert True
 
     @staticmethod
-    def on_test_event(x: int) -> int:
-        """Simulate an event for testing.
+    def on_test_kwarg(x: str, **_: T) -> None:
+        """Simulate a kwarg event for testing.
 
         Parameters
         ----------
-        x: int
+        x: str
             A testing variable.
         """
-        return x * 5
+        assert x == "test one"
 
 
-class GameObjectComponentInvalid:
-    """Represents an invalid game object component useful for testing."""
+class GameObjectComponentEventTwo(GameObjectComponent):
+    """Represents a valid game object component with events useful for testing."""
+
+    # Class variables
+    component_type: ComponentType = ComponentType.VALUE_TWO
+
+    @staticmethod
+    def on_test_kwarg(y: str, **_: T) -> None:
+        """Simulate a kwarg event for testing.
+
+        Parameters
+        ----------
+        y: str
+            A testing variable.
+        """
+        assert y == "test two"
 
 
 def test_ecs_init() -> None:
@@ -71,67 +94,150 @@ def test_ecs_init() -> None:
 
 def test_ecs_zero_component_game_object() -> None:
     """Test the ECS with a game object that has no components."""
+    # Create the entity component system
+    ecs = ECS()
+
+    # Test that adding the game object works correctly
+    assert ecs.add_game_object() == 0
+
+    # Test that removing the game object works correctly
+    ecs.remove_game_object(0)
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The game object `0` is not registered with the ECS.",
+    ):
+        ecs.get_components_for_game_object(0)
 
 
 def test_ecs_multiple_component_game_object() -> None:
     """Test the ECS with a game object that has multiple components."""
+    # Create the entity component system
+    ecs = ECS()
+
+    # Test that adding the game object works correctly
+    component_one, component_two = GameObjectComponentOne(), GameObjectComponentTwo()
+    ecs.add_game_object(component_one, component_two)
+    assert ecs.get_components_for_game_object(0) == {component_one, component_two}
+    assert ecs.get_game_objects_for_component_type(ComponentType.VALUE_ONE) == {0}
+    assert ecs.get_game_objects_for_component_type(ComponentType.VALUE_TWO) == {0}
+
+    # Test that removing the game object works correctly
+    ecs.remove_game_object(0)
+    assert ecs.get_game_objects_for_component_type(ComponentType.VALUE_ONE) == set()
+    assert ecs.get_game_objects_for_component_type(ComponentType.VALUE_TWO) == set()
 
 
 def test_ecs_multiple_game_objects() -> None:
     """Test the ECS with multiple game objects."""
+    # Create the entity component system
+    ecs = ECS()
+
+    # Test that adding two game object works correctly
+    assert ecs.add_game_object() == 0
+    assert ecs.add_game_object() == 1
+
+    # Test that removing the first game object works correctly
+    ecs.remove_game_object(0)
+    assert ecs.get_components_for_game_object(1) == set()
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The game object `0` is not registered with the ECS.",
+    ):
+        ecs.get_components_for_game_object(0)
 
 
 def test_ecs_event_game_object() -> None:
     """Test the ECS with a game object that has events."""
+    # Create the entity component system
+    ecs = ECS()
+
+    # Test that adding the game object works correctly
+    component = GameObjectComponentEventOne()
+    ecs.add_game_object(component)
+    assert ecs.get_handlers_for_event_name("on_test_no_kwarg") == {
+        component.on_test_no_kwarg,
+    }
+
+    # Test that removing the game object works correctly
+    ecs.remove_game_object(0)
+    assert ecs.get_handlers_for_event_name("on_test_no_kwarg") == set()
 
 
 def test_ecs_invalid_component() -> None:
     """Test the ECS with a game object that has an invalid component."""
+    # Create the entity component system
+    ecs = ECS()
+
+    # Test that adding the game object doesn't work
+    with pytest.raises(expected_exception=AttributeError):
+        ecs.add_game_object(GameObjectComponentInvalid())  # type: ignore[arg-type]
+
+
+def test_ecs_unregistered_game_object_component_and_event() -> None:
+    """Test that the ECS raises the correct errors for unregistered items."""
+    # Create the entity component system
+    ecs = ECS()
+
+    # Test that an unregistered game object raises an error
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The game object `0` is not registered with the ECS.",
+    ):
+        ecs.get_components_for_game_object(0)
+
+    # Test that an unregistered component type raises an error
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The component type `VALUE_ONE` is not registered with the ECS.",
+    ):
+        ecs.get_game_objects_for_component_type(ComponentType.VALUE_ONE)
+
+    # Test that an unregistered event raises an error
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The event `on_test` is not registered with the ECS.",
+    ):
+        ecs.get_handlers_for_event_name("on_test")
 
 
 def test_dispatch_event_no_kwargs() -> None:
     """Test dispatching an event to the ECS with no keyword arguments."""
+    # Create the entity component system and add a game object
+    ecs = ECS()
+    ecs.add_game_object(GameObjectComponentEventOne())
+
+    # Test that the event is dispatched correctly
+    ecs.dispatch_event("on_test_no_kwarg")
 
 
 def test_ecs_dispatch_kwargs() -> None:
     """Test dispatching an event to the ECS with keyword arguments."""
+    # Create the entity component system and add a game object
+    ecs = ECS()
+    ecs.add_game_object(GameObjectComponentEventTwo())
+
+    # Test that the event is dispatched correctly
+    ecs.dispatch_event("on_test_kwarg", y="test two")
 
 
 def test_ecs_dispatch_to_multiple_handlers() -> None:
     """Test dispatching an event to the ECS that is received by multiple handlers."""
+    # Create the entity component system and add a game object
+    ecs = ECS()
+    ecs.add_game_object(GameObjectComponentEventOne(), GameObjectComponentEventTwo())
+
+    # Test that the event is dispatched correctly
+    ecs.dispatch_event("on_test_kwarg", x="test one", y="test two")
 
 
 def test_ecs_dispatch_with_unregistered_event() -> None:
     """Test dispatching an unregistered event to the ECS."""
+    # Create the entity component system
+    ecs = ECS()
 
-
-# def test_ecs_add_game_object_zero_components() -> None:
-#     """Test that a game object is added with zero components."""
-#
-#
-# def test_ecs_add_game_object_multiple_components() -> None:
-#     """Test that a game object is added with one or more components."""
-#     assert ecs.components == {
-#         ComponentType.ACTIONABLE: {0},
-#         ComponentType.COLLECTIBLE: {0},
-#
-#
-# def test_ecs_add_game_object_invalid_component() -> None:
-#     """Test that a game object is not added with an invalid component."""
-#     with pytest.raises(expected_exception=AttributeError):
-#
-#
-# def test_ecs_add_game_object_events() -> None:
-#     """Test that a game object is added with a component that has events."""
-#
-#
-# def test_ecs_remove_game_object_no_events() -> None:
-#     """Test that a registered game object with no events is removed correctly."""
-#
-#
-# def test_ecs_remove_game_object_no_components() -> None:
-#     """Test that a registered game object with no components is removed correctly."""
-#
-#
-# def test_ecs_remove_game_object_unregistered_object() -> None:
-#     """Test that an unregistered game object is not removed."""
+    # Test that an unregistered event raises an error
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The event `on_test` is not registered with the ECS.",
+    ):
+        ecs.dispatch_event("on_test")

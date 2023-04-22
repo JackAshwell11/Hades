@@ -33,7 +33,7 @@ def test_inventory_init() -> None:
     """Test that an inventory is initialised correctly."""
     inventory = Inventory(3, 9)
     assert repr(inventory) == "<Inventory (Width=3) (Height=9)>"
-    assert inventory.inventory == []
+    assert not inventory.inventory
 
 
 def test_inventory_add_item_to_inventory_valid() -> None:
