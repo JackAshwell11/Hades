@@ -6,12 +6,18 @@ import logging
 from typing import TYPE_CHECKING
 
 # Pip
-import arcade.gui
+import arcade
+from arcade.gui import (
+    UIAnchorLayout,
+    UIBoxLayout,
+    UIFlatButton,
+    UIManager,
+    UITextureButton,
+)
 
 # Custom
 from hades.constants_OLD.general import INVENTORY_HEIGHT, INVENTORY_WIDTH
 from hades.game_objects.base import CollectibleTile
-from hades.views.base import BaseView
 
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent
@@ -25,7 +31,7 @@ __all__ = ("Inventory",)
 logger = logging.getLogger(__name__)
 
 
-class InventoryBox(arcade.gui.UITextureButton):
+class InventoryBox(UITextureButton):
     """Represents an individual box showing an item in the player's inventory."""
 
     # Class variables
@@ -77,13 +83,21 @@ class InventoryBox(arcade.gui.UITextureButton):
         )
 
 
-class Inventory(BaseView):
+def back_on_click(_: UIOnClickEvent) -> None:
+    """Return to the game when the button is clicked."""
+    window = arcade.get_window()
+    window.show_view(window.views["Game"])
+
+
+class Inventory(arcade.View):
     """Displays the player's inventory allowing them to manage it and equip items.
 
     Attributes
     ----------
-    vertical_box: arcade.gui.UIBoxLayout
-        The arcade box layout responsible for organising the different ui elements.
+    ui_manager: UIManager
+        Manages all the different UI elements for this view.
+    vertical_box: UIBoxLayout
+        The arcade box layout responsible for organising the different UI elements.
     """
 
     def __init__(self: Inventory, player: Player) -> None:
@@ -96,11 +110,12 @@ class Inventory(BaseView):
         """
         super().__init__()
         self.player: Player = player
-        self.vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
+        self.ui_manager: UIManager = UIManager()
+        self.vertical_box: UIBoxLayout = UIBoxLayout(space_between=20)
 
         # Create the inventory grid
         for _ in range(INVENTORY_HEIGHT):
-            horizontal_box = arcade.gui.UIBoxLayout(vertical=False)
+            horizontal_box = UIBoxLayout(vertical=False)
             for _ in range(INVENTORY_WIDTH):
                 horizontal_box.add(
                     InventoryBox(width=64, height=64).with_border(width=4),
@@ -108,16 +123,14 @@ class Inventory(BaseView):
             self.vertical_box.add(horizontal_box)
 
         # Create the back button
-        self.add_back_button(self.vertical_box)
+        back_button = UIFlatButton(text="Back", width=200)
+        back_button.on_click = back_on_click
+        self.vertical_box.add(back_button)
 
-        # Register the UI elements
-        self.ui_manager.add(
-            arcade.gui.UIAnchorWidget(
-                anchor_x="center_x",
-                anchor_y="center_y",
-                child=self.vertical_box,
-            ),
-        )
+        # Add the vertical box layout to the UI
+        anchor_layout = UIAnchorLayout(anchor_x="center_x", anchor_y="center_y")
+        anchor_layout.add(self.vertical_box)
+        self.ui_manager.add(anchor_layout)
 
     def on_draw(self: Inventory) -> None:
         """Render the screen."""

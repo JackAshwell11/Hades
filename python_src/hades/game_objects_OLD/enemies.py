@@ -17,7 +17,6 @@ from hades.constants_OLD.game_objects import (
     FACING_RIGHT,
     HEALTH_INDICATOR_BAR_COLOR,
     SPRITE_SIZE,
-    AttackAlgorithmType,
     EntityAttributeType,
     ObjectID,
 )
@@ -204,6 +203,7 @@ class Enemy(Entity):
         assert self.game.player is not None
 
         # Check if the player is within range and line of sight of the enemy
+        return  # TODO: THIS IS SLOW, FIX WITH GAME OBJECT REWRITE
         if not (
             self.check_line_of_sight(self.current_attack.attack_data.attack_range)
             and self.player_within_range
