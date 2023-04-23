@@ -3,7 +3,6 @@ from __future__ import annotations
 
 # Builtin
 import logging.config
-from typing import TYPE_CHECKING
 
 # Pip
 import arcade
@@ -11,9 +10,6 @@ import arcade
 # Custom
 from hades.constants.general import GAME_LOGGER, LOGGING_DICT_CONFIG
 from hades.views.start_menu import StartMenu
-
-if TYPE_CHECKING:
-    from hades.views.base import BaseView
 
 __all__ = ("Window",)
 
@@ -27,14 +23,14 @@ class Window(arcade.Window):
 
     Attributes
     ----------
-    views: dict[str, BaseView]
+    views: dict[str, arcade.View]
         Holds all the views used by the game.
     """
 
     def __init__(self: Window) -> None:
         """Initialise the object."""
         super().__init__()
-        self.views: dict[str, BaseView] = {}
+        self.views: dict[str, arcade.View] = {}
 
     def __repr__(self: Window) -> str:
         """Return a human-readable representation of this object.

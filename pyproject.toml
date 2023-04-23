@@ -20,7 +20,7 @@ script = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade = "2.6.17"
+arcade = "3.0.0.dev20"
 pymunk = "6.4.0"
 shapely = "2.0.1"
 
@@ -32,15 +32,15 @@ nuitka = "1.5.4"
 ordered-set = "4.1.0"
 pre-commit = "3.2.2"
 pylint = "2.17.2"
-pytest = "7.3.0"
+pytest = "7.3.1"
 pytest-cov = "4.0.0"
 pytest-icdiff = "0.6"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.12.0"
-pytest-sugar = "0.9.6"
-ruff = "0.0.261"
+pytest-sugar = "0.9.7"
+ruff = "0.0.262"
 ssort = "v0.11.6"
-tox = "4.4.11"
+tox = "4.4.12"
 
 [tool.black]
 preview = true

@@ -111,15 +111,19 @@ class IndicatorBar:
         self._scale: float = 1.0
 
         # Create the boxes needed to represent the indicator bar
-        self._background_box: arcade.SpriteSolidColor = arcade.SpriteSolidColor(
-            self.bar_width + border_size,
-            self.bar_height + border_size,
-            background_color,
+        self._background_box: arcade.Sprite = arcade.Sprite(
+            arcade.Texture.create_filled(
+                f"background box for {repr(owner)}",
+                (self.bar_width + border_size, self.bar_height + border_size),
+                background_color,
+            ),
         )
-        self._full_box: arcade.SpriteSolidColor = arcade.SpriteSolidColor(
-            self.bar_width,
-            self.bar_height,
-            full_color,
+        self._full_box: arcade.Sprite = arcade.Sprite(
+            arcade.Texture.create_filled(
+                f"full box for {repr(owner)}",
+                (self.bar_width, self.bar_height),
+                full_color,
+            ),
         )
         self.target_spritelist.append(self.background_box)
         self.target_spritelist.append(self.full_box)

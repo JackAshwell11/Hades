@@ -7,13 +7,7 @@ from typing import TYPE_CHECKING
 
 # Pip
 import arcade
-from arcade.gui import (
-    UIAnchorWidget,
-    UILayout,
-    UIManager,
-    UIMouseFilterMixin,
-    UITextArea,
-)
+from arcade.gui import UILayout, UIManager, UIMouseFilterMixin, UITextArea
 
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent
@@ -25,7 +19,7 @@ __all__ = ("BaseView",)
 logger = logging.getLogger(__name__)
 
 
-class DisappearingInfoBox(UIMouseFilterMixin, UIAnchorWidget):
+class DisappearingInfoBox(UIMouseFilterMixin):
     """Represents a simple dialog box that displays a message then disappears."""
 
     def __init__(

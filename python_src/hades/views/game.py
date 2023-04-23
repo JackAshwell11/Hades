@@ -23,7 +23,6 @@ from hades.constants.general import (
     DEBUG_ENEMY_SPAWN_COLOR,
     DEBUG_ENEMY_SPAWN_SIZE,
     DEBUG_GAME,
-    DEBUG_VECTOR_FIELD_LINE,
     DEBUG_VIEW_DISTANCE,
     ENEMY_GENERATE_INTERVAL,
     ENEMY_RETRY_COUNT,
@@ -31,15 +30,11 @@ from hades.constants.general import (
     TOTAL_ENEMY_COUNT,
 )
 from hades.extensions import VectorField
-from hades.game_objects.attacks import AreaOfEffectAttack, MeleeAttack
 from hades.game_objects.enemies import Enemy
 from hades.game_objects.players import Player
 from hades.game_objects.tiles import Consumable, Floor, Wall
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
-from hades.views.base import BaseView
-from hades.views.inventory import Inventory
-from hades.views.shop import Shop
 from hades_extensions import TileType, create_map
 
 if TYPE_CHECKING:
@@ -49,9 +44,6 @@ __all__ = ("Game",)
 
 # Get the logger
 logger = logging.getLogger(__name__)
-
-NINETY_DEGREES = 90
-TWO_HUNDRED_SEVENTY_DEGREES = 270
 
 
 @cache
@@ -87,7 +79,7 @@ class LevelConstants(NamedTuple):
     height: int
 
 
-class Game(BaseView):
+class Game(arcade.View):
     """Manages the game and its actions.
 
     Attributes
@@ -131,56 +123,7 @@ class Game(BaseView):
         The text object used for displaying info about the nearest item.
     """
 
-    def __init__(self: Game) -> None:
-        """Initialise the object."""
-        super().__init__()
-        self.background_color = arcade.color.BLACK
-        self.level_constants: LevelConstants | None = None
-        self.player: Player | None = None
-        self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
-        self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.bullet_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.enemy_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.enemy_indicator_bar_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.player_gui_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.game_camera: arcade.Camera = arcade.Camera(
-            self.window.width,
-            self.window.height,
-        )
-        self.gui_camera: arcade.Camera = arcade.Camera(
-            self.window.width,
-            self.window.height,
-        )
-        self.vector_field: VectorField | None = None
-        self.physics_engine: PhysicsEngine | None = None
-        self.nearest_item: Tile | None = None
-        self.possible_enemy_spawns: list[tuple[int, int]] = []
-        self.player_status_text: arcade.Text = arcade.Text(
-            "Money: 0",
-            10,
-            10,
-            font_size=20,
-        )
-        self.item_text: arcade.Text = arcade.Text(
-            "",
-            self.window.width / 2 - 150,
-            self.window.height / 2 - 200,
-            arcade.color.BLACK,
-            20,
-        )
-
-    def post_hide_view(self: Game) -> None:
-        """Process post hide view functionality."""
-        # Make sure variables needed are valid
-        assert self.player is not None
-
-        # Stop the player from moving after the game view is shown again
-        self.player.left_pressed = (
-            self.player.right_pressed
-        ) = self.player.up_pressed = self.player.down_pressed = False
-
-    def setup(self: Game, level: int) -> None:
+    def _setup(self: Game, level: int) -> None:
         """Set up the game.
 
         Parameters
@@ -256,52 +199,12 @@ class Game(BaseView):
                 logger.warning("Unknown TileType %r", item)
                 continue
 
-        # Assign sprites to the game map and initialise the vector grid
-        # for count_y in range(self.level_constants.height):
-        #     for count_x in range(self.level_constants.width):
-        #         # Get the current item
-        #
-        #         # Determine if the tile is empty
-        #         if item in {TileType.Empty, TileType.Obstacle, TileType.DebugWall}:
-        #
-        #         # Determine if the tile is a wall
-        #         if item == TileType.Wall:
-        #
-        #         # The tile's backdrop should be a floor
-        #
-        #         # Skip to the next iteration if the tile is a floor
-        #         if item == TileType.Floor:
-        #
-        #         # Determine if the tile is a player or a consumable
-        #         if item in PLAYERS:
-        #                 self,
-        #                 count_x,
-        #                 count_y,
-        #                 target_constructor,
-        #                 min(
-        #                     random.randint(
-        #                         consumable_lower_bound, consumable_upper_bound
-        #                     ),
-        #                     target_constructor.level_limit,
-        #                 ),
-        #             # Unknown type
-
         # Make sure the game map shape was set and the player was actually created
         assert self.level_constants is not None
         assert self.player is not None
 
         # Debug how many enemies and tiles were initialised
         logger.debug("Initialised game view with  %d tiles", len(self.tile_sprites))
-
-        # Set up the inventory view
-        inventory_view = Inventory(self.player)
-        self.window.views["InventoryView"] = inventory_view
-        logger.info("Initialised inventory view")
-
-        # Set up the shop view
-        shop_view = Shop(self.player)
-        self.window.views["ShopView"] = shop_view
-        logger.info("Initialised shop view")
 
         # Create the physics engine
         self.physics_engine = PhysicsEngine(DAMPING)
@@ -328,16 +231,66 @@ class Game(BaseView):
             self.player.position,
         )
 
-        # Set up the melee shader
-
         # Generate half of the total enemies and then schedule the function to run
         # every ENEMY_GENERATE_INTERVAL seconds
         for _ in range(TOTAL_ENEMY_COUNT // 2):
             self.generate_enemy()
         arcade.schedule(
             self.generate_enemy,
-            ENEMY_GENERATE_INTERVAL,  # type: ignore[arg-type]
+            ENEMY_GENERATE_INTERVAL,
         )
+
+    def __init__(self: Game, level: int) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        level: int
+            The level to create a game for.
+        """
+        super().__init__()
+        self.background_color = arcade.color.BLACK
+        self.level_constants: LevelConstants | None = None
+        self.player: Player | None = None
+        self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
+        self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.bullet_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.enemy_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.enemy_indicator_bar_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.player_gui_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.game_camera: arcade.Camera = arcade.Camera()
+        self.gui_camera: arcade.Camera = arcade.Camera()
+        self.vector_field: VectorField | None = None
+        self.physics_engine: PhysicsEngine | None = None
+        self.nearest_item: Tile | None = None
+        self.possible_enemy_spawns: list[tuple[int, int]] = []
+        self.player_status_text: arcade.Text = arcade.Text(
+            "Money: 0",
+            10,
+            10,
+            font_size=20,
+        )
+        self.item_text: arcade.Text = arcade.Text(
+            "",
+            self.window.width / 2 - 150,
+            self.window.height / 2 - 200,
+            arcade.color.BLACK,
+            20,
+        )
+
+        # Set up the game
+        self._setup(level)
+
+    def on_hide_view(self: Game) -> None:
+        """Process hide view functionality."""
+        # Make sure variables needed are valid
+        assert self.player is not None
+
+        # Stop the player from moving after the game view is shown again
+        self.player.left_pressed = (
+            self.player.right_pressed
+        ) = self.player.up_pressed = self.player.down_pressed = False
 
     def on_draw(self: Game) -> None:
         """Render the screen."""
@@ -378,82 +331,6 @@ class Game(BaseView):
                     DEBUG_ATTACK_DISTANCE,
                 )
 
-            # Check if the player's current attack is a melee attack or an area of
-            # effect attack
-            if isinstance(self.player.current_attack, MeleeAttack):
-                # Calculate the two boundary points for the player fov
-                half_angle = self.player.player_data.melee_degree // 2
-                low_angle = math.radians(self.player.direction - half_angle)
-                high_angle = math.radians(self.player.direction + half_angle)
-                point_low = (
-                    self.player.center_x
-                    + math.cos(low_angle)
-                    * SPRITE_SIZE
-                    * self.player.current_attack.attack_data.attack_range,
-                    self.player.center_y
-                    + math.sin(low_angle)
-                    * SPRITE_SIZE
-                    * self.player.current_attack.attack_data.attack_range,
-                )
-                point_high = (
-                    self.player.center_x
-                    + math.cos(high_angle)
-                    * SPRITE_SIZE
-                    * self.player.current_attack.attack_data.attack_range,
-                    self.player.center_y
-                    + math.sin(high_angle)
-                    * SPRITE_SIZE
-                    * self.player.current_attack.attack_data.attack_range,
-                )
-                # Draw both boundary lines for the player fov
-                arcade.draw_line(
-                    self.player.center_x,
-                    self.player.center_y,
-                    *point_low,
-                    DEBUG_ATTACK_DISTANCE,
-                )
-                arcade.draw_line(
-                    self.player.center_x,
-                    self.player.center_y,
-                    *point_high,
-                    DEBUG_ATTACK_DISTANCE,
-                )
-                # Draw the arc between the two making sure to double the width and
-                # height since the radius is calculated, but we want the diameter
-                arcade.draw_arc_outline(
-                    self.player.center_x,
-                    self.player.center_y,
-                    math.dist(point_high, point_low) * 2,
-                    self.player.current_attack.attack_data.attack_range
-                    * SPRITE_SIZE
-                    * 2,
-                    DEBUG_ATTACK_DISTANCE,
-                    math.degrees(low_angle),
-                    math.degrees(high_angle),
-                    2,
-                )
-            elif isinstance(self.player.current_attack, AreaOfEffectAttack):
-                # Draw the player's attack range
-                arcade.draw_circle_outline(
-                    self.player.center_x,
-                    self.player.center_y,
-                    self.player.current_attack.attack_data.attack_range * SPRITE_SIZE,
-                    DEBUG_ATTACK_DISTANCE,
-                )
-
-            # Draw the debug vector field lines
-            lines: list[tuple[float, float]] = []
-            for source, vector in self.vector_field.vector_dict.items():
-                source_screen_x, source_screen_y = grid_pos_to_pixel(*source)
-                lines.append((source_screen_x, source_screen_y))
-                lines.append(
-                    (
-                        source_screen_x + vector[0] * SPRITE_SIZE,
-                        source_screen_y + vector[1] * SPRITE_SIZE,
-                    ),
-                )
-            arcade.draw_lines(lines, DEBUG_VECTOR_FIELD_LINE)
-
             # Draw the enemy spawn locations
             points: list[tuple[float, float]] = []
             for location in self.possible_enemy_spawns:
@@ -468,9 +345,6 @@ class Game(BaseView):
         if self.nearest_item:
             self.item_text.text = self.nearest_item.item_text
             self.item_text.draw()
-
-        # Draw the UI elements
-        self.ui_manager.draw()
 
     def on_update(self: Game, delta_time: float) -> None:
         """Process movement and game logic.
@@ -550,8 +424,6 @@ class Game(BaseView):
             case arcade.key.R:
                 if self.nearest_item:
                     self.nearest_item.item_use()
-            case arcade.key.F:
-                self.window.show_view(self.window.views["InventoryView"])
             case arcade.key.C:
                 self.player.current_attack_index = min(
                     self.player.current_attack_index + 1,
@@ -562,8 +434,6 @@ class Game(BaseView):
                     self.player.current_attack_index - 1,
                     0,
                 )
-            case arcade.key.T:
-                self.window.show_view(self.window.views["ShopView"])
 
     def on_key_release(self: Game, key: int, modifiers: int) -> None:
         """Process key release functionality.
@@ -655,11 +525,7 @@ class Game(BaseView):
         if angle < 0:
             angle += 360
         self.player.direction = angle
-        self.player.facing = (
-            FACING_LEFT
-            if NINETY_DEGREES <= angle <= TWO_HUNDRED_SEVENTY_DEGREES
-            else FACING_RIGHT
-        )
+        self.player.facing = FACING_LEFT if 90 <= angle <= 270 else FACING_RIGHT
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""

@@ -2,14 +2,11 @@
 from __future__ import annotations
 
 # Builtin
-import logging
 from typing import TYPE_CHECKING
 
 # Pip
-import arcade.gui
-
-# Custom
-from hades.views.base import BaseView
+import arcade
+from arcade.gui import UIAnchorLayout, UIBoxLayout, UIFlatButton, UIManager
 
 if TYPE_CHECKING:
     from arcade.gui.events import UIOnClickEvent
@@ -21,11 +18,8 @@ __all__ = (
     "Shop",
 )
 
-# Get the logger
-logger = logging.getLogger(__name__)
 
-
-class SectionUpgradeButton(arcade.gui.UIFlatButton):
+class SectionUpgradeButton(UIFlatButton):
     """A button which will upgrade a player section if the player has enough money."""
 
     section_ref: UpgradablePlayerSection | None = None
@@ -56,8 +50,20 @@ class SectionUpgradeButton(arcade.gui.UIFlatButton):
         )
 
 
-class Shop(BaseView):
-    """Display the shop UI so the player can upgrade their attributes."""
+def back_on_click(_: UIOnClickEvent) -> None:
+    """Return to the game when the button is clicked."""
+    window = arcade.get_window()
+    window.show_view(window.views["Game"])
+
+
+class Shop(arcade.View):
+    """Display the shop UI so the player can upgrade their attributes.
+
+    Attributes
+    ----------
+    ui_manager: UIManager
+        Manages all the different UI elements for this view.
+    """
 
     def __init__(self: Shop, player: Player) -> None:
         """Initialise the object.
@@ -69,10 +75,11 @@ class Shop(BaseView):
         """
         super().__init__()
         self.player: Player = player
-        vertical_box: arcade.gui.UIBoxLayout = arcade.gui.UIBoxLayout()
+        self.ui_manager: UIManager = UIManager()
 
         # Create all the section upgrade buttons based on the amount of sections the
         # player has
+        vertical_box: UIBoxLayout = UIBoxLayout(space_between=20)
         for upgradable_player_section in self.player.upgrade_sections:
             upgrade_section_button = SectionUpgradeButton(
                 text=(
@@ -82,19 +89,17 @@ class Shop(BaseView):
                 width=200,
             )
             upgrade_section_button.section_ref = upgradable_player_section
-            vertical_box.add(upgrade_section_button.with_space_around(bottom=20))
+            vertical_box.add(upgrade_section_button)
 
         # Create the back button
-        self.add_back_button(vertical_box)
+        back_button = UIFlatButton(text="Back", width=200)
+        back_button.on_click = back_on_click
+        vertical_box.add(back_button)
 
-        # Register the UI elements
-        self.ui_manager.add(
-            arcade.gui.UIAnchorWidget(
-                anchor_x="center_x",
-                anchor_y="center_y",
-                child=vertical_box,
-            ),
-        )
+        # Add the vertical box layout to the UI
+        anchor_layout = UIAnchorLayout(anchor_x="center_x", anchor_y="center_y")
+        anchor_layout.add(vertical_box)
+        self.ui_manager.add(anchor_layout)
 
     def on_draw(self: Shop) -> None:
         """Render the screen."""
@@ -103,6 +108,14 @@ class Shop(BaseView):
 
         # Draw the UI elements
         self.ui_manager.draw()
+
+    def on_show_view(self: Shop) -> None:
+        """Process show view functionality."""
+        self.ui_manager.enable()
+
+    def on_hide_view(self: Shop) -> None:
+        """Process hide view functionality."""
+        self.ui_manager.disable()
 
     def __repr__(self: Shop) -> str:
         """Return a human-readable representation of this object.
