@@ -15,10 +15,24 @@ from hades.game_objects.base import ComponentType, GameObjectComponent
 if TYPE_CHECKING:
     from hades.textures import TextureType
 
-__all__ = ("Graphics", "Inventory")
+__all__ = ("Consumable", "Graphics", "Inventory")
 
 # Define a generic type for the inventory
 T = TypeVar("T")
+
+
+class Consumable(GameObjectComponent):
+    """Allows a game object to provide instant and/or status effects."""
+
+    __slots__ = ()
+
+    # Class variables
+    component_type: ComponentType = ComponentType.CONSUMABLE
+
+    def __init__(self: Consumable) -> None:
+        print("f")
+
+    # TODO: ADD LEVEL LIMIT
 
 
 class Graphics(arcade.Sprite, GameObjectComponent):
@@ -150,7 +164,3 @@ class Inventory(Generic[T], GameObjectComponent):
             The human-readable representation of this object.
         """
         return f"<Inventory (Width={self.width}) (Height={self.height})>"
-
-
-# TODO: General attributes to implement:
-#       level_limit (this could be part of a consumable component and all entity attributes)

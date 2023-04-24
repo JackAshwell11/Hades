@@ -22,7 +22,9 @@ class ComponentType(Enum):
     """Stores the different types of components available."""
 
     ACTIONABLE = auto()
+    ATTRIBUTES = auto()
     COLLECTIBLE = auto()
+    CONSUMABLE = auto()
     INVENTORY = auto()
     GRAPHICS = auto()
 

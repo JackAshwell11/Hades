@@ -116,6 +116,13 @@ class ECS:
         KeyError
             The game object does not exist in the system.
         """
+        # Test if the game object is registered or not
+        if game_object_id not in self._game_objects:
+            raise NotRegisteredError(
+                not_registered_type="game object",
+                value=game_object_id,
+            )
+
         # Remove all events relating to this game object
         for component in self._game_objects[game_object_id]:
             for name in self._get_event_names(component):
@@ -134,8 +141,11 @@ class ECS:
         event: str
             The event name.
         """
+        # Test if the event is registered or not
         if event not in self._event_handlers:
             raise NotRegisteredError(not_registered_type="event", value=event)
+
+        # Dispatch the event to all handlers
         for handler in self._event_handlers.get(event, []):
             handler(**kwargs)
 
@@ -160,11 +170,14 @@ class ECS:
         set[GameObjectComponent]
             The game object's components.
         """
+        # Test if the game object ID is registered or not
         if game_object_id not in self._game_objects:
             raise NotRegisteredError(
                 not_registered_type="game object",
                 value=game_object_id,
             )
+
+        # Return the game object's components
         return self._game_objects[game_object_id]
 
     def get_game_objects_for_component_type(
@@ -188,11 +201,14 @@ class ECS:
         set[int]
             The component type's game objects.
         """
+        # Test if the component type is registered or not
         if component_type not in self._components:
             raise NotRegisteredError(
                 not_registered_type="component type",
                 value=component_type.name,
             )
+
+        # Return the component type's game objects
         return self._components[component_type]
 
     def get_handlers_for_event_name(self: ECS, event: str) -> set[Callable]:
@@ -213,8 +229,11 @@ class ECS:
         set[Callable]
             The event's handlers.
         """
+        # Test if the event is registered or not
         if event not in self._event_handlers:
             raise NotRegisteredError(not_registered_type="event", value=event)
+
+        # Return the event's handlers
         return self._event_handlers[event]
 
     def __repr__(self: ECS) -> str:
@@ -230,3 +249,8 @@ class ECS:
             f" count={len(self._game_objects)}) (Event"
             f" count={len(self._event_handlers)})>"
         )
+
+
+# TODO: Dispatch_event could possibly return results (need to see if good idea) by
+#  returning collection containing result for each handler (could sort by component name
+#  to remove Nones). It could also become a global function and global private variable
