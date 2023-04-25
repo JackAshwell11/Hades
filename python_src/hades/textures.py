@@ -10,9 +10,9 @@ import arcade
 
 # Custom
 from hades.constants import SPRITE_SIZE
-from hades.exceptions import BiggerThanError
 
 __all__ = (
+    "BiggerThanError",
     "TextureType",
     "grid_pos_to_pixel",
     "load_moving_texture",
@@ -22,6 +22,20 @@ __all__ = (
 
 # Create the texture path
 texture_path = Path(__file__).resolve().parent / "resources" / "textures"
+
+
+class BiggerThanError(Exception):
+    """Raised when a value is less than a required value."""
+
+    def __init__(self: BiggerThanError, *, min_value: float) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        min_value: float
+            The minimum value that is allowed.
+        """
+        super().__init__(f"The input must be bigger than or equal to {min_value}.")
 
 
 def load_moving_texture(texture: str) -> tuple[arcade.Texture, arcade.Texture]:
@@ -95,7 +109,7 @@ def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     """
     # Check if the inputs are negative
     if x < 0 or y < 0:
-        raise BiggerThanError(0)
+        raise BiggerThanError(min_value=0)
 
     # Calculate the position on screen
     return (

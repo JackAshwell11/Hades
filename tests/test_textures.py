@@ -5,14 +5,23 @@ from __future__ import annotations
 import pytest
 
 # Custom
-from hades.exceptions import BiggerThanError
 from hades.textures import (
+    BiggerThanError,
     grid_pos_to_pixel,
     load_moving_texture,
     load_non_moving_texture,
 )
 
 __all__ = ()
+
+
+def test_raise_bigger_than_error() -> None:
+    """Test that BiggerThanError is raised correctly."""
+    with pytest.raises(
+        expected_exception=BiggerThanError,
+        match="The input must be bigger than or equal to 10.",
+    ):
+        raise BiggerThanError(min_value=10)
 
 
 def test_grid_pos_to_pixel_positive() -> None:
@@ -39,11 +48,15 @@ def test_grid_pos_to_pixel_string() -> None:
 
 def test_load_moving_texture_valid_filename() -> None:
     """Test that a valid filename is loaded as a moving texture correctly."""
-    assert [
-        texture.name.split("\\")[-1] for texture in load_moving_texture("floor.png")
-    ] == [
-        "floor.png-0-0-0-0-False-False-False-Simple ",
-        "floor.png-0-0-0-0-True-False-False-Simple ",
+    assert [texture.cache_name for texture in load_moving_texture("floor.png")] == [
+        (
+            "b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|(0, 1, 2,"
+            " 3)|simple|"
+        ),
+        (
+            "b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|(1, 0, 3,"
+            " 2)|simple|"
+        ),
     ]
 
 
@@ -56,8 +69,9 @@ def test_load_moving_texture_invalid_filename() -> None:
 def test_load_non_moving_texture_valid_filename() -> None:
     """Test that a valid filename is loaded as a non-moving texture correctly."""
     assert (
-        load_non_moving_texture("floor.png").name.split("\\")[-1]
-        == "floor.png-0-0-0-0-False-False-False-Simple "
+        load_non_moving_texture("floor.png").cache_name
+        == "b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|(0, 1, 2,"
+        " 3)|simple|"
     )
 
 

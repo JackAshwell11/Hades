@@ -22,11 +22,17 @@ class ComponentType(Enum):
     """Stores the different types of components available."""
 
     ACTIONABLE = auto()
-    ATTRIBUTES = auto()
+    ARMOUR = auto()
+    ARMOUR_REGEN_COOLDOWN = auto()
     COLLECTIBLE = auto()
     CONSUMABLE = auto()
-    INVENTORY = auto()
+    FIRE_RATE_PENALTY = auto()
     GRAPHICS = auto()
+    HEALTH = auto()
+    INVENTORY = auto()
+    MONEY = auto()
+    SPEED_MULTIPLIER = auto()
+    VIEW_DISTANCE = auto()
 
 
 class GameObjectComponent:

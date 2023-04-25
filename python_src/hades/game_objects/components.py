@@ -9,16 +9,29 @@ import arcade
 
 # Custom
 from hades.constants import SPRITE_SCALE
-from hades.exceptions import SpaceError
 from hades.game_objects.base import ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
     from hades.textures import TextureType
 
-__all__ = ("Consumable", "Graphics", "Inventory")
+__all__ = ("Consumable", "Graphics", "Inventory", "InventorySpaceError")
 
 # Define a generic type for the inventory
 T = TypeVar("T")
+
+
+class InventorySpaceError(Exception):
+    """Raised when there is a space problem with the inventory."""
+
+    def __init__(self: InventorySpaceError, *, full: bool) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        full: bool
+            Whether the inventory is empty or full.
+        """
+        super().__init__(f"The inventory is {'full' if full else 'empty'}.")
 
 
 class Consumable(GameObjectComponent):
@@ -29,10 +42,7 @@ class Consumable(GameObjectComponent):
     # Class variables
     component_type: ComponentType = ComponentType.CONSUMABLE
 
-    def __init__(self: Consumable) -> None:
-        print("f")
-
-    # TODO: ADD LEVEL LIMIT
+    # TODO: ADD LEVEL LIMIT AND FINISH IT
 
 
 class Graphics(arcade.Sprite, GameObjectComponent):
@@ -63,8 +73,8 @@ class Graphics(arcade.Sprite, GameObjectComponent):
             Whether this component is blocking or not.
         """
         super().__init__(scale=SPRITE_SCALE)
-        self.textures: dict[TextureType, arcade.Texture] = {
-            texture.name: texture.value for texture in texture_types
+        self.textures_dict: dict[TextureType, arcade.Texture] = {
+            texture: texture.value for texture in texture_types
         }
         self.blocking: bool = blocking
 
@@ -79,7 +89,7 @@ class Graphics(arcade.Sprite, GameObjectComponent):
             The human-readable representation of this object.
         """
         return (
-            f"<Graphics (Texture count={len(self.textures)})"
+            f"<Graphics (Texture count={len(self.textures_dict)})"
             f" (Blocking={self.blocking})>"
         )
 
@@ -102,7 +112,7 @@ class Inventory(Generic[T], GameObjectComponent):
     # Class variables
     component_type: ComponentType = ComponentType.INVENTORY
 
-    def __init__(self: Inventory, width: int, height: int) -> None:
+    def __init__(self: Inventory[T], width: int, height: int) -> None:
         """Initialise the object.
 
         Parameters
@@ -116,7 +126,7 @@ class Inventory(Generic[T], GameObjectComponent):
         self.height: int = height
         self.inventory: list[T] = []
 
-    def add_item_to_inventory(self: Inventory, item: T) -> None:
+    def add_item_to_inventory(self: Inventory[T], item: T) -> None:
         """Add an item to the inventory.
 
         Parameters
@@ -130,10 +140,10 @@ class Inventory(Generic[T], GameObjectComponent):
             The inventory container does not have enough room.
         """
         if len(self.inventory) == self.width * self.height:
-            raise SpaceError(self.__class__.__name__.lower())
+            raise InventorySpaceError(full=True)
         self.inventory.append(item)
 
-    def remove_item_from_inventory(self: Inventory, index: int) -> T:
+    def remove_item_from_inventory(self: Inventory[T], index: int) -> T:
         """Remove an item at a specific index.
 
         Parameters
@@ -152,10 +162,10 @@ class Inventory(Generic[T], GameObjectComponent):
             The item at position `index` in the inventory.
         """
         if len(self.inventory) < index:
-            raise SpaceError(self.__class__.__name__.lower())
+            raise InventorySpaceError(full=False)
         return self.inventory.pop(index)
 
-    def __repr__(self: Inventory) -> str:
+    def __repr__(self: Inventory[T]) -> str:
         """Return a human-readable representation of this object.
 
         Returns

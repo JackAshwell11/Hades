@@ -5,27 +5,35 @@ from __future__ import annotations
 import pytest
 
 # Custom
-from hades.exceptions import SpaceError
-from hades.game_objects.components import Graphics, Inventory
+from hades.game_objects.components import Graphics, Inventory, InventorySpaceError
 from hades.textures import TextureType
 
 __all__ = ()
+
+
+def test_raise_inventory_space_error() -> None:
+    """Test that SpaceError is raised correctly."""
+    with pytest.raises(
+        expected_exception=InventorySpaceError,
+        match="The inventory is full.",
+    ):
+        raise InventorySpaceError(full=True)
 
 
 def test_graphics_init_zero_textures() -> None:
     """Test that graphics is initialised correctly with zero textures."""
     graphics = Graphics(set())
     assert repr(graphics) == "<Graphics (Texture count=0) (Blocking=False)>"
-    assert graphics.textures == {}
+    assert graphics.textures_dict == {}
 
 
 def test_graphics_init_multiple_textures() -> None:
     """Test that graphics is initialised correctly with multiple textures."""
     graphics = Graphics({TextureType.WALL, TextureType.FLOOR}, blocking=True)
     assert repr(graphics) == "<Graphics (Texture count=2) (Blocking=True)>"
-    assert graphics.textures == {
-        TextureType.WALL.name: TextureType.WALL.value,
-        TextureType.FLOOR.name: TextureType.FLOOR.value,
+    assert graphics.textures_dict == {
+        TextureType.WALL: TextureType.WALL.value,
+        TextureType.FLOOR: TextureType.FLOOR.value,
     }
 
 
@@ -46,7 +54,7 @@ def test_inventory_add_item_to_inventory_valid() -> None:
 def test_inventory_add_item_to_inventory_zero_size() -> None:
     """Test that a valid item is not added to a zero size inventory."""
     inventory = Inventory(0, 3)
-    with pytest.raises(expected_exception=SpaceError):
+    with pytest.raises(expected_exception=InventorySpaceError):
         inventory.add_item_to_inventory("test")
 
 
@@ -66,5 +74,5 @@ def test_inventory_remove_item_from_inventory_large_index() -> None:
     inventory.add_item_to_inventory(5.9)
     inventory.add_item_to_inventory("temp")
     inventory.add_item_to_inventory(10)
-    with pytest.raises(expected_exception=SpaceError):
+    with pytest.raises(expected_exception=InventorySpaceError):
         inventory.remove_item_from_inventory(10)

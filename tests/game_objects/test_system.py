@@ -51,12 +51,12 @@ class GameObjectComponentEventOne(GameObjectComponent):
     component_type: ComponentType = ComponentType.VALUE_ONE
 
     @staticmethod
-    def on_test_no_kwarg() -> None:
+    def event_test_no_kwarg() -> None:
         """Simulate a non-kwarg event for testing."""
         assert True
 
     @staticmethod
-    def on_test_kwarg(x: str, **_: T) -> None:
+    def event_test_kwarg(x: str, **_: T) -> None:
         """Simulate a kwarg event for testing.
 
         Parameters
@@ -74,7 +74,7 @@ class GameObjectComponentEventTwo(GameObjectComponent):
     component_type: ComponentType = ComponentType.VALUE_TWO
 
     @staticmethod
-    def on_test_kwarg(y: str, **_: T) -> None:
+    def event_test_kwarg(y: str, **_: T) -> None:
         """Simulate a kwarg event for testing.
 
         Parameters
@@ -83,6 +83,10 @@ class GameObjectComponentEventTwo(GameObjectComponent):
             A testing variable.
         """
         assert y == "test two"
+
+    @staticmethod
+    def on_test_name() -> None:
+        """Simulate an event that is not named properly for testing."""
 
 
 def test_ecs_init() -> None:
@@ -107,6 +111,11 @@ def test_ecs_zero_component_game_object() -> None:
         match="The game object `0` is not registered with the ECS.",
     ):
         ecs.get_components_for_game_object(0)
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The game object `0` is not registered with the ECS.",
+    ):
+        ecs.remove_game_object(0)
 
 
 def test_ecs_multiple_component_game_object() -> None:
@@ -154,13 +163,28 @@ def test_ecs_event_game_object() -> None:
     # Test that adding the game object works correctly
     component = GameObjectComponentEventOne()
     ecs.add_game_object(component)
-    assert ecs.get_handlers_for_event_name("on_test_no_kwarg") == {
-        component.on_test_no_kwarg,
+    assert ecs.get_handlers_for_event_name("event_test_no_kwarg") == {
+        component.event_test_no_kwarg,
     }
 
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
-    assert ecs.get_handlers_for_event_name("on_test_no_kwarg") == set()
+    assert ecs.get_handlers_for_event_name("event_test_no_kwarg") == set()
+
+
+def test_ecs_bad_event_name() -> None:
+    """Test that the ECS doesn't add events which aren't named properly."""
+    # Create the entity component system
+    ecs = ECS()
+
+    # Test that an event which isn't named properly is not added
+    component = GameObjectComponentEventTwo()
+    ecs.add_game_object(component)
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The event `on_test_name` is not registered with the ECS.",
+    ):
+        ecs.get_handlers_for_event_name("on_test_name")
 
 
 def test_ecs_invalid_component() -> None:
@@ -207,7 +231,7 @@ def test_dispatch_event_no_kwargs() -> None:
     ecs.add_game_object(GameObjectComponentEventOne())
 
     # Test that the event is dispatched correctly
-    ecs.dispatch_event("on_test_no_kwarg")
+    ecs.dispatch_event("event_test_no_kwarg")
 
 
 def test_ecs_dispatch_kwargs() -> None:
@@ -217,7 +241,7 @@ def test_ecs_dispatch_kwargs() -> None:
     ecs.add_game_object(GameObjectComponentEventTwo())
 
     # Test that the event is dispatched correctly
-    ecs.dispatch_event("on_test_kwarg", y="test two")
+    ecs.dispatch_event("event_test_kwarg", y="test two")
 
 
 def test_ecs_dispatch_to_multiple_handlers() -> None:
@@ -227,7 +251,7 @@ def test_ecs_dispatch_to_multiple_handlers() -> None:
     ecs.add_game_object(GameObjectComponentEventOne(), GameObjectComponentEventTwo())
 
     # Test that the event is dispatched correctly
-    ecs.dispatch_event("on_test_kwarg", x="test one", y="test two")
+    ecs.dispatch_event("event_test_kwarg", x="test one", y="test two")
 
 
 def test_ecs_dispatch_with_unregistered_event() -> None:

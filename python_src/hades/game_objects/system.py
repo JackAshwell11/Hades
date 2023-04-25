@@ -12,8 +12,9 @@ if TYPE_CHECKING:
 
 __all__ = ("ECS", "NotRegisteredError")
 
-# Define a generic type for the exception
-T = TypeVar("T")
+# Define a generic type for the keyword arguments
+KW = TypeVar("KW")
+R = TypeVar("R")
 
 
 class NotRegisteredError(Exception):
@@ -23,7 +24,7 @@ class NotRegisteredError(Exception):
         self: NotRegisteredError,
         *,
         not_registered_type: str,
-        value: T,
+        value: int | str | ComponentType,
     ) -> None:
         """Initialise the object.
 
@@ -31,7 +32,7 @@ class NotRegisteredError(Exception):
         ----------
         not_registered_type: str
             The game object/component type/event that is not registered.
-        value: T
+        value: int | str | ComponentType
             The value that is not registered.
         """
         super().__init__(
@@ -56,10 +57,12 @@ class ECS:
             set,
         )
         self._components: defaultdict[ComponentType, set[int]] = defaultdict(set)
-        self._event_handlers: defaultdict[str, set[Callable]] = defaultdict(set)
+        self._event_handlers: defaultdict[str, set[Callable[[KW], R]]] = defaultdict(
+            set,
+        )
 
     @staticmethod
-    def _get_event_names(component: GameObjectComponent) -> Generator[str, str, None]:
+    def _get_event_names(component: GameObjectComponent) -> Generator[str, None, None]:
         """Get a component's events.
 
         Parameters
@@ -72,7 +75,7 @@ class ECS:
         Generator[str, str, None]
             A generator of the component's events.
         """
-        return (i for i in dir(component) if i.startswith("on_"))
+        return (i for i in dir(component) if i.startswith("event_"))
 
     def add_game_object(self: ECS, *components: GameObjectComponent) -> int:
         """Add a game object to the system with optional components.
@@ -116,7 +119,7 @@ class ECS:
         KeyError
             The game object does not exist in the system.
         """
-        # Test if the game object is registered or not
+        # Check if the game object is registered or not
         if game_object_id not in self._game_objects:
             raise NotRegisteredError(
                 not_registered_type="game object",
@@ -124,16 +127,16 @@ class ECS:
             )
 
         # Remove all events relating to this game object
-        for component in self._game_objects[game_object_id]:
-            for name in self._get_event_names(component):
-                self._event_handlers[name].remove(getattr(component, name))
+        for components in self._game_objects[game_object_id]:
+            for name in self._get_event_names(components):
+                self._event_handlers[name].remove(getattr(components, name))
 
         # Delete the game object from the system
         del self._game_objects[game_object_id]
-        for component in self._components.values():
-            component.remove(game_object_id)
+        for ids in self._components.values():
+            ids.remove(game_object_id)
 
-    def dispatch_event(self: ECS, event: str, **kwargs: T) -> None:
+    def dispatch_event(self: ECS, event: str, **kwargs: KW) -> None:
         """Dispatch an event with keyword arguments.
 
         Parameters
@@ -141,7 +144,7 @@ class ECS:
         event: str
             The event name.
         """
-        # Test if the event is registered or not
+        # Check if the event is registered or not
         if event not in self._event_handlers:
             raise NotRegisteredError(not_registered_type="event", value=event)
 
@@ -170,7 +173,7 @@ class ECS:
         set[GameObjectComponent]
             The game object's components.
         """
-        # Test if the game object ID is registered or not
+        # Check if the game object ID is registered or not
         if game_object_id not in self._game_objects:
             raise NotRegisteredError(
                 not_registered_type="game object",
@@ -201,7 +204,7 @@ class ECS:
         set[int]
             The component type's game objects.
         """
-        # Test if the component type is registered or not
+        # Check if the component type is registered or not
         if component_type not in self._components:
             raise NotRegisteredError(
                 not_registered_type="component type",
@@ -211,7 +214,7 @@ class ECS:
         # Return the component type's game objects
         return self._components[component_type]
 
-    def get_handlers_for_event_name(self: ECS, event: str) -> set[Callable]:
+    def get_handlers_for_event_name(self: ECS, event: str) -> set[Callable[[KW], R]]:
         """Get an event's handlers.
 
         Parameters
@@ -226,10 +229,10 @@ class ECS:
 
         Returns
         -------
-        set[Callable]
+        set[Callable[[KW], R]]
             The event's handlers.
         """
-        # Test if the event is registered or not
+        # Check if the event is registered or not
         if event not in self._event_handlers:
             raise NotRegisteredError(not_registered_type="event", value=event)
 
