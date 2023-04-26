@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 __all__ = (
     "Armour",
     "ArmourRegenCooldown",
+    "EntityAttributeBase",
     "EntityAttributeError",
     "FireRatePenalty",
     "Health",
@@ -76,11 +77,11 @@ class EntityAttributeBase(GameObjectComponent):
     """The base class for all entity attributes."""
 
     __slots__ = (
-        "_current_level",
         "_level_limit",
         "_value",
         "_max_value",
         "_applied_status_effect",
+        "_current_level",
     )
 
     # Class variables
@@ -88,26 +89,26 @@ class EntityAttributeBase(GameObjectComponent):
     maximum: bool = True
     status_effect: bool = True
     upgradable: bool = True
-    variable: bool = True
 
     def __init__(
         self: EntityAttributeBase,
         *,
+        initial_value: int,
         level_limit: int = -1,
     ) -> None:
         """Initialise the object.
 
         Parameters
         ----------
+        initial_value: int
+            The initial value for the entity attribute
         level_limit: int
             The limit this entity attribute can be upgraded too if possible.
         """
-        self._current_level: int = 0
         self._level_limit: int = level_limit
-        self._value: float = 0
-        self._max_value: float = (
-            self._value if self.variable and self.maximum else float("inf")
-        )
+        self._value: float = initial_value
+        self._max_value: float = initial_value if self.maximum else float("inf")
+        self._current_level: int = 0
         self._applied_status_effect: StatusEffect | None = None
 
     def _set_value(self: EntityAttributeBase, new_value: float) -> None:
@@ -144,19 +145,58 @@ class EntityAttributeBase(GameObjectComponent):
         EntityAttributeError
             The entity attribute cannot be set.
         """
-        # Check if the attribute value can be changed
-        if not self.variable:
-            raise EntityAttributeError(
-                name=self.__class__.__name__.lower(),
-                error="be set",
-            )
-
         # Update the attribute value with the new value making sure it doesn't exceed
-        # the max
-        self._value = min(new_value, self._max_value)
-
-        # Run the custom setter logic
+        # the max and then run the custom setter logic
+        self._value = min(new_value, self.max_value)
         self._set_value(new_value)
+
+    @property
+    def max_value(self: EntityAttributeBase) -> float:
+        """Get the attribute's max value.
+
+        If this is infinity, then the attribute does not have a maximum value
+
+        Returns
+        -------
+        float
+            The attribute's max value.
+        """
+        return self._max_value
+
+    @property
+    def current_level(self: EntityAttributeBase) -> int:
+        """Get the attribute's current level.
+
+        Returns
+        -------
+        int
+            The attribute's current level.
+        """
+        return self._current_level
+
+    @property
+    def level_limit(self: EntityAttributeBase) -> int:
+        """Get the attribute's level limit.
+
+        If this is -1, then the attribute is not upgradable.
+
+        Returns
+        -------
+        int
+            The attribute's level limit.
+        """
+        return self._level_limit
+
+    @property
+    def applied_status_effect(self: EntityAttributeBase) -> StatusEffect | None:
+        """Get the currently applied status effect.
+
+        Returns
+        -------
+        StatusEffect | None
+            The currently applied status effect.
+        """
+        return self._applied_status_effect
 
     def upgrade(self: EntityAttributeBase, increase: Callable[[int], float]) -> bool:
         """Upgrade the entity attribute to the next level if possible.
@@ -180,20 +220,20 @@ class EntityAttributeBase(GameObjectComponent):
         # Check if the attribute can be upgraded
         if not self.upgradable:
             raise EntityAttributeError(
-                name=self.__class__.__name__.lower(),
+                name=self.__class__.__name__,
                 error="be upgraded",
             )
 
         # Check if the current level is below the level limit
-        if self._current_level >= self._level_limit:
+        if self.current_level >= self.level_limit:
             return False
 
         # Upgrade the attribute based on the difference between the current level and
         # the next
         diff = increase(self._current_level + 1) - increase(self._current_level)
-        self.value += diff
         self._max_value += diff
         self._current_level += 1
+        self.value += diff
         return True
 
     def apply_instant_effect(
@@ -224,12 +264,12 @@ class EntityAttributeBase(GameObjectComponent):
         # Check if the attribute can have an instant effect
         if not self.instant_effect:
             raise EntityAttributeError(
-                name=self.__class__.__name__.lower(),
+                name=self.__class__.__name__,
                 error="have an instant effect",
             )
 
         # Check if the attribute's value is already at max
-        if self.value == self._max_value:
+        if self.value == self.max_value:
             return False
 
         # Add the instant effect to the attribute
@@ -268,12 +308,12 @@ class EntityAttributeBase(GameObjectComponent):
         # Check if the attribute can have a status effect
         if not self.status_effect:
             raise EntityAttributeError(
-                name=self.__class__.__name__.lower(),
+                name=self.__class__.__name__,
                 error="have a status effect",
             )
 
         # Check if the attribute already has a status effect applied
-        if self._applied_status_effect:
+        if self.applied_status_effect:
             return False
 
         # Apply the status effect to this attribute
@@ -281,33 +321,39 @@ class EntityAttributeBase(GameObjectComponent):
             increase(level),
             duration(level),
             self.value,
-            self._max_value,
+            self.max_value,
         )
-        self._value += self._applied_status_effect.value
-        self._max_value += self._applied_status_effect.value
+        self._value += self.applied_status_effect.value
+        self._max_value += self.applied_status_effect.value
         return True
 
-    def update_status_effect(self: EntityAttributeBase, delta_time: float) -> None:
+    def update_status_effect(self: EntityAttributeBase, delta_time: float) -> bool:
         """Update the currently applied status effect.
 
         Parameters
         ----------
         delta_time: float
             Time interval since the last time the function was called.
+
+        Returns
+        -------
+        bool
+            Whether the status effect update was successful or not.
         """
         # Check if there isn't a status effect already applied
-        if not self._applied_status_effect:
-            return
+        if not self.applied_status_effect:
+            return False
 
         # Update the time counter and check if the status effect should be removed
-        self._applied_status_effect.time_counter += delta_time
+        self.applied_status_effect.time_counter += delta_time
         if (
-            self._applied_status_effect.time_counter
-            >= self._applied_status_effect.duration
+            self.applied_status_effect.time_counter
+            >= self.applied_status_effect.duration
         ):
-            self.value = min(self.value, self._applied_status_effect.original_value)
-            self._max_value = self._applied_status_effect.original_max_value
+            self.value = min(self.value, self.applied_status_effect.original_value)
+            self._max_value = self.applied_status_effect.original_max_value
             self._applied_status_effect = None
+        return True
 
     def __repr__(self: EntityAttributeBase) -> str:
         """Return a human-readable representation of this object.
@@ -317,7 +363,10 @@ class EntityAttributeBase(GameObjectComponent):
         str
             The human-readable representation of this object.
         """
-        return f"<{self.__class__.__name__} (Value={self.value})>"
+        return (
+            f"<{self.__class__.__name__} (Value={self.value}) (Max"
+            f" value={self.max_value}) (Level={self.current_level}/{self.level_limit})>"
+        )
 
 
 class Armour(EntityAttributeBase):
@@ -333,7 +382,6 @@ class ArmourRegenCooldown(EntityAttributeBase):
     # Class variables
     component_type: ComponentType = ComponentType.ARMOUR_REGEN_COOLDOWN
     instant_effect: bool = False
-    variable: bool = False
 
 
 class FireRatePenalty(EntityAttributeBase):
@@ -342,7 +390,6 @@ class FireRatePenalty(EntityAttributeBase):
     # Class variables
     component_type: ComponentType = ComponentType.FIRE_RATE_PENALTY
     instant_effect: bool = False
-    variable: bool = False
 
 
 class Health(EntityAttributeBase):
@@ -371,11 +418,11 @@ class SpeedMultiplier(EntityAttributeBase):
     # Class variables
     component_type: ComponentType = ComponentType.SPEED_MULTIPLIER
     instant_effect: bool = False
-    variable: bool = False
 
     def __init__(
         self: EntityAttributeBase,
         *,
+        initial_value: int,
         level_limit: int = -1,
         sprite: Sprite,
     ) -> None:
@@ -383,10 +430,12 @@ class SpeedMultiplier(EntityAttributeBase):
 
         Parameters
         ----------
+        initial_value: int
+            The initial value for the entity attribute
         level_limit: int
             The limit this entity attribute can be upgraded too if possible.
         """
-        super().__init__(level_limit=level_limit)
+        super().__init__(initial_value=initial_value, level_limit=level_limit)
         self._sprite: Sprite = sprite
 
     def _set_value(self: SpeedMultiplier, new_value: float) -> None:
@@ -397,9 +446,9 @@ class SpeedMultiplier(EntityAttributeBase):
         new_value: float
             The new entity attribute's value.
         """
-        # Update the Pymunk physics engine
-        self._sprite.pymunk.max_horizontal_velocity = new_value
-        self._sprite.pymunk.max_vertical_velocity = new_value
+        raise NotImplementedError
+
+    # TODO: Implement speed changes
 
 
 class ViewDistance(EntityAttributeBase):
@@ -408,7 +457,6 @@ class ViewDistance(EntityAttributeBase):
     # Class variables
     component_type: ComponentType = ComponentType.VIEW_DISTANCE
     instant_effect: bool = False
-    variable: bool = False
 
 
 # TODO: Entity attribute specific attributes to implement:

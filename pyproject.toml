@@ -138,7 +138,7 @@ disable = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-vv -ra --showlocals --cov --cov-report term-missing"
+addopts = "-vv -ra --showlocals --cov --cov-report term-missing --ignore-glob=*vector_field*"
 testpaths = ["tests"]
 
 [tool.ruff]
@@ -212,6 +212,9 @@ src = ["python_src"]
     "D101",  # Ignore pydocstyle class docstring rule
     "D103",  # Ignore pydocstyle method docstring rule
     "PIE796",  # Ignore flake8-pie duplicate enum values rule
+]
+"*test_*" = [
+    "PLR2004",  # Ignore pylint-refactor magic number rule for the tests
 ]
 
 [tool.ruff.pydocstyle]

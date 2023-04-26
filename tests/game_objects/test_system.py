@@ -40,6 +40,9 @@ class GameObjectComponentTwo(GameObjectComponent):
     component_type: ComponentType = ComponentType.VALUE_TWO
 
 
+# TODO: CHANGE ALL GAME OBJECTS CREATIONS TO FIXTURES
+
+
 class GameObjectComponentInvalid:
     """Represents an invalid game object component useful for testing."""
 
@@ -89,18 +92,37 @@ class GameObjectComponentEventTwo(GameObjectComponent):
         """Simulate an event that is not named properly for testing."""
 
 
-def test_ecs_init() -> None:
-    """Test that the entity component system is initialised correctly."""
-    assert (
-        repr(ECS()) == "<EntityComponentSystem (Game object count=0) (Event count=0)>"
-    )
+@pytest.fixture()
+def ecs() -> ECS:
+    """Create an entity component system for use in testing.
+
+    Returns
+    -------
+    ECS
+        The entity component system for use in testing.
+    """
+    return ECS()
 
 
-def test_ecs_zero_component_game_object() -> None:
-    """Test the ECS with a game object that has no components."""
-    # Create the entity component system
-    ecs = ECS()
+def test_ecs_init(ecs: ECS) -> None:
+    """Test that the entity component system is initialised correctly.
 
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
+    assert repr(ecs) == "<EntityComponentSystem (Game object count=0) (Event count=0)>"
+
+
+def test_ecs_zero_component_game_object(ecs: ECS) -> None:
+    """Test the ECS with a game object that has no components.
+
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
     # Test that adding the game object works correctly
     assert ecs.add_game_object() == 0
 
@@ -118,11 +140,14 @@ def test_ecs_zero_component_game_object() -> None:
         ecs.remove_game_object(0)
 
 
-def test_ecs_multiple_component_game_object() -> None:
-    """Test the ECS with a game object that has multiple components."""
-    # Create the entity component system
-    ecs = ECS()
+def test_ecs_multiple_component_game_object(ecs: ECS) -> None:
+    """Test the ECS with a game object that has multiple components.
 
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
     # Test that adding the game object works correctly
     component_one, component_two = GameObjectComponentOne(), GameObjectComponentTwo()
     ecs.add_game_object(component_one, component_two)
@@ -136,11 +161,14 @@ def test_ecs_multiple_component_game_object() -> None:
     assert ecs.get_game_objects_for_component_type(ComponentType.VALUE_TWO) == set()
 
 
-def test_ecs_multiple_game_objects() -> None:
-    """Test the ECS with multiple game objects."""
-    # Create the entity component system
-    ecs = ECS()
+def test_ecs_multiple_game_objects(ecs: ECS) -> None:
+    """Test the ECS with multiple game objects.
 
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
     # Test that adding two game object works correctly
     assert ecs.add_game_object() == 0
     assert ecs.add_game_object() == 1
@@ -155,11 +183,14 @@ def test_ecs_multiple_game_objects() -> None:
         ecs.get_components_for_game_object(0)
 
 
-def test_ecs_event_game_object() -> None:
-    """Test the ECS with a game object that has events."""
-    # Create the entity component system
-    ecs = ECS()
+def test_ecs_event_game_object(ecs: ECS) -> None:
+    """Test the ECS with a game object that has events.
 
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
     # Test that adding the game object works correctly
     component = GameObjectComponentEventOne()
     ecs.add_game_object(component)
@@ -172,12 +203,14 @@ def test_ecs_event_game_object() -> None:
     assert ecs.get_handlers_for_event_name("event_test_no_kwarg") == set()
 
 
-def test_ecs_bad_event_name() -> None:
-    """Test that the ECS doesn't add events which aren't named properly."""
-    # Create the entity component system
-    ecs = ECS()
+def test_ecs_bad_event_name(ecs: ECS) -> None:
+    """Test that the ECS doesn't add events which aren't named properly.
 
-    # Test that an event which isn't named properly is not added
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
     component = GameObjectComponentEventTwo()
     ecs.add_game_object(component)
     with pytest.raises(
@@ -187,21 +220,26 @@ def test_ecs_bad_event_name() -> None:
         ecs.get_handlers_for_event_name("on_test_name")
 
 
-def test_ecs_invalid_component() -> None:
-    """Test the ECS with a game object that has an invalid component."""
-    # Create the entity component system
-    ecs = ECS()
+def test_ecs_invalid_component(ecs: ECS) -> None:
+    """Test the ECS with a game object that has an invalid component.
 
-    # Test that adding the game object doesn't work
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
     with pytest.raises(expected_exception=AttributeError):
         ecs.add_game_object(GameObjectComponentInvalid())  # type: ignore[arg-type]
 
 
-def test_ecs_unregistered_game_object_component_and_event() -> None:
-    """Test that the ECS raises the correct errors for unregistered items."""
-    # Create the entity component system
-    ecs = ECS()
+def test_ecs_unregistered_game_object_component_and_event(ecs: ECS) -> None:
+    """Test that the ECS raises the correct errors for unregistered items.
 
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
     # Test that an unregistered game object raises an error
     with pytest.raises(
         expected_exception=NotRegisteredError,
@@ -224,42 +262,50 @@ def test_ecs_unregistered_game_object_component_and_event() -> None:
         ecs.get_handlers_for_event_name("on_test")
 
 
-def test_dispatch_event_no_kwargs() -> None:
-    """Test dispatching an event to the ECS with no keyword arguments."""
-    # Create the entity component system and add a game object
-    ecs = ECS()
-    ecs.add_game_object(GameObjectComponentEventOne())
+def test_dispatch_event_no_kwargs(ecs: ECS) -> None:
+    """Test dispatching an event to the ECS with no keyword arguments.
 
-    # Test that the event is dispatched correctly
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
+    ecs.add_game_object(GameObjectComponentEventOne())
     ecs.dispatch_event("event_test_no_kwarg")
 
 
-def test_ecs_dispatch_kwargs() -> None:
-    """Test dispatching an event to the ECS with keyword arguments."""
-    # Create the entity component system and add a game object
-    ecs = ECS()
-    ecs.add_game_object(GameObjectComponentEventTwo())
+def test_ecs_dispatch_kwargs(ecs: ECS) -> None:
+    """Test dispatching an event to the ECS with keyword arguments.
 
-    # Test that the event is dispatched correctly
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
+    ecs.add_game_object(GameObjectComponentEventTwo())
     ecs.dispatch_event("event_test_kwarg", y="test two")
 
 
-def test_ecs_dispatch_to_multiple_handlers() -> None:
-    """Test dispatching an event to the ECS that is received by multiple handlers."""
-    # Create the entity component system and add a game object
-    ecs = ECS()
-    ecs.add_game_object(GameObjectComponentEventOne(), GameObjectComponentEventTwo())
+def test_ecs_dispatch_to_multiple_handlers(ecs: ECS) -> None:
+    """Test dispatching an event to the ECS that is received by multiple handlers.
 
-    # Test that the event is dispatched correctly
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
+    ecs.add_game_object(GameObjectComponentEventOne(), GameObjectComponentEventTwo())
     ecs.dispatch_event("event_test_kwarg", x="test one", y="test two")
 
 
-def test_ecs_dispatch_with_unregistered_event() -> None:
-    """Test dispatching an unregistered event to the ECS."""
-    # Create the entity component system
-    ecs = ECS()
+def test_ecs_dispatch_with_unregistered_event(ecs: ECS) -> None:
+    """Test dispatching an unregistered event to the ECS.
 
-    # Test that an unregistered event raises an error
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    """
     with pytest.raises(
         expected_exception=NotRegisteredError,
         match="The event `on_test` is not registered with the ECS.",
