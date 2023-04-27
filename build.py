@@ -40,18 +40,20 @@ class CMakeBuild(build_ext):
 
         # Compile and build the CMake extension
         subprocess.run(
-            [
-                "cmake",
-                current_dir.joinpath(ext.sources[0]),
-                "-DDO_TESTS=false",
-                "-DDO_PYTHON=true",
-                f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
-            ],
+            " ".join(
+                [
+                    "cmake",
+                    current_dir.joinpath(ext.sources[0]),
+                    "-DDO_TESTS=false",
+                    "-DDO_PYTHON=true",
+                    f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
+                ],
+            ),
             cwd=build_temp,
             check=True,
         )
         subprocess.run(
-            ["cmake", "--build", ".", f"--config {profile}"],
+            " ".join(["cmake", "--build", ".", f"--config {profile}"]),
             cwd=build_temp,
             check=True,
         )

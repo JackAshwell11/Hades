@@ -11,8 +11,6 @@ from hades.game_objects.base import ComponentType, GameObjectComponent
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from arcade import Sprite
-
 __all__ = (
     "Armour",
     "ArmourRegenCooldown",
@@ -105,9 +103,9 @@ class EntityAttributeBase(GameObjectComponent):
         level_limit: int
             The limit this entity attribute can be upgraded too if possible.
         """
-        self._level_limit: int = level_limit
         self._value: float = initial_value
         self._max_value: float = initial_value if self.maximum else float("inf")
+        self._level_limit: int = level_limit
         self._current_level: int = 0
         self._applied_status_effect: StatusEffect | None = None
 
@@ -147,7 +145,7 @@ class EntityAttributeBase(GameObjectComponent):
         """
         # Update the attribute value with the new value making sure it doesn't exceed
         # the max and then run the custom setter logic
-        self._value = min(new_value, self.max_value)
+        self._value = min(new_value, self._max_value)
         self._set_value(new_value)
 
     @property
@@ -230,7 +228,7 @@ class EntityAttributeBase(GameObjectComponent):
 
         # Upgrade the attribute based on the difference between the current level and
         # the next
-        diff = increase(self._current_level + 1) - increase(self._current_level)
+        diff = increase(self.current_level + 1) - increase(self.current_level)
         self._max_value += diff
         self._current_level += 1
         self.value += diff
@@ -323,8 +321,8 @@ class EntityAttributeBase(GameObjectComponent):
             self.value,
             self.max_value,
         )
-        self._value += self.applied_status_effect.value
-        self._max_value += self.applied_status_effect.value
+        self._value += self._applied_status_effect.value
+        self._max_value += self._applied_status_effect.value
         return True
 
     def update_status_effect(self: EntityAttributeBase, delta_time: float) -> bool:
@@ -413,40 +411,9 @@ class Money(EntityAttributeBase):
 class SpeedMultiplier(EntityAttributeBase):
     """Allows a game object to have a speed multiplier attribute."""
 
-    __slots__ = ("_sprite",)
-
     # Class variables
     component_type: ComponentType = ComponentType.SPEED_MULTIPLIER
     instant_effect: bool = False
-
-    def __init__(
-        self: EntityAttributeBase,
-        *,
-        initial_value: int,
-        level_limit: int = -1,
-        sprite: Sprite,
-    ) -> None:
-        """Initialise the object.
-
-        Parameters
-        ----------
-        initial_value: int
-            The initial value for the entity attribute
-        level_limit: int
-            The limit this entity attribute can be upgraded too if possible.
-        """
-        super().__init__(initial_value=initial_value, level_limit=level_limit)
-        self._sprite: Sprite = sprite
-
-    def _set_value(self: SpeedMultiplier, new_value: float) -> None:
-        """Set the velocity in the Pymunk physics engine.
-
-        Parameters
-        ----------
-        new_value: float
-            The new entity attribute's value.
-        """
-        raise NotImplementedError
 
     # TODO: Implement speed changes
 

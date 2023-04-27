@@ -46,17 +46,16 @@ class ECS:
     __slots__ = (
         "_next_game_object_id",
         "_game_objects",
-        "_components",
         "_event_handlers",
     )
 
     def __init__(self: ECS) -> None:
         """Initialise the object."""
         self._next_game_object_id = 0
-        self._game_objects: defaultdict[int, set[GameObjectComponent]] = defaultdict(
-            set,
-        )
-        self._components: defaultdict[ComponentType, set[int]] = defaultdict(set)
+        self._game_objects: defaultdict[
+            int,
+            dict[ComponentType, GameObjectComponent],
+        ] = defaultdict(dict)
         self._event_handlers: defaultdict[str, set[Callable[[KW], R]]] = defaultdict(
             set,
         )
@@ -92,12 +91,13 @@ class ECS:
             The ID of the created game object.
         """
         # Create the game object
-        self._game_objects[self._next_game_object_id] = set()
+        self._game_objects[self._next_game_object_id] = {}
 
         # Add the optional components and their events to the system
         for component in components:
-            self._components[component.component_type].add(self._next_game_object_id)
-            self._game_objects[self._next_game_object_id].add(component)
+            self._game_objects[self._next_game_object_id][
+                component.component_type
+            ] = component
             component.system = self
             for event_name in self._get_event_names(component):
                 self._event_handlers[event_name].add(getattr(component, event_name))
@@ -127,14 +127,12 @@ class ECS:
             )
 
         # Remove all events relating to this game object
-        for components in self._game_objects[game_object_id]:
-            for name in self._get_event_names(components):
-                self._event_handlers[name].remove(getattr(components, name))
+        for component in self._game_objects[game_object_id].values():
+            for name in self._get_event_names(component):
+                self._event_handlers[name].remove(getattr(component, name))
 
         # Delete the game object from the system
         del self._game_objects[game_object_id]
-        for ids in self._components.values():
-            ids.remove(game_object_id)
 
     def dispatch_event(self: ECS, event: str, **kwargs: KW) -> None:
         """Dispatch an event with keyword arguments.
@@ -155,7 +153,7 @@ class ECS:
     def get_components_for_game_object(
         self: ECS,
         game_object_id: int,
-    ) -> set[GameObjectComponent]:
+    ) -> dict[ComponentType, GameObjectComponent]:
         """Get a game object's components.
 
         Parameters
@@ -170,7 +168,7 @@ class ECS:
 
         Returns
         -------
-        set[GameObjectComponent]
+        dict[ComponentType, GameObjectComponent]
             The game object's components.
         """
         # Check if the game object ID is registered or not
@@ -182,37 +180,6 @@ class ECS:
 
         # Return the game object's components
         return self._game_objects[game_object_id]
-
-    def get_game_objects_for_component_type(
-        self: ECS,
-        component_type: ComponentType,
-    ) -> set[int]:
-        """Get a component type's game objects.
-
-        Parameters
-        ----------
-        component_type: ComponentType
-            The component type.
-
-        Raises
-        ------
-        NotRegisteredError
-            The game object is not registered.
-
-        Returns
-        -------
-        set[int]
-            The component type's game objects.
-        """
-        # Check if the component type is registered or not
-        if component_type not in self._components:
-            raise NotRegisteredError(
-                not_registered_type="component type",
-                value=component_type.name,
-            )
-
-        # Return the component type's game objects
-        return self._components[component_type]
 
     def get_handlers_for_event_name(self: ECS, event: str) -> set[Callable[[KW], R]]:
         """Get an event's handlers.
@@ -257,3 +224,10 @@ class ECS:
 # TODO: Dispatch_event could possibly return results (need to see if good idea) by
 #  returning collection containing result for each handler (could sort by component name
 #  to remove Nones). It could also become a global function and global private variable
+
+# TODO: Could probably store IDs in game view as dict with game object type as key and
+#  value being set of ints
+
+# TODO: See if @overload can be used anywhere. Use
+#  https://sethmlarson.dev/tests-arent-enough-case-study-after-adding-types-to-urllib3
+#  to find any more improvements

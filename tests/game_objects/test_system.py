@@ -151,14 +151,18 @@ def test_ecs_multiple_component_game_object(ecs: ECS) -> None:
     # Test that adding the game object works correctly
     component_one, component_two = GameObjectComponentOne(), GameObjectComponentTwo()
     ecs.add_game_object(component_one, component_two)
-    assert ecs.get_components_for_game_object(0) == {component_one, component_two}
-    assert ecs.get_game_objects_for_component_type(ComponentType.VALUE_ONE) == {0}
-    assert ecs.get_game_objects_for_component_type(ComponentType.VALUE_TWO) == {0}
+    assert ecs.get_components_for_game_object(0) == {
+        ComponentType.VALUE_ONE: component_one,
+        ComponentType.VALUE_TWO: component_two,
+    }
 
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
-    assert ecs.get_game_objects_for_component_type(ComponentType.VALUE_ONE) == set()
-    assert ecs.get_game_objects_for_component_type(ComponentType.VALUE_TWO) == set()
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The game object `0` is not registered with the ECS.",
+    ):
+        ecs.get_components_for_game_object(0)
 
 
 def test_ecs_multiple_game_objects(ecs: ECS) -> None:
@@ -175,7 +179,7 @@ def test_ecs_multiple_game_objects(ecs: ECS) -> None:
 
     # Test that removing the first game object works correctly
     ecs.remove_game_object(0)
-    assert ecs.get_components_for_game_object(1) == set()
+    assert ecs.get_components_for_game_object(1) == {}
     with pytest.raises(
         expected_exception=NotRegisteredError,
         match="The game object `0` is not registered with the ECS.",
@@ -246,13 +250,6 @@ def test_ecs_unregistered_game_object_component_and_event(ecs: ECS) -> None:
         match="The game object `0` is not registered with the ECS.",
     ):
         ecs.get_components_for_game_object(0)
-
-    # Test that an unregistered component type raises an error
-    with pytest.raises(
-        expected_exception=NotRegisteredError,
-        match="The component type `VALUE_ONE` is not registered with the ECS.",
-    ):
-        ecs.get_game_objects_for_component_type(ComponentType.VALUE_ONE)
 
     # Test that an unregistered event raises an error
     with pytest.raises(
