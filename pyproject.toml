@@ -74,25 +74,29 @@ branch = true
 source = ["hades"]
 
 [tool.mypy]
-strict = true
-check_untyped_defs = true
-disallow_any_generics = true
-disallow_incomplete_defs = true
-disallow_untyped_defs = true
+disallow_any_decorated = true
+disallow_any_explicit = true
+disallow_any_expr = true
+disallow_any_unimported = true
 exclude = [
-    "constants_OLD",
-    "game_objects_BAD_ECS",
-    "game_objects_OLD",
+    "build.py",  # Setuptools is untyped so we need to ignore it
+    "compile.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+    "constants_OLD",  # TEMP
+    "game_objects_BAD_ECS",  # TEMP
+    "game_objects_OLD",  # TEMP
+    "physics.py",  # TEMP
+    "melee_shader.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+    "vector_field",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+    "views",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 ignore_missing_imports = true
-no_implicit_reexport = true
 pretty = true
 python_version = "3.10"
 show_column_numbers = true
 show_error_context = true
-strict_concatenate = true
-strict_equality = true
-warn_redundant_casts = true
+show_error_end = true
+strict = true
+warn_unreachable = true
 warn_unused_configs = true
 
 # TODO: Once Ruff implements all of Pylint's rules, switch Pylint out for Ruff

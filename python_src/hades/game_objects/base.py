@@ -31,7 +31,7 @@ class ComponentType(Enum):
     HEALTH = auto()
     INVENTORY = auto()
     MONEY = auto()
-    SPEED_MULTIPLIER = auto()
+    MOVEMENT_FORCE = auto()
     VIEW_DISTANCE = auto()
 
 

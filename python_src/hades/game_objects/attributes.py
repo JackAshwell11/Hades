@@ -19,7 +19,7 @@ __all__ = (
     "FireRatePenalty",
     "Health",
     "Money",
-    "SpeedMultiplier",
+    "MovementForce",
     "ViewDistance",
 )
 
@@ -373,6 +373,8 @@ class Armour(EntityAttributeBase):
     # Class variables
     component_type: ComponentType = ComponentType.ARMOUR
 
+    # TODO: MERGE ARMOUR REGEN INTO THIS
+
 
 class ArmourRegenCooldown(EntityAttributeBase):
     """Allows a game object to have an armour regen cooldown attribute."""
@@ -380,6 +382,7 @@ class ArmourRegenCooldown(EntityAttributeBase):
     # Class variables
     component_type: ComponentType = ComponentType.ARMOUR_REGEN_COOLDOWN
     instant_effect: bool = False
+    maximum: bool = False
 
 
 class FireRatePenalty(EntityAttributeBase):
@@ -388,6 +391,7 @@ class FireRatePenalty(EntityAttributeBase):
     # Class variables
     component_type: ComponentType = ComponentType.FIRE_RATE_PENALTY
     instant_effect: bool = False
+    maximum: bool = False
 
 
 class Health(EntityAttributeBase):
@@ -408,14 +412,13 @@ class Money(EntityAttributeBase):
     upgradable: bool = False
 
 
-class SpeedMultiplier(EntityAttributeBase):
-    """Allows a game object to have a speed multiplier attribute."""
+class MovementForce(EntityAttributeBase):
+    """Allows a game object to have a movement force attribute."""
 
     # Class variables
-    component_type: ComponentType = ComponentType.SPEED_MULTIPLIER
+    component_type: ComponentType = ComponentType.MOVEMENT_FORCE
     instant_effect: bool = False
-
-    # TODO: Implement speed changes
+    maximum: bool = False
 
 
 class ViewDistance(EntityAttributeBase):
@@ -424,6 +427,7 @@ class ViewDistance(EntityAttributeBase):
     # Class variables
     component_type: ComponentType = ComponentType.VIEW_DISTANCE
     instant_effect: bool = False
+    maximum: bool = False
 
 
 # TODO: Entity attribute specific attributes to implement:

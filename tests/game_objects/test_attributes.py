@@ -182,8 +182,12 @@ def test_full_entity_attribute_upgrade_invalid_increase(
     full_entity_attribute: FullEntityAttribute
         The full entity attribute for use in testing.
     """
+
+    def bad_func() -> str:
+        return "test"
+
     with pytest.raises(expected_exception=TypeError):
-        full_entity_attribute.upgrade(lambda _: "test")  # type: ignore[arg-type]
+        full_entity_attribute.upgrade(bad_func)  # type: ignore[arg-type]
 
 
 def test_full_entity_attribute_apply_instant_effect_lower(

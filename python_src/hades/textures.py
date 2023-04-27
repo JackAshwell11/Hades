@@ -51,7 +51,7 @@ def load_moving_texture(texture: str) -> tuple[arcade.Texture, arcade.Texture]:
     tuple[arcade.Texture, arcade.Texture]
         The loaded moving texture.
     """
-    return tuple(arcade.load_texture_pair(texture_path.joinpath(texture)))
+    return arcade.load_texture_pair(texture_path.joinpath(texture))
 
 
 def load_non_moving_texture(texture: str) -> arcade.Texture:

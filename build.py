@@ -7,11 +7,21 @@ import platform
 import subprocess
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import TypeVar
 
 # Pip
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
+
+# Define a generic type for the keyword arguments
+KW = TypeVar("KW")
+
+
+class BuildNamespace(argparse.Namespace):
+    """Allows typing of an argparse Namespace for the CLI."""
+
+    executable: bool
+    cpp: bool
 
 
 class CMakeBuild(build_ext):
@@ -27,7 +37,7 @@ class CMakeBuild(build_ext):
         """
         # Determine where the extension should be transferred to after it has been
         # compiled
-        current_dir = Path.cwd()
+        current_dir = Path(__file__).parent
         build_dir = current_dir.joinpath(self.get_ext_fullpath(ext.name)).parent
 
         # Determine the profile to build the CMake extension with
@@ -43,7 +53,7 @@ class CMakeBuild(build_ext):
             " ".join(
                 [
                     "cmake",
-                    current_dir.joinpath(ext.sources[0]),
+                    str(current_dir.joinpath(ext.sources[0])),
                     "-DDO_TESTS=false",
                     "-DDO_PYTHON=true",
                     f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
@@ -121,12 +131,14 @@ def cpp() -> None:
     )
 
 
-def build(_: dict[str, Any]) -> None:
+def build(**_: KW) -> None:
     """Allow Poetry to automatically build the C++ extensions upon installation."""
     cpp()
 
 
 if __name__ == "__main__":
+    cpp()
+
     # Build the argument parser and start parsing arguments
     parser = argparse.ArgumentParser(
         description="Simplifies building/compiling related to Hades",
@@ -144,7 +156,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Compiles the C++ extensions and installs them",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(namespace=BuildNamespace())
 
     # Determine which argument was selected
     if args.executable:
