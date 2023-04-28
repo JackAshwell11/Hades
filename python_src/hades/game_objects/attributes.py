@@ -428,7 +428,3 @@ class ViewDistance(EntityAttributeBase):
     component_type: ComponentType = ComponentType.VIEW_DISTANCE
     instant_effect: bool = False
     maximum: bool = False
-
-
-# TODO: Entity attribute specific attributes to implement:
-#       player section upgrade

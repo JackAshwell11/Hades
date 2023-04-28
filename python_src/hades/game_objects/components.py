@@ -12,9 +12,19 @@ from hades.constants import SPRITE_SCALE
 from hades.game_objects.base import ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from arcade import SpriteList
+
     from hades.textures import TextureType
 
-__all__ = ("Consumable", "Graphics", "Inventory", "InventorySpaceError")
+__all__ = (
+    "Graphics",
+    "InstantEffect",
+    "Inventory",
+    "InventorySpaceError",
+    "StatusEffect",
+)
 
 # Define a generic type for the inventory
 T = TypeVar("T")
@@ -32,17 +42,6 @@ class InventorySpaceError(Exception):
             Whether the inventory is empty or full.
         """
         super().__init__(f"The inventory is {'full' if full else 'empty'}.")
-
-
-class Consumable(GameObjectComponent):
-    """Allows a game object to provide instant and/or status effects."""
-
-    __slots__ = ()
-
-    # Class variables
-    component_type: ComponentType = ComponentType.CONSUMABLE
-
-    # TODO: ADD LEVEL LIMIT AND FINISH IT
 
 
 class Graphics(arcade.Sprite, GameObjectComponent):
@@ -78,7 +77,21 @@ class Graphics(arcade.Sprite, GameObjectComponent):
         }
         self.blocking: bool = blocking
 
-        # TODO: STILL NEED POSITIONING AND SPRITELIST ADDING
+    def add_to_spritelist(self: Graphics, spritelist: SpriteList) -> Graphics:
+        """Add the graphics component to a given spritelist.
+
+        Parameters
+        ----------
+        spritelist: SpriteList
+            The arcade spritelist to add the graphics component to.
+
+        Returns
+        -------
+        Graphics
+            The graphics component.
+        """
+        spritelist.append(self)
+        return self
 
     def __repr__(self: Graphics) -> str:
         """Return a human-readable representation of this object.
@@ -92,6 +105,43 @@ class Graphics(arcade.Sprite, GameObjectComponent):
             f"<Graphics (Texture count={len(self.textures_dict)})"
             f" (Blocking={self.blocking})>"
         )
+
+
+class InstantEffect(GameObjectComponent):
+    """Allows a game object to provide an instant effect."""
+
+    __slots__ = ("increase", "level_limit")
+
+    # Class variables
+    component_type: ComponentType = ComponentType.INSTANT_EFFECT
+
+    def __init__(
+        self: InstantEffect,
+        increase: Callable[[int], float],
+        level_limit: int,
+    ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        increase: Callable[[int], float]
+            The exponential lambda function which calculates the next level's value
+            based on the current level.
+        level_limit: int
+            The max level that this instant effect can be.
+        """
+        self.increase: Callable[[int], float] = increase
+        self.level_limit: int = level_limit
+
+    def __repr__(self: InstantEffect) -> str:
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
+        return f"<InstantEffect (Level limit={self.level_limit})>"
 
 
 class Inventory(Generic[T], GameObjectComponent):
@@ -174,3 +224,45 @@ class Inventory(Generic[T], GameObjectComponent):
             The human-readable representation of this object.
         """
         return f"<Inventory (Width={self.width}) (Height={self.height})>"
+
+
+class StatusEffect(GameObjectComponent):
+    """Allows a game object to provide a status effect."""
+
+    __slots__ = ("increase", "duration", "level_limit")
+
+    # Class variables
+    component_type: ComponentType = ComponentType.STATUS_EFFECT
+
+    def __init__(
+        self: StatusEffect,
+        increase: Callable[[int], float],
+        duration: Callable[[int], float],
+        level_limit: int,
+    ) -> None:
+        """Initialise the object.
+
+        Parameters
+        ----------
+        increase: Callable[[int], float]
+            The exponential lambda function which calculates the next level's value
+            based on the current level.
+        duration: Callable[[int], float]
+            The exponential lambda function which calculates the next level's duration
+            based on the current level.
+        level_limit: int
+            The max level that this status effect can be.
+        """
+        self.increase: Callable[[int], float] = increase
+        self.duration: Callable[[int], float] = duration
+        self.level_limit: int = level_limit
+
+    def __repr__(self: StatusEffect) -> str:
+        """Return a human-readable representation of this object.
+
+        Returns
+        -------
+        str
+            The human-readable representation of this object.
+        """
+        return f"<StatusEffect (Level limit={self.level_limit})>"

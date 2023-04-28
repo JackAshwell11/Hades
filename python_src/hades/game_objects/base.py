@@ -14,6 +14,7 @@ __all__ = (
     "Actionable",
     "Collectible",
     "ComponentType",
+    "EntityAttributeSectionType",
     "GameObjectComponent",
 )
 
@@ -25,14 +26,22 @@ class ComponentType(Enum):
     ARMOUR = auto()
     ARMOUR_REGEN_COOLDOWN = auto()
     COLLECTIBLE = auto()
-    CONSUMABLE = auto()
+    INSTANT_EFFECT = auto()
     FIRE_RATE_PENALTY = auto()
     GRAPHICS = auto()
     HEALTH = auto()
     INVENTORY = auto()
     MONEY = auto()
     MOVEMENT_FORCE = auto()
+    STATUS_EFFECT = auto()
     VIEW_DISTANCE = auto()
+
+
+class EntityAttributeSectionType(Enum):
+    """Stores the sections which group entity attributes together."""
+
+    ENDURANCE = {ComponentType.HEALTH, ComponentType.MOVEMENT_FORCE}
+    DEFENCE = {ComponentType.ARMOUR, ComponentType.ARMOUR_REGEN_COOLDOWN}
 
 
 class GameObjectComponent:
@@ -79,3 +88,7 @@ class Collectible(GameObjectComponent):
             The callable which processes the collection for this game object.
         """
         self.do_collect: Callable[[], bool] = collect_func
+
+
+# TODO: Could probably store IDs in game view as dict with game object type as key and
+#  value being set of ints. Then also store reference to system

@@ -9,20 +9,19 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 __all__ = (
+    "EA",
     "EventError",
     "add_event_handler",
     "dispatch_event",
     "get_handlers_for_event_name",
 )
 
-
 # Define some generic types for the keyword arguments
-KW = TypeVar("KW")
+EA = TypeVar("EA")
 R = TypeVar("R")
 
-
 # Store all the event handlers
-_event_handlers: defaultdict[str, set[Callable[[KW], R]]] = defaultdict(set)
+_event_handlers: defaultdict[str, set[Callable[[dict[str, EA]], R]]] = defaultdict(set)
 
 
 class EventError(Exception):
@@ -39,8 +38,13 @@ class EventError(Exception):
         super().__init__(f"The event `{event_name}` is not registered.")
 
 
-def add_event_handler(event_name: str) -> Callable[[KW], R]:
+def add_event_handler(
+    event_name: str = "",
+) -> Callable[[Callable[[dict[str, EA]], R]], Callable[[dict[str, EA]], R]]:
     """Add an event handler to the event system.
+
+    This event must be a global function (or a static method that does not access the
+    class's state) due to the event system not supporting bound methods.
 
     Parameters
     ----------
@@ -49,24 +53,26 @@ def add_event_handler(event_name: str) -> Callable[[KW], R]:
 
     Returns
     -------
-    Callable[[KW], R]
+    Callable[[Callable[[dict[str, EA]], R]], Callable[[dict[str, EA]], R]]
         The event handler now added to the event system.
     """
 
-    def wrapper(func: Callable[[KW], R]) -> Callable[[KW], R]:
-        _event_handlers[event_name].add(func)
+    def wrapper(func: Callable[[dict[str, EA]], R]) -> Callable[[dict[str, EA]], R]:
+        _event_handlers[event_name if event_name else func.__name__].add(func)
         return func
 
     return wrapper
 
 
-def dispatch_event(event_name: str, **kwargs: KW) -> None:
+def dispatch_event(event_name: str, event_args: dict[str, EA]) -> None:
     """Dispatch an event with keyword arguments.
 
     Parameters
     ----------
     event_name: str
         The event name to dispatch an event for.
+    event_args: dict[str, EA]
+        The event arguments to pass through to the event.
 
     Raises
     ------
@@ -79,10 +85,12 @@ def dispatch_event(event_name: str, **kwargs: KW) -> None:
 
     # Dispatch the event to all handlers
     for handler in _event_handlers[event_name]:
-        handler(**kwargs)
+        handler(event_args)
 
 
-def get_handlers_for_event_name(event_name: str) -> set[Callable[[KW], R]]:
+def get_handlers_for_event_name(
+    event_name: str,
+) -> set[Callable[[dict[str, EA]], R]]:
     """Get an event's handlers.
 
     Parameters
@@ -97,7 +105,7 @@ def get_handlers_for_event_name(event_name: str) -> set[Callable[[KW], R]]:
 
     Returns
     -------
-    set[Callable[[KW], R]]
+    set[Callable[[dict[str, Any]], Any]]
         The event's handlers.
     """
     # Check if the event is registered or not
@@ -106,10 +114,3 @@ def get_handlers_for_event_name(event_name: str) -> set[Callable[[KW], R]]:
 
     # Return the event's handlers
     return _event_handlers[event_name]
-
-
-# TODO: Dispatch_event could possibly return results (need to see if good idea) by
-#  returning collection containing result for each handler (could sort by component name
-#  to remove Nones). It could also become a global function and global private variable
-
-# TODO: Figure out how to remove events

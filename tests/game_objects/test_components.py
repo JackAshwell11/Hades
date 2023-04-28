@@ -2,10 +2,17 @@
 from __future__ import annotations
 
 # Pip
+import arcade
 import pytest
 
 # Custom
-from hades.game_objects.components import Graphics, Inventory, InventorySpaceError
+from hades.game_objects.components import (
+    Graphics,
+    InstantEffect,
+    Inventory,
+    InventorySpaceError,
+    StatusEffect,
+)
 from hades.textures import TextureType
 
 __all__ = ()
@@ -35,6 +42,30 @@ def test_graphics_init_multiple_textures() -> None:
         TextureType.WALL: TextureType.WALL.value,
         TextureType.FLOOR: TextureType.FLOOR.value,
     }
+
+
+def test_graphics_add_to_spritelist_not_already_added() -> None:
+    """Test that adding the graphics component to a spritelist is successful."""
+    spritelist = arcade.SpriteList()
+    graphics = Graphics({TextureType.FLOOR}).add_to_spritelist(spritelist)
+    assert spritelist.sprite_list == [graphics]
+
+
+def test_graphics_add_to_spritelist_already_added() -> None:
+    """Test that the same graphics component twice to a spritelist raises an error."""
+    spritelist = arcade.SpriteList()
+    with pytest.raises(expected_exception=ValueError):
+        Graphics({TextureType.FLOOR}).add_to_spritelist(spritelist).add_to_spritelist(
+            spritelist,
+        )
+
+
+def test_instant_effect_init() -> None:
+    """Test that instant effect is initialised correctly."""
+    assert (
+        repr(InstantEffect(lambda level: 2**level, 10))
+        == "<InstantEffect (Level limit=10)>"
+    )
 
 
 def test_inventory_init() -> None:
@@ -82,3 +113,11 @@ def test_inventory_remove_item_from_inventory_large_index() -> None:
     inventory.add_item_to_inventory("inventory")
     with pytest.raises(expected_exception=InventorySpaceError):
         inventory.remove_item_from_inventory(10)
+
+
+def test_status_effect_init() -> None:
+    """Test that status effect is initialised correctly."""
+    assert (
+        repr(StatusEffect(lambda level: 2**level, lambda level: 3 * level + 5, 5))
+        == "<StatusEffect (Level limit=5)>"
+    )

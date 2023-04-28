@@ -141,9 +141,3 @@ class ECS:
             The human-readable representation of this object.
         """
         return f"<EntityComponentSystem (Game object count={len(self._game_objects)})>"
-
-
-# TODO: Could probably store IDs in game view as dict with game object type as key and
-#  value being set of ints
-
-# TODO: See if more advanced typing could be used anywhere in game_objects/
