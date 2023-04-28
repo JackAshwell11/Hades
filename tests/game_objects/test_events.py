@@ -147,8 +147,10 @@ def test_dispatch_event_class_event() -> None:
     with pytest.raises(
         expected_exception=TypeError,
         match=re.escape(
-            "ClassEventHandler.on_class_state() missing 1 required positional"
-            " argument: '_'"
+            (
+                "ClassEventHandler.on_class_state() missing 1 required positional"
+                " argument: '_'"
+            ),
         ),
     ):
         dispatch_event("on_class_state", {})
