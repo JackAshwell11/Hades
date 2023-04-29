@@ -16,12 +16,13 @@ __all__ = (
     "get_handlers_for_event_name",
 )
 
-# Define some generic types for the keyword arguments
+# Define a generic type for the event arguments
 EA = TypeVar("EA")
-R = TypeVar("R")
 
 # Store all the event handlers
-_event_handlers: defaultdict[str, set[Callable[[dict[str, EA]], R]]] = defaultdict(set)
+_event_handlers: defaultdict[str, set[Callable[[dict[str, EA]], None]]] = defaultdict(
+    set
+)
 
 
 class EventError(Exception):
@@ -40,7 +41,7 @@ class EventError(Exception):
 
 def add_event_handler(
     event_name: str = "",
-) -> Callable[[Callable[[dict[str, EA]], R]], Callable[[dict[str, EA]], R]]:
+) -> Callable[[Callable[[dict[str, EA]], None]], Callable[[dict[str, EA]], None]]:
     """Add an event handler to the event system.
 
     This event must be a global function (or a static method that does not access the
@@ -51,13 +52,30 @@ def add_event_handler(
     event_name: str
         The event name.
 
+    Examples
+    --------
+    An event handler can be easily added using this decorator with the event name as the
+    function name. For example, an event handler which uses the function name:
+
+    >>> @add_event_handler()
+    ... def event_function_name(event_args: dict[str, EA]) -> None:
+    ...     pass
+
+    Or an event handler that uses the parameter variable:
+
+    >>> @add_event_handler("event_parameter_name")
+    ... def event_example(event_args: dict[str, EA]) -> None:
+    ...     pass
+
     Returns
     -------
-    Callable[[Callable[[dict[str, EA]], R]], Callable[[dict[str, EA]], R]]
+    Callable[[Callable[[dict[str, EA]], None]], Callable[[dict[str, EA]], None]]
         The event handler now added to the event system.
     """
 
-    def wrapper(func: Callable[[dict[str, EA]], R]) -> Callable[[dict[str, EA]], R]:
+    def wrapper(
+        func: Callable[[dict[str, EA]], None]
+    ) -> Callable[[dict[str, EA]], None]:
         _event_handlers[event_name if event_name else func.__name__].add(func)
         return func
 
@@ -90,7 +108,7 @@ def dispatch_event(event_name: str, event_args: dict[str, EA]) -> None:
 
 def get_handlers_for_event_name(
     event_name: str,
-) -> set[Callable[[dict[str, EA]], R]]:
+) -> set[Callable[[dict[str, EA]], None]]:
     """Get an event's handlers.
 
     Parameters
@@ -105,7 +123,7 @@ def get_handlers_for_event_name(
 
     Returns
     -------
-    set[Callable[[dict[str, Any]], Any]]
+    set[Callable[[dict[str, EA]], None]]
         The event's handlers.
     """
     # Check if the event is registered or not

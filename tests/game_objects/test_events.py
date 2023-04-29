@@ -3,7 +3,6 @@ from __future__ import annotations
 
 # Builtin
 import re
-from typing import TypeVar
 
 # Pip
 import pytest
@@ -18,10 +17,6 @@ from hades.game_objects.events import (
 )
 
 __all__ = ()
-
-
-# Define a generic type for the kwargs
-T = TypeVar("T")
 
 
 @add_event_handler()
