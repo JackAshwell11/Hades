@@ -36,10 +36,8 @@ class InventorySpaceError(Exception):
     def __init__(self: InventorySpaceError, *, full: bool) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        full: bool
-            Whether the inventory is empty or full.
+        Args:
+            full: Whether the inventory is empty or full.
         """
         super().__init__(f"The inventory is {'full' if full else 'empty'}.")
 
@@ -47,10 +45,8 @@ class InventorySpaceError(Exception):
 class Graphics(arcade.Sprite, GameObjectComponent):
     """Allows a game object to be drawn on the screen and interact with Arcade.
 
-    Attributes
-    ----------
-    textures: dict[TextureType, arcade.Texture]
-        The textures which represent this game object.
+    Attributes:
+        textures: The textures which represent this game object.
     """
 
     # Class variables
@@ -64,12 +60,9 @@ class Graphics(arcade.Sprite, GameObjectComponent):
     ) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        texture_types: set[TextureType]
-            The
-        blocking: bool
-            Whether this component is blocking or not.
+        Args:
+            texture_types: The textures that relate to this component.
+            blocking: Whether this component is blocking or not.
         """
         super().__init__(scale=SPRITE_SCALE)
         self.textures_dict: dict[TextureType, arcade.Texture] = {
@@ -80,14 +73,10 @@ class Graphics(arcade.Sprite, GameObjectComponent):
     def add_to_spritelist(self: Graphics, spritelist: SpriteList) -> Graphics:
         """Add the graphics component to a given spritelist.
 
-        Parameters
-        ----------
-        spritelist: SpriteList
-            The arcade spritelist to add the graphics component to.
+        Args:
+            spritelist: The arcade spritelist to add the graphics component to.
 
-        Returns
-        -------
-        Graphics
+        Returns:
             The graphics component.
         """
         spritelist.append(self)
@@ -96,9 +85,7 @@ class Graphics(arcade.Sprite, GameObjectComponent):
     def __repr__(self: Graphics) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return (
@@ -122,13 +109,10 @@ class InstantEffect(GameObjectComponent):
     ) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        increase: Callable[[int], float]
-            The exponential lambda function which calculates the next level's value
-            based on the current level.
-        level_limit: int
-            The max level that this instant effect can be.
+        Args:
+            increase: The exponential lambda function which calculates the next level's
+                value based on the current level.
+            level_limit: The max level that this instant effect can be.
         """
         self.increase: Callable[[int], float] = increase
         self.level_limit: int = level_limit
@@ -136,9 +120,7 @@ class InstantEffect(GameObjectComponent):
     def __repr__(self: InstantEffect) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return f"<InstantEffect (Level limit={self.level_limit})>"
@@ -147,10 +129,8 @@ class InstantEffect(GameObjectComponent):
 class Inventory(Generic[T], GameObjectComponent):
     """Allows a game object to have a fixed size inventory.
 
-    Attributes
-    ----------
-    inventory: list[T]
-        The game object's inventory.
+    Attributes:
+        inventory: The game object's inventory.
     """
 
     __slots__ = (
@@ -165,12 +145,9 @@ class Inventory(Generic[T], GameObjectComponent):
     def __init__(self: Inventory[T], width: int, height: int) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        width: int
-            The width of the inventory.
-        height: int
-            The height of the inventory.
+        Args:
+            width: The width of the inventory.
+            height: The height of the inventory.
         """
         self.width: int = width
         self.height: int = height
@@ -179,15 +156,11 @@ class Inventory(Generic[T], GameObjectComponent):
     def add_item_to_inventory(self: Inventory[T], item: T) -> None:
         """Add an item to the inventory.
 
-        Parameters
-        ----------
-        item: T
-            The item to add to the inventory.
+        Args:
+            item: The item to add to the inventory.
 
-        Raises
-        ------
-        SpaceError
-            The inventory container does not have enough room.
+        Raises:
+            InventorySpaceError: The inventory is full.
         """
         if len(self.inventory) == self.width * self.height:
             raise InventorySpaceError(full=True)
@@ -196,20 +169,14 @@ class Inventory(Generic[T], GameObjectComponent):
     def remove_item_from_inventory(self: Inventory[T], index: int) -> T:
         """Remove an item at a specific index.
 
-        Parameters
-        ----------
-        index: int
-            The index to remove an item at.
+        Args:
+            index: The index to remove an item at.
 
-        Raises
-        ------
-        SpaceError
-            The inventory container does not have enough room.
-
-        Returns
-        -------
-        T
+        Returns:
             The item at position `index` in the inventory.
+
+        Raises:
+            SpaceError: The inventory is empty.
         """
         if len(self.inventory) < index:
             raise InventorySpaceError(full=False)
@@ -218,9 +185,7 @@ class Inventory(Generic[T], GameObjectComponent):
     def __repr__(self: Inventory[T]) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return f"<Inventory (Width={self.width}) (Height={self.height})>"
@@ -242,16 +207,12 @@ class StatusEffect(GameObjectComponent):
     ) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        increase: Callable[[int], float]
-            The exponential lambda function which calculates the next level's value
-            based on the current level.
-        duration: Callable[[int], float]
-            The exponential lambda function which calculates the next level's duration
-            based on the current level.
-        level_limit: int
-            The max level that this status effect can be.
+        Args:
+            increase: The exponential lambda function which calculates the next level's
+                value based on the current level.
+            duration: The exponential lambda function which calculates the next level's
+                duration based on the current level.
+            level_limit: The max level that this status effect can be.
         """
         self.increase: Callable[[int], float] = increase
         self.duration: Callable[[int], float] = duration
@@ -260,9 +221,7 @@ class StatusEffect(GameObjectComponent):
     def __repr__(self: StatusEffect) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return f"<StatusEffect (Level limit={self.level_limit})>"

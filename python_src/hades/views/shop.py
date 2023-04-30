@@ -40,9 +40,7 @@ class SectionUpgradeButton(UIFlatButton):
     def __repr__(self: SectionUpgradeButton) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return (
@@ -60,19 +58,15 @@ def back_on_click(_: UIOnClickEvent) -> None:
 class Shop(arcade.View):
     """Display the shop UI so the player can upgrade their attributes.
 
-    Attributes
-    ----------
-    ui_manager: UIManager
-        Manages all the different UI elements for this view.
+    Attributes:
+        ui_manager: Manages all the different UI elements for this view.
     """
 
     def __init__(self: Shop, player: Player) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        player: Player
-            The player object used for accessing the inventory.
+        Args:
+            player: The player object used for accessing the inventory.
         """
         super().__init__()
         self.player: Player = player
@@ -121,9 +115,7 @@ class Shop(arcade.View):
     def __repr__(self: Shop) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return f"<Shop (Current window={self.window})>"

@@ -29,10 +29,8 @@ def on_basic_event() -> None:
 def on_arguments(test: str) -> None:
     """Simulate an event with arguments for testing.
 
-    Parameters
-    ----------
-    test: str
-        A testing argument.
+    Args:
+        test: A testing argument.
     """
     assert test == "test"
 
@@ -47,10 +45,8 @@ def event_parameter() -> None:
 def on_return_value(return_args: dict[str, RA]) -> None:
     """Simulate an event which returns a value for testing.
 
-    Parameters
-    ----------
-    return_args: dict[str, RA]
-        The testing return arguments.
+    Args:
+        return_args: The testing return arguments.
     """
     return_args["test"] = "test"
 
@@ -59,10 +55,8 @@ def on_return_value(return_args: dict[str, RA]) -> None:
 def on_return_value_no_bool(return_args: dict[str, RA]) -> None:
     """Simulate an event which should return a value but does not initialise it as so.
 
-    Parameters
-    ----------
-    return_args: dict[str, RA]
-        The testing return arguments.
+    Args:
+        return_args: The testing return arguments.
     """
     return_args["test"] = "test"
 
@@ -76,10 +70,8 @@ def on_return_value_no_parameter() -> None:
 def on_unexpected_return_arg(return_args: dict[str, RA]) -> None:
     """Simulate an event which unexpectedly provides a return_args parameter.
 
-    Parameters
-    ----------
-    return_args: dict[str, RA]
-        The testing return arguments.
+    Args:
+        return_args: The testing return arguments.
     """
     return_args["test"] = "test"
 

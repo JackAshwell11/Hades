@@ -36,9 +36,7 @@ class PhysicsEngine(PymunkPhysicsEngine):
 def full_entity_attribute() -> FullEntityAttribute:
     """Create a full entity attribute for use in testing.
 
-    Returns
-    -------
-    FullEntityAttribute
+    Returns:
         The full entity attribute for use in testing.
     """
     return FullEntityAttribute(initial_value=150, level_limit=3)
@@ -48,9 +46,7 @@ def full_entity_attribute() -> FullEntityAttribute:
 def empty_entity_attribute() -> EmptyEntityAttribute:
     """Create an empty entity attribute for use in testing.
 
-    Returns
-    -------
-    EmptyEntityAttribute
+    Returns:
         The empty entity attribute for use in testing.
     """
     return EmptyEntityAttribute(initial_value=20, level_limit=5)
@@ -68,10 +64,8 @@ def test_raise_entity_attribute_error() -> None:
 def test_full_entity_attribute_init(full_entity_attribute: FullEntityAttribute) -> None:
     """Test that a full entity attribute is initialised correctly.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     assert (
         repr(full_entity_attribute)
@@ -84,10 +78,8 @@ def test_empty_entity_attribute_init(
 ) -> None:
     """Test that an empty entity attribute is initialised correctly.
 
-    Parameters
-    ----------
-    empty_entity_attribute: EmptyEntityAttribute
-        The empty entity attribute for use in testing.
+    Args:
+        empty_entity_attribute: The empty entity attribute for use in testing.
     """
     assert (
         repr(empty_entity_attribute)
@@ -100,10 +92,8 @@ def test_full_entity_attribute_setter_lower(
 ) -> None:
     """Test that a full entity attribute is set with a lower value correctly.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.value = 100
     assert full_entity_attribute.value == 100
@@ -114,10 +104,8 @@ def test_full_entity_attribute_setter_higher(
 ) -> None:
     """Test that a full entity attribute is set with a higher value correctly.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.value = 200
     assert full_entity_attribute.value == 150
@@ -128,10 +116,8 @@ def test_full_entity_attribute_setter_isub(
 ) -> None:
     """Test that subtracting a value from the full entity attribute is correct.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.value -= 200
     assert full_entity_attribute.value == 0
@@ -142,10 +128,8 @@ def test_full_entity_attribute_setter_iadd(
 ) -> None:
     """Test that adding a value to the full entity attribute is correct.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.value += 100
     assert full_entity_attribute.value == 150
@@ -156,10 +140,8 @@ def test_full_entity_attribute_upgrade_value_equal_max(
 ) -> None:
     """Test that a full entity attribute is upgraded correctly.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     assert full_entity_attribute.upgrade(lambda level: 150 * (level + 1))
     assert full_entity_attribute.value == 300
@@ -172,10 +154,8 @@ def test_full_entity_attribute_upgrade_value_lower_max(
 ) -> None:
     """Test that a full entity attribute is upgraded if the value is lower than the max.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.value -= 50
     assert full_entity_attribute.upgrade(lambda level: 150 + 2 ^ level)
@@ -189,10 +169,8 @@ def test_full_entity_attribute_upgrade_max_limit(
 ) -> None:
     """Test that a full entity attribute is not upgraded if the level limit is reached.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.upgrade(lambda _: 0)
     full_entity_attribute.upgrade(lambda _: 0)
@@ -205,10 +183,8 @@ def test_full_entity_attribute_upgrade_invalid_increase(
 ) -> None:
     """Test that a full entity attribute is not upgraded when given an invalid lambda.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
 
     def bad_func() -> str:
@@ -223,10 +199,8 @@ def test_full_entity_attribute_apply_instant_effect_lower(
 ) -> None:
     """Test that an instant effect is applied if the value is lower than the max.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.value -= 50
     assert full_entity_attribute.apply_instant_effect(lambda level: 10 * level, 2)
@@ -238,10 +212,8 @@ def test_full_entity_attribute_apply_instant_effect_equal(
 ) -> None:
     """Test that an instant effect is not applied if the value is equal to the max.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     assert not full_entity_attribute.apply_instant_effect(lambda _: 50, 3)
     assert full_entity_attribute.value == 150
@@ -252,10 +224,8 @@ def test_full_entity_attribute_apply_status_effect_no_applied_effect(
 ) -> None:
     """Test that a status effect is applied if no status effect is currently applied.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     assert full_entity_attribute.apply_status_effect(
         lambda level: 150 + 3**level,
@@ -274,10 +244,8 @@ def test_full_entity_attribute_apply_status_effect_value_lower_max(
 ) -> None:
     """Test that a status effect is applied if the value is lower than the max.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.value -= 20
     assert full_entity_attribute.apply_status_effect(
@@ -297,10 +265,8 @@ def test_full_entity_attribute_apply_status_effect_existing_status_effect(
 ) -> None:
     """Test that a status effect is not applied if a status effect is already applied.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.apply_status_effect(lambda _: 50, lambda _: 20, 3)
     assert not full_entity_attribute.apply_status_effect(lambda _: 60, lambda _: 30, 2)
@@ -311,10 +277,8 @@ def test_full_entity_attribute_update_status_effect_no_deltatime(
 ) -> None:
     """Test that a status effect is updated if no time has passed.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.apply_status_effect(
         lambda level: level * 2,
@@ -330,10 +294,8 @@ def test_full_entity_attribute_update_status_effect_larger_deltatime(
 ) -> None:
     """Test that a status effect is removed if deltatime is larger than the duration.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.apply_status_effect(lambda level: 2**level, lambda _: 20, 2)
     full_entity_attribute.update_status_effect(30)
@@ -347,10 +309,8 @@ def test_full_entity_attribute_update_status_effect_multiple_deltatimes(
 ) -> None:
     """Test that a status effect is removed after multiple updates.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     # Apply the status effect and check the attribute's state after one update
     full_entity_attribute.apply_status_effect(
@@ -375,10 +335,8 @@ def test_full_entity_attribute_update_status_effect_less_than_original(
 ) -> None:
     """Test that a status effect is removed even when value is less than the original.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     full_entity_attribute.apply_status_effect(lambda _: 100, lambda _: 20, 4)
     full_entity_attribute.value -= 200
@@ -393,10 +351,8 @@ def test_full_entity_attribute_apply_status_effect_no_status_effect(
 ) -> None:
     """Test that a status effect is not updated if it's not applied.
 
-    Parameters
-    ----------
-    full_entity_attribute: FullEntityAttribute
-        The full entity attribute for use in testing.
+    Args:
+        full_entity_attribute: The full entity attribute for use in testing.
     """
     assert not full_entity_attribute.update_status_effect(5)
 
@@ -406,10 +362,8 @@ def test_empty_entity_attribute_setter(
 ) -> None:
     """Test that an empty entity attribute's value can be changed.
 
-    Parameters
-    ----------
-    empty_entity_attribute: EmptyEntityAttribute
-        The empty entity attribute for use in testing.
+    Args:
+        empty_entity_attribute: The empty entity attribute for use in testing.
     """
     empty_entity_attribute.value -= 10
     assert empty_entity_attribute.value == 10
@@ -420,10 +374,8 @@ def test_empty_entity_attribute_upgrade(
 ) -> None:
     """Test that an empty entity attribute raises an error when upgraded.
 
-    Parameters
-    ----------
-    empty_entity_attribute: EmptyEntityAttribute
-        The empty entity attribute for use in testing.
+    Args:
+        empty_entity_attribute: The empty entity attribute for use in testing.
     """
     with pytest.raises(
         expected_exception=EntityAttributeError,
@@ -437,10 +389,8 @@ def test_empty_entity_attribute_instant_effect(
 ) -> None:
     """Test that an instant effect raises an error on an empty entity attribute.
 
-    Parameters
-    ----------
-    empty_entity_attribute: EmptyEntityAttribute
-        The empty entity attribute for use in testing.
+    Args:
+        empty_entity_attribute: The empty entity attribute for use in testing.
     """
     with pytest.raises(
         expected_exception=EntityAttributeError,
@@ -456,10 +406,8 @@ def test_empty_entity_attribute_apply_status_effect(
 ) -> None:
     """Test that a status effect raises an error on an empty entity attribute.
 
-    Parameters
-    ----------
-    empty_entity_attribute: EmptyEntityAttribute
-        The empty entity attribute for use in testing.
+    Args:
+        empty_entity_attribute: The empty entity attribute for use in testing.
     """
     with pytest.raises(
         expected_exception=EntityAttributeError,
@@ -475,9 +423,7 @@ def test_empty_entity_attribute_update_status_effect(
 ) -> None:
     """Test that updating a status effect fails on an empty entity attribute.
 
-    Parameters
-    ----------
-    empty_entity_attribute: EmptyEntityAttribute
-        The empty entity attribute for use in testing.
+    Args:
+        empty_entity_attribute: The empty entity attribute for use in testing.
     """
     assert not empty_entity_attribute.update_status_effect(1)

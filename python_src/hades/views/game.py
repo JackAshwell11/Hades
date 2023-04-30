@@ -50,14 +50,10 @@ logger = logging.getLogger(__name__)
 def get_upper_bound(level: int) -> int:
     """Get the upper bound for a given level.
 
-    Parameters
-    ----------
-    level: int
-        The level to get the upper bound for.
+    Args:
+        level: The level to get the upper bound for.
 
-    Returns
-    -------
-    int
+    Returns:
         The upper bound.
     """
     return (level // LEVEL_GENERATOR_INTERVAL) + 1
@@ -82,54 +78,37 @@ class LevelConstants(NamedTuple):
 class Game(arcade.View):
     """Manages the game and its actions.
 
-    Attributes
-    ----------
-    level_constants: LevelConstants | None
-        Holds the constants for the current level.
-    player: Player | None
-        The sprite for the playable character in the game.
-    item_sprites: arcade.SpriteList
-        The sprite list for the item sprites. This is only used for detecting player
-        activity around the item.
-    wall_sprites: arcade.SpriteList
-        The sprite list for the wall sprites. This is only used for updating the melee
-        shader.
-    tile_sprites: arcade.SpriteList
-        The sprite list for the tile sprites. This is used for drawing the different
-        tiles.
-    bullet_sprites: arcade.SpriteList
-        The sprite list for the bullet sprites.
-    enemy_sprites: arcade.SpriteList
-        The sprite list for the enemy sprites.
-    enemy_indicator_bar_sprites: arcade.SpriteList
-        The sprite list for drawing the enemy indicator bars.
-    player_gui_sprites: arcade.SpriteList
-        The sprite list for drawing the player's GUI.
-    game_camera: arcade.Camera
-        The camera used for moving the viewport around the screen.
-    gui_camera: arcade.Camera
-        The camera used for visualising the GUI elements.
-    vector_field: VectorField | None
-        The vector field which allows for easy pathfinding for the enemy AI.
-    physics_engine: PhysicsEngine | None
-        The physics engine which processes wall collision.
-    nearest_item: Tile | None
-        Stores the nearest item so the player can activate it.
-    possible_enemy_spawns: list[tuple[int, int]]
-        A list of possible positions that enemies can spawn in.
-    player_status_text: arcade.Text
-        The text object used for displaying the player's health and armour.
-    item_text: arcade.Text
-        The text object used for displaying info about the nearest item.
+    Attributes:
+        level_constants: Holds the constants for the current level.
+        player: The sprite for the playable character in the game.
+        item_sprites: The sprite list for the item sprites. This is only used for
+            detecting player activity around the item.
+        wall_sprites: The sprite list for the wall sprites. This is only used for
+            updating the melee shader.
+        tile_sprites: The sprite list for the tile sprites. This is used for drawing the
+            different tiles.
+        bullet_sprites: The sprite list for the bullet sprites.
+        enemy_sprites: The sprite list for the enemy sprites.
+        enemy_indicator_bar_sprites: The sprite list for drawing the enemy indicator
+            bars.
+        player_gui_sprites: The sprite list for drawing the player's GUI.
+        game_camera: The camera used for moving the viewport around the screen.
+        gui_camera: The camera used for visualising the GUI elements.
+        vector_field: The vector field which allows for easy pathfinding for the enemy
+            AI.
+        physics_engine: The physics engine which processes wall collision.
+        nearest_item: Stores the nearest item so the player can activate it.
+        possible_enemy_spawns: A list of possible positions that enemies can spawn in.
+        player_status_text: The text object used for displaying the player's health and
+            armour.
+        item_text: The text object used for displaying info about the nearest item.
     """
 
     def _setup(self: Game, level: int) -> None:
         """Set up the game.
 
-        Parameters
-        ----------
-        level: int
-            The level to create a game for.
+        Args:
+            level: The level to create a game for.
         """
         # Calculate the lower and upper bounds that will determine the consumable
         # levels
@@ -243,10 +222,8 @@ class Game(arcade.View):
     def __init__(self: Game, level: int) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        level: int
-            The level to create a game for.
+        Args:
+            level: The level to create a game for.
         """
         super().__init__()
         self.background_color = arcade.color.BLACK
@@ -349,10 +326,8 @@ class Game(arcade.View):
     def on_update(self: Game, delta_time: float) -> None:
         """Process movement and game logic.
 
-        Parameters
-        ----------
-        delta_time: float
-            Time interval since the last time the function was called.
+        Args:
+            delta_time: Time interval since the last time the function was called.
         """
         # Make sure variables needed are valid
         assert self.physics_engine is not None
@@ -393,13 +368,10 @@ class Game(arcade.View):
     def on_key_press(self: Game, key: int, modifiers: int) -> None:
         """Process key press functionality.
 
-        Parameters
-        ----------
-        key: int
-            The key that was hit.
-        modifiers: int
-            Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
-            event.
+        Args:
+            key: The key that was hit.
+            modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
+                during this event.
         """
         # Make sure variables needed are valid
         assert self.player is not None
@@ -438,13 +410,10 @@ class Game(arcade.View):
     def on_key_release(self: Game, key: int, modifiers: int) -> None:
         """Process key release functionality.
 
-        Parameters
-        ----------
-        key: int
-            The key that was hit.
-        modifiers: int
-            Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
-            event.
+        Args:
+            key: The key that was hit.
+            modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
+                during this event.
         """
         # Make sure variables needed are valid
         assert self.player is not None
@@ -468,17 +437,12 @@ class Game(arcade.View):
     def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
         """Process mouse button functionality.
 
-        Parameters
-        ----------
-        x: int
-            The x position of the mouse.
-        y: int
-            The y position of the mouse.
-        button: int
-            Which button was hit.
-        modifiers: int
-            Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this
-            event.
+        Args:
+            x: The x position of the mouse.
+            y: The y position of the mouse.
+            button: Which button was hit.
+            modifiers:Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
+                during this event.
         """
         # Make sure variables needed are valid
         assert self.player is not None
@@ -498,16 +462,11 @@ class Game(arcade.View):
     def on_mouse_motion(self: Game, x: int, y: int, dx: int, dy: int) -> None:
         """Process mouse motion functionality.
 
-        Parameters
-        ----------
-        x: int
-            The x position of the mouse.
-        y: int
-            The y position of the mouse.
-        dx: int
-            The change in x.
-        dy: int
-            The change in y.
+        Args:
+            x: The x position of the mouse.
+            y: The y position of the mouse.
+            dx: The change in x.
+            dy: The change in y.
         """
         # Make sure variables needed are valid
         assert self.player is not None
@@ -626,9 +585,7 @@ class Game(arcade.View):
     def __repr__(self: Game) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return f"<Game (Current window={self.window})>"

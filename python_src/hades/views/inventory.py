@@ -72,9 +72,7 @@ class InventoryBox(UITextureButton):
     def __repr__(self: InventoryBox) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return (
@@ -92,21 +90,17 @@ def back_on_click(_: UIOnClickEvent) -> None:
 class Inventory(arcade.View):
     """Displays the player's inventory allowing them to manage it and equip items.
 
-    Attributes
-    ----------
-    ui_manager: UIManager
-        Manages all the different UI elements for this view.
-    vertical_box: UIBoxLayout
-        The arcade box layout responsible for organising the different UI elements.
+    Attributes:
+        ui_manager: Manages all the different UI elements for this view.
+        vertical_box: The arcade box layout responsible for organising the different UI
+            elements.
     """
 
     def __init__(self: Inventory, player: Player) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        player: Player
-            The player object used for accessing the inventory.
+        Args:
+            player: The player object used for accessing the inventory.
         """
         super().__init__()
         self.player: Player = player
@@ -170,9 +164,7 @@ class Inventory(arcade.View):
     def __repr__(self: Inventory) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return f"<Inventory (Current window={self.window})>"

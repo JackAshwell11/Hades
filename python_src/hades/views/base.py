@@ -36,22 +36,14 @@ class DisappearingInfoBox(UIMouseFilterMixin):
     ) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        parent_view: BaseView
-            The parent view which created this box.
-        width: float
-            The width of the message box.
-        height: float
-            The height of the message box.
-        message_text: str
-            The text to display.
-        text_color: int
-            The color of the text in the box.
-        background_color: arcade.Color
-            The color of the background of the box.
-        disappear_time: float
-            The time before the box should disappear.
+        Args:
+            parent_view: The parent view which created this box.
+            width: The width of the message box.
+            height: The height of the message box.
+            message_text: The text to display.
+            text_color: The color of the text in the box.
+            background_color: The color of the background of the box.
+            disappear_time: The time before the box should disappear.
         """
         # The offset used for the anchoring
         anchor_offset = 10
@@ -100,10 +92,8 @@ class DisappearingInfoBox(UIMouseFilterMixin):
     def on_update(self: DisappearingInfoBox, delta_time: float) -> None:
         """Update the internal time counter and see if the box should disappear.
 
-        Parameters
-        ----------
-        delta_time: float
-            Time interval since the last time the function was called.
+        Args:
+            delta_time: Time interval since the last time the function was called.
         """
         # Update the counter
         self._time_counter -= delta_time
@@ -125,9 +115,7 @@ class DisappearingInfoBox(UIMouseFilterMixin):
     def __repr__(self: DisappearingInfoBox) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return f"<DisappearingInfoBox (Text={self._text_area.text})>"
@@ -148,9 +136,7 @@ class BackButton(arcade.gui.UIFlatButton):
     def __repr__(self: BackButton) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return (
@@ -162,14 +148,10 @@ class BackButton(arcade.gui.UIFlatButton):
 class BaseView(arcade.View):
     """The base class for all views.
 
-    Attributes
-    ----------
-    ui_manager: UIManager
-        Manages all the different UI elements for this view.
-    background_color: arcade.Color
-        The background color of this view.
-    current_info_box: DisappearingInfoBox | None
-        The currently displayed info box.
+    Attributes:
+        ui_manager: Manages all the different UI elements for this view.
+        background_color: The background color of this view.
+        current_info_box: The currently displayed info box.
     """
 
     def __init__(self: BaseView) -> None:
@@ -202,10 +184,8 @@ class BaseView(arcade.View):
     def display_info_box(self: BaseView, text: str) -> None:
         """Display an info box that disappears after a set amount of time.
 
-        Parameters
-        ----------
-        text: str
-            The text to display to the user.
+        Args:
+            text: The text to display to the user.
         """
         if self.current_info_box is None:
             self.current_info_box = DisappearingInfoBox(self, message_text=text)
@@ -215,19 +195,15 @@ class BaseView(arcade.View):
     def add_back_button(vertical_box: arcade.gui.UIBoxLayout) -> None:
         """Add the back button to a given vertical box.
 
-        Parameters
-        ----------
-        vertical_box: arcade.gui.UIBoxLayout
-            The UIBoxLayout to add the back button too.
+        Args:
+            vertical_box: The UIBoxLayout to add the back button too.
         """
         vertical_box.add(BackButton(text="Back", width=200).with_space_around(top=20))
 
     def __repr__(self: BaseView) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return f"<BaseView (Current window={self.window})>"

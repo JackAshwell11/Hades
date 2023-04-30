@@ -18,9 +18,7 @@ __all__ = ()
 def walls() -> arcade.SpriteList:
     """Initialise the walls spritelist for use in testing.
 
-    Returns
-    -------
-    arcade.SpriteList
+    Returns:
         The walls spritelist for use in testing.
     """
     temp_spritelist = arcade.SpriteList()
@@ -136,14 +134,10 @@ def walls() -> arcade.SpriteList:
 def vector_field(walls: arcade.SpriteList) -> VectorField:
     """Initialise a vector field for use in testing.
 
-    Parameters
-    ----------
-    walls: arcade.SpriteList
-        The walls spritelist used for testing.
+    Args:
+        walls: The walls spritelist used for testing.
 
-    Returns
-    -------
-    VectorField
+    Returns:
         The vector field for use in testing.
     """
     return VectorField(walls, 20, 20)

@@ -34,12 +34,9 @@ class EntityAttributeError(Exception):
     def __init__(self: EntityAttributeError, *, name: str, error: str) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        name: str
-            The name of the entity attribute.
-        error: str
-            The problem raised by the entity attribute.
+        Args:
+            name: The name of the entity attribute.
+            error: The problem raised by the entity attribute.
         """
         super().__init__(f"The entity attribute `{name}` cannot {error}.")
 
@@ -48,16 +45,12 @@ class EntityAttributeError(Exception):
 class StatusEffect:
     """Represents a status effect that can be applied to an entity attribute.
 
-    value: float
-        The value that should be applied to the entity temporarily.
-    duration: float
-        The duration the status effect should be applied for.
-    original: float
-        The original value of the entity attribute which is being changed.
-    original_max_value: float
-        The original maximum value of the entity attribute which is being changed.
-    time_counter: float
-        The time counter for the status effect.
+    value: The value that should be applied to the entity temporarily.
+    duration: The duration the status effect should be applied for.
+    original: The original value of the entity attribute which is being changed.
+    original_max_value: The original maximum value of the entity attribute which is
+        being changed.
+    time_counter: The time counter for the status effect.
     """
 
     value: float
@@ -96,12 +89,10 @@ class EntityAttributeBase(GameObjectComponent):
     ) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        initial_value: int
-            The initial value for the entity attribute
-        level_limit: int
-            The limit this entity attribute can be upgraded too if possible.
+        Args:
+            initial_value: The initial value for the entity attribute
+            level_limit: The limit this entity attribute can be upgraded too if
+                possible.
         """
         self._value: float = initial_value
         self._max_value: float = initial_value if self.maximum else float("inf")
@@ -113,9 +104,7 @@ class EntityAttributeBase(GameObjectComponent):
     def value(self: EntityAttributeBase) -> float:
         """Get the entity attribute's value.
 
-        Returns
-        -------
-        float
+        Returns:
             The entity attribute's value.
         """
         return self._value
@@ -124,10 +113,8 @@ class EntityAttributeBase(GameObjectComponent):
     def value(self: EntityAttributeBase, new_value: float) -> None:
         """Set the entity attribute's value.
 
-        Parameters
-        ----------
-        new_value: float
-            The new entity attribute's value.
+        Args:
+            new_value: The new entity attribute's value.
         """
         self._value = max(min(new_value, self._max_value), 0)
 
@@ -137,9 +124,7 @@ class EntityAttributeBase(GameObjectComponent):
 
         If this is infinity, then the attribute does not have a maximum value
 
-        Returns
-        -------
-        float
+        Returns:
             The attribute's max value.
         """
         return self._max_value
@@ -148,9 +133,7 @@ class EntityAttributeBase(GameObjectComponent):
     def current_level(self: EntityAttributeBase) -> int:
         """Get the attribute's current level.
 
-        Returns
-        -------
-        int
+        Returns:
             The attribute's current level.
         """
         return self._current_level
@@ -161,9 +144,7 @@ class EntityAttributeBase(GameObjectComponent):
 
         If this is -1, then the attribute is not upgradable.
 
-        Returns
-        -------
-        int
+        Returns:
             The attribute's level limit.
         """
         return self._level_limit
@@ -172,9 +153,7 @@ class EntityAttributeBase(GameObjectComponent):
     def applied_status_effect(self: EntityAttributeBase) -> StatusEffect | None:
         """Get the currently applied status effect.
 
-        Returns
-        -------
-        StatusEffect | None
+        Returns:
             The currently applied status effect.
         """
         return self._applied_status_effect
@@ -182,21 +161,15 @@ class EntityAttributeBase(GameObjectComponent):
     def upgrade(self: EntityAttributeBase, increase: Callable[[int], float]) -> bool:
         """Upgrade the entity attribute to the next level if possible.
 
-        Parameters
-        ----------
-        increase: Callable[[int], float]
-            The exponential lambda function which calculates the next level's value
-            based on the current level.
+        Args:
+            increase: The exponential lambda function which calculates the next level's
+                value based on the current level.
 
-        Raises
-        ------
-        EntityAttributeError
-            The entity attribute cannot be upgraded.
-
-        Returns
-        -------
-        bool
+        Returns:
             Whether the attribute upgrade was successful or not.
+
+        Raises:
+            EntityAttributeError: The entity attribute cannot be upgraded.
         """
         # Check if the attribute can be upgraded
         if not self.upgradable:
@@ -224,23 +197,16 @@ class EntityAttributeBase(GameObjectComponent):
     ) -> bool:
         """Apply an instant effect to the entity attribute if possible.
 
-        Parameters
-        ----------
-        increase: Callable[[int], float]
-            The exponential lambda function which calculates the next level's value
-            based on the current level.
-        level: int
-            The level to initialise the instant effect at.
+        Args:
+            increase: The exponential lambda function which calculates the next level's
+                value based on the current level.
+            level: The level to initialise the instant effect at.
 
-        Raises
-        ------
-        EntityAttributeError
-            The entity attribute cannot have an instant effect.
-
-        Returns
-        -------
-        bool
+        Returns:
             Whether the instant effect could be applied or not.
+
+        Raises:
+            EntityAttributeError: The entity attribute cannot have an instant effect.
         """
         # Check if the attribute can have an instant effect
         if not self.instant_effect:
@@ -265,26 +231,18 @@ class EntityAttributeBase(GameObjectComponent):
     ) -> bool:
         """Apply a status effect to the attribute if possible.
 
-        Parameters
-        ----------
-        increase: Callable[[int], float]
-            The exponential lambda function which calculates the next level's value
-            based on the current level.
-        duration: Callable[[int], float]
-            The exponential lambda function which calculates the next level's duration
-            based on the current level.
-        level: int
-            The level to initialise the status effect at.
+        Args:
+            increase: The exponential lambda function which calculates the next level's
+                value based on the current level.
+            duration: The exponential lambda function which calculates the next level's
+                duration based on the current level.
+            level: The level to initialise the status effect at.
 
-        Raises
-        ------
-        EntityAttributeError
-            The entity attribute cannot have a status effect.
-
-        Returns
-        -------
-        bool
+        Returns:
             Whether the status effect could be applied or not.
+
+        Raises:
+            EntityAttributeError: The entity attribute cannot have a status effect.
         """
         # Check if the attribute can have a status effect
         if not self.status_effect:
@@ -311,14 +269,10 @@ class EntityAttributeBase(GameObjectComponent):
     def update_status_effect(self: EntityAttributeBase, delta_time: float) -> bool:
         """Update the currently applied status effect.
 
-        Parameters
-        ----------
-        delta_time: float
-            Time interval since the last time the function was called.
+        Args:
+            delta_time: Time interval since the last time the function was called.
 
-        Returns
-        -------
-        bool
+        Returns:
             Whether the status effect update was successful or not.
         """
         # Check if there isn't a status effect already applied
@@ -339,9 +293,7 @@ class EntityAttributeBase(GameObjectComponent):
     def __repr__(self: EntityAttributeBase) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return (

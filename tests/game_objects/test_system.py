@@ -41,9 +41,7 @@ class GameObjectComponentInvalid:
 def ecs() -> ECS:
     """Create an entity component system for use in testing.
 
-    Returns
-    -------
-    ECS
+    Returns:
         The entity component system for use in testing.
     """
     return ECS()
@@ -53,9 +51,7 @@ def ecs() -> ECS:
 def game_object_component_one() -> GameObjectComponentOne:
     """Create a game object component for use in testing.
 
-    Returns
-    -------
-    GameObjectComponentOne
+    Returns:
         The game object component for use in testing.
     """
     return GameObjectComponentOne()
@@ -65,9 +61,7 @@ def game_object_component_one() -> GameObjectComponentOne:
 def game_object_component_two() -> GameObjectComponentTwo:
     """Create a game object component for use in testing.
 
-    Returns
-    -------
-    GameObjectComponentTwo
+    Returns:
         The game object component for use in testing.
     """
     return GameObjectComponentTwo()
@@ -77,9 +71,7 @@ def game_object_component_two() -> GameObjectComponentTwo:
 def game_object_component_dependency() -> GameObjectComponentDependency:
     """Create a game object component that has a dependency for use in testing.
 
-    Returns
-    -------
-    GameObjectComponentTwo
+    Returns:
         The game object component that has a dependency for use in testing.
     """
     return GameObjectComponentDependency()
@@ -89,9 +81,7 @@ def game_object_component_dependency() -> GameObjectComponentDependency:
 def game_object_component_invalid() -> GameObjectComponentInvalid:
     """Create an invalid game object component for use in testing.
 
-    Returns
-    -------
-    GameObjectComponentInvalid
+    Returns:
         The invalid game object component for use in testing.
     """
     return GameObjectComponentInvalid()
@@ -109,10 +99,8 @@ def test_raise_not_registered_error() -> None:
 def test_ecs_init(ecs: ECS) -> None:
     """Test that the entity component system is initialised correctly.
 
-    Parameters
-    ----------
-    ecs: ECS
-        The entity component system for use in testing.
+    Args:
+        ecs: The entity component system for use in testing.
     """
     assert repr(ecs) == "<EntityComponentSystem (Game object count=0)>"
 
@@ -120,10 +108,8 @@ def test_ecs_init(ecs: ECS) -> None:
 def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
     """Test the ECS with a game object that has no components.
 
-    Parameters
-    ----------
-    ecs: ECS
-        The entity component system for use in testing.
+    Args:
+        ecs: The entity component system for use in testing.
     """
     # Test that adding the game object works correctly
     assert ecs.add_game_object() == 0
@@ -149,14 +135,10 @@ def test_ecs_game_object_with_multiple_components(
 ) -> None:
     """Test the ECS with a game object that has multiple components.
 
-    Parameters
-    ----------
-    ecs: ECS
-        The entity component system for use in testing.
-    game_object_component_one: GameObjectComponentOne
-        The first game object component for use in testing.
-    game_object_component_two: GameObjectComponentTwo
-        The second game object components for use in testing.
+    Args:
+        ecs: The entity component system for use in testing.
+        game_object_component_one: The first game object component for use in testing.
+        game_object_component_two: The second game object components for use in testing.
     """
     # Test that adding the game object works correctly
     ecs.add_game_object(game_object_component_one, game_object_component_two)
@@ -177,10 +159,8 @@ def test_ecs_game_object_with_multiple_components(
 def test_ecs_multiple_game_objects(ecs: ECS) -> None:
     """Test the ECS with multiple game objects.
 
-    Parameters
-    ----------
-    ecs: ECS
-        The entity component system for use in testing.
+    Args:
+        ecs: The entity component system for use in testing.
     """
     # Test that adding two game object works correctly
     assert ecs.add_game_object() == 0
@@ -203,14 +183,11 @@ def test_ecs_dependencies_already_registered(
 ) -> None:
     """Test the ECS with a component that depends on an already-registered component.
 
-    Parameters
-    ----------
-    ecs: ECS
-        The entity component system for use in testing.
-    game_object_component_one: GameObjectComponentOne
-        The first game object component for use in testing.
-    game_object_component_dependency: GameObjectComponentDependency
-        The game object component that has a dependency for use in testing.
+    Args:
+        ecs: The entity component system for use in testing.
+        game_object_component_one: The first game object component for use in testing.
+        game_object_component_dependency: The game object component that has a
+            dependency for use in testing.
     """
     assert (
         ecs.add_game_object(game_object_component_one, game_object_component_dependency)
@@ -229,14 +206,11 @@ def test_ecs_dependencies_unregistered(
 ) -> None:
     """Test the ECS with a component that depends on an unregistered component.
 
-    Parameters
-    ----------
-    ecs: ECS
-        The entity component system for use in testing.
-    game_object_component_one: GameObjectComponentOne
-        The first game object component for use in testing.
-    game_object_component_dependency: GameObjectComponentDependency
-        The game object component that has a dependency for use in testing.
+    Args:
+        ecs: The entity component system for use in testing.
+        game_object_component_one: The first game object component for use in testing.
+        game_object_component_dependency: The game object component that has a
+            dependency for use in testing.
     """
     with pytest.raises(
         expected_exception=NotRegisteredError,
@@ -253,12 +227,10 @@ def test_ecs_invalid_component(
 ) -> None:
     """Test the ECS with a game object that has an invalid component.
 
-    Parameters
-    ----------
-    ecs: ECS
-        The entity component system for use in testing.
-    game_object_component_invalid: GameObjectComponentInvalid
-        The invalid game object component for use in testing.
+    Args:
+        ecs: The entity component system for use in testing.
+        game_object_component_invalid: The invalid game object component for use in
+            testing.
     """
     with pytest.raises(expected_exception=AttributeError):
         ecs.add_game_object(game_object_component_invalid)  # type: ignore[arg-type]

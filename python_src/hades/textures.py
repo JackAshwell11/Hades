@@ -41,14 +41,10 @@ class BiggerThanError(Exception):
 def load_moving_texture(texture: str) -> tuple[arcade.Texture, arcade.Texture]:
     """Load a moving texture into Arcade.
 
-    Parameters
-    ----------
-    texture: str
-        The moving texture to load
+    Args:
+        texture: The moving texture to load
 
-    Returns
-    -------
-    tuple[arcade.Texture, arcade.Texture]
+    Returns:
         The loaded moving texture.
     """
     return arcade.load_texture_pair(texture_path.joinpath(texture))
@@ -57,15 +53,11 @@ def load_moving_texture(texture: str) -> tuple[arcade.Texture, arcade.Texture]:
 def load_non_moving_texture(texture: str) -> arcade.Texture:
     """Load a non-moving texture into Arcade.
 
-    Parameters
-    ----------
-    texture: str
-        The non-moving texture to load
+    Args:
+        texture: The non-moving texture to load
 
 
-    Returns
-    -------
-    arcade.Texture
+    Returns:
         The loaded non-moving texture.
     """
     return arcade.load_texture(texture_path.joinpath(texture))
@@ -90,22 +82,15 @@ class TextureType(Enum):
 def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     """Calculate the x and y position based on the game map or vector field position.
 
-    Parameters
-    ----------
-    x: int
-        The x position in the game map or vector field.
-    y: int
-        The x position in the game map or vector field.
+    Args:
+        x: The x position in the game map or vector field.
+        y: The x position in the game map or vector field.
 
-    Raises
-    ------
-    BiggerThanError
-        The input must be bigger than or equal to 0.
-
-    Returns
-    -------
-    tuple[float, float]
+    Returns:
         The x and y position of a sprite on the screen.
+
+    Raises:
+        BiggerThanError: The input must be bigger than or equal to 0.
     """
     # Check if the inputs are negative
     if x < 0 or y < 0:

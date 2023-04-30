@@ -64,10 +64,8 @@ class Actionable(GameObjectComponent):
     def __init__(self: Actionable, action_func: Callable[[], bool]) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        action_func: Callable[[], bool]
-            The callable which processes the action for this game object.
+        Args:
+            action_func: The callable which processes the action for this game object.
         """
         self.do_action: Callable[[], bool] = action_func
 
@@ -83,10 +81,9 @@ class Collectible(GameObjectComponent):
     def __init__(self: Collectible, collect_func: Callable[[], bool]) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        collect_func: Callable[[], bool]
-            The callable which processes the collection for this game object.
+        Args:
+            collect_func: The callable which processes the collection for this game
+                object.
         """
         self.do_collect: Callable[[], bool] = collect_func
 

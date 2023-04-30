@@ -14,9 +14,7 @@ class AreaOfEffectAttack:
     def __repr__(self: AreaOfEffectAttack) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return "<AreaOfEffectAttack>"
@@ -32,9 +30,7 @@ class MeleeAttack:
     def __repr__(self: MeleeAttack) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return "<MeleeAttack>"
@@ -50,9 +46,7 @@ class RangedAttack:
     def __repr__(self: RangedAttack) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return "<RangedAttack>"

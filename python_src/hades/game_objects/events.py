@@ -35,12 +35,9 @@ class EventError(Exception):
     def __init__(self: EventError, *, event_name: str, error: str) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        event_name: str
-            The event name that is not registered.
-        error: str
-            The error related to the event.
+        Args:
+            event_name: The event name that is not registered.
+            error: The error related to the event.
         """
         super().__init__(f"The event `{event_name}` {error}.")
 
@@ -58,45 +55,41 @@ def add_event_handler(
     This event must be a global function (or a static method that does not access the
     class's state) due to the event system not supporting bound methods.
 
-    Parameters
-    ----------
-    event_name: str
-        The event name.
-    return_value: bool
-        Whether the event returns values or not.
+    Args:
+        event_name: The event name.
+        return_value: Whether the event returns values or not.
 
-    Returns
-    -------
-    The event handler now added to the event system.
+    Returns:
+        The event handler now added to the event system.
 
-    Examples
-    --------
-    An event handler can be easily added using this decorator with the event name as the
-    function name. For example, an event handler which uses the function name and takes
-    no parameters:
+    Examples:
+        An event handler can be easily added using this decorator with the event name as
+        the function name. For example, an event handler which uses the function name
+        and takes no parameters:
 
-    >>> @add_event_handler()
-    ... def event_function_name() -> None:
-    ...     pass
+        >>> @add_event_handler()
+        ... def event_function_name() -> None:
+        ...     pass
 
-    Or an event handler that uses the parameter variable and takes a single argument:
+        Or an event handler that uses the parameter variable and takes a single
+        argument:
 
-    >>> @add_event_handler(event_name="event_parameter_name")
-    ... def event_parameter_example(arg: int) -> None:
-    ...     pass
+        >>> @add_event_handler(event_name="event_parameter_name")
+        ... def event_parameter_example(arg: int) -> None:
+        ...     pass
 
-    Or another event handler that uses the function name but also returns a value:
+        Or another event handler that uses the function name but also returns a value:
 
-    >>> @add_event_handler(return_value=True)
-    ... def event_return(return_args: dict[str, RA]) -> None:
-    ...     pass
+        >>> @add_event_handler(return_value=True)
+        ... def event_return(return_args: dict[str, RA]) -> None:
+        ...     pass
 
-    Or even an event handler that uses the parameter variable, takes multiple arguments,
-    and returns a value:
+        Or even an event handler that uses the parameter variable, takes multiple
+        arguments, and returns a value:
 
-    >>> @add_event_handler(event_name="event_all", return_value=True)
-    ... def event_all_example(return_args: dict[str, RA], arg: int) -> None:
-    ...     pass
+        >>> @add_event_handler(event_name="event_all", return_value=True)
+        ... def event_all_example(return_args: dict[str, RA], arg: int) -> None:
+        ...     pass
     """
 
     def wrapper(
@@ -118,19 +111,13 @@ def dispatch_event(
 ) -> None:
     """Dispatch an event with keyword arguments.
 
-    Parameters
-    ----------
-    event_name: str
-        The event name to dispatch an event for.
-    event_args: dict[str, EA] | None
-        The event arguments to pass through to the event.
-    return_args: dict[str, RA] | None
-        The return arguments to allow the event to return arguments.
+    Args:
+        event_name: The event name to dispatch an event for.
+        event_args: The event arguments to pass through to the event.
+        return_args: The return arguments to allow the event to return arguments.
 
-    Raises
-    ------
-    EventError
-        The event is not registered or expects a return args dictionary.
+    Raises:
+        EventError: The event is not registered or expects a return args dictionary.
     """
     # Check if the event is registered or not
     if event_name not in _event_handlers:
@@ -155,20 +142,14 @@ def get_handlers_for_event_name(
 ) -> set[tuple[Callable[[dict[str, RA] | None, dict[str, EA] | None], None], bool]]:
     """Get an event's handlers.
 
-    Parameters
-    ----------
-    event_name: str
-        The event name to get handlers for.
+    Args:
+        event_name: The event name to get handlers for.
 
-    Raises
-    ------
-    EventError
-        The event is not registered.
-
-    Returns
-    -------
-    set[tuple[Callable[[dict[str, EA] | None], None], bool]]
+    Returns:
         The event's handlers.
+
+    Raises:
+        EventError: The event is not registered.
     """
     # Check if the event is registered or not
     if event_name not in _event_handlers:
