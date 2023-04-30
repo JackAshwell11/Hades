@@ -21,10 +21,8 @@ logger = logging.getLogger(GAME_LOGGER)
 class Window(arcade.Window):
     """Manages the window and allows switching between views.
 
-    Attributes
-    ----------
-    views: dict[str, arcade.View]
-        Holds all the views used by the game.
+    Attributes:
+        views: Holds all the views used by the game.
     """
 
     def __init__(self: Window) -> None:
@@ -35,9 +33,7 @@ class Window(arcade.Window):
     def __repr__(self: Window) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return f"<Window (Width={self.width}) (Height={self.height})>"

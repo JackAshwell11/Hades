@@ -31,18 +31,15 @@ geometry_path = base_path / "melee_geometry.glsl"
 class MeleeShader:
     """Eases setting up the ray-casting shader for the player's melee attack.
 
-    Attributes
-    ----------
-    program: Program | None
-        The actual shader program which will run on the GPU to find the enemies.
-    result_buffer: Buffer | None
-        An OpenGL buffer object which holds the result of the shader program.
-    query: Query | None
-        An OpenGL query object used to query the shader, so we can get which enemies are
-        within range.
-    walls_framebuffer: Framebuffer | None
-        An OpenGL framebuffer object used for holding the wall textures so the shader
-        can check for collisions.
+    Attributes:
+        program: The actual shader program which will run on the GPU to find the
+            enemies.
+        result_buffer: An OpenGL buffer object which holds the result of the shader
+            program.
+        query: An OpenGL query object used to query the shader, so we can get which
+            enemies are within range.
+        walls_framebuffer: An OpenGL framebuffer object used for holding the wall
+            textures so the shader can check for collisions.
     """
 
     __slots__ = (
@@ -56,11 +53,9 @@ class MeleeShader:
     def __init__(self: MeleeShader, view: Game) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        view: Game
-            The game view. This is used to access various parts of the game needed for
-            the shader to work correctly.
+        Args:
+            view: The game view. This is used to access various parts of the game needed
+                for the shader to work correctly.
         """
         self.view: Game = view
         self.program: Program | None = None
@@ -72,9 +67,7 @@ class MeleeShader:
     def ctx(self: MeleeShader) -> ArcadeContext:
         """Get the arcade context object for running OpenGL programs.
 
-        Returns
-        -------
-        ArcadeContext
+        Returns:
             The arcade context object.
         """
         return self.view.window.ctx
@@ -154,9 +147,7 @@ class MeleeShader:
     def run_shader(self: MeleeShader) -> list[Enemy]:
         """Run the shader to find all enemies within range of the player's melee attack.
 
-        Returns
-        -------
-        list[Enemy]
+        Returns:
             A list of enemy objects that the player can attack.
         """
         # Make sure variables needed are valid
@@ -223,9 +214,7 @@ class MeleeShader:
     def __repr__(self: MeleeShader) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         # Make sure the walls framebuffer is valid
