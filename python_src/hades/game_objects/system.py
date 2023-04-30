@@ -69,6 +69,15 @@ class ECS:
 
         # Add the optional components to the system
         for component in components:
+            # Check its dependencies are registered in the system
+            for dependency in component.dependencies:
+                if dependency not in self._game_objects[self._next_game_object_id]:
+                    del self._game_objects[self._next_game_object_id]
+                    raise NotRegisteredError(
+                        not_registered_type="component type", value=dependency
+                    )
+
+            # Add the component to the system
             self._game_objects[self._next_game_object_id][
                 component.component_type
             ] = component

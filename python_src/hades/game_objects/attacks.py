@@ -56,3 +56,6 @@ class RangedAttack:
             The human-readable representation of this object.
         """
         return "<RangedAttack>"
+
+
+# TODO: Implement all attacks

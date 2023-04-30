@@ -123,6 +123,34 @@ def test_full_entity_attribute_setter_higher(
     assert full_entity_attribute.value == 150
 
 
+def test_full_entity_attribute_setter_isub(
+    full_entity_attribute: FullEntityAttribute,
+) -> None:
+    """Test that subtracting a value from the full entity attribute is correct.
+
+    Parameters
+    ----------
+    full_entity_attribute: FullEntityAttribute
+        The full entity attribute for use in testing.
+    """
+    full_entity_attribute.value -= 200
+    assert full_entity_attribute.value == 0
+
+
+def test_full_entity_attribute_setter_iadd(
+    full_entity_attribute: FullEntityAttribute,
+) -> None:
+    """Test that adding a value to the full entity attribute is correct.
+
+    Parameters
+    ----------
+    full_entity_attribute: FullEntityAttribute
+        The full entity attribute for use in testing.
+    """
+    full_entity_attribute.value += 100
+    assert full_entity_attribute.value == 150
+
+
 def test_full_entity_attribute_upgrade_value_equal_max(
     full_entity_attribute: FullEntityAttribute,
 ) -> None:

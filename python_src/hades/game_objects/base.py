@@ -50,6 +50,7 @@ class GameObjectComponent:
     # Class variables
     system: ECS
     component_type: ComponentType
+    dependencies: set[ComponentType] = set()
 
 
 class Actionable(GameObjectComponent):

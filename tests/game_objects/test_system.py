@@ -12,17 +12,25 @@ __all__ = ()
 
 
 class GameObjectComponentOne(GameObjectComponent):
-    """Represents a valid game object component useful for testing."""
+    """Represents a game object component useful for testing."""
 
     # Class variables
     component_type: ComponentType = ComponentType.HEALTH
 
 
 class GameObjectComponentTwo(GameObjectComponent):
-    """Represents a valid game object component useful for testing."""
+    """Represents a game object component useful for testing."""
 
     # Class variables
     component_type: ComponentType = ComponentType.ARMOUR
+
+
+class GameObjectComponentDependency(GameObjectComponent):
+    """Represents a game object component that has a dependency useful for testing."""
+
+    # Class variables
+    component_type: ComponentType = ComponentType.GRAPHICS
+    dependencies: set[ComponentType] = {ComponentType.HEALTH}
 
 
 class GameObjectComponentInvalid:
@@ -43,26 +51,38 @@ def ecs() -> ECS:
 
 @pytest.fixture()
 def game_object_component_one() -> GameObjectComponentOne:
-    """Create a valid game object component for use in testing.
+    """Create a game object component for use in testing.
 
     Returns
     -------
     GameObjectComponentOne
-        The valid game object component for use in testing.
+        The game object component for use in testing.
     """
     return GameObjectComponentOne()
 
 
 @pytest.fixture()
 def game_object_component_two() -> GameObjectComponentTwo:
-    """Create a valid game object component for use in testing.
+    """Create a game object component for use in testing.
 
     Returns
     -------
     GameObjectComponentTwo
-        The valid game object component for use in testing.
+        The game object component for use in testing.
     """
     return GameObjectComponentTwo()
+
+
+@pytest.fixture()
+def game_object_component_dependency() -> GameObjectComponentDependency:
+    """Create a game object component that has a dependency for use in testing.
+
+    Returns
+    -------
+    GameObjectComponentTwo
+        The game object component that has a dependency for use in testing.
+    """
+    return GameObjectComponentDependency()
 
 
 @pytest.fixture()
@@ -174,6 +194,57 @@ def test_ecs_multiple_game_objects(ecs: ECS) -> None:
         match="The game object `0` is not registered with the ECS.",
     ):
         ecs.get_components_for_game_object(0)
+
+
+def test_ecs_dependencies_already_registered(
+    ecs: ECS,
+    game_object_component_one: GameObjectComponentOne,
+    game_object_component_dependency: GameObjectComponentDependency,
+) -> None:
+    """Test the ECS with a component that depends on an already-registered component.
+
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    game_object_component_one: GameObjectComponentOne
+        The first game object component for use in testing.
+    game_object_component_dependency: GameObjectComponentDependency
+        The game object component that has a dependency for use in testing.
+    """
+    assert (
+        ecs.add_game_object(game_object_component_one, game_object_component_dependency)
+        == 0
+    )
+    assert ecs.get_components_for_game_object(0) == {
+        ComponentType.HEALTH: game_object_component_one,
+        ComponentType.GRAPHICS: game_object_component_dependency,
+    }
+
+
+def test_ecs_dependencies_unregistered(
+    ecs: ECS,
+    game_object_component_one: GameObjectComponentOne,
+    game_object_component_dependency: GameObjectComponentDependency,
+) -> None:
+    """Test the ECS with a component that depends on an unregistered component.
+
+    Parameters
+    ----------
+    ecs: ECS
+        The entity component system for use in testing.
+    game_object_component_one: GameObjectComponentOne
+        The first game object component for use in testing.
+    game_object_component_dependency: GameObjectComponentDependency
+        The game object component that has a dependency for use in testing.
+    """
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match=(
+            "The component type `ComponentType.HEALTH` is not registered with the ECS."
+        ),
+    ):
+        ecs.add_game_object(game_object_component_dependency, game_object_component_one)
 
 
 def test_ecs_invalid_component(

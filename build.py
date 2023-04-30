@@ -137,8 +137,6 @@ def build(**_: KW) -> None:
 
 
 if __name__ == "__main__":
-    cpp()
-
     # Build the argument parser and start parsing arguments
     parser = argparse.ArgumentParser(
         description="Simplifies building/compiling related to Hades",

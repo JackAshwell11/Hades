@@ -109,15 +109,6 @@ class EntityAttributeBase(GameObjectComponent):
         self._current_level: int = 0
         self._applied_status_effect: StatusEffect | None = None
 
-    def _set_value(self: EntityAttributeBase, new_value: float) -> None:
-        """Hold custom logic for setting the entity attribute's value.
-
-        Parameters
-        ----------
-        new_value: float
-            The new entity attribute's value.
-        """
-
     @property
     def value(self: EntityAttributeBase) -> float:
         """Get the entity attribute's value.
@@ -137,16 +128,8 @@ class EntityAttributeBase(GameObjectComponent):
         ----------
         new_value: float
             The new entity attribute's value.
-
-        Raises
-        ------
-        EntityAttributeError
-            The entity attribute cannot be set.
         """
-        # Update the attribute value with the new value making sure it doesn't exceed
-        # the max and then run the custom setter logic
-        self._value = min(new_value, self._max_value)
-        self._set_value(new_value)
+        self._value = max(min(new_value, self._max_value), 0)
 
     @property
     def max_value(self: EntityAttributeBase) -> float:

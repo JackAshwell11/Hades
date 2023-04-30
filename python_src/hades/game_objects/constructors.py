@@ -31,5 +31,3 @@ CONSUMABLES: dict[TileType, tuple[GameObjectComponent, ...]] = {
     TileType.SpeedBoostPotion: (),
     TileType.FireRateBoostPotion: (),
 }
-
-# TODO: REDO TYPES FOR THIS FILE
