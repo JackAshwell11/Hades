@@ -3,16 +3,14 @@ from __future__ import annotations
 
 
 class DummyImport:
-    """Allow faking the import of un-compiled or non-functioning C extensions.
-
-    Parameters
-    ----------
-    target: str
-        The target to fake.
-    """
+    """Allow faking the import of un-compiled or non-functioning C extensions."""
 
     def __init__(self: DummyImport, target: str) -> None:  # pragma: no cover
-        """Initialise the object."""
+        """Initialise the object.
+
+        Args:
+            target: The target to fake.
+        """
         self.target: str = target
 
     def __call__(
@@ -20,15 +18,7 @@ class DummyImport:
         *args: str,
         **kwargs: str,
     ) -> None:  # pragma: no cover
-        """Is called whenever the faked import is called/initialised.
-
-        Parameters
-        ----------
-        args: str
-            The arguments to the function.
-        kwargs: str
-            The keyword arguments to the function.
-        """
+        """Is called whenever the faked import is called/initialised."""
         raise NotImplementedError
 
 

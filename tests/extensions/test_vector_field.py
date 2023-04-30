@@ -17,10 +17,8 @@ __all__ = ()
 def test_vector_field_init(walls: arcade.SpriteList) -> None:
     """Test the initialisation of the VectorField class in vector_field.py.
 
-    Parameters
-    ----------
-    walls: arcade.SpriteList
-        The walls spritelist used for testing.
+    Args:
+        walls: The walls spritelist used for testing.
     """
     assert repr(VectorField(walls, 20, 20)) == "<VectorField (Width=20) (Height=20)>"
 
@@ -38,10 +36,8 @@ def test_vector_field_get_tile_pos_for_pixel() -> None:
 def test_vector_field_recalculate_map(vector_field: VectorField) -> None:
     """Test the recalculate_map function in the VectorField class.
 
-    Parameters
-    ----------
-    vector_field: VectorField
-        The vector field used for testing.
+    Args:
+        vector_field: The vector field used for testing.
     """
     # Pick 20 random positions and follow the vector dict checking if they reach the
     # player origin

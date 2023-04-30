@@ -35,16 +35,11 @@ def wall_bullet_begin_handler(
     This uses the begin_handler which processes collision when two shapes are touching
     for the first time.
 
-    Parameters
-    ----------
-    wall: Tile
-        The wall tile which the bullet hit.
-    bullet: Bullet
-        The bullet sprite which hit the wall tile.
+    Args:
+        wall: The wall tile which the bullet hit.
+        bullet: The bullet sprite which hit the wall tile.
 
-    Returns
-    -------
-    bool
+    Returns:
         Whether Pymunk should process the collision or not. This handler returns False
         since we just want to remove the bullet and not process collision.
     """
@@ -73,16 +68,11 @@ def enemy_bullet_begin_handler(
     This uses the begin_handler which processes collision when two shapes are touching
     for the first time.
 
-    Parameters
-    ----------
-    enemy: Entity
-        The enemy entity which the bullet hit.
-    bullet: Bullet
-        The bullet sprite which hit the enemy entity.
+    Args:
+        enemy: The enemy entity which the bullet hit.
+        bullet: The bullet sprite which hit the enemy entity.
 
-    Returns
-    -------
-    bool
+    Returns:
         Whether Pymunk should process the collision or not. This handler returns False
         since we just want to remove the bullet and not process collision.
     """
@@ -116,16 +106,11 @@ def player_bullet_begin_handler(
     This uses the begin_handler which processes collision when two shapes are touching
     for the first time.
 
-    Parameters
-    ----------
-    player: Player
-        The player entity which the bullet hit.
-    bullet: Bullet
-        The bullet sprite which hit the enemy entity.
+    Args:
+        player: The player entity which the bullet hit.
+        bullet: The bullet sprite which hit the enemy entity.
 
-    Returns
-    -------
-    bool
+    Returns:
         Whether Pymunk should process the collision or not. This handler returns False
         since we just want to remove the bullet and not process collision.
     """
@@ -155,11 +140,9 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
     def __init__(self: PhysicsEngine, damping: float) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        damping: float
-            The amount of speed which is kept to the next tick. A value of 1.0 means no
-            speed is lost, while 0.9 means 10% of speed is lost.
+        Args:
+            damping: The amount of speed which is kept to the next tick. A value of 1.0
+                means no speed is lost, while 0.9 means 10% of speed is lost.
         """
         super().__init__(damping=damping)
         self.damping: float = damping
@@ -171,13 +154,10 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
     ) -> None:
         """Set-ups the various sprites needed for the physics engine to work properly.
 
-        Parameters
-        ----------
-        player: Entity
-            The player entity.
-        tile_list: arcade.SpriteList
-            The sprite list for the tile sprites. This includes both static and
-            non-static sprites.
+        Args:
+            player: The player entity.
+            tile_list: The sprite list for the tile sprites. This includes both static
+                and non-static sprites.
         """
         # Add the player sprite to the physics engine
         self.add_sprite(
@@ -223,10 +203,8 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
     def add_bullet(self: PhysicsEngine, bullet: Bullet) -> None:
         """Add a bullet to the physics engine.
 
-        Parameters
-        ----------
-        bullet: Bullet
-            The bullet to add to the physics engine.
+        Args:
+            bullet: The bullet to add to the physics engine.
         """
         self.add_sprite(
             bullet,
@@ -256,9 +234,7 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
     def __repr__(self: PhysicsEngine) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
-        -------
-        str
+        Returns:
             The human-readable representation of this object.
         """
         return (

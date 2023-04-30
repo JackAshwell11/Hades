@@ -216,7 +216,7 @@ src = ["python_src"]
 ]
 
 [tool.ruff.pydocstyle]
-convention = "numpy"
+convention = "google"
 
 [tool.tox]
 legacy_tox_ini = """
