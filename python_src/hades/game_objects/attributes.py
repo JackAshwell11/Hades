@@ -11,6 +11,8 @@ from hades.game_objects.base import ComponentType, GameObjectComponent
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from hades.game_objects.base import D
+
 __all__ = (
     "Armour",
     "ArmourRegenCooldown",
@@ -86,6 +88,7 @@ class EntityAttributeBase(GameObjectComponent):
         *,
         initial_value: int,
         level_limit: int = -1,
+        **_: D,
     ) -> None:
         """Initialise the object.
 
@@ -307,8 +310,6 @@ class Armour(EntityAttributeBase):
 
     # Class variables
     component_type: ComponentType = ComponentType.ARMOUR
-
-    # TODO: MERGE ARMOUR REGEN INTO THIS
 
 
 class ArmourRegenCooldown(EntityAttributeBase):

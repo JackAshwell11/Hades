@@ -5,12 +5,32 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from hades.game_objects.events import add_event_handler
+from hades.game_objects.events import EA, add_event_handler
 
 if TYPE_CHECKING:
     from hades.game_objects.attributes import Armour, Health
 
 __all__ = ()
+
+
+@add_event_handler(event_name="on_update")
+def player_update(delta_time: float, **_: EA) -> None:
+    """Handle update events for the player game object.
+
+    Args:
+        delta_time: The time interval since the last time the event was triggered.
+    """
+    print(delta_time)
+
+
+@add_event_handler(event_name="on_update")
+def enemy_update(delta_time: float, **_: EA) -> None:
+    """Handle update events for the enemy game object.
+
+    Args:
+        delta_time: The time interval since the last time the event was triggered.
+    """
+    print(delta_time)
 
 
 @add_event_handler()

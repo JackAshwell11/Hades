@@ -16,7 +16,7 @@ from arcade.gui import (
 )
 
 # Custom
-from hades.constants.general import DEBUG_GAME
+from hades.constants import DEBUG_GAME
 from hades.views.game import Game
 
 if TYPE_CHECKING:

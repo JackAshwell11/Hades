@@ -6,7 +6,11 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from hades.game_objects.base import ComponentType, GameObjectComponent
+    from hades.game_objects.base import (
+        ComponentType,
+        GameObjectComponent,
+        GameObjectConstructor,
+    )
 
 __all__ = ("ECS", "NotRegisteredError")
 
@@ -48,12 +52,11 @@ class ECS:
             dict[ComponentType, GameObjectComponent],
         ] = defaultdict(dict)
 
-    def add_game_object(self: ECS, *components: GameObjectComponent) -> int:
+    def add_game_object(self: ECS, constructor: GameObjectConstructor) -> int:
         """Add a game object to the system with optional components.
 
         Args:
-            *components: A list of instantiated game object component subclasses which
-                belong to the game object.
+            constructor: The constructor for the game object with the component's data.
 
         Returns:
             The ID of the created game object.
@@ -66,7 +69,7 @@ class ECS:
         self._game_objects[self._next_game_object_id] = {}
 
         # Add the optional components to the system
-        for component in components:
+        for component in constructor.components:
             # Check its dependencies are registered in the system
             for dependency in component.dependencies:
                 if dependency not in self._game_objects[self._next_game_object_id]:
@@ -79,7 +82,9 @@ class ECS:
             # Add the component to the system
             self._game_objects[self._next_game_object_id][
                 component.component_type
-            ] = component
+            ] = component(
+                **constructor.component_data,
+            )  # type: ignore[call-type]
             component.system = self
 
         # Increment _next_game_object_id and return the current game object ID
@@ -105,20 +110,23 @@ class ECS:
         # Delete the game object from the system
         del self._game_objects[game_object_id]
 
-    def get_components_for_game_object(
+    def get_component_for_game_object(
         self: ECS,
         game_object_id: int,
-    ) -> dict[ComponentType, GameObjectComponent]:
-        """Get a game object's components.
+        component_type: ComponentType,
+    ) -> GameObjectComponent:
+        """Get a component from a game object.
 
         Args:
             game_object_id: The game object ID.
+            component_type: The component type to get.
 
         Returns:
             The game object's components.
 
         Raises:
             NotRegisteredError: The game object `ID` is not registered with the ECS.
+            KeyError: The component type is not part of the game object.
         """
         # Check if the game object ID is registered or not
         if game_object_id not in self._game_objects:
@@ -128,7 +136,7 @@ class ECS:
             )
 
         # Return the game object's components
-        return self._game_objects[game_object_id]
+        return self._game_objects[game_object_id][component_type]
 
     def __repr__(self: ECS) -> str:
         """Return a human-readable representation of this object.

@@ -120,6 +120,12 @@ def test_dispatch_event_basic() -> None:
     dispatch_event("on_basic_event")
 
 
+def test_dispatch_event_extra_event_args() -> None:
+    """Test dispatching an event with extra event arguments is not successful."""
+    with pytest.raises(expected_exception=TypeError):
+        dispatch_event("on_basic_event", event_args={"test": "test"})
+
+
 def test_dispatch_event_arguments() -> None:
     """Test dispatching an event with arguments is successful."""
     dispatch_event("on_arguments", event_args={"test": "test"})
@@ -134,7 +140,7 @@ def test_dispatch_event_arguments_not_provided() -> None:
 def test_dispatch_event_arguments_wrong_type() -> None:
     """Test dispatching an event with invalid required arguments is not successful."""
     with pytest.raises(expected_exception=TypeError):
-        dispatch_event("on_arguments", "test")  # type: ignore[arg-type]
+        dispatch_event("on_arguments", event_args="test")  # type: ignore[arg-type]
 
 
 def test_dispatch_event_parameter() -> None:

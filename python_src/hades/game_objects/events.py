@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 __all__ = (
+    "EA",
     "RA",
     "EventError",
     "add_event_handler",
@@ -68,27 +69,27 @@ def add_event_handler(
         and takes no parameters:
 
         >>> @add_event_handler()
-        ... def event_function_name() -> None:
+        ... def event_function_name(**_) -> None:
         ...     pass
 
         Or an event handler that uses the parameter variable and takes a single
         argument:
 
         >>> @add_event_handler(event_name="event_parameter_name")
-        ... def event_parameter_example(arg: int) -> None:
+        ... def event_parameter_example(arg: int, **_) -> None:
         ...     pass
 
         Or another event handler that uses the function name but also returns a value:
 
         >>> @add_event_handler(return_value=True)
-        ... def event_return(return_args: dict[str, RA]) -> None:
+        ... def event_return(return_args: dict[str, RA], **_) -> None:
         ...     pass
 
         Or even an event handler that uses the parameter variable, takes multiple
         arguments, and returns a value:
 
         >>> @add_event_handler(event_name="event_all", return_value=True)
-        ... def event_all_example(return_args: dict[str, RA], arg: int) -> None:
+        ... def event_all_example(return_args: dict[str, RA], arg: int, **_) -> None:
         ...     pass
     """
 

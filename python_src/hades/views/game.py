@@ -6,6 +6,7 @@ import contextlib
 import logging
 import math
 import random
+from collections import defaultdict
 from functools import cache
 from typing import TYPE_CHECKING, NamedTuple
 
@@ -15,30 +16,28 @@ import pyglet.math
 from hades_extensions import TileType, create_map
 
 # Custom
-from hades.constants_OLD.constructors import CONSUMABLES, ENEMY1, PLAYERS
-from hades.constants_OLD.game_objects import FACING_LEFT, FACING_RIGHT, SPRITE_SIZE
-from hades.constants_OLD.general import (
+from hades.constants import (
     CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
-    DEBUG_ATTACK_DISTANCE,
     DEBUG_ENEMY_SPAWN_COLOR,
     DEBUG_ENEMY_SPAWN_SIZE,
     DEBUG_GAME,
-    DEBUG_VIEW_DISTANCE,
     ENEMY_GENERATE_INTERVAL,
     ENEMY_RETRY_COUNT,
+    FACING_LEFT,
+    FACING_RIGHT,
     LEVEL_GENERATOR_INTERVAL,
+    SPRITE_SIZE,
     TOTAL_ENEMY_COUNT,
 )
-from hades.extensions import VectorField
-from hades.game_objects_OLD.enemies import Enemy
-from hades.game_objects_OLD.players import Player
-from hades.game_objects_OLD.tiles import Consumable, Floor, Wall
+from hades.game_objects.base import ComponentType
+from hades.game_objects.constructors import CONSUMABLES, FLOOR, PLAYER, WALL
+from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
-    from hades.game_objects.base import Tile
+    from hades.game_objects.base import GameObjectConstructor
 
 __all__ = ("Game",)
 
@@ -80,144 +79,45 @@ class Game(arcade.View):
 
     Attributes:
         level_constants: Holds the constants for the current level.
-        player: The sprite for the playable character in the game.
-        item_sprites: The sprite list for the item sprites. This is only used for
-            detecting player activity around the item.
-        wall_sprites: The sprite list for the wall sprites. This is only used for
-            updating the melee shader.
-        tile_sprites: The sprite list for the tile sprites. This is used for drawing the
-            different tiles.
-        bullet_sprites: The sprite list for the bullet sprites.
-        enemy_sprites: The sprite list for the enemy sprites.
-        enemy_indicator_bar_sprites: The sprite list for drawing the enemy indicator
-            bars.
-        player_gui_sprites: The sprite list for drawing the player's GUI.
+        system: The entity component system which manages the game objects.
+        ids: A mapping of TileType to a set of game object ids.
+        tile_sprites: The sprite list for the tile game objects.
+        entity_sprites: The sprite list for the entity game objects.
         game_camera: The camera used for moving the viewport around the screen.
         gui_camera: The camera used for visualising the GUI elements.
-        vector_field: The vector field which allows for easy pathfinding for the enemy
-            AI.
         physics_engine: The physics engine which processes wall collision.
-        nearest_item: Stores the nearest item so the player can activate it.
         possible_enemy_spawns: A list of possible positions that enemies can spawn in.
         player_status_text: The text object used for displaying the player's health and
             armour.
-        item_text: The text object used for displaying info about the nearest item.
     """
 
-    def _setup(self: Game, level: int) -> None:
-        """Set up the game.
+    def _initialise_game_object(
+        self: Game,
+        constructor: GameObjectConstructor,
+        tiletype: TileType,
+        spritelist: arcade.SpriteList,
+        position: tuple[int, int],
+    ) -> None:
+        """Initialise a game object into a given spritelist.
 
         Args:
-            level: The level to create a game for.
+            constructor: The game object constructor to initialise.
+            tiletype: The TileType of the constructor.
+            spritelist: The sprite list to add the game object to.
+            position: The position of the game object.
         """
-        # Calculate the lower and upper bounds that will determine the consumable
-        # levels
-        consumable_upper_bound = get_upper_bound(level)
-        consumable_lower_bound = (
-            1
-            if consumable_upper_bound - 1 < CONSUMABLE_LEVEL_MAX_RANGE
-            else consumable_upper_bound - CONSUMABLE_LEVEL_MAX_RANGE
+        new_id = self.system.add_game_object(constructor)
+        sprite = self.system.get_component_for_game_object(
+            new_id,
+            ComponentType.GRAPHICS,
         )
-        logger.debug(
-            "Generating consumable with lower bound %d and upper bound %d",
-            consumable_lower_bound,
-            consumable_upper_bound,
-        )
+        sprite.position = position
+        self.ids[tiletype].add(new_id)
+        spritelist.append(sprite)  # type: ignore[arg-type]
 
-        # Create the game map
-        generation_result = create_map(level)
-        grid, self.level_constants = generation_result[0], LevelConstants(
-            *generation_result[1],
-        )
-
-        for count, item in enumerate(grid):
-            # Determine if the tile is empty
-            if item in {TileType.Empty, TileType.Obstacle, TileType.DebugWall}:
-                continue
-
-            # Get the x and y positions
-            count_x, count_y = (
-                count % self.level_constants.width,
-                count // self.level_constants.width,
-            )
-
-            # Determine if the tile is a wall
-            if item == TileType.Wall:
-                wall = Wall(self, count_x, count_y)
-                self.wall_sprites.append(wall)
-                self.tile_sprites.append(wall)
-                continue
-
-            # The tile's backdrop should be a floor
-            floor = Floor(self, count_x, count_y)
-            self.tile_sprites.append(floor)
-
-            # Skip to the next iteration if the tile is a floor
-            if item == TileType.Floor:
-                continue
-
-            # Determine if the tile is a player or a consumable
-            if item in PLAYERS:
-                self.player = Player(self, count_x, count_y, PLAYERS[item])
-            elif item in CONSUMABLES:
-                target_constructor = CONSUMABLES[item]
-                instantiated_consumable = Consumable(
-                    self,
-                    count_x,
-                    count_y,
-                    target_constructor,
-                    min(
-                        random.randint(consumable_lower_bound, consumable_upper_bound),
-                        target_constructor.level_limit,
-                    ),
-                )
-                self.tile_sprites.append(instantiated_consumable)
-                self.item_sprites.append(instantiated_consumable)
-            else:
-                # Unknown type
-                logger.warning("Unknown TileType %r", item)
-                continue
-
-        # Make sure the game map shape was set and the player was actually created
-        assert self.level_constants is not None
-        assert self.player is not None
-
-        # Debug how many enemies and tiles were initialised
-        logger.debug("Initialised game view with  %d tiles", len(self.tile_sprites))
-
-        # Create the physics engine
-        self.physics_engine = PhysicsEngine(DAMPING)
-        self.physics_engine.setup(self.player, self.tile_sprites)
-
-        # Initialise the vector field
-        self.vector_field = VectorField(
-            self.wall_sprites,
-            self.level_constants.width,
-            self.level_constants.height,
-        )
-        self.possible_enemy_spawns = self.vector_field.recalculate_map(
-            self.player.position,
-            self.player.entity_data.view_distance,
-        )
-        logger.debug(
-            "Created vector grid with height %d and width %d",
-            self.level_constants.height,
-            self.level_constants.width,
-        )
-
-        # Update the player's current tile position
-        self.player.current_tile_pos = self.vector_field.pixel_to_grid_pos(
-            self.player.position,
-        )
-
-        # Generate half of the total enemies and then schedule the function to run
-        # every ENEMY_GENERATE_INTERVAL seconds
-        for _ in range(TOTAL_ENEMY_COUNT // 2):
-            self.generate_enemy()
-        arcade.schedule(
-            self.generate_enemy,
-            ENEMY_GENERATE_INTERVAL,
-        )
+        # TODO: Not entirely happy with this, improving get_component_for_game_object
+        #  should be main concern and improving initialisation too (idk about
+        #  GameObjectConstructor too)
 
     def __init__(self: Game, level: int) -> None:
         """Initialise the object.
@@ -226,21 +126,15 @@ class Game(arcade.View):
             level: The level to create a game for.
         """
         super().__init__()
-        self.background_color = arcade.color.BLACK
-        self.level_constants: LevelConstants | None = None
-        self.player: Player | None = None
-        self.item_sprites: arcade.SpriteList = arcade.SpriteList(use_spatial_hash=True)
-        self.wall_sprites: arcade.SpriteList = arcade.SpriteList()
+        generation_result = create_map(level)
+        self.level_constants: LevelConstants = LevelConstants(*generation_result[1])
+        self.system: ECS = ECS()
+        self.ids: dict[TileType, set[int]] = defaultdict(set)
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.bullet_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.enemy_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.enemy_indicator_bar_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.player_gui_sprites: arcade.SpriteList = arcade.SpriteList()
+        self.entity_sprites: arcade.SpriteList = arcade.SpriteList()
         self.game_camera: arcade.Camera = arcade.Camera()
         self.gui_camera: arcade.Camera = arcade.Camera()
-        self.vector_field: VectorField | None = None
-        self.physics_engine: PhysicsEngine | None = None
-        self.nearest_item: Tile | None = None
+        self.physics_engine: PhysicsEngine = PhysicsEngine(DAMPING)
         self.possible_enemy_spawns: list[tuple[int, int]] = []
         self.player_status_text: arcade.Text = arcade.Text(
             "Money: 0",
@@ -248,80 +142,80 @@ class Game(arcade.View):
             10,
             font_size=20,
         )
-        self.item_text: arcade.Text = arcade.Text(
-            "",
-            self.window.width / 2 - 150,
-            self.window.height / 2 - 200,
-            arcade.color.BLACK,
-            20,
-        )
 
-        # Set up the game
-        self._setup(level)
+        # Initialise the game objects
+        for count, tile in enumerate(generation_result[0]):
+            # Get the screen position from the grid position
+            position = (
+                count % self.level_constants.width,
+                count // self.level_constants.width,
+            )
+
+            # Determine the type of the tile
+            if tile == TileType.Wall:
+                self._initialise_game_object(WALL, tile, self.tile_sprites, position)
+                continue
+            if tile == TileType.Player:
+                self._initialise_game_object(
+                    PLAYER,
+                    tile,
+                    self.entity_sprites,
+                    position,
+                )
+            elif tile in CONSUMABLES:
+                self._initialise_game_object(
+                    CONSUMABLES[tile],
+                    tile,
+                    self.tile_sprites,
+                    position,
+                )
+
+            # Make the tile's backdrop a floor
+            self._initialise_game_object(FLOOR, tile, self.tile_sprites, position)
+
+        # Generate half of the total enemies allowed then schedule their generation
+        for _ in range(TOTAL_ENEMY_COUNT // 2):
+            self.generate_enemy()
+        arcade.schedule(
+            self.generate_enemy,
+            ENEMY_GENERATE_INTERVAL,
+        )
 
     def on_hide_view(self: Game) -> None:
         """Process hide view functionality."""
-        # Make sure variables needed are valid
-        assert self.player is not None
-
-        # Stop the player from moving after the game view is shown again
         self.player.left_pressed = (
             self.player.right_pressed
         ) = self.player.up_pressed = self.player.down_pressed = False
 
     def on_draw(self: Game) -> None:
         """Render the screen."""
-        # Make sure variables needed are valid
-        assert self.player is not None
-        assert self.vector_field is not None
-
-        # Clear the screen
+        # Clear the screen and set the background color
         self.clear()
+        self.window.background_color = arcade.color.BLACK
 
-        # Activate our Camera
+        # Activate our game camera
         self.game_camera.use()
 
         # Draw the various spritelists
         self.tile_sprites.draw(pixelated=True)
-        self.bullet_sprites.draw(pixelated=True)
-        self.enemy_sprites.draw(pixelated=True)
-        self.player.draw(pixelated=True)
-        self.enemy_indicator_bar_sprites.draw()
+        self.entity_sprites.draw(pixelated=True)
 
-        # Draw stuff needed for the debug mode
+        # Draw the stuff needed for the debug mode
         if DEBUG_GAME:
-            # Draw the enemy debug circles
-            for enemy in self.enemy_sprites:  # type: Enemy
-                # Draw the enemy's view distance
-                arcade.draw_circle_outline(
-                    enemy.center_x,
-                    enemy.center_y,
-                    enemy.entity_data.view_distance * SPRITE_SIZE,
-                    DEBUG_VIEW_DISTANCE,
-                )
-
-                # Draw the enemy's attack distance
-                arcade.draw_circle_outline(
-                    enemy.center_x,
-                    enemy.center_y,
-                    enemy.current_attack.attack_data.attack_range * SPRITE_SIZE,
-                    DEBUG_ATTACK_DISTANCE,
-                )
-
             # Draw the enemy spawn locations
-            points: list[tuple[float, float]] = []
-            for location in self.possible_enemy_spawns:
-                points.append(grid_pos_to_pixel(*location))
-            arcade.draw_points(points, DEBUG_ENEMY_SPAWN_COLOR, DEBUG_ENEMY_SPAWN_SIZE)
+            arcade.draw_points(
+                [
+                    grid_pos_to_pixel(*location)
+                    for location in self.possible_enemy_spawns
+                ],
+                DEBUG_ENEMY_SPAWN_COLOR,
+                DEBUG_ENEMY_SPAWN_SIZE,
+            )
 
         # Draw the gui on the screen
         self.gui_camera.use()
-        self.player_gui_sprites.draw()
         self.player_status_text.value = f"Money: {str(self.player.money.value)}"
         self.player_status_text.draw()
-        if self.nearest_item:
-            self.item_text.text = self.nearest_item.item_text
-            self.item_text.draw()
 
     def on_update(self: Game, delta_time: float) -> None:
         """Process movement and game logic.

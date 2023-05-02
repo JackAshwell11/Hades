@@ -14,8 +14,7 @@ from hades.game_objects.base import ComponentType, GameObjectComponent
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from arcade import SpriteList
-
+    from hades.game_objects.base import D
     from hades.textures import TextureType
 
 __all__ = (
@@ -46,7 +45,7 @@ class Graphics(arcade.Sprite, GameObjectComponent):
     """Allows a game object to be drawn on the screen and interact with Arcade.
 
     Attributes:
-        textures: The textures which represent this game object.
+        textures_dict: The textures which represent this game object.
     """
 
     # Class variables
@@ -57,6 +56,7 @@ class Graphics(arcade.Sprite, GameObjectComponent):
         texture_types: set[TextureType],
         *,
         blocking: bool = False,
+        **_: D,
     ) -> None:
         """Initialise the object.
 
@@ -69,18 +69,6 @@ class Graphics(arcade.Sprite, GameObjectComponent):
             texture: texture.value for texture in texture_types
         }
         self.blocking: bool = blocking
-
-    def add_to_spritelist(self: Graphics, spritelist: SpriteList) -> Graphics:
-        """Add the graphics component to a given spritelist.
-
-        Args:
-            spritelist: The arcade spritelist to add the graphics component to.
-
-        Returns:
-            The graphics component.
-        """
-        spritelist.append(self)
-        return self
 
     def __repr__(self: Graphics) -> str:
         """Return a human-readable representation of this object.
@@ -106,6 +94,7 @@ class InstantEffect(GameObjectComponent):
         self: InstantEffect,
         increase: Callable[[int], float],
         level_limit: int,
+        **_: D,
     ) -> None:
         """Initialise the object.
 
@@ -142,7 +131,7 @@ class Inventory(Generic[T], GameObjectComponent):
     # Class variables
     component_type: ComponentType = ComponentType.INVENTORY
 
-    def __init__(self: Inventory[T], width: int, height: int) -> None:
+    def __init__(self: Inventory[T], width: int, height: int, **_: D) -> None:
         """Initialise the object.
 
         Args:
@@ -204,6 +193,7 @@ class StatusEffect(GameObjectComponent):
         increase: Callable[[int], float],
         duration: Callable[[int], float],
         level_limit: int,
+        **_: D,
     ) -> None:
         """Initialise the object.
 
