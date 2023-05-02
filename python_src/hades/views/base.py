@@ -124,7 +124,7 @@ class DisappearingInfoBox(UIMouseFilterMixin):
     def __repr__(self: DisappearingInfoBox) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -147,7 +147,7 @@ class BackButton(arcade.gui.UIFlatButton):
     def __repr__(self: BackButton) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -161,7 +161,7 @@ class BackButton(arcade.gui.UIFlatButton):
 class BaseView(arcade.View):
     """The base class for all views.
 
-    Attributes
+    Attributes:
     ----------
     ui_manager: UIManager
         Manages all the different UI elements for this view.
@@ -224,7 +224,7 @@ class BaseView(arcade.View):
     def __repr__(self: BaseView) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.

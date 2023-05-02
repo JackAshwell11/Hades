@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class Bullet(arcade.SpriteSolidColor):
     """Represents a bullet in the game.
 
-    Attributes
+    Attributes:
     ----------
     start_position: tuple[float, float]
         The starting position of the bullet. This is used to kill the bullet after a
@@ -96,7 +96,7 @@ class Bullet(arcade.SpriteSolidColor):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -147,7 +147,7 @@ class AttackBase(metaclass=ABCMeta):
         target_entity: Entity | None
             The target entity to attack.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             The function is not implemented.
@@ -157,7 +157,7 @@ class AttackBase(metaclass=ABCMeta):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -191,7 +191,7 @@ class RangedAttack(AttackBase):
         target_entity: Entity | None
             The target entity to attack.
 
-        Raises
+        Raises:
         ------
         ValueError
             Target spritelist is invalid or not given.
@@ -239,7 +239,7 @@ class RangedAttack(AttackBase):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -273,7 +273,7 @@ class MeleeAttack(AttackBase):
         target_entity: Entity | None
             The target entity to attack.
 
-        Raises
+        Raises:
         ------
         ValueError
             Target entities is invalid or not given.
@@ -294,7 +294,7 @@ class MeleeAttack(AttackBase):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -328,7 +328,7 @@ class AreaOfEffectAttack(AttackBase):
         target_entity: Entity | None
             The target entity to attack.
 
-        Raises
+        Raises:
         ------
         ValueError
             Target spritelist or target entity is invalid or not given
@@ -371,7 +371,7 @@ class AreaOfEffectAttack(AttackBase):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -402,12 +402,12 @@ def create_attack(
     attack_data: AttackData
         The attack data for this attack.
 
-    Raises
+    Raises:
     ------
     TypeError
         Invalid attack type parameter.
 
-    Returns
+    Returns:
     -------
     AttackBase
         The instantiated attack algorithm.

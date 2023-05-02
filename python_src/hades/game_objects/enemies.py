@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 class Enemy(Entity):
     """Represents a hostile character in the game.
 
-    Attributes
+    Attributes:
     ----------
     movement_ai: EnemyMovementManager
         The movement AI class used for processing the logic needed for the enemy to
@@ -93,7 +93,7 @@ class Enemy(Entity):
     def enemy_data(self) -> EnemyData:
         """Get the enemy data if it exists.
 
-        Returns
+        Returns:
         -------
         EnemyData
             The enemy data.
@@ -107,7 +107,7 @@ class Enemy(Entity):
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialise the enemy's state.
 
-        Returns
+        Returns:
         -------
         dict[EntityAttributeType, EntityAttribute]
             The initialised entity state.
@@ -235,7 +235,7 @@ class Enemy(Entity):
         max_tile_range: int
             The max tile distance that the player can be from the enemy.
 
-        Returns
+        Returns:
         -------
         bool
             Whether the enemy has line of sight with the player or not.
@@ -254,7 +254,7 @@ class Enemy(Entity):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.

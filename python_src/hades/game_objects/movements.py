@@ -32,7 +32,7 @@ class EnemyMovementManager:
     def vector_field(self) -> VectorField:
         """Get the vector field for easy access.
 
-        Returns
+        Returns:
         -------
         VectorField
             The generated vector field.
@@ -46,7 +46,7 @@ class EnemyMovementManager:
     def calculate_vector_field_force(self) -> tuple[float, float]:
         """Calculate the force to apply to an enemy which is using the vector field.
 
-        Returns
+        Returns:
         -------
         tuple[float, float]
             The calculated force to apply to the enemy.
@@ -66,7 +66,7 @@ class EnemyMovementManager:
     def calculate_wander_force() -> tuple[float, float]:
         """Calculate the force to apply to an enemy who is wandering.
 
-        Returns
+        Returns:
         -------
         tuple[float, float]
             The calculated force to apply to the enemy.
