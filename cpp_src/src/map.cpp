@@ -41,13 +41,6 @@ struct MapGenerationConstants {
 // Defines constants for hallway and entity generation
 #define HALLWAY_SIZE 5
 
-// Defines the probabilities for each item
-const std::pair<TileType, double> ITEM_PROBABILITIES[6] = {
-    {TileType::HealthPotion, 0.3}, {TileType::ArmourPotion, 0.3},
-    {TileType::HealthBoostPotion, 0.2}, {TileType::ArmourBoostPotion, 0.1},
-    {TileType::SpeedBoostPotion, 0.05}, {TileType::FireRateBoostPotion, 0.05},
-};
-
 // Defines the constants for the map generation
 const MapGenerationConstants MAP_GENERATION_CONSTANTS = {
     {30, 1.2, 150}, {20, 1.2, 100}, {5, 1.5, 25}, {20, 1.3, 200}, {5, 1.1, 30},
@@ -271,18 +264,12 @@ std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(int level
       grid, random_generator, connections,
       MAP_GENERATION_CONSTANTS.obstacle_count.generate_value(level));
 
-  // Get all the tiles which can support items being placed on them and then
-  // place the player and all the items
-  int item_limit = MAP_GENERATION_CONSTANTS.item_count.generate_value(level);
+  // Place the player and all the items on the tiles which can support items
+  // being placed on them
   std::vector<Point> possible_tiles = collect_positions(grid, TileType::Floor);
   place_tile(grid, random_generator, TileType::Player, possible_tiles);
-  for (std::pair<TileType, double> item : ITEM_PROBABILITIES) {
-    int tile_limit = (int) round((double) (item.second * item_limit));
-    int tiles_placed = 0;
-    while (tiles_placed < tile_limit) {
-      place_tile(grid, random_generator, item.first, possible_tiles);
-      tiles_placed += 1;
-    }
+  for (int item = 0; item < MAP_GENERATION_CONSTANTS.item_count.generate_value(level); item++) {
+    place_tile(grid, random_generator, TileType::Potion, possible_tiles);
   }
 
   // Return the grid and a LevelConstants object

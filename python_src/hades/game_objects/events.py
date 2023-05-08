@@ -10,8 +10,8 @@ if TYPE_CHECKING:
 
 __all__ = (
     "EA",
-    "RA",
     "EventError",
+    "RA",
     "add_event_handler",
     "dispatch_event",
     "get_handlers_for_event_name",

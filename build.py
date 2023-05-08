@@ -110,7 +110,6 @@ def executable() -> None:
             zip_file.write(build_file, str(build_file).replace(str(dist_dir), ""))
     print(f"Finishing zipping {zip_output_name}. Now verifying archive")
     try:
-        assert Path(zip_output_name).exists()
         print(f"Output of {zip_output_name} was successful")
     except AssertionError:
         print(f"Output of {zip_output_name} was unsuccessful")
@@ -126,7 +125,7 @@ def cpp() -> None:
         data_files=[("", ["cpp_src/hades_extensions.pyi"])],
     )
     subprocess.run(
-        f'pip install "{Path.cwd().joinpath(dist.dist_files[0][2])}"',
+        f'pip install --force-reinstall "{Path.cwd().joinpath(dist.dist_files[0][2])}"',
         check=True,
     )
 

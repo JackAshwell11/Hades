@@ -14,12 +14,7 @@ enum class TileType {
   Wall,
   Obstacle,
   Player,
-  HealthPotion,
-  ArmourPotion,
-  HealthBoostPotion,
-  ArmourBoostPotion,
-  SpeedBoostPotion,
-  FireRateBoostPotion,
+  Potion,
 };
 
 // ----- STRUCTURES ------------------------------

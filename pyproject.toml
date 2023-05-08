@@ -29,7 +29,7 @@ black = "23.3.0"
 mypy = "1.2.0"
 nuitka = "1.5.4"
 ordered-set = "4.1.0"
-pre-commit = "3.2.2"
+pre-commit = "3.3.1"
 pylint = "2.17.3"
 pytest = "7.3.1"
 pytest-cov = "4.0.0"
@@ -37,7 +37,7 @@ pytest-icdiff = "0.6"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.7"
-ruff = "0.0.263"
+ruff = "0.0.265"
 ssort = "v0.11.6"
 tox = "4.5.1"
 
@@ -47,9 +47,9 @@ target_version = ["py310"]
 
 [tool.coverage.paths]
 source = [
-    "python_src",
-    ".tox/*/Lib/site-packages",
-    ".tox/*/lib/*/site-packages",
+    "python_src",  # Run coverage on the entire project
+    ".tox/*/Lib/site-packages",  # Make sure the project is being covered on Windows
+    ".tox/*/lib/*/site-packages",  # Make sure the project is being covered on Linux
 ]
 
 [tool.coverage.report]
@@ -62,9 +62,9 @@ exclude_lines = [
 omit = [
     "*/__main__.py",  # This is only used for running the game via the CLI
     "*/extensions/compile.py",  # This is only used for building the C++ extensions
-    "*/game_objects_BAD_ECS/*",
-    "*/game_objects_OLD/*",
-    "*/constants_OLD/*",
+    "*/game_objects_BAD_ECS/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "*/game_objects_OLD/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "*/constants_OLD/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
 ]
 precision = 2
 show_missing = true
@@ -81,10 +81,10 @@ disallow_any_unimported = true
 exclude = [
     "build.py",  # Setuptools is untyped so we need to ignore it
     "compile.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
-    "constants_OLD",  # TEMP
-    "game_objects_BAD_ECS",  # TEMP
-    "game_objects_OLD",  # TEMP
-    "physics.py",  # TEMP
+    "constants_OLD",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "game_objects_BAD_ECS",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "game_objects_OLD",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "physics.py",  # TODO: ONCE PR IS DONE, REMOVE THIS
     "melee_shader.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
     "vector_field",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
     "views",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
@@ -107,20 +107,42 @@ good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
 max-line-length = 88
 
 [tool.pylint."MASTER"]
-ignore = "TEMP-FILES"
+ignore = [
+    "game_objects_BAD_ECS",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "game_objects_OLD",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "constants_OLD",  # TODO: ONCE PR IS DONE, REMOVE THIS
+]
 load-plugins = [
     "pylint.extensions.bad_builtin",  # Disallow the use of deprecated builtin functions
     "pylint.extensions.check_elif",  # Disallow the use of following an else statement with an if
+    "pylint.extensions.code_style",  # Disallow code that reduces code consistency
     "pylint.extensions.comparison_placement",  # Disallow placing the constant on the left of the comparison
     "pylint.extensions.confusing_elif",  # Disallow placing an elif after an indented block (could be hard to understand)
+    "pylint.extensions.consider_refactoring_into_while_condition",
     "pylint.extensions.consider_ternary_expression",  # Disallow spreading multiple assignment statements across if/else blocks
+    "pylint.extensions.dunder",  # Disallow mispelled dunder methods
     "pylint.extensions.emptystring",  # Disallow comparisons to empty strings
+    "pylint.extensions.eq_without_hash",  # Disallow implementing __eq__ without __hash__
     "pylint.extensions.for_any_all",  # Disallow using a for loop to check for a condition and return a bool
+    "pylint.extensions.magic_value",  # Disallow using magic values
+    "pylint.extensions.no_self_use",  # Disallow methods which don't use their bound instance
+    "pylint.extensions.overlapping_exceptions",  # Disallow overlapping exceptions
+    "pylint.extensions.private_import",  # Disallow private imports
+    "pylint.extensions.redefined_loop_name",  # Disallow redefining loop variables
+    "pylint.extensions.redefined_variable_type",  # Disallow redefining variable types
     "pylint.extensions.set_membership",  # Disallow not using sets for membership tests
+    "pylint.extensions.typing",  # Disallow bad typing
 ]
 
 [tool.pylint."MESSAGES CONTROL"]
-enable = "useless-suppression"
+enable = [
+    "bad-inline-option",  # Disallow badly formatted options
+    "deprecated-pragma",  # Disallow deprecated pragrams for renamed options
+    "file-ignored",  # Disallow messages to inform that files won't be checked
+    "use-symbolic-message-instead",  # Disallow messages enabled/disabled by ID
+    "useless-suppression",  # Disallow disabled messages when they aren't triggered
+]
+include-naming-hint = true
 disable = [
     "attribute-defined-outside-init",  # Allow attributes being defined outside __init__ (sometimes this needs to happen)
     "import-error",  # Sometimes pylint can't import a package correctly
@@ -141,12 +163,11 @@ testpaths = ["tests"]
 
 [tool.ruff]
 extend-exclude = [
-    "*vector_field*",
-    "python_src/hades/game_objects_OLD",
-    "python_src/hades/game_objects_BAD_ECS",
+    "*vector_field*",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+    "python_src/hades/game_objects_OLD",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "python_src/hades/game_objects_BAD_ECS",  # TODO: ONCE PR IS DONE, REMOVE THIS
 ]
 extend-ignore = [
-    "S101",  # Allow assert statements (useful for mypy)  # TODO: SEE IF THIS CAN BE REMOVED
     "S311",  # Allow use of the random library
 ]
 format = "grouped"

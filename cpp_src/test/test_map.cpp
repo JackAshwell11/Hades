@@ -224,12 +224,7 @@ TEST_F(Fixtures, TestMapCreateMapCorrect) {
   // Test if a map is correctly generated
   std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_valid = create_map(0, 5);
   ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::Player), 1);
-  ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::HealthPotion), 2);
-  ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::ArmourPotion), 2);
-  ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::HealthBoostPotion), 1);
-  ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::ArmourBoostPotion), 1);
-  ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::SpeedBoostPotion), 0);
-  ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::FireRateBoostPotion), 0);
+  ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::Potion), 5);
   ASSERT_EQ(create_map_valid.second, std::make_tuple(0, 30, 20));
 }
 

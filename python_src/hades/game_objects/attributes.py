@@ -6,12 +6,10 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, TypeVar
 
 # Custom
-from hades.game_objects.base import ComponentType, GameObjectComponent
+from hades.game_objects.base import ComponentData, ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from hades.game_objects.base import D
 
 __all__ = (
     "Armour",
@@ -85,18 +83,15 @@ class EntityAttributeBase(GameObjectComponent):
 
     def __init__(
         self: EntityAttributeBase,
-        *,
-        initial_value: int,
-        level_limit: int = -1,
-        **_: D,
+        component_data: ComponentData,
     ) -> None:
         """Initialise the object.
 
         Args:
-            initial_value: The initial value for the entity attribute
-            level_limit: The limit this entity attribute can be upgraded too if
-                possible.
+            component_data: The data for the components.
         """
+        super().__init__(component_data)
+        initial_value, level_limit = component_data["attributes"][self.component_type]
         self._value: float = initial_value
         self._max_value: float = initial_value if self.maximum else float("inf")
         self._level_limit: int = level_limit

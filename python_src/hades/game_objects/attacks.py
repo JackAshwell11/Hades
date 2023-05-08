@@ -1,7 +1,7 @@
 """Manages the different attack algorithms available."""
 from __future__ import annotations
 
-__all__ = ("RangedAttack", "MeleeAttack", "AreaOfEffectAttack")
+__all__ = ("AreaOfEffectAttack", "MeleeAttack", "RangedAttack")
 
 
 class AreaOfEffectAttack:

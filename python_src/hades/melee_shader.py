@@ -117,7 +117,12 @@ class MeleeShader:
         # can load the wall textures into that framebuffer
         self.walls_framebuffer = self.ctx.framebuffer(
             color_attachments=[
-                self.ctx.texture((self.view.window.width, self.view.window.height)),
+                self.ctx.texture(
+                    (
+                        self.view.window.inventory_width,
+                        self.view.window.inventory_height,
+                    ),
+                ),
             ],
         )
         self.update_collision()

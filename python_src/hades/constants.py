@@ -1,12 +1,17 @@
 """Stores constants relating to the game and its functionality."""
 from __future__ import annotations
 
-# Builtin
 from datetime import datetime
+
+# Builtin
+from enum import Enum, auto
 from pathlib import Path
 
 # Pip
 import arcade
+
+# Custom
+from hades_extensions import TileType
 
 __all__ = (
     "ARMOUR_INDICATOR_BAR_COLOR",
@@ -14,6 +19,7 @@ __all__ = (
     "ARMOUR_REGEN_WAIT",
     "BULLET_VELOCITY",
     "CONSUMABLE_LEVEL_MAX_RANGE",
+    "CONVERT_TILETYPE",
     "DAMPING",
     "DEBUG_ATTACK_DISTANCE",
     "DEBUG_ENEMY_SPAWN_COLOR",
@@ -27,6 +33,7 @@ __all__ = (
     "FACING_LEFT",
     "FACING_RIGHT",
     "GAME_LOGGER",
+    "GameObjectType",
     "HEALTH_INDICATOR_BAR_COLOR",
     "INDICATOR_BAR_BORDER_SIZE",
     "LEVEL_GENERATOR_INTERVAL",
@@ -37,6 +44,17 @@ __all__ = (
     "SPRITE_SIZE",
     "TOTAL_ENEMY_COUNT",
 )
+
+
+# The different types of game objects in the game
+class GameObjectType(Enum):
+    """Stores the different types of game objects that can exist in the game."""
+
+    FLOOR = auto()
+    WALL = auto()
+    PLAYER = auto()
+    ENEMY = auto()
+    POTION = auto()
 
 
 # Create the log directory making sure it exists. Then create the path for the current
@@ -85,6 +103,14 @@ LOGGING_DICT_CONFIG = {
             "propagate": False,
         },
     },
+}
+
+# Conversion mapping from TileType to GameObjectType
+CONVERT_TILETYPE = {
+    TileType.Floor: GameObjectType.FLOOR,
+    TileType.Wall: GameObjectType.WALL,
+    TileType.Player: GameObjectType.PLAYER,
+    TileType.Potion: GameObjectType.POTION,
 }
 
 # Debug constants

@@ -8,21 +8,21 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 import arcade
 
 # Custom
-from hades.constants import SPRITE_SCALE
+from hades.constants import SPRITE_SCALE, GameObjectType
 from hades.game_objects.base import ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from hades.game_objects.base import D
+    from hades.game_objects.base import ComponentData
     from hades.textures import TextureType
 
 __all__ = (
-    "Graphics",
-    "InstantEffect",
+    "HadesSprite",
+    "InstantEffects",
     "Inventory",
     "InventorySpaceError",
-    "StatusEffect",
+    "StatusEffects",
 )
 
 # Define a generic type for the inventory
@@ -41,78 +41,34 @@ class InventorySpaceError(Exception):
         super().__init__(f"The inventory is {'full' if full else 'empty'}.")
 
 
-class Graphics(arcade.Sprite, GameObjectComponent):
-    """Allows a game object to be drawn on the screen and interact with Arcade.
+class InstantEffects(GameObjectComponent):
+    """Allows a game object to provide instant effects."""
 
-    Attributes:
-        textures_dict: The textures which represent this game object.
-    """
+    __slots__ = ("instant_effects", "level_limit")
 
     # Class variables
-    component_type: ComponentType = ComponentType.GRAPHICS
+    component_type: ComponentType = ComponentType.INSTANT_EFFECTS
 
-    def __init__(
-        self: Graphics,
-        texture_types: set[TextureType],
-        *,
-        blocking: bool = False,
-        **_: D,
-    ) -> None:
+    def __init__(self: InstantEffects, component_data: ComponentData) -> None:
         """Initialise the object.
 
         Args:
-            texture_types: The textures that relate to this component.
-            blocking: Whether this component is blocking or not.
+            component_data: The data for the components.
         """
-        super().__init__(scale=SPRITE_SCALE)
-        self.textures_dict: dict[TextureType, arcade.Texture] = {
-            texture: texture.value for texture in texture_types
-        }
-        self.blocking: bool = blocking
-
-    def __repr__(self: Graphics) -> str:
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return (
-            f"<Graphics (Texture count={len(self.textures_dict)})"
-            f" (Blocking={self.blocking})>"
+        super().__init__(component_data)
+        level_limit, instant_effects = component_data["instant_effects"]
+        self.instant_effects: dict[ComponentType, Callable[[int], float]] = (
+            instant_effects
         )
-
-
-class InstantEffect(GameObjectComponent):
-    """Allows a game object to provide an instant effect."""
-
-    __slots__ = ("increase", "level_limit")
-
-    # Class variables
-    component_type: ComponentType = ComponentType.INSTANT_EFFECT
-
-    def __init__(
-        self: InstantEffect,
-        increase: Callable[[int], float],
-        level_limit: int,
-        **_: D,
-    ) -> None:
-        """Initialise the object.
-
-        Args:
-            increase: The exponential lambda function which calculates the next level's
-                value based on the current level.
-            level_limit: The max level that this instant effect can be.
-        """
-        self.increase: Callable[[int], float] = increase
         self.level_limit: int = level_limit
 
-    def __repr__(self: InstantEffect) -> str:
+    def __repr__(self: InstantEffects) -> str:
         """Return a human-readable representation of this object.
 
         Returns:
             The human-readable representation of this object.
         """
-        return f"<InstantEffect (Level limit={self.level_limit})>"
+        return f"<InstantEffects (Level limit={self.level_limit})>"
 
 
 class Inventory(Generic[T], GameObjectComponent):
@@ -131,15 +87,15 @@ class Inventory(Generic[T], GameObjectComponent):
     # Class variables
     component_type: ComponentType = ComponentType.INVENTORY
 
-    def __init__(self: Inventory[T], width: int, height: int, **_: D) -> None:
+    def __init__(self: Inventory[T], component_data: ComponentData) -> None:
         """Initialise the object.
 
         Args:
-            width: The width of the inventory.
-            height: The height of the inventory.
+            component_data: The data for the components.
         """
-        self.width: int = width
-        self.height: int = height
+        super().__init__(component_data)
+        self.width: int = component_data["inventory_width"]
+        self.height: int = component_data["inventory_height"]
         self.inventory: list[T] = []
 
     def add_item_to_inventory(self: Inventory[T], item: T) -> None:
@@ -165,7 +121,7 @@ class Inventory(Generic[T], GameObjectComponent):
             The item at position `index` in the inventory.
 
         Raises:
-            SpaceError: The inventory is empty.
+            InventorySpaceError: The inventory is empty.
         """
         if len(self.inventory) < index:
             raise InventorySpaceError(full=False)
@@ -180,38 +136,73 @@ class Inventory(Generic[T], GameObjectComponent):
         return f"<Inventory (Width={self.width}) (Height={self.height})>"
 
 
-class StatusEffect(GameObjectComponent):
-    """Allows a game object to provide a status effect."""
+class StatusEffects(GameObjectComponent):
+    """Allows a game object to provide status effects."""
 
-    __slots__ = ("increase", "duration", "level_limit")
+    __slots__ = ("status_effects", "level_limit")
 
     # Class variables
-    component_type: ComponentType = ComponentType.STATUS_EFFECT
+    component_type: ComponentType = ComponentType.STATUS_EFFECTS
 
-    def __init__(
-        self: StatusEffect,
-        increase: Callable[[int], float],
-        duration: Callable[[int], float],
-        level_limit: int,
-        **_: D,
-    ) -> None:
+    def __init__(self: StatusEffects, component_data: ComponentData) -> None:
         """Initialise the object.
 
         Args:
-            increase: The exponential lambda function which calculates the next level's
-                value based on the current level.
-            duration: The exponential lambda function which calculates the next level's
-                duration based on the current level.
-            level_limit: The max level that this status effect can be.
+            component_data: The data for the components.
         """
-        self.increase: Callable[[int], float] = increase
-        self.duration: Callable[[int], float] = duration
+        super().__init__(component_data)
+        level_limit, status_effects = component_data["status_effects"]
+        self.status_effects: dict[
+            ComponentType,
+            tuple[Callable[[int], float], Callable[[int], float]],
+        ] = status_effects
         self.level_limit: int = level_limit
 
-    def __repr__(self: StatusEffect) -> str:
+    def __repr__(self: StatusEffects) -> str:
         """Return a human-readable representation of this object.
 
         Returns:
             The human-readable representation of this object.
         """
-        return f"<StatusEffect (Level limit={self.level_limit})>"
+        return f"<StatusEffects (Level limit={self.level_limit})>"
+
+
+class HadesSprite(arcade.Sprite, GameObjectComponent):
+    """Represents a game object in the game.
+
+    Attributes:
+        textures_dict: The textures which represent this game object.
+    """
+
+    def __init__(
+        self: HadesSprite,
+        game_object_type: GameObjectType,
+        position: tuple[int, int],
+        component_data: ComponentData,
+    ) -> None:
+        """Initialise the object.
+
+        Args:
+            game_object_type: The type of the game object.
+            position: The position of the game object on the screen.
+            component_data: The data for the components.
+        """
+        super().__init__(scale=SPRITE_SCALE)
+        self.game_object_type: GameObjectType = game_object_type
+        self.position = position
+        self.textures_dict: dict[TextureType, arcade.Texture] = {
+            texture: texture.value  # type: ignore[misc]
+            for texture in component_data["texture_types"]
+        }
+        self.blocking: bool = component_data["blocking"]
+
+    def __repr__(self: HadesSprite) -> str:
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return (
+            f"<HadesSprite (Game object type={self.game_object_type}) (Texture"
+            f" count={len(self.textures_dict)}) (Blocking={self.blocking})>"
+        )

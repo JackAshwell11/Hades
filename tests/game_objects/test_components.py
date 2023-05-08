@@ -8,10 +8,10 @@ import pytest
 # Custom
 from hades.game_objects.components import (
     Graphics,
-    InstantEffect,
+    InstantEffects,
     Inventory,
     InventorySpaceError,
-    StatusEffect,
+    StatusEffects,
 )
 from hades.textures import TextureType
 
@@ -63,7 +63,7 @@ def test_graphics_add_to_spritelist_already_added() -> None:
 def test_instant_effect_init() -> None:
     """Test that instant effect is initialised correctly."""
     assert (
-        repr(InstantEffect(lambda level: 2**level, 10))
+        repr(InstantEffects(lambda level: 2**level, 10))
         == "<InstantEffect (Level limit=10)>"
     )
 
@@ -118,6 +118,6 @@ def test_inventory_remove_item_from_inventory_large_index() -> None:
 def test_status_effect_init() -> None:
     """Test that status effect is initialised correctly."""
     assert (
-        repr(StatusEffect(lambda level: 2**level, lambda level: 3 * level + 5, 5))
+        repr(StatusEffects(lambda level: 2**level, lambda level: 3 * level + 5, 5))
         == "<StatusEffect (Level limit=5)>"
     )

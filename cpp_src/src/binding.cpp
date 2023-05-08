@@ -37,10 +37,5 @@ PYBIND11_MODULE(hades_extensions, m) {
       .value("Wall", TileType::Wall)
       .value("Obstacle", TileType::Obstacle)
       .value("Player", TileType::Player)
-      .value("HealthPotion", TileType::HealthPotion)
-      .value("ArmourPotion", TileType::ArmourPotion)
-      .value("HealthBoostPotion", TileType::HealthBoostPotion)
-      .value("ArmourBoostPotion", TileType::ArmourBoostPotion)
-      .value("SpeedBoostPotion", TileType::SpeedBoostPotion)
-      .value("FireRateBoostPotion", TileType::FireRateBoostPotion);
+      .value("Potion", TileType::Potion);
 }

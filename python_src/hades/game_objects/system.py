@@ -5,12 +5,13 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+# Custom
+from hades.game_objects.base import ComponentType
+from hades.game_objects.components import HadesSprite
+
 if TYPE_CHECKING:
-    from hades.game_objects.base import (
-        ComponentType,
-        GameObjectComponent,
-        GameObjectConstructor,
-    )
+    from hades.constants import GameObjectType
+    from hades.game_objects.base import ComponentData, GameObjectComponent
 
 __all__ = ("ECS", "NotRegisteredError")
 
@@ -41,55 +42,53 @@ class ECS:
 
     __slots__ = (
         "_next_game_object_id",
-        "_game_objects",
+        "_components",
+        "_ids",
     )
 
     def __init__(self: ECS) -> None:
         """Initialise the object."""
         self._next_game_object_id = 0
-        self._game_objects: defaultdict[
-            int,
-            dict[ComponentType, GameObjectComponent],
-        ] = defaultdict(dict)
+        self._components: dict[int, dict[ComponentType, GameObjectComponent]] = {}
+        self._ids: defaultdict[GameObjectType, set[int]] = defaultdict(set)
 
-    def add_game_object(self: ECS, constructor: GameObjectConstructor) -> int:
+    def add_game_object(
+        self: ECS,
+        game_object_type: GameObjectType,
+        position: tuple[int, int],
+        component_data: ComponentData,
+        *components: type[GameObjectComponent],
+    ) -> HadesSprite:
         """Add a game object to the system with optional components.
 
         Args:
-            constructor: The constructor for the game object with the component's data.
+            game_object_type: The type of the game object.
+            position: The position of the game object on the screen.
+            component_data: The data for the components.
+            *components: The optional list of components for the game object.
 
         Returns:
-            The ID of the created game object.
+            The instantiated sprite object.
 
         Raises:
             NotRegisteredError: The component type `type` is not registered with the
                 ECS.
         """
-        # Create the game object
-        self._game_objects[self._next_game_object_id] = {}
+        # Create the game object and get the constructor for this game object type
+        sprite_obj = HadesSprite(game_object_type, position, component_data)
+        self._components[self._next_game_object_id] = {ComponentType.SPRITE: sprite_obj}
+        self._ids[game_object_type].add(self._next_game_object_id)
 
         # Add the optional components to the system
-        for component in constructor.components:
-            # Check its dependencies are registered in the system
-            for dependency in component.dependencies:
-                if dependency not in self._game_objects[self._next_game_object_id]:
-                    del self._game_objects[self._next_game_object_id]
-                    raise NotRegisteredError(
-                        not_registered_type="component type",
-                        value=dependency,
-                    )
-
-            # Add the component to the system
-            self._game_objects[self._next_game_object_id][
-                component.component_type
-            ] = component(
-                **constructor.component_data,
-            )  # type: ignore[call-type]
+        for component in components:
+            self._components[self._next_game_object_id][component.component_type] = (
+                component(component_data)
+            )
             component.system = self
 
-        # Increment _next_game_object_id and return the current game object ID
+        # Increment _next_game_object_id and return the result
         self._next_game_object_id += 1
-        return self._next_game_object_id - 1
+        return sprite_obj
 
     def remove_game_object(self: ECS, game_object_id: int) -> None:
         """Remove a game object from the system.
@@ -98,17 +97,27 @@ class ECS:
             game_object_id: The game object ID.
 
         Raises:
-            NotRegisteredError: The game object `ID` is not registered with the ECS.
+            NotRegisteredError: The game object/sprite object for the game object ID
+            `ID` is not registered with the ECS.
         """
         # Check if the game object is registered or not
-        if game_object_id not in self._game_objects:
+        if game_object_id not in self._components:
             raise NotRegisteredError(
                 not_registered_type="game object",
                 value=game_object_id,
             )
 
         # Delete the game object from the system
-        del self._game_objects[game_object_id]
+        sprite_obj = self._components[game_object_id][ComponentType.SPRITE]
+        if isinstance(sprite_obj, HadesSprite):
+            sprite_obj.remove_from_sprite_lists()
+            del self._components[game_object_id]
+            self._ids[sprite_obj.game_object_type].remove(game_object_id)
+        else:
+            raise NotRegisteredError(
+                not_registered_type="sprite object for the game object ID",
+                value=game_object_id,
+            )
 
     def get_component_for_game_object(
         self: ECS,
@@ -122,21 +131,21 @@ class ECS:
             component_type: The component type to get.
 
         Returns:
-            The game object's components.
+            The game object's component.
 
         Raises:
             NotRegisteredError: The game object `ID` is not registered with the ECS.
             KeyError: The component type is not part of the game object.
         """
         # Check if the game object ID is registered or not
-        if game_object_id not in self._game_objects:
+        if game_object_id not in self._components:
             raise NotRegisteredError(
                 not_registered_type="game object",
                 value=game_object_id,
             )
 
         # Return the game object's components
-        return self._game_objects[game_object_id][component_type]
+        return self._components[game_object_id][component_type]
 
     def __repr__(self: ECS) -> str:
         """Return a human-readable representation of this object.
@@ -144,4 +153,4 @@ class ECS:
         Returns:
             The human-readable representation of this object.
         """
-        return f"<EntityComponentSystem (Game object count={len(self._game_objects)})>"
+        return f"<EntityComponentSystem (Game object count={len(self._components)})>"

@@ -2,13 +2,11 @@
 from __future__ import annotations
 
 # Builtin
-import contextlib
 import logging
 import math
 import random
-from collections import defaultdict
 from functools import cache
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 # Pip
 import arcade
@@ -29,15 +27,11 @@ from hades.constants import (
     LEVEL_GENERATOR_INTERVAL,
     SPRITE_SIZE,
     TOTAL_ENEMY_COUNT,
+    GameObjectType,
 )
-from hades.game_objects.base import ComponentType
-from hades.game_objects.constructors import CONSUMABLES, FLOOR, PLAYER, WALL
 from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
-
-if TYPE_CHECKING:
-    from hades.game_objects.base import GameObjectConstructor
 
 __all__ = ("Game",)
 
@@ -80,7 +74,6 @@ class Game(arcade.View):
     Attributes:
         level_constants: Holds the constants for the current level.
         system: The entity component system which manages the game objects.
-        ids: A mapping of TileType to a set of game object ids.
         tile_sprites: The sprite list for the tile game objects.
         entity_sprites: The sprite list for the entity game objects.
         game_camera: The camera used for moving the viewport around the screen.
@@ -90,34 +83,6 @@ class Game(arcade.View):
         player_status_text: The text object used for displaying the player's health and
             armour.
     """
-
-    def _initialise_game_object(
-        self: Game,
-        constructor: GameObjectConstructor,
-        tiletype: TileType,
-        spritelist: arcade.SpriteList,
-        position: tuple[int, int],
-    ) -> None:
-        """Initialise a game object into a given spritelist.
-
-        Args:
-            constructor: The game object constructor to initialise.
-            tiletype: The TileType of the constructor.
-            spritelist: The sprite list to add the game object to.
-            position: The position of the game object.
-        """
-        new_id = self.system.add_game_object(constructor)
-        sprite = self.system.get_component_for_game_object(
-            new_id,
-            ComponentType.GRAPHICS,
-        )
-        sprite.position = position
-        self.ids[tiletype].add(new_id)
-        spritelist.append(sprite)  # type: ignore[arg-type]
-
-        # TODO: Not entirely happy with this, improving get_component_for_game_object
-        #  should be main concern and improving initialisation too (idk about
-        #  GameObjectConstructor too)
 
     def __init__(self: Game, level: int) -> None:
         """Initialise the object.
@@ -129,7 +94,6 @@ class Game(arcade.View):
         generation_result = create_map(level)
         self.level_constants: LevelConstants = LevelConstants(*generation_result[1])
         self.system: ECS = ECS()
-        self.ids: dict[TileType, set[int]] = defaultdict(set)
         self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
         self.entity_sprites: arcade.SpriteList = arcade.SpriteList()
         self.game_camera: arcade.Camera = arcade.Camera()
@@ -153,25 +117,28 @@ class Game(arcade.View):
 
             # Determine the type of the tile
             if tile == TileType.Wall:
-                self._initialise_game_object(WALL, tile, self.tile_sprites, position)
+                self.tile_sprites.append(
+                    self.system.add_game_object(GameObjectType.WALL, position),
+                )
                 continue
             if tile == TileType.Player:
-                self._initialise_game_object(
-                    PLAYER,
-                    tile,
-                    self.entity_sprites,
-                    position,
+                self.entity_sprites.append(
+                    self.system.add_game_object(GameObjectType.PLAYER, position),
                 )
-            elif tile in CONSUMABLES:
-                self._initialise_game_object(
-                    CONSUMABLES[tile],
-                    tile,
-                    self.tile_sprites,
-                    position,
+            # TODO: Have converter for TileType to GameObjectType (or modify TileType to have Enemy item)
+            else:
+                self.tile_sprites.append(
+                    self.system.add_game_object(GameObjectType.HEALTH_POTION, position),
                 )
+            # self._initialise_game_object(
+            #     CONSUMABLES[tile],  # noqa: ERA001
+            #     self.tile_sprites,  # noqa: ERA001
+            #     position,  # noqa: ERA001
 
             # Make the tile's backdrop a floor
-            self._initialise_game_object(FLOOR, tile, self.tile_sprites, position)
+            self.tile_sprites.append(
+                self.system.add_game_object(GameObjectType.FLOOR, position),
+            )
 
         # Generate half of the total enemies allowed then schedule their generation
         for _ in range(TOTAL_ENEMY_COUNT // 2):
@@ -180,12 +147,6 @@ class Game(arcade.View):
             self.generate_enemy,
             ENEMY_GENERATE_INTERVAL,
         )
-
-    def on_hide_view(self: Game) -> None:
-        """Process hide view functionality."""
-        self.player.left_pressed = (
-            self.player.right_pressed
-        ) = self.player.up_pressed = self.player.down_pressed = False
 
     def on_draw(self: Game) -> None:
         """Render the screen."""
@@ -223,10 +184,6 @@ class Game(arcade.View):
         Args:
             delta_time: Time interval since the last time the function was called.
         """
-        # Make sure variables needed are valid
-        assert self.physics_engine is not None
-        assert self.player is not None
-
         # Check if the game should end
         # if self.player.health.value <= 0 or not self.enemy_sprites:
 
@@ -245,34 +202,20 @@ class Game(arcade.View):
         # Position the camera
         self.center_camera_on_player()
 
-        # Check for any nearby items
-        item_collision = arcade.check_for_collision_with_list(
-            self.player,
-            self.item_sprites,
-        )
-        if item_collision:
-            # Set nearest_item since we are colliding with an item
-            self.nearest_item = item_collision[0]
-            logger.debug("Grabbed nearest item %r", self.nearest_item)
-        else:
-            # Reset nearest_item since we don't want to activate an item that the player
-            # is not colliding with
-            self.nearest_item = None
-
-    def on_key_press(self: Game, key: int, modifiers: int) -> None:
+    def on_key_press(self: Game, symbol: int, modifiers: int) -> None:
         """Process key press functionality.
 
         Args:
-            key: The key that was hit.
+            symbol: The key that was hit.
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
-        # Make sure variables needed are valid
-        assert self.player is not None
-
-        # Find out what key was pressed
-        logger.debug("Received key press with key %r and modifiers %r", key, modifiers)
-        match key:
+        logger.debug(
+            "Received key press with key %r and modifiers %r",
+            symbol,
+            modifiers,
+        )
+        match symbol:
             case arcade.key.W:
                 self.player.up_pressed = True
             case arcade.key.S:
@@ -281,25 +224,6 @@ class Game(arcade.View):
                 self.player.left_pressed = True
             case arcade.key.D:
                 self.player.right_pressed = True
-            case arcade.key.E:
-                if self.nearest_item:
-                    with contextlib.suppress(AttributeError):
-                        # Nearest item is a collectible. If this raises an error, then
-                        # it is an item
-                        self.nearest_item.item_pick_up()
-            case arcade.key.R:
-                if self.nearest_item:
-                    self.nearest_item.item_use()
-            case arcade.key.C:
-                self.player.current_attack_index = min(
-                    self.player.current_attack_index + 1,
-                    len(self.player.attack_algorithms) - 1,
-                )
-            case arcade.key.Z:
-                self.player.current_attack_index = max(
-                    self.player.current_attack_index - 1,
-                    0,
-                )
 
     def on_key_release(self: Game, key: int, modifiers: int) -> None:
         """Process key release functionality.
@@ -309,10 +233,6 @@ class Game(arcade.View):
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
-        # Make sure variables needed are valid
-        assert self.player is not None
-
-        # Find out what key was released
         logger.debug(
             "Received key release with key %r and modifiers %r",
             key,
@@ -338,10 +258,6 @@ class Game(arcade.View):
             modifiers:Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
-        # Make sure variables needed are valid
-        assert self.player is not None
-
-        # Find out what mouse button was pressed
         logger.debug(
             "%r mouse button was pressed at position (%f, %f) with modifiers %r",
             button,
@@ -350,24 +266,15 @@ class Game(arcade.View):
             modifiers,
         )
         if button is arcade.MOUSE_BUTTON_LEFT:
-            # Make the player attack
             self.player.attack()
 
-    def on_mouse_motion(self: Game, x: int, y: int, dx: int, dy: int) -> None:
+    def on_mouse_motion(self: Game, x: int, y: int, *_: int) -> None:
         """Process mouse motion functionality.
 
         Args:
             x: The x position of the mouse.
             y: The y position of the mouse.
-            dx: The change in x.
-            dy: The change in y.
         """
-        # Make sure variables needed are valid
-        assert self.player is not None
-
-        # Ignore dx and dy due to mypy warning
-        _ = dx, dy
-
         # Calculate the new angle in degrees
         camera_x, camera_y = self.game_camera.position
         vec_x, vec_y = (
@@ -382,11 +289,6 @@ class Game(arcade.View):
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
-        # Make sure variables needed are valid
-        assert self.level_constants is not None
-        assert self.player is not None
-        assert self.physics_engine is not None
-
         # Check if we've reached the max amount of enemies
         if len(self.enemy_sprites) < TOTAL_ENEMY_COUNT:
             # Limit not reached so determine the bounds
@@ -439,10 +341,6 @@ class Game(arcade.View):
 
     def center_camera_on_player(self: Game) -> None:
         """Centers the camera on the player."""
-        # Make sure variables needed are valid
-        assert self.level_constants is not None
-        assert self.player is not None
-
         # Calculate the screen position centered on the player
         screen_center_x = self.player.center_x - (self.game_camera.viewport_width / 2)
         screen_center_y = self.player.center_y - (self.game_camera.viewport_height / 2)
