@@ -137,7 +137,7 @@ class IndicatorBar:
     def background_box(self) -> arcade.SpriteSolidColor:
         """Get the background box object of the indicator bar.
 
-        Returns
+        Returns:
         -------
         arcade.SpriteSolidColor
             The background box object.
@@ -148,7 +148,7 @@ class IndicatorBar:
     def full_box(self) -> arcade.SpriteSolidColor:
         """Get the full box of the indicator bar.
 
-        Returns
+        Returns:
         -------
         arcade.SpriteSolidColor
             The full box object.
@@ -159,7 +159,7 @@ class IndicatorBar:
     def bar_width(self) -> int:
         """Get the width of the bar.
 
-        Returns
+        Returns:
         -------
         int
             The width of the bar.
@@ -170,7 +170,7 @@ class IndicatorBar:
     def bar_height(self) -> int:
         """Get the height of the bar.
 
-        Returns
+        Returns:
         -------
         int
             The height of the bar.
@@ -181,7 +181,7 @@ class IndicatorBar:
     def center_x(self) -> float:
         """Get the x position of the bar.
 
-        Returns
+        Returns:
         -------
         float
             The x position of the bar.
@@ -192,7 +192,7 @@ class IndicatorBar:
     def center_y(self) -> float:
         """Get the y position of the bar.
 
-        Returns
+        Returns:
         -------
         float
             The y position of the bar.
@@ -203,7 +203,7 @@ class IndicatorBar:
     def top(self) -> float:
         """Get the y coordinate of the top of the bar.
 
-        Returns
+        Returns:
         -------
         float
             The y coordinate of the top of the bar.
@@ -214,7 +214,7 @@ class IndicatorBar:
     def bottom(self) -> float:
         """Get the y coordinate of the bottom of the bar.
 
-        Returns
+        Returns:
         -------
         float
             The y coordinate of the bottom of the bar.
@@ -225,7 +225,7 @@ class IndicatorBar:
     def left(self) -> float:
         """Get the x coordinate of the left of the bar.
 
-        Returns
+        Returns:
         -------
         float
             The x coordinate of the left of the bar.
@@ -236,7 +236,7 @@ class IndicatorBar:
     def right(self) -> float:
         """Get the x coordinate of the right of the bar.
 
-        Returns
+        Returns:
         -------
         float
             The x coordinate of the right of the bar.
@@ -247,7 +247,7 @@ class IndicatorBar:
     def fullness(self) -> float:
         """Get the fullness of the bar.
 
-        Returns
+        Returns:
         -------
         float
             The fullness of the bar.
@@ -263,15 +263,16 @@ class IndicatorBar:
         new_fullness: float
             The new fullness of the bar
 
-        Raises
+        Raises:
         ------
         ValueError
             The fullness must be between 0.0 and 1.0.
         """
         # Check if new_fullness if valid
         if new_fullness < 0.0 or new_fullness > 1.0:
+            msg = f"Got {new_fullness}, but fullness must be between 0.0 and 1.0."
             raise ValueError(
-                f"Got {new_fullness}, but fullness must be between 0.0 and 1.0.",
+                msg,
             )
 
         # Set the size of the bar
@@ -289,7 +290,7 @@ class IndicatorBar:
     def position(self) -> tuple[float, float]:
         """Get the current position of the bar.
 
-        Returns
+        Returns:
         -------
         tuple[float, float]
             The current position of the bar.
@@ -318,7 +319,7 @@ class IndicatorBar:
     def scale(self) -> float:
         """Get the scale of the bar.
 
-        Returns
+        Returns:
         -------
         float
             The scale of the bar.
@@ -343,7 +344,7 @@ class IndicatorBar:
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -354,7 +355,7 @@ class IndicatorBar:
 class GameObject(arcade.Sprite):
     """The base class for all game objects.
 
-    Attributes
+    Attributes:
     ----------
     center_x: float
         The x position of the object on the screen.
@@ -389,7 +390,7 @@ class GameObject(arcade.Sprite):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -400,7 +401,7 @@ class GameObject(arcade.Sprite):
 class Entity(GameObject, metaclass=ABCMeta):
     """Represents an entity in the game.
 
-    Attributes
+    Attributes:
     ----------
     entity_state: dict[EntityAttributeType, EntityAttribute]
         The entity's state which manages all the entity's attributes.
@@ -427,12 +428,12 @@ class Entity(GameObject, metaclass=ABCMeta):
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialise the entity's state dict.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             The function is not implemented.
 
-        Returns
+        Returns:
         -------
         dict[EntityAttributeType, EntityAttribute]
             The initialised entity state.
@@ -482,7 +483,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def entity_data(self) -> EntityData:
         """Get the general entity data.
 
-        Returns
+        Returns:
         -------
         EntityData
             The general entity data.
@@ -493,7 +494,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def attacks(self) -> dict[AttackAlgorithmType, AttackData]:
         """Get the entity's attacks.
 
-        Returns
+        Returns:
         -------
         dict[AttackAlgorithmType, AttackData]
             The entity's attacks.
@@ -504,7 +505,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def attribute_data(self) -> dict[EntityAttributeType, EntityAttributeData]:
         """Get the entity's attribute data.
 
-        Returns
+        Returns:
         -------
         dict[EntityAttributeType, EntityAttributeData]
             The entity's attribute data.
@@ -515,7 +516,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def current_attack(self) -> AttackBase:
         """Get the currently selected attack algorithm.
 
-        Returns
+        Returns:
         -------
         AttackBase
             The currently selected attack algorithm.
@@ -526,7 +527,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def physics(self) -> PhysicsEngine:
         """Get the entity's physics engine.
 
-        Returns
+        Returns:
         -------
         PhysicsEngine
             The entity's physics engine
@@ -537,7 +538,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def health(self) -> EntityAttribute:
         """Get the entity's health.
 
-        Returns
+        Returns:
         -------
         EntityAttribute
             The entity's health
@@ -548,7 +549,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def armour(self) -> EntityAttribute:
         """Get the entity's armour.
 
-        Returns
+        Returns:
         -------
         EntityAttribute
             The entity's armour.
@@ -559,7 +560,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def max_velocity(self) -> EntityAttribute:
         """Get the entity's max velocity.
 
-        Returns
+        Returns:
         -------
         EntityAttribute
             The entity's max velocity.
@@ -570,7 +571,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def armour_regen_cooldown(self) -> EntityAttribute:
         """Get the entity's armour regen cooldown.
 
-        Returns
+        Returns:
         -------
         EntityAttribute
             The entity's armour regen cooldown.
@@ -581,7 +582,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def fire_rate_penalty(self) -> EntityAttribute:
         """Get the entity's fire rate penalty.
 
-        Returns
+        Returns:
         -------
         EntityAttribute
             The entity's fire rate penalty.
@@ -706,7 +707,7 @@ class Entity(GameObject, metaclass=ABCMeta):
         delta_time: float
             Time interval since the last time the function was called.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             The function is not implemented.
@@ -722,7 +723,7 @@ class Entity(GameObject, metaclass=ABCMeta):
         delta_time: float
             Time interval since the last time the function was called.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             The function is not implemented.
@@ -733,7 +734,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def attack(self) -> None:
         """Run the entity's current attack algorithm.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             The function is not implemented.
@@ -743,7 +744,7 @@ class Entity(GameObject, metaclass=ABCMeta):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -756,7 +757,7 @@ class Tile(GameObject):
 
     This should not be instantiated, instead subclass it and override its methods.
 
-    Attributes
+    Attributes:
     ----------
     blocking: bool
         Whether the tile blocks the player or not.
@@ -797,7 +798,7 @@ class Tile(GameObject):
     def player(self) -> Player:
         """Get the player object for ease of access.
 
-        Returns
+        Returns:
         -------
         Player
             The player object.
@@ -811,12 +812,12 @@ class Tile(GameObject):
     def item_use(self) -> bool:
         """Override this to add item use functionality.
 
-        Returns
+        Returns:
         -------
         bool
             Whether the item use was successful or not.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             The function is not implemented.
@@ -826,12 +827,12 @@ class Tile(GameObject):
     def item_pick_up(self) -> bool:
         """Override this to add item pick up functionality.
 
-        Returns
+        Returns:
         -------
         bool
             Whether the collectible pickup was successful or not.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             The function is not implemented.
@@ -841,7 +842,7 @@ class Tile(GameObject):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -861,7 +862,7 @@ class CollectibleTile(Tile, metaclass=ABCMeta):
     def item_pick_up(self) -> bool:
         """Process item pick up functionality.
 
-        Returns
+        Returns:
         -------
         bool
             Whether the collectible pickup was successful or not.
@@ -881,7 +882,7 @@ class CollectibleTile(Tile, metaclass=ABCMeta):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.

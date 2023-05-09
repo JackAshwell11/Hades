@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 class Player(Entity):
     """Represents the player character in the game.
 
-    Attributes
+    Attributes:
     ----------
     melee_shader: MeleeShader
         The OpenGL shader used to find and attack any enemies within a specific distance
@@ -131,7 +131,7 @@ class Player(Entity):
     def player_data(self) -> PlayerData:
         """Get the player data if it exists.
 
-        Returns
+        Returns:
         -------
         PlayerData
             The player data.
@@ -146,7 +146,7 @@ class Player(Entity):
     def money(self) -> EntityAttribute:
         """Get the player's money.
 
-        Returns
+        Returns:
         -------
         EntityAttribute
             The player's money
@@ -156,7 +156,7 @@ class Player(Entity):
     def _initialise_entity_state(self) -> dict[EntityAttributeType, EntityAttribute]:
         """Initialise the player's state.
 
-        Returns
+        Returns:
         -------
         dict[EntityAttributeType, EntityAttribute]
             The initialised entity state.
@@ -284,7 +284,7 @@ class Player(Entity):
         item: CollectibleTile
             The item to add to the player's inventory.
 
-        Returns
+        Returns:
         -------
         bool
             Whether the add was successful or not.
@@ -307,7 +307,7 @@ class Player(Entity):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
