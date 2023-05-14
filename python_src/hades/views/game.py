@@ -3,32 +3,45 @@ from __future__ import annotations
 
 # Builtin
 import logging
-import math
-import random
-from functools import cache
 from typing import NamedTuple
 
 # Pip
-import arcade
-import pyglet.math
+from arcade import (
+    MOUSE_BUTTON_LEFT,
+    Camera,
+    SpriteList,
+    Text,
+    View,
+    color,
+    draw_points,
+    get_sprites_at_point,
+    key,
+    schedule,
+)
 from hades_extensions import TileType, create_map
 
 # Custom
 from hades.constants import (
-    CONSUMABLE_LEVEL_MAX_RANGE,
     DAMPING,
     DEBUG_ENEMY_SPAWN_COLOR,
     DEBUG_ENEMY_SPAWN_SIZE,
     DEBUG_GAME,
     ENEMY_GENERATE_INTERVAL,
     ENEMY_RETRY_COUNT,
-    FACING_LEFT,
-    FACING_RIGHT,
-    LEVEL_GENERATOR_INTERVAL,
     SPRITE_SIZE,
     TOTAL_ENEMY_COUNT,
     GameObjectType,
 )
+from hades.game_objects.base import ComponentType
+from hades.game_objects.constructors import (
+    ENEMY,
+    FLOOR,
+    PLAYER,
+    POTION,
+    WALL,
+    GameObjectConstructor,
+)
+from hades.game_objects.sprite import HadesSprite
 from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
@@ -39,28 +52,13 @@ __all__ = ("Game",)
 logger = logging.getLogger(__name__)
 
 
-@cache
-def get_upper_bound(level: int) -> int:
-    """Get the upper bound for a given level.
-
-    Args:
-        level: The level to get the upper bound for.
-
-    Returns:
-        The upper bound.
-    """
-    return (level // LEVEL_GENERATOR_INTERVAL) + 1
-
-
 class LevelConstants(NamedTuple):
     """Holds the constants for a specific level.
 
-    level: int
-        The level of this game.
-    width: int
-        The width of the game map.
-    height: int
-        The height of the game map.
+    Args:
+        level: The level of this game.
+        width: The width of the game map.
+        height: The height of the game map.
     """
 
     level: int
@@ -68,21 +66,76 @@ class LevelConstants(NamedTuple):
     height: int
 
 
-class Game(arcade.View):
+class GameObject(NamedTuple):
+    """Holds the game object ID and sprite object for a game object.
+
+    Args:
+        game_object_id: The game object ID which represents this game object.
+        sprite_object: The sprite object that represents this game object.
+    """
+
+    game_object_id: int
+    sprite_object: HadesSprite
+
+
+class Game(View):
     """Manages the game and its actions.
 
     Attributes:
         level_constants: Holds the constants for the current level.
         system: The entity component system which manages the game objects.
+        ids: The dictionary which stores the IDs and sprite objects for each game object
+        type.
         tile_sprites: The sprite list for the tile game objects.
         entity_sprites: The sprite list for the entity game objects.
+        physics_engine: The physics engine which processes wall collision.
         game_camera: The camera used for moving the viewport around the screen.
         gui_camera: The camera used for visualising the GUI elements.
-        physics_engine: The physics engine which processes wall collision.
         possible_enemy_spawns: A list of possible positions that enemies can spawn in.
         player_status_text: The text object used for displaying the player's health and
             armour.
     """
+
+    def _initialise_game_object(
+        self: Game,
+        constructor: GameObjectConstructor,
+        sprite_list: SpriteList,
+        position: tuple[int, int],
+        *,
+        single: bool = False,
+    ) -> HadesSprite:
+        """Initialise a game object from a constructor into the ECS.
+
+        Args:
+            constructor: The game object constructor to initialise.
+            sprite_list: The sprite list to add the sprite object too.
+            position: TThe position of the game object on the screen.
+            single: Whether the game object will be the only game object of its type or
+            not.
+
+        Returns:
+            The initialised sprite object.
+        """
+        game_object = GameObject(
+            self.system.add_game_object(
+                constructor.component_data,
+                *constructor.components,
+            ),
+            HadesSprite(
+                constructor.game_object_type,
+                position,
+                constructor.texture_types,
+                blocking=constructor.blocking,
+            ),
+        )
+        sprite_list.append(game_object.sprite_object)
+        if single:
+            self.ids[constructor.game_object_type] = game_object
+        elif constructor.game_object_type not in self.ids:
+            self.ids[constructor.game_object_type] = [game_object]
+        else:
+            self.ids[constructor.game_object_type].append(game_object)
+        return game_object.sprite_object
 
     def __init__(self: Game, level: int) -> None:
         """Initialise the object.
@@ -94,13 +147,16 @@ class Game(arcade.View):
         generation_result = create_map(level)
         self.level_constants: LevelConstants = LevelConstants(*generation_result[1])
         self.system: ECS = ECS()
-        self.tile_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.entity_sprites: arcade.SpriteList = arcade.SpriteList()
-        self.game_camera: arcade.Camera = arcade.Camera()
-        self.gui_camera: arcade.Camera = arcade.Camera()
+        self.ids: dict[GameObjectType, GameObject | list[GameObject]] = {}
+        self.tile_sprites: SpriteList = SpriteList()
+        self.entity_sprites: SpriteList = SpriteList()
         self.physics_engine: PhysicsEngine = PhysicsEngine(DAMPING)
-        self.possible_enemy_spawns: list[tuple[int, int]] = []
-        self.player_status_text: arcade.Text = arcade.Text(
+        self.game_camera: Camera = Camera()
+        self.gui_camera: Camera = Camera()
+        self.possible_enemy_spawns: set[tuple[int, int]] = set()
+        self.upper_camera_x: float = -1
+        self.upper_camera_y: float = -1
+        self.player_status_text: Text = Text(
             "Money: 0",
             10,
             10,
@@ -117,33 +173,38 @@ class Game(arcade.View):
 
             # Determine the type of the tile
             if tile == TileType.Wall:
-                self.tile_sprites.append(
-                    self.system.add_game_object(GameObjectType.WALL, position),
-                )
-                continue
-            if tile == TileType.Player:
-                self.entity_sprites.append(
-                    self.system.add_game_object(GameObjectType.PLAYER, position),
-                )
-            # TODO: Have converter for TileType to GameObjectType (or modify TileType to have Enemy item)
+                self._initialise_game_object(WALL, self.tile_sprites, position)
             else:
-                self.tile_sprites.append(
-                    self.system.add_game_object(GameObjectType.HEALTH_POTION, position),
-                )
-            # self._initialise_game_object(
-            #     CONSUMABLES[tile],  # noqa: ERA001
-            #     self.tile_sprites,  # noqa: ERA001
-            #     position,  # noqa: ERA001
+                if tile == TileType.Player:
+                    self._initialise_game_object(
+                        PLAYER,
+                        self.entity_sprites,
+                        position,
+                        single=True,
+                    )
+                else:
+                    self._initialise_game_object(POTION, self.tile_sprites, position)
 
-            # Make the tile's backdrop a floor
-            self.tile_sprites.append(
-                self.system.add_game_object(GameObjectType.FLOOR, position),
-            )
+                # Make the game object's backdrop a floor
+                self._initialise_game_object(FLOOR, self.tile_sprites, position)
+                self.possible_enemy_spawns.add(position)
+                # TODO: Properly get possible_enemy_spawns
+
+        # Calculate upper_camera_x and upper_camera_y
+        half_sprite_size = SPRITE_SIZE / 2
+        screen_width, screen_height = grid_pos_to_pixel(
+            self.level_constants.width,
+            self.level_constants.height,
+        )
+        self.upper_camera_x, self.upper_camera_y = (
+            screen_width - self.game_camera.viewport_width - half_sprite_size,
+            screen_height - self.game_camera.viewport_height - half_sprite_size,
+        )
 
         # Generate half of the total enemies allowed then schedule their generation
         for _ in range(TOTAL_ENEMY_COUNT // 2):
             self.generate_enemy()
-        arcade.schedule(
+        schedule(
             self.generate_enemy,
             ENEMY_GENERATE_INTERVAL,
         )
@@ -152,7 +213,7 @@ class Game(arcade.View):
         """Render the screen."""
         # Clear the screen and set the background color
         self.clear()
-        self.window.background_color = arcade.color.BLACK
+        self.window.background_color = color.BLACK
 
         # Activate our game camera
         self.game_camera.use()
@@ -164,7 +225,7 @@ class Game(arcade.View):
         # Draw the stuff needed for the debug mode
         if DEBUG_GAME:
             # Draw the enemy spawn locations
-            arcade.draw_points(
+            draw_points(
                 [
                     grid_pos_to_pixel(*location)
                     for location in self.possible_enemy_spawns
@@ -175,7 +236,12 @@ class Game(arcade.View):
 
         # Draw the gui on the screen
         self.gui_camera.use()
-        self.player_status_text.value = f"Money: {str(self.player.money.value)}"
+        self.player_status_text.value = "Money: " + str(
+            self.system.get_component_for_game_object(
+                self.ids[GameObjectType.PLAYER][0][0],
+                ComponentType.MONEY,
+            ).value,
+        )
         self.player_status_text.draw()
 
     def on_update(self: Game, delta_time: float) -> None:
@@ -216,36 +282,36 @@ class Game(arcade.View):
             modifiers,
         )
         match symbol:
-            case arcade.key.W:
+            case key.W:
                 self.player.up_pressed = True
-            case arcade.key.S:
+            case key.S:
                 self.player.down_pressed = True
-            case arcade.key.A:
+            case key.A:
                 self.player.left_pressed = True
-            case arcade.key.D:
+            case key.D:
                 self.player.right_pressed = True
 
-    def on_key_release(self: Game, key: int, modifiers: int) -> None:
+    def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.
 
         Args:
-            key: The key that was hit.
+            symbol: The key that was hit.
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
         logger.debug(
             "Received key release with key %r and modifiers %r",
-            key,
+            symbol,
             modifiers,
         )
-        match key:
-            case arcade.key.W:
+        match symbol:
+            case key.W:
                 self.player.up_pressed = False
-            case arcade.key.S:
+            case key.S:
                 self.player.down_pressed = False
-            case arcade.key.A:
+            case key.A:
                 self.player.left_pressed = False
-            case arcade.key.D:
+            case key.D:
                 self.player.right_pressed = False
 
     def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
@@ -265,114 +331,48 @@ class Game(arcade.View):
             y,
             modifiers,
         )
-        if button is arcade.MOUSE_BUTTON_LEFT:
+        if button is MOUSE_BUTTON_LEFT:
             self.player.attack()
-
-    def on_mouse_motion(self: Game, x: int, y: int, *_: int) -> None:
-        """Process mouse motion functionality.
-
-        Args:
-            x: The x position of the mouse.
-            y: The y position of the mouse.
-        """
-        # Calculate the new angle in degrees
-        camera_x, camera_y = self.game_camera.position
-        vec_x, vec_y = (
-            x - self.player.center_x + camera_x,
-            y - self.player.center_y + camera_y,
-        )
-        angle = math.degrees(math.atan2(vec_y, vec_x))
-        if angle < 0:
-            angle += 360
-        self.player.direction = angle
-        self.player.facing = FACING_LEFT if 90 <= angle <= 270 else FACING_RIGHT
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
-        # Check if we've reached the max amount of enemies
-        if len(self.enemy_sprites) < TOTAL_ENEMY_COUNT:
-            # Limit not reached so determine the bounds
-            enemy_upper_bound = get_upper_bound(self.level_constants.level)
-            enemy_lower_bound = (
-                1
-                if enemy_upper_bound - 1 < CONSUMABLE_LEVEL_MAX_RANGE
-                else enemy_upper_bound - CONSUMABLE_LEVEL_MAX_RANGE
-            )
-            logger.debug(
-                "Generating enemy with lower bound %d and upper bound %d",
-                enemy_lower_bound,
-                enemy_upper_bound,
-            )
+        if len(self.ids.get(GameObjectType.ENEMY, [])) >= TOTAL_ENEMY_COUNT:
+            return
 
-            # Attempt to generate an enemy retrying ENEMY_RETRY_COUNT times if it fails
-            enemy = Enemy(
-                self,
-                0,
-                0,
-                ENEMY1,
-                min(
-                    random.randint(enemy_lower_bound, enemy_upper_bound),
-                    ENEMY1.entity_data.level_limit,
-                ),
-            )
-            tries = ENEMY_RETRY_COUNT
-            while tries != 0:
-                # Pick a random position for the enemy and check if they collide with
-                # other enemies or the player
-                enemy.position = grid_pos_to_pixel(*self.possible_enemy_spawns.pop())
-                if enemy.collides_with_list(
-                    self.enemy_sprites,
-                ) or enemy.collides_with_sprite(self.player):
-                    logger.debug(
-                        "%r encountered a collision during generation. Retrying",
-                        enemy,
-                    )
-                    tries -= 1
-                    continue
-
-                # Enemy position is good so add them to the spritelist and stop
-                self.physics_engine.add_enemy(enemy)
-                self.enemy_sprites.append(enemy)
-                logger.debug("%d has been successfully generated")
-                break
-
-            # Enemy has failed to generate
-            logger.debug("%r failed to be generated", enemy)
+        # Enemy limit not reached so attempt to initialise a new enemy game object
+        # ENEMY_RETRY_COUNT times
+        for _ in range(ENEMY_RETRY_COUNT):
+            position = self.possible_enemy_spawns.pop()
+            if not get_sprites_at_point(
+                grid_pos_to_pixel(*position),
+                self.entity_sprites,
+            ):
+                self._initialise_game_object(ENEMY, self.entity_sprites, position)
+                return
 
     def center_camera_on_player(self: Game) -> None:
         """Centers the camera on the player."""
-        # Calculate the screen position centered on the player
-        screen_center_x = self.player.center_x - (self.game_camera.viewport_width / 2)
-        screen_center_y = self.player.center_y - (self.game_camera.viewport_height / 2)
-
-        # Calculate the maximum width and height of the game map
-        upper_x, upper_y = grid_pos_to_pixel(
-            self.level_constants.width,
-            self.level_constants.height,
-        )
-
-        # Calculate the maximum width and height the camera can be
-        half_sprite_size = SPRITE_SIZE / 2
-        upper_camera_x, upper_camera_y = (
-            upper_x - self.game_camera.viewport_width - half_sprite_size,
-            upper_y - self.game_camera.viewport_height - half_sprite_size,
-        )
+        # Check if the camera is already centered on the player
+        player_sprite = self.ids[GameObjectType.PLAYER].sprite_object
+        if self.game_camera.position == player_sprite.position:
+            return
 
         # Make sure the camera doesn't extend beyond the boundaries
-        if screen_center_x < 0:
-            screen_center_x = 0
-        elif screen_center_x > upper_camera_x:
-            screen_center_x = upper_camera_x
-        if screen_center_y < 0:
-            screen_center_y = 0
-        elif screen_center_y > upper_camera_y:
-            screen_center_y = upper_camera_y
-        new_position = pyglet.math.Vec2(screen_center_x, screen_center_y)
+        screen_center = (
+            min(
+                max(player_sprite.center_x - (self.game_camera.viewport_width / 2), 0),
+                self.upper_camera_x,
+            ),
+            min(
+                max(player_sprite.center_y - (self.game_camera.viewport_height / 2), 0),
+                self.upper_camera_y,
+            ),
+        )
 
-        # Check if the camera position has changed
-        if self.game_camera.position != new_position:
-            # Move the camera to the new position
-            self.game_camera.move_to(new_position)
+        # Check if the camera position has changed. If so, move the camera to the new
+        # position
+        if self.game_camera.position != screen_center:
+            self.game_camera.move_to(screen_center)
 
     def __repr__(self: Game) -> str:
         """Return a human-readable representation of this object.
@@ -381,3 +381,6 @@ class Game(arcade.View):
             The human-readable representation of this object.
         """
         return f"<Game (Current window={self.window})>"
+
+
+# TODO: Determine how this view will interact with the ECS and events

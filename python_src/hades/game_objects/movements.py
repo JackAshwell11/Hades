@@ -18,8 +18,6 @@ class KeyboardMovement(GameObjectComponent):
     """Allows a game object's movement to be controlled by the keyboard."""
 
     __slots__ = (
-        "sprite",
-        "physics_engine",
         "up_pressed",
         "down_pressed",
         "left_pressed",

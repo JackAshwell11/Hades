@@ -129,6 +129,9 @@ def cpp() -> None:
         check=True,
     )
 
+    # TODO: Add py.typed to this package + ensure that it is within a hades_extension
+    #  package inside of site-packages
+
 
 def build(**_: KW) -> None:
     """Allow Poetry to automatically build the C++ extensions upon installation."""

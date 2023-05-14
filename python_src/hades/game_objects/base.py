@@ -5,9 +5,6 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import TYPE_CHECKING, TypedDict
 
-# Custom
-from hades.textures import TextureType
-
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -22,7 +19,7 @@ __all__ = (
 )
 
 # Define a generic type for the kwargs parameter
-D = int | str | bool | set[TextureType]
+D = int | str | bool
 
 
 class ComponentType(Enum):
@@ -37,7 +34,6 @@ class ComponentType(Enum):
     INVENTORY = auto()
     MONEY = auto()
     MOVEMENT_FORCE = auto()
-    SPRITE = auto()
     STATUS_EFFECTS = auto()
     VIEW_DISTANCE = auto()
 
@@ -53,15 +49,12 @@ class ComponentData(TypedDict, total=False):
     """Holds the data needed to initialise the components."""
 
     attributes: dict[ComponentType, tuple[int, int]]
-    blocking: bool
-    inventory_height: int
     instant_effects: tuple[int, dict[ComponentType, Callable[[int], float]]]
+    inventory: tuple[int, int]
     status_effects: tuple[
         int,
         dict[ComponentType, tuple[Callable[[int], float], Callable[[int], float]]],
     ]
-    texture_types: set[TextureType]
-    inventory_width: int
 
 
 class GameObjectComponent:

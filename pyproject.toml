@@ -235,6 +235,7 @@ src = ["python_src"]
 ]
 "*test_*" = [
     "PLR2004",  # Ignore pylint-refactor magic number rule for the tests
+    "S101",  # Ignore flake8-bandit assert rule for the tests
 ]
 
 [tool.ruff.pydocstyle]

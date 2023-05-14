@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 
 # Pip
-import arcade
+from arcade import Texture, load_texture, load_texture_pair
 
 # Custom
 from hades.constants import SPRITE_SIZE
@@ -38,7 +38,7 @@ class BiggerThanError(Exception):
         super().__init__(f"The input must be bigger than or equal to {min_value}.")
 
 
-def load_moving_texture(texture: str) -> tuple[arcade.Texture, arcade.Texture]:
+def load_moving_texture(texture: str) -> tuple[Texture, Texture]:
     """Load a moving texture into Arcade.
 
     Args:
@@ -47,10 +47,10 @@ def load_moving_texture(texture: str) -> tuple[arcade.Texture, arcade.Texture]:
     Returns:
         The loaded moving texture.
     """
-    return arcade.load_texture_pair(texture_path.joinpath(texture))
+    return load_texture_pair(texture_path.joinpath(texture))
 
 
-def load_non_moving_texture(texture: str) -> arcade.Texture:
+def load_non_moving_texture(texture: str) -> Texture:
     """Load a non-moving texture into Arcade.
 
     Args:
@@ -60,7 +60,7 @@ def load_non_moving_texture(texture: str) -> arcade.Texture:
     Returns:
         The loaded non-moving texture.
     """
-    return arcade.load_texture(texture_path.joinpath(texture))
+    return load_texture(texture_path.joinpath(texture))
 
 
 class TextureType(Enum):

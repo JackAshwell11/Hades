@@ -1,17 +1,13 @@
 """Stores constants relating to the game and its functionality."""
 from __future__ import annotations
 
-from datetime import datetime
-
 # Builtin
+from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
 
 # Pip
 import arcade
-
-# Custom
-from hades_extensions import TileType
 
 __all__ = (
     "ARMOUR_INDICATOR_BAR_COLOR",
@@ -19,7 +15,6 @@ __all__ = (
     "ARMOUR_REGEN_WAIT",
     "BULLET_VELOCITY",
     "CONSUMABLE_LEVEL_MAX_RANGE",
-    "CONVERT_TILETYPE",
     "DAMPING",
     "DEBUG_ATTACK_DISTANCE",
     "DEBUG_ENEMY_SPAWN_COLOR",
@@ -103,14 +98,6 @@ LOGGING_DICT_CONFIG = {
             "propagate": False,
         },
     },
-}
-
-# Conversion mapping from TileType to GameObjectType
-CONVERT_TILETYPE = {
-    TileType.Floor: GameObjectType.FLOOR,
-    TileType.Wall: GameObjectType.WALL,
-    TileType.Player: GameObjectType.PLAYER,
-    TileType.Potion: GameObjectType.POTION,
 }
 
 # Debug constants
