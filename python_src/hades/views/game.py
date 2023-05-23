@@ -55,7 +55,7 @@ def get_upper_bound(level: int) -> int:
     level: int
         The level to get the upper bound for.
 
-    Returns
+    Returns:
     -------
     int
         The upper bound.
@@ -82,7 +82,7 @@ class LevelConstants(NamedTuple):
 class Game(arcade.View):
     """Manages the game and its actions.
 
-    Attributes
+    Attributes:
     ----------
     level_constants: LevelConstants | None
         Holds the constants for the current level.
@@ -340,7 +340,7 @@ class Game(arcade.View):
         # Draw the gui on the screen
         self.gui_camera.use()
         self.player_gui_sprites.draw()
-        self.player_status_text.value = f"Money: {str(self.player.money.value)}"
+        self.player_status_text.value = f"Money: {self.player.money.value!s}"
         self.player_status_text.draw()
         if self.nearest_item:
             self.item_text.text = self.nearest_item.item_text
@@ -626,7 +626,7 @@ class Game(arcade.View):
     def __repr__(self: Game) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.

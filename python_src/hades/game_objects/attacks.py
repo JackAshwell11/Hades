@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class Bullet(arcade.SpriteSolidColor):
     """Represents a bullet in the game.
 
-    Attributes
+    Attributes:
     ----------
     start_position: tuple[float, float]
         The starting position of the bullet. This is used to kill the bullet after a
@@ -96,7 +96,7 @@ class Bullet(arcade.SpriteSolidColor):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -147,7 +147,7 @@ class AttackBase(metaclass=ABCMeta):
         target_entity: Entity | None
             The target entity to attack.
 
-        Raises
+        Raises:
         ------
         NotImplementedError
             The function is not implemented.
@@ -157,7 +157,7 @@ class AttackBase(metaclass=ABCMeta):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -191,7 +191,7 @@ class RangedAttack(AttackBase):
         target_entity: Entity | None
             The target entity to attack.
 
-        Raises
+        Raises:
         ------
         ValueError
             Target spritelist is invalid or not given.
@@ -201,7 +201,8 @@ class RangedAttack(AttackBase):
 
         # Make sure the needed parameters are valid
         if target_spritelist is None:
-            raise ValueError("Target spritelist is invalid or not given")
+            msg = "Target spritelist is invalid or not given"
+            raise ValueError(msg)
         logger.info("Entity %r is performing a ranged attack", self.owner)
 
         # Reset the time counter
@@ -239,7 +240,7 @@ class RangedAttack(AttackBase):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -273,14 +274,15 @@ class MeleeAttack(AttackBase):
         target_entity: Entity | None
             The target entity to attack.
 
-        Raises
+        Raises:
         ------
         ValueError
             Target entities is invalid or not given.
         """
         # Make sure the needed parameters are valid
         if target_entities is None:
-            raise ValueError("Target entities is invalid or not given")
+            msg = "Target entities is invalid or not given"
+            raise ValueError(msg)
         logger.info(
             "Entity %r is performing a melee attack on targets %r",
             self.owner,
@@ -294,7 +296,7 @@ class MeleeAttack(AttackBase):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -328,15 +330,16 @@ class AreaOfEffectAttack(AttackBase):
         target_entity: Entity | None
             The target entity to attack.
 
-        Raises
+        Raises:
         ------
         ValueError
             Target spritelist or target entity is invalid or not given
         """
         # Make sure the needed parameters are valid
         if target_entity is None or target_spritelist is None:
+            msg = "Target spritelist or target entity is invalid or not given"
             raise ValueError(
-                "Target spritelist or target entity is invalid or not given",
+                msg,
             )
         logger.info(
             "Entity %r is performing an area of effect attack on %r",
@@ -371,7 +374,7 @@ class AreaOfEffectAttack(AttackBase):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -402,12 +405,12 @@ def create_attack(
     attack_data: AttackData
         The attack data for this attack.
 
-    Raises
+    Raises:
     ------
     TypeError
         Invalid attack type parameter.
 
-    Returns
+    Returns:
     -------
     AttackBase
         The instantiated attack algorithm.
@@ -416,7 +419,8 @@ def create_attack(
     cls: type[AttackBase] | None = ATTACKS.get(attack_type)
     if cls is None:
         logger.debug("Unknown attack type %r", attack_type)
-        raise TypeError(f"The attack type {attack_type} is invalid")
+        msg = f"The attack type {attack_type} is invalid"
+        raise TypeError(msg)
     logger.debug(
         "Selected attack algorithm %r for given attack algorithm type %r",
         cls,
