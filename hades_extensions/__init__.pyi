@@ -16,5 +16,3 @@ def create_map(
     level: int,
     seed: int | None = None,
 ) -> tuple[list[TileType], tuple[int, int, int]]: ...
-
-# TODO: Modify this extension to just have potions generated (without probabilities)

@@ -4,11 +4,15 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING
 
+# Custom
+from hades.game_objects.base import GameObjectComponent
+
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from hades.constants import ENTITY_ATTRIBUTES, ComponentType
     from hades.game_objects.base import (
         ComponentData,
-        ComponentType,
-        GameObjectComponent,
     )
 
 __all__ = ("ECS", "NotRegisteredError")
@@ -70,11 +74,14 @@ class ECS:
         self._components[self._next_game_object_id] = {}
 
         # Add the optional components to the system
-        for component in components:
-            self._components[self._next_game_object_id][component.component_type] = (
-                component(component_data)
+        self._components[self._next_game_object_id] = {
+            component.component_type: component(
+                self._next_game_object_id,
+                self,
+                component_data,
             )
-            component.system = self
+            for component in components
+        }
 
         # Increment _next_game_object_id and return the current game object ID
         self._next_game_object_id += 1
@@ -126,6 +133,38 @@ class ECS:
 
         # Return the game object's components
         return self._components[game_object_id][component_type]
+
+    def get_entity_attributes_for_game_object(
+        self: ECS,
+        game_object_id: int,
+    ) -> Generator[GameObjectComponent, None, None]:
+        """Get all the entity attributes registered to the game object.
+
+        Args:
+            game_object_id: The game object ID.
+
+        Returns:
+            The entity attributes registered to the game object.
+
+        Raises:
+            NotRegisteredError: The game object ID `ID` is not registered with the ECS.
+        """
+        # Check if the game object ID is registered or not
+        if game_object_id not in self._components:
+            raise NotRegisteredError(
+                not_registered_type="game object ID",
+                value=game_object_id,
+            )
+
+        # Get the entity attributes if they exist
+        return (
+            entity_attribute
+            for component_type in ENTITY_ATTRIBUTES
+            if (
+                entity_attribute := self._components[game_object_id].get(component_type)
+            )
+            is not None
+        )
 
     def __repr__(self: ECS) -> str:
         """Return a human-readable representation of this object.

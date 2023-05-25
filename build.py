@@ -72,7 +72,7 @@ class CMakeBuild(build_ext):
 def executable() -> None:
     """Compiles the game into an executable format for portable use."""
     # Initialise some constants
-    game_dir = "python_src/hades"
+    game_dir = "src/hades"
     source_dir = Path().absolute() / game_dir / "window.py"
     resources_dir = f"{game_dir}/resources"
     output_dir = Path().absolute() / "build"
@@ -119,18 +119,14 @@ def cpp() -> None:
     """Compiles the C++ extensions and installs them into the virtual environment."""
     dist = setup(
         name="hades_extensions",
+        ext_modules=[Extension("hades_extensions", ["hades_extensions"])],
         script_args=["bdist_wheel"],
-        ext_modules=[Extension("hades_extensions", ["cpp_src"])],
         cmdclass={"build_ext": CMakeBuild},
-        data_files=[("", ["cpp_src/hades_extensions.pyi"])],
     )
     subprocess.run(
         f'pip install --force-reinstall "{Path.cwd().joinpath(dist.dist_files[0][2])}"',
         check=True,
     )
-
-    # TODO: Add py.typed to this package + ensure that it is within a hades_extension
-    #  package inside of site-packages
 
 
 def build(**_: KW) -> None:

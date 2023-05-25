@@ -22,7 +22,6 @@ from hades_extensions import TileType, create_map
 
 # Custom
 from hades.constants import (
-    DAMPING,
     DEBUG_ENEMY_SPAWN_COLOR,
     DEBUG_ENEMY_SPAWN_SIZE,
     DEBUG_GAME,
@@ -30,9 +29,9 @@ from hades.constants import (
     ENEMY_RETRY_COUNT,
     SPRITE_SIZE,
     TOTAL_ENEMY_COUNT,
+    ComponentType,
     GameObjectType,
 )
-from hades.game_objects.base import ComponentType
 from hades.game_objects.constructors import (
     ENEMY,
     FLOOR,
@@ -41,7 +40,7 @@ from hades.game_objects.constructors import (
     WALL,
     GameObjectConstructor,
 )
-from hades.game_objects.sprite import HadesSprite
+from hades.game_objects.sprite import GameObject, HadesSprite
 from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
 from hades.textures import grid_pos_to_pixel
@@ -66,18 +65,6 @@ class LevelConstants(NamedTuple):
     height: int
 
 
-class GameObject(NamedTuple):
-    """Holds the game object ID and sprite object for a game object.
-
-    Args:
-        game_object_id: The game object ID which represents this game object.
-        sprite_object: The sprite object that represents this game object.
-    """
-
-    game_object_id: int
-    sprite_object: HadesSprite
-
-
 class Game(View):
     """Manages the game and its actions.
 
@@ -99,43 +86,44 @@ class Game(View):
     def _initialise_game_object(
         self: Game,
         constructor: GameObjectConstructor,
-        sprite_list: SpriteList,
+        sprite_list: SpriteList[HadesSprite],
         position: tuple[int, int],
         *,
         single: bool = False,
-    ) -> HadesSprite:
+    ) -> None:
         """Initialise a game object from a constructor into the ECS.
 
         Args:
             constructor: The game object constructor to initialise.
             sprite_list: The sprite list to add the sprite object too.
-            position: TThe position of the game object on the screen.
+            position: The position of the game object in the grid.
             single: Whether the game object will be the only game object of its type or
             not.
 
         Returns:
             The initialised sprite object.
         """
-        game_object = GameObject(
-            self.system.add_game_object(
-                constructor.component_data,
-                *constructor.components,
-            ),
-            HadesSprite(
+        # Initialise a sprite object
+        sprite_obj = HadesSprite(
+            GameObject(
+                self.system.add_game_object(
+                    constructor.component_data,
+                    *constructor.components,
+                ),
                 constructor.game_object_type,
-                position,
-                constructor.texture_types,
-                blocking=constructor.blocking,
+                self.system,
             ),
+            position,
+            constructor.game_object_textures,
         )
-        sprite_list.append(game_object.sprite_object)
+
+        # Add it to the various collections and systems
+        sprite_list.append(sprite_obj)
+        self.physics_engine.add_game_object(sprite_obj, blocking=constructor.blocking)
         if single:
-            self.ids[constructor.game_object_type] = game_object
-        elif constructor.game_object_type not in self.ids:
-            self.ids[constructor.game_object_type] = [game_object]
+            self.ids[constructor.game_object_type] = sprite_obj
         else:
-            self.ids[constructor.game_object_type].append(game_object)
-        return game_object.sprite_object
+            self.ids.setdefault(constructor.game_object_type, []).append(sprite_obj)
 
     def __init__(self: Game, level: int) -> None:
         """Initialise the object.
@@ -147,10 +135,10 @@ class Game(View):
         generation_result = create_map(level)
         self.level_constants: LevelConstants = LevelConstants(*generation_result[1])
         self.system: ECS = ECS()
-        self.ids: dict[GameObjectType, GameObject | list[GameObject]] = {}
-        self.tile_sprites: SpriteList = SpriteList()
-        self.entity_sprites: SpriteList = SpriteList()
-        self.physics_engine: PhysicsEngine = PhysicsEngine(DAMPING)
+        self.ids: dict[GameObjectType, HadesSprite | list[HadesSprite]] = {}
+        self.tile_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
+        self.entity_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
+        self.physics_engine: PhysicsEngine = PhysicsEngine()
         self.game_camera: Camera = Camera()
         self.gui_camera: Camera = Camera()
         self.possible_enemy_spawns: set[tuple[int, int]] = set()
@@ -238,7 +226,7 @@ class Game(View):
         self.gui_camera.use()
         self.player_status_text.value = "Money: " + str(
             self.system.get_component_for_game_object(
-                self.ids[GameObjectType.PLAYER][0][0],
+                self.ids[GameObjectType.PLAYER].game_object_id,
                 ComponentType.MONEY,
             ).value,
         )
@@ -253,14 +241,8 @@ class Game(View):
         # Check if the game should end
         # if self.player.health.value <= 0 or not self.enemy_sprites:
 
-        # Process logic for the player
-        self.player.on_update(delta_time)
-
-        # Process logic for the enemies
-        self.enemy_sprites.on_update(delta_time)
-
-        # Process logic for the bullets
-        self.bullet_sprites.on_update(delta_time)
+        # Update the entities
+        self.entity_sprites.on_update(delta_time)
 
         # Update the physics engine
         self.physics_engine.step()
@@ -353,7 +335,7 @@ class Game(View):
     def center_camera_on_player(self: Game) -> None:
         """Centers the camera on the player."""
         # Check if the camera is already centered on the player
-        player_sprite = self.ids[GameObjectType.PLAYER].sprite_object
+        player_sprite = self.ids[GameObjectType.PLAYER]
         if self.game_camera.position == player_sprite.position:
             return
 
@@ -381,6 +363,3 @@ class Game(View):
             The human-readable representation of this object.
         """
         return f"<Game (Current window={self.window})>"
-
-
-# TODO: Determine how this view will interact with the ECS and events

@@ -4,11 +4,14 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING, Generic, TypeVar
 
+from hades.constants import ComponentType
+
 # Custom
-from hades.game_objects.base import ComponentType, GameObjectComponent
+from hades.game_objects.base import GameObjectComponent
 
 if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
+    from hades.game_objects.system import ECS
 
 __all__ = (
     "InstantEffects",
@@ -41,13 +44,20 @@ class InstantEffects(GameObjectComponent):
     # Class variables
     component_type: ComponentType = ComponentType.INSTANT_EFFECTS
 
-    def __init__(self: InstantEffects, component_data: ComponentData) -> None:
+    def __init__(
+        self: InstantEffects,
+        game_object_id: int,
+        system: ECS,
+        component_data: ComponentData,
+    ) -> None:
         """Initialise the object.
 
         Args:
+            game_object_id: The game object ID.
+            system: The entity component system which manages the game objects.
             component_data: The data for the components.
         """
-        super().__init__(component_data)
+        super().__init__(game_object_id, system, component_data)
         self.level_limit, self.instant_effects = component_data["instant_effects"]
 
     def __repr__(self: InstantEffects) -> str:
@@ -75,14 +85,21 @@ class Inventory(Generic[T], GameObjectComponent):
     # Class variables
     component_type: ComponentType = ComponentType.INVENTORY
 
-    def __init__(self: Inventory[T], component_data: ComponentData) -> None:
+    def __init__(
+        self: Inventory[T],
+        game_object_id: int,
+        system: ECS,
+        component_data: ComponentData,
+    ) -> None:
         """Initialise the object.
 
         Args:
+            game_object_id: The game object ID.
+            system: The entity component system which manages the game objects.
             component_data: The data for the components.
         """
-        super().__init__(component_data)
-        self.width, self.height = component_data["inventory"]
+        super().__init__(game_object_id, system, component_data)
+        self.width, self.height = component_data["inventory_size"]
         self.inventory: list[T] = []
 
     def add_item_to_inventory(self: Inventory[T], item: T) -> None:
@@ -131,13 +148,20 @@ class StatusEffects(GameObjectComponent):
     # Class variables
     component_type: ComponentType = ComponentType.STATUS_EFFECTS
 
-    def __init__(self: StatusEffects, component_data: ComponentData) -> None:
+    def __init__(
+        self: StatusEffects,
+        game_object_id: int,
+        system: ECS,
+        component_data: ComponentData,
+    ) -> None:
         """Initialise the object.
 
         Args:
+            game_object_id: The game object ID.
+            system: The entity component system which manages the game objects.
             component_data: The data for the components.
         """
-        super().__init__(component_data)
+        super().__init__(game_object_id, system, component_data)
         self.level_limit, self.status_effects = component_data["status_effects"]
 
     def __repr__(self: StatusEffects) -> str:

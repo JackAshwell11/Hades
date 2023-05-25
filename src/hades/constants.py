@@ -7,7 +7,7 @@ from enum import Enum, auto
 from pathlib import Path
 
 # Pip
-import arcade
+from arcade import color
 
 __all__ = (
     "ARMOUR_INDICATOR_BAR_COLOR",
@@ -15,6 +15,7 @@ __all__ = (
     "ARMOUR_REGEN_WAIT",
     "BULLET_VELOCITY",
     "CONSUMABLE_LEVEL_MAX_RANGE",
+    "ComponentType",
     "DAMPING",
     "DEBUG_ATTACK_DISTANCE",
     "DEBUG_ENEMY_SPAWN_COLOR",
@@ -25,6 +26,8 @@ __all__ = (
     "ENEMY_GENERATE_INTERVAL",
     "ENEMY_INDICATOR_BAR_OFFSET",
     "ENEMY_RETRY_COUNT",
+    "EntityAttributeSectionType",
+    "ENTITY_ATTRIBUTES",
     "FACING_LEFT",
     "FACING_RIGHT",
     "GAME_LOGGER",
@@ -33,12 +36,38 @@ __all__ = (
     "INDICATOR_BAR_BORDER_SIZE",
     "LEVEL_GENERATOR_INTERVAL",
     "LOGGING_DICT_CONFIG",
+    "MAX_VELOCITY",
     "MELEE_RESOLUTION",
     "MOVEMENT_FORCE",
     "SPRITE_SCALE",
     "SPRITE_SIZE",
     "TOTAL_ENEMY_COUNT",
 )
+
+
+# The different components that exist in the game
+class ComponentType(Enum):
+    """Stores the different types of components available."""
+
+    ARMOUR = auto()
+    ARMOUR_REGEN_COOLDOWN = auto()
+    KEYBOARD_MOVEMENT = auto()
+    INSTANT_EFFECTS = auto()
+    FIRE_RATE_PENALTY = auto()
+    HEALTH = auto()
+    INVENTORY = auto()
+    MONEY = auto()
+    MOVEMENT_FORCE = auto()
+    STATUS_EFFECTS = auto()
+    VIEW_DISTANCE = auto()
+
+
+# The different entity attribute sections that exist in the game
+class EntityAttributeSectionType(Enum):
+    """Stores the sections which group entity attributes together."""
+
+    ENDURANCE = {ComponentType.HEALTH, ComponentType.MOVEMENT_FORCE}
+    DEFENCE = {ComponentType.ARMOUR, ComponentType.ARMOUR_REGEN_COOLDOWN}
 
 
 # The different types of game objects in the game
@@ -102,10 +131,10 @@ LOGGING_DICT_CONFIG = {
 
 # Debug constants
 DEBUG_GAME = True
-DEBUG_VIEW_DISTANCE = arcade.color.RED
-DEBUG_ATTACK_DISTANCE = arcade.color.BLUE
-DEBUG_VECTOR_FIELD_LINE = arcade.color.YELLOW
-DEBUG_ENEMY_SPAWN_COLOR = arcade.color.RED
+DEBUG_VIEW_DISTANCE = color.RED
+DEBUG_ATTACK_DISTANCE = color.BLUE
+DEBUG_VECTOR_FIELD_LINE = color.YELLOW
+DEBUG_ENEMY_SPAWN_COLOR = color.RED
 DEBUG_ENEMY_SPAWN_SIZE = 5
 
 # Sprite sizes
@@ -114,6 +143,7 @@ SPRITE_SIZE = 128 * SPRITE_SCALE
 
 # Physics constants
 DAMPING = 0
+MAX_VELOCITY = 100
 
 # General game object constants
 MOVEMENT_FORCE = 1000000
@@ -125,8 +155,8 @@ BULLET_VELOCITY = 300
 MELEE_RESOLUTION = 10
 INDICATOR_BAR_BORDER_SIZE = 4
 ENEMY_INDICATOR_BAR_OFFSET = 32
-HEALTH_INDICATOR_BAR_COLOR = arcade.color.RED
-ARMOUR_INDICATOR_BAR_COLOR = arcade.color.SILVER
+HEALTH_INDICATOR_BAR_COLOR = color.RED
+ARMOUR_INDICATOR_BAR_COLOR = color.SILVER
 
 # Enemy and level generator constants
 LEVEL_GENERATOR_INTERVAL = 10
@@ -134,3 +164,14 @@ CONSUMABLE_LEVEL_MAX_RANGE = 5
 TOTAL_ENEMY_COUNT = 8
 ENEMY_RETRY_COUNT = 3
 ENEMY_GENERATE_INTERVAL = 1
+
+# The component types which are actually entity attributes
+ENTITY_ATTRIBUTES = {
+    ComponentType.ARMOUR,
+    ComponentType.ARMOUR_REGEN_COOLDOWN,
+    ComponentType.FIRE_RATE_PENALTY,
+    ComponentType.HEALTH,
+    ComponentType.MOVEMENT_FORCE,
+    ComponentType.MOVEMENT_FORCE,
+    ComponentType.VIEW_DISTANCE,
+}

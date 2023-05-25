@@ -5,11 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, TypeVar
 
+from hades.constants import ComponentType
+
 # Custom
-from hades.game_objects.base import ComponentData, ComponentType, GameObjectComponent
+from hades.game_objects.base import ComponentData, GameObjectComponent
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from hades.game_objects.system import ECS
 
 __all__ = (
     "Armour",
@@ -83,14 +87,18 @@ class EntityAttributeBase(GameObjectComponent):
 
     def __init__(
         self: EntityAttributeBase,
+        game_object_id: int,
+        system: ECS,
         component_data: ComponentData,
     ) -> None:
         """Initialise the object.
 
         Args:
+            game_object_id: The game object ID.
+            system: The entity component system which manages the game objects.
             component_data: The data for the components.
         """
-        super().__init__(component_data)
+        super().__init__(game_object_id, system, component_data)
         initial_value, self._level_limit = component_data["attributes"][
             self.component_type
         ]

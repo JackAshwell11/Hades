@@ -4,8 +4,10 @@ from __future__ import annotations
 # Pip
 import pytest
 
+from hades.constants import ComponentType
+
 # Custom
-from hades.game_objects.base import ComponentType, GameObjectComponent
+from hades.game_objects.base import GameObjectComponent
 from hades.game_objects.system import ECS, NotRegisteredError
 
 __all__ = ()

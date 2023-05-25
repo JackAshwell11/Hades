@@ -9,16 +9,14 @@ from typing import TYPE_CHECKING
 import arcade
 
 # Custom
+from hades.constants import DAMPING, MAX_VELOCITY
 from hades.constants_OLD.game_objects import ObjectID
 
 if TYPE_CHECKING:
     from pymunk.arbiter import Arbiter
     from pymunk.space import Space
 
-    from hades.game_objects_OLD.attacks import Bullet
-    from hades.game_objects_OLD.base import Entity, Tile
-    from hades.game_objects_OLD.enemies import Enemy
-    from hades.game_objects_OLD.players import Player
+    from hades.game_objects.sprite import HadesSprite
 
 __all__ = ("PhysicsEngine",)
 
@@ -136,101 +134,39 @@ def player_bullet_begin_handler(
 
 
 class PhysicsEngine(arcade.PymunkPhysicsEngine):
-    """A class which eases setting up the Pymunk physics engine for a top-down game."""
+    """Eases setting up the Pymunk physics engine for a top-down game."""
 
-    def __init__(self: PhysicsEngine, damping: float) -> None:
-        """Initialise the object.
+    def __init__(self: PhysicsEngine) -> None:
+        """Initialise the object."""
+        super().__init__(damping=DAMPING)
 
-        Args:
-            damping: The amount of speed which is kept to the next tick. A value of 1.0
-                means no speed is lost, while 0.9 means 10% of speed is lost.
-        """
-        super().__init__(damping=damping)
-        self.damping: float = damping
+        # TODO: Add collision handlers
 
-    def setup(
+    def add_game_object(
         self: PhysicsEngine,
-        player: Entity,
-        tile_list: arcade.SpriteList,
+        sprite: HadesSprite,
+        *,
+        blocking: bool,
     ) -> None:
-        """Set-ups the various sprites needed for the physics engine to work properly.
+        """Add a game object to the physics engine.
 
         Args:
-            player: The player entity.
-            tile_list: The sprite list for the tile sprites. This includes both static
-                and non-static sprites.
+            sprite: The sprite to add to the physics engine.
+            blocking: Whether the game object blocks sprite movement or not.
         """
-        # Add the player sprite to the physics engine
+        logger.debug(
+            "Adding %r game object %r to the physics engine",
+            blocking,
+            sprite,
+        )
         self.add_sprite(
-            player,
-            moment_of_inertia=self.MOMENT_INF,
-            collision_type="player",
-            max_horizontal_velocity=int(player.max_velocity.value),
-            max_vertical_velocity=int(player.max_velocity.value),
+            sprite,
+            moment_of_inertia=None if blocking else self.MOMENT_INF,
+            body_type=self.STATIC if blocking else self.DYNAMIC,
+            max_horizontal_velocity=MAX_VELOCITY,
+            max_vertical_velocity=MAX_VELOCITY,
+            collision_type=sprite.game_object_type.name,
         )
-        logger.debug("Added %r to physics engine", player)
-
-        # Add the static tile sprites to the physics engine
-        for tile in tile_list:  # type: Tile
-            if tile.blocking:
-                self.add_sprite(
-                    tile,
-                    body_type=self.STATIC,
-                    collision_type="wall",
-                )
-            logger.debug("Added %r to physics engine", tile)
-
-        # Add collision handlers
-        self.add_collision_handler(
-            "wall",
-            "bullet",
-            begin_handler=wall_bullet_begin_handler,
-        )
-        self.add_collision_handler(
-            "enemy",
-            "bullet",
-            begin_handler=enemy_bullet_begin_handler,
-        )
-        self.add_collision_handler(
-            "player",
-            "bullet",
-            begin_handler=player_bullet_begin_handler,
-        )
-        logger.info(
-            "Initialised physics engine with %d items",
-            len(self.sprites.keys()),
-        )
-
-    def add_bullet(self: PhysicsEngine, bullet: Bullet) -> None:
-        """Add a bullet to the physics engine.
-
-        Args:
-            bullet: The bullet to add to the physics engine.
-        """
-        self.add_sprite(
-            bullet,
-            moment_of_inertia=self.MOMENT_INF,
-            body_type=self.KINEMATIC,
-            collision_type="bullet",
-        )
-        logger.debug("Added bullet %r to physics engine", bullet)
-
-    def add_enemy(self: PhysicsEngine, enemy: Enemy) -> None:
-        """Add an enemy to the physics engine.
-
-        Parameters
-        ----------
-        enemy: Enemy
-            The enemy to add to the physics engine.
-        """
-        self.add_sprite(
-            enemy,
-            moment_of_inertia=self.MOMENT_INF,
-            collision_type="enemy",
-            max_horizontal_velocity=int(enemy.max_velocity.value),
-            max_vertical_velocity=int(enemy.max_velocity.value),
-        )
-        logger.debug("Added %r to physics engine", enemy)
 
     def __repr__(self: PhysicsEngine) -> str:
         """Return a human-readable representation of this object.
@@ -238,7 +174,4 @@ class PhysicsEngine(arcade.PymunkPhysicsEngine):
         Returns:
             The human-readable representation of this object.
         """
-        return (
-            f"<PhysicsEngine (Damping={self.damping}) (Sprite"
-            f" count={len(self.sprites)})>"
-        )
+        return f"<PhysicsEngine (Sprite count={len(self.sprites)})>"
