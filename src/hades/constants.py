@@ -9,13 +9,14 @@ from pathlib import Path
 # Pip
 from arcade import color
 
+# Custom
+
 __all__ = (
     "ARMOUR_INDICATOR_BAR_COLOR",
     "ARMOUR_REGEN_AMOUNT",
     "ARMOUR_REGEN_WAIT",
     "BULLET_VELOCITY",
     "CONSUMABLE_LEVEL_MAX_RANGE",
-    "ComponentType",
     "DAMPING",
     "DEBUG_ATTACK_DISTANCE",
     "DEBUG_ENEMY_SPAWN_COLOR",
@@ -26,8 +27,6 @@ __all__ = (
     "ENEMY_GENERATE_INTERVAL",
     "ENEMY_INDICATOR_BAR_OFFSET",
     "ENEMY_RETRY_COUNT",
-    "EntityAttributeSectionType",
-    "ENTITY_ATTRIBUTES",
     "FACING_LEFT",
     "FACING_RIGHT",
     "GAME_LOGGER",
@@ -43,31 +42,6 @@ __all__ = (
     "SPRITE_SIZE",
     "TOTAL_ENEMY_COUNT",
 )
-
-
-# The different components that exist in the game
-class ComponentType(Enum):
-    """Stores the different types of components available."""
-
-    ARMOUR = auto()
-    ARMOUR_REGEN_COOLDOWN = auto()
-    KEYBOARD_MOVEMENT = auto()
-    INSTANT_EFFECTS = auto()
-    FIRE_RATE_PENALTY = auto()
-    HEALTH = auto()
-    INVENTORY = auto()
-    MONEY = auto()
-    MOVEMENT_FORCE = auto()
-    STATUS_EFFECTS = auto()
-    VIEW_DISTANCE = auto()
-
-
-# The different entity attribute sections that exist in the game
-class EntityAttributeSectionType(Enum):
-    """Stores the sections which group entity attributes together."""
-
-    ENDURANCE = {ComponentType.HEALTH, ComponentType.MOVEMENT_FORCE}
-    DEFENCE = {ComponentType.ARMOUR, ComponentType.ARMOUR_REGEN_COOLDOWN}
 
 
 # The different types of game objects in the game
@@ -142,11 +116,11 @@ SPRITE_SCALE = 0.4375
 SPRITE_SIZE = 128 * SPRITE_SCALE
 
 # Physics constants
-DAMPING = 0
-MAX_VELOCITY = 100
+DAMPING = 0.000001
+MAX_VELOCITY = 50
 
 # General game object constants
-MOVEMENT_FORCE = 1000000
+MOVEMENT_FORCE = 100
 FACING_RIGHT = 0
 FACING_LEFT = 1
 ARMOUR_REGEN_WAIT = 5
@@ -164,14 +138,3 @@ CONSUMABLE_LEVEL_MAX_RANGE = 5
 TOTAL_ENEMY_COUNT = 8
 ENEMY_RETRY_COUNT = 3
 ENEMY_GENERATE_INTERVAL = 1
-
-# The component types which are actually entity attributes
-ENTITY_ATTRIBUTES = {
-    ComponentType.ARMOUR,
-    ComponentType.ARMOUR_REGEN_COOLDOWN,
-    ComponentType.FIRE_RATE_PENALTY,
-    ComponentType.HEALTH,
-    ComponentType.MOVEMENT_FORCE,
-    ComponentType.MOVEMENT_FORCE,
-    ComponentType.VIEW_DISTANCE,
-}

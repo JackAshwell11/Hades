@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # Builtin
 import logging
-from typing import NamedTuple
+from typing import NamedTuple, cast
 
 # Pip
 from arcade import (
@@ -29,9 +29,10 @@ from hades.constants import (
     ENEMY_RETRY_COUNT,
     SPRITE_SIZE,
     TOTAL_ENEMY_COUNT,
-    ComponentType,
     GameObjectType,
 )
+from hades.game_objects.attacks import AttackManager
+from hades.game_objects.base import ComponentType
 from hades.game_objects.constructors import (
     ENEMY,
     FLOOR,
@@ -40,12 +41,13 @@ from hades.game_objects.constructors import (
     WALL,
     GameObjectConstructor,
 )
-from hades.game_objects.sprite import GameObject, HadesSprite
+from hades.game_objects.movements import KeyboardMovement
 from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
+from hades.sprite import GameObject, HadesSprite
 from hades.textures import grid_pos_to_pixel
 
-__all__ = ("Game",)
+all__ = ("Game",)
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -75,6 +77,7 @@ class Game(View):
         type.
         tile_sprites: The sprite list for the tile game objects.
         entity_sprites: The sprite list for the entity game objects.
+        item_sprites: The sprite list for the item game objects.
         physics_engine: The physics engine which processes wall collision.
         game_camera: The camera used for moving the viewport around the screen.
         gui_camera: The camera used for visualising the GUI elements.
@@ -88,8 +91,6 @@ class Game(View):
         constructor: GameObjectConstructor,
         sprite_list: SpriteList[HadesSprite],
         position: tuple[int, int],
-        *,
-        single: bool = False,
     ) -> None:
         """Initialise a game object from a constructor into the ECS.
 
@@ -97,8 +98,6 @@ class Game(View):
             constructor: The game object constructor to initialise.
             sprite_list: The sprite list to add the sprite object too.
             position: The position of the game object in the grid.
-            single: Whether the game object will be the only game object of its type or
-            not.
 
         Returns:
             The initialised sprite object.
@@ -119,11 +118,15 @@ class Game(View):
 
         # Add it to the various collections and systems
         sprite_list.append(sprite_obj)
-        self.physics_engine.add_game_object(sprite_obj, blocking=constructor.blocking)
-        if single:
-            self.ids[constructor.game_object_type] = sprite_obj
-        else:
-            self.ids.setdefault(constructor.game_object_type, []).append(sprite_obj)
+        self.ids.setdefault(constructor.game_object_type, []).append(sprite_obj)
+        if constructor.game_object_type not in {
+            GameObjectType.FLOOR,
+            GameObjectType.POTION,
+        }:
+            self.physics_engine.add_game_object(
+                sprite_obj,
+                blocking=constructor.blocking,
+            )
 
     def __init__(self: Game, level: int) -> None:
         """Initialise the object.
@@ -135,9 +138,10 @@ class Game(View):
         generation_result = create_map(level)
         self.level_constants: LevelConstants = LevelConstants(*generation_result[1])
         self.system: ECS = ECS()
-        self.ids: dict[GameObjectType, HadesSprite | list[HadesSprite]] = {}
+        self.ids: dict[GameObjectType, list[HadesSprite]] = {}
         self.tile_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.entity_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
+        self.item_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.physics_engine: PhysicsEngine = PhysicsEngine()
         self.game_camera: Camera = Camera()
         self.gui_camera: Camera = Camera()
@@ -153,6 +157,10 @@ class Game(View):
 
         # Initialise the game objects
         for count, tile in enumerate(generation_result[0]):
+            # Skip all empty tiles
+            if tile in {TileType.Empty, TileType.Obstacle, TileType.DebugWall}:
+                continue
+
             # Get the screen position from the grid position
             position = (
                 count % self.level_constants.width,
@@ -164,14 +172,9 @@ class Game(View):
                 self._initialise_game_object(WALL, self.tile_sprites, position)
             else:
                 if tile == TileType.Player:
-                    self._initialise_game_object(
-                        PLAYER,
-                        self.entity_sprites,
-                        position,
-                        single=True,
-                    )
-                else:
-                    self._initialise_game_object(POTION, self.tile_sprites, position)
+                    self._initialise_game_object(PLAYER, self.entity_sprites, position)
+                elif tile == TileType.Potion:
+                    self._initialise_game_object(POTION, self.item_sprites, position)
 
                 # Make the game object's backdrop a floor
                 self._initialise_game_object(FLOOR, self.tile_sprites, position)
@@ -208,6 +211,7 @@ class Game(View):
 
         # Draw the various spritelists
         self.tile_sprites.draw(pixelated=True)
+        self.item_sprites.draw(pixelated=True)
         self.entity_sprites.draw(pixelated=True)
 
         # Draw the stuff needed for the debug mode
@@ -224,12 +228,10 @@ class Game(View):
 
         # Draw the gui on the screen
         self.gui_camera.use()
-        self.player_status_text.value = "Money: " + str(
-            self.system.get_component_for_game_object(
-                self.ids[GameObjectType.PLAYER].game_object_id,
-                ComponentType.MONEY,
-            ).value,
-        )
+        # self.player_status_text.value = "Money: " + str(
+        #     self.system.get_component_for_game_object(
+        #         ComponentType.MONEY,
+        #     ).value,
         self.player_status_text.draw()
 
     def on_update(self: Game, delta_time: float) -> None:
@@ -258,6 +260,13 @@ class Game(View):
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
+        player_movement = cast(
+            KeyboardMovement,
+            self.system.get_component_for_game_object(
+                self.ids[GameObjectType.PLAYER][0].game_object_id,
+                ComponentType.KEYBOARD_MOVEMENT,
+            ),
+        )
         logger.debug(
             "Received key press with key %r and modifiers %r",
             symbol,
@@ -265,13 +274,13 @@ class Game(View):
         )
         match symbol:
             case key.W:
-                self.player.up_pressed = True
+                player_movement.up_pressed = True
             case key.S:
-                self.player.down_pressed = True
+                player_movement.down_pressed = True
             case key.A:
-                self.player.left_pressed = True
+                player_movement.left_pressed = True
             case key.D:
-                self.player.right_pressed = True
+                player_movement.right_pressed = True
 
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.
@@ -281,6 +290,13 @@ class Game(View):
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
+        player_movement = cast(
+            KeyboardMovement,
+            self.system.get_component_for_game_object(
+                self.ids[GameObjectType.PLAYER][0].game_object_id,
+                ComponentType.KEYBOARD_MOVEMENT,
+            ),
+        )
         logger.debug(
             "Received key release with key %r and modifiers %r",
             symbol,
@@ -288,13 +304,13 @@ class Game(View):
         )
         match symbol:
             case key.W:
-                self.player.up_pressed = False
+                player_movement.up_pressed = False
             case key.S:
-                self.player.down_pressed = False
+                player_movement.down_pressed = False
             case key.A:
-                self.player.left_pressed = False
+                player_movement.left_pressed = False
             case key.D:
-                self.player.right_pressed = False
+                player_movement.right_pressed = False
 
     def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
         """Process mouse button functionality.
@@ -314,7 +330,13 @@ class Game(View):
             modifiers,
         )
         if button is MOUSE_BUTTON_LEFT:
-            self.player.attack()
+            cast(
+                AttackManager,
+                self.system.get_component_for_game_object(
+                    self.ids[GameObjectType.PLAYER][0].game_object_id,
+                    ComponentType.ATTACK_MANAGER,
+                ),
+            ).run_algorithm()
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
@@ -335,7 +357,7 @@ class Game(View):
     def center_camera_on_player(self: Game) -> None:
         """Centers the camera on the player."""
         # Check if the camera is already centered on the player
-        player_sprite = self.ids[GameObjectType.PLAYER]
+        player_sprite = self.ids[GameObjectType.PLAYER][0]
         if self.game_camera.position == player_sprite.position:
             return
 

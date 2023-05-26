@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, NamedTuple
 # Custom
 from hades.constants import GameObjectType
 from hades.game_objects.components import Inventory
-from hades.game_objects.movements import KeyboardMovement
+from hades.game_objects.movements import KeyboardMovement, SteeringMovement
 from hades.textures import TextureType
 
 if TYPE_CHECKING:
@@ -18,11 +18,11 @@ if TYPE_CHECKING:
 __all__ = (
     "ENEMY",
     "FLOOR",
+    "GameObjectConstructor",
+    "GameObjectTextures",
     "PLAYER",
     "POTION",
     "WALL",
-    "GameObjectConstructor",
-    "GameObjectTextures",
 )
 
 
@@ -74,6 +74,7 @@ PLAYER = GameObjectConstructor(
 ENEMY = GameObjectConstructor(
     GameObjectType.ENEMY,
     GameObjectTextures(TextureType.ENEMY_IDLE.value[0]),
+    components=[SteeringMovement],
 )
 
 # Potion tiles

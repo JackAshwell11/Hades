@@ -4,10 +4,8 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from hades.constants import ComponentType
-
 # Custom
-from hades.game_objects.base import GameObjectComponent
+from hades.game_objects.base import ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData

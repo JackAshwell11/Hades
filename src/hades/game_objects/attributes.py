@@ -3,12 +3,10 @@ from __future__ import annotations
 
 # Builtin
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypeVar
-
-from hades.constants import ComponentType
+from typing import TYPE_CHECKING, TypeVar, cast
 
 # Custom
-from hades.game_objects.base import ComponentData, GameObjectComponent
+from hades.game_objects.base import ComponentData, ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -18,11 +16,12 @@ if TYPE_CHECKING:
 __all__ = (
     "Armour",
     "ArmourRegenCooldown",
-    "EntityAttributeBase",
-    "EntityAttributeError",
+    "GameObjectAttributeBase",
+    "GameObjectAttributeError",
     "FireRatePenalty",
     "Health",
     "Money",
+    "deal_damage",
     "MovementForce",
     "ViewDistance",
 )
@@ -32,27 +31,27 @@ __all__ = (
 KW = TypeVar("KW")
 
 
-class EntityAttributeError(Exception):
-    """Raised when there is an error with an entity attribute."""
+class GameObjectAttributeError(Exception):
+    """Raised when there is an error with a game object attribute."""
 
-    def __init__(self: EntityAttributeError, *, name: str, error: str) -> None:
+    def __init__(self: GameObjectAttributeError, *, name: str, error: str) -> None:
         """Initialise the object.
 
         Args:
-            name: The name of the entity attribute.
-            error: The problem raised by the entity attribute.
+            name: The name of the game object attribute.
+            error: The problem raised by the game object attribute.
         """
-        super().__init__(f"The entity attribute `{name}` cannot {error}.")
+        super().__init__(f"The game object attribute `{name}` cannot {error}.")
 
 
 @dataclass(slots=True)
 class StatusEffect:
-    """Represents a status effect that can be applied to an entity attribute.
+    """Represents a status effect that can be applied to a game object attribute.
 
-    value: The value that should be applied to the entity temporarily.
+    value: The value that should be applied to the game object temporarily.
     duration: The duration the status effect should be applied for.
-    original: The original value of the entity attribute which is being changed.
-    original_max_value: The original maximum value of the entity attribute which is
+    original: The original value of the game object attribute which is being changed.
+    original_max_value: The original maximum value of the game object attribute which is
         being changed.
     time_counter: The time counter for the status effect.
     """
@@ -68,8 +67,8 @@ class StatusEffect:
         self.time_counter = 0
 
 
-class EntityAttributeBase(GameObjectComponent):
-    """The base class for all entity attributes."""
+class GameObjectAttributeBase(GameObjectComponent):
+    """The base class for all game object attributes."""
 
     __slots__ = (
         "_level_limit",
@@ -86,7 +85,7 @@ class EntityAttributeBase(GameObjectComponent):
     upgradable: bool = True
 
     def __init__(
-        self: EntityAttributeBase,
+        self: GameObjectAttributeBase,
         game_object_id: int,
         system: ECS,
         component_data: ComponentData,
@@ -108,25 +107,25 @@ class EntityAttributeBase(GameObjectComponent):
         self._applied_status_effect: StatusEffect | None = None
 
     @property
-    def value(self: EntityAttributeBase) -> float:
-        """Get the entity attribute's value.
+    def value(self: GameObjectAttributeBase) -> float:
+        """Get the game object attribute's value.
 
         Returns:
-            The entity attribute's value.
+            The game object attribute's value.
         """
         return self._value
 
     @value.setter
-    def value(self: EntityAttributeBase, new_value: float) -> None:
-        """Set the entity attribute's value.
+    def value(self: GameObjectAttributeBase, new_value: float) -> None:
+        """Set the game object attribute's value.
 
         Args:
-            new_value: The new entity attribute's value.
+            new_value: The new game object attribute's value.
         """
         self._value = max(min(new_value, self._max_value), 0)
 
     @property
-    def max_value(self: EntityAttributeBase) -> float:
+    def max_value(self: GameObjectAttributeBase) -> float:
         """Get the attribute's max value.
 
         If this is infinity, then the attribute does not have a maximum value
@@ -137,7 +136,7 @@ class EntityAttributeBase(GameObjectComponent):
         return self._max_value
 
     @property
-    def current_level(self: EntityAttributeBase) -> int:
+    def current_level(self: GameObjectAttributeBase) -> int:
         """Get the attribute's current level.
 
         Returns:
@@ -146,7 +145,7 @@ class EntityAttributeBase(GameObjectComponent):
         return self._current_level
 
     @property
-    def level_limit(self: EntityAttributeBase) -> int:
+    def level_limit(self: GameObjectAttributeBase) -> int:
         """Get the attribute's level limit.
 
         If this is -1, then the attribute is not upgradable.
@@ -157,7 +156,7 @@ class EntityAttributeBase(GameObjectComponent):
         return self._level_limit
 
     @property
-    def applied_status_effect(self: EntityAttributeBase) -> StatusEffect | None:
+    def applied_status_effect(self: GameObjectAttributeBase) -> StatusEffect | None:
         """Get the currently applied status effect.
 
         Returns:
@@ -165,8 +164,11 @@ class EntityAttributeBase(GameObjectComponent):
         """
         return self._applied_status_effect
 
-    def upgrade(self: EntityAttributeBase, increase: Callable[[int], float]) -> bool:
-        """Upgrade the entity attribute to the next level if possible.
+    def upgrade(
+        self: GameObjectAttributeBase,
+        increase: Callable[[int], float],
+    ) -> bool:
+        """Upgrade the game object attribute to the next level if possible.
 
         Args:
             increase: The exponential lambda function which calculates the next level's
@@ -176,11 +178,11 @@ class EntityAttributeBase(GameObjectComponent):
             Whether the attribute upgrade was successful or not.
 
         Raises:
-            EntityAttributeError: The entity attribute cannot be upgraded.
+            GameObjectAttributeError: The game object attribute cannot be upgraded.
         """
         # Check if the attribute can be upgraded
         if not self.upgradable:
-            raise EntityAttributeError(
+            raise GameObjectAttributeError(
                 name=self.__class__.__name__,
                 error="be upgraded",
             )
@@ -198,11 +200,11 @@ class EntityAttributeBase(GameObjectComponent):
         return True
 
     def apply_instant_effect(
-        self: EntityAttributeBase,
+        self: GameObjectAttributeBase,
         increase: Callable[[int], float],
         level: int,
     ) -> bool:
-        """Apply an instant effect to the entity attribute if possible.
+        """Apply an instant effect to the game object attribute if possible.
 
         Args:
             increase: The exponential lambda function which calculates the next level's
@@ -213,11 +215,12 @@ class EntityAttributeBase(GameObjectComponent):
             Whether the instant effect could be applied or not.
 
         Raises:
-            EntityAttributeError: The entity attribute cannot have an instant effect.
+            GameObjectAttributeError: The game object attribute cannot have an instant
+            effect.
         """
         # Check if the attribute can have an instant effect
         if not self.instant_effect:
-            raise EntityAttributeError(
+            raise GameObjectAttributeError(
                 name=self.__class__.__name__,
                 error="have an instant effect",
             )
@@ -231,7 +234,7 @@ class EntityAttributeBase(GameObjectComponent):
         return True
 
     def apply_status_effect(
-        self: EntityAttributeBase,
+        self: GameObjectAttributeBase,
         increase: Callable[[int], float],
         duration: Callable[[int], float],
         level: int,
@@ -249,11 +252,12 @@ class EntityAttributeBase(GameObjectComponent):
             Whether the status effect could be applied or not.
 
         Raises:
-            EntityAttributeError: The entity attribute cannot have a status effect.
+            GameObjectAttributeError: The game object attribute cannot have a status
+            effect.
         """
         # Check if the attribute can have a status effect
         if not self.status_effect:
-            raise EntityAttributeError(
+            raise GameObjectAttributeError(
                 name=self.__class__.__name__,
                 error="have a status effect",
             )
@@ -273,31 +277,24 @@ class EntityAttributeBase(GameObjectComponent):
         self._max_value += self._applied_status_effect.value
         return True
 
-    def update_status_effect(self: EntityAttributeBase, delta_time: float) -> bool:
-        """Update the currently applied status effect.
+    def on_update(self: GameObjectAttributeBase, delta_time: float) -> None:
+        """Process game object attribute update logic.
 
         Args:
             delta_time: Time interval since the last time the function was called.
-
-        Returns:
-            Whether the status effect update was successful or not.
         """
-        # Check if there isn't a status effect already applied
-        if not self.applied_status_effect:
-            return False
+        # Update the status effect if one exists
+        if self.applied_status_effect:
+            self.applied_status_effect.time_counter += delta_time
+            if (
+                self.applied_status_effect.time_counter
+                >= self.applied_status_effect.duration
+            ):
+                self.value = min(self.value, self.applied_status_effect.original_value)
+                self._max_value = self.applied_status_effect.original_max_value
+                self._applied_status_effect = None
 
-        # Update the time counter and check if the status effect should be removed
-        self.applied_status_effect.time_counter += delta_time
-        if (
-            self.applied_status_effect.time_counter
-            >= self.applied_status_effect.duration
-        ):
-            self.value = min(self.value, self.applied_status_effect.original_value)
-            self._max_value = self.applied_status_effect.original_max_value
-            self._applied_status_effect = None
-        return True
-
-    def __repr__(self: EntityAttributeBase) -> str:
+    def __repr__(self: GameObjectAttributeBase) -> str:
         """Return a human-readable representation of this object.
 
         Returns:
@@ -309,14 +306,21 @@ class EntityAttributeBase(GameObjectComponent):
         )
 
 
-class Armour(EntityAttributeBase):
+class Armour(GameObjectAttributeBase):
     """Allows a game object to have an armour attribute."""
 
     # Class variables
     component_type: ComponentType = ComponentType.ARMOUR
 
 
-class ArmourRegenCooldown(EntityAttributeBase):
+class Health(GameObjectAttributeBase):
+    """Allows a game object to have a health attribute."""
+
+    # Class variables
+    component_type: ComponentType = ComponentType.HEALTH
+
+
+class ArmourRegenCooldown(GameObjectAttributeBase):
     """Allows a game object to have an armour regen cooldown attribute."""
 
     # Class variables
@@ -325,7 +329,7 @@ class ArmourRegenCooldown(EntityAttributeBase):
     maximum: bool = False
 
 
-class FireRatePenalty(EntityAttributeBase):
+class FireRatePenalty(GameObjectAttributeBase):
     """Allows a game object to have a fire rate penalty attribute."""
 
     # Class variables
@@ -334,14 +338,7 @@ class FireRatePenalty(EntityAttributeBase):
     maximum: bool = False
 
 
-class Health(EntityAttributeBase):
-    """Allows a game object to have a health attribute."""
-
-    # Class variables
-    component_type: ComponentType = ComponentType.HEALTH
-
-
-class Money(EntityAttributeBase):
+class Money(GameObjectAttributeBase):
     """Allows a game object to have a money attribute."""
 
     # Class variables
@@ -352,7 +349,7 @@ class Money(EntityAttributeBase):
     upgradable: bool = False
 
 
-class MovementForce(EntityAttributeBase):
+class MovementForce(GameObjectAttributeBase):
     """Allows a game object to have a movement force attribute."""
 
     # Class variables
@@ -361,10 +358,36 @@ class MovementForce(EntityAttributeBase):
     maximum: bool = False
 
 
-class ViewDistance(EntityAttributeBase):
+class ViewDistance(GameObjectAttributeBase):
     """Allows a game object to have a view distance attribute."""
 
     # Class variables
     component_type: ComponentType = ComponentType.VIEW_DISTANCE
     instant_effect: bool = False
     maximum: bool = False
+
+
+def deal_damage(game_object_id: int, system: ECS, damage: int) -> None:
+    """Deal damage to the game object.
+
+    Args:
+        game_object_id: The game object ID.
+        system: The entity component system which manages the game objects.
+        damage: The damage to deal to the game object.
+    """
+    # Damage the armour and carry over the extra damage to the health
+    health, armour = cast(
+        Health,
+        system.get_component_for_game_object(
+            game_object_id,
+            ComponentType.HEALTH,
+        ),
+    ), cast(
+        Armour,
+        system.get_component_for_game_object(
+            game_object_id,
+            ComponentType.ARMOUR,
+        ),
+    )
+    health.value -= max(damage - armour.value, 0)
+    armour.value -= damage

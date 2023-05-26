@@ -2,18 +2,22 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 # Custom
-from hades.game_objects.base import GameObjectComponent
+from hades.game_objects.attacks import AttackBase, AttackManager
+from hades.game_objects.base import (
+    ATTACK_ALGORITHMS,
+    GAME_OBJECT_ATTRIBUTES,
+    MOVEMENT_ALGORITHMS,
+    ComponentType,
+)
+from hades.game_objects.movements import MovementBase, MovementManager
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from hades.constants import ENTITY_ATTRIBUTES, ComponentType
-    from hades.game_objects.base import (
-        ComponentData,
-    )
+    from hades.game_objects.base import ComponentData, GameObjectComponent
 
 __all__ = ("ECS", "NotRegisteredError")
 
@@ -74,14 +78,42 @@ class ECS:
         self._components[self._next_game_object_id] = {}
 
         # Add the optional components to the system
-        self._components[self._next_game_object_id] = {
-            component.component_type: component(
+        attack_components, movement_components = [], []
+        for component in components:
+            game_object_component = component(
                 self._next_game_object_id,
                 self,
                 component_data,
             )
-            for component in components
-        }
+            self._components[self._next_game_object_id][
+                component.component_type
+            ] = game_object_component
+
+            # Determine if this component requires a manager or not
+            if component.component_type in ATTACK_ALGORITHMS:
+                attack_components.append(game_object_component)
+            elif component.component_type in MOVEMENT_ALGORITHMS:
+                movement_components.append(game_object_component)
+
+        # Instantiate the required managers
+        if attack_components:
+            self._components[self._next_game_object_id][
+                ComponentType.ATTACK_MANAGER
+            ] = AttackManager(
+                self._next_game_object_id,
+                self,
+                component_data,
+                cast(list[AttackBase], attack_components),
+            )
+        if movement_components:
+            self._components[self._next_game_object_id][
+                ComponentType.MOVEMENT_MANAGER
+            ] = MovementManager(
+                self._next_game_object_id,
+                self,
+                component_data,
+                cast(list[MovementBase], movement_components),
+            )
 
         # Increment _next_game_object_id and return the current game object ID
         self._next_game_object_id += 1
@@ -134,17 +166,17 @@ class ECS:
         # Return the game object's components
         return self._components[game_object_id][component_type]
 
-    def get_entity_attributes_for_game_object(
+    def get_game_object_attributes_for_game_object(
         self: ECS,
         game_object_id: int,
     ) -> Generator[GameObjectComponent, None, None]:
-        """Get all the entity attributes registered to the game object.
+        """Get all the game object attributes registered to the game object.
 
         Args:
             game_object_id: The game object ID.
 
         Returns:
-            The entity attributes registered to the game object.
+            The game object attributes registered to the game object.
 
         Raises:
             NotRegisteredError: The game object ID `ID` is not registered with the ECS.
@@ -156,12 +188,14 @@ class ECS:
                 value=game_object_id,
             )
 
-        # Get the entity attributes if they exist
+        # Get the game object attributes if they exist
         return (
-            entity_attribute
-            for component_type in ENTITY_ATTRIBUTES
+            game_object_attribute
+            for component_type in GAME_OBJECT_ATTRIBUTES
             if (
-                entity_attribute := self._components[game_object_id].get(component_type)
+                game_object_attribute := self._components[game_object_id].get(
+                    component_type,
+                )
             )
             is not None
         )
