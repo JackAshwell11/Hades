@@ -102,7 +102,7 @@ class UpgradablePlayerSection:
     def next_level_cost(self) -> int:
         """Get the cost for the next level.
 
-        Returns
+        Returns:
         -------
         int
             The next level cost.
@@ -113,7 +113,7 @@ class UpgradablePlayerSection:
     def level_limit(self) -> int:
         """Get the maximum level for the player's upgrades.
 
-        Returns
+        Returns:
         -------
         int
             The maximum level for the player's upgrades.
@@ -123,7 +123,7 @@ class UpgradablePlayerSection:
     def upgrade_section(self) -> bool:
         """Upgrades the player section if possible.
 
-        Returns
+        Returns:
         -------
         bool
             Whether the upgrade was successful or not.
@@ -169,7 +169,7 @@ class UpgradablePlayerSection:
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -184,7 +184,7 @@ class UpgradablePlayerSection:
 class EntityAttribute:
     """Represents an attribute that is part of an entity.
 
-    Attributes
+    Attributes:
     ----------
     applied_status_effect: StatusEffect | None
         The currently applied status effect.
@@ -230,7 +230,7 @@ class EntityAttribute:
     def value(self) -> float:
         """Get the attribute's value.
 
-        Returns
+        Returns:
         -------
         float
             The attribute's value.
@@ -246,14 +246,15 @@ class EntityAttribute:
         value: float
             The new attribute value.
 
-        Raises
+        Raises:
         ------
         ValueError
             This attribute's value cannot be set.
         """
         # Check if the attribute value can be changed
         if not self.attribute_data.variable:
-            raise ValueError("This attribute's value cannot be set.")
+            msg = "This attribute's value cannot be set."
+            raise ValueError(msg)
 
         # Update the attribute value with the new value
         self._value = value
@@ -270,7 +271,7 @@ class EntityAttribute:
 
         If this is -1, then the attribute is not variable.
 
-        Returns
+        Returns:
         -------
         float
             The attribute's max value.
@@ -399,7 +400,7 @@ class EntityAttribute:
         level: int
             The level to initialise the instant effect at.
 
-        Returns
+        Returns:
         -------
         bool
             Whether the instant effect could be applied or not.
@@ -430,7 +431,7 @@ class EntityAttribute:
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.

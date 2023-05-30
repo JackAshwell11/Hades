@@ -34,7 +34,7 @@ class Floor(Tile, metaclass=ABCMeta):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -52,7 +52,7 @@ class Wall(Tile, metaclass=ABCMeta):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.
@@ -119,7 +119,7 @@ class Consumable(CollectibleTile):
     def name(self) -> str:
         """Get the name of this consumable.
 
-        Returns
+        Returns:
         -------
         str
             The name of this consumable.
@@ -130,7 +130,7 @@ class Consumable(CollectibleTile):
     def item_use(self) -> bool:
         """Process item use functionality.
 
-        Returns
+        Returns:
         -------
         bool
             Whether the consumable use was successful or not.
@@ -177,7 +177,7 @@ class Consumable(CollectibleTile):
     def __repr__(self) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.

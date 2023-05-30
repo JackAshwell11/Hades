@@ -55,7 +55,7 @@ def quit_on_click_handler(_: UIOnClickEvent) -> None:
 class StartMenu(arcade.View):
     """Creates a start menu useful for picking the game mode and options.
 
-    Attributes
+    Attributes:
     ----------
     ui_manager: UIManager
         Manages all the different UI elements for this view.
@@ -106,7 +106,7 @@ class StartMenu(arcade.View):
     def __repr__(self: StartMenu) -> str:
         """Return a human-readable representation of this object.
 
-        Returns
+        Returns:
         -------
         str
             The human-readable representation of this object.

@@ -34,12 +34,12 @@ def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
     y: int
         The x position in the game map or vector field.
 
-    Raises
+    Raises:
     ------
     BiggerThanError
         The input must be bigger than or equal to 0
 
-    Returns
+    Returns:
     -------
     tuple[float, float]
         The x and y position of a sprite on the screen.
