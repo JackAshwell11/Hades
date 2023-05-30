@@ -8,11 +8,8 @@ from typing import TYPE_CHECKING, cast
 from hades.game_objects.attacks import AttackBase, AttackManager
 from hades.game_objects.base import (
     ATTACK_ALGORITHMS,
-    GAME_OBJECT_ATTRIBUTES,
-    MOVEMENT_ALGORITHMS,
     ComponentType,
 )
-from hades.game_objects.movements import MovementBase, MovementManager
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -30,6 +27,7 @@ class NotRegisteredError(Exception):
         *,
         not_registered_type: str,
         value: int | str | ComponentType,
+        error: str = "not registered with the ECS",
     ) -> None:
         """Initialise the object.
 
@@ -37,9 +35,10 @@ class NotRegisteredError(Exception):
             not_registered_type: The game object or component type that is not
                 registered.
             value: The value that is not registered.
+            error: The problem raised by the ECS.
         """
         super().__init__(
-            f"The {not_registered_type} `{value}` is not registered with the ECS.",
+            f"The {not_registered_type} `{value}` is {error}.",
         )
 
 
@@ -78,8 +77,16 @@ class ECS:
         self._components[self._next_game_object_id] = {}
 
         # Add the optional components to the system
-        attack_components, movement_components = [], []
+        attack_components = []
         for component in components:
+            if component.component_type in self._components[self._next_game_object_id]:
+                raise NotRegisteredError(
+                    not_registered_type="component type",
+                    value=component.component_type,
+                    error="already registered with the ECS",
+                )
+
+            # Initialise the component and add it to the system
             game_object_component = component(
                 self._next_game_object_id,
                 self,
@@ -92,8 +99,6 @@ class ECS:
             # Determine if this component requires a manager or not
             if component.component_type in ATTACK_ALGORITHMS:
                 attack_components.append(game_object_component)
-            elif component.component_type in MOVEMENT_ALGORITHMS:
-                movement_components.append(game_object_component)
 
         # Instantiate the required managers
         if attack_components:
@@ -104,15 +109,6 @@ class ECS:
                 self,
                 component_data,
                 cast(list[AttackBase], attack_components),
-            )
-        if movement_components:
-            self._components[self._next_game_object_id][
-                ComponentType.MOVEMENT_MANAGER
-            ] = MovementManager(
-                self._next_game_object_id,
-                self,
-                component_data,
-                cast(list[MovementBase], movement_components),
             )
 
         # Increment _next_game_object_id and return the current game object ID
@@ -137,6 +133,31 @@ class ECS:
 
         # Delete the game object from the system
         del self._components[game_object_id]
+
+    def get_components_for_game_object(
+        self: ECS,
+        game_object_id: int,
+    ) -> Generator[GameObjectComponent, None, None]:
+        """Get a game object's components.
+
+        Args:
+            game_object_id: The game object ID.
+
+        Returns:
+            The game object's components.
+
+        Raises:
+            NotRegisteredError: The game object ID `ID` is not registered with the ECS.
+        """
+        # Check if the game object ID is registered or not
+        if game_object_id not in self._components:
+            raise NotRegisteredError(
+                not_registered_type="game object ID",
+                value=game_object_id,
+            )
+
+        # Return the game object's components
+        yield from self._components[game_object_id].values()
 
     def get_component_for_game_object(
         self: ECS,
@@ -163,42 +184,8 @@ class ECS:
                 value=game_object_id,
             )
 
-        # Return the game object's components
+        # Return the specified component
         return self._components[game_object_id][component_type]
-
-    def get_game_object_attributes_for_game_object(
-        self: ECS,
-        game_object_id: int,
-    ) -> Generator[GameObjectComponent, None, None]:
-        """Get all the game object attributes registered to the game object.
-
-        Args:
-            game_object_id: The game object ID.
-
-        Returns:
-            The game object attributes registered to the game object.
-
-        Raises:
-            NotRegisteredError: The game object ID `ID` is not registered with the ECS.
-        """
-        # Check if the game object ID is registered or not
-        if game_object_id not in self._components:
-            raise NotRegisteredError(
-                not_registered_type="game object ID",
-                value=game_object_id,
-            )
-
-        # Get the game object attributes if they exist
-        return (
-            game_object_attribute
-            for component_type in GAME_OBJECT_ATTRIBUTES
-            if (
-                game_object_attribute := self._components[game_object_id].get(
-                    component_type,
-                )
-            )
-            is not None
-        )
 
     def __repr__(self: ECS) -> str:
         """Return a human-readable representation of this object.

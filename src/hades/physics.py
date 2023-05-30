@@ -12,6 +12,7 @@ from arcade import PymunkPhysicsEngine
 from hades.constants import DAMPING, MAX_VELOCITY
 
 if TYPE_CHECKING:
+    from hades.constants import GameObjectType
     from hades.sprite import HadesSprite
 
 __all__ = ("PhysicsEngine",)
@@ -30,6 +31,7 @@ class PhysicsEngine(PymunkPhysicsEngine):
     def add_game_object(
         self: PhysicsEngine,
         sprite: HadesSprite,
+        game_object_type: GameObjectType,
         *,
         blocking: bool,
     ) -> None:
@@ -37,6 +39,7 @@ class PhysicsEngine(PymunkPhysicsEngine):
 
         Args:
             sprite: The sprite to add to the physics engine.
+            game_object_type: The type of the game object.
             blocking: Whether the game object blocks sprite movement or not.
         """
         logger.debug(
@@ -50,7 +53,7 @@ class PhysicsEngine(PymunkPhysicsEngine):
             body_type=self.STATIC if blocking else self.DYNAMIC,
             max_horizontal_velocity=MAX_VELOCITY,
             max_vertical_velocity=MAX_VELOCITY,
-            collision_type=sprite.game_object_type.name,
+            collision_type=game_object_type.name,
         )
 
     def __repr__(self: PhysicsEngine) -> str:

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # Builtin
 import logging
+import math
 from typing import NamedTuple, cast
 
 # Pip
@@ -26,6 +27,7 @@ from hades.constants import (
     DEBUG_ENEMY_SPAWN_SIZE,
     DEBUG_GAME,
     ENEMY_GENERATE_INTERVAL,
+    ENEMY_GENERATION_DISTANCE,
     ENEMY_RETRY_COUNT,
     SPRITE_SIZE,
     TOTAL_ENEMY_COUNT,
@@ -44,7 +46,7 @@ from hades.game_objects.constructors import (
 from hades.game_objects.movements import KeyboardMovement
 from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
-from hades.sprite import GameObject, HadesSprite
+from hades.sprite import HadesSprite
 from hades.textures import grid_pos_to_pixel
 
 all__ = ("Game",)
@@ -104,14 +106,11 @@ class Game(View):
         """
         # Initialise a sprite object
         sprite_obj = HadesSprite(
-            GameObject(
-                self.system.add_game_object(
-                    constructor.component_data,
-                    *constructor.components,
-                ),
-                constructor.game_object_type,
-                self.system,
+            self.system.add_game_object(
+                constructor.component_data,
+                *constructor.components,
             ),
+            self.system,
             position,
             constructor.game_object_textures,
         )
@@ -125,6 +124,7 @@ class Game(View):
         }:
             self.physics_engine.add_game_object(
                 sprite_obj,
+                constructor.game_object_type,
                 blocking=constructor.blocking,
             )
 
@@ -179,7 +179,6 @@ class Game(View):
                 # Make the game object's backdrop a floor
                 self._initialise_game_object(FLOOR, self.tile_sprites, position)
                 self.possible_enemy_spawns.add(position)
-                # TODO: Properly get possible_enemy_spawns
 
         # Calculate upper_camera_x and upper_camera_y
         half_sprite_size = SPRITE_SIZE / 2
@@ -264,7 +263,7 @@ class Game(View):
             KeyboardMovement,
             self.system.get_component_for_game_object(
                 self.ids[GameObjectType.PLAYER][0].game_object_id,
-                ComponentType.KEYBOARD_MOVEMENT,
+                ComponentType.MOVEMENTS,
             ),
         )
         logger.debug(
@@ -294,7 +293,7 @@ class Game(View):
             KeyboardMovement,
             self.system.get_component_for_game_object(
                 self.ids[GameObjectType.PLAYER][0].game_object_id,
-                ComponentType.KEYBOARD_MOVEMENT,
+                ComponentType.MOVEMENTS,
             ),
         )
         logger.debug(
@@ -345,14 +344,19 @@ class Game(View):
 
         # Enemy limit not reached so attempt to initialise a new enemy game object
         # ENEMY_RETRY_COUNT times
+        player_sprite = self.ids[GameObjectType.PLAYER][0]
         for _ in range(ENEMY_RETRY_COUNT):
             position = self.possible_enemy_spawns.pop()
-            if not get_sprites_at_point(
-                grid_pos_to_pixel(*position),
-                self.entity_sprites,
+            if (
+                get_sprites_at_point(grid_pos_to_pixel(*position), self.entity_sprites)
+                or math.dist(player_sprite.position, position)
+                < ENEMY_GENERATION_DISTANCE * SPRITE_SIZE
             ):
-                self._initialise_game_object(ENEMY, self.entity_sprites, position)
-                return
+                continue
+            self._initialise_game_object(ENEMY, self.entity_sprites, position)
+            return
+
+    # TODO: Properly do this and on_draw
 
     def center_camera_on_player(self: Game) -> None:
         """Centers the camera on the player."""

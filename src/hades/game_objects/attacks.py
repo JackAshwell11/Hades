@@ -42,10 +42,10 @@ class AttackManager(GameObjectComponent):
     """Allows a game object to attack and be attacked by other game objects.
 
     Attributes:
-        current_attack: The index of the currently selected attack algorithm.
+        _current_attack: The index of the currently selected attack algorithm.
     """
 
-    __slots__ = ("attacks", "current_attack")
+    __slots__ = ("_attacks", "_current_attack")
 
     # Class variables
     component_type: ComponentType = ComponentType.ATTACK_MANAGER
@@ -65,12 +65,20 @@ class AttackManager(GameObjectComponent):
             attacks: A list of attack algorithms that can be performed by a game object.
         """
         super().__init__(game_object_id, system, _)
-        self.attacks: list[AttackBase] = attacks
-        self.current_attack: int = 0
+        self._attacks: list[AttackBase] = attacks
+        self._current_attack: int = 0
 
     def run_algorithm(self: AttackManager) -> None:
-        """Run the currently selected attack algorithm."""
-        self.attacks[self.current_attack].perform_attack()
+        """Run the current attack algorithm."""
+        self._attacks[self._current_attack].perform_attack()
+
+    def previous_attack(self: AttackManager) -> None:
+        """Select the previous attack algorithm."""
+        self._current_attack = max(self._current_attack - 1, 0)
+
+    def next_attack(self: AttackManager) -> None:
+        """Select the next attack algorithm."""
+        self._current_attack = min(self._current_attack + 1, len(self._attacks) - 1)
 
     def __repr__(self: AttackManager) -> str:
         """Return a human-readable representation of this object.
@@ -78,7 +86,4 @@ class AttackManager(GameObjectComponent):
         Returns:
             The human-readable representation of this object.
         """
-        return f"<AttackManager (Attack algorithm count={len(self.attacks)})>"
-
-
-# TODO: Maybe look at optimising AttackManager. It may be unnecessary
+        return f"<AttackManager (Attack algorithm count={len(self._attacks)})>"

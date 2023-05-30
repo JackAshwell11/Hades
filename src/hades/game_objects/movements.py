@@ -3,26 +3,26 @@ from __future__ import annotations
 
 # Builtin
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 # Custom
-from hades.constants import MOVEMENT_FORCE
+from hades.game_objects.attributes import MovementForce
 from hades.game_objects.base import ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
     from hades.game_objects.system import ECS
 
-__all__ = (
-    "KeyboardMovement",
-    "MovementBase",
-    "MovementManager",
-    "SteeringMovement",
-)
+__all__ = ("KeyboardMovement", "MovementBase", "SteeringMovement")
 
 
 class MovementBase(GameObjectComponent, metaclass=ABCMeta):
     """The base class for all movement algorithms."""
+
+    __slots__ = ("movement_force",)
+
+    # Class variables
+    component_type: ComponentType = ComponentType.MOVEMENTS
 
     def __init__(
         self: MovementBase,
@@ -38,6 +38,13 @@ class MovementBase(GameObjectComponent, metaclass=ABCMeta):
             component_data: The data for the components.
         """
         super().__init__(game_object_id, system, component_data)
+        self.movement_force: MovementForce = cast(
+            MovementForce,
+            self.system.get_component_for_game_object(
+                self.game_object_id,
+                ComponentType.MOVEMENT_FORCE,
+            ),
+        )
 
     @abstractmethod
     def calculate_force(self: MovementBase) -> tuple[float, float]:
@@ -57,9 +64,6 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
         "left_pressed",
         "right_pressed",
     )
-
-    # Class variables
-    component_type: ComponentType = ComponentType.KEYBOARD_MOVEMENT
 
     def __init__(
         self: KeyboardMovement,
@@ -86,8 +90,8 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
             The new force to apply to the game object.
         """
         return (
-            MOVEMENT_FORCE * (self.right_pressed - self.left_pressed),
-            MOVEMENT_FORCE * (self.up_pressed - self.down_pressed),
+            self.movement_force.value * (self.right_pressed - self.left_pressed),
+            self.movement_force.value * (self.up_pressed - self.down_pressed),
         )
 
     def __repr__(self: KeyboardMovement) -> str:
@@ -105,11 +109,6 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
 
 class SteeringMovement(MovementBase, GameObjectComponent):
     """Allows a game object's movement to be controlled by steering algorithms."""
-
-    __slots__ = ()
-
-    # Class variables
-    component_type: ComponentType = ComponentType.STEERING_MOVEMENT
 
     def __init__(
         self: SteeringMovement,
@@ -140,54 +139,3 @@ class SteeringMovement(MovementBase, GameObjectComponent):
             The human-readable representation of this object.
         """
         return "<SteeringMovement>"
-
-
-class MovementManager(GameObjectComponent):
-    """Allows a game object to move around the game map.
-
-    Attributes:
-        current_movement: The index of the currently selected movement algorithm.
-    """
-
-    __slots__ = ("movements", "current_movement")
-
-    # Class variables
-    component_type: ComponentType = ComponentType.MOVEMENT_MANAGER
-
-    def __init__(
-        self: MovementManager,
-        game_object_id: int,
-        system: ECS,
-        _: ComponentData,
-        movements: list[MovementBase],
-    ) -> None:
-        """Initialise the object.
-
-        Args:
-            game_object_id: The game object ID.
-            system: The entity component system which manages the game objects.
-            movements: A list of movements algorithms that can be performed by a game
-            object.
-        """
-        super().__init__(game_object_id, system, _)
-        self.movements: list[MovementBase] = movements
-        self.current_movement: int = 0
-
-    def get_force(self: MovementManager) -> tuple[float, float]:
-        """Run the currently selected movement algorithm.
-
-        Returns:
-            The new force to apply to the game object.
-        """
-        return self.movements[self.current_movement].calculate_force()
-
-    def __repr__(self: MovementManager) -> str:
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return f"<MovementManager (Movement algorithm count={len(self.movements)})>"
-
-
-# TODO: Maybe look at optimising MovementManager. It may be unnecessary

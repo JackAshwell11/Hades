@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 # Custom
+from hades.constants import ARMOUR_REGEN_AMOUNT
+from hades.game_objects.attributes import Armour
 from hades.game_objects.base import ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
@@ -12,6 +14,7 @@ if TYPE_CHECKING:
     from hades.game_objects.system import ECS
 
 __all__ = (
+    "ArmourRegen",
     "InstantEffects",
     "Inventory",
     "InventorySpaceError",
@@ -32,6 +35,64 @@ class InventorySpaceError(Exception):
             full: Whether the inventory is empty or full.
         """
         super().__init__(f"The inventory is {'full' if full else 'empty'}.")
+
+
+class ArmourRegen(GameObjectComponent):
+    """Allows a game object to regenerate armour."""
+
+    __slots__ = ("armour", "time_since_armour_regen")
+
+    # Class variables
+    component_type: ComponentType = ComponentType.ARMOUR_REGEN
+
+    def __init__(
+        self: ArmourRegen,
+        game_object_id: int,
+        system: ECS,
+        component_data: ComponentData,
+    ) -> None:
+        """Initialise the object.
+
+        Args:
+            game_object_id: The game object ID.
+            system: The entity component system which manages the game objects.
+            component_data: The data for the components.
+        """
+        super().__init__(game_object_id, system, component_data)
+        self.armour: Armour = cast(
+            Armour,
+            self.system.get_component_for_game_object(
+                self.game_object_id,
+                ComponentType.ARMOUR,
+            ),
+        )
+        self.time_since_armour_regen: float = 0
+
+    def on_update(self: ArmourRegen, delta_time: float) -> None:
+        """Process armour regeneration update logic.
+
+        Args:
+            delta_time: Time interval since the last time the function was called.
+        """
+        if (
+            self.time_since_armour_regen
+            >= self.system.get_component_for_game_object(
+                self.game_object_id,
+                ComponentType.ARMOUR_REGEN_COOLDOWN,
+            ).value
+        ):
+            self.armour.value += ARMOUR_REGEN_AMOUNT
+            self.time_since_armour_regen = 0
+        else:
+            self.time_since_armour_regen += delta_time
+
+    def __repr__(self: ArmourRegen) -> str:
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return f"<ArmourRegen (Time since armour regen={self.time_since_armour_regen})>"
 
 
 class InstantEffects(GameObjectComponent):

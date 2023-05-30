@@ -15,9 +15,7 @@ __all__ = (
     "ComponentData",
     "ComponentType",
     "GameObjectComponent",
-    "GAME_OBJECT_ATTRIBUTES",
     "ATTACK_ALGORITHMS",
-    "MOVEMENT_ALGORITHMS",
 )
 
 
@@ -26,20 +24,19 @@ class ComponentType(Enum):
 
     AREA_OF_EFFECT_ATTACK = auto()
     ARMOUR = auto()
+    ARMOUR_REGEN = auto()
     ARMOUR_REGEN_COOLDOWN = auto()
     ATTACK_MANAGER = auto()
     FIRE_RATE_PENALTY = auto()
     HEALTH = auto()
     INSTANT_EFFECTS = auto()
     INVENTORY = auto()
-    KEYBOARD_MOVEMENT = auto()
     MELEE_ATTACK = auto()
     MONEY = auto()
+    MOVEMENTS = auto()
     MOVEMENT_FORCE = auto()
-    MOVEMENT_MANAGER = auto()
     RANGED_ATTACK = auto()
     STATUS_EFFECTS = auto()
-    STEERING_MOVEMENT = auto()
     VIEW_DISTANCE = auto()
 
 
@@ -53,7 +50,6 @@ class GameObjectAttributeSectionType(Enum):
 class ComponentData(TypedDict, total=False):
     """Holds the data needed to initialise the components."""
 
-    armour_regen: bool
     attributes: dict[ComponentType, tuple[int, int]]
     instant_effects: tuple[int, dict[ComponentType, Callable[[int], float]]]
     inventory_size: tuple[int, int]
@@ -91,32 +87,12 @@ class GameObjectComponent:
 
         Args:
             delta_time: Time interval since the last time the function was called.
-
-        Raises:
-            NotImplementedError: This method is not implemented.
         """
-        raise NotImplementedError
 
-
-# Record which component types are game object attributes
-GAME_OBJECT_ATTRIBUTES = {
-    ComponentType.ARMOUR,
-    ComponentType.ARMOUR_REGEN_COOLDOWN,
-    ComponentType.FIRE_RATE_PENALTY,
-    ComponentType.HEALTH,
-    ComponentType.MOVEMENT_FORCE,
-    ComponentType.VIEW_DISTANCE,
-}
 
 # Record which component types are attack algorithms
 ATTACK_ALGORITHMS = {
     ComponentType.AREA_OF_EFFECT_ATTACK,
     ComponentType.MELEE_ATTACK,
     ComponentType.RANGED_ATTACK,
-}
-
-# Record which component types are movement algorithms
-MOVEMENT_ALGORITHMS = {
-    ComponentType.KEYBOARD_MOVEMENT,
-    ComponentType.STEERING_MOVEMENT,
 }
