@@ -9,10 +9,9 @@ FetchContent_MakeAvailable(googletest)
 add_library(GTest::GTest INTERFACE IMPORTED)
 target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
-# Create an executable from our test code
+# Create an executable from our test code linking it against GTest and the C++
+# shared library
 add_executable(${TEST_MODULE} test_astar.cpp test_bsp.cpp test_map.cpp test_primitives.cpp)
-
-# Link the test executable against GoogleTest and the C++ shared library
 target_link_libraries(
         ${TEST_MODULE}
         gtest_main

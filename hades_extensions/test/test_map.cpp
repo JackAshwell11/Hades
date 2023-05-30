@@ -63,19 +63,18 @@ TEST_F(Fixtures, TestMapSplitBspMaxSplit) {
   split_bsp(leaf, grid, random_generator, 10);
 
   // Collect all the child leafs so that we can test them
-  std::vector<Leaf *> children;
-  std::queue<Leaf *> split_queue;
-  split_queue.push(&leaf);
+  std::vector<std::reference_wrapper<Leaf>> children;
+  std::queue<std::reference_wrapper<Leaf>> split_queue({leaf});
   while (!split_queue.empty()) {
     // Get the current leaf
-    Leaf *current = split_queue.front();
+    Leaf &current = split_queue.front().get();
     split_queue.pop();
 
     // Check if current has children. If so, push its children into the queue,
     // otherwise, add the child leaf to the children vector
-    if (current->left && current->right) {
-      split_queue.push(current->left);
-      split_queue.push(current->right);
+    if (current.left && current.right) {
+      split_queue.emplace(*current.left);
+      split_queue.emplace(*current.right);
     } else {
       children.emplace_back(current);
     }
@@ -83,23 +82,22 @@ TEST_F(Fixtures, TestMapSplitBspMaxSplit) {
 
   // Test that each child leaf cannot be split anymore and that there are
   // approximately 4-8 children (this varies based on the toolchain)
-  for (Leaf *child : children) {
-    ASSERT_FALSE(child->split(grid, random_generator, false));
+  for (Leaf &child : children) {
+    ASSERT_FALSE(child.split(grid, random_generator, false));
   }
   ASSERT_TRUE(children.size() >= 4 || children.size() <= 8);
 }
 
 TEST_F(Fixtures, TestMapGenerateRoomsSetLeaf) {
   // Test if at least 1 room is generated
-  Leaf left_leaf = Leaf{{{0, 0}, {9, 15}}}, right_leaf = Leaf{{{10, 0}, {15, 15}}};
-  leaf.left = &left_leaf;
-  leaf.right = &right_leaf;
+  leaf.left = std::make_unique<Leaf>(Rect({0, 0}, {9, 15}));
+  leaf.right = std::make_unique<Leaf>(Rect({10, 0}, {15, 15}));
   ASSERT_EQ(generate_rooms(leaf, grid, random_generator).size(), 2);
 }
 
 TEST_F(Fixtures, TestMapGenerateRoomsRoomExist) {
   // Test if no rooms are generated if a room already exists
-  leaf.room = &valid_rect_one;
+  leaf.room = std::make_unique<Rect>(valid_rect_one);
   ASSERT_TRUE(generate_rooms(leaf, grid, random_generator).empty());
 }
 
@@ -134,7 +132,7 @@ TEST_F(Fixtures, TestMapPlaceTileGivenPositions) {
   std::vector<Point> possible_tiles = {{5, 6}, {4, 2}};
   place_tile(small_grid, random_generator, TileType::Player, possible_tiles);
   ASSERT_TRUE(
-      std::find(small_grid.grid.begin(), small_grid.grid.end(), TileType::Player) != small_grid.grid.end());
+      std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Player) != small_grid.grid->end());
 }
 
 TEST_F(Fixtures, TestMapPlaceTileEmpty) {
@@ -158,7 +156,7 @@ TEST_F(Fixtures, TestMapCreateHallwaysNoObstacles) {
       TileType::Empty, TileType::Wall, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
       TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
   };
-  ASSERT_EQ(small_grid.grid, create_hallways_no_obstacles_result);
+  ASSERT_EQ(*small_grid.grid, create_hallways_no_obstacles_result);
 }
 
 TEST_F(Fixtures, TestMapCreateHallwaysWithObstacles) {
@@ -168,7 +166,7 @@ TEST_F(Fixtures, TestMapCreateHallwaysWithObstacles) {
 
   // Get the first floor tile in the grid
   int index =
-      (int) (std::find(small_grid.grid.begin(), small_grid.grid.end(), TileType::Floor) - small_grid.grid.begin());
+      (int) (std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Floor) - small_grid.grid->begin());
   Point start = {index % small_grid.width, index / small_grid.width};
 
   // Use a Dijkstra map to count the number of floor tiles reachable
@@ -196,7 +194,7 @@ TEST_F(Fixtures, TestMapCreateHallwaysWithObstacles) {
 
   // Determine if the number of floor tiles generated matches the number of
   // traversable floor tiles
-  ASSERT_EQ(std::count(small_grid.grid.begin(), small_grid.grid.end(), TileType::Floor), tiles.size());
+  ASSERT_EQ(std::count(small_grid.grid->begin(), small_grid.grid->end(), TileType::Floor), tiles.size());
 }
 
 TEST_F(Fixtures, TestMapCreateHallwaysNoConnections) {
@@ -216,8 +214,8 @@ TEST_F(Fixtures, TestMapCreateHallwaysNoConnections) {
   };
 
   // Determine if there's 5 obstacles and no floor tiles
-  ASSERT_EQ(std::count(small_grid.grid.begin(), small_grid.grid.end(), TileType::Obstacle), 5);
-  ASSERT_EQ(std::count(small_grid.grid.begin(), small_grid.grid.end(), TileType::Floor), 0);
+  ASSERT_EQ(std::count(small_grid.grid->begin(), small_grid.grid->end(), TileType::Obstacle), 5);
+  ASSERT_EQ(std::count(small_grid.grid->begin(), small_grid.grid->end(), TileType::Floor), 0);
 }
 
 TEST_F(Fixtures, TestMapCreateMapCorrect) {

@@ -23,4 +23,4 @@ if (DO_PYTHON)
     # Initialise the module with pybind11
     pybind11_add_module(${PY_MODULE} binding.cpp)
     target_link_libraries(${PY_MODULE} PRIVATE ${CPP_LIB})
-endif()
+endif ()

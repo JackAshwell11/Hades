@@ -130,7 +130,7 @@ def cpp() -> None:
 
 
 def build(**_: KW) -> None:
-    """Allow Poetry to automatically build the C++ extensions upon installation."""
+    """Allow Poetry to automatically build the C++ extension upon installation."""
     cpp()
 
 

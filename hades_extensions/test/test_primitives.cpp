@@ -43,13 +43,13 @@ TEST_F(Fixtures, TestGridConvertPositionLarge) {
 
 TEST_F(Fixtures, TestGridGetValueMiddle) {
   // Test if a position in the middle can be got correctly
-  small_grid.grid[47] = TileType::Player;
+  (*small_grid.grid)[47] = TileType::Player;
   ASSERT_EQ(small_grid.get_value({5, 7}), TileType::Player);
 }
 
 TEST_F(Fixtures, TestGridGetValueEdge) {
   // Test if a position on the edge can be got correctly
-  small_grid.grid[29] = TileType::Player;
+  (*small_grid.grid)[29] = TileType::Player;
   ASSERT_EQ(small_grid.get_value({5, 4}), TileType::Player);
 }
 
@@ -61,13 +61,13 @@ TEST_F(Fixtures, TestGridGetValueLarge) {
 TEST_F(Fixtures, TestGridSetValueMiddle) {
   // Test if a position in the middle can be set correctly
   small_grid.set_value({1, 7}, TileType::Player);
-  ASSERT_EQ(small_grid.grid[43], TileType::Player);
+  ASSERT_EQ((*small_grid.grid)[43], TileType::Player);
 }
 
 TEST_F(Fixtures, TestGridSetValueEdge) {
   // Test if a position on the edge can be set correctly
   small_grid.set_value({5, 2}, TileType::Player);
-  ASSERT_EQ(small_grid.grid[17], TileType::Player);
+  ASSERT_EQ((*small_grid.grid)[17], TileType::Player);
 }
 
 TEST_F(Fixtures, TestGridSetValueSmall) {
@@ -104,5 +104,5 @@ TEST_F(Fixtures, TestRectPlaceRectCorrect) {
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
-  ASSERT_EQ(small_grid.grid, target_result);
+  ASSERT_EQ(*small_grid.grid, target_result);
 }

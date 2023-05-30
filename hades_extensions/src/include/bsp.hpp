@@ -18,24 +18,17 @@
 /// leaf.
 struct Leaf {
   // Parameters
-  Rect container{};
+  std::unique_ptr<Rect> container;
 
   // Attributes
-  Leaf *left{}, *right{};
-  Rect *room{};
+  std::unique_ptr<Leaf> left, right;
+  std::unique_ptr<Rect> room;
 
-  inline bool operator==(const Leaf lef) const {
+  inline bool operator==(const Leaf &lef) const {
     return container == lef.container && left == lef.left && right == lef.right;
   }
 
-  /// Default constructor for a Leaf object. This should not be used.
-  Leaf() = default;
-
-  /// Constructs a Leaf object.
-  ///
-  /// @param container - The rect object for representing this leaf.
-  /// @return A Leaf object.
-  explicit Leaf(Rect container_val) { container = container_val; }
+  explicit Leaf(Rect container_val) : container(std::make_unique<Rect>(container_val)) {}
 
   /// Split a container either horizontally or vertically.
   ///

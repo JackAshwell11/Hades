@@ -1,4 +1,5 @@
 // Std includes
+#include <array>
 #include <queue>
 #include <stdexcept>
 #include <unordered_map>
@@ -25,8 +26,8 @@ struct Neighbour {
 
 // ----- CONSTANTS ------------------------------
 // Represents the north, south, east, west, north-east, north-west, south-east and south-west directions on a compass
-const std::vector<Point> INTERCARDINAL_OFFSETS = {
-    {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1},
+const std::array<Point, 8> INTERCARDINAL_OFFSETS = {
+    Point{-1, -1}, Point{0, -1}, Point{1, -1}, Point{-1, 0}, Point{1, 0}, Point{-1, 1}, Point{0, 1}, Point{1, 1},
 };
 
 // ----- FUNCTIONS ------------------------------
@@ -38,7 +39,7 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
   }
   std::vector<Point> result;
   std::priority_queue<Neighbour> queue;
-  std::unordered_map<Point, Neighbour> neighbours = {{start, {0, start}}};
+  std::unordered_map<Point, Neighbour> neighbours{{start, {0, start}}};
   queue.push({0, start});
 
   // Loop until the priority queue is empty
@@ -52,14 +53,14 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
       // Backtrack through neighbours to get the path
       while (!(neighbours[current].destination == current)) {
         // Add the current pair to the result list
-        result.emplace_back(current.x, current.y);
+        result.push_back(current);
 
         // Get the next pair in the path
         current = neighbours[current].destination;
       }
 
       // Add the start point and exit out of the loop
-      result.emplace_back(start.x, start.y);
+      result.push_back(start);
       break;
     }
 
@@ -90,7 +91,8 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
         neighbours[neighbour] = {distance, current};
 
         // Add the neighbour to the priority queue
-        queue.push({distance + std::max(abs(end.x - neighbour.x), abs(end.y - neighbour.y)), neighbour});
+        Point diff = end - neighbour;
+        queue.emplace(distance + std::max(diff.x, diff.y), neighbour);
       }
     }
   }

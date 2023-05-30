@@ -13,7 +13,7 @@ TEST_F(Fixtures, TestBspSplitCorrect) {
   // Calculate the difference between the bottom right point of the left leaf
   // and the top right point of the right leaf, so we can determine it's split
   // direction
-  Point leaf_diff = leaf.left->container.bottom_right - leaf.right->container.top_left,
+  Point leaf_diff = leaf.left->container->bottom_right - leaf.right->container->top_left,
       target_diff = (leaf_diff.x == 2) ? Point{2, 19} : Point{19, 2};
 
   // Test if the child leafs border each other
@@ -25,7 +25,8 @@ TEST_F(Fixtures, TestBspSplitDebug) {
   leaf.split(grid, random_generator, true);
 
   // Find the row/column where the split occurred and get the grid position of the split
-  int debug_pos_index = (int) (std::find(grid.grid.begin(), grid.grid.end(), TileType::DebugWall) - grid.grid.begin());
+  int debug_pos_index =
+      (int) (std::find(grid.grid->begin(), grid.grid->end(), TileType::DebugWall) - grid.grid->begin());
   Point debug_pos = {debug_pos_index % grid.width, debug_pos_index / grid.width};
 
   // Make sure the split runs the entire length of the grid. We need to
@@ -44,7 +45,7 @@ TEST_F(Fixtures, TestBspSplitDebug) {
 TEST_F(Fixtures, TestBspSplitSmallWidthHeight) {
   // Make sure we test what happens if the container's width and height are both
   // less than MIN_CONTAINER_SIZE
-  leaf.container = Rect{Point{-1, -1}, Point{-1, -1}};
+  leaf.container = std::make_unique<Rect>(Point(-1, -1), Point(-1, -1));
   ASSERT_FALSE(leaf.split(grid, random_generator, false));
 }
 
@@ -57,7 +58,7 @@ TEST_F(Fixtures, TestBspCreateRoomChildLeaf) {
 
 TEST_F(Fixtures, TestBspCreateRoomNotNullLeftRight) {
   // Test what happens if the leaf and right leafs are not null
-  Leaf temp_leaf = Leaf{Rect{Point{0, 0}, Point{0, 0}}};
-  leaf.left = leaf.right = &temp_leaf;
+  leaf.left = std::make_unique<Leaf>(Rect({0, 0}, {0, 0}));
+  leaf.right = std::make_unique<Leaf>(Rect({0, 0}, {0, 0}));
   ASSERT_FALSE(leaf.create_room(grid, random_generator));
 }

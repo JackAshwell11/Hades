@@ -12,17 +12,8 @@ struct Edge {
   int cost;
   Rect source, destination;
 
-  /// Construct an Edge object.
-  ///
-  /// @param cost - The cost to traverse this edge.
-  /// @param source - The starting node.
-  /// @param destination - The ending node.
-  /// @return An Edge object.
-  Edge(int cost_val, Rect source_val, Rect destination_val) {
-    cost = cost_val;
-    source = source_val;
-    destination = destination_val;
-  }
+  Edge(int cost_val, Rect source_val, Rect destination_val)
+      : cost(cost_val), source(source_val), destination(destination_val) {}
 
   inline bool operator<(const Edge edg) const {
     // The priority_queue data structure gets the maximum priority, so we need
@@ -37,7 +28,6 @@ struct Edge {
 };
 
 // ----- FUNCTIONS ------------------------------
-/// Allows the edge struct to be hashed in a map.
 template<>
 struct std::hash<Edge> {
   size_t operator()(const Edge &edg) const {
