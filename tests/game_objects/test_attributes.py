@@ -255,7 +255,9 @@ def test_full_game_object_attribute_upgrade_invalid_increase(
         full_game_object_attribute: The full game object attribute for use in testing.
     """
     with pytest.raises(expected_exception=TypeError):
-        full_game_object_attribute.upgrade(lambda _: "str")  # type: ignore[arg-type]
+        full_game_object_attribute.upgrade(
+            lambda _: "str",  # type: ignore[arg-type,return-value]
+        )
 
 
 def test_full_game_object_attribute_apply_instant_effect_lower(
@@ -354,6 +356,7 @@ def test_full_game_object_attribute_on_update_no_deltatime(
         2,
     )
     full_game_object_attribute.on_update(0)
+    assert full_game_object_attribute.applied_status_effect
     assert full_game_object_attribute.applied_status_effect.time_counter == 0
 
 
@@ -391,6 +394,7 @@ def test_full_game_object_attribute_on_update_multiple_deltatimes(
         3,
     )
     full_game_object_attribute.on_update(40)
+    assert full_game_object_attribute.applied_status_effect
     assert full_game_object_attribute.applied_status_effect.time_counter == 40
     assert full_game_object_attribute.value == 201.5
     assert full_game_object_attribute.max_value == 201.5
@@ -426,7 +430,9 @@ def test_full_game_object_attribute_on_update_no_status_effect(
     Args:
         full_game_object_attribute: The full game object attribute for use in testing.
     """
-    assert not full_game_object_attribute.on_update(5)
+    assert not full_game_object_attribute.applied_status_effect
+    full_game_object_attribute.on_update(5)
+    assert not full_game_object_attribute.applied_status_effect
 
 
 def test_empty_game_object_attribute_setter(
@@ -502,7 +508,9 @@ def test_empty_game_object_attribute_on_update(
     Args:
         empty_game_object_attribute: The empty game object attribute for use in testing.
     """
-    assert not empty_game_object_attribute.on_update(1)
+    assert not empty_game_object_attribute.applied_status_effect
+    empty_game_object_attribute.on_update(1)
+    assert not empty_game_object_attribute.applied_status_effect
 
 
 def test_deal_damage_low_health_armour(

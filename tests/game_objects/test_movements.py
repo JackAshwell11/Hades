@@ -10,7 +10,7 @@ import pytest
 # Custom
 from hades.game_objects.attributes import MovementForce
 from hades.game_objects.base import ComponentType
-from hades.game_objects.movements import KeyboardMovement
+from hades.game_objects.movements import KeyboardMovement, SteeringMovement
 from hades.game_objects.system import ECS
 
 __all__ = ()
@@ -43,6 +43,27 @@ def keyboard_movement(ecs: ECS) -> KeyboardMovement:
     )
     return cast(
         KeyboardMovement,
+        ecs.get_component_for_game_object(0, ComponentType.MOVEMENTS),
+    )
+
+
+@pytest.fixture()
+def steering_movement(ecs: ECS) -> SteeringMovement:
+    """Create a steering movement component for use in testing.
+
+    Args:
+        ecs: The entity component system for use in testing.
+
+    Returns:
+        The keyboard movement component for use in testing.
+    """
+    ecs.add_game_object(
+        {"attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)}},
+        MovementForce,
+        SteeringMovement,
+    )
+    return cast(
+        SteeringMovement,
         ecs.get_component_for_game_object(0, ComponentType.MOVEMENTS),
     )
 
@@ -169,3 +190,14 @@ def test_keyboard_movement_calculate_force_south_east(
     keyboard_movement.south_pressed = True
     keyboard_movement.east_pressed = True
     assert keyboard_movement.calculate_force() == (100, -100)
+
+
+def test_steering_movement_init(steering_movement: SteeringMovement) -> None:
+    """Test if the steering movement component is initialised correctly.
+
+    Args:
+        steering_movement: The steering movement component for use in testing.
+    """
+    assert repr(steering_movement) == "<SteeringMovement>"
+    # Temporary assert to increase coverage. Change this once enemy AI is done
+    assert steering_movement.calculate_force() == (0, 0)

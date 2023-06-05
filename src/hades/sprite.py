@@ -57,7 +57,7 @@ class HadesSprite(Sprite):
         Returns:
             The game object's physics engine
         """
-        return self.physics_engines[0]
+        return self.physics_engines[0]  # type: ignore[misc,no-any-return]
 
     def on_update(self: HadesSprite, delta_time: float = 1 / 60) -> None:
         """Handle an on_update event for the game object.
@@ -66,11 +66,10 @@ class HadesSprite(Sprite):
             delta_time: The time interval since the last time the event was triggered.
         """
         # Update the game object's components
-        for component_type in ComponentType:
-            self.system.get_component_for_game_object(
-                self.game_object_id,
-                component_type,
-            ).on_update(delta_time)
+        for component in self.system.get_components_for_game_object(
+            self.game_object_id,
+        ).values():
+            component.on_update(delta_time)
 
         # Calculate the game object's new movement force and apply it
         self.physics.apply_impulse(
@@ -94,9 +93,3 @@ class HadesSprite(Sprite):
             f"<HadesSprite (Game object ID={self.game_object_id}) (Current"
             f" texture={self.texture})>"
         )
-
-
-# TODO: Still need to implement:
-#  Attack - enemy
-
-# TODO: Once in_combat becomes false, set ArmourRegen.time_since_armour_regen to 0

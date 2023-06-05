@@ -109,6 +109,7 @@ def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
     """
     # Test that adding the game object works correctly
     assert ecs.add_game_object({}) == 0
+    assert ecs.get_components_for_game_object(0) == {}
 
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
@@ -117,6 +118,11 @@ def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The game object ID `0` is not registered with the ECS.",
+    ):
+        ecs.get_components_for_game_object(0)
     with pytest.raises(
         expected_exception=NotRegisteredError,
         match="The game object ID `0` is not registered with the ECS.",
@@ -134,6 +140,10 @@ def test_ecs_game_object_with_multiple_components(ecs: ECS) -> None:
     ecs.add_game_object({}, GameObjectComponentOne, GameObjectComponentTwo)
     assert ecs.get_component_for_game_object(0, ComponentType.HEALTH)
     assert ecs.get_component_for_game_object(0, ComponentType.ARMOUR)
+    assert list(ecs.get_components_for_game_object(0).keys()) == [
+        ComponentType.HEALTH,
+        ComponentType.ARMOUR,
+    ]
     with pytest.raises(expected_exception=KeyError):
         ecs.get_component_for_game_object(0, ComponentType.MONEY)
 
@@ -144,6 +154,11 @@ def test_ecs_game_object_with_multiple_components(ecs: ECS) -> None:
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The game object ID `0` is not registered with the ECS.",
+    ):
+        ecs.get_components_for_game_object(0)
 
 
 def test_ecs_multiple_game_objects(ecs: ECS) -> None:
@@ -155,6 +170,8 @@ def test_ecs_multiple_game_objects(ecs: ECS) -> None:
     # Test that adding two game object works correctly
     assert ecs.add_game_object({}) == 0
     assert ecs.add_game_object({}, GameObjectComponentOne) == 1
+    assert ecs.get_components_for_game_object(0) == {}
+    assert list(ecs.get_components_for_game_object(1).keys()) == [ComponentType.HEALTH]
 
     # Test that removing the first game object works correctly
     ecs.remove_game_object(0)
@@ -164,6 +181,11 @@ def test_ecs_multiple_game_objects(ecs: ECS) -> None:
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The game object ID `0` is not registered with the ECS.",
+    ):
+        ecs.get_components_for_game_object(0)
 
 
 def test_ecs_component_data(ecs: ECS) -> None:
@@ -186,6 +208,7 @@ def test_ecs_component_data(ecs: ECS) -> None:
         ).test_data
         == 10
     )
+    assert list(ecs.get_components_for_game_object(0).keys()) == [ComponentType.MONEY]
 
 
 def test_ecs_nonexistent_component_data(ecs: ECS) -> None:

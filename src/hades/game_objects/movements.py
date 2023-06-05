@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
     from hades.game_objects.system import ECS
 
-__all__ = ("KeyboardMovement", "MovementBase")
+__all__ = ("KeyboardMovement", "MovementBase", "SteeringMovement")
 
 
 class MovementBase(GameObjectComponent, metaclass=ABCMeta):
@@ -105,3 +105,39 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
             f" pressed={self.south_pressed}) (East pressed={self.east_pressed}) (West"
             f" pressed={self.west_pressed})>"
         )
+
+
+class SteeringMovement(MovementBase, GameObjectComponent):
+    """Allows a game object's movement to be controlled by steering algorithms."""
+
+    __slots__ = ()
+
+    def __init__(
+        self: SteeringMovement,
+        game_object_id: int,
+        system: ECS,
+        _: ComponentData,
+    ) -> None:
+        """Initialise the object.
+
+        Args:
+            game_object_id: The game object ID.
+            system: The entity component system which manages the game objects.
+        """
+        super().__init__(game_object_id, system, _)
+
+    def calculate_force(self: SteeringMovement) -> tuple[float, float]:
+        """Calculate the new force to apply to the game object.
+
+        Returns:
+            The new force to apply to the game object.
+        """
+        return 0, 0
+
+    def __repr__(self: SteeringMovement) -> str:
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return "<SteeringMovement>"

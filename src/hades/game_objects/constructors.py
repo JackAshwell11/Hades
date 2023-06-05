@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, NamedTuple
 
 # Custom
 from hades.constants import GameObjectType
+from hades.game_objects.attributes import MovementForce
+from hades.game_objects.base import ComponentType
 from hades.game_objects.components import Inventory
 from hades.game_objects.movements import KeyboardMovement, SteeringMovement
 from hades.textures import TextureType
@@ -66,15 +68,19 @@ FLOOR = GameObjectConstructor(
 PLAYER = GameObjectConstructor(
     GameObjectType.PLAYER,
     GameObjectTextures(TextureType.PLAYER_IDLE.value[0]),
-    components=[Inventory, KeyboardMovement],
-    component_data={"inventory_size": (6, 5)},
+    components=[Inventory, MovementForce, KeyboardMovement],
+    component_data={
+        "attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)},
+        "inventory_size": (6, 5),
+    },
 )
 
 # Enemy characters
 ENEMY = GameObjectConstructor(
     GameObjectType.ENEMY,
     GameObjectTextures(TextureType.ENEMY_IDLE.value[0]),
-    components=[SteeringMovement],
+    components=[MovementForce, SteeringMovement],
+    component_data={"attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)}},
 )
 
 # Potion tiles

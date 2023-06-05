@@ -114,6 +114,31 @@ class ECS:
         # Delete the game object from the system
         del self._components[game_object_id]
 
+    def get_components_for_game_object(
+        self: ECS,
+        game_object_id: int,
+    ) -> dict[ComponentType, GameObjectComponent]:
+        """Get a game object's components.
+
+        Args:
+            game_object_id: The game object ID.
+
+        Returns:
+            The game object's components.
+
+        Raises:
+            NotRegisteredError: The game object ID `ID` is not registered with the ECS.
+        """
+        # Check if the game object ID is registered or not
+        if game_object_id not in self._components:
+            raise NotRegisteredError(
+                not_registered_type="game object ID",
+                value=game_object_id,
+            )
+
+        # Return the game object's components
+        return self._components[game_object_id]
+
     def get_component_for_game_object(
         self: ECS,
         game_object_id: int,
@@ -126,7 +151,7 @@ class ECS:
             component_type: The component type to get.
 
         Returns:
-            The game object's component.
+            The component from the game object.
 
         Raises:
             NotRegisteredError: The game object ID `ID` is not registered with the ECS.

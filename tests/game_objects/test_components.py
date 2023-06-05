@@ -94,7 +94,7 @@ def inventory(ecs: ECS) -> Inventory[int]:
         Inventory,
     )
     return cast(
-        Inventory,
+        Inventory[int],
         ecs.get_component_for_game_object(0, ComponentType.INVENTORY),
     )
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 # Builtin
 import logging
 import math
+import random
 from typing import NamedTuple, cast
 
 # Pip
@@ -33,7 +34,7 @@ from hades.constants import (
     TOTAL_ENEMY_COUNT,
     GameObjectType,
 )
-from hades.game_objects.attacks import AttackManager
+from hades.game_objects.attacks import Attacks
 from hades.game_objects.base import ComponentType
 from hades.game_objects.constructors import (
     ENEMY,
@@ -145,7 +146,7 @@ class Game(View):
         self.physics_engine: PhysicsEngine = PhysicsEngine()
         self.game_camera: Camera = Camera()
         self.gui_camera: Camera = Camera()
-        self.possible_enemy_spawns: set[tuple[int, int]] = set()
+        self.possible_enemy_spawns: list[tuple[int, int]] = []
         self.upper_camera_x: float = -1
         self.upper_camera_y: float = -1
         self.player_status_text: Text = Text(
@@ -178,7 +179,7 @@ class Game(View):
 
                 # Make the game object's backdrop a floor
                 self._initialise_game_object(FLOOR, self.tile_sprites, position)
-                self.possible_enemy_spawns.add(position)
+                self.possible_enemy_spawns.append(position)
 
         # Calculate upper_camera_x and upper_camera_y
         half_sprite_size = SPRITE_SIZE / 2
@@ -330,12 +331,12 @@ class Game(View):
         )
         if button is MOUSE_BUTTON_LEFT:
             cast(
-                AttackManager,
+                Attacks,
                 self.system.get_component_for_game_object(
                     self.ids[GameObjectType.PLAYER][0].game_object_id,
-                    ComponentType.ATTACK_MANAGER,
+                    ComponentType.ATTACKS,
                 ),
-            ).run_algorithm()
+            ).do_attack()
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
@@ -344,9 +345,9 @@ class Game(View):
 
         # Enemy limit not reached so attempt to initialise a new enemy game object
         # ENEMY_RETRY_COUNT times
+        random.shuffle(self.possible_enemy_spawns)
         player_sprite = self.ids[GameObjectType.PLAYER][0]
-        for _ in range(ENEMY_RETRY_COUNT):
-            position = self.possible_enemy_spawns.pop()
+        for position in self.possible_enemy_spawns[:ENEMY_RETRY_COUNT]:
             if (
                 get_sprites_at_point(grid_pos_to_pixel(*position), self.entity_sprites)
                 or math.dist(player_sprite.position, position)
@@ -355,8 +356,6 @@ class Game(View):
                 continue
             self._initialise_game_object(ENEMY, self.entity_sprites, position)
             return
-
-    # TODO: Properly do this and on_draw
 
     def center_camera_on_player(self: Game) -> None:
         """Centers the camera on the player."""
