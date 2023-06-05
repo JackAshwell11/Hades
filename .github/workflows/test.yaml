@@ -25,6 +25,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: pip install tox tox-gh-actions
+      - name: Install EGL on Linux for headless Arcade
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install libegl1
       - name: Run Tox
         run: tox
       - name: Upload coverage report
@@ -47,7 +50,7 @@ jobs:
       - name: Configure and build CMake
         uses: lukka/run-cmake@v3
         with:
-          cmakeListsTxtPath: "${{ github.workspace }}/cpp_src/CMakeLists.txt"
+          cmakeListsTxtPath: "${{ github.workspace }}/hades_extensions/CMakeLists.txt"
           buildDirectory: "${{ github.workspace }}/build"
       - name: Run CTest
         run: ctest --output-on-failure --test-dir ${{ github.workspace }}/build/test

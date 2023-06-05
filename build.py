@@ -7,11 +7,21 @@ import platform
 import subprocess
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import TypeVar
 
 # Pip
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
+
+# Define a generic type for the keyword arguments
+KW = TypeVar("KW")
+
+
+class BuildNamespace(argparse.Namespace):
+    """Allows typing of an argparse Namespace for the CLI."""
+
+    executable: bool
+    cpp: bool
 
 
 class CMakeBuild(build_ext):
@@ -27,7 +37,7 @@ class CMakeBuild(build_ext):
         """
         # Determine where the extension should be transferred to after it has been
         # compiled
-        current_dir = Path.cwd()
+        current_dir = Path(__file__).parent
         build_dir = current_dir.joinpath(self.get_ext_fullpath(ext.name)).parent
 
         # Determine the profile to build the CMake extension with
@@ -40,18 +50,20 @@ class CMakeBuild(build_ext):
 
         # Compile and build the CMake extension
         subprocess.run(
-            [
-                "cmake",
-                current_dir.joinpath(ext.sources[0]),
-                "-DDO_TESTS=false",
-                "-DDO_PYTHON=true",
-                f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
-            ],
+            " ".join(
+                [
+                    "cmake",
+                    str(current_dir.joinpath(ext.sources[0])),
+                    "-DDO_TESTS=false",
+                    "-DDO_PYTHON=true",
+                    f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
+                ],
+            ),
             cwd=build_temp,
             check=True,
         )
         subprocess.run(
-            ["cmake", "--build", ".", f"--config {profile}"],
+            " ".join(["cmake", "--build", ".", f"--config {profile}"]),
             cwd=build_temp,
             check=True,
         )
@@ -60,7 +72,7 @@ class CMakeBuild(build_ext):
 def executable() -> None:
     """Compiles the game into an executable format for portable use."""
     # Initialise some constants
-    game_dir = "python_src/hades"
+    game_dir = "src/hades"
     source_dir = Path().absolute() / game_dir / "window.py"
     resources_dir = f"{game_dir}/resources"
     output_dir = Path().absolute() / "build"
@@ -98,7 +110,6 @@ def executable() -> None:
             zip_file.write(build_file, str(build_file).replace(str(dist_dir), ""))
     print(f"Finishing zipping {zip_output_name}. Now verifying archive")
     try:
-        assert Path(zip_output_name).exists()
         print(f"Output of {zip_output_name} was successful")
     except AssertionError:
         print(f"Output of {zip_output_name} was unsuccessful")
@@ -108,19 +119,18 @@ def cpp() -> None:
     """Compiles the C++ extensions and installs them into the virtual environment."""
     dist = setup(
         name="hades_extensions",
+        ext_modules=[Extension("hades_extensions", ["hades_extensions"])],
         script_args=["bdist_wheel"],
-        ext_modules=[Extension("hades_extensions", ["cpp_src"])],
         cmdclass={"build_ext": CMakeBuild},
-        data_files=[("", ["cpp_src/hades_extensions.pyi"])],
     )
     subprocess.run(
-        f'pip install "{Path.cwd().joinpath(dist.dist_files[0][2])}"',
+        f'pip install --force-reinstall "{Path.cwd().joinpath(dist.dist_files[0][2])}"',
         check=True,
     )
 
 
-def build(_: dict[str, Any]) -> None:
-    """Allow Poetry to automatically build the C++ extensions upon installation."""
+def build(**_: KW) -> None:
+    """Allow Poetry to automatically build the C++ extension upon installation."""
     cpp()
 
 
@@ -142,7 +152,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Compiles the C++ extensions and installs them",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(namespace=BuildNamespace())
 
     # Determine which argument was selected
     if args.executable:

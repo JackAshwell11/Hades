@@ -11,36 +11,32 @@ license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/Aspect1103/Hades"
 repository = "https://github.com/Aspect1103/Hades"
-packages = [
-    { include = "hades", from = "python_src" }
-]
 
 [tool.poetry.build]
 script = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade = "3.0.0.dev20"
+arcade = "3.0.0.dev22"
 pymunk = "6.4.0"
 shapely = "2.0.1"
 
 [tool.poetry.dev-dependencies]
 black = "23.3.0"
-isort = "5.12.0"
-mypy = "1.2.0"
-nuitka = "1.5.4"
+mypy = "1.3.0"
+nuitka = "1.6"
 ordered-set = "4.1.0"
-pre-commit = "3.2.2"
-pylint = "2.17.2"
+pre-commit = "3.3.2"
+pylint = "2.17.4"
 pytest = "7.3.1"
-pytest-cov = "4.0.0"
+pytest-cov = "4.1.0"
 pytest-icdiff = "0.6"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.7"
-ruff = "0.0.262"
+ruff = "0.0.270"
 ssort = "v0.11.6"
-tox = "4.4.12"
+tox = "4.5.2"
 
 [tool.black]
 preview = true
@@ -48,9 +44,9 @@ target_version = ["py310"]
 
 [tool.coverage.paths]
 source = [
-    "python_src",
-    ".tox/*/Lib/site-packages",
-    ".tox/*/lib/*/site-packages",
+    "src",  # Run coverage on the entire project
+    ".tox/*/Lib/site-packages",  # Make sure the project is being covered on Windows
+    ".tox/*/lib/*/site-packages",  # Make sure the project is being covered on Linux
 ]
 
 [tool.coverage.report]
@@ -63,6 +59,9 @@ exclude_lines = [
 omit = [
     "*/__main__.py",  # This is only used for running the game via the CLI
     "*/extensions/compile.py",  # This is only used for building the C++ extensions
+    "*/game_objects_BAD_ECS/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "*/game_objects_OLD/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
+    "*/constants_OLD/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
 ]
 precision = 2
 show_missing = true
@@ -71,36 +70,26 @@ show_missing = true
 branch = true
 source = ["hades"]
 
-[tool.isort]
-filter_files = true
-profile = "black"
-
 [tool.mypy]
-# TODO: Once Arcade releases 2.7 (or a bugfix release with types), these flags
-#  can be re-evaluated to get strict mypy typing
-#disallow_any_explicit = true
-#disallow_subclassing_any = true
-#disallow_untyped_calls = true
-#disallow_untyped_decorators = true
-#warn_return_any = true
-#warn_unused_ignores = true
-
-check_untyped_defs = true
-disallow_any_generics = true
-disallow_incomplete_defs = true
-disallow_untyped_defs = true
+disallow_any_decorated = true
+disallow_any_explicit = true
+disallow_any_expr = true
+disallow_any_unimported = true
 exclude = [
-    "inventory_view.py",
+    "build.py",  # Setuptools is untyped so we need to ignore it
+    "compile.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+    "melee_shader.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+    "vector_field",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+    "views",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 ignore_missing_imports = true
-no_implicit_reexport = true
 pretty = true
 python_version = "3.10"
 show_column_numbers = true
 show_error_context = true
-strict_concatenate = true
-strict_equality = true
-warn_redundant_casts = true
+show_error_end = true
+strict = true
+warn_unreachable = true
 warn_unused_configs = true
 
 # TODO: Once Ruff implements all of Pylint's rules, switch Pylint out for Ruff
@@ -111,23 +100,44 @@ good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
 max-line-length = 88
 
 [tool.pylint."MASTER"]
-ignore = "TEMP-FILES"
+ignore = [
+    "*vector_field*",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+]
 load-plugins = [
     "pylint.extensions.bad_builtin",  # Disallow the use of deprecated builtin functions
     "pylint.extensions.check_elif",  # Disallow the use of following an else statement with an if
+    "pylint.extensions.code_style",  # Disallow code that reduces code consistency
     "pylint.extensions.comparison_placement",  # Disallow placing the constant on the left of the comparison
     "pylint.extensions.confusing_elif",  # Disallow placing an elif after an indented block (could be hard to understand)
+    "pylint.extensions.consider_refactoring_into_while_condition",
     "pylint.extensions.consider_ternary_expression",  # Disallow spreading multiple assignment statements across if/else blocks
+    "pylint.extensions.dunder",  # Disallow mispelled dunder methods
     "pylint.extensions.emptystring",  # Disallow comparisons to empty strings
+    "pylint.extensions.eq_without_hash",  # Disallow implementing __eq__ without __hash__
     "pylint.extensions.for_any_all",  # Disallow using a for loop to check for a condition and return a bool
+    "pylint.extensions.magic_value",  # Disallow using magic values
+    "pylint.extensions.no_self_use",  # Disallow methods which don't use their bound instance
+    "pylint.extensions.overlapping_exceptions",  # Disallow overlapping exceptions
+    "pylint.extensions.private_import",  # Disallow private imports
+    "pylint.extensions.redefined_loop_name",  # Disallow redefining loop variables
+    "pylint.extensions.redefined_variable_type",  # Disallow redefining variable types
     "pylint.extensions.set_membership",  # Disallow not using sets for membership tests
+    "pylint.extensions.typing",  # Disallow bad typing
 ]
 
 [tool.pylint."MESSAGES CONTROL"]
-enable = "useless-suppression"
+enable = [
+    "bad-inline-option",  # Disallow badly formatted options
+    "deprecated-pragma",  # Disallow deprecated pragrams for renamed options
+    "file-ignored",  # Disallow messages to inform that files won't be checked
+    "use-symbolic-message-instead",  # Disallow messages enabled/disabled by ID
+    "useless-suppression",  # Disallow disabled messages when they aren't triggered
+]
+include-naming-hint = true
 disable = [
     "attribute-defined-outside-init",  # Allow attributes being defined outside __init__ (sometimes this needs to happen)
     "import-error",  # Sometimes pylint can't import a package correctly
+    "magic-value-comparison",  # Stop Pylint complaining about the tests
     "no-else-return",  # Allow else statement after a return
     "no-member",  # Allow BaseView to set the window attribute
     "no-name-in-module",  # Pylint can't infer imports from the extensions
@@ -140,18 +150,18 @@ disable = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-vv -ra --showlocals --cov --cov-report term-missing"
+addopts = "-vv -ra --showlocals --cov --cov-report term-missing --ignore-glob=*vector_field*"
+pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.ruff]
 extend-exclude = [
-    "*vector_field*",
+    "*vector_field*",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+    "melee_shader.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
+    "src/hades/views/shop.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 extend-ignore = [
-    "ANN101",  # Allow the `self` parameter to be untyped
-    "S101",  # Allow assert statements (useful for mypy)
     "S311",  # Allow use of the random library
-    "RET505",  # Stop Ruff complaining about an unnecessary else after a return statement
 ]
 format = "grouped"
 line-length = 88
@@ -171,6 +181,7 @@ select = [
     "F",  # Enable Pyflakes
     "FBT",  # Enable flake8-boolean-trap
     "G",  # Enable flake8-logging-format
+    "I",  # Enable isort
     "ICN",  # Enable flake8-import-conventions
     "INP",  # Enable flake8-no-pep420
     "ISC",  # Enable flake8-implicit-str-concat
@@ -199,20 +210,25 @@ select = [
 ]
 show-fixes = true
 show-source = true
-src = ["python_src"]
+src = ["src"]
 
 [tool.ruff.per-file-ignores]
 "build.py" = [
+    "S603",  # Ignore flake8-bandit subprocess with shell=True rule
     "T201",  # Ignore flake8-print print rule
 ]
-"python_src/hades/extensions/compile.py" = [
+"src/hades/extensions/compile.py" = [
     "T201",  # Ignore flake8-print print rule
 ]
-"cpp_src/hades_extensions.pyi" = [
+"hades_extensions/__init__.pyi" = [
     "D100",  # Ignore pydocstyle module docstring rule
     "D101",  # Ignore pydocstyle class docstring rule
     "D103",  # Ignore pydocstyle method docstring rule
     "PIE796",  # Ignore flake8-pie duplicate enum values rule
+]
+"*test_*" = [
+    "PLR2004",  # Ignore pylint-refactor magic number rule for the tests
+    "S101",  # Ignore flake8-bandit assert rule for the tests
 ]
 
 [tool.ruff.pydocstyle]
@@ -234,6 +250,7 @@ deps = pytest-cov
 commands =
     python -I -m hades.extensions.compile
     pytest --cov-append
+passenv = *
 
 [testenv:clean]
 deps = pytest-cov

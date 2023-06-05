@@ -6,14 +6,22 @@ import pytest
 
 # Custom
 from hades.textures import (
+    BiggerThanError,
     grid_pos_to_pixel,
-    moving_filenames,
-    moving_textures,
-    non_moving_filenames,
-    non_moving_textures,
+    load_moving_texture,
+    load_non_moving_texture,
 )
 
 __all__ = ()
+
+
+def test_raise_bigger_than_error() -> None:
+    """Test that BiggerThanError is raised correctly."""
+    with pytest.raises(
+        expected_exception=BiggerThanError,
+        match="The input must be bigger than or equal to 10.",
+    ):
+        raise BiggerThanError(min_value=10)
 
 
 def test_grid_pos_to_pixel_positive() -> None:
@@ -28,7 +36,7 @@ def test_grid_pos_to_pixel_zero() -> None:
 
 def test_grid_pos_to_pixel_negative() -> None:
     """Test that a negative position is converted correctly."""
-    with pytest.raises(expected_exception=ValueError):
+    with pytest.raises(expected_exception=BiggerThanError):
         grid_pos_to_pixel(-500, -500)
 
 
@@ -38,22 +46,36 @@ def test_grid_pos_to_pixel_string() -> None:
         grid_pos_to_pixel("test", "test")  # type: ignore[arg-type]
 
 
-def test_textures_non_moving() -> None:
-    """Test the textures.py script produces a correct non-moving textures dict."""
-    # Compare the non_moving_texture dict to the non_moving_filenames dict
-    for section_name, texture_list in non_moving_textures.items():
-        for section_count, texture in enumerate(texture_list):
-            assert non_moving_filenames[section_name][section_count] in texture.name
+def test_load_moving_texture_valid_filename() -> None:
+    """Test that a valid filename is loaded as a moving texture correctly."""
+    assert [texture.cache_name for texture in load_moving_texture("floor.png")] == [
+        (
+            "b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|(0, 1, 2,"
+            " 3)|simple|"
+        ),
+        (
+            "b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|(1, 0, 3,"
+            " 2)|simple|"
+        ),
+    ]
 
 
-def test_textures_moving() -> None:
-    """Test the textures.py script produces a correct moving textures dict."""
-    # Compare the moving_filenames dict to the moving_textures dict
-    for section_name, animations in moving_textures.items():
-        for animation_type, texture_list in animations.items():
-            for texture_count, textures in enumerate(texture_list):
-                for flipped_texture in textures:
-                    assert (
-                        moving_filenames[section_name][animation_type][texture_count]
-                        in flipped_texture.name
-                    )
+def test_load_moving_texture_invalid_filename() -> None:
+    """Test that an invalid filename is not loaded as a moving texture."""
+    with pytest.raises(expected_exception=FileNotFoundError):
+        load_moving_texture("temp.png")
+
+
+def test_load_non_moving_texture_valid_filename() -> None:
+    """Test that a valid filename is loaded as a non-moving texture correctly."""
+    assert (
+        load_non_moving_texture("floor.png").cache_name
+        == "b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|(0, 1, 2,"
+        " 3)|simple|"
+    )
+
+
+def test_load_non_moving_texture_invalid_filename() -> None:
+    """Test that an invalid filename is not loaded asa a non-moving texture."""
+    with pytest.raises(expected_exception=FileNotFoundError):
+        load_non_moving_texture("temp.png")
