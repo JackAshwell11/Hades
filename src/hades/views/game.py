@@ -273,13 +273,13 @@ class Game(View):
         )
         match symbol:
             case key.W:
-                player_movement.up_pressed = True
+                player_movement.north_pressed = True
             case key.S:
-                player_movement.down_pressed = True
+                player_movement.south_pressed = True
             case key.A:
-                player_movement.left_pressed = True
+                player_movement.west_pressed = True
             case key.D:
-                player_movement.right_pressed = True
+                player_movement.east_pressed = True
 
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.
@@ -303,13 +303,13 @@ class Game(View):
         )
         match symbol:
             case key.W:
-                player_movement.up_pressed = False
+                player_movement.north_pressed = False
             case key.S:
-                player_movement.down_pressed = False
+                player_movement.south_pressed = False
             case key.A:
-                player_movement.left_pressed = False
+                player_movement.west_pressed = False
             case key.D:
-                player_movement.right_pressed = False
+                player_movement.east_pressed = False
 
     def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
         """Process mouse button functionality.

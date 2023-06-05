@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
     from hades.game_objects.system import ECS
 
-__all__ = ("KeyboardMovement", "MovementBase", "SteeringMovement")
+__all__ = ("KeyboardMovement", "MovementBase")
 
 
 class MovementBase(GameObjectComponent, metaclass=ABCMeta):
@@ -59,10 +59,10 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
     """Allows a game object's movement to be controlled by the keyboard."""
 
     __slots__ = (
-        "up_pressed",
-        "down_pressed",
-        "left_pressed",
-        "right_pressed",
+        "north_pressed",
+        "south_pressed",
+        "east_pressed",
+        "west_pressed",
     )
 
     def __init__(
@@ -78,10 +78,10 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
             system: The entity component system which manages the game objects.
         """
         super().__init__(game_object_id, system, _)
-        self.up_pressed: bool = False
-        self.down_pressed: bool = False
-        self.left_pressed: bool = False
-        self.right_pressed: bool = False
+        self.north_pressed: bool = False
+        self.south_pressed: bool = False
+        self.east_pressed: bool = False
+        self.west_pressed: bool = False
 
     def calculate_force(self: KeyboardMovement) -> tuple[float, float]:
         """Calculate the new force to apply to the game object.
@@ -90,8 +90,8 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
             The new force to apply to the game object.
         """
         return (
-            self.movement_force.value * (self.right_pressed - self.left_pressed),
-            self.movement_force.value * (self.up_pressed - self.down_pressed),
+            self.movement_force.value * (self.east_pressed - self.west_pressed),
+            self.movement_force.value * (self.north_pressed - self.south_pressed),
         )
 
     def __repr__(self: KeyboardMovement) -> str:
@@ -101,41 +101,7 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
             The human-readable representation of this object.
         """
         return (
-            f"<KeyboardMovement (Up pressed={self.up_pressed}) (Down"
-            f" pressed={self.down_pressed}) (Left pressed={self.left_pressed}) (Right"
-            f" pressed={self.right_pressed})>"
+            f"<KeyboardMovement (North pressed={self.north_pressed}) (South"
+            f" pressed={self.south_pressed}) (East pressed={self.east_pressed}) (West"
+            f" pressed={self.west_pressed})>"
         )
-
-
-class SteeringMovement(MovementBase, GameObjectComponent):
-    """Allows a game object's movement to be controlled by steering algorithms."""
-
-    def __init__(
-        self: SteeringMovement,
-        game_object_id: int,
-        system: ECS,
-        _: ComponentData,
-    ) -> None:
-        """Initialise the object.
-
-        Args:
-            game_object_id: The game object ID.
-            system: The entity component system which manages the game objects.
-        """
-        super().__init__(game_object_id, system, _)
-
-    def calculate_force(self: SteeringMovement) -> tuple[float, float]:
-        """Calculate the new force to apply to the game object.
-
-        Returns:
-            The new force to apply to the game object.
-        """
-        return 0, 0
-
-    def __repr__(self: SteeringMovement) -> str:
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return "<SteeringMovement>"

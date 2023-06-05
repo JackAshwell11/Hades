@@ -66,10 +66,11 @@ class HadesSprite(Sprite):
             delta_time: The time interval since the last time the event was triggered.
         """
         # Update the game object's components
-        for component in self.system.get_components_for_game_object(
-            self.game_object_id,
-        ):
-            component.on_update(delta_time)
+        for component_type in ComponentType:
+            self.system.get_component_for_game_object(
+                self.game_object_id,
+                component_type,
+            ).on_update(delta_time)
 
         # Calculate the game object's new movement force and apply it
         self.physics.apply_impulse(

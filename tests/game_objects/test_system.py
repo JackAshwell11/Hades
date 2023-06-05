@@ -1,14 +1,18 @@
 """Tests all functions in game_objects/system.py."""
 from __future__ import annotations
 
+# Builtin
+from typing import TYPE_CHECKING, cast
+
 # Pip
 import pytest
 
-from hades.constants import ComponentType
-
 # Custom
-from hades.game_objects.base import GameObjectComponent
+from hades.game_objects.base import ComponentType, GameObjectComponent
 from hades.game_objects.system import ECS, NotRegisteredError
+
+if TYPE_CHECKING:
+    from hades.game_objects.base import ComponentData
 
 __all__ = ()
 
@@ -27,12 +31,29 @@ class GameObjectComponentTwo(GameObjectComponent):
     component_type: ComponentType = ComponentType.ARMOUR
 
 
-class GameObjectComponentDependency(GameObjectComponent):
-    """Represents a game object component that has a dependency useful for testing."""
+class GameObjectComponentData(GameObjectComponent):
+    """Represents a game object component that has data useful for testing."""
+
+    __slots__ = ("test_data",)
 
     # Class variables
-    component_type: ComponentType = ComponentType.GRAPHICS
-    dependencies: set[ComponentType] = {ComponentType.HEALTH}
+    component_type: ComponentType = ComponentType.MONEY
+
+    def __init__(
+        self: GameObjectComponentData,
+        game_object_id: int,
+        system: ECS,
+        component_data: ComponentData,
+    ) -> None:
+        """Initialise the object.
+
+        Args:
+            game_object_id: The game object ID.
+            system: The entity component system which manages the game objects.
+            component_data: The data for the components.
+        """
+        super().__init__(game_object_id, system, component_data)
+        self.test_data: int = component_data["test"]  # type: ignore[typeddict-item]
 
 
 class GameObjectComponentInvalid:
@@ -49,46 +70,6 @@ def ecs() -> ECS:
     return ECS()
 
 
-@pytest.fixture()
-def game_object_component_one() -> GameObjectComponentOne:
-    """Create a game object component for use in testing.
-
-    Returns:
-        The game object component for use in testing.
-    """
-    return GameObjectComponentOne()
-
-
-@pytest.fixture()
-def game_object_component_two() -> GameObjectComponentTwo:
-    """Create a game object component for use in testing.
-
-    Returns:
-        The game object component for use in testing.
-    """
-    return GameObjectComponentTwo()
-
-
-@pytest.fixture()
-def game_object_component_dependency() -> GameObjectComponentDependency:
-    """Create a game object component that has a dependency for use in testing.
-
-    Returns:
-        The game object component that has a dependency for use in testing.
-    """
-    return GameObjectComponentDependency()
-
-
-@pytest.fixture()
-def game_object_component_invalid() -> GameObjectComponentInvalid:
-    """Create an invalid game object component for use in testing.
-
-    Returns:
-        The invalid game object component for use in testing.
-    """
-    return GameObjectComponentInvalid()
-
-
 def test_raise_not_registered_error() -> None:
     """Test that NotRegisteredError is raised correctly."""
     with pytest.raises(
@@ -96,6 +77,19 @@ def test_raise_not_registered_error() -> None:
         match="The test `10` is not registered with the ECS.",
     ):
         raise NotRegisteredError(not_registered_type="test", value=10)
+
+
+def test_raise_not_registered_error_custom_error() -> None:
+    """Test that NotRegisteredError is raised correctly with a custom error message."""
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The test `temp` is error.",
+    ):
+        raise NotRegisteredError(
+            not_registered_type="test",
+            value="temp",
+            error="error",
+        )
 
 
 def test_ecs_init(ecs: ECS) -> None:
@@ -114,48 +108,42 @@ def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
         ecs: The entity component system for use in testing.
     """
     # Test that adding the game object works correctly
-    assert ecs.add_game_object() == 0
+    assert ecs.add_game_object({}) == 0
 
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
     with pytest.raises(
         expected_exception=NotRegisteredError,
-        match="The game object `0` is not registered with the ECS.",
+        match="The game object ID `0` is not registered with the ECS.",
     ):
-        ecs.get_components_for_game_object(0)
+        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
     with pytest.raises(
         expected_exception=NotRegisteredError,
-        match="The game object `0` is not registered with the ECS.",
+        match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.remove_game_object(0)
 
 
-def test_ecs_game_object_with_multiple_components(
-    ecs: ECS,
-    game_object_component_one: GameObjectComponentOne,
-    game_object_component_two: GameObjectComponentTwo,
-) -> None:
+def test_ecs_game_object_with_multiple_components(ecs: ECS) -> None:
     """Test the ECS with a game object that has multiple components.
 
     Args:
         ecs: The entity component system for use in testing.
-        game_object_component_one: The first game object component for use in testing.
-        game_object_component_two: The second game object components for use in testing.
     """
     # Test that adding the game object works correctly
-    ecs.add_game_object(game_object_component_one, game_object_component_two)
-    assert ecs.get_components_for_game_object(0) == {
-        ComponentType.HEALTH: game_object_component_one,
-        ComponentType.ARMOUR: game_object_component_two,
-    }
+    ecs.add_game_object({}, GameObjectComponentOne, GameObjectComponentTwo)
+    assert ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+    assert ecs.get_component_for_game_object(0, ComponentType.ARMOUR)
+    with pytest.raises(expected_exception=KeyError):
+        ecs.get_component_for_game_object(0, ComponentType.MONEY)
 
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
     with pytest.raises(
         expected_exception=NotRegisteredError,
-        match="The game object `0` is not registered with the ECS.",
+        match="The game object ID `0` is not registered with the ECS.",
     ):
-        ecs.get_components_for_game_object(0)
+        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
 
 
 def test_ecs_multiple_game_objects(ecs: ECS) -> None:
@@ -165,74 +153,80 @@ def test_ecs_multiple_game_objects(ecs: ECS) -> None:
         ecs: The entity component system for use in testing.
     """
     # Test that adding two game object works correctly
-    assert ecs.add_game_object() == 0
-    assert ecs.add_game_object() == 1
+    assert ecs.add_game_object({}) == 0
+    assert ecs.add_game_object({}, GameObjectComponentOne) == 1
 
     # Test that removing the first game object works correctly
     ecs.remove_game_object(0)
-    assert ecs.get_components_for_game_object(1) == {}
+    assert ecs.get_component_for_game_object(1, ComponentType.HEALTH)
     with pytest.raises(
         expected_exception=NotRegisteredError,
-        match="The game object `0` is not registered with the ECS.",
+        match="The game object ID `0` is not registered with the ECS.",
     ):
-        ecs.get_components_for_game_object(0)
+        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
 
 
-def test_ecs_dependencies_already_registered(
-    ecs: ECS,
-    game_object_component_one: GameObjectComponentOne,
-    game_object_component_dependency: GameObjectComponentDependency,
-) -> None:
-    """Test the ECS with a component that depends on an already-registered component.
+def test_ecs_component_data(ecs: ECS) -> None:
+    """Test the ECS with a component that has data.
 
     Args:
         ecs: The entity component system for use in testing.
-        game_object_component_one: The first game object component for use in testing.
-        game_object_component_dependency: The game object component that has a
-            dependency for use in testing.
     """
     assert (
-        ecs.add_game_object(game_object_component_one, game_object_component_dependency)
+        ecs.add_game_object(
+            {"test": 10},  # type: ignore[typeddict-unknown-key]
+            GameObjectComponentData,
+        )
         == 0
     )
-    assert ecs.get_components_for_game_object(0) == {
-        ComponentType.HEALTH: game_object_component_one,
-        ComponentType.GRAPHICS: game_object_component_dependency,
-    }
+    assert (
+        cast(
+            GameObjectComponentData,
+            ecs.get_component_for_game_object(0, ComponentType.MONEY),
+        ).test_data
+        == 10
+    )
 
 
-def test_ecs_dependencies_unregistered(
-    ecs: ECS,
-    game_object_component_one: GameObjectComponentOne,
-    game_object_component_dependency: GameObjectComponentDependency,
-) -> None:
-    """Test the ECS with a component that depends on an unregistered component.
+def test_ecs_nonexistent_component_data(ecs: ECS) -> None:
+    """Test the ECS with a component that has data which is not provided.
 
     Args:
         ecs: The entity component system for use in testing.
-        game_object_component_one: The first game object component for use in testing.
-        game_object_component_dependency: The game object component that has a
-            dependency for use in testing.
     """
+    with pytest.raises(expected_exception=KeyError):
+        assert ecs.add_game_object({}, GameObjectComponentData) == 0
+
+
+def test_ecs_duplicate_components(ecs: ECS) -> None:
+    """Test the ECS with duplicate components for the same game object.
+
+    Args:
+        ecs: The entity component system for use in testing.
+    """
+    # Test that adding a game object with two of the same components raises an error
     with pytest.raises(
         expected_exception=NotRegisteredError,
         match=(
-            "The component type `ComponentType.HEALTH` is not registered with the ECS."
+            "The component type `ComponentType.HEALTH` is already registered with the"
+            " ECS."
         ),
     ):
-        ecs.add_game_object(game_object_component_dependency, game_object_component_one)
+        ecs.add_game_object({}, GameObjectComponentOne, GameObjectComponentOne)
+
+    # Test that the game object does not exist
+    with pytest.raises(
+        expected_exception=NotRegisteredError,
+        match="The game object ID `0` is not registered with the ECS.",
+    ):
+        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
 
 
-def test_ecs_invalid_component(
-    ecs: ECS,
-    game_object_component_invalid: GameObjectComponentInvalid,
-) -> None:
+def test_ecs_invalid_component(ecs: ECS) -> None:
     """Test the ECS with a game object that has an invalid component.
 
     Args:
         ecs: The entity component system for use in testing.
-        game_object_component_invalid: The invalid game object component for use in
-            testing.
     """
     with pytest.raises(expected_exception=AttributeError):
-        ecs.add_game_object(game_object_component_invalid)  # type: ignore[arg-type]
+        ecs.add_game_object({}, GameObjectComponentInvalid)  # type: ignore[arg-type]

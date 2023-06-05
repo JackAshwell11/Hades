@@ -156,6 +156,7 @@ disable = [
 
 [tool.pytest.ini_options]
 addopts = "-vv -ra --showlocals --cov --cov-report term-missing --ignore-glob=*vector_field*"
+pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.ruff]

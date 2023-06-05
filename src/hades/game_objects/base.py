@@ -11,33 +11,38 @@ if TYPE_CHECKING:
     from hades.game_objects.system import ECS
 
 __all__ = (
+    "AttackAlgorithms",
     "GameObjectAttributeSectionType",
     "ComponentData",
     "ComponentType",
     "GameObjectComponent",
-    "ATTACK_ALGORITHMS",
 )
 
 
 class ComponentType(Enum):
     """Stores the different types of components available."""
 
-    AREA_OF_EFFECT_ATTACK = auto()
     ARMOUR = auto()
     ARMOUR_REGEN = auto()
     ARMOUR_REGEN_COOLDOWN = auto()
-    ATTACK_MANAGER = auto()
+    ATTACKS = auto()
     FIRE_RATE_PENALTY = auto()
     HEALTH = auto()
     INSTANT_EFFECTS = auto()
     INVENTORY = auto()
-    MELEE_ATTACK = auto()
     MONEY = auto()
     MOVEMENTS = auto()
     MOVEMENT_FORCE = auto()
-    RANGED_ATTACK = auto()
     STATUS_EFFECTS = auto()
     VIEW_DISTANCE = auto()
+
+
+class AttackAlgorithms(Enum):
+    """Stores the different types of attack algorithms available."""
+
+    AREA_OF_EFFECT_ATTACK = auto()
+    MELEE_ATTACK = auto()
+    RANGED_ATTACK = auto()
 
 
 class GameObjectAttributeSectionType(Enum):
@@ -51,6 +56,7 @@ class ComponentData(TypedDict, total=False):
     """Holds the data needed to initialise the components."""
 
     attributes: dict[ComponentType, tuple[int, int]]
+    enabled_attacks: list[AttackAlgorithms]
     instant_effects: tuple[int, dict[ComponentType, Callable[[int], float]]]
     inventory_size: tuple[int, int]
     status_effects: tuple[
@@ -88,11 +94,3 @@ class GameObjectComponent:
         Args:
             delta_time: Time interval since the last time the function was called.
         """
-
-
-# Record which component types are attack algorithms
-ATTACK_ALGORITHMS = {
-    ComponentType.AREA_OF_EFFECT_ATTACK,
-    ComponentType.MELEE_ATTACK,
-    ComponentType.RANGED_ATTACK,
-}

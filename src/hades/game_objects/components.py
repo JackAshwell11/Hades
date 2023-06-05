@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 # Custom
 from hades.constants import ARMOUR_REGEN_AMOUNT
-from hades.game_objects.attributes import Armour
+from hades.game_objects.attributes import Armour, ArmourRegenCooldown
 from hades.game_objects.base import ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
@@ -40,7 +40,7 @@ class InventorySpaceError(Exception):
 class ArmourRegen(GameObjectComponent):
     """Allows a game object to regenerate armour."""
 
-    __slots__ = ("armour", "time_since_armour_regen")
+    __slots__ = ("armour", "armour_regen_cooldown", "time_since_armour_regen")
 
     # Class variables
     component_type: ComponentType = ComponentType.ARMOUR_REGEN
@@ -66,6 +66,13 @@ class ArmourRegen(GameObjectComponent):
                 ComponentType.ARMOUR,
             ),
         )
+        self.armour_regen_cooldown: ArmourRegenCooldown = cast(
+            ArmourRegenCooldown,
+            self.system.get_component_for_game_object(
+                self.game_object_id,
+                ComponentType.ARMOUR_REGEN_COOLDOWN,
+            ),
+        )
         self.time_since_armour_regen: float = 0
 
     def on_update(self: ArmourRegen, delta_time: float) -> None:
@@ -74,17 +81,10 @@ class ArmourRegen(GameObjectComponent):
         Args:
             delta_time: Time interval since the last time the function was called.
         """
-        if (
-            self.time_since_armour_regen
-            >= self.system.get_component_for_game_object(
-                self.game_object_id,
-                ComponentType.ARMOUR_REGEN_COOLDOWN,
-            ).value
-        ):
+        self.time_since_armour_regen += delta_time
+        if self.time_since_armour_regen >= self.armour_regen_cooldown.value:
             self.armour.value += ARMOUR_REGEN_AMOUNT
             self.time_since_armour_regen = 0
-        else:
-            self.time_since_armour_regen += delta_time
 
     def __repr__(self: ArmourRegen) -> str:
         """Return a human-readable representation of this object.

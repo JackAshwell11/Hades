@@ -2,19 +2,14 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, cast
-
-# Custom
-from hades.game_objects.attacks import AttackBase, AttackManager
-from hades.game_objects.base import (
-    ATTACK_ALGORITHMS,
-    ComponentType,
-)
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
-
-    from hades.game_objects.base import ComponentData, GameObjectComponent
+    from hades.game_objects.base import (
+        ComponentData,
+        ComponentType,
+        GameObjectComponent,
+    )
 
 __all__ = ("ECS", "NotRegisteredError")
 
@@ -77,9 +72,9 @@ class ECS:
         self._components[self._next_game_object_id] = {}
 
         # Add the optional components to the system
-        attack_components = []
         for component in components:
             if component.component_type in self._components[self._next_game_object_id]:
+                del self._components[self._next_game_object_id]
                 raise NotRegisteredError(
                     not_registered_type="component type",
                     value=component.component_type,
@@ -95,21 +90,6 @@ class ECS:
             self._components[self._next_game_object_id][
                 component.component_type
             ] = game_object_component
-
-            # Determine if this component requires a manager or not
-            if component.component_type in ATTACK_ALGORITHMS:
-                attack_components.append(game_object_component)
-
-        # Instantiate the required managers
-        if attack_components:
-            self._components[self._next_game_object_id][
-                ComponentType.ATTACK_MANAGER
-            ] = AttackManager(
-                self._next_game_object_id,
-                self,
-                component_data,
-                cast(list[AttackBase], attack_components),
-            )
 
         # Increment _next_game_object_id and return the current game object ID
         self._next_game_object_id += 1
@@ -133,31 +113,6 @@ class ECS:
 
         # Delete the game object from the system
         del self._components[game_object_id]
-
-    def get_components_for_game_object(
-        self: ECS,
-        game_object_id: int,
-    ) -> Generator[GameObjectComponent, None, None]:
-        """Get a game object's components.
-
-        Args:
-            game_object_id: The game object ID.
-
-        Returns:
-            The game object's components.
-
-        Raises:
-            NotRegisteredError: The game object ID `ID` is not registered with the ECS.
-        """
-        # Check if the game object ID is registered or not
-        if game_object_id not in self._components:
-            raise NotRegisteredError(
-                not_registered_type="game object ID",
-                value=game_object_id,
-            )
-
-        # Return the game object's components
-        yield from self._components[game_object_id].values()
 
     def get_component_for_game_object(
         self: ECS,
