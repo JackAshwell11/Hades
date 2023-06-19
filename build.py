@@ -1,4 +1,4 @@
-"""Builds the game into an executable form using Nuitka."""
+"""Manages various building/compiling operations on the game."""
 from __future__ import annotations
 
 # Builtin

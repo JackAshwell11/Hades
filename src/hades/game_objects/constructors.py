@@ -80,7 +80,10 @@ ENEMY = GameObjectConstructor(
     GameObjectType.ENEMY,
     GameObjectTextures(TextureType.ENEMY_IDLE.value[0]),
     components=[MovementForce, SteeringMovement],
-    component_data={"attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)}},
+    component_data={
+        "attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)},
+        "steering_behaviours": [],
+    },
 )
 
 # Potion tiles

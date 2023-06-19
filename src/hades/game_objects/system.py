@@ -75,6 +75,7 @@ class ECS:
         for component in components:
             if component.component_type in self._components[self._next_game_object_id]:
                 del self._components[self._next_game_object_id]
+                # TODO: IMPROVE ERROR NAME
                 raise NotRegisteredError(
                     not_registered_type="component type",
                     value=component.component_type,

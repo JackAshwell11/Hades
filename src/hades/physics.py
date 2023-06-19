@@ -65,5 +65,6 @@ class PhysicsEngine(PymunkPhysicsEngine):
         return f"<PhysicsEngine (Sprite count={len(self.sprites)})>"
 
 
-# TODO: Movement still looks a bit weird and player can phase into the walls. Maybe
-#  switch to simple engine
+# TODO: Movement still looks a bit weird and player can phase into the walls. To solve
+#  this, create temporary game to test physics system with damping, velocity, movement
+#  force, and body types

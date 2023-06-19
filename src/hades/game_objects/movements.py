@@ -7,10 +7,27 @@ from typing import TYPE_CHECKING, cast
 
 # Custom
 from hades.game_objects.attributes import MovementForce
-from hades.game_objects.base import ComponentType, GameObjectComponent
+from hades.game_objects.base import (
+    ComponentType,
+    GameObjectComponent,
+    SteeringBehaviours,
+)
+from hades.game_objects.steering import (
+    Align,
+    Arrive,
+    Evade,
+    Flee,
+    FollowPath,
+    ObstacleAvoidance,
+    Pursuit,
+    Seek,
+    Separation,
+    Wander,
+)
 
 if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
+    from hades.game_objects.steering import SteeringBehaviourBase
     from hades.game_objects.system import ECS
 
 __all__ = ("KeyboardMovement", "MovementBase", "SteeringMovement")
@@ -23,6 +40,7 @@ class MovementBase(GameObjectComponent, metaclass=ABCMeta):
 
     # Class variables
     component_type: ComponentType = ComponentType.MOVEMENTS
+    player_controlled: bool = False
 
     def __init__(
         self: MovementBase,
@@ -55,7 +73,7 @@ class MovementBase(GameObjectComponent, metaclass=ABCMeta):
         """
 
 
-class KeyboardMovement(MovementBase, GameObjectComponent):
+class KeyboardMovement(MovementBase):
     """Allows a game object's movement to be controlled by the keyboard."""
 
     __slots__ = (
@@ -64,6 +82,9 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
         "east_pressed",
         "west_pressed",
     )
+
+    # Class variables
+    player_controlled: bool = True
 
     def __init__(
         self: KeyboardMovement,
@@ -107,24 +128,45 @@ class KeyboardMovement(MovementBase, GameObjectComponent):
         )
 
 
-class SteeringMovement(MovementBase, GameObjectComponent):
+class SteeringMovement(MovementBase):
     """Allows a game object's movement to be controlled by steering algorithms."""
 
-    __slots__ = ()
+    __slots__ = ("_behaviours", "_current_position", "_target_position")
+
+    # Class variables
+    _behaviour_dict: dict[SteeringBehaviours, type[SteeringBehaviourBase]] = {
+        SteeringBehaviours.ALIGN: Align,
+        SteeringBehaviours.ARRIVE: Arrive,
+        SteeringBehaviours.EVADE: Evade,
+        SteeringBehaviours.FLEE: Flee,
+        SteeringBehaviours.FOLLOW_PATH: FollowPath,
+        SteeringBehaviours.OBSTACLE_AVOIDANCE: ObstacleAvoidance,
+        SteeringBehaviours.PURSUIT: Pursuit,
+        SteeringBehaviours.SEEK: Seek,
+        SteeringBehaviours.SEPARATION: Separation,
+        SteeringBehaviours.WANDER: Wander,
+    }
 
     def __init__(
         self: SteeringMovement,
         game_object_id: int,
         system: ECS,
-        _: ComponentData,
+        component_data: ComponentData,
     ) -> None:
         """Initialise the object.
 
         Args:
             game_object_id: The game object ID.
             system: The entity component system which manages the game objects.
+            component_data: The data for the components.
         """
-        super().__init__(game_object_id, system, _)
+        super().__init__(game_object_id, system, component_data)
+        self._behaviours: list[SteeringBehaviourBase] = [
+            self._behaviour_dict[behaviour.behaviour_type]()
+            for behaviour in component_data["steering_behaviours"]
+        ]
+        self._current_position: tuple[float, float] = 0, 0
+        self._target_position: tuple[float, float] = 0, 0
 
     def calculate_force(self: SteeringMovement) -> tuple[float, float]:
         """Calculate the new force to apply to the game object.
@@ -134,10 +176,25 @@ class SteeringMovement(MovementBase, GameObjectComponent):
         """
         return 0, 0
 
+    # TODO: Still don't like this method
+    def update_positions(
+        self: SteeringMovement,
+        current: tuple[float, float],
+        target: tuple[float, float],
+    ) -> None:
+        """Update the stored current and target positions.
+
+        Args:
+            current: The position on the game object which has this movement algorithm.
+            target: The position of the target game object.
+        """
+        self._current_position = current
+        self._target_position = target
+
     def __repr__(self: SteeringMovement) -> str:
         """Return a human-readable representation of this object.
 
         Returns:
             The human-readable representation of this object.
         """
-        return "<SteeringMovement>"
+        return f"<SteeringMovement (Behaviour count={len(self._behaviours)})>"

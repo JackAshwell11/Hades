@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 # Pip
 from arcade import Sprite
@@ -10,7 +10,6 @@ from arcade import Sprite
 # Custom
 from hades.constants import SPRITE_SCALE
 from hades.game_objects.base import ComponentType
-from hades.game_objects.movements import MovementBase
 from hades.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
@@ -74,12 +73,8 @@ class HadesSprite(Sprite):
         # Calculate the game object's new movement force and apply it
         self.physics.apply_impulse(
             self,
-            cast(
-                MovementBase,
-                self.system.get_component_for_game_object(
-                    self.game_object_id,
-                    ComponentType.MOVEMENTS,
-                ),
+            self.system.get_component_for_game_object(
+                self.game_object_id, ComponentType.MOVEMENTS
             ).calculate_force(),
         )
 

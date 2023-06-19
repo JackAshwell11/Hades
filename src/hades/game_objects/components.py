@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from hades.game_objects.system import ECS
 
 __all__ = (
+    "AI",
     "ArmourRegen",
     "InstantEffects",
     "Inventory",
@@ -35,6 +36,45 @@ class InventorySpaceError(Exception):
             full: Whether the inventory is empty or full.
         """
         super().__init__(f"The inventory is {'full' if full else 'empty'}.")
+
+
+class AI(GameObjectComponent):
+    """Allows a game object to have intelligence and navigate around the game map."""
+
+    __slots__ = ()
+
+    # Class variables
+    component_type: ComponentType = ComponentType.AI
+
+    def __init__(
+        self: AI,
+        game_object_id: int,
+        system: ECS,
+        component_data: ComponentData,
+    ) -> None:
+        """Initialise the object.
+
+        Args:
+            game_object_id: The game object ID.
+            system: The entity component system which manages the game objects.
+            component_data: The data for the components.
+        """
+        super().__init__(game_object_id, system, component_data)
+
+    def on_update(self: AI, delta_time: float) -> None:
+        """Process AI update logic.
+
+        Args:
+            delta_time: Time interval since the last time the function was called.
+        """
+
+    def __repr__(self: AI) -> str:
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return "<AI>"
 
 
 class ArmourRegen(GameObjectComponent):

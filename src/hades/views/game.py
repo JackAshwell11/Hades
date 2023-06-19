@@ -44,7 +44,11 @@ from hades.game_objects.constructors import (
     WALL,
     GameObjectConstructor,
 )
-from hades.game_objects.movements import KeyboardMovement
+from hades.game_objects.movements import (
+    KeyboardMovement,
+    MovementBase,
+    SteeringMovement,
+)
 from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
 from hades.sprite import HadesSprite
@@ -242,6 +246,22 @@ class Game(View):
         """
         # Check if the game should end
         # if self.player.health.value <= 0 or not self.enemy_sprites:
+
+        # Update the steering positions if possible
+        player_position = self.ids[GameObjectType.PLAYER][0].position
+        for entity in self.entity_sprites:
+            if not (
+                steering_movement := cast(
+                    MovementBase,
+                    self.system.get_component_for_game_object(
+                        entity.game_object_id, ComponentType.MOVEMENTS,
+                    ),
+                )
+            ).player_controlled:
+                cast(SteeringMovement, steering_movement).update_positions(
+                    entity.position,
+                    player_position,
+                )
 
         # Update the entities
         self.entity_sprites.on_update(delta_time)

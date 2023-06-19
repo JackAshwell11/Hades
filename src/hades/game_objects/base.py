@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 # Builtin
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING, TypedDict
 
@@ -16,12 +17,37 @@ __all__ = (
     "ComponentData",
     "ComponentType",
     "GameObjectComponent",
+    "SteeringBehaviours",
+    "SteeringData",
 )
+
+
+@dataclass
+class SteeringData:
+    """Stores the behaviour type, weighting, and priority for a steering behaviour.
+
+    behaviour_type: The behaviour type to use.
+    weight: The weighting to apply to the resulting force.
+    priority: The priority when calculating this behaviour.
+    """
+
+    behaviour_type: SteeringBehaviours
+    weight: int = 1
+    priority: int = 1
+
+
+class AttackAlgorithms(Enum):
+    """Stores the different types of attack algorithms available."""
+
+    AREA_OF_EFFECT_ATTACK = auto()
+    MELEE_ATTACK = auto()
+    RANGED_ATTACK = auto()
 
 
 class ComponentType(Enum):
     """Stores the different types of components available."""
 
+    AI = auto()
     ARMOUR = auto()
     ARMOUR_REGEN = auto()
     ARMOUR_REGEN_COOLDOWN = auto()
@@ -37,14 +63,6 @@ class ComponentType(Enum):
     VIEW_DISTANCE = auto()
 
 
-class AttackAlgorithms(Enum):
-    """Stores the different types of attack algorithms available."""
-
-    AREA_OF_EFFECT_ATTACK = auto()
-    MELEE_ATTACK = auto()
-    RANGED_ATTACK = auto()
-
-
 class GameObjectAttributeSectionType(Enum):
     """Stores the sections which group game object attributes together."""
 
@@ -52,11 +70,38 @@ class GameObjectAttributeSectionType(Enum):
     DEFENCE = {ComponentType.ARMOUR, ComponentType.ARMOUR_REGEN_COOLDOWN}
 
 
+class SteeringBehaviours(Enum):
+    """Stores the different types of steering behaviours available."""
+
+    ALIGN = auto()
+    ARRIVE = auto()
+    EVADE = auto()
+    FACE = auto()
+    FLEE = auto()
+    FOLLOW_PATH = auto()
+    OBSTACLE_AVOIDANCE = auto()
+    PURSUIT = auto()
+    SEEK = auto()
+    SEPARATION = auto()
+    WANDER = auto()
+
+
 class ComponentData(TypedDict, total=False):
-    """Holds the data needed to initialise the components."""
+    """Holds the data needed to initialise the components.
+
+    attributes: The data for the game object attributes.
+    enabled_attacks: The attacks which are enabled for the game object.
+    steering_behaviours: The steering behaviours to use. If all the weightings are
+        equal, then every behaviour is considered equally. Moreover, if the priorities
+        are equal, then the behaviours are considered in the order they are listed.
+    instant_effects: The instant effects that this game object can apply.
+    inventory_size: The size of the game object's inventory.
+    status_effects: The status effects that this game object can apply.
+    """
 
     attributes: dict[ComponentType, tuple[int, int]]
     enabled_attacks: list[AttackAlgorithms]
+    steering_behaviours: list[SteeringData]
     instant_effects: tuple[int, dict[ComponentType, Callable[[int], float]]]
     inventory_size: tuple[int, int]
     status_effects: tuple[
