@@ -17,26 +17,26 @@ script = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade = "3.0.0.dev23"
+arcade = "3.0.0.dev24"
 pymunk = "6.4.0"
 shapely = "2.0.1"
 
 [tool.poetry.dev-dependencies]
 black = "23.3.0"
-mypy = "1.3.0"
-nuitka = "1.6.3"
+mypy = "1.4.0"
+nuitka = "1.6.4"
 ordered-set = "4.1.0"
 pre-commit = "3.3.3"
 pylint = "2.17.4"
-pytest = "7.3.2"
+pytest = "7.4.0"
 pytest-cov = "4.1.0"
 pytest-icdiff = "0.6"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.12.0"
 pytest-sugar = "0.9.7"
-ruff = "0.0.272"
+ruff = "0.0.275"
 ssort = "v0.11.6"
-tox = "4.6.2"
+tox = "4.6.3"
 
 [tool.black]
 preview = true
@@ -175,17 +175,23 @@ select = [
     "C90",  # Enable mccabe
     "COM",  # Enable flake8-commas
     "D",  # Enable pydocstyle
+    "DTZ",  # Enable flake8-datetimez
     "E",  # Enable pycodestyle errors
     "EM",  # Enable flake8-errmsg
     "ERA",  # Enable eradicate
     "F",  # Enable Pyflakes
+    "FA",  # Enable flake8-future-annotations
     "FBT",  # Enable flake8-boolean-trap
+    "FIX", # Enable flake8-fixme
+    "FLY",  # Enable flynt
     "G",  # Enable flake8-logging-format
     "I",  # Enable isort
     "ICN",  # Enable flake8-import-conventions
     "INP",  # Enable flake8-no-pep420
+    "INT",  # Enable flake8-gettext
     "ISC",  # Enable flake8-implicit-str-concat
     "N",  # Enable pep8-naming
+    "PERF",  # Enable Perflint
     "PGH",  # Enable pygrep-hooks
     "PIE",  # Enable flake8-pie
     "PLC",  # Enable Pylint convention
@@ -201,8 +207,10 @@ select = [
     "S",  # Enable flake8-bandit
     "SIM",  # Enable flake8-simplify
     "SLF",  # Enable flake8-self
+    "SLOT",  # Enable flake8-slots
     "T20",  # Enable flake8-print
     "TCH",  # Enable flake8-type-checking
+    "TD",  # Enable flake8-todos
     "TID",  # Enable flake8-tidy-imports
     "TRY",  # Enable tryceratops
     "UP",  # Enable pyupgrade

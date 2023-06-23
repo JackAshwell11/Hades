@@ -5,6 +5,9 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, cast
 
+# Pip
+from pymunk import Vec2d
+
 # Custom
 from hades.game_objects.attributes import MovementForce
 from hades.game_objects.base import (
@@ -131,7 +134,7 @@ class KeyboardMovement(MovementBase):
 class SteeringMovement(MovementBase):
     """Allows a game object's movement to be controlled by steering algorithms."""
 
-    __slots__ = ("_behaviours", "_current_position", "_target_position")
+    __slots__ = ("_behaviours", "_target_id")
 
     # Class variables
     _behaviour_dict: dict[SteeringBehaviours, type[SteeringBehaviourBase]] = {
@@ -162,11 +165,10 @@ class SteeringMovement(MovementBase):
         """
         super().__init__(game_object_id, system, component_data)
         self._behaviours: list[SteeringBehaviourBase] = [
-            self._behaviour_dict[behaviour.behaviour_type]()
+            self._behaviour_dict[behaviour]()
             for behaviour in component_data["steering_behaviours"]
         ]
-        self._current_position: tuple[float, float] = 0, 0
-        self._target_position: tuple[float, float] = 0, 0
+        self._target_id: int = -1
 
     def calculate_force(self: SteeringMovement) -> tuple[float, float]:
         """Calculate the new force to apply to the game object.
@@ -174,22 +176,24 @@ class SteeringMovement(MovementBase):
         Returns:
             The new force to apply to the game object.
         """
-        return 0, 0
+        # TODO: Improve this
+        steering_force = Vec2d(0, 0)
+        for behaviour in self._behaviours:
+            steering_force += behaviour.get_steering_force(
+                self.system.get_steering_object_for_game_object(self.game_object_id),
+                self.system.get_steering_object_for_game_object(self._target_id),
+            )
 
-    # TODO: Still don't like this method
-    def update_positions(
-        self: SteeringMovement,
-        current: tuple[float, float],
-        target: tuple[float, float],
-    ) -> None:
-        """Update the stored current and target positions.
+        # TODO: Maybe do this force multiplication in sprite.py
+        return self.movement_force.value * steering_force.normalized()
+
+    def set_target_id(self: SteeringMovement, game_object_id: int) -> None:
+        """Set the target game object ID.
 
         Args:
-            current: The position on the game object which has this movement algorithm.
-            target: The position of the target game object.
+            game_object_id: The target game object ID.
         """
-        self._current_position = current
-        self._target_position = target
+        self._target_id = game_object_id
 
     def __repr__(self: SteeringMovement) -> str:
         """Return a human-readable representation of this object.

@@ -4,6 +4,12 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING
 
+# Pip
+from pymunk import Vec2d
+
+# Custom
+from hades.game_objects.steering import SteeringObject
+
 if TYPE_CHECKING:
     from hades.game_objects.base import (
         ComponentData,
@@ -11,14 +17,14 @@ if TYPE_CHECKING:
         GameObjectComponent,
     )
 
-__all__ = ("ECS", "NotRegisteredError")
+__all__ = ("ECS", "ECSError")
 
 
-class NotRegisteredError(Exception):
-    """Raised when a game object or component type is not registered."""
+class ECSError(Exception):
+    """Raised when an error occurs with the ECS."""
 
     def __init__(
-        self: NotRegisteredError,
+        self: ECSError,
         *,
         not_registered_type: str,
         value: int | str | ComponentType,
@@ -43,30 +49,33 @@ class ECS:
     __slots__ = (
         "_next_game_object_id",
         "_components",
+        "_steering_objects",
     )
 
     def __init__(self: ECS) -> None:
         """Initialise the object."""
         self._next_game_object_id = 0
         self._components: dict[int, dict[ComponentType, GameObjectComponent]] = {}
+        self._steering_objects: dict[int, SteeringObject] = {}
 
     def add_game_object(
         self: ECS,
         component_data: ComponentData,
         *components: type[GameObjectComponent],
+        steering: bool,
     ) -> int:
         """Add a game object to the system with optional components.
 
         Args:
             component_data: The data for the components.
             *components: The optional list of components for the game object.
+            steering: Whether the game object should have a steering object or not.
 
         Returns:
             The game object ID.
 
         Raises:
-            NotRegisteredError: The component type `type` is not registered with the
-                ECS.
+            ECSError: The component type `type` is already registered with the ECS.
         """
         # Create the game object and get the constructor for this game object type
         self._components[self._next_game_object_id] = {}
@@ -76,7 +85,7 @@ class ECS:
             if component.component_type in self._components[self._next_game_object_id]:
                 del self._components[self._next_game_object_id]
                 # TODO: IMPROVE ERROR NAME
-                raise NotRegisteredError(
+                raise ECSError(
                     not_registered_type="component type",
                     value=component.component_type,
                     error="already registered with the ECS",
@@ -92,6 +101,13 @@ class ECS:
                 component.component_type
             ] = game_object_component
 
+        # Create a steering object if required
+        if steering:
+            self._steering_objects[self._next_game_object_id] = SteeringObject(
+                Vec2d(0, 0),
+                Vec2d(0, 0),
+            )
+
         # Increment _next_game_object_id and return the current game object ID
         self._next_game_object_id += 1
         return self._next_game_object_id - 1
@@ -103,11 +119,11 @@ class ECS:
             game_object_id: The game object ID.
 
         Raises:
-            NotRegisteredError: The game object ID `ID` is not registered with the ECS.
+            ECSError: The game object ID `ID` is not registered with the ECS.
         """
         # Check if the game object is registered or not
         if game_object_id not in self._components:
-            raise NotRegisteredError(
+            raise ECSError(
                 not_registered_type="game object ID",
                 value=game_object_id,
             )
@@ -128,11 +144,11 @@ class ECS:
             The game object's components.
 
         Raises:
-            NotRegisteredError: The game object ID `ID` is not registered with the ECS.
+            ECSError: The game object ID `ID` is not registered with the ECS.
         """
         # Check if the game object ID is registered or not
         if game_object_id not in self._components:
-            raise NotRegisteredError(
+            raise ECSError(
                 not_registered_type="game object ID",
                 value=game_object_id,
             )
@@ -145,28 +161,53 @@ class ECS:
         game_object_id: int,
         component_type: ComponentType,
     ) -> GameObjectComponent:
-        """Get a component from a game object.
+        """Get a component for a given game object ID.
 
         Args:
             game_object_id: The game object ID.
             component_type: The component type to get.
 
         Returns:
-            The component from the game object.
+            The component for the given game object ID.
 
         Raises:
-            NotRegisteredError: The game object ID `ID` is not registered with the ECS.
+            ECSError: The game object ID `ID` is not registered with the ECS.
             KeyError: The component type is not part of the game object.
         """
         # Check if the game object ID is registered or not
         if game_object_id not in self._components:
-            raise NotRegisteredError(
+            raise ECSError(
                 not_registered_type="game object ID",
                 value=game_object_id,
             )
 
         # Return the specified component
         return self._components[game_object_id][component_type]
+
+    def get_steering_object_for_game_object(
+        self: ECS,
+        game_object_id: int,
+    ) -> SteeringObject:
+        """Get a steering object for a given game object ID.
+
+        Args:
+            game_object_id: The game object ID.
+
+        Returns:
+            The steering object for the given game object ID.
+
+        Raises:
+            ECSError: The game object ID `ID` is not registered with the ECS.
+        """
+        # Check if the game object ID is registered or not
+        if game_object_id not in self._steering_objects:
+            raise ECSError(
+                not_registered_type="game object ID",
+                value=game_object_id,
+            )
+
+        # Return the specified steering object
+        return self._steering_objects[game_object_id]
 
     def __repr__(self: ECS) -> str:
         """Return a human-readable representation of this object.

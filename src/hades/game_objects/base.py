@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 # Builtin
-from dataclasses import dataclass
 from enum import Enum, auto
 from typing import TYPE_CHECKING, TypedDict
 
@@ -18,22 +17,7 @@ __all__ = (
     "ComponentType",
     "GameObjectComponent",
     "SteeringBehaviours",
-    "SteeringData",
 )
-
-
-@dataclass
-class SteeringData:
-    """Stores the behaviour type, weighting, and priority for a steering behaviour.
-
-    behaviour_type: The behaviour type to use.
-    weight: The weighting to apply to the resulting force.
-    priority: The priority when calculating this behaviour.
-    """
-
-    behaviour_type: SteeringBehaviours
-    weight: int = 1
-    priority: int = 1
 
 
 class AttackAlgorithms(Enum):
@@ -76,7 +60,6 @@ class SteeringBehaviours(Enum):
     ALIGN = auto()
     ARRIVE = auto()
     EVADE = auto()
-    FACE = auto()
     FLEE = auto()
     FOLLOW_PATH = auto()
     OBSTACLE_AVOIDANCE = auto()
@@ -91,9 +74,7 @@ class ComponentData(TypedDict, total=False):
 
     attributes: The data for the game object attributes.
     enabled_attacks: The attacks which are enabled for the game object.
-    steering_behaviours: The steering behaviours to use. If all the weightings are
-        equal, then every behaviour is considered equally. Moreover, if the priorities
-        are equal, then the behaviours are considered in the order they are listed.
+    steering_behaviours: The steering behaviours to use.
     instant_effects: The instant effects that this game object can apply.
     inventory_size: The size of the game object's inventory.
     status_effects: The status effects that this game object can apply.
@@ -101,7 +82,7 @@ class ComponentData(TypedDict, total=False):
 
     attributes: dict[ComponentType, tuple[int, int]]
     enabled_attacks: list[AttackAlgorithms]
-    steering_behaviours: list[SteeringData]
+    steering_behaviours: list[SteeringBehaviours]
     instant_effects: tuple[int, dict[ComponentType, Callable[[int], float]]]
     inventory_size: tuple[int, int]
     status_effects: tuple[

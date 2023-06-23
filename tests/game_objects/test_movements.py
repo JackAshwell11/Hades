@@ -199,5 +199,5 @@ def test_steering_movement_init(steering_movement: SteeringMovement) -> None:
         steering_movement: The steering movement component for use in testing.
     """
     assert repr(steering_movement) == "<SteeringMovement>"
-    # Temporary assert to increase coverage. Change this once enemy AI is done
+    # Temporarily assert to increase coverage. Change this once enemy AI is done
     assert steering_movement.calculate_force() == (0, 0)

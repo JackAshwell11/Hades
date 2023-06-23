@@ -51,8 +51,7 @@ class PhysicsEngine(PymunkPhysicsEngine):
             sprite,
             moment_of_inertia=None if blocking else self.MOMENT_INF,
             body_type=self.STATIC if blocking else self.DYNAMIC,
-            max_horizontal_velocity=MAX_VELOCITY,
-            max_vertical_velocity=MAX_VELOCITY,
+            max_velocity=MAX_VELOCITY,
             collision_type=game_object_type.name,
         )
 
@@ -63,8 +62,3 @@ class PhysicsEngine(PymunkPhysicsEngine):
             The human-readable representation of this object.
         """
         return f"<PhysicsEngine (Sprite count={len(self.sprites)})>"
-
-
-# TODO: Movement still looks a bit weird and player can phase into the walls. To solve
-#  this, create temporary game to test physics system with damping, velocity, movement
-#  force, and body types

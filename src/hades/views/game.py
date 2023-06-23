@@ -44,11 +44,7 @@ from hades.game_objects.constructors import (
     WALL,
     GameObjectConstructor,
 )
-from hades.game_objects.movements import (
-    KeyboardMovement,
-    MovementBase,
-    SteeringMovement,
-)
+from hades.game_objects.movements import KeyboardMovement
 from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
 from hades.sprite import HadesSprite
@@ -98,7 +94,7 @@ class Game(View):
         constructor: GameObjectConstructor,
         sprite_list: SpriteList[HadesSprite],
         position: tuple[int, int],
-    ) -> None:
+    ) -> int:
         """Initialise a game object from a constructor into the ECS.
 
         Args:
@@ -107,14 +103,16 @@ class Game(View):
             position: The position of the game object in the grid.
 
         Returns:
-            The initialised sprite object.
+            The game object ID.
         """
         # Initialise a sprite object
+        game_object_id = self.system.add_game_object(
+            constructor.component_data,
+            *constructor.components,
+            steering=constructor.steering,
+        )
         sprite_obj = HadesSprite(
-            self.system.add_game_object(
-                constructor.component_data,
-                *constructor.components,
-            ),
+            game_object_id,
             self.system,
             position,
             constructor.game_object_textures,
@@ -132,6 +130,9 @@ class Game(View):
                 constructor.game_object_type,
                 blocking=constructor.blocking,
             )
+
+        # Return the game object ID
+        return game_object_id
 
     def __init__(self: Game, level: int) -> None:
         """Initialise the object.
@@ -196,7 +197,7 @@ class Game(View):
             screen_height - self.game_camera.viewport_height - half_sprite_size,
         )
 
-        # Generate half of the total enemies allowed then schedule their generation
+        # Generate half of the total enemies allowed to then schedule their generation
         for _ in range(TOTAL_ENEMY_COUNT // 2):
             self.generate_enemy()
         schedule(
@@ -206,7 +207,7 @@ class Game(View):
 
     def on_draw(self: Game) -> None:
         """Render the screen."""
-        # Clear the screen and set the background color
+        # Clear the screen and set the background colour
         self.clear()
         self.window.background_color = color.BLACK
 
@@ -218,6 +219,7 @@ class Game(View):
         self.item_sprites.draw(pixelated=True)
         self.entity_sprites.draw(pixelated=True)
 
+        # TODO: Maybe remove the debug drawing stuff and stuff in generation
         # Draw the stuff needed for the debug mode
         if DEBUG_GAME:
             # Draw the enemy spawn locations
@@ -246,22 +248,6 @@ class Game(View):
         """
         # Check if the game should end
         # if self.player.health.value <= 0 or not self.enemy_sprites:
-
-        # Update the steering positions if possible
-        player_position = self.ids[GameObjectType.PLAYER][0].position
-        for entity in self.entity_sprites:
-            if not (
-                steering_movement := cast(
-                    MovementBase,
-                    self.system.get_component_for_game_object(
-                        entity.game_object_id, ComponentType.MOVEMENTS,
-                    ),
-                )
-            ).player_controlled:
-                cast(SteeringMovement, steering_movement).update_positions(
-                    entity.position,
-                    player_position,
-                )
 
         # Update the entities
         self.entity_sprites.on_update(delta_time)
@@ -374,7 +360,10 @@ class Game(View):
                 < ENEMY_GENERATION_DISTANCE * SPRITE_SIZE
             ):
                 continue
-            self._initialise_game_object(ENEMY, self.entity_sprites, position)
+            self.system.get_component_for_game_object(
+                self._initialise_game_object(ENEMY, self.entity_sprites, position),
+                ComponentType.MOVEMENTS,
+            ).set_target_id(self.ids[GameObjectType.PLAYER][0].game_object_id)
             return
 
     def center_camera_on_player(self: Game) -> None:

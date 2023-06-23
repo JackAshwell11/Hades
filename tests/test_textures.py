@@ -26,12 +26,12 @@ def test_raise_bigger_than_error() -> None:
 
 def test_grid_pos_to_pixel_positive() -> None:
     """Test that a valid position is converted correctly."""
-    assert grid_pos_to_pixel(500, 500) == (28028.0, 28028.0)
+    assert grid_pos_to_pixel(500, 500) == (32032.0, 32032.0)
 
 
 def test_grid_pos_to_pixel_zero() -> None:
     """Test that a zero position is converted correctly."""
-    assert grid_pos_to_pixel(0, 0) == (28.0, 28.0)
+    assert grid_pos_to_pixel(0, 0) == (32.0, 32.0)
 
 
 def test_grid_pos_to_pixel_negative() -> None:
@@ -51,11 +51,11 @@ def test_load_moving_texture_valid_filename() -> None:
     assert [texture.cache_name for texture in load_moving_texture("floor.png")] == [
         (
             "b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|(0, 1, 2,"
-            " 3)|simple|"
+            " 3)|SimpleHitBoxAlgorithm|"
         ),
         (
             "b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|(1, 0, 3,"
-            " 2)|simple|"
+            " 2)|SimpleHitBoxAlgorithm|"
         ),
     ]
 
@@ -71,7 +71,7 @@ def test_load_non_moving_texture_valid_filename() -> None:
     assert (
         load_non_moving_texture("floor.png").cache_name
         == "b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|(0, 1, 2,"
-        " 3)|simple|"
+        " 3)|SimpleHitBoxAlgorithm|"
     )
 
 

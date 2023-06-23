@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, NamedTuple
 # Custom
 from hades.constants import GameObjectType
 from hades.game_objects.attributes import MovementForce
-from hades.game_objects.base import ComponentType
+from hades.game_objects.base import ComponentType, SteeringBehaviours
 from hades.game_objects.components import Inventory
 from hades.game_objects.movements import KeyboardMovement, SteeringMovement
 from hades.textures import TextureType
@@ -44,6 +44,7 @@ class GameObjectConstructor(NamedTuple):
         components: A list of component types that are part of this game object.
         component_data: The data for the components.
         blocking: Whether the game object blocks sprite movement or not.
+        steering: Whether the game object should have a steering object or not.
     """
 
     game_object_type: GameObjectType
@@ -51,6 +52,7 @@ class GameObjectConstructor(NamedTuple):
     components: list[type[GameObjectComponent]] = []
     component_data: ComponentData = {}
     blocking: bool = False
+    steering: bool = False
 
 
 # Static tiles
@@ -70,9 +72,10 @@ PLAYER = GameObjectConstructor(
     GameObjectTextures(TextureType.PLAYER_IDLE.value[0]),
     components=[Inventory, MovementForce, KeyboardMovement],
     component_data={
-        "attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)},
+        "attributes": {ComponentType.MOVEMENT_FORCE: (5000, 5)},
         "inventory_size": (6, 5),
     },
+    steering=True,
 )
 
 # Enemy characters
@@ -81,9 +84,10 @@ ENEMY = GameObjectConstructor(
     GameObjectTextures(TextureType.ENEMY_IDLE.value[0]),
     components=[MovementForce, SteeringMovement],
     component_data={
-        "attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)},
-        "steering_behaviours": [],
+        "attributes": {ComponentType.MOVEMENT_FORCE: (1000, 5)},
+        "steering_behaviours": [SteeringBehaviours.ARRIVE, SteeringBehaviours.WANDER],
     },
+    steering=True,
 )
 
 # Potion tiles
