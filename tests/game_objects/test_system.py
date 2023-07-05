@@ -9,7 +9,7 @@ import pytest
 
 # Custom
 from hades.game_objects.base import ComponentType, GameObjectComponent
-from hades.game_objects.system import ECS, NotRegisteredError
+from hades.game_objects.system import ECS, ECSError
 
 if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
@@ -71,21 +71,21 @@ def ecs() -> ECS:
 
 
 def test_raise_not_registered_error() -> None:
-    """Test that NotRegisteredError is raised correctly."""
+    """Test that ECSError is raised correctly."""
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The test `10` is not registered with the ECS.",
     ):
-        raise NotRegisteredError(not_registered_type="test", value=10)
+        raise ECSError(not_registered_type="test", value=10)
 
 
 def test_raise_not_registered_error_custom_error() -> None:
-    """Test that NotRegisteredError is raised correctly with a custom error message."""
+    """Test that ECSError is raised correctly with a custom error message."""
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The test `temp` is error.",
     ):
-        raise NotRegisteredError(
+        raise ECSError(
             not_registered_type="test",
             value="temp",
             error="error",
@@ -114,17 +114,17 @@ def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_component_for_game_object(0, ComponentType.HEALTH)
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_components_for_game_object(0)
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.remove_game_object(0)
@@ -150,12 +150,12 @@ def test_ecs_game_object_with_multiple_components(ecs: ECS) -> None:
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_component_for_game_object(0, ComponentType.HEALTH)
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_components_for_game_object(0)
@@ -177,12 +177,12 @@ def test_ecs_multiple_game_objects(ecs: ECS) -> None:
     ecs.remove_game_object(0)
     assert ecs.get_component_for_game_object(1, ComponentType.HEALTH)
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_component_for_game_object(0, ComponentType.HEALTH)
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_components_for_game_object(0)
@@ -229,7 +229,7 @@ def test_ecs_duplicate_components(ecs: ECS) -> None:
     """
     # Test that adding a game object with two of the same components raises an error
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match=(
             "The component type `ComponentType.HEALTH` is already registered with the"
             " ECS."
@@ -239,7 +239,7 @@ def test_ecs_duplicate_components(ecs: ECS) -> None:
 
     # Test that the game object does not exist
     with pytest.raises(
-        expected_exception=NotRegisteredError,
+        expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_component_for_game_object(0, ComponentType.HEALTH)

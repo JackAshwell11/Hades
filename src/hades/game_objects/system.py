@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from pymunk import Vec2d
 
 # Custom
-from hades.game_objects.steering import SteeringObject
+from hades.game_objects.movements import SteeringObject
 
 if TYPE_CHECKING:
     from hades.game_objects.base import (
@@ -57,7 +57,7 @@ class ECS:
         self._next_game_object_id = 0
         self._components: dict[int, dict[ComponentType, GameObjectComponent]] = {}
         self._steering_objects: dict[int, SteeringObject] = {
-            -1: SteeringObject(-1, Vec2d(0, 0), Vec2d(0, 0)),
+            -1: SteeringObject(-1, Vec2d(0, 0), Vec2d(0, 0), []),
         }
 
     def add_game_object(
@@ -86,6 +86,7 @@ class ECS:
                 self._next_game_object_id,
                 Vec2d(0, 0),
                 Vec2d(0, 0),
+                [],
             )
 
         # Add the optional components to the system

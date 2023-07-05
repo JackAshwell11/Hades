@@ -44,7 +44,7 @@ from hades.game_objects.constructors import (
     WALL,
     GameObjectConstructor,
 )
-from hades.game_objects.movements import KeyboardMovement
+from hades.game_objects.movements import KeyboardMovement, SteeringMovement
 from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
 from hades.sprite import HadesSprite
@@ -359,10 +359,21 @@ class Game(View):
                 < ENEMY_GENERATION_DISTANCE * SPRITE_SIZE
             ):
                 continue
-            self.system.get_component_for_game_object(
-                self._initialise_game_object(ENEMY, self.entity_sprites, position),
-                ComponentType.MOVEMENTS,
-            ).set_target_id(self.ids[GameObjectType.PLAYER][0].game_object_id)
+
+            # Set the required data for the steering to correctly function
+            steering_movement = cast(
+                SteeringMovement,
+                self.system.get_component_for_game_object(
+                    self._initialise_game_object(ENEMY, self.entity_sprites, position),
+                    ComponentType.MOVEMENTS,
+                ),
+            )
+            steering_movement.target_id = self.ids[GameObjectType.PLAYER][
+                0
+            ].game_object_id
+            steering_movement.walls = [
+                wall_sprite.position for wall_sprite in self.ids[GameObjectType.WALL]
+            ]
             return
 
     def center_camera_on_player(self: Game) -> None:

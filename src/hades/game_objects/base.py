@@ -57,7 +57,6 @@ class GameObjectAttributeSectionType(Enum):
 class SteeringBehaviours(Enum):
     """Stores the different types of steering behaviours available."""
 
-    ALIGN = auto()
     ARRIVE = auto()
     EVADE = auto()
     FLEE = auto()
@@ -65,7 +64,6 @@ class SteeringBehaviours(Enum):
     OBSTACLE_AVOIDANCE = auto()
     PURSUIT = auto()
     SEEK = auto()
-    SEPARATION = auto()
     WANDER = auto()
 
 
