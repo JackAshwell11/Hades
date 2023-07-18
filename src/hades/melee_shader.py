@@ -127,10 +127,8 @@ class MeleeShader:
         )
         self.update_collision()
         logger.info(
-            (
-                "Initialised melee shader with a result buffer size of %d and a walls"
-                " framebuffer size of %r"
-            ),
+            "Initialised melee shader with a result buffer size of %d and a walls"
+            " framebuffer size of %r",
             self.result_buffer.size,
             self.walls_framebuffer.size,
         )
