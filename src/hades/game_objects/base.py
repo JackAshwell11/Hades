@@ -6,7 +6,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, TypedDict
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Mapping, Sequence
 
     from hades.game_objects.system import ECS
 
@@ -17,6 +17,7 @@ __all__ = (
     "ComponentType",
     "GameObjectComponent",
     "SteeringBehaviours",
+    "SteeringMovementState",
 )
 
 
@@ -31,12 +32,12 @@ class AttackAlgorithms(Enum):
 class ComponentType(Enum):
     """Stores the different types of components available."""
 
-    AI = auto()
     ARMOUR = auto()
     ARMOUR_REGEN = auto()
     ARMOUR_REGEN_COOLDOWN = auto()
     ATTACKS = auto()
     FIRE_RATE_PENALTY = auto()
+    FOOTPRINTS = auto()
     HEALTH = auto()
     INSTANT_EFFECTS = auto()
     INVENTORY = auto()
@@ -67,6 +68,14 @@ class SteeringBehaviours(Enum):
     WANDER = auto()
 
 
+class SteeringMovementState(Enum):
+    """Stores the different states the steering movement component can be in."""
+
+    DEFAULT = auto()
+    FOOTPRINT = auto()
+    TARGET = auto()
+
+
 class ComponentData(TypedDict, total=False):
     """Holds the data needed to initialise the components.
 
@@ -78,14 +87,14 @@ class ComponentData(TypedDict, total=False):
     status_effects: The status effects that this game object can apply.
     """
 
-    attributes: dict[ComponentType, tuple[int, int]]
-    enabled_attacks: list[AttackAlgorithms]
-    steering_behaviours: list[SteeringBehaviours]
-    instant_effects: tuple[int, dict[ComponentType, Callable[[int], float]]]
+    attributes: Mapping[ComponentType, tuple[int, int]]
+    enabled_attacks: Sequence[AttackAlgorithms]
+    steering_behaviours: Mapping[SteeringMovementState, Sequence[SteeringBehaviours]]
+    instant_effects: tuple[int, Mapping[ComponentType, Callable[[int], float]]]
     inventory_size: tuple[int, int]
     status_effects: tuple[
         int,
-        dict[ComponentType, tuple[Callable[[int], float], Callable[[int], float]]],
+        Mapping[ComponentType, tuple[Callable[[int], float], Callable[[int], float]]],
     ]
 
 

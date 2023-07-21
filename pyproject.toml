@@ -22,9 +22,9 @@ pymunk = "6.4.0"
 shapely = "2.0.1"
 
 [tool.poetry.dev-dependencies]
-black = "23.3.0"
+black = "23.7.0"
 mypy = "1.4.1"
-nuitka = "1.7"
+nuitka = "1.7.5"
 ordered-set = "4.1.0"
 pre-commit = "3.3.3"
 pylint = "2.17.4"
@@ -32,11 +32,11 @@ pytest = "7.4.0"
 pytest-cov = "4.1.0"
 pytest-icdiff = "0.6"
 pytest-instafail = "0.5.0"
-pytest-randomly = "3.12.0"
+pytest-randomly = "3.13.0"
 pytest-sugar = "0.9.7"
-ruff = "0.0.276"
+ruff = "0.0.278"
 ssort = "v0.11.6"
-tox = "4.6.3"
+tox = "4.6.4"
 
 [tool.black]
 preview = true
@@ -59,9 +59,6 @@ exclude_lines = [
 omit = [
     "*/__main__.py",  # This is only used for running the game via the CLI
     "*/extensions/compile.py",  # This is only used for building the C++ extensions
-    "*/game_objects_BAD_ECS/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
-    "*/game_objects_OLD/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
-    "*/constants_OLD/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
 ]
 precision = 2
 show_missing = true
@@ -159,6 +156,7 @@ extend-exclude = [
     "*vector_field*",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
     "melee_shader.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
     "src/hades/views/shop.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
+    "src/hades/views/inventory.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 extend-ignore = [
     "S311",  # Allow use of the random library

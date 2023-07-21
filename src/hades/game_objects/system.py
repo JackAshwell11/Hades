@@ -56,9 +56,7 @@ class ECS:
         """Initialise the object."""
         self._next_game_object_id = 0
         self._components: dict[int, dict[ComponentType, GameObjectComponent]] = {}
-        self._steering_objects: dict[int, SteeringObject] = {
-            -1: SteeringObject(-1, Vec2d(0, 0), Vec2d(0, 0), []),
-        }
+        self._steering_objects: dict[int, SteeringObject] = {}
 
     def add_game_object(
         self: ECS,
@@ -86,7 +84,6 @@ class ECS:
                 self._next_game_object_id,
                 Vec2d(0, 0),
                 Vec2d(0, 0),
-                [],
             )
 
         # Add the optional components to the system
@@ -101,14 +98,9 @@ class ECS:
                 )
 
             # Initialise the component and add it to the system
-            game_object_component = component(
-                self._next_game_object_id,
-                self,
-                component_data,
+            self._components[self._next_game_object_id][component.component_type] = (
+                component(self._next_game_object_id, self, component_data)
             )
-            self._components[self._next_game_object_id][
-                component.component_type
-            ] = game_object_component
 
         # Increment _next_game_object_id and return the current game object ID
         self._next_game_object_id += 1

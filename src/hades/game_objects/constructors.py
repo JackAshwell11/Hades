@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Final, NamedTuple
+from typing import TYPE_CHECKING, ClassVar, Final, NamedTuple
 
 # Custom
 from hades.constants import GameObjectType
 from hades.game_objects.attributes import MovementForce
-from hades.game_objects.base import ComponentType, SteeringBehaviours
+from hades.game_objects.base import (
+    ComponentType,
+    SteeringBehaviours,
+    SteeringMovementState,
+)
 from hades.game_objects.components import Inventory
 from hades.game_objects.movements import KeyboardMovement, SteeringMovement
 from hades.textures import TextureType
@@ -49,8 +53,8 @@ class GameObjectConstructor(NamedTuple):
 
     game_object_type: GameObjectType
     game_object_textures: GameObjectTextures
-    components: list[type[GameObjectComponent]] = []
-    component_data: ComponentData = {}
+    components: ClassVar[list[type[GameObjectComponent]]] = []
+    component_data: ClassVar[ComponentData] = {}
     blocking: bool = False
     steering: bool = False
 
@@ -85,10 +89,11 @@ ENEMY: Final = GameObjectConstructor(
     components=[MovementForce, SteeringMovement],
     component_data={
         "attributes": {ComponentType.MOVEMENT_FORCE: (1000, 5)},
-        "steering_behaviours": [
-            SteeringBehaviours.SEEK,
-            SteeringBehaviours.OBSTACLE_AVOIDANCE,
-        ],
+        "steering_behaviours": {
+            SteeringMovementState.DEFAULT: [SteeringBehaviours.WANDER],
+            SteeringMovementState.FOOTPRINT: [SteeringBehaviours.FOLLOW_PATH],
+            SteeringMovementState.TARGET: [SteeringBehaviours.PURSUIT],
+        },
     },
     steering=True,
 )

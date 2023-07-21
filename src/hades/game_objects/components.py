@@ -5,17 +5,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 # Custom
-from hades.constants import ARMOUR_REGEN_AMOUNT
+from hades.constants import ARMOUR_REGEN_AMOUNT, FOOTPRINT_INTERVAL, FOOTPRINT_LIMIT
 from hades.game_objects.attributes import Armour, ArmourRegenCooldown
 from hades.game_objects.base import ComponentType, GameObjectComponent
 
 if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
+    from hades.game_objects.movements import SteeringObject
     from hades.game_objects.system import ECS
 
 __all__ = (
-    "AI",
     "ArmourRegen",
+    "Footprints",
     "InstantEffects",
     "Inventory",
     "InventorySpaceError",
@@ -38,47 +39,14 @@ class InventorySpaceError(Exception):
         super().__init__(f"The inventory is {'full' if full else 'empty'}.")
 
 
-class AI(GameObjectComponent):
-    """Allows a game object to have intelligence and navigate around the game map."""
-
-    __slots__ = ()
-
-    # Class variables
-    component_type: ComponentType = ComponentType.AI
-
-    def __init__(
-        self: AI,
-        game_object_id: int,
-        system: ECS,
-        component_data: ComponentData,
-    ) -> None:
-        """Initialise the object.
-
-        Args:
-            game_object_id: The game object ID.
-            system: The entity component system which manages the game objects.
-            component_data: The data for the components.
-        """
-        super().__init__(game_object_id, system, component_data)
-
-    def on_update(self: AI, delta_time: float) -> None:
-        """Process AI update logic.
-
-        Args:
-            delta_time: Time interval since the last time the function was called.
-        """
-
-    def __repr__(self: AI) -> str:
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return "<AI>"
-
-
 class ArmourRegen(GameObjectComponent):
-    """Allows a game object to regenerate armour."""
+    """Allows a game object to regenerate armour.
+
+    Attributes:
+        armour: The game object's armour component.
+        armour_regen_cooldown: The game object's armour regen cooldown component.
+        time_since_armour_regen: The time since the game object last regenerated armour.
+    """
 
     __slots__ = ("armour", "armour_regen_cooldown", "time_since_armour_regen")
 
@@ -135,8 +103,72 @@ class ArmourRegen(GameObjectComponent):
         return f"<ArmourRegen (Time since armour regen={self.time_since_armour_regen})>"
 
 
+class Footprints(GameObjectComponent):
+    """Allows a game object to periodically leave footprints around the game map.
+
+    Attributes:
+        footprints: The footprints created by the game object.
+        steering_object: The steering object for the game object.
+        time_since_last_footprint: The time since the game object last left a footprint.
+    """
+
+    __slots__ = ("footprints", "steering_object", "time_since_last_footprint")
+
+    # Class variables
+    component_type: ComponentType = ComponentType.FOOTPRINTS
+
+    def __init__(
+        self: Footprints,
+        game_object_id: int,
+        system: ECS,
+        component_data: ComponentData,
+    ) -> None:
+        """Initialise the object.
+
+        Args:
+            game_object_id: The game object ID.
+            system: The entity component system which manages the game objects.
+            component_data: The data for the components.
+        """
+        super().__init__(game_object_id, system, component_data)
+        self.footprints: list[tuple[float, float]] = []
+        self.steering_object: SteeringObject = (
+            self.system.get_steering_object_for_game_object(self.game_object_id)
+        )
+        self.time_since_last_footprint: float = 0
+
+    def on_update(self: Footprints, delta_time: float) -> None:
+        """Process AI update logic.
+
+        Args:
+            delta_time: Time interval since the last time the function was called.
+        """
+        self.time_since_last_footprint += delta_time
+        if self.time_since_last_footprint >= FOOTPRINT_INTERVAL:
+            self.time_since_last_footprint = 0
+            if len(self.footprints) >= FOOTPRINT_LIMIT:
+                self.footprints.pop(0)
+            self.footprints.append(self.steering_object.position)
+
+    def __repr__(self: Footprints) -> str:
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return (
+            f"<Footprints (Footprint count={len(self.footprints)}) (Time since last"
+            f" footprint={self.time_since_last_footprint})>"
+        )
+
+
 class InstantEffects(GameObjectComponent):
-    """Allows a game object to provide instant effects."""
+    """Allows a game object to provide instant effects.
+
+    Attributes:
+        level_limit: The level limit of the instant effects.
+        instant_effects: The instant effects provided by the game object.
+    """
 
     __slots__ = ("instant_effects", "level_limit")
 
@@ -172,6 +204,8 @@ class Inventory(Generic[T], GameObjectComponent):
     """Allows a game object to have a fixed size inventory.
 
     Attributes:
+        width: The width of the inventory.
+        height: The height of the inventory.
         inventory: The game object's inventory.
     """
 
@@ -240,9 +274,14 @@ class Inventory(Generic[T], GameObjectComponent):
 
 
 class StatusEffects(GameObjectComponent):
-    """Allows a game object to provide status effects."""
+    """Allows a game object to provide status effects.
 
-    __slots__ = ("status_effects", "level_limit")
+    Attributes:
+        level_limit: The level limit of the status effects.
+        status_effects: The status effects provided by the game object.
+    """
+
+    __slots__ = ("level_limit", "status_effects")
 
     # Class variables
     component_type: ComponentType = ComponentType.STATUS_EFFECTS
