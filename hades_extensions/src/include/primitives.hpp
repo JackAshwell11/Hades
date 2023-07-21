@@ -9,7 +9,6 @@
 // ----- ENUMS ------------------------------
 /// Stores the different types of tiles in the game map.
 enum class TileType {
-  DebugWall,
   Empty,
   Floor,
   Wall,
@@ -20,6 +19,9 @@ enum class TileType {
 
 // ----- STRUCTURES ------------------------------
 /// Represents a point in the grid.
+///
+/// @param x - The x position of the point.
+/// @param y - The y position of the point.
 struct Point {
   int x, y;
 
@@ -46,8 +48,9 @@ struct Point {
 
 /// Represents a 2D grid with a set width and height through a 1D vector.
 ///
-/// @details width - The width of the 2D grid.
-/// @details height - The height of the 2D grid.
+/// @param width - The width of the 2D grid.
+/// @param height - The height of the 2D grid.
+/// @details grid - The vector which represents the 2D grid.
 struct Grid {
   // Parameters
   int width{}, height{};
@@ -90,6 +93,8 @@ struct Grid {
 /// whereas, rooms don't so MIN_CONTAINER_SIZE must be bigger than
 /// MIN_ROOM_SIZE.
 ///
+/// @param top_left - The top left position of the rect.
+/// @param bottom_right - The bottom right position of the rect.
 /// @details center - The center position of the rect.
 /// @details width - The width of the rect.
 /// @details height - The height of the rect.

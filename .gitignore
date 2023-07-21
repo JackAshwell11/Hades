@@ -146,6 +146,7 @@ cython_debug/
 
 # Editor files
 .idea/
+.vscode/
 
 # Log and save files
 logs/
@@ -161,6 +162,3 @@ window.dist/
 
 # Aseprite project
 aseprite/
-
-# Temp files
-src/hades/TEMP-FILES/

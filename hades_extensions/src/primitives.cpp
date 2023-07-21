@@ -8,7 +8,7 @@
 
 // ----- CONSTANTS ------------------------------
 // Defines constants for hallway and entity generation
-const std::unordered_set<TileType> REPLACEABLE_TILES = {TileType::Empty, TileType::Obstacle, TileType::DebugWall};
+const std::unordered_set<TileType> REPLACEABLE_TILES = {TileType::Empty, TileType::Obstacle};
 
 // ----- FUNCTIONS ------------------------------
 int Grid::convert_position(const Point &pos) const {

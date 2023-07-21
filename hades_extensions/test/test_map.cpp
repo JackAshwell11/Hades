@@ -83,15 +83,15 @@ TEST_F(Fixtures, TestMapSplitBspMaxSplit) {
   // Test that each child leaf cannot be split anymore and that there are
   // approximately 4-8 children (this varies based on the toolchain)
   for (Leaf &child : children) {
-    ASSERT_FALSE(child.split(grid, random_generator, false));
+    ASSERT_FALSE(split(child, random_generator));
   }
   ASSERT_TRUE(children.size() >= 4 || children.size() <= 8);
 }
 
 TEST_F(Fixtures, TestMapGenerateRoomsSetLeaf) {
   // Test if at least 1 room is generated
-  leaf.left = std::make_unique<Leaf>(Rect({0, 0}, {9, 15}));
-  leaf.right = std::make_unique<Leaf>(Rect({10, 0}, {15, 15}));
+  leaf.left = std::make_unique<Leaf>(Rect{{0, 0}, {9, 15}});
+  leaf.right = std::make_unique<Leaf>(Rect{{10, 0}, {15, 15}});
   ASSERT_EQ(generate_rooms(leaf, grid, random_generator).size(), 2);
 }
 
@@ -104,7 +104,8 @@ TEST_F(Fixtures, TestMapGenerateRoomsRoomExist) {
 TEST_F(Fixtures, TestMapCreateConnectionsGivenConnections) {
   // Create a complete graph with 4 nodes and 6 connections
   std::unordered_map<Rect, std::vector<Rect>> complete_graph;
-  Rect temp_rect_one = {{0, 0}, {3, 3}}, temp_rect_two = {{10, 10}, {12, 12}};
+  Rect temp_rect_one = {{0, 0}, {3, 3}};
+  Rect temp_rect_two = {{10, 10}, {12, 12}};
   complete_graph.emplace(valid_rect_one, std::vector<Rect>{valid_rect_two, temp_rect_one, temp_rect_two});
   complete_graph.emplace(valid_rect_two, std::vector<Rect>{valid_rect_one, temp_rect_one, temp_rect_two});
   complete_graph.emplace(temp_rect_one, std::vector<Rect>{valid_rect_one, valid_rect_two, temp_rect_two});
@@ -131,8 +132,7 @@ TEST_F(Fixtures, TestMapPlaceTileGivenPositions) {
   // Test if a tile is correctly placed in the 2D grid
   std::vector<Point> possible_tiles = {{5, 6}, {4, 2}};
   place_tile(small_grid, random_generator, TileType::Player, possible_tiles);
-  ASSERT_TRUE(
-      std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Player) != small_grid.grid->end());
+  ASSERT_TRUE(std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Player) != small_grid.grid->end());
 }
 
 TEST_F(Fixtures, TestMapPlaceTileEmpty) {
@@ -180,8 +180,8 @@ TEST_F(Fixtures, TestMapCreateHallwaysWithObstacles) {
 
     // Get the current tile's neighbours
     for (Point offset : offsets) {
-      // Calculate the neighbour's position and check if its valid excluding the
-      // boundaries as that produces weird paths
+      // Calculate the neighbour's position and check if its valid excluding
+      // the boundaries as that produces weird paths
       Point neighbour = current + offset;
       if (neighbour.x < 0 || neighbour.x >= small_grid.width || neighbour.y < 0 || neighbour.y >= small_grid.height) {
         continue;
@@ -232,8 +232,8 @@ TEST_F(Fixtures, TestMapCreateMapNegativeLevel) {
 }
 
 TEST_F(Fixtures, TestMapCreateMapEmptySeed) {
-  // Test if a map is correctly generated without a given seed. We can't test it
-  // against a set result since the seed is randomly generated
+  // Test if a map is correctly generated without a given seed. We can't test
+  // it against a set result since the seed is randomly generated
   std::optional<unsigned int> empty_seed;
   std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_empty_seed = create_map(0, empty_seed);
   ASSERT_EQ(create_map_empty_seed.second, std::make_tuple(0, 30, 20));

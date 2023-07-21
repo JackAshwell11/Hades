@@ -61,8 +61,8 @@ class LevelConstants(NamedTuple):
 
     Args:
         level: The level of this game.
-        width: The width of the game map.
-        height: The height of the game map.
+        width: The width of the dungeon.
+        height: The height of the dungeon.
     """
 
     level: int

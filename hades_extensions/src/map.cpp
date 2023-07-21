@@ -74,7 +74,7 @@ void split_bsp(Leaf &bsp, Grid &grid, std::mt19937 &random_generator, int split_
     queue.pop();
 
     // Split the bsp if possible
-    if (current.split(grid, random_generator, true) && current.left && current.right) {
+    if (split(current, random_generator) && current.left && current.right) {
       // Add the child leafs so they can be split
       queue.emplace(*current.left);
       queue.emplace(*current.right);
@@ -101,14 +101,14 @@ std::vector<Rect> generate_rooms(Leaf &bsp, Grid &grid, std::mt19937 &random_gen
 
     // Test if we can create a room in the current leaf
     if (current.left && current.right) {
-      // Room creation not successful meaning there are child leafs so try again
-      // on the child leafs
+      // Room creation not successful meaning there are child leafs so try
+      // again on the child leafs
       queue.emplace(*current.left);
       queue.emplace(*current.right);
     } else {
       // Create a room in the current leaf and save the rect. If a room cannot
       // be created, the width to height ratio is outside of range so try again
-      while (!current.create_room(grid, random_generator)) {}
+      while (!create_room(current, grid, random_generator)) {}
 
       // Add the created room to the rooms list
       rooms.emplace_back(*current.room);
@@ -217,19 +217,19 @@ std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(int level
   unsigned int valid_seed;
   if (!seed.has_value()) {
     std::random_device random_device;
-    std::mt19937_64 seed_generator(random_device());
+    std::mt19937_64 seed_generator{random_device()};
     std::uniform_int_distribution<unsigned int> seed_distribution;
     valid_seed = seed_distribution(seed_generator);
   } else {
     valid_seed = seed.value();
   }
-  std::mt19937 random_generator(valid_seed);
+  std::mt19937 random_generator{valid_seed};
 
   // Initialise a few variables needed for the map generation
   int grid_width = MAP_GENERATION_CONSTANTS.width.generate_value(level);
   int grid_height = MAP_GENERATION_CONSTANTS.height.generate_value(level);
-  Grid grid(grid_width, grid_height);
-  Leaf bsp({{0, 0}, {grid_width - 1, grid_height - 1}});
+  Grid grid{grid_width, grid_height};
+  Leaf bsp{{{0, 0}, {grid_width - 1, grid_height - 1}}};
 
   // Split the bsp and create the rooms
   split_bsp(bsp, grid, random_generator, MAP_GENERATION_CONSTANTS.split_iteration.generate_value(level));
@@ -239,9 +239,9 @@ std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(int level
   std::unordered_map<Rect, std::vector<Rect>> complete_graph;
   for (Rect room : rooms) {
     std::vector<Rect> temp;
-    for (const Rect &x : rooms) {
-      if (x != room) {
-        temp.push_back(x);
+    for (const auto &rect : rooms) {
+      if (rect != room) {
+        temp.push_back(rect);
       }
     }
     complete_graph.insert({room, temp});
