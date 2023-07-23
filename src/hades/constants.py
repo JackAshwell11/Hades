@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 # Builtin
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum, auto
 from pathlib import Path
+from typing import Final
 
 # Pip
 from arcade import color
@@ -20,7 +21,6 @@ __all__ = (
     "ENEMY_RETRY_COUNT",
     "GAME_LOGGER",
     "GameObjectType",
-    "WANDER_CIRCLE_ANGLE",
     "LOGGING_DICT_CONFIG",
     "WANDER_CIRCLE_DISTANCE",
     "MAX_VELOCITY",
@@ -51,8 +51,8 @@ log_dir = Path(__file__).resolve().parent.parent / "logs"
 log_dir.mkdir(parents=True, exist_ok=True)
 
 # Logging constants
-GAME_LOGGER = "hades"
-LOGGING_DICT_CONFIG = {
+GAME_LOGGER: Final = "hades"
+LOGGING_DICT_CONFIG: Final = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -74,7 +74,9 @@ LOGGING_DICT_CONFIG = {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "default",
-            "filename": log_dir.joinpath(f"{datetime.now().strftime('%Y-%m-%d')}.log"),
+            "filename": log_dir.joinpath(
+                f"{datetime.now(tz=timezone.utc).strftime('%Y-%m-%d')}.log",
+            ),
             "maxBytes": 5242880,  # 5MB
             "backupCount": 5,
         },
@@ -94,31 +96,30 @@ LOGGING_DICT_CONFIG = {
 }
 
 # Debug constants
-DEBUG_GAME = True
-DEBUG_ENEMY_SPAWN_COLOR = color.RED
-DEBUG_ENEMY_SPAWN_SIZE = 5
+DEBUG_GAME: Final = True
+DEBUG_ENEMY_SPAWN_COLOR: Final = color.RED
+DEBUG_ENEMY_SPAWN_SIZE: Final = 5
 
 # Sprite sizes
-SPRITE_SCALE = 0.5
-SPRITE_SIZE = 128 * SPRITE_SCALE
+SPRITE_SCALE: Final = 0.5
+SPRITE_SIZE: Final = 128 * SPRITE_SCALE
 
 # Physics constants
-DAMPING = 0.0001
-MAX_VELOCITY = 200
+DAMPING: Final = 0.0001
+MAX_VELOCITY: Final = 200
 
 # General game object constants
-MOVEMENT_FORCE = 100
-ARMOUR_REGEN_AMOUNT = 1
-MELEE_RESOLUTION = 10
+MOVEMENT_FORCE: Final = 100
+ARMOUR_REGEN_AMOUNT: Final = 1
+MELEE_RESOLUTION: Final = 10
 
 # Steering constants
-SLOWING_RADIUS = 3 * SPRITE_SIZE
-WANDER_CIRCLE_DISTANCE = 50
-WANDER_CIRCLE_RADIUS = 15
-WANDER_CIRCLE_ANGLE = 20
+SLOWING_RADIUS: Final = 3 * SPRITE_SIZE
+WANDER_CIRCLE_DISTANCE: Final = 50
+WANDER_CIRCLE_RADIUS: Final = 25
 
 # Enemy generation constants
-TOTAL_ENEMY_COUNT = 8
-ENEMY_RETRY_COUNT = 3
-ENEMY_GENERATE_INTERVAL = 1
-ENEMY_GENERATION_DISTANCE = 5
+TOTAL_ENEMY_COUNT: Final = 10
+ENEMY_RETRY_COUNT: Final = 3
+ENEMY_GENERATE_INTERVAL: Final = 1
+ENEMY_GENERATION_DISTANCE: Final = 5

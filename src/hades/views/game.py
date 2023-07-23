@@ -76,8 +76,7 @@ class Game(View):
     Attributes:
         level_constants: Holds the constants for the current level.
         system: The entity component system which manages the game objects.
-        ids: The dictionary which stores the IDs and sprite objects for each game object
-        type.
+        ids: The dictionary which stores the IDs and sprites for each game object type.
         tile_sprites: The sprite list for the tile game objects.
         entity_sprites: The sprite list for the entity game objects.
         item_sprites: The sprite list for the item game objects.
@@ -325,8 +324,8 @@ class Game(View):
             x: The x position of the mouse.
             y: The y position of the mouse.
             button: Which button was hit.
-            modifiers:Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
-                during this event.
+            modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
+            during this event.
         """
         logger.debug(
             "%r mouse button was pressed at position (%f, %f) with modifiers %r",
@@ -349,7 +348,7 @@ class Game(View):
         if len(self.ids.get(GameObjectType.ENEMY, [])) >= TOTAL_ENEMY_COUNT:
             return
 
-        # Enemy limit not reached so attempt to initialise a new enemy game object
+        # Enemy limit is not reached so try to initialise a new enemy game object
         # ENEMY_RETRY_COUNT times
         random.shuffle(self.possible_enemy_spawns)
         player_sprite = self.ids[GameObjectType.PLAYER][0]

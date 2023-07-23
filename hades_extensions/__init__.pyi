@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # Builtin
 from enum import Enum
 

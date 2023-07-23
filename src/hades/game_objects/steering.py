@@ -38,10 +38,12 @@ __all__ = (
 class SteeringObject:
     """Stores the position and velocity of a game object for use in steering.
 
+    game_object_id: The game object ID.
     position: The position of the game object.
     velocity: The velocity of the game object.
     """
 
+    game_object_id: int
     position: Vec2d
     velocity: Vec2d
 
@@ -54,6 +56,7 @@ class SteeringBehaviourBase(metaclass=ABCMeta):
     @abstractmethod
     def get_steering_force(
         self: SteeringBehaviourBase,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -73,6 +76,7 @@ class Align(SteeringBehaviourBase):
 
     def get_steering_force(
         self: Align,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -93,6 +97,7 @@ class Arrive(SteeringBehaviourBase):
 
     def get_steering_force(
         self: Arrive,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -120,6 +125,7 @@ class Evade(SteeringBehaviourBase):
 
     def get_steering_force(
         self: Evade,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -140,6 +146,7 @@ class Flee(SteeringBehaviourBase):
 
     def get_steering_force(
         self: Flee,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -160,6 +167,7 @@ class FollowPath(SteeringBehaviourBase):
 
     def get_steering_force(
         self: FollowPath,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -180,6 +188,7 @@ class ObstacleAvoidance(SteeringBehaviourBase):
 
     def get_steering_force(
         self: ObstacleAvoidance,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -200,6 +209,7 @@ class Pursuit(SteeringBehaviourBase):
 
     def get_steering_force(
         self: Pursuit,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -220,6 +230,7 @@ class Seek(SteeringBehaviourBase):
 
     def get_steering_force(
         self: Seek,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -240,6 +251,7 @@ class Separation(SteeringBehaviourBase):
 
     def get_steering_force(
         self: Separation,
+        *,
         current: SteeringObject,
         target: SteeringObject,
     ) -> Vec2d:
@@ -260,14 +272,14 @@ class Wander(SteeringBehaviourBase):
 
     def get_steering_force(
         self: Wander,
+        *,
         current: SteeringObject,
-        target: SteeringObject,
+        **_: SteeringObject,
     ) -> Vec2d:
         """Get the new steering force from this behaviour.
 
         Args:
             current: The position and velocity of the game object.
-            target: The position and velocity of the target game object.
 
         Returns:
             The new steering force from this behaviour.
@@ -275,7 +287,7 @@ class Wander(SteeringBehaviourBase):
         # Calculate the position of an invisible circle in front of the game object
         circle_center = current.velocity.normalized() * WANDER_CIRCLE_DISTANCE
 
-        # Add a displacement force to the center of the circle to randomise the movement
+        # Add a displacement force to the centre of the circle to randomise the movement
         return circle_center + (Vec2d(0, -1) * WANDER_CIRCLE_RADIUS).rotated_degrees(
             random.randint(0, 360),
         )
@@ -307,28 +319,6 @@ If enemy in range of player:
 #  can be cycled.
 #  Smells and AI related stuff should be global then a game object can enable the AI
 #  component to "listen" to that stuff.
-
-# TODO: Change project to use centre instead of center
-
-# TODO: Ideas for steering restructure:
-#  Could iterate over all steeringmovement components in sprite.on_update and then call
-#  update_physics with maybe game object I'd which will determine if id is player or
-#  enemy
-
-# TODO: Ideas for steering restructure:
-#  Could pass all 4 vectors from game.on_update straight through, could store physics
-#  body in steeringmovement, could have steeringcharacter to store position and velocity
-#  which is updated through pymunk_moved. Need to figure out how to do steering, for
-#  now, just ignore those behaviours
-
-# TODO: Ideas for steering restructure:
-#  have dataclasses stored in ecs inside dict mapping game object id to them
-#  -
-#  use pymunk_moved in sprite.py to update the dataclass position and velocity
-#  -
-#  steeringmovement can then get current dataclass through game_object_id
-#  -
-#  still need to work out how to get target
 
 # TODO: Having steering_behaviours key be collection of far, following, and near lists
 #  could help to merge ai into steering movement

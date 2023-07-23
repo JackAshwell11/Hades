@@ -63,7 +63,7 @@ class StatusEffect:
     time_counter: float = field(init=False)
 
     def __post_init__(self: StatusEffect) -> None:
-        """Initialise the object after its initial initialization."""
+        """Initialise the object after its initial initialisation."""
         self.time_counter = 0
 
 
@@ -373,7 +373,7 @@ def deal_damage(game_object_id: int, system: ECS, damage: int) -> None:
     Args:
         game_object_id: The game object ID.
         system: The entity component system which manages the game objects.
-        damage: The damage to deal to the game object.
+        damage: The damage that should be dealt to the game object.
     """
     # Damage the armour and carry over the extra damage to the health
     health, armour = cast(

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Final, NamedTuple
 
 # Custom
 from hades.constants import GameObjectType
@@ -56,18 +56,18 @@ class GameObjectConstructor(NamedTuple):
 
 
 # Static tiles
-WALL = GameObjectConstructor(
+WALL: Final = GameObjectConstructor(
     GameObjectType.WALL,
     GameObjectTextures(TextureType.WALL.value),
     blocking=True,
 )
-FLOOR = GameObjectConstructor(
+FLOOR: Final = GameObjectConstructor(
     GameObjectType.FLOOR,
     GameObjectTextures(TextureType.FLOOR.value),
 )
 
 # Player characters
-PLAYER = GameObjectConstructor(
+PLAYER: Final = GameObjectConstructor(
     GameObjectType.PLAYER,
     GameObjectTextures(TextureType.PLAYER_IDLE.value[0]),
     components=[Inventory, MovementForce, KeyboardMovement],
@@ -79,19 +79,19 @@ PLAYER = GameObjectConstructor(
 )
 
 # Enemy characters
-ENEMY = GameObjectConstructor(
+ENEMY: Final = GameObjectConstructor(
     GameObjectType.ENEMY,
     GameObjectTextures(TextureType.ENEMY_IDLE.value[0]),
     components=[MovementForce, SteeringMovement],
     component_data={
         "attributes": {ComponentType.MOVEMENT_FORCE: (1000, 5)},
-        "steering_behaviours": [SteeringBehaviours.ARRIVE, SteeringBehaviours.WANDER],
+        "steering_behaviours": [SteeringBehaviours.WANDER],
     },
     steering=True,
 )
 
 # Potion tiles
-POTION = GameObjectConstructor(
+POTION: Final = GameObjectConstructor(
     GameObjectType.POTION,
     GameObjectTextures(TextureType.HEALTH_POTION.value),
 )

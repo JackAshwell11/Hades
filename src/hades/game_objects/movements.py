@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # Builtin
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 
 # Pip
 from pymunk import Vec2d
@@ -30,7 +30,7 @@ from hades.game_objects.steering import (
 
 if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
-    from hades.game_objects.steering import SteeringBehaviourBase
+    from hades.game_objects.steering import SteeringBehaviourBase, SteeringObject
     from hades.game_objects.system import ECS
 
 __all__ = ("KeyboardMovement", "MovementBase", "SteeringMovement")
@@ -68,7 +68,7 @@ class MovementBase(GameObjectComponent, metaclass=ABCMeta):
         )
 
     @abstractmethod
-    def calculate_force(self: MovementBase) -> tuple[float, float]:
+    def calculate_force(self: MovementBase) -> Vec2d:
         """Calculate the new force to apply to the game object.
 
         Returns:
@@ -107,15 +107,15 @@ class KeyboardMovement(MovementBase):
         self.east_pressed: bool = False
         self.west_pressed: bool = False
 
-    def calculate_force(self: KeyboardMovement) -> tuple[float, float]:
+    def calculate_force(self: KeyboardMovement) -> Vec2d:
         """Calculate the new force to apply to the game object.
 
         Returns:
             The new force to apply to the game object.
         """
-        return (
-            self.movement_force.value * (self.east_pressed - self.west_pressed),
-            self.movement_force.value * (self.north_pressed - self.south_pressed),
+        return self.movement_force.value * Vec2d(
+            self.east_pressed - self.west_pressed,
+            self.north_pressed - self.south_pressed,
         )
 
     def __repr__(self: KeyboardMovement) -> str:
@@ -134,10 +134,10 @@ class KeyboardMovement(MovementBase):
 class SteeringMovement(MovementBase):
     """Allows a game object's movement to be controlled by steering algorithms."""
 
-    __slots__ = ("_behaviours", "_target_id")
+    __slots__ = ("_behaviours", "_current_steering_object", "_target_steering_object")
 
     # Class variables
-    _behaviour_dict: dict[SteeringBehaviours, type[SteeringBehaviourBase]] = {
+    _behaviour_dict: ClassVar[dict[SteeringBehaviours, type[SteeringBehaviourBase]]] = {
         SteeringBehaviours.ALIGN: Align,
         SteeringBehaviours.ARRIVE: Arrive,
         SteeringBehaviours.EVADE: Evade,
@@ -168,23 +168,26 @@ class SteeringMovement(MovementBase):
             self._behaviour_dict[behaviour]()
             for behaviour in component_data["steering_behaviours"]
         ]
-        self._target_id: int = -1
+        self._current_steering_object: SteeringObject = (
+            self.system.get_steering_object_for_game_object(self.game_object_id)
+        )
+        self._target_steering_object: SteeringObject = (
+            self.system.get_steering_object_for_game_object(-1)
+        )
 
-    def calculate_force(self: SteeringMovement) -> tuple[float, float]:
+    def calculate_force(self: SteeringMovement) -> Vec2d:
         """Calculate the new force to apply to the game object.
 
         Returns:
             The new force to apply to the game object.
         """
-        # TODO: Improve this
         steering_force = Vec2d(0, 0)
         for behaviour in self._behaviours:
             steering_force += behaviour.get_steering_force(
-                self.system.get_steering_object_for_game_object(self.game_object_id),
-                self.system.get_steering_object_for_game_object(self._target_id),
+                current=self._current_steering_object,
+                target=self._target_steering_object,
             )
 
-        # TODO: Maybe do this force multiplication in sprite.py
         return self.movement_force.value * steering_force.normalized()
 
     def set_target_id(self: SteeringMovement, game_object_id: int) -> None:
@@ -193,7 +196,10 @@ class SteeringMovement(MovementBase):
         Args:
             game_object_id: The target game object ID.
         """
-        self._target_id = game_object_id
+        if self._target_steering_object.game_object_id != game_object_id:
+            self._target_steering_object = (
+                self.system.get_steering_object_for_game_object(game_object_id)
+            )
 
     def __repr__(self: SteeringMovement) -> str:
         """Return a human-readable representation of this object.

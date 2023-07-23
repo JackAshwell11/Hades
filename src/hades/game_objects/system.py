@@ -56,7 +56,9 @@ class ECS:
         """Initialise the object."""
         self._next_game_object_id = 0
         self._components: dict[int, dict[ComponentType, GameObjectComponent]] = {}
-        self._steering_objects: dict[int, SteeringObject] = {}
+        self._steering_objects: dict[int, SteeringObject] = {
+            -1: SteeringObject(-1, Vec2d(0, 0), Vec2d(0, 0)),
+        }
 
     def add_game_object(
         self: ECS,
@@ -77,14 +79,20 @@ class ECS:
         Raises:
             ECSError: The component type `type` is already registered with the ECS.
         """
-        # Create the game object and get the constructor for this game object type
+        # Create the game object and a steering object if required
         self._components[self._next_game_object_id] = {}
+        if steering:
+            self._steering_objects[self._next_game_object_id] = SteeringObject(
+                self._next_game_object_id,
+                Vec2d(0, 0),
+                Vec2d(0, 0),
+            )
 
         # Add the optional components to the system
         for component in components:
             if component.component_type in self._components[self._next_game_object_id]:
                 del self._components[self._next_game_object_id]
-                # TODO: IMPROVE ERROR NAME
+                del self._steering_objects[self._next_game_object_id]
                 raise ECSError(
                     not_registered_type="component type",
                     value=component.component_type,
@@ -100,13 +108,6 @@ class ECS:
             self._components[self._next_game_object_id][
                 component.component_type
             ] = game_object_component
-
-        # Create a steering object if required
-        if steering:
-            self._steering_objects[self._next_game_object_id] = SteeringObject(
-                Vec2d(0, 0),
-                Vec2d(0, 0),
-            )
 
         # Increment _next_game_object_id and return the current game object ID
         self._next_game_object_id += 1
@@ -130,6 +131,7 @@ class ECS:
 
         # Delete the game object from the system
         del self._components[game_object_id]
+        del self._steering_objects[game_object_id]
 
     def get_components_for_game_object(
         self: ECS,
