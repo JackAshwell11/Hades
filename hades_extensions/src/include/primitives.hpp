@@ -9,7 +9,6 @@
 // ----- ENUMS ------------------------------
 /// Stores the different types of tiles in the game map.
 enum class TileType {
-  DebugWall,
   Empty,
   Floor,
   Wall,
@@ -20,6 +19,9 @@ enum class TileType {
 
 // ----- STRUCTURES ------------------------------
 /// Represents a point in the grid.
+///
+/// @param x - The x position of the point.
+/// @param y - The y position of the point.
 struct Point {
   int x, y;
 
@@ -46,8 +48,9 @@ struct Point {
 
 /// Represents a 2D grid with a set width and height through a 1D vector.
 ///
-/// @details width - The width of the 2D grid.
-/// @details height - The height of the 2D grid.
+/// @param width - The width of the 2D grid.
+/// @param height - The height of the 2D grid.
+/// @details grid - The vector which represents the 2D grid.
 struct Grid {
   // Parameters
   int width{}, height{};
@@ -90,7 +93,9 @@ struct Grid {
 /// whereas, rooms don't so MIN_CONTAINER_SIZE must be bigger than
 /// MIN_ROOM_SIZE.
 ///
-/// @details center - The center position of the rect.
+/// @param top_left - The top left position of the rect.
+/// @param bottom_right - The bottom right position of the rect.
+/// @details centre - The centre position of the rect.
 /// @details width - The width of the rect.
 /// @details height - The height of the rect.
 struct Rect {
@@ -98,7 +103,7 @@ struct Rect {
   Point top_left, bottom_right;
 
   // Attributes
-  Point center;
+  Point centre;
   int width, height;
 
   inline bool operator==(const Rect &rct) const {
@@ -114,7 +119,7 @@ struct Rect {
   Rect(Point top_left_val, Point bottom_right_val)
       : top_left(top_left_val),
         bottom_right(bottom_right_val),
-        center(static_cast<int>(std::round((top_left_val + bottom_right_val).x / 2.0)),
+        centre(static_cast<int>(std::round((top_left_val + bottom_right_val).x / 2.0)),
                static_cast<int>(std::round((top_left_val + bottom_right_val).y / 2.0))),
         width((top_left_val - bottom_right_val).x),
         height((top_left_val - bottom_right_val).y) {}

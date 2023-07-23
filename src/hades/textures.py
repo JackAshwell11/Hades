@@ -80,11 +80,11 @@ class TextureType(Enum):
 
 
 def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
-    """Calculate the x and y position based on the game map or vector field position.
+    """Calculate the x and y position based on the dungeon or vector field position.
 
     Args:
-        x: The x position in the game map or vector field.
-        y: The x position in the game map or vector field.
+        x: The x position in the dungeon or vector field.
+        y: The x position in the dungeon or vector field.
 
     Returns:
         The x and y position of a sprite on the screen.

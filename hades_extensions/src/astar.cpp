@@ -25,7 +25,8 @@ struct Neighbour {
 };
 
 // ----- CONSTANTS ------------------------------
-// Represents the north, south, east, west, north-east, north-west, south-east and south-west directions on a compass
+// Represents the north, south, east, west, north-east, north-west, south-east
+// and south-west directions on a compass
 const std::array<Point, 8> INTERCARDINAL_OFFSETS = {
     Point{-1, -1}, Point{0, -1}, Point{1, -1}, Point{-1, 0}, Point{1, 0}, Point{-1, 1}, Point{0, 1}, Point{1, 1},
 };
@@ -70,8 +71,8 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
     //   h - The estimated distance from the neighbour pair to the end pair.
     //   We're using the Chebyshev distance for this.
     for (Point offset : INTERCARDINAL_OFFSETS) {
-      // Calculate the neighbour's position and check if its valid excluding the
-      // boundaries as that produces weird paths
+      // Calculate the neighbour's position and check if its valid excluding
+      // the boundaries as that produces weird paths
       Point neighbour = current + offset;
       if (neighbour.x < 1 || neighbour.x >= grid.width - 1 || neighbour.y < 1 || neighbour.y >= grid.height - 1) {
         continue;

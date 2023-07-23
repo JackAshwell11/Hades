@@ -8,6 +8,9 @@
 
 // ----- STRUCTURES ------------------------------
 /// Represents an undirected weighted edge in a graph.
+/// @param cost - The cost of the edge.
+/// @param source - The source rect.
+/// @param destination - The destination rect.
 struct Edge {
   int cost;
   Rect source, destination;
@@ -68,7 +71,8 @@ std::vector<Rect> generate_rooms(Leaf &bsp, Grid &grid, std::mt19937 &random_gen
 ///
 /// @details https://en.wikipedia.org/wiki/Prim's_algorithm
 ///
-/// @param complete_graph - An adjacency list which represents a complete graph.
+/// @param complete_graph - An adjacency list which represents a complete
+/// graph.
 /// @throws std::length_error - Complete graph size must be bigger than 0.
 /// @return A set of edges which form the connections between rects.
 std::unordered_set<Edge> create_connections(std::unordered_map<Rect, std::vector<Rect>> &complete_graph);
@@ -78,14 +82,17 @@ std::unordered_set<Edge> create_connections(std::unordered_map<Rect, std::vector
 /// @param grid - The 2D grid which represents the dungeon.
 /// @param random_generator - The random generator used to pick the position.
 /// @param target_tile - The tile to place in the 2D grid.
-/// @param possible_tiles - The possible tiles that the tile can be placed into.
+/// @param possible_tiles - The possible tiles that the tile can be placed
+/// into.
 /// @throws std::length_error - Possible tiles size must be bigger than 0.
 void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile, std::vector<Point> &possible_tiles);
 
-/// Create the hallways by placing random obstacles and pathfinding around them.
+/// Create the hallways by placing random obstacles and pathfinding around
+/// them.
 ///
 /// @param grid - The 2D grid which represents the dungeon.
-/// @param random_generator - The random generator used to pick the obstacle positions.
+/// @param random_generator - The random generator used to pick the obstacle
+/// positions.
 /// @param connections - The connections to pathfind using the A* algorithm.
 /// @param obstacle_count - The number of obstacles to place in the 2D grid.
 void create_hallways(Grid &grid,
@@ -96,8 +103,8 @@ void create_hallways(Grid &grid,
 /// Generate the game map for a given game level.
 ///
 /// @param level - The game level to generate a map for.
-/// @param seed - The seed to initialise the random generator. If this is empty, then
-/// one will be generated.
+/// @param seed - The seed to initialise the random generator. If this is
+/// empty, then one will be generated.
 /// @return A tuple containing the generated map and the level constants.
 std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(int level,
                                                                        std::optional<unsigned int> seed = std::nullopt);
