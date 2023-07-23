@@ -7,6 +7,8 @@ import math
 import random
 from typing import NamedTuple, cast
 
+import arcade
+
 # Pip
 from arcade import (
     MOUSE_BUTTON_LEFT,
@@ -15,7 +17,6 @@ from arcade import (
     Text,
     View,
     color,
-    draw_points,
     get_sprites_at_point,
     key,
     schedule,
@@ -24,9 +25,6 @@ from hades_extensions import TileType, create_map
 
 # Custom
 from hades.constants import (
-    DEBUG_ENEMY_SPAWN_COLOR,
-    DEBUG_ENEMY_SPAWN_SIZE,
-    DEBUG_GAME,
     ENEMY_GENERATE_INTERVAL,
     ENEMY_GENERATION_DISTANCE,
     ENEMY_RETRY_COUNT,
@@ -220,16 +218,47 @@ class Game(View):
 
         # TODO: Maybe remove the debug drawing stuff and stuff in generation
         # Draw the stuff needed for the debug mode
-        if DEBUG_GAME:
-            # Draw the enemy spawn locations
-            draw_points(
-                [
-                    grid_pos_to_pixel(*location)
-                    for location in self.possible_enemy_spawns
-                ],
-                DEBUG_ENEMY_SPAWN_COLOR,
-                DEBUG_ENEMY_SPAWN_SIZE,
-            )
+        if True:
+            points = self.system.get_component_for_game_object(
+                self.ids[GameObjectType.PLAYER][0].game_object_id,
+                ComponentType.FOOTPRINTS,
+            ).footprints
+            if points and GameObjectType.ENEMY in self.ids:
+                closest = [
+                    footprint
+                    for footprint in points
+                    if (3 * SPRITE_SIZE)
+                    >= math.dist(self.ids[GameObjectType.ENEMY][0].position, footprint)
+                ]
+                for index, point in enumerate(points):
+                    arcade.draw_point(
+                        *point,
+                        (
+                            arcade.color.RED
+                            if (3 * SPRITE_SIZE)
+                            >= math.dist(
+                                self.ids[GameObjectType.ENEMY][0].position,
+                                point,
+                            )
+                            else arcade.color.BLUE
+                        ),
+                        5,
+                    )
+                    arcade.draw_text(str(index), *point, arcade.color.BLACK, 20)
+                if closest:
+                    arcade.draw_point(
+                        *(
+                            min(
+                                closest,
+                                key=lambda footprint: math.dist(
+                                    self.ids[GameObjectType.PLAYER][0].position,
+                                    footprint,
+                                ),
+                            )
+                        ),
+                        arcade.color.GREEN,
+                        5,
+                    )
 
         # Draw the gui on the screen
         self.gui_camera.use()

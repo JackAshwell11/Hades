@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar, cast
 from hades.constants import ARMOUR_REGEN_AMOUNT, FOOTPRINT_INTERVAL, FOOTPRINT_LIMIT
 from hades.game_objects.attributes import Armour, ArmourRegenCooldown
 from hades.game_objects.base import ComponentType, GameObjectComponent
+from hades.game_objects.movements import MovementBase, SteeringMovement
 
 if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
@@ -143,12 +144,27 @@ class Footprints(GameObjectComponent):
         Args:
             delta_time: Time interval since the last time the function was called.
         """
+        # Update the time since the last footprint then check if a new footprint should
+        # be created
         self.time_since_last_footprint += delta_time
-        if self.time_since_last_footprint >= FOOTPRINT_INTERVAL:
-            self.time_since_last_footprint = 0
-            if len(self.footprints) >= FOOTPRINT_LIMIT:
-                self.footprints.pop(0)
-            self.footprints.append(self.steering_object.position)
+        if self.time_since_last_footprint < FOOTPRINT_INTERVAL:
+            return
+
+        # Reset the counter and create a new footprint making sure to only keep
+        # FOOTPRINT_LIMIT footprints
+        self.time_since_last_footprint = 0
+        if len(self.footprints) >= FOOTPRINT_LIMIT:
+            self.footprints.pop(0)
+        self.footprints.append(self.steering_object.position)
+
+        # Update the path list for all SteeringMovement components
+        for movement_component in self.system.get_components_for_component_type(
+            ComponentType.MOVEMENTS,
+        ):
+            if not cast(MovementBase, movement_component).is_player_controlled:
+                cast(SteeringMovement, movement_component).update_path_list(
+                    self.footprints,
+                )
 
     def __repr__(self: Footprints) -> str:
         """Return a human-readable representation of this object.

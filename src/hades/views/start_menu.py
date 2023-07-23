@@ -16,7 +16,6 @@ from arcade.gui import (
 )
 
 # Custom
-from hades.constants import DEBUG_GAME
 from hades.views.game import Game
 
 if TYPE_CHECKING:
@@ -36,11 +35,7 @@ def start_on_click_handler(_: UIOnClickEvent) -> None:
     # Set up the new game
     new_game = Game(0)
     window.views["Game"] = new_game
-    logger.info(
-        "Initialised game view at level %d with debug mode %s",
-        0,
-        "ON" if DEBUG_GAME else "OFF",
-    )
+    logger.info("Initialised game view at level %d", 0)
 
     # Show the new game
     window.show_view(new_game)

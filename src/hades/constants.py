@@ -7,15 +7,9 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Final
 
-# Pip
-from arcade import color
-
 __all__ = (
     "ARMOUR_REGEN_AMOUNT",
     "DAMPING",
-    "DEBUG_ENEMY_SPAWN_COLOR",
-    "DEBUG_ENEMY_SPAWN_SIZE",
-    "DEBUG_GAME",
     "ENEMY_GENERATE_INTERVAL",
     "ENEMY_GENERATION_DISTANCE",
     "PATH_POINT_RADIUS",
@@ -100,11 +94,6 @@ LOGGING_DICT_CONFIG: Final = {
     },
 }
 
-# Debug constants
-DEBUG_GAME: Final = True
-DEBUG_ENEMY_SPAWN_COLOR: Final = color.RED
-DEBUG_ENEMY_SPAWN_SIZE: Final = 5
-
 # Sprite sizes
 SPRITE_SCALE: Final = 0.5
 SPRITE_SIZE: Final = 128 * SPRITE_SCALE
@@ -114,11 +103,11 @@ DAMPING: Final = 0.0001
 MAX_VELOCITY: Final = 200
 
 # General game object constants
-MOVEMENT_FORCE: Final = 100
 ARMOUR_REGEN_AMOUNT: Final = 1
-MELEE_RESOLUTION: Final = 10
-FOOTPRINT_INTERVAL: Final = 1
+FOOTPRINT_INTERVAL: Final = 0.5
 FOOTPRINT_LIMIT: Final = 10
+MELEE_RESOLUTION: Final = 10
+MOVEMENT_FORCE: Final = 100
 TARGET_DISTANCE: Final = 3 * SPRITE_SIZE
 
 # Steering constants
@@ -129,7 +118,7 @@ WANDER_CIRCLE_DISTANCE: Final = 50
 WANDER_CIRCLE_RADIUS: Final = 25
 
 # Enemy generation constants
-TOTAL_ENEMY_COUNT: Final = 1
-ENEMY_RETRY_COUNT: Final = 3
 ENEMY_GENERATE_INTERVAL: Final = 1
 ENEMY_GENERATION_DISTANCE: Final = 5
+ENEMY_RETRY_COUNT: Final = 3
+TOTAL_ENEMY_COUNT: Final = 1

@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import random
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
 # Pip
@@ -13,11 +13,9 @@ from pymunk import Vec2d
 
 # Custom
 from hades.constants import (
-    MAX_SEE_AHEAD,
     MAX_VELOCITY,
     PATH_POINT_RADIUS,
     SLOWING_RADIUS,
-    SPRITE_SIZE,
     TARGET_DISTANCE,
     WANDER_CIRCLE_DISTANCE,
     WANDER_CIRCLE_RADIUS,
@@ -46,13 +44,11 @@ class SteeringObject:
     game_object_id: The game object ID.
     position: The position of the game object.
     velocity: The velocity of the game object.
-    path_list: The list of points the game object should follow.
     """
 
     game_object_id: int
     position: Vec2d
     velocity: Vec2d
-    path_list: list[Vec2d] = field(default_factory=list)
 
 
 class MovementBase(GameObjectComponent, metaclass=ABCMeta):
@@ -66,6 +62,7 @@ class MovementBase(GameObjectComponent, metaclass=ABCMeta):
 
     # Class variables
     component_type: ComponentType = ComponentType.MOVEMENTS
+    is_player_controlled: bool = False
 
     def __init__(
         self: MovementBase,
@@ -115,6 +112,9 @@ class KeyboardMovement(MovementBase):
         "west_pressed",
     )
 
+    # Class variables
+    is_player_controlled: bool = True
+
     def __init__(
         self: KeyboardMovement,
         game_object_id: int,
@@ -161,15 +161,18 @@ class SteeringMovement(MovementBase):
     """Allows a game object's movement to be controlled by steering algorithms.
 
     Attributes:
+        target_id: The game object ID of the target.
         walls: The list of wall positions in the game.
+        path_list: The list of points the game object should follow.
     """
 
     __slots__ = (
         "_behaviours",
         "_movement_state",
         "_current_steering",
-        "_target_steering",
+        "target_id",
         "walls",
+        "path_list",
     )
 
     def __init__(
@@ -194,8 +197,9 @@ class SteeringMovement(MovementBase):
         self._current_steering: SteeringObject = (
             self.system.get_steering_object_for_game_object(self.game_object_id)
         )
-        self._target_steering: int = -1
+        self.target_id: int = -1
         self.walls: list[tuple[float, float]] = []
+        self.path_list: list[Vec2d] = []
 
     @staticmethod
     def _flee(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
@@ -232,7 +236,7 @@ class SteeringMovement(MovementBase):
         # Calculate a vector to the target and its length
         direction = (
             self.system.get_steering_object_for_game_object(
-                self._target_steering,
+                self.target_id,
             ).position
             - self._current_steering.position
         )
@@ -252,7 +256,7 @@ class SteeringMovement(MovementBase):
         # away from it. Higher distances will require more time to reach, so the future
         # position will be further away
         target_steering = self.system.get_steering_object_for_game_object(
-            self._target_steering,
+            self.target_id,
         )
         return self._flee(
             self._current_steering.position,
@@ -271,18 +275,11 @@ class SteeringMovement(MovementBase):
             The new steering force from this behaviour.
         """
         if (
-            self._current_steering.position.get_distance(
-                self._current_steering.path_list[0],
-            )
+            self._current_steering.position.get_distance(self.path_list[0])
             <= PATH_POINT_RADIUS
         ):
-            self._current_steering.path_list.append(
-                self._current_steering.path_list.pop(0),
-            )
-        return self._seek(
-            self._current_steering.position,
-            self._current_steering.path_list[0],
-        )
+            self.path_list.append(self.path_list.pop(0))
+        return self._seek(self._current_steering.position, self.path_list[0])
 
     def _obstacle_avoidance(self: SteeringMovement) -> Vec2d:
         """Allow a game object to avoid obstacles in its path.
@@ -290,46 +287,9 @@ class SteeringMovement(MovementBase):
         Returns:
             The new steering force from this behaviour.
         """
-        # TODO: This still doesn't provide good obstacle avoidance. Maybe shelve it for
-        #  now and work on the AI stuff
-
-        def line_intersects_wall(obstacle: tuple[float, float]) -> bool:
-            return (
-                math.dist(obstacle, ahead) <= SPRITE_SIZE / 2
-                or math.dist(obstacle, ahead_two) <= SPRITE_SIZE / 2
-                or math.dist(obstacle, self._current_steering.position)
-                <= SPRITE_SIZE / 2
-            )
-
-        # Create an ahead ray so the game object can detect obstacles ahead
-        ahead, ahead_two = (
-            self._current_steering.position
-            + self._current_steering.velocity.normalized()
-            * ((MAX_SEE_AHEAD * self._current_steering.velocity.length) / MAX_VELOCITY),
-            self._current_steering.position
-            + self._current_steering.velocity.normalized()
-            * (
-                (
-                    (MAX_SEE_AHEAD * self._current_steering.velocity.length)
-                    / MAX_VELOCITY
-                )
-                / 2
-            ),
-        )
-
-        # Calculate the avoidance force to evade the most threatening obstacle for the
-        # game object
-        most_threatening = None
-        for wall_position in self.walls:
-            if line_intersects_wall(wall_position) and (
-                most_threatening is None
-                or math.dist(self._current_steering.position, wall_position)
-                < math.dist(self._current_steering.position, most_threatening)
-            ):
-                most_threatening = Vec2d(*wall_position)
-        if most_threatening is not None:
-            return ahead - most_threatening
-        return Vec2d(0, 0)
+        # TODO: Implement this steering behaviour. Could use raycasts, but not sure how
+        #  to implement them efficiently
+        raise NotImplementedError
 
     def _pursuit(self: SteeringMovement) -> Vec2d:
         """Allow a game object to seek towards another game object's predicted position.
@@ -341,7 +301,7 @@ class SteeringMovement(MovementBase):
         # towards it. Higher distances will require more time to reach, so the future
         # position will be further away
         target_steering = self.system.get_steering_object_for_game_object(
-            self._target_steering,
+            self.target_id,
         )
         return self._seek(
             self._current_steering.position,
@@ -369,52 +329,27 @@ class SteeringMovement(MovementBase):
             random.randint(0, 360),
         )
 
-    @property
-    def target_id(self: SteeringMovement) -> int:
-        """Get the target game object ID.
-
-        Returns:
-            The target game object ID.
-        """
-        return self._target_steering
-
-    @target_id.setter
-    def target_id(self: SteeringMovement, game_object_id: int) -> None:
-        """Set the target game object ID.
-
-        Args:
-            game_object_id: The target game object ID.
-        """
-        if self._target_steering != game_object_id:
-            self._target_steering = game_object_id
-
     def calculate_force(self: SteeringMovement) -> Vec2d:
         """Calculate the new force to apply to the game object.
 
         Returns:
             The new force to apply to the game object.
         """
-        # TODO: FINISH THIS
         # Determine if the movement state should change
         target_position = self.system.get_steering_object_for_game_object(
-            self._target_steering,
+            self.target_id,
         ).position
-        # TODO: Finish getting game object to follow the footprints
-        if self._movement_state is SteeringMovementState.DEFAULT:
-            pass
-        elif self._movement_state is SteeringMovementState.FOOTPRINT:
-            # TODO: Determine if the next footprint is in range
-            if (
-                math.dist(self._current_steering.position, target_position)
-                <= TARGET_DISTANCE
-            ):
-                self._movement_state = SteeringMovementState.TARGET
-        elif (
-            self._movement_state is SteeringMovementState.TARGET
-            and math.dist(self._current_steering.position, target_position)
-            > TARGET_DISTANCE
+
+        # Determine if the movement state should change or not
+        if (
+            math.dist(self._current_steering.position, target_position)
+            <= TARGET_DISTANCE
         ):
+            self._movement_state = SteeringMovementState.TARGET
+        elif self.path_list:
             self._movement_state = SteeringMovementState.FOOTPRINT
+        else:
+            self._movement_state = SteeringMovementState.DEFAULT
 
         # Calculate the new force to apply to the game object
         steering_force = Vec2d(0, 0)
@@ -443,6 +378,38 @@ class SteeringMovement(MovementBase):
                 case SteeringBehaviours.WANDER:
                     steering_force += self._wander()
         return self.movement_force.value * steering_force.normalized()
+
+    def update_path_list(
+        self: SteeringMovement,
+        footprints: list[tuple[float, float]],
+    ) -> None:
+        """Update the path list for the game object to follow.
+
+        Args:
+            footprints: The list of footprints to follow.
+        """
+        # Get the closest footprint to the target and test if one exists
+        closest_footprints = [
+            footprint
+            for footprint in footprints
+            if math.dist(self._current_steering.position, footprint) <= TARGET_DISTANCE
+        ]
+        if not closest_footprints:
+            self.path_list.clear()
+            return
+
+        # Get the closest footprint to the target and start following the footprints
+        # from that footprint
+        target_footprint = min(
+            closest_footprints,
+            key=lambda footprint: math.dist(
+                self.system.get_steering_object_for_game_object(
+                    self.target_id,
+                ).position,
+                footprint,
+            ),
+        )
+        self.path_list = footprints[footprints.index(target_footprint) :]
 
     def __repr__(self: SteeringMovement) -> str:
         """Return a human-readable representation of this object.

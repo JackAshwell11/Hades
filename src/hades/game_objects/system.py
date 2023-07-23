@@ -204,6 +204,24 @@ class ECS:
         # Return the specified steering object
         return self._steering_objects[game_object_id]
 
+    def get_components_for_component_type(
+        self: ECS,
+        component_type: ComponentType,
+    ) -> list[GameObjectComponent]:
+        """Get a list of components for a given component type.
+
+        Args:
+            component_type: The component type.
+
+        Returns:
+            The list of components for the given component type.
+        """
+        return [
+            components[component_type]
+            for components in self._components.values()
+            if component_type in components
+        ]
+
     def __repr__(self: ECS) -> str:
         """Return a human-readable representation of this object.
 
