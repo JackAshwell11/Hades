@@ -95,7 +95,7 @@ struct Grid {
 ///
 /// @param top_left - The top left position of the rect.
 /// @param bottom_right - The bottom right position of the rect.
-/// @details center - The center position of the rect.
+/// @details centre - The centre position of the rect.
 /// @details width - The width of the rect.
 /// @details height - The height of the rect.
 struct Rect {
@@ -103,7 +103,7 @@ struct Rect {
   Point top_left, bottom_right;
 
   // Attributes
-  Point center;
+  Point centre;
   int width, height;
 
   inline bool operator==(const Rect &rct) const {
@@ -119,7 +119,7 @@ struct Rect {
   Rect(Point top_left_val, Point bottom_right_val)
       : top_left(top_left_val),
         bottom_right(bottom_right_val),
-        center(static_cast<int>(std::round((top_left_val + bottom_right_val).x / 2.0)),
+        centre(static_cast<int>(std::round((top_left_val + bottom_right_val).x / 2.0)),
                static_cast<int>(std::round((top_left_val + bottom_right_val).y / 2.0))),
         width((top_left_val - bottom_right_val).x),
         height((top_left_val - bottom_right_val).y) {}

@@ -194,8 +194,8 @@ void create_hallways(Grid &grid,
                  path_points.begin(),
                  [&grid](Edge connection) {
                    return calculate_astar_path(grid,
-                                               connection.source.center,
-                                               connection.destination.center);
+                                               connection.source.centre,
+                                               connection.destination.centre);
                  });
   for (const std::vector<Point> &path : path_points) {
     for (const Point &path_point : path) {

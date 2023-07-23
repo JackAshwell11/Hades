@@ -27,7 +27,7 @@ void Grid::set_value(const Point &pos, TileType target) const {
 }
 
 int Rect::get_distance_to(const Rect &other) const {
-  return std::max(abs(center.x - other.center.x), abs(center.y - other.center.y));
+  return std::max(abs(centre.x - other.centre.x), abs(centre.y - other.centre.y));
 }
 
 void Rect::place_rect(Grid &grid) const {
