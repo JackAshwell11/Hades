@@ -34,7 +34,20 @@ if TYPE_CHECKING:
     from hades.game_objects.base import ComponentData
     from hades.game_objects.system import ECS
 
-__all__ = ("KeyboardMovement", "MovementBase", "SteeringMovement", "SteeringObject")
+__all__ = (
+    "KeyboardMovement",
+    "MovementBase",
+    "SteeringMovement",
+    "SteeringObject",
+    "flee",
+    "seek",
+    "arrive",
+    "evade",
+    "follow_path",
+    "obstacle_avoidance",
+    "pursuit",
+    "wander",
+)
 
 
 @dataclass(slots=True)
@@ -49,6 +62,137 @@ class SteeringObject:
     game_object_id: int
     position: Vec2d
     velocity: Vec2d
+
+
+def flee(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
+    """Allow a game object to run away from another game object.
+
+    Args:
+        current_position: The position of the game object.
+        target_position: The position of the target game object.
+
+    Returns:
+        The new steering force from this behaviour.
+    """
+    return current_position - target_position
+
+
+def seek(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
+    """Allow a game object to move towards another game object.
+
+    Args:
+        current_position: The position of the game object.
+        target_position: The position of the target game object.
+
+    Returns:
+        The new steering force from this behaviour.
+    """
+    return target_position - current_position
+
+
+def arrive(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
+    """Allow a game object to move towards another game object and stand still.
+
+    Args:
+        current_position: The position of the game object.
+        target_position: The position of the target game object.
+
+    Returns:
+        The new steering force from this behaviour.
+    """
+    # Calculate a vector to the target and its length
+    direction = target_position - current_position
+
+    # Check if the game object is inside the slowing area
+    if direction.length < SLOWING_RADIUS:
+        return direction * (direction.length / SLOWING_RADIUS)
+    return direction
+
+
+def evade(current_position: Vec2d, target_steering: SteeringObject) -> Vec2d:
+    """Allow a game object to flee from another game object's predicted position.
+
+    Args:
+        current_position: The position of the game object.
+        target_steering: The target's steering object.
+
+    Returns:
+        The new steering force from this behaviour.
+    """
+    # Calculate the future position of the target based on their distance and steer
+    # away from it. Higher distances will require more time to reach, so the future
+    # position will be further away
+    return flee(
+        current_position,
+        target_steering.position
+        + target_steering.velocity
+        * (target_steering.position.get_distance(current_position) / MAX_VELOCITY),
+    )
+
+
+def follow_path(current_position: Vec2d, path_list: list[Vec2d]) -> Vec2d:
+    """Allow a game object to follow a pre-determined path.
+
+    Args:
+        current_position: The position of the game object.
+        path_list: The list of points the game object should follow.
+
+    Returns:
+        The new steering force from this behaviour.
+    """
+    if current_position.get_distance(path_list[0]) <= PATH_POINT_RADIUS:
+        path_list.append(path_list.pop(0))
+    return seek(current_position, path_list[0])
+
+
+def obstacle_avoidance() -> Vec2d:
+    """Allow a game object to avoid obstacles in its path.
+
+    Returns:
+        The new steering force from this behaviour.
+    """
+    # TODO: Implement this steering behaviour. Could use raycasts, but not sure how
+    #  to implement them efficiently
+    raise NotImplementedError
+
+
+def pursuit(current_position: Vec2d, target_steering: SteeringObject) -> Vec2d:
+    """Allow a game object to seek towards another game object's predicted position.
+
+    Args:
+        current_position: The position of the game object.
+        target_steering: The target's steering object.
+
+    Returns:
+        The new steering force from this behaviour.
+    """
+    # Calculate the future position of the target based on their distance and steer
+    # towards it. Higher distances will require more time to reach, so the future
+    # position will be further away
+    return seek(
+        current_position,
+        target_steering.position
+        + target_steering.velocity
+        * (target_steering.position.get_distance(current_position) / MAX_VELOCITY),
+    )
+
+
+def wander(current_velocity: Vec2d) -> Vec2d:
+    """Allow a game object to move in a random direction for a short period of time.
+
+    Args:
+        current_velocity: The velocity of the game object.
+
+    Returns:
+        The new steering force from this behaviour.
+    """
+    # Calculate the position of an invisible circle in front of the game object
+    circle_center = current_velocity.normalized() * WANDER_CIRCLE_DISTANCE
+
+    # Add a displacement force to the centre of the circle to randomise the movement
+    return circle_center + (Vec2d(0, -1) * WANDER_CIRCLE_RADIUS).rotated_degrees(
+        random.randint(0, 360),
+    )
 
 
 class MovementBase(GameObjectComponent, metaclass=ABCMeta):
@@ -201,148 +345,18 @@ class SteeringMovement(MovementBase):
         self.walls: list[tuple[float, float]] = []
         self.path_list: list[Vec2d] = []
 
-    @staticmethod
-    def _flee(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
-        """Allow a game object to run away from another game object.
-
-        Args:
-            current_position: The position of the game object.
-            target_position: The position of the target game object.
-
-        Returns:
-            The new steering force from this behaviour.
-        """
-        return current_position - target_position
-
-    @staticmethod
-    def _seek(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
-        """Allow a game object to move towards another game object.
-
-        Args:
-            current_position: The position of the game object.
-            target_position: The position of the target game object.
-
-        Returns:
-            The new steering force from this behaviour.
-        """
-        return target_position - current_position
-
-    def _arrive(self: SteeringMovement) -> Vec2d:
-        """Allow a game object to move towards another game object and stand still.
-
-        Returns:
-            The new steering force from this behaviour.
-        """
-        # Calculate a vector to the target and its length
-        direction = (
-            self.system.get_steering_object_for_game_object(
-                self.target_id,
-            ).position
-            - self._current_steering.position
-        )
-
-        # Check if the game object is inside the slowing area
-        if direction.length < SLOWING_RADIUS:
-            return direction * (direction.length / SLOWING_RADIUS)
-        return direction
-
-    def _evade(self: SteeringMovement) -> Vec2d:
-        """Allow a game object to flee from another game object's predicted position.
-
-        Returns:
-            The new steering force from this behaviour.
-        """
-        # Calculate the future position of the target based on their distance and steer
-        # away from it. Higher distances will require more time to reach, so the future
-        # position will be further away
-        target_steering = self.system.get_steering_object_for_game_object(
-            self.target_id,
-        )
-        return self._flee(
-            self._current_steering.position,
-            target_steering.position
-            + target_steering.velocity
-            * (
-                target_steering.position.get_distance(self._current_steering.position)
-                / MAX_VELOCITY
-            ),
-        )
-
-    def _follow_path(self: SteeringMovement) -> Vec2d:
-        """Allow a game object to follow a pre-determined path.
-
-        Returns:
-            The new steering force from this behaviour.
-        """
-        if (
-            self._current_steering.position.get_distance(self.path_list[0])
-            <= PATH_POINT_RADIUS
-        ):
-            self.path_list.append(self.path_list.pop(0))
-        return self._seek(self._current_steering.position, self.path_list[0])
-
-    def _obstacle_avoidance(self: SteeringMovement) -> Vec2d:
-        """Allow a game object to avoid obstacles in its path.
-
-        Returns:
-            The new steering force from this behaviour.
-        """
-        # TODO: Implement this steering behaviour. Could use raycasts, but not sure how
-        #  to implement them efficiently
-        raise NotImplementedError
-
-    def _pursuit(self: SteeringMovement) -> Vec2d:
-        """Allow a game object to seek towards another game object's predicted position.
-
-        Returns:
-            The new steering force from this behaviour.
-        """
-        # Calculate the future position of the target based on their distance and steer
-        # towards it. Higher distances will require more time to reach, so the future
-        # position will be further away
-        target_steering = self.system.get_steering_object_for_game_object(
-            self.target_id,
-        )
-        return self._seek(
-            self._current_steering.position,
-            target_steering.position
-            + target_steering.velocity
-            * (
-                target_steering.position.get_distance(self._current_steering.position)
-                / MAX_VELOCITY
-            ),
-        )
-
-    def _wander(self: SteeringMovement) -> Vec2d:
-        """Allow a game object to move in a random direction for a short period of time.
-
-        Returns:
-            The new steering force from this behaviour.
-        """
-        # Calculate the position of an invisible circle in front of the game object
-        circle_center = (
-            self._current_steering.velocity.normalized() * WANDER_CIRCLE_DISTANCE
-        )
-
-        # Add a displacement force to the centre of the circle to randomise the movement
-        return circle_center + (Vec2d(0, -1) * WANDER_CIRCLE_RADIUS).rotated_degrees(
-            random.randint(0, 360),
-        )
-
     def calculate_force(self: SteeringMovement) -> Vec2d:
         """Calculate the new force to apply to the game object.
 
         Returns:
             The new force to apply to the game object.
         """
-        # Determine if the movement state should change
-        target_position = self.system.get_steering_object_for_game_object(
-            self.target_id,
-        ).position
-
         # Determine if the movement state should change or not
+        target_steering = self.system.get_steering_object_for_game_object(
+            self.target_id,
+        )
         if (
-            math.dist(self._current_steering.position, target_position)
+            math.dist(self._current_steering.position, target_steering.position)
             <= TARGET_DISTANCE
         ):
             self._movement_state = SteeringMovementState.TARGET
@@ -353,30 +367,36 @@ class SteeringMovement(MovementBase):
 
         # Calculate the new force to apply to the game object
         steering_force = Vec2d(0, 0)
-        for behaviour in self._behaviours[self._movement_state]:
+        for behaviour in self._behaviours.get(self._movement_state, []):
             match behaviour:
                 case SteeringBehaviours.ARRIVE:
-                    steering_force += self._arrive()
+                    steering_force += arrive(
+                        self._current_steering.position, target_steering.position,
+                    )
                 case SteeringBehaviours.EVADE:
-                    steering_force += self._evade()
+                    steering_force += evade(
+                        self._current_steering.position, target_steering,
+                    )
                 case SteeringBehaviours.FLEE:
-                    steering_force += self._flee(
-                        self._current_steering.position,
-                        target_position,
+                    steering_force += flee(
+                        self._current_steering.position, target_steering.position,
                     )
                 case SteeringBehaviours.FOLLOW_PATH:
-                    steering_force += self._follow_path()
+                    steering_force += follow_path(
+                        self._current_steering.position, self.path_list,
+                    )
                 case SteeringBehaviours.OBSTACLE_AVOIDANCE:
-                    steering_force += self._obstacle_avoidance()
+                    steering_force += obstacle_avoidance()
                 case SteeringBehaviours.PURSUIT:
-                    steering_force += self._pursuit()
+                    steering_force += pursuit(
+                        self._current_steering.position, target_steering,
+                    )
                 case SteeringBehaviours.SEEK:
-                    steering_force += self._seek(
-                        self._current_steering.position,
-                        target_position,
+                    steering_force += seek(
+                        self._current_steering.position, target_steering.position,
                     )
                 case SteeringBehaviours.WANDER:
-                    steering_force += self._wander()
+                    steering_force += wander(self._current_steering.velocity)
         return self.movement_force.value * steering_force.normalized()
 
     def update_path_list(
@@ -421,23 +441,3 @@ class SteeringMovement(MovementBase):
             f"<SteeringMovement (Behaviour count={len(self._behaviours)}) (Target game"
             f" object ID={self.target_id})>"
         )
-
-
-"""
-Plan for enemy AI:
-
-Facts:
-- Player should always be faster than the enemy (except for some enemy types).
-
-If enemy is not in range of player and no nearby smells:
-    Walk randomly around the dungeon avoiding other enemies and walls until a smell is
-    found.
-
-If enemy is not in range of player and nearby smell:
-    Follow the smell trail avoiding other enemies and walls making sure to steer so path
-    is direct.
-
-If enemy in range of player:
-    Follow the player with random movement and periodically attack them (plus some
-    randomness in the attack interval).
-"""

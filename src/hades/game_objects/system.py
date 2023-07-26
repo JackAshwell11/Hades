@@ -28,7 +28,7 @@ class ECSError(Exception):
         *,
         not_registered_type: str,
         value: int | str | ComponentType,
-        error: str = "not registered with the ECS",
+        error: str = "is not registered with the ECS",
     ) -> None:
         """Initialise the object.
 
@@ -39,7 +39,7 @@ class ECSError(Exception):
             error: The problem raised by the ECS.
         """
         super().__init__(
-            f"The {not_registered_type} `{value}` is {error}.",
+            f"The {not_registered_type} `{value}` {error}.",
         )
 
 
@@ -62,7 +62,7 @@ class ECS:
         self: ECS,
         component_data: ComponentData,
         *components: type[GameObjectComponent],
-        steering: bool,
+        steering: bool = False,
     ) -> int:
         """Add a game object to the system with optional components.
 
@@ -90,11 +90,12 @@ class ECS:
         for component in components:
             if component.component_type in self._components[self._next_game_object_id]:
                 del self._components[self._next_game_object_id]
-                del self._steering_objects[self._next_game_object_id]
+                if steering:
+                    del self._steering_objects[self._next_game_object_id]
                 raise ECSError(
                     not_registered_type="component type",
                     value=component.component_type,
-                    error="already registered with the ECS",
+                    error="is already registered with the ECS",
                 )
 
             # Initialise the component and add it to the system
@@ -124,7 +125,8 @@ class ECS:
 
         # Delete the game object from the system
         del self._components[game_object_id]
-        del self._steering_objects[game_object_id]
+        if game_object_id in self._steering_objects:
+            del self._steering_objects[game_object_id]
 
     def get_components_for_game_object(
         self: ECS,
@@ -179,31 +181,6 @@ class ECS:
         # Return the specified component
         return self._components[game_object_id][component_type]
 
-    def get_steering_object_for_game_object(
-        self: ECS,
-        game_object_id: int,
-    ) -> SteeringObject:
-        """Get a steering object for a given game object ID.
-
-        Args:
-            game_object_id: The game object ID.
-
-        Returns:
-            The steering object for the given game object ID.
-
-        Raises:
-            ECSError: The game object ID `ID` is not registered with the ECS.
-        """
-        # Check if the game object ID is registered or not
-        if game_object_id not in self._steering_objects:
-            raise ECSError(
-                not_registered_type="game object ID",
-                value=game_object_id,
-            )
-
-        # Return the specified steering object
-        return self._steering_objects[game_object_id]
-
     def get_components_for_component_type(
         self: ECS,
         component_type: ComponentType,
@@ -221,6 +198,32 @@ class ECS:
             for components in self._components.values()
             if component_type in components
         ]
+
+    def get_steering_object_for_game_object(
+        self: ECS,
+        game_object_id: int,
+    ) -> SteeringObject:
+        """Get a steering object for a given game object ID.
+
+        Args:
+            game_object_id: The game object ID.
+
+        Returns:
+            The steering object for the given game object ID.
+
+        Raises:
+            ECSError: The game object ID `ID` does not have a steering object.
+        """
+        # Check if the game object ID is registered or not
+        if game_object_id not in self._steering_objects:
+            raise ECSError(
+                not_registered_type="game object ID",
+                value=game_object_id,
+                error="does not have a steering object",
+            )
+
+        # Return the specified steering object
+        return self._steering_objects[game_object_id]
 
     def __repr__(self: ECS) -> str:
         """Return a human-readable representation of this object.

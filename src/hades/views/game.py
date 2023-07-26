@@ -221,7 +221,7 @@ class Game(View):
         if True:
             points = self.system.get_component_for_game_object(
                 self.ids[GameObjectType.PLAYER][0].game_object_id,
-                ComponentType.FOOTPRINTS,
+                ComponentType.FOOTPRINT,
             ).footprints
             if points and GameObjectType.ENEMY in self.ids:
                 closest = [

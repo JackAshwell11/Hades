@@ -37,7 +37,7 @@ class ComponentType(Enum):
     ARMOUR_REGEN_COOLDOWN = auto()
     ATTACKS = auto()
     FIRE_RATE_PENALTY = auto()
-    FOOTPRINTS = auto()
+    FOOTPRINT = auto()
     HEALTH = auto()
     INSTANT_EFFECTS = auto()
     INVENTORY = auto()

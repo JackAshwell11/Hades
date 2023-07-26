@@ -83,7 +83,7 @@ def test_raise_not_registered_error_custom_error() -> None:
     """Test that ECSError is raised correctly with a custom error message."""
     with pytest.raises(
         expected_exception=ECSError,
-        match="The test `temp` is error.",
+        match="The test `temp` error.",
     ):
         raise ECSError(
             not_registered_type="test",
@@ -110,6 +110,11 @@ def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
     # Test that adding the game object works correctly
     assert ecs.add_game_object({}) == 0
     assert ecs.get_components_for_game_object(0) == {}
+    with pytest.raises(
+        expected_exception=ECSError,
+        match="The game object ID `0` does not have a steering object.",
+    ):
+        ecs.get_steering_object_for_game_object(0)
 
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
@@ -117,7 +122,7 @@ def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
         expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
-        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+        ecs.remove_game_object(0)
     with pytest.raises(
         expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
@@ -125,9 +130,9 @@ def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
         ecs.get_components_for_game_object(0)
     with pytest.raises(
         expected_exception=ECSError,
-        match="The game object ID `0` is not registered with the ECS.",
+        match="The game object ID `0` does not have a steering object.",
     ):
-        ecs.remove_game_object(0)
+        ecs.get_steering_object_for_game_object(0)
 
 
 def test_ecs_game_object_with_multiple_components(ecs: ECS) -> None:
@@ -138,12 +143,14 @@ def test_ecs_game_object_with_multiple_components(ecs: ECS) -> None:
     """
     # Test that adding the game object works correctly
     ecs.add_game_object({}, GameObjectComponentOne, GameObjectComponentTwo)
-    assert ecs.get_component_for_game_object(0, ComponentType.HEALTH)
-    assert ecs.get_component_for_game_object(0, ComponentType.ARMOUR)
     assert list(ecs.get_components_for_game_object(0).keys()) == [
         ComponentType.HEALTH,
         ComponentType.ARMOUR,
     ]
+    assert ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+    assert ecs.get_component_for_game_object(0, ComponentType.ARMOUR)
+    assert len(ecs.get_components_for_component_type(ComponentType.HEALTH)) == 1
+    assert len(ecs.get_components_for_component_type(ComponentType.ARMOUR)) == 1
     with pytest.raises(expected_exception=KeyError):
         ecs.get_component_for_game_object(0, ComponentType.MONEY)
 
@@ -153,12 +160,35 @@ def test_ecs_game_object_with_multiple_components(ecs: ECS) -> None:
         expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
-        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+        ecs.get_components_for_game_object(0)
     with pytest.raises(
         expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
-        ecs.get_components_for_game_object(0)
+        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+    assert ecs.get_components_for_component_type(ComponentType.HEALTH) == []
+
+
+def test_ecs_game_object_with_steering(ecs: ECS) -> None:
+    """Test the ECS with a game object that has steering.
+
+    Args:
+        ecs: The entity component system for use in testing.
+    """
+    # Test that adding the game object with steering works correctly
+    ecs.add_game_object({}, steering=True)
+    steering_object = ecs.get_steering_object_for_game_object(0)
+    assert steering_object.game_object_id == 0
+    assert steering_object.position == (0, 0)
+    assert steering_object.velocity == (0, 0)
+
+    # Test that removing the game object works correctly
+    ecs.remove_game_object(0)
+    with pytest.raises(
+        expected_exception=ECSError,
+        match="The game object ID `0` does not have a steering object.",
+    ):
+        ecs.get_steering_object_for_game_object(0)
 
 
 def test_ecs_multiple_game_objects(ecs: ECS) -> None:
@@ -168,24 +198,31 @@ def test_ecs_multiple_game_objects(ecs: ECS) -> None:
         ecs: The entity component system for use in testing.
     """
     # Test that adding two game object works correctly
-    assert ecs.add_game_object({}) == 0
-    assert ecs.add_game_object({}, GameObjectComponentOne) == 1
-    assert ecs.get_components_for_game_object(0) == {}
-    assert list(ecs.get_components_for_game_object(1).keys()) == [ComponentType.HEALTH]
+    assert ecs.add_game_object({}, GameObjectComponentOne) == 0
+    assert ecs.add_game_object({}, GameObjectComponentOne, GameObjectComponentTwo) == 1
+    assert ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+    assert ecs.get_component_for_game_object(1, ComponentType.HEALTH)
+    assert ecs.get_component_for_game_object(1, ComponentType.ARMOUR)
+    assert list(ecs.get_components_for_game_object(0).keys()) == [ComponentType.HEALTH]
+    assert list(ecs.get_components_for_game_object(1).keys()) == [
+        ComponentType.HEALTH,
+        ComponentType.ARMOUR,
+    ]
 
     # Test that removing the first game object works correctly
     ecs.remove_game_object(0)
     assert ecs.get_component_for_game_object(1, ComponentType.HEALTH)
-    with pytest.raises(
-        expected_exception=ECSError,
-        match="The game object ID `0` is not registered with the ECS.",
-    ):
-        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+    assert ecs.get_component_for_game_object(1, ComponentType.ARMOUR)
     with pytest.raises(
         expected_exception=ECSError,
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_components_for_game_object(0)
+    with pytest.raises(
+        expected_exception=ECSError,
+        match="The game object ID `0` is not registered with the ECS.",
+    ):
+        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
 
 
 def test_ecs_component_data(ecs: ECS) -> None:
@@ -243,6 +280,41 @@ def test_ecs_duplicate_components(ecs: ECS) -> None:
         match="The game object ID `0` is not registered with the ECS.",
     ):
         ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+
+
+def test_ecs_duplicate_components_steering(ecs: ECS) -> None:
+    """Test the ECS with duplicate components for the same game object with steering.
+
+    Args:
+        ecs: The entity component system for use in testing.
+    """
+    # Test that adding a game object with steering that has two of the same components
+    # raises an error
+    with pytest.raises(
+        expected_exception=ECSError,
+        match=(
+            "The component type `ComponentType.HEALTH` is already registered with the"
+            " ECS."
+        ),
+    ):
+        ecs.add_game_object(
+            {},
+            GameObjectComponentOne,
+            GameObjectComponentOne,
+            steering=True,
+        )
+
+    # Test that the game object does not exist
+    with pytest.raises(
+        expected_exception=ECSError,
+        match="The game object ID `0` is not registered with the ECS.",
+    ):
+        ecs.get_component_for_game_object(0, ComponentType.HEALTH)
+    with pytest.raises(
+        expected_exception=ECSError,
+        match="The game object ID `0` does not have a steering object.",
+    ):
+        ecs.get_steering_object_for_game_object(0)
 
 
 def test_ecs_invalid_component(ecs: ECS) -> None:

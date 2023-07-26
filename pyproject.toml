@@ -253,9 +253,7 @@ python =
 
 [testenv]
 deps = pytest-cov
-commands =
-    python -I -m hades.extensions.compile
-    pytest --cov-append
+commands = pytest --cov-append
 passenv = *
 
 [testenv:clean]

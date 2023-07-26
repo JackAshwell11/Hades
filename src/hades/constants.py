@@ -33,7 +33,6 @@ __all__ = (
 )
 
 
-# The different types of game objects in the game
 class GameObjectType(Enum):
     """Stores the different types of game objects that can exist in the game."""
 

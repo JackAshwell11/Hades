@@ -12,7 +12,7 @@ from hades.game_objects.base import (
     SteeringBehaviours,
     SteeringMovementState,
 )
-from hades.game_objects.components import Footprints, Inventory
+from hades.game_objects.components import Footprint, Inventory
 from hades.game_objects.movements import KeyboardMovement, SteeringMovement
 from hades.textures import TextureType
 
@@ -74,7 +74,7 @@ FLOOR: Final = GameObjectConstructor(
 PLAYER: Final = GameObjectConstructor(
     GameObjectType.PLAYER,
     GameObjectTextures(TextureType.PLAYER_IDLE.value[0]),
-    components=[Inventory, MovementForce, KeyboardMovement, Footprints],
+    components=[Inventory, MovementForce, KeyboardMovement, Footprint],
     component_data={
         "attributes": {ComponentType.MOVEMENT_FORCE: (5000, 5)},
         "inventory_size": (6, 5),

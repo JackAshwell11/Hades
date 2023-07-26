@@ -81,10 +81,8 @@ def executable() -> None:
 
     # Display some info about the system and the environment
     print(
-        (
-            f"System information: {platform.system()} {platform.version()}. Python"
-            f" version: {platform.python_implementation()} {platform.python_version()}"
-        ),
+        f"System information: {platform.system()} {platform.version()}. Python"
+        f" version: {platform.python_implementation()} {platform.python_version()}",
     )
     print(f"Current directory: {Path().absolute()}")
 

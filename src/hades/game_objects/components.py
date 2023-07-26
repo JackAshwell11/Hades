@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "ArmourRegen",
-    "Footprints",
+    "Footprint",
     "InstantEffects",
     "Inventory",
     "InventorySpaceError",
@@ -104,7 +104,7 @@ class ArmourRegen(GameObjectComponent):
         return f"<ArmourRegen (Time since armour regen={self.time_since_armour_regen})>"
 
 
-class Footprints(GameObjectComponent):
+class Footprint(GameObjectComponent):
     """Allows a game object to periodically leave footprints around the game map.
 
     Attributes:
@@ -116,10 +116,10 @@ class Footprints(GameObjectComponent):
     __slots__ = ("footprints", "steering_object", "time_since_last_footprint")
 
     # Class variables
-    component_type: ComponentType = ComponentType.FOOTPRINTS
+    component_type: ComponentType = ComponentType.FOOTPRINT
 
     def __init__(
-        self: Footprints,
+        self: Footprint,
         game_object_id: int,
         system: ECS,
         component_data: ComponentData,
@@ -138,7 +138,7 @@ class Footprints(GameObjectComponent):
         )
         self.time_since_last_footprint: float = 0
 
-    def on_update(self: Footprints, delta_time: float) -> None:
+    def on_update(self: Footprint, delta_time: float) -> None:
         """Process AI update logic.
 
         Args:
@@ -166,14 +166,14 @@ class Footprints(GameObjectComponent):
                     self.footprints,
                 )
 
-    def __repr__(self: Footprints) -> str:
+    def __repr__(self: Footprint) -> str:
         """Return a human-readable representation of this object.
 
         Returns:
             The human-readable representation of this object.
         """
         return (
-            f"<Footprints (Footprint count={len(self.footprints)}) (Time since last"
+            f"<Footprint (Footprint count={len(self.footprints)}) (Time since last"
             f" footprint={self.time_since_last_footprint})>"
         )
 
