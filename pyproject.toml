@@ -24,10 +24,10 @@ shapely = "2.0.1"
 [tool.poetry.dev-dependencies]
 black = "23.7.0"
 mypy = "1.4.1"
-nuitka = "1.7.5"
+nuitka = "1.7.7"
 ordered-set = "4.1.0"
 pre-commit = "3.3.3"
-pylint = "2.17.4"
+pylint = "2.17.5"
 pytest = "7.4.0"
 pytest-cov = "4.1.0"
 pytest-icdiff = "0.6"
@@ -71,12 +71,8 @@ source = ["hades"]
 disallow_any_decorated = true
 disallow_any_explicit = true
 disallow_any_expr = true
-disallow_any_unimported = true
 exclude = [
     "build.py",  # Setuptools is untyped so we need to ignore it
-    "compile.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
-    "melee_shader.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
-    "vector_field",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
     "views",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 ignore_missing_imports = true
@@ -97,9 +93,6 @@ good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
 max-line-length = 88
 
 [tool.pylint."MASTER"]
-ignore = [
-    "*vector_field*",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
-]
 load-plugins = [
     "pylint.extensions.bad_builtin",  # Disallow the use of deprecated builtin functions
     "pylint.extensions.check_elif",  # Disallow the use of following an else statement with an if
@@ -153,8 +146,6 @@ testpaths = ["tests"]
 
 [tool.ruff]
 extend-exclude = [
-    "*vector_field*",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
-    "melee_shader.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
     "src/hades/views/shop.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
     "src/hades/views/inventory.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]

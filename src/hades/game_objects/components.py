@@ -4,6 +4,9 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
+# Pip
+from pymunk import Vec2d
+
 # Custom
 from hades.constants import ARMOUR_REGEN_AMOUNT, FOOTPRINT_INTERVAL, FOOTPRINT_LIMIT
 from hades.game_objects.attributes import Armour, ArmourRegenCooldown
@@ -132,7 +135,7 @@ class Footprint(GameObjectComponent):
             component_data: The data for the components.
         """
         super().__init__(game_object_id, system, component_data)
-        self.footprints: list[tuple[float, float]] = []
+        self.footprints: list[Vec2d] = []
         self.steering_object: SteeringObject = (
             self.system.get_steering_object_for_game_object(self.game_object_id)
         )

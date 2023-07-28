@@ -81,7 +81,6 @@ class ECS:
         self._components[self._next_game_object_id] = {}
         if steering:
             self._steering_objects[self._next_game_object_id] = SteeringObject(
-                self._next_game_object_id,
                 Vec2d(0, 0),
                 Vec2d(0, 0),
             )
@@ -232,3 +231,6 @@ class ECS:
             The human-readable representation of this object.
         """
         return f"<EntityComponentSystem (Game object count={len(self._components)})>"
+
+
+# TODO: Look at ecs refactor according to dragon moffin design

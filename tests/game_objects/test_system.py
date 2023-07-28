@@ -178,7 +178,6 @@ def test_ecs_game_object_with_steering(ecs: ECS) -> None:
     # Test that adding the game object with steering works correctly
     ecs.add_game_object({}, steering=True)
     steering_object = ecs.get_steering_object_for_game_object(0)
-    assert steering_object.game_object_id == 0
     assert steering_object.position == (0, 0)
     assert steering_object.velocity == (0, 0)
 

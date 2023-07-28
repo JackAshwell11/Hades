@@ -6,6 +6,7 @@ from typing import cast
 
 # Pip
 import pytest
+from pymunk import Vec2d
 
 # Custom
 from hades.game_objects.attributes import Armour, ArmourRegenCooldown
@@ -247,7 +248,7 @@ def test_footprint_on_update_large_deltatime_empty_list(footprint: Footprint) ->
         footprint: The footprint component for use in testing.
     """
     footprint.on_update(1)
-    assert footprint.footprints == [(0, 0)]
+    assert footprint.footprints == [Vec2d(0, 0)]
     assert footprint.time_since_last_footprint == 0
 
 
@@ -259,9 +260,9 @@ def test_footprint_on_update_large_deltatime_non_empty_list(
     Args:
         footprint: The footprint component for use in testing.
     """
-    footprint.footprints = [(1, 1), (2, 2), (3, 3)]
+    footprint.footprints = [Vec2d(1, 1), Vec2d(2, 2), Vec2d(3, 3)]
     footprint.on_update(0.5)
-    assert footprint.footprints == [(1, 1), (2, 2), (3, 3), (0, 0)]
+    assert footprint.footprints == [Vec2d(1, 1), Vec2d(2, 2), Vec2d(3, 3), Vec2d(0, 0)]
 
 
 def test_footprint_on_update_large_deltatime_full_list(footprint: Footprint) -> None:
@@ -271,30 +272,30 @@ def test_footprint_on_update_large_deltatime_full_list(footprint: Footprint) -> 
         footprint: The footprint component for use in testing.
     """
     footprint.footprints = [
-        (0, 0),
-        (1, 1),
-        (2, 2),
-        (3, 3),
-        (4, 4),
-        (5, 5),
-        (6, 6),
-        (7, 7),
-        (8, 8),
-        (9, 9),
+        Vec2d(0, 0),
+        Vec2d(1, 1),
+        Vec2d(2, 2),
+        Vec2d(3, 3),
+        Vec2d(4, 4),
+        Vec2d(5, 5),
+        Vec2d(6, 6),
+        Vec2d(7, 7),
+        Vec2d(8, 8),
+        Vec2d(9, 9),
     ]
-    footprint.system.get_steering_object_for_game_object(0).position = (10, 10)
+    footprint.system.get_steering_object_for_game_object(0).position = Vec2d(10, 10)
     footprint.on_update(0.5)
     assert footprint.footprints == [
-        (1, 1),
-        (2, 2),
-        (3, 3),
-        (4, 4),
-        (5, 5),
-        (6, 6),
-        (7, 7),
-        (8, 8),
-        (9, 9),
-        (10, 10),
+        Vec2d(1, 1),
+        Vec2d(2, 2),
+        Vec2d(3, 3),
+        Vec2d(4, 4),
+        Vec2d(5, 5),
+        Vec2d(6, 6),
+        Vec2d(7, 7),
+        Vec2d(8, 8),
+        Vec2d(9, 9),
+        Vec2d(10, 10),
     ]
 
 
@@ -305,11 +306,11 @@ def test_footprint_on_update_multiple_updates(footprint: Footprint) -> None:
         footprint: The footprint component for use in testing.
     """
     footprint.on_update(0.6)
-    assert footprint.footprints == [(0, 0)]
+    assert footprint.footprints == [Vec2d(0, 0)]
     assert footprint.time_since_last_footprint == 0
-    footprint.system.get_steering_object_for_game_object(0).position = (1, 1)
+    footprint.system.get_steering_object_for_game_object(0).position = Vec2d(1, 1)
     footprint.on_update(0.7)
-    assert footprint.footprints == [(0, 0), (1, 1)]
+    assert footprint.footprints == [Vec2d(0, 0), Vec2d(1, 1)]
     assert footprint.time_since_last_footprint == 0
 
 
