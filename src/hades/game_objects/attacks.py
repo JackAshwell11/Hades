@@ -5,9 +5,6 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, TypedDict
 
-# Pip
-from pymunk import Vec2d
-
 # Custom
 from hades.constants import (
     ATTACK_RANGE,
@@ -17,7 +14,12 @@ from hades.constants import (
     MELEE_ATTACK_OFFSET_UPPER,
 )
 from hades.game_objects.attributes import deal_damage
-from hades.game_objects.base import AttackAlgorithms, ComponentType, GameObjectComponent
+from hades.game_objects.base import (
+    AttackAlgorithms,
+    ComponentType,
+    GameObjectComponent,
+    Vec2d,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -81,7 +83,7 @@ class Attacks(GameObjectComponent):
         # Find all targets that are within range and attack them
         for target in targets:
             if (
-                self._steering_owner.position.get_distance(
+                self._steering_owner.position.get_distance_to(
                     self.system.get_physics_object_for_game_object(target).position,
                 )
                 <= ATTACK_RANGE
@@ -113,11 +115,11 @@ class Attacks(GameObjectComponent):
             ).position
             theta = (target_position - physics_object.position).get_angle_between(
                 rotation,
-            ) % (2 * math.pi)
+            )
 
             # Test if the target is within range and within the circle's sector
             if (
-                physics_object.position.get_distance(target_position) <= ATTACK_RANGE
+                physics_object.position.get_distance_to(target_position) <= ATTACK_RANGE
                 and theta <= MELEE_ATTACK_OFFSET_LOWER
                 or theta >= MELEE_ATTACK_OFFSET_UPPER
             ):

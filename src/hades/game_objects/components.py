@@ -11,9 +11,7 @@ from hades.game_objects.base import ComponentType, GameObjectComponent
 from hades.game_objects.movements import MovementBase, SteeringMovement
 
 if TYPE_CHECKING:
-    from pymunk import Vec2d
-
-    from hades.game_objects.base import ComponentData
+    from hades.game_objects.base import ComponentData, Vec2d
     from hades.game_objects.movements import PhysicsObject
     from hades.game_objects.system import ECS
 

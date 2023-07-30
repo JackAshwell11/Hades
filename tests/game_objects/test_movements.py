@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, cast
 
 # Pip
 import pytest
-from pymunk import Vec2d
 
 # Custom
 from hades.game_objects.attributes import MovementForce
@@ -14,6 +13,7 @@ from hades.game_objects.base import (
     ComponentType,
     SteeringBehaviours,
     SteeringMovementState,
+    Vec2d,
 )
 from hades.game_objects.components import Footprint
 from hades.game_objects.movements import (
@@ -299,18 +299,20 @@ def test_obstacle_avoidance_single_forward() -> None:
 
 def test_obstacle_avoidance_single_left() -> None:
     """Test if a single left obstacle produces the correct avoidance force."""
-    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(0, 2)}) == Vec2d(
-        0.8660254037844387,
-        -0.5000000000000001,
-    )
+    assert obstacle_avoidance(
+        Vec2d(100, 100),
+        Vec2d(0, 100),
+        {(0, 2)},
+    ) == pytest.approx(Vec2d(0.8660254037844387, -0.5))
 
 
 def test_obstacle_avoidance_single_right() -> None:
     """Test if a single right obstacle produces the correct avoidance force."""
-    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(2, 2)}) == Vec2d(
-        -0.8660254037844386,
-        -0.5000000000000001,
-    )
+    assert obstacle_avoidance(
+        Vec2d(100, 100),
+        Vec2d(0, 100),
+        {(2, 2)},
+    ) == pytest.approx(Vec2d(-0.8660254037844386, -0.5))
 
 
 def test_obstacle_avoidance_left_forward() -> None:
@@ -319,7 +321,7 @@ def test_obstacle_avoidance_left_forward() -> None:
         Vec2d(100, 100),
         Vec2d(0, 100),
         {(0, 2), (1, 2)},
-    ) == Vec2d(0.8660254037844387, -0.5000000000000001)
+    ) == pytest.approx(Vec2d(0.8660254037844387, -0.5))
 
 
 def test_obstacle_avoidance_right_forward() -> None:
@@ -328,7 +330,7 @@ def test_obstacle_avoidance_right_forward() -> None:
         Vec2d(100, 100),
         Vec2d(0, 100),
         {(1, 2), (2, 2)},
-    ) == Vec2d(-0.8660254037844386, -0.5000000000000001)
+    ) == pytest.approx(Vec2d(-0.8660254037844386, -0.5))
 
 
 def test_obstacle_avoidance_left_right_forward() -> None:
@@ -406,7 +408,7 @@ def test_seek_negative_positions() -> None:
 
 def test_wander_non_moving() -> None:
     """Test if a non-moving game object produces the correct wander force."""
-    assert wander(Vec2d(0, 0), 60) == Vec2d(0.8660254037844385, -0.5000000000000001)
+    assert wander(Vec2d(0, 0), 60) == pytest.approx(Vec2d(0.8660254037844385, -0.5))
 
 
 def test_wander_moving() -> None:
@@ -841,7 +843,7 @@ def test_steering_movement_calculate_force_wander(
     )
     steering_force = steering_movement.calculate_force()
     assert steering_force != steering_movement.calculate_force()
-    assert round(steering_force.length) == 100
+    assert round(abs(steering_force)) == 100
 
 
 def test_steering_movement_calculate_force_multiple_behaviours(

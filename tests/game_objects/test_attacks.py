@@ -6,12 +6,11 @@ from typing import TYPE_CHECKING, cast
 
 # Pip
 import pytest
-from pymunk import Vec2d
 
 # Custom
 from hades.game_objects.attacks import Attacks
 from hades.game_objects.attributes import Armour, Health
-from hades.game_objects.base import AttackAlgorithms, ComponentType
+from hades.game_objects.base import AttackAlgorithms, ComponentType, Vec2d
 from hades.game_objects.system import ECS
 
 if TYPE_CHECKING:
@@ -307,7 +306,7 @@ def test_attacks_do_attack_ranged_attack(
         "ranged_attack": (
             Vec2d(0, 0),
             -300.0,
-            3.6739403974420595e-14,  # This is due to floating point errors
+            pytest.approx(0),  # This is due to floating point errors
         ),
     }
 

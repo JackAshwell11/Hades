@@ -4,10 +4,8 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING
 
-# Pip
-from pymunk import Vec2d
-
 # Custom
+from hades.game_objects.base import Vec2d
 from hades.game_objects.movements import PhysicsObject
 
 if TYPE_CHECKING:

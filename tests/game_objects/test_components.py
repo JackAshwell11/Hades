@@ -6,11 +6,10 @@ from typing import cast
 
 # Pip
 import pytest
-from pymunk import Vec2d
 
 # Custom
 from hades.game_objects.attributes import Armour, ArmourRegenCooldown
-from hades.game_objects.base import ComponentType
+from hades.game_objects.base import ComponentType, Vec2d
 from hades.game_objects.components import (
     ArmourRegen,
     Footprint,
