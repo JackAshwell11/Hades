@@ -90,7 +90,10 @@ ENEMY: Final = GameObjectConstructor(
     component_data={
         "attributes": {ComponentType.MOVEMENT_FORCE: (1000, 5)},
         "steering_behaviours": {
-            SteeringMovementState.DEFAULT: [SteeringBehaviours.WANDER],
+            SteeringMovementState.DEFAULT: [
+                SteeringBehaviours.OBSTACLE_AVOIDANCE,
+                SteeringBehaviours.WANDER,
+            ],
             SteeringMovementState.FOOTPRINT: [SteeringBehaviours.FOLLOW_PATH],
             SteeringMovementState.TARGET: [SteeringBehaviours.PURSUIT],
         },

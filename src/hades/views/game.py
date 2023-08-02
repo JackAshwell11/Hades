@@ -7,8 +7,6 @@ import math
 import random
 from typing import NamedTuple, cast
 
-import arcade
-
 # Pip
 from arcade import (
     MOUSE_BUTTON_LEFT,
@@ -161,7 +159,7 @@ class Game(View):
         # Initialise the game objects
         for count, tile in enumerate(generation_result[0]):
             # Skip all empty tiles
-            if tile in {TileType.Empty, TileType.Obstacle, TileType.DebugWall}:
+            if tile in {TileType.Empty, TileType.Obstacle}:
                 continue
 
             # Get the screen position from the grid position
@@ -215,50 +213,6 @@ class Game(View):
         self.tile_sprites.draw(pixelated=True)
         self.item_sprites.draw(pixelated=True)
         self.entity_sprites.draw(pixelated=True)
-
-        # TODO: Maybe remove the debug drawing stuff and stuff in generation
-        # Draw the stuff needed for the debug mode
-        if True:
-            points = self.system.get_component_for_game_object(
-                self.ids[GameObjectType.PLAYER][0].game_object_id,
-                ComponentType.FOOTPRINT,
-            ).footprints
-            if points and GameObjectType.ENEMY in self.ids:
-                closest = [
-                    footprint
-                    for footprint in points
-                    if (3 * SPRITE_SIZE)
-                    >= math.dist(self.ids[GameObjectType.ENEMY][0].position, footprint)
-                ]
-                for index, point in enumerate(points):
-                    arcade.draw_point(
-                        *point,
-                        (
-                            arcade.color.RED
-                            if (3 * SPRITE_SIZE)
-                            >= math.dist(
-                                self.ids[GameObjectType.ENEMY][0].position,
-                                point,
-                            )
-                            else arcade.color.BLUE
-                        ),
-                        5,
-                    )
-                    arcade.draw_text(str(index), *point, arcade.color.BLACK, 20)
-                if closest:
-                    arcade.draw_point(
-                        *(
-                            min(
-                                closest,
-                                key=lambda footprint: math.dist(
-                                    self.ids[GameObjectType.PLAYER][0].position,
-                                    footprint,
-                                ),
-                            )
-                        ),
-                        arcade.color.GREEN,
-                        5,
-                    )
 
         # Draw the gui on the screen
         self.gui_camera.use()
@@ -400,9 +354,13 @@ class Game(View):
             steering_movement.target_id = self.ids[GameObjectType.PLAYER][
                 0
             ].game_object_id
-            steering_movement.walls = [
-                wall_sprite.position for wall_sprite in self.ids[GameObjectType.WALL]
-            ]
+            steering_movement.walls = {
+                (
+                    wall_sprite.center_x // SPRITE_SIZE,
+                    wall_sprite.center_y // SPRITE_SIZE,
+                )
+                for wall_sprite in self.ids[GameObjectType.WALL]
+            }
             return
 
     def center_camera_on_player(self: Game) -> None:

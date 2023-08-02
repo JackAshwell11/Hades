@@ -12,9 +12,12 @@ from pymunk import Vec2d
 
 # Custom
 from hades.constants import (
+    MAX_SEE_AHEAD,
     MAX_VELOCITY,
+    OBSTACLE_AVOIDANCE_ANGLE,
     PATH_POINT_RADIUS,
     SLOWING_RADIUS,
+    SPRITE_SIZE,
     TARGET_DISTANCE,
     WANDER_CIRCLE_DISTANCE,
     WANDER_CIRCLE_RADIUS,
@@ -71,7 +74,7 @@ def flee(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
     Returns:
         The new steering force from this behaviour.
     """
-    return current_position - target_position
+    return (current_position - target_position).normalized()
 
 
 def seek(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
@@ -84,7 +87,7 @@ def seek(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
     Returns:
         The new steering force from this behaviour.
     """
-    return target_position - current_position
+    return (target_position - current_position).normalized()
 
 
 def arrive(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
@@ -102,8 +105,8 @@ def arrive(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
 
     # Check if the game object is inside the slowing area
     if direction.length < SLOWING_RADIUS:
-        return direction * (direction.length / SLOWING_RADIUS)
-    return direction
+        return (direction * (direction.length / SLOWING_RADIUS)).normalized()
+    return direction.normalized()
 
 
 def evade(
@@ -150,17 +153,66 @@ def follow_path(current_position: Vec2d, path_list: list[Vec2d]) -> Vec2d:
     return seek(current_position, path_list[0])
 
 
-def obstacle_avoidance() -> Vec2d:
+def obstacle_avoidance(
+    current_position: Vec2d,
+    current_velocity: Vec2d,
+    walls: set[tuple[int, int]],
+) -> Vec2d:
     """Allow a game object to avoid obstacles in its path.
 
     Returns:
         The new steering force from this behaviour.
     """
-    # TODO: Implement this steering behaviour. Could use step value of sprite_size/2 and
-    #  range of max_see_ahead to then step over each point in the raycast. This point is
-    #  then converted to the tile position which is looked up into a walls dict (matches
-    #  tile position to screen position). If match is found, flee force is calculated,
-    #  if not and the raycast ends, then zero vector is returned
+
+    def _raycast(position: Vec2d, velocity: Vec2d, angle: int = 0) -> Vec2d:
+        """Cast a ray from the game object's position in the direction of its velocity.
+
+        Args:
+            position: The position of the game object.
+            velocity: The velocity of the game object.
+            angle: The angle to rotate the velocity by.
+
+        Returns:
+            The point at which the ray collides with an obstacle. If this is -1, then
+            there is no collision.
+        """
+        for point in (
+            position + velocity.rotated_degrees(angle) * (step / 100)
+            for step in range(int(SPRITE_SIZE), int(MAX_SEE_AHEAD), int(SPRITE_SIZE))
+        ):
+            if point // SPRITE_SIZE in walls:
+                return point
+        return Vec2d(-1, -1)
+
+    # Check if the game object is going to collide with an obstacle
+    forward_ray = _raycast(current_position, current_velocity)
+    left_ray = _raycast(
+        current_position,
+        current_velocity,
+        OBSTACLE_AVOIDANCE_ANGLE,
+    )
+    right_ray = _raycast(
+        current_position,
+        current_velocity,
+        -OBSTACLE_AVOIDANCE_ANGLE,
+    )
+
+    # Check if there are any obstacles ahead
+    if (
+        forward_ray != Vec2d(-1, -1)
+        and left_ray != Vec2d(-1, -1)
+        and right_ray != Vec2d(-1, -1)
+    ):
+        # Turn around, there's a wall ahead
+        return flee(current_position, forward_ray)
+    if left_ray != Vec2d(-1, -1):
+        # Turn right, there's a wall left
+        return flee(current_position, left_ray)
+    if right_ray != Vec2d(-1, -1):
+        # Turn left, there's a wall right
+        return flee(current_position, right_ray)
+
+    # No obstacles ahead, move forward
     return Vec2d(0, 0)
 
 
@@ -204,9 +256,10 @@ def wander(current_velocity: Vec2d, displacement_angle: int) -> Vec2d:
     circle_center = current_velocity.normalized() * WANDER_CIRCLE_DISTANCE
 
     # Add a displacement force to the centre of the circle to randomise the movement
-    return circle_center + (Vec2d(0, -1) * WANDER_CIRCLE_RADIUS).rotated_degrees(
-        displacement_angle,
-    )
+    return (
+        circle_center
+        + (Vec2d(0, -1) * WANDER_CIRCLE_RADIUS).rotated_degrees(displacement_angle)
+    ).normalized()
 
 
 class MovementBase(GameObjectComponent, metaclass=ABCMeta):
@@ -352,7 +405,7 @@ class SteeringMovement(MovementBase):
         ] = component_data["steering_behaviours"]
         self._movement_state: SteeringMovementState = SteeringMovementState.DEFAULT
         self.target_id: int = -1
-        self.walls: list[tuple[float, float]] = []
+        self.walls: set[tuple[int, int]] = set()
         self.path_list: list[Vec2d] = []
 
     @property
@@ -415,7 +468,11 @@ class SteeringMovement(MovementBase):
                         self.path_list,
                     )
                 case SteeringBehaviours.OBSTACLE_AVOIDANCE:
-                    steering_force += obstacle_avoidance()
+                    steering_force += obstacle_avoidance(
+                        current_steering.position,
+                        current_steering.velocity,
+                        self.walls,
+                    )
                 case SteeringBehaviours.PURSUIT:
                     steering_force += pursuit(
                         current_steering.position,
