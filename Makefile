@@ -47,6 +47,3 @@ executable: ${VENV_NAME}  # Builds the game into an executable form
 
 cpp: ${VENV_NAME}  # Compiles the C++ extensions and installs them into the virtual environment
 	python -m build --cpp
-
-compile: ${VENV_NAME}  # Compiles the extensions so they can be accessed in Python
-	poetry run python -m hades.extensions.compile

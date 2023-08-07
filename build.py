@@ -45,10 +45,11 @@ class CMakeBuild(build_ext):
 
         # Make sure the build directory exists
         build_temp = Path(self.build_temp).joinpath(ext.name)
-        if not build_temp.exists():
-            build_temp.mkdir(parents=True)
+        build_temp.mkdir(parents=True, exist_ok=True)
 
         # Compile and build the CMake extension
+        subprocess.run("dir", cwd=build_temp, check=True)
+        subprocess.run("pwd", cwd=build_temp, check=True)
         subprocess.run(
             " ".join(
                 [
