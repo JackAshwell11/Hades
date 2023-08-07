@@ -4,9 +4,6 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
-# Pip
-from pymunk import Vec2d
-
 # Custom
 from hades.constants import ARMOUR_REGEN_AMOUNT, FOOTPRINT_INTERVAL, FOOTPRINT_LIMIT
 from hades.game_objects.attributes import Armour, ArmourRegenCooldown
@@ -14,6 +11,8 @@ from hades.game_objects.base import ComponentType, GameObjectComponent
 from hades.game_objects.movements import MovementBase, SteeringMovement
 
 if TYPE_CHECKING:
+    from pymunk import Vec2d
+
     from hades.game_objects.base import ComponentData
     from hades.game_objects.movements import SteeringObject
     from hades.game_objects.system import ECS

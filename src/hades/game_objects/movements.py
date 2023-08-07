@@ -520,9 +520,9 @@ class SteeringMovement(MovementBase):
         # from that footprint
         target_footprint = min(
             closest_footprints,
-            key=lambda footprint: self.system.get_steering_object_for_game_object(
+            key=self.system.get_steering_object_for_game_object(
                 self.target_id,
-            ).position.get_distance(footprint),
+            ).position.get_distance,
         )
         self.path_list = footprints[footprints.index(target_footprint) :]
 

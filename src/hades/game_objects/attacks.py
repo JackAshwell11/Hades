@@ -104,8 +104,3 @@ class Attacks(GameObjectComponent):
             The human-readable representation of this object.
         """
         return f"<Attacks (Attack algorithm count={len(self._attacks)})>"
-
-
-# TODO: Look into attack proxy idea where c++ does heavy lifting and returns optional
-#  tuple of attack enum and dict with data needed by python to create sprite object if
-#  needed or some other implementation

@@ -231,6 +231,3 @@ class ECS:
             The human-readable representation of this object.
         """
         return f"<EntityComponentSystem (Game object count={len(self._components)})>"
-
-
-# TODO: Look at ecs refactor according to dragon moffin design

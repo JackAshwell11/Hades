@@ -154,30 +154,33 @@ def initialise_steering_movement(
 
 def test_arrive_outside_slowing_radius() -> None:
     """Test if a position outside the radius produces the correct arrive force."""
-    assert arrive(Vec2d(500, 500), Vec2d(0, 0)) == Vec2d(-500, -500)
+    assert arrive(Vec2d(500, 500), Vec2d(0, 0)) == Vec2d(
+        -0.7071067811865475,
+        -0.7071067811865475,
+    )
 
 
 def test_arrive_on_slowing_range() -> None:
     """Test if a position on the radius produces the correct arrive force."""
     assert arrive(Vec2d(135, 135), Vec2d(0, 0)) == Vec2d(
-        -134.23980299088365,
-        -134.23980299088365,
+        -0.7071067811865475,
+        -0.7071067811865475,
     )
 
 
 def test_arrive_inside_slowing_range() -> None:
     """Test if a position inside the radius produces the correct arrive force."""
     assert arrive(Vec2d(100, 100), Vec2d(0, 0)) == Vec2d(
-        -73.6569563735987,
-        -73.6569563735987,
+        -0.7071067811865476,
+        -0.7071067811865476,
     )
 
 
 def test_arrive_near_target() -> None:
     """Test if a position near the target produces the correct arrive force."""
     assert arrive(Vec2d(50, 50), Vec2d(0, 0)) == Vec2d(
-        -18.414239093399676,
-        -18.414239093399676,
+        -0.7071067811865476,
+        -0.7071067811865476,
     )
 
 
@@ -188,14 +191,17 @@ def test_arrive_on_target() -> None:
 
 def test_evade_non_moving_target() -> None:
     """Test if a non-moving target produces the correct evade force."""
-    assert evade(Vec2d(0, 0), Vec2d(100, 100), Vec2d(0, 0)) == Vec2d(-100.0, -100.0)
+    assert evade(Vec2d(0, 0), Vec2d(100, 100), Vec2d(0, 0)) == Vec2d(
+        -0.7071067811865475,
+        -0.7071067811865475,
+    )
 
 
 def test_evade_moving_target() -> None:
     """Test if a moving target produces the correct evade force."""
     assert evade(Vec2d(0, 0), Vec2d(100, 100), Vec2d(-50, 0)) == Vec2d(
-        -64.64466094067262,
-        -100.0,
+        -0.5428888213891885,
+        -0.8398045770360255,
     )
 
 
@@ -207,12 +213,18 @@ def test_evade_same_positions() -> None:
 
 def test_flee_higher_current() -> None:
     """Test if a higher current position produces the correct flee force."""
-    assert flee(Vec2d(100, 100), Vec2d(50, 50)) == Vec2d(50, 50)
+    assert flee(Vec2d(100, 100), Vec2d(50, 50)) == Vec2d(
+        0.7071067811865475,
+        0.7071067811865475,
+    )
 
 
 def test_flee_higher_target() -> None:
     """Test if a higher target position produces the correct flee force."""
-    assert flee(Vec2d(50, 50), Vec2d(100, 100)) == Vec2d(-50, -50)
+    assert flee(Vec2d(50, 50), Vec2d(100, 100)) == Vec2d(
+        -0.7071067811865475,
+        -0.7071067811865475,
+    )
 
 
 def test_flee_equal() -> None:
@@ -222,12 +234,18 @@ def test_flee_equal() -> None:
 
 def test_flee_negative_current() -> None:
     """Test if a negative current position produces the correct flee force."""
-    assert flee(Vec2d(-50, -50), Vec2d(100, 100)) == Vec2d(-150, -150)
+    assert flee(Vec2d(-50, -50), Vec2d(100, 100)) == Vec2d(
+        -0.7071067811865475,
+        -0.7071067811865475,
+    )
 
 
 def test_flee_negative_target() -> None:
     """Test if a negative target position produces the correct flee force."""
-    assert flee(Vec2d(100, 100), Vec2d(-50, -50)) == Vec2d(150, 150)
+    assert flee(Vec2d(100, 100), Vec2d(-50, -50)) == Vec2d(
+        0.7071067811865475,
+        0.7071067811865475,
+    )
 
 
 def test_flee_negative_positions() -> None:
@@ -237,7 +255,10 @@ def test_flee_negative_positions() -> None:
 
 def test_follow_path_single_point() -> None:
     """Test if a single point produces the correct follow path force."""
-    assert follow_path(Vec2d(100, 100), [Vec2d(250, 250)]) == Vec2d(150, 150)
+    assert follow_path(Vec2d(100, 100), [Vec2d(250, 250)]) == Vec2d(
+        0.7071067811865475,
+        0.7071067811865475,
+    )
 
 
 def test_follow_path_single_point_reached() -> None:
@@ -250,15 +271,18 @@ def test_follow_path_single_point_reached() -> None:
 def test_follow_path_multiple_points() -> None:
     """Test if multiple points produces the correct follow path force."""
     assert follow_path(Vec2d(200, 200), [Vec2d(350, 350), Vec2d(500, 500)]) == Vec2d(
-        150,
-        150,
+        0.7071067811865475,
+        0.7071067811865475,
     )
 
 
 def test_follow_path_multiple_points_reached() -> None:
     """Test if reaching a multiple point list produces the correct follow path force."""
     path_list = [Vec2d(100, 100), Vec2d(250, 250)]
-    assert follow_path(Vec2d(100, 100), path_list) == Vec2d(150, 150)
+    assert follow_path(Vec2d(100, 100), path_list) == Vec2d(
+        0.7071067811865475,
+        0.7071067811865475,
+    )
     assert path_list == [Vec2d(250, 250), Vec2d(100, 100)]
 
 
@@ -268,21 +292,90 @@ def test_follow_path_empty_list() -> None:
         follow_path(Vec2d(100, 100), [])
 
 
-def test_obstacle_avoidance() -> None:
-    """Test if the obstacle avoidance behaviour works correctly."""
-    raise AssertionError
+def test_obstacle_avoidance_no_obstacles() -> None:
+    """Test if no obstacles produce the correct avoidance force."""
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), set()) == Vec2d(0, 0)
+
+
+def test_obstacle_avoidance_obstacle_out_of_range() -> None:
+    """Test if an out of range obstacle produces the correct avoidance force."""
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(10, 10)}) == Vec2d(0, 0)
+
+
+def test_obstacle_avoidance_angled_velocity() -> None:
+    """Test if an angled velocity produces the correct avoidance force."""
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(100, 100), {(1, 2)}) == Vec2d(
+        0.2588190451025206,
+        -0.9659258262890683,
+    )
+
+
+def test_obstacle_avoidance_non_moving() -> None:
+    """Test if a non-moving game object produces the correct avoidance force."""
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(1, 2)}) == Vec2d(0, 0)
+
+
+def test_obstacle_avoidance_single_forward() -> None:
+    """Test if a single forward obstacle produces the correct avoidance force."""
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(1, 2)}) == Vec2d(0, 0)
+
+
+def test_obstacle_avoidance_single_left() -> None:
+    """Test if a single left obstacle produces the correct avoidance force."""
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(0, 2)}) == Vec2d(
+        0.8660254037844387,
+        -0.5000000000000001,
+    )
+
+
+def test_obstacle_avoidance_single_right() -> None:
+    """Test if a single right obstacle produces the correct avoidance force."""
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(2, 2)}) == Vec2d(
+        -0.8660254037844386,
+        -0.5000000000000001,
+    )
+
+
+def test_obstacle_avoidance_left_forward() -> None:
+    """Test if a left and forward obstacle produces the correct avoidance force."""
+    assert obstacle_avoidance(
+        Vec2d(100, 100),
+        Vec2d(0, 100),
+        {(0, 2), (1, 2)},
+    ) == Vec2d(0.8660254037844387, -0.5000000000000001)
+
+
+def test_obstacle_avoidance_right_forward() -> None:
+    """Test if a right and forward obstacle produces the correct avoidance force."""
+    assert obstacle_avoidance(
+        Vec2d(100, 100),
+        Vec2d(0, 100),
+        {(1, 2), (2, 2)},
+    ) == Vec2d(-0.8660254037844386, -0.5000000000000001)
+
+
+def test_obstacle_avoidance_left_right_forward() -> None:
+    """Test if all three obstacles produce the correct avoidance force."""
+    assert obstacle_avoidance(
+        Vec2d(100, 100),
+        Vec2d(0, 100),
+        {(0, 2), (1, 2), (2, 2)},
+    ) == Vec2d(0, -1)
 
 
 def test_pursuit_non_moving_target() -> None:
     """Test if a non-moving target produces the correct pursuit force."""
-    assert pursuit(Vec2d(0, 0), Vec2d(100, 100), Vec2d(0, 0)) == Vec2d(100.0, 100.0)
+    assert pursuit(Vec2d(0, 0), Vec2d(100, 100), Vec2d(0, 0)) == Vec2d(
+        0.7071067811865475,
+        0.7071067811865475,
+    )
 
 
 def test_pursuit_moving_target() -> None:
     """Test if a moving target produces the correct pursuit force."""
     assert pursuit(Vec2d(0, 0), Vec2d(100, 100), Vec2d(-50, 0)) == Vec2d(
-        64.64466094067262,
-        100.0,
+        0.5428888213891885,
+        0.8398045770360255,
     )
 
 
@@ -294,12 +387,18 @@ def test_pursuit_same_positions() -> None:
 
 def test_seek_higher_current() -> None:
     """Test if a higher current position produces the correct seek force."""
-    assert seek(Vec2d(100, 100), Vec2d(50, 50)) == Vec2d(-50, -50)
+    assert seek(Vec2d(100, 100), Vec2d(50, 50)) == Vec2d(
+        -0.7071067811865475,
+        -0.7071067811865475,
+    )
 
 
 def test_seek_higher_target() -> None:
     """Test if a higher target position produces the correct seek force."""
-    assert seek(Vec2d(50, 50), Vec2d(100, 100)) == Vec2d(50, 50)
+    assert seek(Vec2d(50, 50), Vec2d(100, 100)) == Vec2d(
+        0.7071067811865475,
+        0.7071067811865475,
+    )
 
 
 def test_seek_equal() -> None:
@@ -309,12 +408,18 @@ def test_seek_equal() -> None:
 
 def test_seek_negative_current() -> None:
     """Test if a negative current position produces the correct seek force."""
-    assert seek(Vec2d(-50, -50), Vec2d(100, 100)) == Vec2d(150, 150)
+    assert seek(Vec2d(-50, -50), Vec2d(100, 100)) == Vec2d(
+        0.7071067811865475,
+        0.7071067811865475,
+    )
 
 
 def test_seek_negative_target() -> None:
     """Test if a negative target position produces the correct seek force."""
-    assert seek(Vec2d(100, 100), Vec2d(-50, -50)) == Vec2d(-150, -150)
+    assert seek(Vec2d(100, 100), Vec2d(-50, -50)) == Vec2d(
+        -0.7071067811865475,
+        -0.7071067811865475,
+    )
 
 
 def test_seek_negative_positions() -> None:
@@ -324,12 +429,15 @@ def test_seek_negative_positions() -> None:
 
 def test_wander_non_moving() -> None:
     """Test if a non-moving game object produces the correct wander force."""
-    assert wander(Vec2d(0, 0), 60) == Vec2d(21.650635094610966, -12.500000000000004)
+    assert wander(Vec2d(0, 0), 60) == Vec2d(0.8660254037844385, -0.5000000000000001)
 
 
 def test_wander_moving() -> None:
     """Test if a moving game object produces the correct wander force."""
-    assert wander(Vec2d(100, -100), 60) == Vec2d(57.00597415393834, -47.85533905932738)
+    assert wander(Vec2d(100, -100), 60) == Vec2d(
+        0.7659012135559103,
+        -0.6429582654213131,
+    )
 
 
 def test_keyboard_movement_init(keyboard_movement: KeyboardMovement) -> None:
@@ -660,8 +768,18 @@ def test_steering_movement_calculate_force_obstacle_avoidance(
         initialised_target,
         {SteeringMovementState.TARGET: [SteeringBehaviours.OBSTACLE_AVOIDANCE]},
     )
+    steering_movement.system.get_steering_object_for_game_object(0).position = Vec2d(
+        100,
+        100,
+    )
+    steering_movement.system.get_steering_object_for_game_object(0).velocity = Vec2d(
+        100,
+        100,
+    )
+    steering_movement.walls = {(100, 200)}
     assert (
-        steering_movement.calculate_force() == obstacle_avoidance().normalized() * 100
+        steering_movement.calculate_force()
+        == obstacle_avoidance(Vec2d(100, 100), Vec2d(100, 100), {(100, 200)}) * 100
     )
 
 
@@ -760,8 +878,8 @@ def test_steering_movement_calculate_force_multiple_behaviours(
     )
     steering_movement.path_list = [Vec2d(100, 200), Vec2d(-100, 0)]
     assert steering_movement.calculate_force() == Vec2d(
-        -78.08688094430303,
-        -62.46950475544243,
+        -81.12421851755609,
+        -58.47102846637651,
     )
 
 
@@ -802,8 +920,8 @@ def test_steering_movement_calculate_force_multiple_states(
         300,
     )
     assert steering_movement.calculate_force() == Vec2d(
-        -70.71067811865474,
-        -70.71067811865474,
+        -70.71067811865476,
+        -70.71067811865476,
     )
 
 

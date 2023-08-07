@@ -24,7 +24,7 @@ shapely = "2.0.1"
 [tool.poetry.dev-dependencies]
 black = "23.7.0"
 mypy = "1.4.1"
-nuitka = "1.7.7"
+nuitka = "1.7.9"
 ordered-set = "4.1.0"
 pre-commit = "3.3.3"
 pylint = "2.17.5"
@@ -34,7 +34,7 @@ pytest-icdiff = "0.6"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.13.0"
 pytest-sugar = "0.9.7"
-ruff = "0.0.280"
+ruff = "0.0.282"
 ssort = "v0.11.6"
 tox = "4.6.4"
 
@@ -136,6 +136,7 @@ disable = [
     "too-many-arguments",  # Stop Pylint complaining about too many parameters
     "too-many-instance-attributes",  # Stop Pylint complaining about too many instance attributes
     "too-many-locals",  # Stop Pylint complaining about too many local variables
+    "too-many-lines",  # Stop Pylint complaining about too many lines
     "too-many-statements",  # Stop Pylint complaining about too many statements
 ]
 
