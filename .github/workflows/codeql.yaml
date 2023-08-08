@@ -3,7 +3,7 @@ name: "CodeQL"
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
   schedule:
     - cron: '0 0 * * 1'
@@ -40,7 +40,7 @@ jobs:
           setup-python-dependencies: false
       - name: Compile C++ extensions
         if: matrix.language == 'c++'
-        run: cd hades_extensions && cmake -S . -B build && cmake --build build
+        run: poetry run python -m build --cpp
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v2
         with:

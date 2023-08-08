@@ -30,10 +30,8 @@ class CMakeBuild(build_ext):
     def build_extension(self: CMakeBuild, ext: Extension) -> None:
         """Build a CMake extension.
 
-        Parameters
-        ----------
-        ext: Extension
-            The extension to build.
+        Args:
+            ext: The extension to build.
         """
         # Determine where the extension should be transferred to after it has been
         # compiled
@@ -48,8 +46,7 @@ class CMakeBuild(build_ext):
         build_temp.mkdir(parents=True, exist_ok=True)
 
         # Compile and build the CMake extension
-        subprocess.run("dir", cwd=build_temp, check=True)
-        subprocess.run("pwd", cwd=build_temp, check=True)
+        print("before init")
         subprocess.run(
             " ".join(
                 [
@@ -63,11 +60,13 @@ class CMakeBuild(build_ext):
             cwd=build_temp,
             check=True,
         )
+        print("before build")
         subprocess.run(
             " ".join(["cmake", "--build", ".", f"--config {profile}"]),
             cwd=build_temp,
             check=True,
         )
+        print("end")
 
 
 def executable() -> None:
@@ -134,27 +133,4 @@ def build(**_: KW) -> None:
 
 
 if __name__ == "__main__":
-    # Build the argument parser and start parsing arguments
-    parser = argparse.ArgumentParser(
-        description="Simplifies building/compiling related to Hades",
-    )
-    build_group = parser.add_mutually_exclusive_group()
-    build_group.add_argument(
-        "-e",
-        "--executable",
-        action="store_true",
-        help="Compiles the game into an executable format",
-    )
-    build_group.add_argument(
-        "-c",
-        "--cpp",
-        action="store_true",
-        help="Compiles the C++ extensions and installs them",
-    )
-    args = parser.parse_args(namespace=BuildNamespace())
-
-    # Determine which argument was selected
-    if args.executable:
-        executable()
-    elif args.cpp:
-        cpp()
+    cpp()
