@@ -39,7 +39,7 @@ class BiggerThanError(Exception):
 
 
 def load_moving_texture(texture: str) -> tuple[Texture, Texture]:
-    """Load a moving texture into Arcade.
+    """Load a moving texture into the texture cache.
 
     Args:
         texture: The moving texture to load
@@ -51,7 +51,7 @@ def load_moving_texture(texture: str) -> tuple[Texture, Texture]:
 
 
 def load_non_moving_texture(texture: str) -> Texture:
-    """Load a non-moving texture into Arcade.
+    """Load a non-moving texture into the texture cache.
 
     Args:
         texture: The non-moving texture to load

@@ -17,26 +17,26 @@ script = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-arcade = "3.0.0.dev22"
+arcade = "3.0.0.dev24"
 pymunk = "6.4.0"
 shapely = "2.0.1"
 
 [tool.poetry.dev-dependencies]
-black = "23.3.0"
-mypy = "1.3.0"
-nuitka = "1.6"
+black = "23.7.0"
+mypy = "1.4.1"
+nuitka = "1.7.9"
 ordered-set = "4.1.0"
-pre-commit = "3.3.2"
-pylint = "2.17.4"
-pytest = "7.3.1"
+pre-commit = "3.3.3"
+pylint = "2.17.5"
+pytest = "7.4.0"
 pytest-cov = "4.1.0"
 pytest-icdiff = "0.6"
 pytest-instafail = "0.5.0"
-pytest-randomly = "3.12.0"
+pytest-randomly = "3.13.0"
 pytest-sugar = "0.9.7"
-ruff = "0.0.270"
+ruff = "0.0.282"
 ssort = "v0.11.6"
-tox = "4.5.2"
+tox = "4.6.4"
 
 [tool.black]
 preview = true
@@ -59,9 +59,6 @@ exclude_lines = [
 omit = [
     "*/__main__.py",  # This is only used for running the game via the CLI
     "*/extensions/compile.py",  # This is only used for building the C++ extensions
-    "*/game_objects_BAD_ECS/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
-    "*/game_objects_OLD/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
-    "*/constants_OLD/*",  # TODO: ONCE PR IS DONE, REMOVE THIS
 ]
 precision = 2
 show_missing = true
@@ -74,12 +71,8 @@ source = ["hades"]
 disallow_any_decorated = true
 disallow_any_explicit = true
 disallow_any_expr = true
-disallow_any_unimported = true
 exclude = [
     "build.py",  # Setuptools is untyped so we need to ignore it
-    "compile.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
-    "melee_shader.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
-    "vector_field",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
     "views",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 ignore_missing_imports = true
@@ -100,9 +93,6 @@ good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
 max-line-length = 88
 
 [tool.pylint."MASTER"]
-ignore = [
-    "*vector_field*",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
-]
 load-plugins = [
     "pylint.extensions.bad_builtin",  # Disallow the use of deprecated builtin functions
     "pylint.extensions.check_elif",  # Disallow the use of following an else statement with an if
@@ -146,6 +136,7 @@ disable = [
     "too-many-arguments",  # Stop Pylint complaining about too many parameters
     "too-many-instance-attributes",  # Stop Pylint complaining about too many instance attributes
     "too-many-locals",  # Stop Pylint complaining about too many local variables
+    "too-many-lines",  # Stop Pylint complaining about too many lines
     "too-many-statements",  # Stop Pylint complaining about too many statements
 ]
 
@@ -156,9 +147,8 @@ testpaths = ["tests"]
 
 [tool.ruff]
 extend-exclude = [
-    "*vector_field*",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
-    "melee_shader.py",  # TODO: ONCE ENEMY AI IS DONE, REMOVE THIS
     "src/hades/views/shop.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
+    "src/hades/views/inventory.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 extend-ignore = [
     "S311",  # Allow use of the random library
@@ -175,17 +165,23 @@ select = [
     "C90",  # Enable mccabe
     "COM",  # Enable flake8-commas
     "D",  # Enable pydocstyle
+    "DTZ",  # Enable flake8-datetimez
     "E",  # Enable pycodestyle errors
     "EM",  # Enable flake8-errmsg
     "ERA",  # Enable eradicate
     "F",  # Enable Pyflakes
+    "FA",  # Enable flake8-future-annotations
     "FBT",  # Enable flake8-boolean-trap
+    "FIX", # Enable flake8-fixme
+    "FLY",  # Enable flynt
     "G",  # Enable flake8-logging-format
     "I",  # Enable isort
     "ICN",  # Enable flake8-import-conventions
     "INP",  # Enable flake8-no-pep420
+    "INT",  # Enable flake8-gettext
     "ISC",  # Enable flake8-implicit-str-concat
     "N",  # Enable pep8-naming
+    "PERF",  # Enable Perflint
     "PGH",  # Enable pygrep-hooks
     "PIE",  # Enable flake8-pie
     "PLC",  # Enable Pylint convention
@@ -201,8 +197,10 @@ select = [
     "S",  # Enable flake8-bandit
     "SIM",  # Enable flake8-simplify
     "SLF",  # Enable flake8-self
+    "SLOT",  # Enable flake8-slots
     "T20",  # Enable flake8-print
     "TCH",  # Enable flake8-type-checking
+    "TD",  # Enable flake8-todos
     "TID",  # Enable flake8-tidy-imports
     "TRY",  # Enable tryceratops
     "UP",  # Enable pyupgrade
@@ -247,9 +245,7 @@ python =
 
 [testenv]
 deps = pytest-cov
-commands =
-    python -I -m hades.extensions.compile
-    pytest --cov-append
+commands = pytest --cov-append
 passenv = *
 
 [testenv:clean]

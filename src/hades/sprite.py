@@ -72,7 +72,7 @@ class HadesSprite(Sprite):
             component.on_update(delta_time)
 
         # Calculate the game object's new movement force and apply it
-        self.physics.apply_impulse(
+        self.physics.apply_force(
             self,
             cast(
                 MovementBase,
@@ -82,6 +82,25 @@ class HadesSprite(Sprite):
                 ),
             ).calculate_force(),
         )
+
+    def pymunk_moved(
+        self: HadesSprite,
+        physics_engine: PhysicsEngine,
+        *_: float,
+    ) -> None:
+        """Handle a pymunk_moved event for the game object.
+
+        Args:
+            physics_engine: The game object's physics engine.
+        """
+        steering_object, physics_object = (
+            self.system.get_steering_object_for_game_object(self.game_object_id),
+            physics_engine.get_physics_object(self).body,
+        )
+        if physics_object is None:
+            return
+        steering_object.position = physics_object.position
+        steering_object.velocity = physics_object.velocity
 
     def __repr__(self: HadesSprite) -> str:
         """Return a human-readable representation of this object.

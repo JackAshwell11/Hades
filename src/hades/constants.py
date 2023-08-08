@@ -2,50 +2,38 @@
 from __future__ import annotations
 
 # Builtin
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum, auto
 from pathlib import Path
-
-# Pip
-from arcade import color
-
-# Custom
+from typing import Final
 
 __all__ = (
-    "ARMOUR_INDICATOR_BAR_COLOR",
     "ARMOUR_REGEN_AMOUNT",
-    "ARMOUR_REGEN_WAIT",
-    "BULLET_VELOCITY",
-    "CONSUMABLE_LEVEL_MAX_RANGE",
     "DAMPING",
-    "DEBUG_ATTACK_DISTANCE",
-    "DEBUG_ENEMY_SPAWN_COLOR",
-    "DEBUG_ENEMY_SPAWN_SIZE",
-    "DEBUG_GAME",
-    "DEBUG_VECTOR_FIELD_LINE",
-    "DEBUG_VIEW_DISTANCE",
     "ENEMY_GENERATE_INTERVAL",
     "ENEMY_GENERATION_DISTANCE",
-    "ENEMY_INDICATOR_BAR_OFFSET",
     "ENEMY_RETRY_COUNT",
-    "FACING_LEFT",
-    "FACING_RIGHT",
+    "FOOTPRINT_INTERVAL",
+    "FOOTPRINT_LIMIT",
     "GAME_LOGGER",
     "GameObjectType",
-    "HEALTH_INDICATOR_BAR_COLOR",
-    "INDICATOR_BAR_BORDER_SIZE",
-    "LEVEL_GENERATOR_INTERVAL",
     "LOGGING_DICT_CONFIG",
+    "MAX_SEE_AHEAD",
     "MAX_VELOCITY",
     "MELEE_RESOLUTION",
     "MOVEMENT_FORCE",
+    "OBSTACLE_AVOIDANCE_ANGLE",
+    "PATH_POINT_RADIUS",
+    "SLOWING_RADIUS",
     "SPRITE_SCALE",
     "SPRITE_SIZE",
+    "TARGET_DISTANCE",
     "TOTAL_ENEMY_COUNT",
+    "WANDER_CIRCLE_DISTANCE",
+    "WANDER_CIRCLE_RADIUS",
 )
 
 
-# The different types of game objects in the game
 class GameObjectType(Enum):
     """Stores the different types of game objects that can exist in the game."""
 
@@ -62,8 +50,8 @@ log_dir = Path(__file__).resolve().parent.parent / "logs"
 log_dir.mkdir(parents=True, exist_ok=True)
 
 # Logging constants
-GAME_LOGGER = "hades"
-LOGGING_DICT_CONFIG = {
+GAME_LOGGER: Final = "hades"
+LOGGING_DICT_CONFIG: Final = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -85,7 +73,9 @@ LOGGING_DICT_CONFIG = {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "default",
-            "filename": log_dir.joinpath(f"{datetime.now().strftime('%Y-%m-%d')}.log"),
+            "filename": log_dir.joinpath(
+                f"{datetime.now(tz=timezone.utc).strftime('%Y-%m-%d')}.log",
+            ),
             "maxBytes": 5242880,  # 5MB
             "backupCount": 5,
         },
@@ -104,39 +94,32 @@ LOGGING_DICT_CONFIG = {
     },
 }
 
-# Debug constants
-DEBUG_GAME = True
-DEBUG_VIEW_DISTANCE = color.RED
-DEBUG_ATTACK_DISTANCE = color.BLUE
-DEBUG_VECTOR_FIELD_LINE = color.YELLOW
-DEBUG_ENEMY_SPAWN_COLOR = color.RED
-DEBUG_ENEMY_SPAWN_SIZE = 5
-
 # Sprite sizes
-SPRITE_SCALE = 0.4375
-SPRITE_SIZE = 128 * SPRITE_SCALE
+SPRITE_SCALE: Final = 0.5
+SPRITE_SIZE: Final = 128 * SPRITE_SCALE
 
 # Physics constants
-DAMPING = 0.000001
-MAX_VELOCITY = 50
+DAMPING: Final = 0.0001
+MAX_VELOCITY: Final = 200
 
 # General game object constants
-MOVEMENT_FORCE = 100
-FACING_RIGHT = 0
-FACING_LEFT = 1
-ARMOUR_REGEN_WAIT = 5
-ARMOUR_REGEN_AMOUNT = 1
-BULLET_VELOCITY = 300
-MELEE_RESOLUTION = 10
-INDICATOR_BAR_BORDER_SIZE = 4
-ENEMY_INDICATOR_BAR_OFFSET = 32
-HEALTH_INDICATOR_BAR_COLOR = color.RED
-ARMOUR_INDICATOR_BAR_COLOR = color.SILVER
+ARMOUR_REGEN_AMOUNT: Final = 1
+FOOTPRINT_INTERVAL: Final = 0.5
+FOOTPRINT_LIMIT: Final = 10
+MELEE_RESOLUTION: Final = 10
+MOVEMENT_FORCE: Final = 100
+TARGET_DISTANCE: Final = 3 * SPRITE_SIZE
 
-# Enemy and level generator constants
-LEVEL_GENERATOR_INTERVAL = 10
-CONSUMABLE_LEVEL_MAX_RANGE = 5
-TOTAL_ENEMY_COUNT = 8
-ENEMY_RETRY_COUNT = 3
-ENEMY_GENERATE_INTERVAL = 1
-ENEMY_GENERATION_DISTANCE = 5
+# Steering constants
+MAX_SEE_AHEAD: Final = 2 * SPRITE_SIZE
+OBSTACLE_AVOIDANCE_ANGLE: Final = 60
+PATH_POINT_RADIUS: Final = 1 * SPRITE_SIZE
+SLOWING_RADIUS: Final = 3 * SPRITE_SIZE
+WANDER_CIRCLE_DISTANCE: Final = 50
+WANDER_CIRCLE_RADIUS: Final = 25
+
+# Enemy generation constants
+ENEMY_GENERATE_INTERVAL: Final = 1
+ENEMY_GENERATION_DISTANCE: Final = 5
+ENEMY_RETRY_COUNT: Final = 3
+TOTAL_ENEMY_COUNT: Final = 1

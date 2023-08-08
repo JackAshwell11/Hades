@@ -1,4 +1,4 @@
-"""Builds the game into an executable form using Nuitka."""
+"""Manages various building/compiling operations on the game."""
 from __future__ import annotations
 
 # Builtin
@@ -45,10 +45,11 @@ class CMakeBuild(build_ext):
 
         # Make sure the build directory exists
         build_temp = Path(self.build_temp).joinpath(ext.name)
-        if not build_temp.exists():
-            build_temp.mkdir(parents=True)
+        build_temp.mkdir(parents=True, exist_ok=True)
 
         # Compile and build the CMake extension
+        subprocess.run("dir", cwd=build_temp, check=True)
+        subprocess.run("pwd", cwd=build_temp, check=True)
         subprocess.run(
             " ".join(
                 [
@@ -81,10 +82,8 @@ def executable() -> None:
 
     # Display some info about the system and the environment
     print(
-        (
-            f"System information: {platform.system()} {platform.version()}. Python"
-            f" version: {platform.python_implementation()} {platform.python_version()}"
-        ),
+        f"System information: {platform.system()} {platform.version()}. Python"
+        f" version: {platform.python_implementation()} {platform.python_version()}",
     )
     print(f"Current directory: {Path().absolute()}")
 

@@ -15,7 +15,6 @@ from arcade import (
     Text,
     View,
     color,
-    draw_points,
     get_sprites_at_point,
     key,
     schedule,
@@ -24,9 +23,6 @@ from hades_extensions import TileType, create_map
 
 # Custom
 from hades.constants import (
-    DEBUG_ENEMY_SPAWN_COLOR,
-    DEBUG_ENEMY_SPAWN_SIZE,
-    DEBUG_GAME,
     ENEMY_GENERATE_INTERVAL,
     ENEMY_GENERATION_DISTANCE,
     ENEMY_RETRY_COUNT,
@@ -44,7 +40,7 @@ from hades.game_objects.constructors import (
     WALL,
     GameObjectConstructor,
 )
-from hades.game_objects.movements import KeyboardMovement
+from hades.game_objects.movements import KeyboardMovement, SteeringMovement
 from hades.game_objects.system import ECS
 from hades.physics import PhysicsEngine
 from hades.sprite import HadesSprite
@@ -76,8 +72,7 @@ class Game(View):
     Attributes:
         level_constants: Holds the constants for the current level.
         system: The entity component system which manages the game objects.
-        ids: The dictionary which stores the IDs and sprite objects for each game object
-        type.
+        ids: The dictionary which stores the IDs and sprites for each game object type.
         tile_sprites: The sprite list for the tile game objects.
         entity_sprites: The sprite list for the entity game objects.
         item_sprites: The sprite list for the item game objects.
@@ -94,7 +89,7 @@ class Game(View):
         constructor: GameObjectConstructor,
         sprite_list: SpriteList[HadesSprite],
         position: tuple[int, int],
-    ) -> None:
+    ) -> int:
         """Initialise a game object from a constructor into the ECS.
 
         Args:
@@ -103,14 +98,16 @@ class Game(View):
             position: The position of the game object in the grid.
 
         Returns:
-            The initialised sprite object.
+            The game object ID.
         """
         # Initialise a sprite object
+        game_object_id = self.system.add_game_object(
+            constructor.component_data,
+            *constructor.components,
+            steering=constructor.steering,
+        )
         sprite_obj = HadesSprite(
-            self.system.add_game_object(
-                constructor.component_data,
-                *constructor.components,
-            ),
+            game_object_id,
             self.system,
             position,
             constructor.game_object_textures,
@@ -128,6 +125,9 @@ class Game(View):
                 constructor.game_object_type,
                 blocking=constructor.blocking,
             )
+
+        # Return the game object ID
+        return game_object_id
 
     def __init__(self: Game, level: int) -> None:
         """Initialise the object.
@@ -159,7 +159,7 @@ class Game(View):
         # Initialise the game objects
         for count, tile in enumerate(generation_result[0]):
             # Skip all empty tiles
-            if tile in {TileType.Empty, TileType.Obstacle, TileType.DebugWall}:
+            if tile in {TileType.Empty, TileType.Obstacle}:
                 continue
 
             # Get the screen position from the grid position
@@ -192,7 +192,7 @@ class Game(View):
             screen_height - self.game_camera.viewport_height - half_sprite_size,
         )
 
-        # Generate half of the total enemies allowed then schedule their generation
+        # Generate half of the total enemies allowed to then schedule their generation
         for _ in range(TOTAL_ENEMY_COUNT // 2):
             self.generate_enemy()
         schedule(
@@ -202,7 +202,7 @@ class Game(View):
 
     def on_draw(self: Game) -> None:
         """Render the screen."""
-        # Clear the screen and set the background color
+        # Clear the screen and set the background colour
         self.clear()
         self.window.background_color = color.BLACK
 
@@ -213,18 +213,6 @@ class Game(View):
         self.tile_sprites.draw(pixelated=True)
         self.item_sprites.draw(pixelated=True)
         self.entity_sprites.draw(pixelated=True)
-
-        # Draw the stuff needed for the debug mode
-        if DEBUG_GAME:
-            # Draw the enemy spawn locations
-            draw_points(
-                [
-                    grid_pos_to_pixel(*location)
-                    for location in self.possible_enemy_spawns
-                ],
-                DEBUG_ENEMY_SPAWN_COLOR,
-                DEBUG_ENEMY_SPAWN_SIZE,
-            )
 
         # Draw the gui on the screen
         self.gui_camera.use()
@@ -319,8 +307,8 @@ class Game(View):
             x: The x position of the mouse.
             y: The y position of the mouse.
             button: Which button was hit.
-            modifiers:Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
-                during this event.
+            modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
+            during this event.
         """
         logger.debug(
             "%r mouse button was pressed at position (%f, %f) with modifiers %r",
@@ -343,7 +331,7 @@ class Game(View):
         if len(self.ids.get(GameObjectType.ENEMY, [])) >= TOTAL_ENEMY_COUNT:
             return
 
-        # Enemy limit not reached so attempt to initialise a new enemy game object
+        # Enemy limit is not reached so try to initialise a new enemy game object
         # ENEMY_RETRY_COUNT times
         random.shuffle(self.possible_enemy_spawns)
         player_sprite = self.ids[GameObjectType.PLAYER][0]
@@ -354,7 +342,25 @@ class Game(View):
                 < ENEMY_GENERATION_DISTANCE * SPRITE_SIZE
             ):
                 continue
-            self._initialise_game_object(ENEMY, self.entity_sprites, position)
+
+            # Set the required data for the steering to correctly function
+            steering_movement = cast(
+                SteeringMovement,
+                self.system.get_component_for_game_object(
+                    self._initialise_game_object(ENEMY, self.entity_sprites, position),
+                    ComponentType.MOVEMENTS,
+                ),
+            )
+            steering_movement.target_id = self.ids[GameObjectType.PLAYER][
+                0
+            ].game_object_id
+            steering_movement.walls = {
+                (
+                    wall_sprite.center_x // SPRITE_SIZE,
+                    wall_sprite.center_y // SPRITE_SIZE,
+                )
+                for wall_sprite in self.ids[GameObjectType.WALL]
+            }
             return
 
     def center_camera_on_player(self: Game) -> None:

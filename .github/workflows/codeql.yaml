@@ -31,15 +31,17 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Install dependencies
+        if: matrix.language == 'python'
         run: poetry install --no-interaction
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
           setup-python-dependencies: false
-      - name: Compile extensions
-        run: make compile
-      - name: Perform CodeQL Analysis
+      - name: Compile C++ extensions
+        if: matrix.language == 'c++'
+        run: cd hades_extensions && cmake -S . -B build && cmake --build build
+      - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v2
         with:
           category: "/language:${{ matrix.language }}"

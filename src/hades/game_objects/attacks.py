@@ -31,7 +31,7 @@ def ranged_attack() -> None:
     raise NotImplementedError
 
 
-# Determine the component type for each attack algorithm
+# Determine the attack algorithm type for each attack algorithm
 ATTACKS = {
     AttackAlgorithms.AREA_OF_EFFECT_ATTACK: area_of_effect_attack,
     AttackAlgorithms.MELEE_ATTACK: melee_attack,
@@ -104,7 +104,3 @@ class Attacks(GameObjectComponent):
             The human-readable representation of this object.
         """
         return f"<Attacks (Attack algorithm count={len(self._attacks)})>"
-
-
-# TODO: Decide if attack algorithms should be private methods in Attacks. Or if this
-#  should be refactored again (would be nice, but not sure how)
