@@ -1,8 +1,8 @@
 # Hades
 
 [![Run tests](https://github.com/Aspect1103/Hades/actions/workflows/test.yaml/badge.svg)](https://github.com/Aspect1103/Hades/actions/workflows/test.yaml)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Aspect1103/Hades/master.svg)](https://results.pre-commit.ci/latest/github/Aspect1103/Hades/master)
-[![Coverage Status](https://coveralls.io/repos/github/Aspect1103/Hades/badge.svg?branch=master)](https://coveralls.io/github/Aspect1103/Hades?branch=master)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Aspect1103/Hades/main.svg)](https://results.pre-commit.ci/latest/github/Aspect1103/Hades/main)
+[![Coverage Status](https://coveralls.io/repos/github/Aspect1103/Hades/badge.svg?branch=main)](https://coveralls.io/github/Aspect1103/Hades?branch=main)
 [![GitHub](https://img.shields.io/github/license/Aspect1103/Hades)](LICENSE)
 
 A procedurally generated bullet-hell dungeon crawler made in Python using

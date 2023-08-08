@@ -9,7 +9,7 @@ body:
         **Thank you for wanting to report a bug in Hades**
 
         Please make sure that [this feature wasn't already requested](https://github.com/Aspect1103/Hades/issues?q=is%3Aissue+is%3Aopen+)
-        or already implemented in the master branch
+        or already implemented in the main branch
   - type: textarea
     id: what-happened
     attributes:
