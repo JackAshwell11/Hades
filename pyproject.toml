@@ -31,9 +31,9 @@ pytest-icdiff = "0.6"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.13.0"
 pytest-sugar = "0.9.7"
-ruff = "0.0.282"
+ruff = "0.0.283"
 ssort = "v0.11.6"
-tox = "4.6.4"
+tox = "4.7.0"
 
 [tool.black]
 preview = true
@@ -54,6 +54,7 @@ exclude_lines = [
     "if __name__ == .__main__.:",  # Exclude script definitions
 ]
 omit = [
+    "build.py",  # Build.py is only used for building the project
     "*/__main__.py",  # This is only used for running the game via the CLI
     "*/extensions/compile.py",  # This is only used for building the C++ extensions
 ]
@@ -210,6 +211,7 @@ src = ["src"]
 [tool.ruff.per-file-ignores]
 "build.py" = [
     "S603",  # Ignore flake8-bandit subprocess with shell=True rule
+    "S607",  # Ignore flake8-bandit start process with a partial path rule
     "T201",  # Ignore flake8-print print rule
 ]
 "src/hades/extensions/compile.py" = [

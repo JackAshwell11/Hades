@@ -33,9 +33,6 @@ class CMakeBuild(build_ext):
         Args:
             ext: The extension to build.
         """
-        # Determine the profile to build the CMake extension with
-        profile = "Release"
-
         # Make sure the temporary build directory exists
         current_dir = Path(__file__).parent
         build_temp = current_dir.joinpath(self.build_temp).joinpath(ext.name)
@@ -47,18 +44,13 @@ class CMakeBuild(build_ext):
                 [
                     "cmake",
                     str(current_dir.joinpath(ext.sources[0])),
-                    "-DDO_TESTS=false",
                     "-DDO_PYTHON=true",
                 ],
             ),
             cwd=build_temp,
             check=True,
         )
-        subprocess.run(
-            f"cmake --build . --config {profile}",
-            cwd=build_temp,
-            check=True,
-        )
+        subprocess.run("cmake --build . --config Release", cwd=build_temp, check=True)
 
 
 def executable() -> None:
