@@ -33,20 +33,15 @@ class CMakeBuild(build_ext):
         Args:
             ext: The extension to build.
         """
-        # Determine where the extension should be transferred to after it has been
-        # compiled
-        current_dir = Path(__file__).parent
-        build_dir = current_dir.joinpath(self.get_ext_fullpath(ext.name)).parent
-
         # Determine the profile to build the CMake extension with
         profile = "Release"
 
-        # Make sure the build directory exists
-        build_temp = Path(self.build_temp).joinpath(ext.name)
+        # Make sure the temporary build directory exists
+        current_dir = Path(__file__).parent
+        build_temp = current_dir.joinpath(self.build_temp).joinpath(ext.name)
         build_temp.mkdir(parents=True, exist_ok=True)
 
         # Compile and build the CMake extension
-        print("before init")
         subprocess.run(
             " ".join(
                 [
@@ -54,19 +49,16 @@ class CMakeBuild(build_ext):
                     str(current_dir.joinpath(ext.sources[0])),
                     "-DDO_TESTS=false",
                     "-DDO_PYTHON=true",
-                    f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
                 ],
             ),
             cwd=build_temp,
             check=True,
         )
-        print("before build")
         subprocess.run(
-            " ".join(["cmake", "--build", ".", f"--config {profile}"]),
+            f"cmake --build . --config {profile}",
             cwd=build_temp,
             check=True,
         )
-        print("end")
 
 
 def executable() -> None:
@@ -127,10 +119,28 @@ def cpp() -> None:
     )
 
 
-def build(**_: KW) -> None:
-    """Allow Poetry to automatically build the C++ extension upon installation."""
-    cpp()
-
-
 if __name__ == "__main__":
-    cpp()
+    # Build the argument parser and start parsing arguments
+    parser = argparse.ArgumentParser(
+        description="Simplifies building/compiling related to Hades",
+    )
+    build_group = parser.add_mutually_exclusive_group()
+    build_group.add_argument(
+        "-e",
+        "--executable",
+        action="store_true",
+        help="Compiles the game into an executable format",
+    )
+    build_group.add_argument(
+        "-c",
+        "--cpp",
+        action="store_true",
+        help="Compiles the C++ extensions and installs them",
+    )
+    args = parser.parse_args(namespace=BuildNamespace())
+
+    # Determine which argument was selected
+    if args.executable:
+        executable()
+    elif args.cpp:
+        cpp()

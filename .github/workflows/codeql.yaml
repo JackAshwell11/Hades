@@ -22,10 +22,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Set up Python 3.10
+        if: matrix.language == 'python'
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
       - name: Install Poetry
+        if: matrix.language == 'python'
         uses: snok/install-poetry@v1
         with:
           virtualenvs-create: true
@@ -40,7 +42,7 @@ jobs:
           setup-python-dependencies: false
       - name: Compile C++ extensions
         if: matrix.language == 'c++'
-        run: poetry run python -m build --cpp
+        run: cd hades_extensions && cmake -S . -B build && cmake --build build --config Release
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v2
         with:
