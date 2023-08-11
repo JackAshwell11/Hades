@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from pymunk import Vec2d
 
 # Custom
-from hades.game_objects.movements import SteeringObject
+from hades.game_objects.movements import PhysicsObject
 
 if TYPE_CHECKING:
     from hades.game_objects.base import (
@@ -49,27 +49,27 @@ class ECS:
     __slots__ = (
         "_next_game_object_id",
         "_components",
-        "_steering_objects",
+        "_physics_objects",
     )
 
     def __init__(self: ECS) -> None:
         """Initialise the object."""
         self._next_game_object_id = 0
         self._components: dict[int, dict[ComponentType, GameObjectComponent]] = {}
-        self._steering_objects: dict[int, SteeringObject] = {}
+        self._physics_objects: dict[int, PhysicsObject] = {}
 
     def add_game_object(
         self: ECS,
         component_data: ComponentData,
         *components: type[GameObjectComponent],
-        steering: bool = False,
+        physics: bool = False,
     ) -> int:
         """Add a game object to the system with optional components.
 
         Args:
             component_data: The data for the components.
             *components: The optional list of components for the game object.
-            steering: Whether the game object should have a steering object or not.
+            physics: Whether the game object should have a physics object or not.
 
         Returns:
             The game object ID.
@@ -77,10 +77,10 @@ class ECS:
         Raises:
             ECSError: The component type `type` is already registered with the ECS.
         """
-        # Create the game object and a steering object if required
+        # Create the game object and a physics object if required
         self._components[self._next_game_object_id] = {}
-        if steering:
-            self._steering_objects[self._next_game_object_id] = SteeringObject(
+        if physics:
+            self._physics_objects[self._next_game_object_id] = PhysicsObject(
                 Vec2d(0, 0),
                 Vec2d(0, 0),
             )
@@ -89,8 +89,8 @@ class ECS:
         for component in components:
             if component.component_type in self._components[self._next_game_object_id]:
                 del self._components[self._next_game_object_id]
-                if steering:
-                    del self._steering_objects[self._next_game_object_id]
+                if physics:
+                    del self._physics_objects[self._next_game_object_id]
                 raise ECSError(
                     not_registered_type="component type",
                     value=component.component_type,
@@ -124,8 +124,8 @@ class ECS:
 
         # Delete the game object from the system
         del self._components[game_object_id]
-        if game_object_id in self._steering_objects:
-            del self._steering_objects[game_object_id]
+        if game_object_id in self._physics_objects:
+            del self._physics_objects[game_object_id]
 
     def get_components_for_game_object(
         self: ECS,
@@ -198,31 +198,31 @@ class ECS:
             if component_type in components
         ]
 
-    def get_steering_object_for_game_object(
+    def get_physics_object_for_game_object(
         self: ECS,
         game_object_id: int,
-    ) -> SteeringObject:
-        """Get a steering object for a given game object ID.
+    ) -> PhysicsObject:
+        """Get a physics object for a given game object ID.
 
         Args:
             game_object_id: The game object ID.
 
         Returns:
-            The steering object for the given game object ID.
+            The physics object for the given game object ID.
 
         Raises:
-            ECSError: The game object ID `ID` does not have a steering object.
+            ECSError: The game object ID `ID` does not have a physics object.
         """
         # Check if the game object ID is registered or not
-        if game_object_id not in self._steering_objects:
+        if game_object_id not in self._physics_objects:
             raise ECSError(
                 not_registered_type="game object ID",
                 value=game_object_id,
-                error="does not have a steering object",
+                error="does not have a physics object",
             )
 
-        # Return the specified steering object
-        return self._steering_objects[game_object_id]
+        # Return the specified physics object
+        return self._physics_objects[game_object_id]
 
     def __repr__(self: ECS) -> str:
         """Return a human-readable representation of this object.

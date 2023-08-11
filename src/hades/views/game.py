@@ -104,7 +104,7 @@ class Game(View):
         game_object_id = self.system.add_game_object(
             constructor.component_data,
             *constructor.components,
-            steering=constructor.steering,
+            physics=constructor.physics,
         )
         sprite_obj = HadesSprite(
             game_object_id,

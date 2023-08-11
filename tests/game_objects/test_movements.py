@@ -79,7 +79,7 @@ def steering_movement(ecs: ECS) -> SteeringMovement:
         Footprint,
         MovementForce,
         KeyboardMovement,
-        steering=True,
+        physics=True,
     )
     ecs.add_game_object(
         {
@@ -88,7 +88,7 @@ def steering_movement(ecs: ECS) -> SteeringMovement:
         },
         MovementForce,
         SteeringMovement,
-        steering=True,
+        physics=True,
     )
     cast(
         SteeringMovement,
@@ -115,7 +115,7 @@ def initialised_target(ecs: ECS) -> ECS:
         Footprint,
         MovementForce,
         KeyboardMovement,
-        steering=True,
+        physics=True,
     )
     return ecs
 
@@ -140,7 +140,7 @@ def initialise_steering_movement(
         },
         MovementForce,
         SteeringMovement,
-        steering=True,
+        physics=True,
     )
     cast(
         SteeringMovement,
@@ -584,7 +584,7 @@ def test_steering_movement_calculate_force_within_target_distance_empty_path_lis
     Args:
         steering_movement: The steering movement component for use in testing.
     """
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         100,
         100,
     )
@@ -600,7 +600,7 @@ def test_steering_movement_calculate_force_within_target_distance_non_empty_path
     Args:
         steering_movement: The steering movement component for use in testing.
     """
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         100,
         100,
     )
@@ -617,7 +617,7 @@ def test_steering_movement_calculate_force_outside_target_distance_empty_path_li
     Args:
         steering_movement: The steering movement component for use in testing.
     """
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         500,
         500,
     )
@@ -633,7 +633,7 @@ def test_steering_movement_calculate_force_outside_target_distance_non_empty_pat
     Args:
         steering_movement: The steering movement component for use in testing.
     """
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         500,
         500,
     )
@@ -664,11 +664,11 @@ def test_steering_movement_calculate_force_arrive(initialised_target: ECS) -> No
         initialised_target,
         {SteeringMovementState.TARGET: [SteeringBehaviours.ARRIVE]},
     )
-    steering_movement.system.get_steering_object_for_game_object(0).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
         0,
         0,
     )
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         100,
         100,
     )
@@ -688,11 +688,11 @@ def test_steering_movement_calculate_force_evade(initialised_target: ECS) -> Non
         initialised_target,
         {SteeringMovementState.TARGET: [SteeringBehaviours.EVADE]},
     )
-    steering_movement.system.get_steering_object_for_game_object(0).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
         100,
         100,
     )
-    steering_movement.system.get_steering_object_for_game_object(0).velocity = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).velocity = Vec2d(
         -50,
         0,
     )
@@ -717,11 +717,11 @@ def test_steering_movement_calculate_force_flee(initialised_target: ECS) -> None
         initialised_target,
         {SteeringMovementState.TARGET: [SteeringBehaviours.FLEE]},
     )
-    steering_movement.system.get_steering_object_for_game_object(0).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
         50,
         50,
     )
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         100,
         100,
     )
@@ -741,7 +741,7 @@ def test_steering_movement_calculate_force_follow_path(initialised_target: ECS) 
         initialised_target,
         {SteeringMovementState.FOOTPRINT: [SteeringBehaviours.FOLLOW_PATH]},
     )
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         200,
         200,
     )
@@ -768,11 +768,11 @@ def test_steering_movement_calculate_force_obstacle_avoidance(
         initialised_target,
         {SteeringMovementState.TARGET: [SteeringBehaviours.OBSTACLE_AVOIDANCE]},
     )
-    steering_movement.system.get_steering_object_for_game_object(0).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
         100,
         100,
     )
-    steering_movement.system.get_steering_object_for_game_object(0).velocity = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).velocity = Vec2d(
         100,
         100,
     )
@@ -793,11 +793,11 @@ def test_steering_movement_calculate_force_pursuit(initialised_target: ECS) -> N
         initialised_target,
         {SteeringMovementState.TARGET: [SteeringBehaviours.PURSUIT]},
     )
-    steering_movement.system.get_steering_object_for_game_object(0).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
         100,
         100,
     )
-    steering_movement.system.get_steering_object_for_game_object(0).velocity = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).velocity = Vec2d(
         -50,
         0,
     )
@@ -822,11 +822,11 @@ def test_steering_movement_calculate_force_seek(initialised_target: ECS) -> None
         initialised_target,
         {SteeringMovementState.TARGET: [SteeringBehaviours.SEEK]},
     )
-    steering_movement.system.get_steering_object_for_game_object(0).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
         50,
         50,
     )
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         100,
         100,
     )
@@ -846,7 +846,7 @@ def test_steering_movement_calculate_force_wander(initialised_target: ECS) -> No
         initialised_target,
         {SteeringMovementState.TARGET: [SteeringBehaviours.WANDER]},
     )
-    steering_movement.system.get_steering_object_for_game_object(1).velocity = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).velocity = Vec2d(
         100,
         -100,
     )
@@ -872,7 +872,7 @@ def test_steering_movement_calculate_force_multiple_behaviours(
             ],
         },
     )
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         300,
         300,
     )
@@ -901,11 +901,11 @@ def test_steering_movement_calculate_force_multiple_states(
     )
 
     # Test the target state
-    steering_movement.system.get_steering_object_for_game_object(0).velocity = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(0).velocity = Vec2d(
         -50,
         100,
     )
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         100,
         100,
     )
@@ -915,7 +915,7 @@ def test_steering_movement_calculate_force_multiple_states(
     )
 
     # Test the default state
-    steering_movement.system.get_steering_object_for_game_object(1).position = Vec2d(
+    steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
         300,
         300,
     )
