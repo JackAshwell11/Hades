@@ -65,13 +65,15 @@ show_missing = true
 branch = true
 source = ["hades"]
 
+# Todo: Once Arcade is typed, review this
 [tool.mypy]
 disallow_any_decorated = true
 disallow_any_explicit = true
 disallow_any_expr = true
+disallow_any_unimported = true
 exclude = [
     "build.py",  # Setuptools is untyped so we need to ignore it
-    "views",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
+    "views/.*",  # Arcade is partially typed so we need to ignore these
 ]
 ignore_missing_imports = true
 pretty = true

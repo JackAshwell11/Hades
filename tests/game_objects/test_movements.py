@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 # Pip
 import pytest
@@ -30,6 +30,9 @@ from hades.game_objects.movements import (
 )
 from hades.game_objects.system import ECS
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 __all__ = ()
 
 
@@ -55,8 +58,10 @@ def keyboard_movement(ecs: ECS) -> KeyboardMovement:
     """
     ecs.add_game_object(
         {"attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)}},
+        Footprint,
         MovementForce,
         KeyboardMovement,
+        physics=True,
     )
     return cast(
         KeyboardMovement,
@@ -65,91 +70,63 @@ def keyboard_movement(ecs: ECS) -> KeyboardMovement:
 
 
 @pytest.fixture()
-def steering_movement(ecs: ECS) -> SteeringMovement:
-    """Create a steering movement component for use in testing.
+def steering_movement_factory(
+    keyboard_movement: KeyboardMovement,
+) -> Callable[
+    [dict[SteeringMovementState, list[SteeringBehaviours]]],
+    SteeringMovement,
+]:
+    """Create a steering movement component factory for use in testing.
 
     Args:
-        ecs: The entity component system for use in testing.
+        keyboard_movement: The keyboard movement component to use in testing.
 
     Returns:
-        The steering movement component for use in testing.
+        The steering movement component factory for use in testing.
     """
-    ecs.add_game_object(
-        {"attributes": {ComponentType.MOVEMENT_FORCE: (200, 10)}},
-        Footprint,
-        MovementForce,
-        KeyboardMovement,
-        physics=True,
-    )
-    ecs.add_game_object(
-        {
-            "attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)},
-            "steering_behaviours": {},
-        },
-        MovementForce,
-        SteeringMovement,
-        physics=True,
-    )
-    cast(
-        SteeringMovement,
-        ecs.get_component_for_game_object(1, ComponentType.MOVEMENTS),
-    ).target_id = 0
-    return cast(
-        SteeringMovement,
-        ecs.get_component_for_game_object(1, ComponentType.MOVEMENTS),
-    )
+
+    def wrap(
+        steering_behaviours: dict[SteeringMovementState, list[SteeringBehaviours]],
+    ) -> SteeringMovement:
+        game_object_id = keyboard_movement.system.add_game_object(
+            {
+                "attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)},
+                "steering_behaviours": steering_behaviours,
+            },
+            MovementForce,
+            SteeringMovement,
+            physics=True,
+        )
+        steering_movement = cast(
+            SteeringMovement,
+            keyboard_movement.system.get_component_for_game_object(
+                game_object_id,
+                ComponentType.MOVEMENTS,
+            ),
+        )
+        steering_movement.target_id = 0
+        return steering_movement
+
+    return wrap
 
 
 @pytest.fixture()
-def initialised_target(ecs: ECS) -> ECS:
-    """Create a target game object for use in testing.
-
-    Args:
-        ecs: The entity component system for use in testing.
-
-    Returns:
-        The entity component system for use in testing.
-    """
-    ecs.add_game_object(
-        {"attributes": {ComponentType.MOVEMENT_FORCE: (200, 10)}},
-        Footprint,
-        MovementForce,
-        KeyboardMovement,
-        physics=True,
-    )
-    return ecs
-
-
-def initialise_steering_movement(
-    ecs: ECS,
-    steering_behaviours: dict[SteeringMovementState, list[SteeringBehaviours]],
+def steering_movement(
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
 ) -> SteeringMovement:
-    """Initialise a steering movement component for use in testing.
+    """Create a steering movement component for use in testing.
 
     Args:
-        ecs: The entity component system for use in testing.
-        steering_behaviours: The steering behaviours to initialise the component with.
+        steering_movement_factory: The steering movement component factory to use in
+            testing.
 
     Returns:
         The steering movement component for use in testing.
     """
-    ecs.add_game_object(
-        {
-            "attributes": {ComponentType.MOVEMENT_FORCE: (100, 5)},
-            "steering_behaviours": steering_behaviours,
-        },
-        MovementForce,
-        SteeringMovement,
-        physics=True,
-    )
-    cast(
-        SteeringMovement,
-        ecs.get_component_for_game_object(1, ComponentType.MOVEMENTS),
-    ).target_id = 0
-    return cast(
-        SteeringMovement,
-        ecs.get_component_for_game_object(1, ComponentType.MOVEMENTS),
-    )
+    return steering_movement_factory({})
 
 
 def test_arrive_outside_slowing_radius() -> None:
@@ -643,25 +620,33 @@ def test_steering_movement_calculate_force_outside_target_distance_non_empty_pat
 
 
 def test_steering_movement_calculate_force_missing_state(
-    initialised_target: ECS,
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
 ) -> None:
     """Test if a zero force is calculated if the state is missing.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(initialised_target, {})
-    assert steering_movement.calculate_force() == Vec2d(0, 0)
+    assert steering_movement_factory({}).calculate_force() == Vec2d(0, 0)
 
 
-def test_steering_movement_calculate_force_arrive(initialised_target: ECS) -> None:
+def test_steering_movement_calculate_force_arrive(
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
+) -> None:
     """Test if the correct force is calculated for the arrive behaviour.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.ARRIVE]},
     )
     steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
@@ -672,49 +657,49 @@ def test_steering_movement_calculate_force_arrive(initialised_target: ECS) -> No
         100,
         100,
     )
-    assert (
-        steering_movement.calculate_force()
-        == arrive(Vec2d(100, 100), Vec2d(0, 0)).normalized() * 100
+    assert steering_movement.calculate_force() == Vec2d(
+        -70.71067811865476,
+        -70.71067811865476,
     )
 
 
-def test_steering_movement_calculate_force_evade(initialised_target: ECS) -> None:
+def test_steering_movement_calculate_force_evade(
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
+) -> None:
     """Test if the correct force is calculated for the evade behaviour.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.EVADE]},
     )
-    steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
-        100,
-        100,
-    )
-    steering_movement.system.get_physics_object_for_game_object(0).velocity = Vec2d(
-        -50,
-        0,
-    )
-    assert (
-        steering_movement.calculate_force()
-        == evade(
-            Vec2d(0, 0),
-            Vec2d(100, 100),
-            Vec2d(-50, 0),
-        ).normalized()
-        * 100
+    physics_object = steering_movement.system.get_physics_object_for_game_object(0)
+    physics_object.position = Vec2d(100, 100)
+    physics_object.velocity = Vec2d(-50, 0)
+    assert steering_movement.calculate_force() == Vec2d(
+        -54.28888213891886,
+        -83.98045770360257,
     )
 
 
-def test_steering_movement_calculate_force_flee(initialised_target: ECS) -> None:
+def test_steering_movement_calculate_force_flee(
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
+) -> None:
     """Test if the correct force is calculated for the flee behaviour.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.FLEE]},
     )
     steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
@@ -725,20 +710,25 @@ def test_steering_movement_calculate_force_flee(initialised_target: ECS) -> None
         100,
         100,
     )
-    assert (
-        steering_movement.calculate_force()
-        == flee(Vec2d(100, 100), Vec2d(50, 50)).normalized() * 100
+    assert steering_movement.calculate_force() == Vec2d(
+        70.71067811865475,
+        70.71067811865475,
     )
 
 
-def test_steering_movement_calculate_force_follow_path(initialised_target: ECS) -> None:
+def test_steering_movement_calculate_force_follow_path(
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
+) -> None:
     """Test if the correct force is calculated for the follow path behaviour.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {SteeringMovementState.FOOTPRINT: [SteeringBehaviours.FOLLOW_PATH]},
     )
     steering_movement.system.get_physics_object_for_game_object(1).position = Vec2d(
@@ -746,80 +736,74 @@ def test_steering_movement_calculate_force_follow_path(initialised_target: ECS) 
         200,
     )
     steering_movement.path_list = [Vec2d(350, 350), Vec2d(500, 500)]
-    assert (
-        steering_movement.calculate_force()
-        == follow_path(
-            Vec2d(200, 200),
-            [Vec2d(350, 350), Vec2d(500, 500)],
-        ).normalized()
-        * 100
+    assert steering_movement.calculate_force() == Vec2d(
+        70.71067811865475,
+        70.71067811865475,
     )
 
 
 def test_steering_movement_calculate_force_obstacle_avoidance(
-    initialised_target: ECS,
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
 ) -> None:
     """Test if the correct force is calculated for the obstacle avoidance behaviour.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.OBSTACLE_AVOIDANCE]},
     )
-    steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
-        100,
-        100,
-    )
-    steering_movement.system.get_physics_object_for_game_object(0).velocity = Vec2d(
-        100,
-        100,
-    )
-    steering_movement.walls = {(100, 200)}
-    assert (
-        steering_movement.calculate_force()
-        == obstacle_avoidance(Vec2d(100, 100), Vec2d(100, 100), {(100, 200)}) * 100
+    physics_object = steering_movement.system.get_physics_object_for_game_object(1)
+    physics_object.position = Vec2d(100, 100)
+    physics_object.velocity = Vec2d(100, 100)
+    steering_movement.walls = {(1, 2)}
+    assert steering_movement.calculate_force() == Vec2d(
+        25.881904510252056,
+        -96.59258262890683,
     )
 
 
-def test_steering_movement_calculate_force_pursuit(initialised_target: ECS) -> None:
+def test_steering_movement_calculate_force_pursuit(
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
+) -> None:
     """Test if the correct force is calculated for the pursuit behaviour.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.PURSUIT]},
     )
-    steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
-        100,
-        100,
-    )
-    steering_movement.system.get_physics_object_for_game_object(0).velocity = Vec2d(
-        -50,
-        0,
-    )
-    assert (
-        steering_movement.calculate_force()
-        == pursuit(
-            Vec2d(0, 0),
-            Vec2d(100, 100),
-            Vec2d(-50, 0),
-        ).normalized()
-        * 100
+    physics_object = steering_movement.system.get_physics_object_for_game_object(0)
+    physics_object.position = Vec2d(100, 100)
+    physics_object.velocity = Vec2d(-50, 0)
+    assert steering_movement.calculate_force() == Vec2d(
+        54.28888213891886,
+        83.98045770360257,
     )
 
 
-def test_steering_movement_calculate_force_seek(initialised_target: ECS) -> None:
+def test_steering_movement_calculate_force_seek(
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
+) -> None:
     """Test if the correct force is calculated for the seek behaviour.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.SEEK]},
     )
     steering_movement.system.get_physics_object_for_game_object(0).position = Vec2d(
@@ -830,20 +814,25 @@ def test_steering_movement_calculate_force_seek(initialised_target: ECS) -> None
         100,
         100,
     )
-    assert (
-        steering_movement.calculate_force()
-        == seek(Vec2d(100, 100), Vec2d(50, 50)).normalized() * 100
+    assert steering_movement.calculate_force() == Vec2d(
+        -70.71067811865475,
+        -70.71067811865475,
     )
 
 
-def test_steering_movement_calculate_force_wander(initialised_target: ECS) -> None:
+def test_steering_movement_calculate_force_wander(
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
+) -> None:
     """Test if the correct force is calculated for the wander behaviour.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.WANDER]},
     )
     steering_movement.system.get_physics_object_for_game_object(1).velocity = Vec2d(
@@ -856,15 +845,18 @@ def test_steering_movement_calculate_force_wander(initialised_target: ECS) -> No
 
 
 def test_steering_movement_calculate_force_multiple_behaviours(
-    initialised_target: ECS,
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
 ) -> None:
     """Test if the correct force is calculated when multiple behaviours are selected.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {
             SteeringMovementState.FOOTPRINT: [
                 SteeringBehaviours.FOLLOW_PATH,
@@ -884,16 +876,19 @@ def test_steering_movement_calculate_force_multiple_behaviours(
 
 
 def test_steering_movement_calculate_force_multiple_states(
-    initialised_target: ECS,
+    steering_movement_factory: Callable[
+        [dict[SteeringMovementState, list[SteeringBehaviours]]],
+        SteeringMovement,
+    ],
 ) -> None:
     """Test if the correct force is calculated when multiple states are initialised.
 
     Args:
-        initialised_target: The entity component system for use in testing.
+        steering_movement_factory: The steering movement component factory for use in
+            testing.
     """
     # Initialise the steering movement component with multiple states
-    steering_movement = initialise_steering_movement(
-        initialised_target,
+    steering_movement = steering_movement_factory(
         {
             SteeringMovementState.TARGET: [SteeringBehaviours.PURSUIT],
             SteeringMovementState.DEFAULT: [SteeringBehaviours.SEEK],
@@ -928,7 +923,7 @@ def test_steering_movement_calculate_force_multiple_states(
 def test_steering_movement_update_path_list_within_distance(
     steering_movement: SteeringMovement,
 ) -> None:
-    """Test if the path list is updated if the position is within the distance.
+    """Test if the path list is updated if the position is within the view distance.
 
     Args:
         steering_movement: The steering movement component for use in testing.
@@ -940,7 +935,7 @@ def test_steering_movement_update_path_list_within_distance(
 def test_steering_movement_update_path_list_outside_distance(
     steering_movement: SteeringMovement,
 ) -> None:
-    """Test if the path list is updated if the position is outside the distance.
+    """Test if the path list is updated if the position is outside the view distance.
 
     Args:
         steering_movement: The steering movement component for use in testing.
@@ -952,7 +947,7 @@ def test_steering_movement_update_path_list_outside_distance(
 def test_steering_movement_update_path_list_equal_distance(
     steering_movement: SteeringMovement,
 ) -> None:
-    """Test if the path list is updated if the position is equal to the distance.
+    """Test if the path list is updated if the position is equal to the view distance.
 
     Args:
         steering_movement: The steering movement component for use in testing.
@@ -990,7 +985,7 @@ def test_steering_movement_update_path_list_empty_list(
 def test_steering_movement_update_path_list_multiple_points(
     steering_movement: SteeringMovement,
 ) -> None:
-    """Test if the path list is updated if multiple footprints are within distance.
+    """Test if the path list is updated if multiple footprints are within view distance.
 
     Args:
         steering_movement: The steering movement component for use in testing.
