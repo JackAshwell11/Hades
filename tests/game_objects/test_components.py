@@ -71,7 +71,7 @@ def footprint(ecs: ECS) -> Footprint:
     Returns:
         The instant effects component for use in testing.
     """
-    ecs.add_game_object({}, Footprint, steering=True)
+    ecs.add_game_object({}, Footprint, physics=True)
     return cast(
         Footprint,
         ecs.get_component_for_game_object(0, ComponentType.FOOTPRINT),
@@ -283,7 +283,7 @@ def test_footprint_on_update_large_deltatime_full_list(footprint: Footprint) -> 
         Vec2d(8, 8),
         Vec2d(9, 9),
     ]
-    footprint.system.get_steering_object_for_game_object(0).position = Vec2d(10, 10)
+    footprint.system.get_physics_object_for_game_object(0).position = Vec2d(10, 10)
     footprint.on_update(0.5)
     assert footprint.footprints == [
         Vec2d(1, 1),
@@ -308,7 +308,7 @@ def test_footprint_on_update_multiple_updates(footprint: Footprint) -> None:
     footprint.on_update(0.6)
     assert footprint.footprints == [Vec2d(0, 0)]
     assert footprint.time_since_last_footprint == 0
-    footprint.system.get_steering_object_for_game_object(0).position = Vec2d(1, 1)
+    footprint.system.get_physics_object_for_game_object(0).position = Vec2d(1, 1)
     footprint.on_update(0.7)
     assert footprint.footprints == [Vec2d(0, 0), Vec2d(1, 1)]
     assert footprint.time_since_last_footprint == 0

@@ -7,14 +7,10 @@ import platform
 import subprocess
 import zipfile
 from pathlib import Path
-from typing import TypeVar
 
 # Pip
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
-
-# Define a generic type for the keyword arguments
-KW = TypeVar("KW")
 
 
 class BuildNamespace(argparse.Namespace):
@@ -33,8 +29,17 @@ class CMakeBuild(build_ext):
         Args:
             ext: The extension to build.
         """
-        # Make sure the temporary build directory exists
+        # Determine the current directory and the profile to build the CMake extension
+        # with
         current_dir = Path(__file__).parent
+        profile = "Release"
+
+        # Determine where the extension should be transferred to after it has been
+        # compiled
+        build_dir = current_dir.joinpath(self.get_ext_fullpath(ext.name)).parent
+        build_dir.mkdir(parents=True, exist_ok=True)
+
+        # Determine where the extension's build files should be located
         build_temp = current_dir.joinpath(self.build_temp).joinpath(ext.name)
         build_temp.mkdir(parents=True, exist_ok=True)
 
@@ -45,12 +50,17 @@ class CMakeBuild(build_ext):
                     "cmake",
                     str(current_dir.joinpath(ext.sources[0])),
                     "-DDO_PYTHON=true",
+                    f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{profile.upper()}={build_dir}",
                 ],
             ),
             cwd=build_temp,
             check=True,
         )
-        subprocess.run("cmake --build . --config Release", cwd=build_temp, check=True)
+        subprocess.run(
+            f"cmake --build . --config {profile}",
+            cwd=build_temp,
+            check=True,
+        )
 
 
 def executable() -> None:

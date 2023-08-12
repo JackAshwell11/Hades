@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from pymunk import Vec2d
 
     from hades.game_objects.base import ComponentData
-    from hades.game_objects.movements import SteeringObject
+    from hades.game_objects.movements import PhysicsObject
     from hades.game_objects.system import ECS
 
 __all__ = (
@@ -111,11 +111,11 @@ class Footprint(GameObjectComponent):
 
     Attributes:
         footprints: The footprints created by the game object.
-        steering_object: The steering object for the game object.
+        physics_object: The physics object for the game object.
         time_since_last_footprint: The time since the game object last left a footprint.
     """
 
-    __slots__ = ("footprints", "steering_object", "time_since_last_footprint")
+    __slots__ = ("footprints", "physics_object", "time_since_last_footprint")
 
     # Class variables
     component_type: ComponentType = ComponentType.FOOTPRINT
@@ -135,8 +135,8 @@ class Footprint(GameObjectComponent):
         """
         super().__init__(game_object_id, system, component_data)
         self.footprints: list[Vec2d] = []
-        self.steering_object: SteeringObject = (
-            self.system.get_steering_object_for_game_object(self.game_object_id)
+        self.physics_object: PhysicsObject = (
+            self.system.get_physics_object_for_game_object(self.game_object_id)
         )
         self.time_since_last_footprint: float = 0
 
@@ -157,7 +157,7 @@ class Footprint(GameObjectComponent):
         self.time_since_last_footprint = 0
         if len(self.footprints) >= FOOTPRINT_LIMIT:
             self.footprints.pop(0)
-        self.footprints.append(self.steering_object.position)
+        self.footprints.append(self.physics_object.position)
 
         # Update the path list for all SteeringMovement components
         for movement_component in self.system.get_components_for_component_type(

@@ -36,7 +36,10 @@ def test_grid_pos_to_pixel_zero() -> None:
 
 def test_grid_pos_to_pixel_negative() -> None:
     """Test that a negative position is converted correctly."""
-    with pytest.raises(expected_exception=BiggerThanError):
+    with pytest.raises(
+        expected_exception=BiggerThanError,
+        match="The input must be bigger than or equal to 0.",
+    ):
         grid_pos_to_pixel(-500, -500)
 
 

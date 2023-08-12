@@ -6,7 +6,8 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, TypedDict
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence, Set
+    from collections.abc import Callable, Mapping, Sequence
+    from collections.abc import Set as AbstractSet
 
     from hades.game_objects.system import ECS
 
@@ -51,8 +52,11 @@ class ComponentType(Enum):
 class GameObjectAttributeSectionType(Enum):
     """Stores the sections which group game object attributes together."""
 
-    ENDURANCE: Set[ComponentType] = {ComponentType.HEALTH, ComponentType.MOVEMENT_FORCE}
-    DEFENCE: Set[ComponentType] = {
+    ENDURANCE: AbstractSet[ComponentType] = {
+        ComponentType.HEALTH,
+        ComponentType.MOVEMENT_FORCE,
+    }
+    DEFENCE: AbstractSet[ComponentType] = {
         ComponentType.ARMOUR,
         ComponentType.ARMOUR_REGEN_COOLDOWN,
     }

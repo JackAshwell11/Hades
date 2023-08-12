@@ -48,7 +48,7 @@ class GameObjectConstructor(NamedTuple):
         components: A list of component types that are part of this game object.
         component_data: The data for the components.
         blocking: Whether the game object blocks sprite movement or not.
-        steering: Whether the game object should have a steering object or not.
+        physics: Whether the game object should have a physics object or not.
     """
 
     game_object_type: GameObjectType
@@ -56,7 +56,7 @@ class GameObjectConstructor(NamedTuple):
     components: ClassVar[list[type[GameObjectComponent]]] = []
     component_data: ClassVar[ComponentData] = {}
     blocking: bool = False
-    steering: bool = False
+    physics: bool = False
 
 
 # Static tiles
@@ -79,7 +79,7 @@ PLAYER: Final = GameObjectConstructor(
         "attributes": {ComponentType.MOVEMENT_FORCE: (5000, 5)},
         "inventory_size": (6, 5),
     },
-    steering=True,
+    physics=True,
 )
 
 # Enemy characters
@@ -98,7 +98,7 @@ ENEMY: Final = GameObjectConstructor(
             SteeringMovementState.TARGET: [SteeringBehaviours.PURSUIT],
         },
     },
-    steering=True,
+    physics=True,
 )
 
 # Potion tiles

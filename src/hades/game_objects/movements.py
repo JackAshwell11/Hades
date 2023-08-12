@@ -39,8 +39,8 @@ if TYPE_CHECKING:
 __all__ = (
     "KeyboardMovement",
     "MovementBase",
+    "PhysicsObject",
     "SteeringMovement",
-    "SteeringObject",
     "flee",
     "seek",
     "arrive",
@@ -53,15 +53,17 @@ __all__ = (
 
 
 @dataclass(slots=True)
-class SteeringObject:
-    """Stores various data about a game object for use in steering.
+class PhysicsObject:
+    """Stores various data about a game object for use in physics-related operations.
 
     position: The position of the game object.
     velocity: The velocity of the game object.
+    rotation: The rotation of the game object.
     """
 
     position: Vec2d
     velocity: Vec2d
+    rotation: float = 0
 
 
 def flee(current_position: Vec2d, target_position: Vec2d) -> Vec2d:
@@ -425,15 +427,15 @@ class SteeringMovement(MovementBase):
         """
         # Determine if the movement state should change or not
         (
-            current_steering,
-            target_steering,
-        ) = self.system.get_steering_object_for_game_object(
+            current_physics,
+            target_physics,
+        ) = self.system.get_physics_object_for_game_object(
             self.game_object_id,
-        ), self.system.get_steering_object_for_game_object(
+        ), self.system.get_physics_object_for_game_object(
             self.target_id,
         )
         if (
-            current_steering.position.get_distance(target_steering.position)
+            current_physics.position.get_distance(target_physics.position)
             <= TARGET_DISTANCE
         ):
             self._movement_state = SteeringMovementState.TARGET
@@ -448,45 +450,45 @@ class SteeringMovement(MovementBase):
             match behaviour:
                 case SteeringBehaviours.ARRIVE:
                     steering_force += arrive(
-                        current_steering.position,
-                        target_steering.position,
+                        current_physics.position,
+                        target_physics.position,
                     )
                 case SteeringBehaviours.EVADE:
                     steering_force += evade(
-                        current_steering.position,
-                        target_steering.position,
-                        target_steering.velocity,
+                        current_physics.position,
+                        target_physics.position,
+                        target_physics.velocity,
                     )
                 case SteeringBehaviours.FLEE:
                     steering_force += flee(
-                        current_steering.position,
-                        target_steering.position,
+                        current_physics.position,
+                        target_physics.position,
                     )
                 case SteeringBehaviours.FOLLOW_PATH:
                     steering_force += follow_path(
-                        current_steering.position,
+                        current_physics.position,
                         self.path_list,
                     )
                 case SteeringBehaviours.OBSTACLE_AVOIDANCE:
                     steering_force += obstacle_avoidance(
-                        current_steering.position,
-                        current_steering.velocity,
+                        current_physics.position,
+                        current_physics.velocity,
                         self.walls,
                     )
                 case SteeringBehaviours.PURSUIT:
                     steering_force += pursuit(
-                        current_steering.position,
-                        target_steering.position,
-                        target_steering.velocity,
+                        current_physics.position,
+                        target_physics.position,
+                        target_physics.velocity,
                     )
                 case SteeringBehaviours.SEEK:
                     steering_force += seek(
-                        current_steering.position,
-                        target_steering.position,
+                        current_physics.position,
+                        target_physics.position,
                     )
                 case SteeringBehaviours.WANDER:
                     steering_force += wander(
-                        current_steering.velocity,
+                        current_physics.velocity,
                         random.randint(0, 360),
                     )
                 case _:  # pragma: no cover
@@ -504,7 +506,7 @@ class SteeringMovement(MovementBase):
             footprints: The list of footprints to follow.
         """
         # Get the closest footprint to the target and test if one exists
-        current_position = self.system.get_steering_object_for_game_object(
+        current_position = self.system.get_physics_object_for_game_object(
             self.game_object_id,
         ).position
         closest_footprints = [
@@ -520,7 +522,7 @@ class SteeringMovement(MovementBase):
         # from that footprint
         target_footprint = min(
             closest_footprints,
-            key=self.system.get_steering_object_for_game_object(
+            key=self.system.get_physics_object_for_game_object(
                 self.target_id,
             ).position.get_distance,
         )

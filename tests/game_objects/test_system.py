@@ -112,9 +112,9 @@ def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
     assert ecs.get_components_for_game_object(0) == {}
     with pytest.raises(
         expected_exception=ECSError,
-        match="The game object ID `0` does not have a steering object.",
+        match="The game object ID `0` does not have a physics object.",
     ):
-        ecs.get_steering_object_for_game_object(0)
+        ecs.get_physics_object_for_game_object(0)
 
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
@@ -130,9 +130,9 @@ def test_ecs_game_object_with_zero_components(ecs: ECS) -> None:
         ecs.get_components_for_game_object(0)
     with pytest.raises(
         expected_exception=ECSError,
-        match="The game object ID `0` does not have a steering object.",
+        match="The game object ID `0` does not have a physics object.",
     ):
-        ecs.get_steering_object_for_game_object(0)
+        ecs.get_physics_object_for_game_object(0)
 
 
 def test_ecs_game_object_with_multiple_components(ecs: ECS) -> None:
@@ -176,18 +176,18 @@ def test_ecs_game_object_with_steering(ecs: ECS) -> None:
         ecs: The entity component system for use in testing.
     """
     # Test that adding the game object with steering works correctly
-    ecs.add_game_object({}, steering=True)
-    steering_object = ecs.get_steering_object_for_game_object(0)
-    assert steering_object.position == (0, 0)
-    assert steering_object.velocity == (0, 0)
+    ecs.add_game_object({}, physics=True)
+    physics_object = ecs.get_physics_object_for_game_object(0)
+    assert physics_object.position == (0, 0)
+    assert physics_object.velocity == (0, 0)
 
     # Test that removing the game object works correctly
     ecs.remove_game_object(0)
     with pytest.raises(
         expected_exception=ECSError,
-        match="The game object ID `0` does not have a steering object.",
+        match="The game object ID `0` does not have a physics object.",
     ):
-        ecs.get_steering_object_for_game_object(0)
+        ecs.get_physics_object_for_game_object(0)
 
 
 def test_ecs_multiple_game_objects(ecs: ECS) -> None:
@@ -300,7 +300,7 @@ def test_ecs_duplicate_components_steering(ecs: ECS) -> None:
             {},
             GameObjectComponentOne,
             GameObjectComponentOne,
-            steering=True,
+            physics=True,
         )
 
     # Test that the game object does not exist
@@ -311,9 +311,9 @@ def test_ecs_duplicate_components_steering(ecs: ECS) -> None:
         ecs.get_component_for_game_object(0, ComponentType.HEALTH)
     with pytest.raises(
         expected_exception=ECSError,
-        match="The game object ID `0` does not have a steering object.",
+        match="The game object ID `0` does not have a physics object.",
     ):
-        ecs.get_steering_object_for_game_object(0)
+        ecs.get_physics_object_for_game_object(0)
 
 
 def test_ecs_invalid_component(ecs: ECS) -> None:

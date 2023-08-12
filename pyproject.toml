@@ -20,7 +20,7 @@ shapely = "2.0.1"
 
 [tool.poetry.dev-dependencies]
 black = "23.7.0"
-mypy = "1.4.1"
+mypy = "1.5.0"
 nuitka = "1.7.9"
 ordered-set = "4.1.0"
 pre-commit = "3.3.3"
@@ -31,7 +31,7 @@ pytest-icdiff = "0.6"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.13.0"
 pytest-sugar = "0.9.7"
-ruff = "0.0.283"
+ruff = "0.0.284"
 ssort = "v0.11.6"
 tox = "4.7.0"
 
@@ -65,18 +65,21 @@ show_missing = true
 branch = true
 source = ["hades"]
 
+# Todo: Once Arcade is typed, review this
 [tool.mypy]
 disallow_any_decorated = true
 disallow_any_explicit = true
 disallow_any_expr = true
+disallow_any_unimported = true
 exclude = [
     "build.py",  # Setuptools is untyped so we need to ignore it
-    "views",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
+    "views/.*",  # Arcade is partially typed so we need to ignore these
 ]
 ignore_missing_imports = true
 pretty = true
 python_version = "3.10"
 show_column_numbers = true
+show_error_code_links = true
 show_error_context = true
 show_error_end = true
 strict = true
