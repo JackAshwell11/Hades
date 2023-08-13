@@ -23,9 +23,9 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Install dependencies
-        run: poetry install --no-interaction --only build
+        run: poetry install --no-interaction
       - name: Build game
-        run: poetry run python -m build
+        run: poetry run python -m build --executable
       - name: Release
         uses: svenstaro/upload-release-action@v2
         with:

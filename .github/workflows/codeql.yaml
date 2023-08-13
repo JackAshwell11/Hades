@@ -17,7 +17,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        language: ["python", "c++"]
+        language: ["python", "cpp"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,6 +26,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
+      - name: Set up CMake
+        if: matrix.language == 'cpp'
+        uses: lukka/get-cmake@v3.25.2
       - name: Install Poetry
         if: matrix.language == 'python'
         uses: snok/install-poetry@v1
@@ -40,9 +43,12 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           setup-python-dependencies: false
-      - name: Compile C++ extensions
-        if: matrix.language == 'c++'
-        run: cd hades_extensions && cmake -S . -B build && cmake --build build
+      - name: Configure and build CMake
+        if: matrix.language == 'cpp'
+        uses: lukka/run-cmake@v3
+        with:
+          cmakeListsTxtPath: "${{ github.workspace }}/hades_extensions/CMakeLists.txt"
+          buildDirectory: "${{ github.workspace }}/build"
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v2
         with:
