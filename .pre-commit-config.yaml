@@ -15,10 +15,11 @@ repos:
     hooks:
       - id: ruff
         args: ["--fix", "--exit-non-zero-on-fix"]
-  - repo: "https://github.com/pre-commit/mirrors-mypy"
-    rev: v1.5.0
-    hooks:
-      - id: mypy
+# TODO: Seems you need to add dependencies to additional_dependencies in order to stop Any problem
+#  - repo: "https://github.com/pre-commit/mirrors-mypy"
+#    rev: v1.5.0
+#    hooks:
+#      - id: mypy
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
     rev: v4.4.0
     hooks:
