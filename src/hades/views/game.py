@@ -324,7 +324,12 @@ class Game(View):
                     self.ids[GameObjectType.PLAYER][0].game_object_id,
                     ComponentType.ATTACKS,
                 ),
-            ).do_attack()
+            ).do_attack(
+                [
+                    game_object.game_object_id
+                    for game_object in self.ids[GameObjectType.ENEMY]
+                ],
+            )
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
@@ -356,8 +361,8 @@ class Game(View):
             ].game_object_id
             steering_movement.walls = {
                 (
-                    wall_sprite.center_x // SPRITE_SIZE,
-                    wall_sprite.center_y // SPRITE_SIZE,
+                    int(wall_sprite.center_x / SPRITE_SIZE),
+                    int(wall_sprite.center_y / SPRITE_SIZE),
                 )
                 for wall_sprite in self.ids[GameObjectType.WALL]
             }

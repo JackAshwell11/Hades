@@ -21,7 +21,7 @@ shapely = "2.0.1"
 [tool.poetry.dev-dependencies]
 black = "23.7.0"
 mypy = "1.5.0"
-nuitka = "1.7.9"
+nuitka = "1.7.10"
 ordered-set = "4.1.0"
 pre-commit = "3.3.3"
 pylint = "2.17.5"
@@ -72,7 +72,9 @@ disallow_any_expr = true
 disallow_any_unimported = true
 exclude = [
     "build.py",  # Setuptools is untyped so we need to ignore it
-    "views/.*",  # Arcade is partially typed so we need to ignore these
+    "src/hades/views/start_menu.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
+    "src/hades/views/inventory.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
+    "src/hades/views/shop.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 ignore_missing_imports = true
 pretty = true

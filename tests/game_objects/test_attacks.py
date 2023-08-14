@@ -17,6 +17,8 @@ from hades.game_objects.system import ECS
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from hades.game_objects.base import ComponentData
+
 __all__ = ()
 
 
@@ -72,7 +74,7 @@ def targets(ecs: ECS) -> list[int]:
         ecs.get_physics_object_for_game_object(target).position = position
         return target
 
-    component_data = {
+    component_data: ComponentData = {
         "attributes": {
             ComponentType.HEALTH: (50, -1),
             ComponentType.ARMOUR: (0, -1),
