@@ -1,184 +1,171 @@
-"""Manages various components available to the game objects."""
+"""Manages the components and their required data for each game object."""
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Generic, TypeVar, cast
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
 # Custom
-from hades.constants import ARMOUR_REGEN_AMOUNT, FOOTPRINT_INTERVAL, FOOTPRINT_LIMIT
-from hades.game_objects.attributes import Armour, ArmourRegenCooldown
-from hades.game_objects.base import ComponentType, GameObjectComponent
-from hades.game_objects.movements import MovementBase, SteeringMovement
+from hades.game_objects.base import SteeringMovementState
 
 if TYPE_CHECKING:
-    from hades.game_objects.base import ComponentData, Vec2d
-    from hades.game_objects.movements import PhysicsObject
-    from hades.game_objects.system import ECS
+    from collections.abc import Callable, Mapping, Sequence
+
+    from hades.game_objects.base import ComponentType, SteeringBehaviours
+    from hades.game_objects.steering import Vec2d
 
 __all__ = (
+    "Armour",
     "ArmourRegen",
+    "ArmourRegenCooldown",
+    "FireRatePenalty",
     "Footprint",
+    "GameObjectAttributeBase",
+    "Health",
+    "INV",
     "InstantEffects",
     "Inventory",
-    "InventorySpaceError",
+    "KeyboardMovement",
+    "Money",
+    "MovementForce",
+    "StatusEffect",
     "StatusEffects",
+    "SteeringMovement",
+    "ViewDistance",
 )
 
 # Define a generic type for the inventory
-T = TypeVar("T")
+INV = TypeVar("INV")
 
 
-class InventorySpaceError(Exception):
-    """Raised when there is a space problem with the inventory."""
-
-    def __init__(self: InventorySpaceError, *, full: bool) -> None:
-        """Initialise the object.
-
-        Args:
-            full: Whether the inventory is empty or full.
-        """
-        super().__init__(f"The inventory is {'full' if full else 'empty'}.")
-
-
-class ArmourRegen(GameObjectComponent):
-    """Allows a game object to regenerate armour.
+@dataclass(slots=True)
+class StatusEffect:
+    """Represents a status effect that can be applied to a game object attribute.
 
     Attributes:
-        armour: The game object's armour component.
-        armour_regen_cooldown: The game object's armour regen cooldown component.
-        time_since_armour_regen: The time since the game object last regenerated armour.
+        value: The value that should be applied to the game object temporarily.
+        duration: The duration the status effect should be applied for.
+        original_value: The original value of the game object attribute which is being
+            changed.
+        original_max_value: The original maximum value of the game object attribute
+            which is being changed.
+        time_counter: The time counter for the status effect.
     """
 
-    __slots__ = ("armour", "armour_regen_cooldown", "time_since_armour_regen")
+    value: float
+    duration: float
+    original_value: float
+    original_max_value: float
+    time_counter: float = field(init=False)
 
-    # Class variables
-    component_type: ComponentType = ComponentType.ARMOUR_REGEN
+    def __post_init__(self: StatusEffect) -> None:
+        """Initialise the object after its initial initialisation."""
+        self.time_counter = 0
+
+
+@dataclass(slots=True)
+class GameObjectAttributeBase:
+    """The base class for all game object attributes.
+
+    Attributes:
+        level_limit: The level limit of the game object attribute.
+        max_value: The maximum value of the game object attribute.
+        current_level: The current level of the game object attribute.
+        applied_status_effect: The status effect currently applied to the game object.
+    """
+
+    instant_effect: ClassVar[bool] = True
+    maximum: ClassVar[bool] = True
+    status_effect: ClassVar[bool] = True
+    upgradable: ClassVar[bool] = True
+    _value: float
+    level_limit: int
+    max_value: float
+    current_level: int = 0
+    applied_status_effect: StatusEffect | None = None
 
     def __init__(
-        self: ArmourRegen,
-        game_object_id: int,
-        system: ECS,
-        component_data: ComponentData,
+        self: GameObjectAttributeBase,
+        initial_value: int,
+        level_limit: int,
     ) -> None:
         """Initialise the object.
 
         Args:
-            game_object_id: The game object ID.
-            system: The entity component system which manages the game objects.
-            component_data: The data for the components.
+            initial_value: The initial value of the game object attribute.
+            level_limit: The level limit of the game object attribute.
         """
-        super().__init__(game_object_id, system, component_data)
-        self.armour: Armour = cast(
-            Armour,
-            self.system.get_component_for_game_object(
-                self.game_object_id,
-                ComponentType.ARMOUR,
-            ),
-        )
-        self.armour_regen_cooldown: ArmourRegenCooldown = cast(
-            ArmourRegenCooldown,
-            self.system.get_component_for_game_object(
-                self.game_object_id,
-                ComponentType.ARMOUR_REGEN_COOLDOWN,
-            ),
-        )
-        self.time_since_armour_regen: float = 0
+        self._level_limit = level_limit
+        self._value: float = initial_value
+        self._max_value: float = initial_value if self.maximum else float("inf")
 
-    def on_update(self: ArmourRegen, delta_time: float) -> None:
-        """Process armour regeneration update logic.
-
-        Args:
-            delta_time: Time interval since the last time the function was called.
-        """
-        self.time_since_armour_regen += delta_time
-        if self.time_since_armour_regen >= self.armour_regen_cooldown.value:
-            self.armour.value += ARMOUR_REGEN_AMOUNT
-            self.time_since_armour_regen = 0
-
-    def __repr__(self: ArmourRegen) -> str:
-        """Return a human-readable representation of this object.
+    @property
+    def value(self: GameObjectAttributeBase) -> float:
+        """Get the game object attribute's value.
 
         Returns:
-            The human-readable representation of this object.
+            The game object attribute's value.
         """
-        return f"<ArmourRegen (Time since armour regen={self.time_since_armour_regen})>"
+        return self._value
+
+    @value.setter
+    def value(self: GameObjectAttributeBase, new_value: float) -> None:
+        """Set the game object attribute's value.
+
+        Args:
+            new_value: The new game object attribute's value.
+        """
+        self._value = max(min(new_value, self._max_value), 0)
 
 
-class Footprint(GameObjectComponent):
+class Armour(GameObjectAttributeBase):
+    """Allows a game object to have an armour attribute."""
+
+
+@dataclass(slots=True)
+class ArmourRegen:
+    """Allows a game object to regenerate armour.
+
+    Attributes:
+        time_since_armour_regen: The time since the game object last regenerated armour.
+    """
+
+    time_since_armour_regen: float = 0
+
+
+class ArmourRegenCooldown(GameObjectAttributeBase):
+    """Allows a game object to have an armour regen cooldown attribute."""
+
+    instant_effect: ClassVar[bool] = False
+    maximum: ClassVar[bool] = False
+
+
+class FireRatePenalty(GameObjectAttributeBase):
+    """Allows a game object to have a fire rate penalty attribute."""
+
+    instant_effect: ClassVar[bool] = False
+    maximum: ClassVar[bool] = False
+
+
+@dataclass(slots=True)
+class Footprint:
     """Allows a game object to periodically leave footprints around the game map.
 
     Attributes:
         footprints: The footprints created by the game object.
-        physics_object: The physics object for the game object.
         time_since_last_footprint: The time since the game object last left a footprint.
     """
 
-    __slots__ = ("footprints", "physics_object", "time_since_last_footprint")
-
-    # Class variables
-    component_type: ComponentType = ComponentType.FOOTPRINT
-
-    def __init__(
-        self: Footprint,
-        game_object_id: int,
-        system: ECS,
-        component_data: ComponentData,
-    ) -> None:
-        """Initialise the object.
-
-        Args:
-            game_object_id: The game object ID.
-            system: The entity component system which manages the game objects.
-            component_data: The data for the components.
-        """
-        super().__init__(game_object_id, system, component_data)
-        self.footprints: list[Vec2d] = []
-        self.physics_object: PhysicsObject = (
-            self.system.get_physics_object_for_game_object(self.game_object_id)
-        )
-        self.time_since_last_footprint: float = 0
-
-    def on_update(self: Footprint, delta_time: float) -> None:
-        """Process AI update logic.
-
-        Args:
-            delta_time: Time interval since the last time the function was called.
-        """
-        # Update the time since the last footprint then check if a new footprint should
-        # be created
-        self.time_since_last_footprint += delta_time
-        if self.time_since_last_footprint < FOOTPRINT_INTERVAL:
-            return
-
-        # Reset the counter and create a new footprint making sure to only keep
-        # FOOTPRINT_LIMIT footprints
-        self.time_since_last_footprint = 0
-        if len(self.footprints) >= FOOTPRINT_LIMIT:
-            self.footprints.pop(0)
-        self.footprints.append(self.physics_object.position)
-
-        # Update the path list for all SteeringMovement components
-        for movement_component in self.system.get_components_for_component_type(
-            ComponentType.MOVEMENTS,
-        ):
-            if not cast(MovementBase, movement_component).is_player_controlled:
-                cast(SteeringMovement, movement_component).update_path_list(
-                    self.footprints,
-                )
-
-    def __repr__(self: Footprint) -> str:
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return (
-            f"<Footprint (Footprint count={len(self.footprints)}) (Time since last"
-            f" footprint={self.time_since_last_footprint})>"
-        )
+    footprints: list[Vec2d] = field(default_factory=list)
+    time_since_last_footprint: float = 0
 
 
-class InstantEffects(GameObjectComponent):
+class Health(GameObjectAttributeBase):
+    """Allows a game object to have a health attribute."""
+
+
+@dataclass(slots=True)
+class InstantEffects:
     """Allows a game object to provide instant effects.
 
     Attributes:
@@ -186,37 +173,14 @@ class InstantEffects(GameObjectComponent):
         instant_effects: The instant effects provided by the game object.
     """
 
-    __slots__ = ("instant_effects", "level_limit")
-
-    # Class variables
-    component_type: ComponentType = ComponentType.INSTANT_EFFECTS
-
-    def __init__(
-        self: InstantEffects,
-        game_object_id: int,
-        system: ECS,
-        component_data: ComponentData,
-    ) -> None:
-        """Initialise the object.
-
-        Args:
-            game_object_id: The game object ID.
-            system: The entity component system which manages the game objects.
-            component_data: The data for the components.
-        """
-        super().__init__(game_object_id, system, component_data)
-        self.level_limit, self.instant_effects = component_data["instant_effects"]
-
-    def __repr__(self: InstantEffects) -> str:
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return f"<InstantEffects (Level limit={self.level_limit})>"
+    level_limit: int
+    instant_effects: Mapping[ComponentType, Callable[[int], float]] = field(
+        default_factory=list,
+    )
 
 
-class Inventory(Generic[T], GameObjectComponent):
+@dataclass(slots=True)
+class Inventory(Generic[INV]):
     """Allows a game object to have a fixed size inventory.
 
     Attributes:
@@ -225,71 +189,46 @@ class Inventory(Generic[T], GameObjectComponent):
         inventory: The game object's inventory.
     """
 
-    __slots__ = (
-        "width",
-        "height",
-        "inventory",
-    )
-
-    # Class variables
-    component_type: ComponentType = ComponentType.INVENTORY
-
-    def __init__(
-        self: Inventory[T],
-        game_object_id: int,
-        system: ECS,
-        component_data: ComponentData,
-    ) -> None:
-        """Initialise the object.
-
-        Args:
-            game_object_id: The game object ID.
-            system: The entity component system which manages the game objects.
-            component_data: The data for the components.
-        """
-        super().__init__(game_object_id, system, component_data)
-        self.width, self.height = component_data["inventory_size"]
-        self.inventory: list[T] = []
-
-    def add_item_to_inventory(self: Inventory[T], item: T) -> None:
-        """Add an item to the inventory.
-
-        Args:
-            item: The item to add to the inventory.
-
-        Raises:
-            InventorySpaceError: The inventory is full.
-        """
-        if len(self.inventory) == self.width * self.height:
-            raise InventorySpaceError(full=True)
-        self.inventory.append(item)
-
-    def remove_item_from_inventory(self: Inventory[T], index: int) -> T:
-        """Remove an item at a specific index.
-
-        Args:
-            index: The index to remove an item at.
-
-        Returns:
-            The item at position `index` in the inventory.
-
-        Raises:
-            InventorySpaceError: The inventory is empty.
-        """
-        if len(self.inventory) < index:
-            raise InventorySpaceError(full=False)
-        return self.inventory.pop(index)
-
-    def __repr__(self: Inventory[T]) -> str:
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return f"<Inventory (Width={self.width}) (Height={self.height})>"
+    width: int
+    height: int
+    inventory: list[INV] = field(default_factory=list)
 
 
-class StatusEffects(GameObjectComponent):
+@dataclass(slots=True)
+class KeyboardMovement:
+    """Allows a game object's movement to be controlled by the keyboard.
+
+    Attributes:
+        north_pressed: Whether the game object is moving north or not.
+        south_pressed: Whether the game object is moving south or not.
+        east_pressed: Whether the game object is moving east or not.
+        west_pressed: Whether the game object is moving west or not.
+    """
+
+    north_pressed: bool = False
+    south_pressed: bool = False
+    east_pressed: bool = False
+    west_pressed: bool = False
+
+
+class Money(GameObjectAttributeBase):
+    """Allows a game object to have a money attribute."""
+
+    instant_effect: ClassVar[bool] = False
+    maximum: ClassVar[bool] = False
+    status_effect: ClassVar[bool] = False
+    upgradable: ClassVar[bool] = False
+
+
+class MovementForce(GameObjectAttributeBase):
+    """Allows a game object to have a movement force attribute."""
+
+    instant_effect: ClassVar[bool] = False
+    maximum: ClassVar[bool] = False
+
+
+@dataclass(slots=True)
+class StatusEffects:
     """Allows a game object to provide status effects.
 
     Attributes:
@@ -297,31 +236,34 @@ class StatusEffects(GameObjectComponent):
         status_effects: The status effects provided by the game object.
     """
 
-    __slots__ = ("level_limit", "status_effects")
+    level_limit: int
+    status_effects: Mapping[
+        ComponentType,
+        tuple[Callable[[int], float], Callable[[int], float]],
+    ] = field(default_factory=list)
 
-    # Class variables
-    component_type: ComponentType = ComponentType.STATUS_EFFECTS
 
-    def __init__(
-        self: StatusEffects,
-        game_object_id: int,
-        system: ECS,
-        component_data: ComponentData,
-    ) -> None:
-        """Initialise the object.
+@dataclass(slots=True)
+class SteeringMovement:
+    """Allows a game object's movement to be controlled by steering algorithms.
 
-        Args:
-            game_object_id: The game object ID.
-            system: The entity component system which manages the game objects.
-            component_data: The data for the components.
-        """
-        super().__init__(game_object_id, system, component_data)
-        self.level_limit, self.status_effects = component_data["status_effects"]
+    Attributes:
+        behaviours: The behaviours used by the game object.
+        movement_state: The current movement state of the game object.
+        target_id: The game object ID of the target.
+        walls: The list of wall positions in the game.
+        path_list: The list of points the game object should follow.
+    """
 
-    def __repr__(self: StatusEffects) -> str:
-        """Return a human-readable representation of this object.
+    behaviours: Mapping[SteeringMovementState, Sequence[SteeringBehaviours]]
+    movement_state: SteeringMovementState = SteeringMovementState.DEFAULT
+    target_id: int = -1
+    walls: set[tuple[int, int]] = field(default_factory=set)
+    path_list: list[Vec2d] = field(default_factory=list)
 
-        Returns:
-            The human-readable representation of this object.
-        """
-        return f"<StatusEffects (Level limit={self.level_limit})>"
+
+class ViewDistance(GameObjectAttributeBase):
+    """Allows a game object to have a view distance attribute."""
+
+    instant_effect: ClassVar[bool] = False
+    maximum: ClassVar[bool] = False
