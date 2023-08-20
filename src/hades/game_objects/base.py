@@ -2,20 +2,23 @@
 from __future__ import annotations
 
 # Builtin
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence
     from collections.abc import Set as AbstractSet
+
+    from hades.game_objects.registry import Registry
 
 __all__ = (
     "AttackAlgorithms",
     "GameObjectAttributeSectionType",
-    "ComponentData",
+    "ComponentBase",
     "ComponentType",
     "SteeringBehaviours",
     "SteeringMovementState",
+    "SystemBase",
 )
 
 
@@ -80,23 +83,36 @@ class SteeringMovementState(Enum):
     TARGET = auto()
 
 
-class ComponentData(TypedDict, total=False):
-    """Holds the data needed to initialise the components.
+@dataclass(slots=True)
+class ComponentBase:
+    """The base class for all components."""
 
-    attributes: The data for the game object attributes.
-    enabled_attacks: The attacks which are enabled for the game object.
-    steering_behaviours: The steering behaviours to use.
-    instant_effects: The instant effects that this game object can apply.
-    inventory_size: The size of the game object's inventory.
-    status_effects: The status effects that this game object can apply.
-    """
 
-    attributes: Mapping[ComponentType, tuple[int, int]]
-    enabled_attacks: Sequence[AttackAlgorithms]
-    steering_behaviours: Mapping[SteeringMovementState, Sequence[SteeringBehaviours]]
-    instant_effects: tuple[int, Mapping[ComponentType, Callable[[int], float]]]
-    inventory_size: tuple[int, int]
-    status_effects: tuple[
-        int,
-        Mapping[ComponentType, tuple[Callable[[int], float], Callable[[int], float]]],
-    ]
+class SystemBase:
+    """The base class for all systems."""
+
+    __slots__ = ("registry",)
+
+    def __init__(self: SystemBase, registry: Registry) -> None:
+        """Initialise the system.
+
+        Args:
+            registry: The registry that manages the game objects, components, and
+            systems.
+        """
+        self.registry: Registry = registry
+
+    def update(self: SystemBase, delta_time: float) -> None:
+        """Process update logic for a system.
+
+        Args:
+            delta_time: The time interval since the last time the function was called.
+        """
+
+    def __repr__(self: SystemBase) -> str:
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return f"<{self.__class__.__name__}>"

@@ -41,7 +41,7 @@ from hades.game_objects.constructors import (
     GameObjectConstructor,
 )
 from hades.game_objects.movements import KeyboardMovement, SteeringMovement
-from hades.game_objects.system import ECS
+from hades.game_objects.registry import ECS
 from hades.physics import PhysicsEngine
 from hades.sprite import HadesSprite
 from hades.textures import grid_pos_to_pixel

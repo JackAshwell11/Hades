@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, ClassVar, Final, NamedTuple
 
 # Custom
 from hades.constants import GameObjectType
-from hades.game_objects.attributes import MovementForce
 from hades.game_objects.base import (
     ComponentType,
     SteeringBehaviours,
@@ -14,6 +13,7 @@ from hades.game_objects.base import (
 )
 from hades.game_objects.components import Footprint, Inventory
 from hades.game_objects.movements import KeyboardMovement, SteeringMovement
+from hades.game_objects.systems import MovementForce
 from hades.textures import TextureType
 
 if TYPE_CHECKING:

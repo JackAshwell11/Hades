@@ -15,7 +15,7 @@ from hades.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
     from hades.game_objects.constructors import GameObjectTextures
-    from hades.game_objects.system import ECS
+    from hades.game_objects.registry import ECS
     from hades.physics import PhysicsEngine
 
 __all__ = ("HadesSprite",)

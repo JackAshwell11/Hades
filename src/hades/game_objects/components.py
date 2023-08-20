@@ -6,7 +6,11 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
 
 # Custom
-from hades.game_objects.base import SteeringMovementState
+from hades.game_objects.base import (
+    AttackAlgorithms,
+    ComponentBase,
+    SteeringMovementState,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -18,6 +22,7 @@ __all__ = (
     "Armour",
     "ArmourRegen",
     "ArmourRegenCooldown",
+    "Attacks",
     "FireRatePenalty",
     "Footprint",
     "GameObjectAttributeBase",
@@ -64,7 +69,7 @@ class StatusEffect:
 
 
 @dataclass(slots=True)
-class GameObjectAttributeBase:
+class GameObjectAttributeBase(ComponentBase):
     """The base class for all game object attributes.
 
     Attributes:
@@ -118,12 +123,13 @@ class GameObjectAttributeBase:
         self._value = max(min(new_value, self._max_value), 0)
 
 
+@dataclass(slots=True)
 class Armour(GameObjectAttributeBase):
     """Allows a game object to have an armour attribute."""
 
 
 @dataclass(slots=True)
-class ArmourRegen:
+class ArmourRegen(ComponentBase):
     """Allows a game object to regenerate armour.
 
     Attributes:
@@ -133,6 +139,7 @@ class ArmourRegen:
     time_since_armour_regen: float = 0
 
 
+@dataclass(slots=True)
 class ArmourRegenCooldown(GameObjectAttributeBase):
     """Allows a game object to have an armour regen cooldown attribute."""
 
@@ -140,6 +147,15 @@ class ArmourRegenCooldown(GameObjectAttributeBase):
     maximum: ClassVar[bool] = False
 
 
+@dataclass(slots=True)
+class Attacks(ComponentBase):
+    """Allows a game object to attack other game objects."""
+
+    attacks: Sequence[AttackAlgorithms]
+    attack_state: int = 0
+
+
+@dataclass(slots=True)
 class FireRatePenalty(GameObjectAttributeBase):
     """Allows a game object to have a fire rate penalty attribute."""
 
@@ -148,7 +164,7 @@ class FireRatePenalty(GameObjectAttributeBase):
 
 
 @dataclass(slots=True)
-class Footprint:
+class Footprint(ComponentBase):
     """Allows a game object to periodically leave footprints around the game map.
 
     Attributes:
@@ -160,12 +176,13 @@ class Footprint:
     time_since_last_footprint: float = 0
 
 
+@dataclass(slots=True)
 class Health(GameObjectAttributeBase):
     """Allows a game object to have a health attribute."""
 
 
 @dataclass(slots=True)
-class InstantEffects:
+class InstantEffects(ComponentBase):
     """Allows a game object to provide instant effects.
 
     Attributes:
@@ -180,7 +197,7 @@ class InstantEffects:
 
 
 @dataclass(slots=True)
-class Inventory(Generic[INV]):
+class Inventory(ComponentBase, Generic[INV]):
     """Allows a game object to have a fixed size inventory.
 
     Attributes:
@@ -195,7 +212,7 @@ class Inventory(Generic[INV]):
 
 
 @dataclass(slots=True)
-class KeyboardMovement:
+class KeyboardMovement(ComponentBase):
     """Allows a game object's movement to be controlled by the keyboard.
 
     Attributes:
@@ -211,6 +228,7 @@ class KeyboardMovement:
     west_pressed: bool = False
 
 
+@dataclass(slots=True)
 class Money(GameObjectAttributeBase):
     """Allows a game object to have a money attribute."""
 
@@ -220,6 +238,7 @@ class Money(GameObjectAttributeBase):
     upgradable: ClassVar[bool] = False
 
 
+@dataclass(slots=True)
 class MovementForce(GameObjectAttributeBase):
     """Allows a game object to have a movement force attribute."""
 
@@ -228,7 +247,7 @@ class MovementForce(GameObjectAttributeBase):
 
 
 @dataclass(slots=True)
-class StatusEffects:
+class StatusEffects(ComponentBase):
     """Allows a game object to provide status effects.
 
     Attributes:
@@ -244,7 +263,7 @@ class StatusEffects:
 
 
 @dataclass(slots=True)
-class SteeringMovement:
+class SteeringMovement(ComponentBase):
     """Allows a game object's movement to be controlled by steering algorithms.
 
     Attributes:
@@ -262,6 +281,7 @@ class SteeringMovement:
     path_list: list[Vec2d] = field(default_factory=list)
 
 
+@dataclass(slots=True)
 class ViewDistance(GameObjectAttributeBase):
     """Allows a game object to have a view distance attribute."""
 
