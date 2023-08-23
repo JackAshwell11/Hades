@@ -1,4 +1,4 @@
-"""Tests all functions in game_objects/registry.py."""
+"""Tests all classes and functions in game_objects/registry.py."""
 from __future__ import annotations
 
 # Builtin
@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import pytest
 
 # Custom
-from hades.game_objects.base import ComponentBase
+from hades.game_objects.base import ComponentBase, SystemBase
 from hades.game_objects.registry import Registry, RegistryError
 
 __all__ = ()
@@ -28,6 +28,16 @@ class GameObjectComponentTwo(ComponentBase):
 
 class GameObjectComponentInvalid:
     """Represents an invalid game object component useful for testing."""
+
+
+class SystemTest(SystemBase):
+    """Represents a test system useful for testing."""
+
+    called: bool = False
+
+    def update(self: SystemTest, _: float) -> None:
+        """Update the system."""
+        self.called = True
 
 
 @pytest.fixture()
@@ -53,11 +63,11 @@ def test_raise_not_registered_error_custom_error() -> None:
     """Test that RegistryError is raised correctly with a custom error message."""
     with pytest.raises(
         expected_exception=RegistryError,
-        match="The test `temp` error.",
+        match="The test `10` error.",
     ):
         raise RegistryError(
             not_registered_type="test",
-            value="temp",
+            value=10,
             error="error",
         )
 
@@ -82,8 +92,9 @@ def test_registry_game_object_with_zero_components(registry: Registry) -> None:
     """
     # Test that adding the game object works correctly
     assert registry.create_game_object() == 0
-    assert list(registry.get_components(GameObjectComponentOne)) == []
-    assert list(registry.get_components(GameObjectComponentTwo)) == []
+    assert not list(registry.get_components(GameObjectComponentOne))
+    assert not list(registry.get_components(GameObjectComponentTwo))
+    assert registry.walls == set()
     with pytest.raises(
         expected_exception=RegistryError,
         match="The game object ID `0` does not have a physics object.",
@@ -94,8 +105,9 @@ def test_registry_game_object_with_zero_components(registry: Registry) -> None:
 
     # Test that removing the game object works correctly
     registry.delete_game_object(0)
-    assert list(registry.get_components(GameObjectComponentOne)) == []
-    assert list(registry.get_components(GameObjectComponentTwo)) == []
+    assert not list(registry.get_components(GameObjectComponentOne))
+    assert not list(registry.get_components(GameObjectComponentTwo))
+    assert registry.walls == set()
     with pytest.raises(
         expected_exception=RegistryError,
         match="The game object ID `0` is not registered with the registry.",
@@ -133,14 +145,13 @@ def test_registry_game_object_with_multiple_components(registry: Registry) -> No
     with pytest.raises(expected_exception=KeyError):
         registry.get_component_for_game_object(
             0,
-            GameObjectComponentInvalid,  # type: ignore[arg-type]
+            GameObjectComponentInvalid,  # type: ignore[type-var]
         )
 
     # Test that removing the game object works correctly
     registry.delete_game_object(0)
-    assert (
-        list(registry.get_components(GameObjectComponentOne, GameObjectComponentTwo))
-        == []
+    assert not list(
+        registry.get_components(GameObjectComponentOne, GameObjectComponentTwo),
     )
     with pytest.raises(
         expected_exception=RegistryError,
@@ -247,4 +258,49 @@ def test_registry_duplicate_components(registry: Registry) -> None:
     ) == GameObjectComponentTwo(10)
 
 
-# TODO: Test systems get, update and delete
+def test_registry_zero_systems(registry: Registry) -> None:
+    """Test the registry with registering zero systems.
+
+    Args:
+        registry: The registry for use in testing.
+    """
+    with pytest.raises(
+        expected_exception=RegistryError,
+        match=(
+            "The system `<class 'tests.game_objects.test_registry.SystemTest'>` is not "
+            "registered with the registry."
+        ),
+    ):
+        registry.get_system(SystemTest)
+
+
+def test_registry_valid_system(registry: Registry) -> None:
+    """Test the registry with a valid system.
+
+    Args:
+        registry: The registry for use in testing.
+    """
+    # Test that registering a system works correctly
+    system = SystemTest(registry)
+    registry.add_system(system)
+    with pytest.raises(
+        expected_exception=RegistryError,
+        match="The system `SystemTest` is already registered with the registry.",
+    ):
+        registry.add_system(system)
+    assert registry.get_system(SystemTest) == system
+    registry.update(0)
+    assert system.called
+
+
+def test_registry_add_wall(registry: Registry) -> None:
+    """Test the registry with adding a wall.
+
+    Args:
+        registry: The registry for use in testing.
+    """
+    assert registry.walls == set()
+    registry.walls.add((0, 0))
+    registry.walls.add((1, 1))
+    registry.walls.add((0, 0))
+    assert registry.walls == {(0, 0), (1, 1)}

@@ -15,7 +15,7 @@ from hades.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
     from hades.game_objects.constructors import GameObjectTextures
-    from hades.game_objects.registry import ECS
+    from hades.game_objects.registry import Registry
     from hades.physics import PhysicsEngine
 
 __all__ = ("HadesSprite",)
@@ -27,7 +27,7 @@ class HadesSprite(Sprite):
     def __init__(
         self: HadesSprite,
         game_object_id: int,
-        system: ECS,
+        registry: Registry,
         position: tuple[int, int],
         game_object_textures: GameObjectTextures,
     ) -> None:
@@ -35,14 +35,14 @@ class HadesSprite(Sprite):
 
         Args:
             game_object_id: The game object's ID.
-            system: The entity component system which manages the game objects.
+            registry: The registry which manages the game objects.
             position: The position of the sprite object in the grid.
             game_object_textures: The collection of textures which relate to this game
             object.
         """
         super().__init__(scale=SPRITE_SCALE)
         self.game_object_id: int = game_object_id
-        self.system: ECS = system
+        self.registry: Registry = registry
         self.position = grid_pos_to_pixel(*position)
         self.game_object_textures: GameObjectTextures = game_object_textures
         self.in_combat: bool = False
@@ -59,24 +59,14 @@ class HadesSprite(Sprite):
         """
         return self.physics_engines[0]  # type: ignore[misc,no-any-return]
 
-    def on_update(self: HadesSprite, delta_time: float = 1 / 60) -> None:
-        """Handle an on_update event for the game object.
-
-        Args:
-            delta_time: The time interval since the last time the event was triggered.
-        """
-        # Update the game object's components
-        for component in self.system.get_components_for_game_object(
-            self.game_object_id,
-        ).values():
-            component.on_update(delta_time)
-
+    def on_update(self: HadesSprite, _: float = 1 / 60) -> None:
+        """Handle an on_update event for the game object."""
         # Calculate the game object's new movement force and apply it
         self.physics.apply_force(
             self,
             cast(
                 MovementBase,
-                self.system.get_component_for_game_object(
+                self.registry.get_component_for_game_object(
                     self.game_object_id,
                     ComponentType.MOVEMENTS,
                 ),
@@ -94,7 +84,7 @@ class HadesSprite(Sprite):
             physics_engine: The game object's physics engine.
         """
         physics_object, body = (
-            self.system.get_physics_object_for_game_object(self.game_object_id),
+            self.registry.get_physics_object_for_game_object(self.game_object_id),
             physics_engine.get_physics_object(self).body,
         )
         if body is None:

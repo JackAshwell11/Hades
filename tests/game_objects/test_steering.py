@@ -1,4 +1,4 @@
-"""Tests all functions in game_objects/systems.py."""
+"""Tests all classes and functions in game_objects/steering.py."""
 from __future__ import annotations
 
 # Builtin

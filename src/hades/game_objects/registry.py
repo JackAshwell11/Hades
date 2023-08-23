@@ -2,19 +2,22 @@
 from __future__ import annotations
 
 # Builtin
-from typing import Generator, TypeVar, overload
+from typing import TYPE_CHECKING, TypeVar, overload
 
 # Custom
 from hades.game_objects.base import ComponentBase, SystemBase
 from hades.game_objects.steering import PhysicsObject, Vec2d
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 __all__ = ("Registry", "RegistryError")
 
 
 # Define some type variables for the registry
 C = TypeVar("C", bound=ComponentBase)
-C1 = TypeVar("C1", bound=ComponentBase)
-C2 = TypeVar("C2", bound=ComponentBase)
+COne = TypeVar("COne", bound=ComponentBase)
+CTwo = TypeVar("CTwo", bound=ComponentBase)
 S = TypeVar("S", bound=SystemBase)
 
 
@@ -25,7 +28,7 @@ class RegistryError(Exception):
         self: RegistryError,
         *,
         not_registered_type: str,
-        value: int | str,
+        value: int | str | type[S],
         error: str = "is not registered with the registry",
     ) -> None:
         """Initialise the object.
@@ -47,6 +50,7 @@ class Registry:
         "_game_objects",
         "_systems",
         "_physics_objects",
+        "walls",
     )
 
     def __init__(self: Registry) -> None:
@@ -56,6 +60,7 @@ class Registry:
         self._game_objects: dict[int, dict[type[ComponentBase], ComponentBase]] = {}
         self._systems: dict[type[SystemBase], SystemBase] = {}
         self._physics_objects: dict[int, PhysicsObject] = {}
+        self.walls: set[Vec2d] = set()
 
     def update(self: Registry, delta_time: float) -> None:
         """Update all the systems.
@@ -132,6 +137,15 @@ class Registry:
         Args:
             system: The system to add.
         """
+        # Check if the system is already registered or not
+        if type(system) in self._systems:
+            raise RegistryError(
+                not_registered_type="system",
+                value=system.__class__.__name__,
+                error="is already registered with the registry",
+            )
+
+        # Add the system to the registry
         self._systems[type(system)] = system
 
     def get_system(self: Registry, system: type[S]) -> S:
@@ -140,9 +154,20 @@ class Registry:
         Args:
             system: The system to get.
 
+        Raises:
+            RegistryError: The system `system` is not registered with the registry.
+
         Returns:
             The system.
         """
+        # Check if the system is registered or not
+        if system not in self._systems:
+            raise RegistryError(
+                not_registered_type="system",
+                value=system,
+            )
+
+        # Return the specified system
         return self._systems[system]
 
     def get_component_for_game_object(
@@ -177,24 +202,24 @@ class Registry:
     def get_components(
         self: Registry,
         __component: type[C],
-    ) -> Generator[tuple[int, C], None, None]:  # pragma: no cover
+    ) -> Generator[tuple[int, tuple[C]], None, None]:  # pragma: no cover
         ...
 
     @overload
     def get_components(
         self: Registry,
         __component: type[C],
-        __component_two: type[C1],
-    ) -> Generator[tuple[int, tuple[C, C1]], None, None]:  # pragma: no cover
+        __component_two: type[COne],
+    ) -> Generator[tuple[int, tuple[C, COne]], None, None]:  # pragma: no cover
         ...
 
     @overload
     def get_components(
         self: Registry,
         __component: type[C],
-        __component_two: type[C1],
-        __component_three: type[C2],
-    ) -> Generator[tuple[int, tuple[C, C1, C2]], None, None]:  # pragma: no cover
+        __component_two: type[COne],
+        __component_three: type[CTwo],
+    ) -> Generator[tuple[int, tuple[C, COne, CTwo]], None, None]:  # pragma: no cover
         ...
 
     def get_components(

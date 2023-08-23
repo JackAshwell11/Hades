@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import NamedTuple, cast
+from typing import NamedTuple
 
 # Pip
 from arcade import (
@@ -30,8 +30,7 @@ from hades.constants import (
     TOTAL_ENEMY_COUNT,
     GameObjectType,
 )
-from hades.game_objects.attacks import Attacks
-from hades.game_objects.base import ComponentType
+from hades.game_objects.components import KeyboardMovement, SteeringMovement
 from hades.game_objects.constructors import (
     ENEMY,
     FLOOR,
@@ -40,8 +39,9 @@ from hades.game_objects.constructors import (
     WALL,
     GameObjectConstructor,
 )
-from hades.game_objects.movements import KeyboardMovement, SteeringMovement
-from hades.game_objects.registry import ECS
+from hades.game_objects.registry import Registry
+from hades.game_objects.steering import Vec2d
+from hades.game_objects.systems.attacks import AttackSystem
 from hades.physics import PhysicsEngine
 from hades.sprite import HadesSprite
 from hades.textures import grid_pos_to_pixel
@@ -71,7 +71,7 @@ class Game(View):
 
     Attributes:
         level_constants: Holds the constants for the current level.
-        system: The entity component system which manages the game objects.
+        registry: The registry which manages the game objects.
         ids: The dictionary which stores the IDs and sprites for each game object type.
         tile_sprites: The sprite list for the tile game objects.
         entity_sprites: The sprite list for the entity game objects.
@@ -101,14 +101,13 @@ class Game(View):
             The game object ID.
         """
         # Initialise a sprite object
-        game_object_id = self.system.add_game_object(
-            constructor.component_data,
+        game_object_id = self.registry.create_game_object(
             *constructor.components,
             physics=constructor.physics,
         )
         sprite_obj = HadesSprite(
             game_object_id,
-            self.system,
+            self.registry,
             position,
             constructor.game_object_textures,
         )
@@ -125,6 +124,8 @@ class Game(View):
                 constructor.game_object_type,
                 blocking=constructor.blocking,
             )
+        if constructor.blocking:
+            self.registry.walls.add(Vec2d(*position))
 
         # Return the game object ID
         return game_object_id
@@ -138,7 +139,7 @@ class Game(View):
         super().__init__()
         generation_result = create_map(level)
         self.level_constants: LevelConstants = LevelConstants(*generation_result[1])
-        self.system: ECS = ECS()
+        self.registry: Registry = Registry()
         self.ids: dict[GameObjectType, list[HadesSprite]] = {}
         self.tile_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.entity_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
@@ -248,12 +249,9 @@ class Game(View):
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
-        player_movement = cast(
+        player_movement = self.registry.get_component_for_game_object(
+            self.ids[GameObjectType.PLAYER][0].game_object_id,
             KeyboardMovement,
-            self.system.get_component_for_game_object(
-                self.ids[GameObjectType.PLAYER][0].game_object_id,
-                ComponentType.MOVEMENTS,
-            ),
         )
         logger.debug(
             "Received key press with key %r and modifiers %r",
@@ -278,12 +276,9 @@ class Game(View):
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
-        player_movement = cast(
+        player_movement = self.registry.get_component_for_game_object(
+            self.ids[GameObjectType.PLAYER][0].game_object_id,
             KeyboardMovement,
-            self.system.get_component_for_game_object(
-                self.ids[GameObjectType.PLAYER][0].game_object_id,
-                ComponentType.MOVEMENTS,
-            ),
         )
         logger.debug(
             "Received key release with key %r and modifiers %r",
@@ -318,13 +313,8 @@ class Game(View):
             modifiers,
         )
         if button is MOUSE_BUTTON_LEFT:
-            cast(
-                Attacks,
-                self.system.get_component_for_game_object(
-                    self.ids[GameObjectType.PLAYER][0].game_object_id,
-                    ComponentType.ATTACKS,
-                ),
-            ).do_attack(
+            self.registry.get_system(AttackSystem).do_attack(
+                self.ids[GameObjectType.PLAYER][0].game_object_id,
                 [
                     game_object.game_object_id
                     for game_object in self.ids[GameObjectType.ENEMY]
@@ -349,23 +339,13 @@ class Game(View):
                 continue
 
             # Set the required data for the steering to correctly function
-            steering_movement = cast(
+            steering_movement = self.registry.get_component_for_game_object(
+                self._initialise_game_object(ENEMY, self.entity_sprites, position),
                 SteeringMovement,
-                self.system.get_component_for_game_object(
-                    self._initialise_game_object(ENEMY, self.entity_sprites, position),
-                    ComponentType.MOVEMENTS,
-                ),
             )
             steering_movement.target_id = self.ids[GameObjectType.PLAYER][
                 0
             ].game_object_id
-            steering_movement.walls = {
-                (
-                    int(wall_sprite.center_x / SPRITE_SIZE),
-                    int(wall_sprite.center_y / SPRITE_SIZE),
-                )
-                for wall_sprite in self.ids[GameObjectType.WALL]
-            }
             return
 
     def center_camera_on_player(self: Game) -> None:

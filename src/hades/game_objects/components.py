@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # Builtin
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
+from typing import TYPE_CHECKING, ClassVar
 
 # Custom
 from hades.game_objects.base import (
@@ -27,7 +27,6 @@ __all__ = (
     "Footprint",
     "GameObjectAttributeBase",
     "Health",
-    "INV",
     "InstantEffects",
     "Inventory",
     "KeyboardMovement",
@@ -38,9 +37,6 @@ __all__ = (
     "SteeringMovement",
     "ViewDistance",
 )
-
-# Define a generic type for the inventory
-INV = TypeVar("INV")
 
 
 @dataclass(slots=True)
@@ -68,7 +64,6 @@ class StatusEffect:
         self.time_counter = 0
 
 
-@dataclass(slots=True)
 class GameObjectAttributeBase(ComponentBase):
     """The base class for all game object attributes.
 
@@ -79,15 +74,19 @@ class GameObjectAttributeBase(ComponentBase):
         applied_status_effect: The status effect currently applied to the game object.
     """
 
+    __slots__ = (
+        "_value",
+        "level_limit",
+        "max_value",
+        "current_level",
+        "applied_status_effect",
+    )
+
+    # Class variables
     instant_effect: ClassVar[bool] = True
     maximum: ClassVar[bool] = True
     status_effect: ClassVar[bool] = True
     upgradable: ClassVar[bool] = True
-    _value: float
-    level_limit: int
-    max_value: float
-    current_level: int = 0
-    applied_status_effect: StatusEffect | None = None
 
     def __init__(
         self: GameObjectAttributeBase,
@@ -100,9 +99,11 @@ class GameObjectAttributeBase(ComponentBase):
             initial_value: The initial value of the game object attribute.
             level_limit: The level limit of the game object attribute.
         """
-        self._level_limit = level_limit
         self._value: float = initial_value
-        self._max_value: float = initial_value if self.maximum else float("inf")
+        self.max_value: float = initial_value if self.maximum else float("inf")
+        self.level_limit = level_limit
+        self.current_level: int = 0
+        self.applied_status_effect: StatusEffect | None = None
 
     @property
     def value(self: GameObjectAttributeBase) -> float:
@@ -120,10 +121,9 @@ class GameObjectAttributeBase(ComponentBase):
         Args:
             new_value: The new game object attribute's value.
         """
-        self._value = max(min(new_value, self._max_value), 0)
+        self._value = max(min(new_value, self.max_value), 0)
 
 
-@dataclass(slots=True)
 class Armour(GameObjectAttributeBase):
     """Allows a game object to have an armour attribute."""
 
@@ -139,7 +139,6 @@ class ArmourRegen(ComponentBase):
     time_since_armour_regen: float = 0
 
 
-@dataclass(slots=True)
 class ArmourRegenCooldown(GameObjectAttributeBase):
     """Allows a game object to have an armour regen cooldown attribute."""
 
@@ -155,7 +154,6 @@ class Attacks(ComponentBase):
     attack_state: int = 0
 
 
-@dataclass(slots=True)
 class FireRatePenalty(GameObjectAttributeBase):
     """Allows a game object to have a fire rate penalty attribute."""
 
@@ -176,7 +174,6 @@ class Footprint(ComponentBase):
     time_since_last_footprint: float = 0
 
 
-@dataclass(slots=True)
 class Health(GameObjectAttributeBase):
     """Allows a game object to have a health attribute."""
 
@@ -197,7 +194,7 @@ class InstantEffects(ComponentBase):
 
 
 @dataclass(slots=True)
-class Inventory(ComponentBase, Generic[INV]):
+class Inventory(ComponentBase):
     """Allows a game object to have a fixed size inventory.
 
     Attributes:
@@ -208,7 +205,7 @@ class Inventory(ComponentBase, Generic[INV]):
 
     width: int
     height: int
-    inventory: list[INV] = field(default_factory=list)
+    inventory: list[int] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -228,7 +225,6 @@ class KeyboardMovement(ComponentBase):
     west_pressed: bool = False
 
 
-@dataclass(slots=True)
 class Money(GameObjectAttributeBase):
     """Allows a game object to have a money attribute."""
 
@@ -238,7 +234,6 @@ class Money(GameObjectAttributeBase):
     upgradable: ClassVar[bool] = False
 
 
-@dataclass(slots=True)
 class MovementForce(GameObjectAttributeBase):
     """Allows a game object to have a movement force attribute."""
 
@@ -270,18 +265,15 @@ class SteeringMovement(ComponentBase):
         behaviours: The behaviours used by the game object.
         movement_state: The current movement state of the game object.
         target_id: The game object ID of the target.
-        walls: The list of wall positions in the game.
         path_list: The list of points the game object should follow.
     """
 
     behaviours: Mapping[SteeringMovementState, Sequence[SteeringBehaviours]]
     movement_state: SteeringMovementState = SteeringMovementState.DEFAULT
     target_id: int = -1
-    walls: set[tuple[int, int]] = field(default_factory=set)
     path_list: list[Vec2d] = field(default_factory=list)
 
 
-@dataclass(slots=True)
 class ViewDistance(GameObjectAttributeBase):
     """Allows a game object to have a view distance attribute."""
 

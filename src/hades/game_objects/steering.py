@@ -4,7 +4,6 @@ from __future__ import annotations
 # Builtin
 import math
 from dataclasses import dataclass
-from typing import NamedTuple
 
 # Custom
 from hades.constants import (
@@ -32,16 +31,20 @@ __all__ = (
 )
 
 
-class Vec2d(NamedTuple):
-    """Represents a 2D vector.
+class Vec2d:
+    """Represents a 2D vector."""
 
-    Attributes:
-        x: The x value of the vector.
-        y: The y value of the vector.
-    """
+    __slots__ = ("x", "y")
 
-    x: float
-    y: float
+    def __init__(self: Vec2d, x: float, y: float) -> None:
+        """Initialise the object.
+
+        Args:
+            x: The x value of the vector.
+            y: The y value of the vector.
+        """
+        self.x: float = x
+        self.y: float = y
 
     def normalised(self: Vec2d) -> Vec2d:
         """Normalise the vector.
@@ -262,7 +265,7 @@ def follow_path(current_position: Vec2d, path_list: list[Vec2d]) -> Vec2d:
 def obstacle_avoidance(
     current_position: Vec2d,
     current_velocity: Vec2d,
-    walls: set[tuple[int, int]],
+    walls: set[Vec2d],
 ) -> Vec2d:
     """Allow a game object to avoid obstacles in its path.
 
