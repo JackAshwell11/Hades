@@ -49,7 +49,7 @@ def footprint_system(registry: Registry) -> FootprintSystem:
     Returns:
         The footprint system for use in testing.
     """
-    registry.create_game_object(Footprint(), physics=True)
+    registry.create_game_object(Footprint(), kinematic=True)
     footprint_system = FootprintSystem(registry)
     registry.add_system(footprint_system)
     registry.add_system(SteeringMovementSystem(registry))
@@ -71,7 +71,7 @@ def keyboard_movement_system(registry: Registry) -> KeyboardMovementSystem:
         Footprint(),
         MovementForce(100, 5),
         KeyboardMovement(),
-        physics=True,
+        kinematic=True,
     )
     keyboard_movement_system = KeyboardMovementSystem(registry)
     registry.add_system(keyboard_movement_system)
@@ -104,7 +104,7 @@ def steering_movement_system_factory(
         game_object_id = steering_movement_system.registry.create_game_object(
             MovementForce(100, 5),
             SteeringMovement(steering_behaviours),
-            physics=True,
+            kinematic=True,
         )
         steering_movement_system.registry.add_system(steering_movement_system)
         steering_movement_system.registry.get_component_for_game_object(
@@ -207,7 +207,7 @@ def test_footprint_system_update_large_deltatime_full_list(
         Vec2d(8, 8),
         Vec2d(9, 9),
     ]
-    footprint_system.registry.get_physics_object_for_game_object(0).position = Vec2d(
+    footprint_system.registry.get_kinematic_object_for_game_object(0).position = Vec2d(
         10,
         10,
     )
@@ -238,7 +238,7 @@ def test_footprint_system_update_multiple_updates(
     footprint_system.update(0.6)
     assert footprint.footprints == [Vec2d(0, 0)]
     assert footprint.time_since_last_footprint == 0
-    footprint_system.registry.get_physics_object_for_game_object(0).position = Vec2d(
+    footprint_system.registry.get_kinematic_object_for_game_object(0).position = Vec2d(
         1,
         1,
     )
@@ -270,7 +270,7 @@ def test_keyboard_movement_system_calculate_force_none(
     Args:
         keyboard_movement_system: The keyboard movement system for use in testing.
     """
-    assert keyboard_movement_system.calculate_force(0) == (0, 0)
+    assert keyboard_movement_system.calculate_force(0) == Vec2d(0, 0)
 
 
 def test_keyboard_movement_system_calculate_force_north(
@@ -285,7 +285,7 @@ def test_keyboard_movement_system_calculate_force_north(
         0,
         KeyboardMovement,
     ).north_pressed = True
-    assert keyboard_movement_system.calculate_force(0) == (0, 100)
+    assert keyboard_movement_system.calculate_force(0) == Vec2d(0, 100)
 
 
 def test_keyboard_movement_system_calculate_force_south(
@@ -300,7 +300,7 @@ def test_keyboard_movement_system_calculate_force_south(
         0,
         KeyboardMovement,
     ).south_pressed = True
-    assert keyboard_movement_system.calculate_force(0) == (0, -100)
+    assert keyboard_movement_system.calculate_force(0) == Vec2d(0, -100)
 
 
 def test_keyboard_movement_system_calculate_force_east(
@@ -315,7 +315,7 @@ def test_keyboard_movement_system_calculate_force_east(
         0,
         KeyboardMovement,
     ).east_pressed = True
-    assert keyboard_movement_system.calculate_force(0) == (100, 0)
+    assert keyboard_movement_system.calculate_force(0) == Vec2d(100, 0)
 
 
 def test_keyboard_movement_system_calculate_force_west(
@@ -330,7 +330,7 @@ def test_keyboard_movement_system_calculate_force_west(
         0,
         KeyboardMovement,
     ).west_pressed = True
-    assert keyboard_movement_system.calculate_force(0) == (-100, 0)
+    assert keyboard_movement_system.calculate_force(0) == Vec2d(-100, 0)
 
 
 def test_keyboard_movement_system_calculate_force_east_west(
@@ -347,7 +347,7 @@ def test_keyboard_movement_system_calculate_force_east_west(
     )
     keyboard_movement.east_pressed = True
     keyboard_movement.west_pressed = True
-    assert keyboard_movement_system.calculate_force(0) == (0, 0)
+    assert keyboard_movement_system.calculate_force(0) == Vec2d(0, 0)
 
 
 def test_keyboard_movement_system_calculate_force_north_south(
@@ -364,7 +364,7 @@ def test_keyboard_movement_system_calculate_force_north_south(
     )
     keyboard_movement.east_pressed = True
     keyboard_movement.west_pressed = True
-    assert keyboard_movement_system.calculate_force(0) == (0, 0)
+    assert keyboard_movement_system.calculate_force(0) == Vec2d(0, 0)
 
 
 def test_keyboard_movement_system_calculate_force_north_west(
@@ -381,7 +381,7 @@ def test_keyboard_movement_system_calculate_force_north_west(
     )
     keyboard_movement.north_pressed = True
     keyboard_movement.west_pressed = True
-    assert keyboard_movement_system.calculate_force(0) == (-100, 100)
+    assert keyboard_movement_system.calculate_force(0) == Vec2d(-100, 100)
 
 
 def test_keyboard_movement_system_calculate_force_south_east(
@@ -398,7 +398,7 @@ def test_keyboard_movement_system_calculate_force_south_east(
     )
     keyboard_movement.south_pressed = True
     keyboard_movement.east_pressed = True
-    assert keyboard_movement_system.calculate_force(0) == (100, -100)
+    assert keyboard_movement_system.calculate_force(0) == Vec2d(100, -100)
 
 
 def test_keyboard_movement_system_calculate_force_invalid_game_object_id(
@@ -439,9 +439,9 @@ def test_steering_movement_system_calculate_force_within_distance_empty_path_lis
     Args:
         steering_movement_system: The steering movement system for use in testing.
     """
-    steering_movement_system.registry.get_physics_object_for_game_object(1).position = (
-        Vec2d(100, 100)
-    )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).position = Vec2d(100, 100)
     steering_movement_system.calculate_force(1)
     assert (
         steering_movement_system.registry.get_component_for_game_object(
@@ -460,9 +460,9 @@ def test_steering_movement_system_calculate_force_within_distance_non_empty_path
     Args:
         steering_movement_system: The steering movement system for use in testing.
     """
-    steering_movement_system.registry.get_physics_object_for_game_object(1).position = (
-        Vec2d(100, 100)
-    )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).position = Vec2d(100, 100)
     steering_movement = steering_movement_system.registry.get_component_for_game_object(
         1,
         SteeringMovement,
@@ -480,9 +480,9 @@ def test_steering_movement_system_calculate_force_outside_distance_empty_path_li
     Args:
         steering_movement_system: The steering movement system for use in testing.
     """
-    steering_movement_system.registry.get_physics_object_for_game_object(1).position = (
-        Vec2d(500, 500)
-    )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).position = Vec2d(500, 500)
     steering_movement_system.calculate_force(1)
     assert (
         steering_movement_system.registry.get_component_for_game_object(
@@ -501,9 +501,9 @@ def test_steering_movement_system_calculate_force_outside_distance_non_empty_pat
     Args:
         steering_movement_system: The steering movement system for use in testing.
     """
-    steering_movement_system.registry.get_physics_object_for_game_object(1).position = (
-        Vec2d(500, 500)
-    )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).position = Vec2d(500, 500)
     steering_movement = steering_movement_system.registry.get_component_for_game_object(
         1,
         SteeringMovement,
@@ -543,12 +543,12 @@ def test_steering_movement_system_calculate_force_arrive(
     steering_movement_system = steering_movement_system_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.ARRIVE]},
     )
-    steering_movement_system.registry.get_physics_object_for_game_object(0).position = (
-        Vec2d(0, 0)
-    )
-    steering_movement_system.registry.get_physics_object_for_game_object(1).position = (
-        Vec2d(100, 100)
-    )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        0,
+    ).position = Vec2d(0, 0)
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).position = Vec2d(100, 100)
     assert steering_movement_system.calculate_force(1) == Vec2d(
         -70.71067811865476,
         -70.71067811865476,
@@ -570,11 +570,11 @@ def test_steering_movement_system_calculate_force_evade(
     steering_movement_system = steering_movement_system_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.EVADE]},
     )
-    physics_object = (
-        steering_movement_system.registry.get_physics_object_for_game_object(0)
+    kinematic_object = (
+        steering_movement_system.registry.get_kinematic_object_for_game_object(0)
     )
-    physics_object.position = Vec2d(100, 100)
-    physics_object.velocity = Vec2d(-50, 0)
+    kinematic_object.position = Vec2d(100, 100)
+    kinematic_object.velocity = Vec2d(-50, 0)
     assert steering_movement_system.calculate_force(1) == Vec2d(
         -54.28888213891886,
         -83.98045770360257,
@@ -596,14 +596,14 @@ def test_steering_movement_system_calculate_force_flee(
     steering_movement_system = steering_movement_system_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.FLEE]},
     )
-    steering_movement_system.registry.get_physics_object_for_game_object(0).position = (
-        Vec2d(50, 50)
-    )
-    steering_movement_system.registry.get_physics_object_for_game_object(1).position = (
-        Vec2d(
-            100,
-            100,
-        )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        0,
+    ).position = Vec2d(50, 50)
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).position = Vec2d(
+        100,
+        100,
     )
     assert steering_movement_system.calculate_force(1) == Vec2d(
         70.71067811865475,
@@ -626,11 +626,11 @@ def test_steering_movement_system_calculate_force_follow_path(
     steering_movement_system = steering_movement_system_factory(
         {SteeringMovementState.FOOTPRINT: [SteeringBehaviours.FOLLOW_PATH]},
     )
-    steering_movement_system.registry.get_physics_object_for_game_object(1).position = (
-        Vec2d(
-            200,
-            200,
-        )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).position = Vec2d(
+        200,
+        200,
     )
     steering_movement_system.registry.get_component_for_game_object(
         1,
@@ -657,12 +657,12 @@ def test_steering_movement_system_calculate_force_obstacle_avoidance(
     steering_movement_system = steering_movement_system_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.OBSTACLE_AVOIDANCE]},
     )
-    physics_object = (
-        steering_movement_system.registry.get_physics_object_for_game_object(1)
+    kinematic_object = (
+        steering_movement_system.registry.get_kinematic_object_for_game_object(1)
     )
-    physics_object.position = Vec2d(100, 100)
-    physics_object.velocity = Vec2d(100, 100)
-    steering_movement_system.registry.walls = {(1, 2)}
+    kinematic_object.position = Vec2d(100, 100)
+    kinematic_object.velocity = Vec2d(100, 100)
+    steering_movement_system.registry.walls = {Vec2d(1, 2)}
     assert steering_movement_system.calculate_force(1) == Vec2d(
         25.881904510252056,
         -96.59258262890683,
@@ -684,11 +684,11 @@ def test_steering_movement_system_calculate_force_pursuit(
     steering_movement_system = steering_movement_system_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.PURSUIT]},
     )
-    physics_object = (
-        steering_movement_system.registry.get_physics_object_for_game_object(0)
+    kinematic_object = (
+        steering_movement_system.registry.get_kinematic_object_for_game_object(0)
     )
-    physics_object.position = Vec2d(100, 100)
-    physics_object.velocity = Vec2d(-50, 0)
+    kinematic_object.position = Vec2d(100, 100)
+    kinematic_object.velocity = Vec2d(-50, 0)
     assert steering_movement_system.calculate_force(1) == Vec2d(
         54.28888213891886,
         83.98045770360257,
@@ -710,17 +710,17 @@ def test_steering_movement_system_calculate_force_seek(
     steering_movement_system = steering_movement_system_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.SEEK]},
     )
-    steering_movement_system.registry.get_physics_object_for_game_object(0).position = (
-        Vec2d(
-            50,
-            50,
-        )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        0,
+    ).position = Vec2d(
+        50,
+        50,
     )
-    steering_movement_system.registry.get_physics_object_for_game_object(1).position = (
-        Vec2d(
-            100,
-            100,
-        )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).position = Vec2d(
+        100,
+        100,
     )
     assert steering_movement_system.calculate_force(1) == Vec2d(
         -70.71067811865475,
@@ -743,11 +743,11 @@ def test_steering_movement_system_calculate_force_wander(
     steering_movement_system = steering_movement_system_factory(
         {SteeringMovementState.TARGET: [SteeringBehaviours.WANDER]},
     )
-    steering_movement_system.registry.get_physics_object_for_game_object(1).velocity = (
-        Vec2d(
-            100,
-            -100,
-        )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).velocity = Vec2d(
+        100,
+        -100,
     )
     steering_force = steering_movement_system.calculate_force(1)
     assert steering_force != steering_movement_system.calculate_force(1)
@@ -774,9 +774,9 @@ def test_steering_movement_system_calculate_force_multiple_behaviours(
             ],
         },
     )
-    steering_movement_system.registry.get_physics_object_for_game_object(1).position = (
-        Vec2d(300, 300)
-    )
+    steering_movement_system.registry.get_kinematic_object_for_game_object(
+        1,
+    ).position = Vec2d(300, 300)
     steering_movement_system.registry.get_component_for_game_object(
         1,
         SteeringMovement,
@@ -806,21 +806,21 @@ def test_steering_movement_system_calculate_force_multiple_states(
             SteeringMovementState.DEFAULT: [SteeringBehaviours.SEEK],
         },
     )
-    current_physics, target_physics = (
-        steering_movement_system.registry.get_physics_object_for_game_object(1),
-        steering_movement_system.registry.get_physics_object_for_game_object(0),
+    kinematic_owner, kinematic_target = (
+        steering_movement_system.registry.get_kinematic_object_for_game_object(1),
+        steering_movement_system.registry.get_kinematic_object_for_game_object(0),
     )
 
     # Test the target state
-    target_physics.velocity = Vec2d(-50, 100)
-    current_physics.position = Vec2d(100, 100)
+    kinematic_target.velocity = Vec2d(-50, 100)
+    kinematic_owner.position = Vec2d(100, 100)
     assert steering_movement_system.calculate_force(1) == Vec2d(
         -97.73793955511094,
         -21.14935392681019,
     )
 
     # Test the default state
-    current_physics.position = Vec2d(300, 300)
+    kinematic_owner.position = Vec2d(300, 300)
     assert steering_movement_system.calculate_force(1) == Vec2d(
         -70.71067811865476,
         -70.71067811865476,
@@ -854,7 +854,7 @@ def test_steering_movement_system_update_path_list_within_distance(
     assert steering_movement_system.registry.get_component_for_game_object(
         1,
         SteeringMovement,
-    ).path_list == [(100, 100)]
+    ).path_list == [Vec2d(100, 100)]
 
 
 def test_steering_movement_system_update_path_list_outside_distance(
@@ -890,7 +890,7 @@ def test_steering_movement_system_update_path_list_equal_distance(
     assert steering_movement_system.registry.get_component_for_game_object(
         1,
         SteeringMovement,
-    ).path_list == [(135.764501987, 135.764501987)]
+    ).path_list == [Vec2d(135.764501987, 135.764501987)]
 
 
 def test_steering_movement_system_update_path_list_slice(
@@ -905,7 +905,7 @@ def test_steering_movement_system_update_path_list_slice(
     assert steering_movement_system.registry.get_component_for_game_object(
         1,
         SteeringMovement,
-    ).path_list == [(100, 100), (300, 300)]
+    ).path_list == [Vec2d(100, 100), Vec2d(300, 300)]
 
 
 def test_steering_movement_system_update_path_list_empty_list(
@@ -941,7 +941,7 @@ def test_steering_movement_system_update_path_list_multiple_points(
     assert steering_movement_system.registry.get_component_for_game_object(
         1,
         SteeringMovement,
-    ).path_list == [(50, 100), (500, 500)]
+    ).path_list == [Vec2d(50, 100), Vec2d(500, 500)]
 
 
 def test_steering_movement_update_path_list_different_target_id(
@@ -978,4 +978,4 @@ def test_steering_movement_system_update_path_list_footprint_update(
     assert steering_movement_system.registry.get_component_for_game_object(
         1,
         SteeringMovement,
-    ).path_list == [(0, 0)]
+    ).path_list == [Vec2d(0, 0)]

@@ -29,7 +29,7 @@ from hades.game_objects.steering import (
     wander,
 )
 
-__all__ = ("KeyboardMovementSystem", "KeyboardMovementSystem", "FootprintSystem")
+__all__ = ("KeyboardMovementSystem", "SteeringMovementSystem", "FootprintSystem")
 
 
 class KeyboardMovementSystem(SystemBase):
@@ -73,18 +73,18 @@ class SteeringMovementSystem(SystemBase):
             The new force to apply to the game object.
         """
         # Determine if the movement state should change or not
-        steering_movement, current_physics = (
+        steering_movement, kinematic_owner = (
             self.registry.get_component_for_game_object(
                 game_object_id,
                 SteeringMovement,
             ),
-            self.registry.get_physics_object_for_game_object(game_object_id),
+            self.registry.get_kinematic_object_for_game_object(game_object_id),
         )
-        target_physics = self.registry.get_physics_object_for_game_object(
+        kinematic_target = self.registry.get_kinematic_object_for_game_object(
             steering_movement.target_id,
         )
         if (
-            current_physics.position.get_distance_to(target_physics.position)
+            kinematic_owner.position.get_distance_to(kinematic_target.position)
             <= TARGET_DISTANCE
         ):
             steering_movement.movement_state = SteeringMovementState.TARGET
@@ -102,45 +102,45 @@ class SteeringMovementSystem(SystemBase):
             match behaviour:
                 case SteeringBehaviours.ARRIVE:
                     steering_force += arrive(
-                        current_physics.position,
-                        target_physics.position,
+                        kinematic_owner.position,
+                        kinematic_target.position,
                     )
                 case SteeringBehaviours.EVADE:
                     steering_force += evade(
-                        current_physics.position,
-                        target_physics.position,
-                        target_physics.velocity,
+                        kinematic_owner.position,
+                        kinematic_target.position,
+                        kinematic_target.velocity,
                     )
                 case SteeringBehaviours.FLEE:
                     steering_force += flee(
-                        current_physics.position,
-                        target_physics.position,
+                        kinematic_owner.position,
+                        kinematic_target.position,
                     )
                 case SteeringBehaviours.FOLLOW_PATH:
                     steering_force += follow_path(
-                        current_physics.position,
+                        kinematic_owner.position,
                         steering_movement.path_list,
                     )
                 case SteeringBehaviours.OBSTACLE_AVOIDANCE:
                     steering_force += obstacle_avoidance(
-                        current_physics.position,
-                        current_physics.velocity,
+                        kinematic_owner.position,
+                        kinematic_owner.velocity,
                         self.registry.walls,
                     )
                 case SteeringBehaviours.PURSUIT:
                     steering_force += pursuit(
-                        current_physics.position,
-                        target_physics.position,
-                        target_physics.velocity,
+                        kinematic_owner.position,
+                        kinematic_target.position,
+                        kinematic_target.velocity,
                     )
                 case SteeringBehaviours.SEEK:
                     steering_force += seek(
-                        current_physics.position,
-                        target_physics.position,
+                        kinematic_owner.position,
+                        kinematic_target.position,
                     )
                 case SteeringBehaviours.WANDER:
                     steering_force += wander(
-                        current_physics.velocity,
+                        kinematic_owner.velocity,
                         random.randint(0, 360),
                     )
                 case _:  # pragma: no cover
@@ -175,7 +175,7 @@ class SteeringMovementSystem(SystemBase):
                 continue
 
             # Get the closest footprint to the target and test if one exists
-            current_position = self.registry.get_physics_object_for_game_object(
+            current_position = self.registry.get_kinematic_object_for_game_object(
                 game_object_id,
             ).position
             closest_footprints = [
@@ -191,7 +191,7 @@ class SteeringMovementSystem(SystemBase):
             # from that footprint
             target_footprint = min(
                 closest_footprints,
-                key=self.registry.get_physics_object_for_game_object(
+                key=self.registry.get_kinematic_object_for_game_object(
                     steering_movement.target_id,
                 ).position.get_distance_to,
             )
@@ -218,7 +218,7 @@ class FootprintSystem(SystemBase):
 
             # Reset the counter and create a new footprint making sure to only keep
             # FOOTPRINT_LIMIT footprints
-            current_position = self.registry.get_physics_object_for_game_object(
+            current_position = self.registry.get_kinematic_object_for_game_object(
                 game_object_id,
             ).position
             footprint.time_since_last_footprint = 0

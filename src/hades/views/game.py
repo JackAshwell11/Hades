@@ -103,7 +103,7 @@ class Game(View):
         # Initialise a sprite object
         game_object_id = self.registry.create_game_object(
             *constructor.components,
-            physics=constructor.physics,
+            kinematic=constructor.physics,
         )
         sprite_obj = HadesSprite(
             game_object_id,
@@ -231,6 +231,9 @@ class Game(View):
         """
         # Check if the game should end
         # if self.player.health.value <= 0 or not self.enemy_sprites:
+
+        # Update the systems
+        self.registry.update(delta_time)
 
         # Update the entities
         self.entity_sprites.on_update(delta_time)

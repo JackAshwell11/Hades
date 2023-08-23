@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, TypeVar, overload
 
 # Custom
 from hades.game_objects.base import ComponentBase, SystemBase
-from hades.game_objects.steering import PhysicsObject, Vec2d
+from hades.game_objects.steering import KinematicObject, Vec2d
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -49,7 +49,7 @@ class Registry:
         "_components",
         "_game_objects",
         "_systems",
-        "_physics_objects",
+        "_kinematic_objects",
         "walls",
     )
 
@@ -59,7 +59,7 @@ class Registry:
         self._components: dict[type[ComponentBase], set[int]] = {}
         self._game_objects: dict[int, dict[type[ComponentBase], ComponentBase]] = {}
         self._systems: dict[type[SystemBase], SystemBase] = {}
-        self._physics_objects: dict[int, PhysicsObject] = {}
+        self._kinematic_objects: dict[int, KinematicObject] = {}
         self.walls: set[Vec2d] = set()
 
     def update(self: Registry, delta_time: float) -> None:
@@ -74,21 +74,21 @@ class Registry:
     def create_game_object(
         self: Registry,
         *components: ComponentBase,
-        physics: bool = False,
+        kinematic: bool = False,
     ) -> int:
         """Create a game object.
 
         Args:
             components: The components to add to the game object.
-            physics: Whether the game object should have a physics object or not.
+            kinematic: Whether the game object should have a kinematic object or not.
 
         Returns:
             The game object ID.
         """
         # Add the game object to the system
         self._game_objects[self._next_game_object_id] = {}
-        if physics:
-            self._physics_objects[self._next_game_object_id] = PhysicsObject(
+        if kinematic:
+            self._kinematic_objects[self._next_game_object_id] = KinematicObject(
                 Vec2d(0, 0),
                 Vec2d(0, 0),
             )
@@ -128,8 +128,8 @@ class Registry:
         for game_objects in self._components.values():
             if game_object_id in game_objects:
                 game_objects.remove(game_object_id)
-        if game_object_id in self._physics_objects:
-            del self._physics_objects[game_object_id]
+        if game_object_id in self._kinematic_objects:
+            del self._kinematic_objects[game_object_id]
 
     def add_system(self: Registry, system: SystemBase) -> None:
         """Add a system to the registry.
@@ -252,31 +252,31 @@ class Registry:
             for game_object_id in game_object_ids
         )
 
-    def get_physics_object_for_game_object(
+    def get_kinematic_object_for_game_object(
         self: Registry,
         game_object_id: int,
-    ) -> PhysicsObject:
-        """Get a physics object for a given game object ID.
+    ) -> KinematicObject:
+        """Get a kinematic object for a given game object ID.
 
         Args:
             game_object_id: The game object ID.
 
         Returns:
-            The physics object for the given game object ID.
+            The kinematic object for the given game object ID.
 
         Raises:
-            RegistryError: The game object ID `ID` does not have a physics object.
+            RegistryError: The game object ID `ID` does not have a kinematic object.
         """
         # Check if the game object ID is registered or not
-        if game_object_id not in self._physics_objects:
+        if game_object_id not in self._kinematic_objects:
             raise RegistryError(
                 not_registered_type="game object ID",
                 value=game_object_id,
-                error="does not have a physics object",
+                error="does not have a kinematic object",
             )
 
-        # Return the specified physics object
-        return self._physics_objects[game_object_id]
+        # Return the specified kinematic object
+        return self._kinematic_objects[game_object_id]
 
     def __repr__(self: Registry) -> str:
         """Return a human-readable representation of this object.

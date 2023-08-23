@@ -18,7 +18,7 @@ from hades.constants import (
 )
 
 __all__ = (
-    "PhysicsObject",
+    "KinematicObject",
     "Vec2d",
     "arrive",
     "evade",
@@ -98,6 +98,33 @@ class Vec2d:
         """
         return abs(self - other)
 
+    def __eq__(self: Vec2d, other: Vec2d) -> bool:
+        """Check if this vector is equal to another vector.
+
+        Args:
+            other: The vector to check equality with.
+
+        Returns:
+            Whether the vectors are equal.
+        """
+        return self.x == other.x and self.y == other.y
+
+    def __hash__(self: Vec2d) -> int:
+        """Get the hash of this object.
+
+        Returns:
+            The hash of this object.
+        """
+        return hash((self.x, self.y))
+
+    def __abs__(self: Vec2d) -> float:
+        """Return the absolute value of the vector.
+
+        Returns:
+            The absolute value of the vector.
+        """
+        return math.sqrt(self.x**2 + self.y**2)
+
     def __add__(self: Vec2d, other: Vec2d) -> Vec2d:
         """Add another vector to this vector.
 
@@ -142,14 +169,6 @@ class Vec2d:
         """
         return Vec2d(self.x // other, self.y // other)
 
-    def __abs__(self: Vec2d) -> float:
-        """Return the absolute value of the vector.
-
-        Returns:
-            The absolute value of the vector.
-        """
-        return math.sqrt(self.x**2 + self.y**2)
-
     def __repr__(self: Vec2d) -> str:
         """Return a human-readable representation of this object.
 
@@ -160,7 +179,7 @@ class Vec2d:
 
 
 @dataclass(slots=True)
-class PhysicsObject:
+class KinematicObject:
     """Stores various data about a game object for use in physics-related operations.
 
     position: The position of the game object.

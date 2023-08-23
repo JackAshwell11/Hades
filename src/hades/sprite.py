@@ -83,14 +83,14 @@ class HadesSprite(Sprite):
         Args:
             physics_engine: The game object's physics engine.
         """
-        physics_object, body = (
-            self.registry.get_physics_object_for_game_object(self.game_object_id),
+        kinematic_object, body = (
+            self.registry.get_kinematic_object_for_game_object(self.game_object_id),
             physics_engine.get_physics_object(self).body,
         )
         if body is None:
             return
-        physics_object.position = body.position
-        physics_object.velocity = body.velocity
+        kinematic_object.position = body.position
+        kinematic_object.velocity = body.velocity
 
     def __repr__(self: HadesSprite) -> str:
         """Return a human-readable representation of this object.

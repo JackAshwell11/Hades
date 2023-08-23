@@ -45,7 +45,7 @@ class AttackSystem(SystemBase):
         for target in targets:
             if (
                 current_position.get_distance_to(
-                    self.registry.get_physics_object_for_game_object(target).position,
+                    self.registry.get_kinematic_object_for_game_object(target).position,
                 )
                 <= ATTACK_RANGE
             ):
@@ -78,7 +78,7 @@ class AttackSystem(SystemBase):
         for target in targets:
             # Calculate the angle between the current rotation of the game object and
             # the direction the target is in
-            target_position = self.registry.get_physics_object_for_game_object(
+            target_position = self.registry.get_kinematic_object_for_game_object(
                 target,
             ).position
             theta = (target_position - current_position).get_angle_between(rotation)
@@ -131,23 +131,23 @@ class AttackSystem(SystemBase):
             The result of the attack.
         """
         # Perform the attack on the targets
-        attacks, current_physics = self.registry.get_component_for_game_object(
+        attacks, kinematic_object = self.registry.get_component_for_game_object(
             game_object_id,
             Attacks,
-        ), self.registry.get_physics_object_for_game_object(game_object_id)
+        ), self.registry.get_kinematic_object_for_game_object(game_object_id)
         match attacks.attacks[attacks.attack_state]:
             case AttackAlgorithms.AREA_OF_EFFECT_ATTACK:
-                self._area_of_effect_attack(current_physics.position, targets)
+                self._area_of_effect_attack(kinematic_object.position, targets)
             case AttackAlgorithms.MELEE_ATTACK:
                 self._melee_attack(
-                    current_physics.position,
-                    math.radians(current_physics.rotation),
+                    kinematic_object.position,
+                    math.radians(kinematic_object.rotation),
                     targets,
                 )
             case AttackAlgorithms.RANGED_ATTACK:
                 return self._ranged_attack(
-                    current_physics.position,
-                    math.radians(current_physics.rotation),
+                    kinematic_object.position,
+                    math.radians(kinematic_object.rotation),
                 )
             case _:  # pragma: no cover
                 # This should never happen as all attacks are covered above

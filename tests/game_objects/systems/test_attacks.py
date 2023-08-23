@@ -48,11 +48,11 @@ def attack_system_factory(
         attack_system = AttackSystem(registry)
         game_object_id = registry.create_game_object(
             Attacks(enabled_attacks),
-            physics=True,
+            kinematic=True,
         )
         registry.add_system(attack_system)
         registry.add_system(GameObjectAttributeSystem(registry))
-        registry.get_physics_object_for_game_object(game_object_id).rotation = 180
+        registry.get_kinematic_object_for_game_object(game_object_id).rotation = 180
         return attack_system
 
     return wrap
@@ -73,9 +73,9 @@ def targets(registry: Registry) -> list[int]:
         target = registry.create_game_object(
             Health(50, -1),
             Armour(0, -1),
-            physics=True,
+            kinematic=True,
         )
-        registry.get_physics_object_for_game_object(target).position = position
+        registry.get_kinematic_object_for_game_object(target).position = position
         return target
 
     return [

@@ -48,7 +48,7 @@ class GameObjectConstructor(NamedTuple):
         components: A list of component types that are part of this game object.
         component_data: The data for the components.
         blocking: Whether the game object blocks sprite movement or not.
-        physics: Whether the game object should have a physics object or not.
+        kinematic: Whether the game object should have a kinematic object or not.
     """
 
     game_object_type: GameObjectType
@@ -56,7 +56,7 @@ class GameObjectConstructor(NamedTuple):
     components: ClassVar[list[type[GameObjectComponent]]] = []
     component_data: ClassVar[ComponentData] = {}
     blocking: bool = False
-    physics: bool = False
+    kinematic: bool = False
 
 
 # Static tiles

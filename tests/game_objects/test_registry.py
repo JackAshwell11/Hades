@@ -10,6 +10,7 @@ import pytest
 # Custom
 from hades.game_objects.base import ComponentBase, SystemBase
 from hades.game_objects.registry import Registry, RegistryError
+from hades.game_objects.steering import Vec2d
 
 __all__ = ()
 
@@ -97,9 +98,9 @@ def test_registry_game_object_with_zero_components(registry: Registry) -> None:
     assert registry.walls == set()
     with pytest.raises(
         expected_exception=RegistryError,
-        match="The game object ID `0` does not have a physics object.",
+        match="The game object ID `0` does not have a kinematic object.",
     ):
-        registry.get_physics_object_for_game_object(0)
+        registry.get_kinematic_object_for_game_object(0)
     with pytest.raises(expected_exception=KeyError):
         registry.get_component_for_game_object(0, GameObjectComponentOne)
 
@@ -167,19 +168,19 @@ def test_registry_game_object_with_steering(registry: Registry) -> None:
         registry: The registry for use in testing.
     """
     # Test that adding the game object with steering works correctly
-    registry.create_game_object(physics=True)
-    physics_object = registry.get_physics_object_for_game_object(0)
-    assert physics_object.position == (0, 0)
-    assert physics_object.rotation == 0
-    assert physics_object.velocity == (0, 0)
+    registry.create_game_object(kinematic=True)
+    kinematic_object = registry.get_kinematic_object_for_game_object(0)
+    assert kinematic_object.position == Vec2d(0, 0)
+    assert kinematic_object.rotation == 0
+    assert kinematic_object.velocity == Vec2d(0, 0)
 
     # Test that removing the game object works correctly
     registry.delete_game_object(0)
     with pytest.raises(
         expected_exception=RegistryError,
-        match="The game object ID `0` does not have a physics object.",
+        match="The game object ID `0` does not have a kinematic object.",
     ):
-        registry.get_physics_object_for_game_object(0)
+        registry.get_kinematic_object_for_game_object(0)
 
 
 def test_registry_multiple_game_objects(registry: Registry) -> None:

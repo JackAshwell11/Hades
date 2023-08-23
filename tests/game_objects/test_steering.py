@@ -85,9 +85,17 @@ def test_vec2d_normalised() -> None:
 def test_vec2d_rotated() -> None:
     """Test that rotating a vector produces the correct result."""
     assert Vec2d(0, 0).rotated(math.radians(360)) == Vec2d(0, 0)
-    assert Vec2d(-3, -2).rotated(math.radians(270)) == pytest.approx(Vec2d(-2, 3))
-    assert Vec2d(6, 3).rotated(math.radians(180)) == pytest.approx(Vec2d(-6, -3))
-    assert Vec2d(1, 1).rotated(math.radians(90)) == pytest.approx(Vec2d(-1, 1))
+    assert Vec2d(-3, -2).rotated(math.radians(270)) == Vec2d(
+        pytest.approx(-2),  # type: ignore[arg-type]
+        pytest.approx(3),  # type: ignore[arg-type]
+    )
+    assert Vec2d(6, 3).rotated(math.radians(180)) == Vec2d(
+        -6,
+        pytest.approx(-3),  # type: ignore[arg-type]
+    )
+    assert Vec2d(1, 1).rotated(math.radians(90)) == Vec2d(
+        pytest.approx(-1), 1  # type: ignore[arg-type]
+    )
     assert Vec2d(-5, 4).rotated(math.radians(0)) == Vec2d(-5, 4)
 
 
@@ -256,12 +264,14 @@ def test_obstacle_avoidance_no_obstacles() -> None:
 
 def test_obstacle_avoidance_obstacle_out_of_range() -> None:
     """Test if an out of range obstacle produces the correct avoidance force."""
-    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(10, 10)}) == Vec2d(0, 0)
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {Vec2d(10, 10)}) == Vec2d(
+        0, 0
+    )
 
 
 def test_obstacle_avoidance_angled_velocity() -> None:
     """Test if an angled velocity produces the correct avoidance force."""
-    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(100, 100), {(1, 2)}) == Vec2d(
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(100, 100), {Vec2d(1, 2)}) == Vec2d(
         0.2588190451025206,
         -0.9659258262890683,
     )
@@ -269,12 +279,16 @@ def test_obstacle_avoidance_angled_velocity() -> None:
 
 def test_obstacle_avoidance_non_moving() -> None:
     """Test if a non-moving game object produces the correct avoidance force."""
-    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(1, 2)}) == Vec2d(0, 0)
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {Vec2d(1, 2)}) == Vec2d(
+        0, 0
+    )
 
 
 def test_obstacle_avoidance_single_forward() -> None:
     """Test if a single forward obstacle produces the correct avoidance force."""
-    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {(1, 2)}) == Vec2d(0, 0)
+    assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {Vec2d(1, 2)}) == Vec2d(
+        0, 0
+    )
 
 
 def test_obstacle_avoidance_single_left() -> None:
@@ -282,8 +296,11 @@ def test_obstacle_avoidance_single_left() -> None:
     assert obstacle_avoidance(
         Vec2d(100, 100),
         Vec2d(0, 100),
-        {(0, 2)},
-    ) == pytest.approx(Vec2d(0.8660254037844387, -0.5))
+        {Vec2d(0, 2)},
+    ) == Vec2d(
+        0.8660254037844387,
+        pytest.approx(-0.5),  # type: ignore[arg-type]
+    )
 
 
 def test_obstacle_avoidance_single_right() -> None:
@@ -291,8 +308,11 @@ def test_obstacle_avoidance_single_right() -> None:
     assert obstacle_avoidance(
         Vec2d(100, 100),
         Vec2d(0, 100),
-        {(2, 2)},
-    ) == pytest.approx(Vec2d(-0.8660254037844386, -0.5))
+        {Vec2d(2, 2)},
+    ) == Vec2d(
+        -0.8660254037844386,
+        pytest.approx(-0.5),  # type: ignore[arg-type]
+    )
 
 
 def test_obstacle_avoidance_left_forward() -> None:
@@ -300,8 +320,11 @@ def test_obstacle_avoidance_left_forward() -> None:
     assert obstacle_avoidance(
         Vec2d(100, 100),
         Vec2d(0, 100),
-        {(0, 2), (1, 2)},
-    ) == pytest.approx(Vec2d(0.8660254037844387, -0.5))
+        {Vec2d(0, 2), Vec2d(1, 2)},
+    ) == Vec2d(
+        0.8660254037844387,
+        pytest.approx(-0.5),  # type: ignore[arg-type]
+    )
 
 
 def test_obstacle_avoidance_right_forward() -> None:
@@ -309,8 +332,11 @@ def test_obstacle_avoidance_right_forward() -> None:
     assert obstacle_avoidance(
         Vec2d(100, 100),
         Vec2d(0, 100),
-        {(1, 2), (2, 2)},
-    ) == pytest.approx(Vec2d(-0.8660254037844386, -0.5))
+        {Vec2d(1, 2), Vec2d(2, 2)},
+    ) == Vec2d(
+        -0.8660254037844386,
+        pytest.approx(-0.5),  # type: ignore[arg-type]
+    )
 
 
 def test_obstacle_avoidance_left_right_forward() -> None:
@@ -318,7 +344,7 @@ def test_obstacle_avoidance_left_right_forward() -> None:
     assert obstacle_avoidance(
         Vec2d(100, 100),
         Vec2d(0, 100),
-        {(0, 2), (1, 2), (2, 2)},
+        {Vec2d(0, 2), Vec2d(1, 2), Vec2d(2, 2)},
     ) == Vec2d(0, -1)
 
 
@@ -388,7 +414,10 @@ def test_seek_negative_positions() -> None:
 
 def test_wander_non_moving() -> None:
     """Test if a non-moving game object produces the correct wander force."""
-    assert wander(Vec2d(0, 0), 60) == pytest.approx(Vec2d(0.8660254037844385, -0.5))
+    assert wander(Vec2d(0, 0), 60) == Vec2d(
+        0.8660254037844385,
+        pytest.approx(-0.5),  # type: ignore[arg-type]
+    )
 
 
 def test_wander_moving() -> None:
