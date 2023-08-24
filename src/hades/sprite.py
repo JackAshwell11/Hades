@@ -2,15 +2,17 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 # Pip
 from arcade import Sprite
 
 # Custom
 from hades.constants import SPRITE_SCALE
-from hades.game_objects.base import ComponentType
-from hades.game_objects.movements import MovementBase
+from hades.game_objects.systems.movements import (
+    KeyboardMovementSystem,
+    SteeringMovementSystem,
+)
 from hades.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
@@ -26,7 +28,7 @@ class HadesSprite(Sprite):
 
     def __init__(
         self: HadesSprite,
-        game_object_id: int,
+        game_object: tuple[int, bool],
         registry: Registry,
         position: tuple[int, int],
         game_object_textures: GameObjectTextures,
@@ -34,14 +36,14 @@ class HadesSprite(Sprite):
         """Initialise the object.
 
         Args:
-            game_object_id: The game object's ID.
+            game_object: The game object's ID and whether it is AI controlled or not.
             registry: The registry which manages the game objects.
             position: The position of the sprite object in the grid.
             game_object_textures: The collection of textures which relate to this game
             object.
         """
         super().__init__(scale=SPRITE_SCALE)
-        self.game_object_id: int = game_object_id
+        self.game_object_id, ai_controlled = game_object
         self.registry: Registry = registry
         self.position = grid_pos_to_pixel(*position)
         self.game_object_textures: GameObjectTextures = game_object_textures
@@ -49,6 +51,13 @@ class HadesSprite(Sprite):
 
         # Initialise the default sprite
         self.texture = self.game_object_textures.default_texture
+
+        # Get the correct movement system for the game object
+        self.target_movement_system: KeyboardMovementSystem | SteeringMovementSystem = (
+            self.registry.get_system(SteeringMovementSystem)
+            if ai_controlled
+            else self.registry.get_system(KeyboardMovementSystem)
+        )
 
     @property
     def physics(self: HadesSprite) -> PhysicsEngine:
@@ -64,13 +73,7 @@ class HadesSprite(Sprite):
         # Calculate the game object's new movement force and apply it
         self.physics.apply_force(
             self,
-            cast(
-                MovementBase,
-                self.registry.get_component_for_game_object(
-                    self.game_object_id,
-                    ComponentType.MOVEMENTS,
-                ),
-            ).calculate_force(),
+            self.target_movement_system.calculate_force(self.game_object_id),
         )
 
     def pymunk_moved(

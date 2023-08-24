@@ -189,7 +189,7 @@ class InstantEffects(ComponentBase):
 
     level_limit: int
     instant_effects: Mapping[ComponentType, Callable[[int], float]] = field(
-        default_factory=list,
+        default_factory=dict,
     )
 
 
@@ -254,7 +254,7 @@ class StatusEffects(ComponentBase):
     status_effects: Mapping[
         ComponentType,
         tuple[Callable[[int], float], Callable[[int], float]],
-    ] = field(default_factory=list)
+    ] = field(default_factory=dict)
 
 
 @dataclass(slots=True)

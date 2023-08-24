@@ -94,7 +94,8 @@ def test_vec2d_rotated() -> None:
         pytest.approx(-3),  # type: ignore[arg-type]
     )
     assert Vec2d(1, 1).rotated(math.radians(90)) == Vec2d(
-        pytest.approx(-1), 1  # type: ignore[arg-type]
+        pytest.approx(-1),  # type: ignore[arg-type]
+        1,
     )
     assert Vec2d(-5, 4).rotated(math.radians(0)) == Vec2d(-5, 4)
 
@@ -265,7 +266,8 @@ def test_obstacle_avoidance_no_obstacles() -> None:
 def test_obstacle_avoidance_obstacle_out_of_range() -> None:
     """Test if an out of range obstacle produces the correct avoidance force."""
     assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {Vec2d(10, 10)}) == Vec2d(
-        0, 0
+        0,
+        0,
     )
 
 
@@ -280,14 +282,16 @@ def test_obstacle_avoidance_angled_velocity() -> None:
 def test_obstacle_avoidance_non_moving() -> None:
     """Test if a non-moving game object produces the correct avoidance force."""
     assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {Vec2d(1, 2)}) == Vec2d(
-        0, 0
+        0,
+        0,
     )
 
 
 def test_obstacle_avoidance_single_forward() -> None:
     """Test if a single forward obstacle produces the correct avoidance force."""
     assert obstacle_avoidance(Vec2d(100, 100), Vec2d(0, 100), {Vec2d(1, 2)}) == Vec2d(
-        0, 0
+        0,
+        0,
     )
 
 

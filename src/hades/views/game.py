@@ -103,10 +103,10 @@ class Game(View):
         # Initialise a sprite object
         game_object_id = self.registry.create_game_object(
             *constructor.components,
-            kinematic=constructor.physics,
+            kinematic=constructor.kinematic,
         )
         sprite_obj = HadesSprite(
-            game_object_id,
+            (game_object_id, SteeringMovement in constructor.components),
             self.registry,
             position,
             constructor.game_object_textures,

@@ -24,7 +24,8 @@ class GameObjectComponentOne(ComponentBase):
 class GameObjectComponentTwo(ComponentBase):
     """Represents a game object component useful for testing."""
 
-    test_data: int
+    test_list: list[int]
+    test_int: int = 0
 
 
 class GameObjectComponentInvalid:
@@ -103,6 +104,8 @@ def test_registry_game_object_with_zero_components(registry: Registry) -> None:
         registry.get_kinematic_object_for_game_object(0)
     with pytest.raises(expected_exception=KeyError):
         registry.get_component_for_game_object(0, GameObjectComponentOne)
+    with pytest.raises(expected_exception=KeyError):
+        registry.get_component_for_game_object(0, GameObjectComponentTwo)
 
     # Test that removing the game object works correctly
     registry.delete_game_object(0)
@@ -123,17 +126,17 @@ def test_registry_game_object_with_multiple_components(registry: Registry) -> No
         registry: The registry for use in testing.
     """
     # Test that adding the game object works correctly
-    registry.create_game_object(GameObjectComponentOne(), GameObjectComponentTwo(10))
+    registry.create_game_object(GameObjectComponentOne(), GameObjectComponentTwo([10]))
     assert list(registry.get_components(GameObjectComponentOne)) == [
         (0, (GameObjectComponentOne(),)),
     ]
     assert list(registry.get_components(GameObjectComponentTwo)) == [
-        (0, (GameObjectComponentTwo(10),)),
+        (0, (GameObjectComponentTwo([10]),)),
     ]
     assert list(
         registry.get_components(GameObjectComponentOne, GameObjectComponentTwo),
     ) == [
-        (0, (GameObjectComponentOne(), GameObjectComponentTwo(10))),
+        (0, (GameObjectComponentOne(), GameObjectComponentTwo([10]))),
     ]
     assert (
         registry.get_component_for_game_object(0, GameObjectComponentOne)
@@ -142,7 +145,7 @@ def test_registry_game_object_with_multiple_components(registry: Registry) -> No
     assert registry.get_component_for_game_object(
         0,
         GameObjectComponentTwo,
-    ) == GameObjectComponentTwo(10)
+    ) == GameObjectComponentTwo([10])
     with pytest.raises(expected_exception=KeyError):
         registry.get_component_for_game_object(
             0,
@@ -194,7 +197,7 @@ def test_registry_multiple_game_objects(registry: Registry) -> None:
     assert (
         registry.create_game_object(
             GameObjectComponentOne(),
-            GameObjectComponentTwo(10),
+            GameObjectComponentTwo([10]),
         )
         == 1
     )
@@ -203,7 +206,7 @@ def test_registry_multiple_game_objects(registry: Registry) -> None:
         (1, (GameObjectComponentOne(),)),
     ]
     assert list(registry.get_components(GameObjectComponentTwo)) == [
-        (1, (GameObjectComponentTwo(10),)),
+        (1, (GameObjectComponentTwo([10]),)),
     ]
     assert (
         registry.get_component_for_game_object(0, GameObjectComponentOne)
@@ -216,7 +219,7 @@ def test_registry_multiple_game_objects(registry: Registry) -> None:
     assert registry.get_component_for_game_object(
         1,
         GameObjectComponentTwo,
-    ) == GameObjectComponentTwo(10)
+    ) == GameObjectComponentTwo([10])
 
     # Test that removing the first game object works correctly
     registry.delete_game_object(0)
@@ -224,7 +227,7 @@ def test_registry_multiple_game_objects(registry: Registry) -> None:
         (1, (GameObjectComponentOne(),)),
     ]
     assert list(registry.get_components(GameObjectComponentTwo)) == [
-        (1, (GameObjectComponentTwo(10),)),
+        (1, (GameObjectComponentTwo([10]),)),
     ]
     assert (
         registry.get_component_for_game_object(1, GameObjectComponentOne)
@@ -233,7 +236,7 @@ def test_registry_multiple_game_objects(registry: Registry) -> None:
     assert registry.get_component_for_game_object(
         1,
         GameObjectComponentTwo,
-    ) == GameObjectComponentTwo(10)
+    ) == GameObjectComponentTwo([10])
     with pytest.raises(
         expected_exception=RegistryError,
         match="The game object ID `0` is not registered with the registry.",
@@ -249,14 +252,17 @@ def test_registry_duplicate_components(registry: Registry) -> None:
     """
     # Test that adding a game object with two of the same components only adds the first
     # one
-    registry.create_game_object(GameObjectComponentTwo(10), GameObjectComponentTwo(20))
+    registry.create_game_object(
+        GameObjectComponentTwo([10]),
+        GameObjectComponentTwo([20]),
+    )
     assert list(registry.get_components(GameObjectComponentTwo)) == [
-        (0, (GameObjectComponentTwo(10),)),
+        (0, (GameObjectComponentTwo([10]),)),
     ]
     assert registry.get_component_for_game_object(
         0,
         GameObjectComponentTwo,
-    ) == GameObjectComponentTwo(10)
+    ) == GameObjectComponentTwo([10])
 
 
 def test_registry_zero_systems(registry: Registry) -> None:
@@ -301,7 +307,43 @@ def test_registry_add_wall(registry: Registry) -> None:
         registry: The registry for use in testing.
     """
     assert registry.walls == set()
-    registry.walls.add((0, 0))
-    registry.walls.add((1, 1))
-    registry.walls.add((0, 0))
-    assert registry.walls == {(0, 0), (1, 1)}
+    registry.walls.add(Vec2d(0, 0))
+    registry.walls.add(Vec2d(1, 1))
+    registry.walls.add(Vec2d(0, 0))
+    assert registry.walls == {Vec2d(0, 0), Vec2d(1, 1)}
+
+
+def test_registry_component_copy(registry: Registry) -> None:
+    """Test that the registry copies components correctly when creating a game object.
+
+    Args:
+        registry: The registry for use in testing.
+    """
+    # Create the game objects
+    game_object_component_two = GameObjectComponentTwo([])
+    registry.create_game_object(game_object_component_two)
+    registry.create_game_object(game_object_component_two)
+
+    # Modify the components
+    game_object_component_two.test_list.append(10)
+    game_object_component_two.test_int = 10
+    game_object_component_two_zero = registry.get_component_for_game_object(
+        0,
+        GameObjectComponentTwo,
+    )
+    game_object_component_two_zero.test_list.append(20)
+    game_object_component_two_zero.test_int = 20
+    game_object_component_two_one = registry.get_component_for_game_object(
+        1,
+        GameObjectComponentTwo,
+    )
+    game_object_component_two_one.test_list.append(30)
+    game_object_component_two_one.test_int = 30
+
+    # Check that the components are different
+    assert game_object_component_two.test_list == [10]
+    assert game_object_component_two.test_int == 10
+    assert game_object_component_two_zero.test_list == [20]
+    assert game_object_component_two_zero.test_int == 20
+    assert game_object_component_two_one.test_list == [30]
+    assert game_object_component_two_one.test_int == 30

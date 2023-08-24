@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, TypeVar, overload
+from copy import deepcopy
+from typing import TYPE_CHECKING, TypeVar, cast, overload
 
 # Custom
 from hades.game_objects.base import ComponentBase, SystemBase
@@ -100,7 +101,7 @@ class Registry:
             )
             self._game_objects.setdefault(self._next_game_object_id, {}).setdefault(
                 type(component),
-                component,
+                deepcopy(component),
             )
 
         # Increment the game object ID and return the current game object ID
@@ -168,7 +169,7 @@ class Registry:
             )
 
         # Return the specified system
-        return self._systems[system]
+        return cast(S, self._systems[system])
 
     def get_component_for_game_object(
         self: Registry,
@@ -196,7 +197,7 @@ class Registry:
             )
 
         # Return the specified component
-        return self._game_objects[game_object_id][component]
+        return cast(C, self._game_objects[game_object_id][component])
 
     @overload
     def get_components(
