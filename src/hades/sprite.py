@@ -9,6 +9,7 @@ from arcade import Sprite
 
 # Custom
 from hades.constants import SPRITE_SCALE
+from hades.game_objects.steering import Vec2d
 from hades.game_objects.systems.movements import (
     KeyboardMovementSystem,
     SteeringMovementSystem,
@@ -71,9 +72,10 @@ class HadesSprite(Sprite):
     def on_update(self: HadesSprite, _: float = 1 / 60) -> None:
         """Handle an on_update event for the game object."""
         # Calculate the game object's new movement force and apply it
+        force = self.target_movement_system.calculate_force(self.game_object_id)
         self.physics.apply_force(
             self,
-            self.target_movement_system.calculate_force(self.game_object_id),
+            (force.x, force.y),
         )
 
     def pymunk_moved(
@@ -92,8 +94,8 @@ class HadesSprite(Sprite):
         )
         if body is None:
             return
-        kinematic_object.position = body.position
-        kinematic_object.velocity = body.velocity
+        kinematic_object.position = Vec2d(*body.position)
+        kinematic_object.velocity = Vec2d(*body.velocity)
 
     def __repr__(self: HadesSprite) -> str:
         """Return a human-readable representation of this object.

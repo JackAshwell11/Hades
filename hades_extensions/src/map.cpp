@@ -46,7 +46,11 @@ struct MapGenerationConstants {
 
 // Defines the constants for the map generation
 const MapGenerationConstants MAP_GENERATION_CONSTANTS = {
-    {30, 1.2, 150}, {20, 1.2, 100}, {5, 1.5, 25}, {20, 1.3, 200}, {5, 1.1, 30},
+    {30, 1.2, 150},
+    {20, 1.2, 100},
+    {5, 1.5, 25},
+    {20, 1.3, 200},
+    {5, 1.1, 30},
 };
 
 // ----- FUNCTIONS ------------------------------

@@ -30,6 +30,7 @@ from hades.constants import (
     TOTAL_ENEMY_COUNT,
     GameObjectType,
 )
+from hades.game_objects import SYSTEMS
 from hades.game_objects.components import KeyboardMovement, SteeringMovement
 from hades.game_objects.constructors import (
     ENEMY,
@@ -106,7 +107,7 @@ class Game(View):
             kinematic=constructor.kinematic,
         )
         sprite_obj = HadesSprite(
-            (game_object_id, SteeringMovement in constructor.components),
+            (game_object_id, constructor.game_object_type is not GameObjectType.PLAYER),
             self.registry,
             position,
             constructor.game_object_textures,
@@ -156,6 +157,10 @@ class Game(View):
             10,
             font_size=20,
         )
+
+        # Initialise all the systems
+        for system in SYSTEMS:
+            self.registry.add_system(system(self.registry))
 
         # Initialise the game objects
         for count, tile in enumerate(generation_result[0]):

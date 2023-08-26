@@ -6,7 +6,6 @@
 
 // Custom includes
 #include "astar.hpp"
-#include "primitives.hpp"
 
 // ----- STRUCTURES ------------------------------
 /// Represents a grid position and its costs from the start position

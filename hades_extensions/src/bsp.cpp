@@ -3,7 +3,6 @@
 
 // Custom includes
 #include "bsp.hpp"
-#include "primitives.hpp"
 
 // ----- CONSTANTS ------------------------------
 #define CONTAINER_RATIO 1.25

@@ -17,18 +17,18 @@
 /// reached the end of the branch.
 /// @details room - The rect object for representing the room inside this leaf.
 struct Leaf {
-  // Parameters
-  std::unique_ptr<Rect> container;
+    // Parameters
+    std::unique_ptr<Rect> container;
 
-  // Attributes
-  std::unique_ptr<Leaf> left, right;
-  std::unique_ptr<Rect> room;
+    // Attributes
+    std::unique_ptr<Leaf> left, right;
+    std::unique_ptr<Rect> room;
 
-  inline bool operator==(const Leaf &lef) const {
-    return container == lef.container && left == lef.left && right == lef.right;
-  }
+    inline bool operator==(const Leaf &lef) const {
+        return container == lef.container && left == lef.left && right == lef.right;
+    }
 
-  explicit Leaf(Rect container_val) : container(std::make_unique<Rect>(container_val)) {}
+    explicit Leaf(Rect container_val) : container(std::make_unique<Rect>(container_val)) {}
 };
 
 // ----- FUNCTIONS -------------------------------
