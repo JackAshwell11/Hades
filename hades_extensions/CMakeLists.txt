@@ -14,18 +14,21 @@ set(SOURCE_FILES
         ${CMAKE_SOURCE_DIR}/src/bsp.cpp
         ${CMAKE_SOURCE_DIR}/src/map.cpp
         ${CMAKE_SOURCE_DIR}/src/primitives.cpp
+        ${CMAKE_SOURCE_DIR}/src/steering.cpp
 )
 set(HEADER_FILES
         ${CMAKE_SOURCE_DIR}/include/astar.hpp
         ${CMAKE_SOURCE_DIR}/include/bsp.hpp
         ${CMAKE_SOURCE_DIR}/include/map.hpp
         ${CMAKE_SOURCE_DIR}/include/primitives.hpp
+        ${CMAKE_SOURCE_DIR}/include/steering.hpp
 )
 set(TEST_FILES
         ${CMAKE_SOURCE_DIR}/test/test_astar.cpp
         ${CMAKE_SOURCE_DIR}/test/test_bsp.cpp
         ${CMAKE_SOURCE_DIR}/test/test_map.cpp
         ${CMAKE_SOURCE_DIR}/test/test_primitives.cpp
+        ${CMAKE_SOURCE_DIR}/test/test_steering.cpp
 )
 
 # Define the module names and initialise the project

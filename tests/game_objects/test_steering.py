@@ -103,8 +103,8 @@ def test_vec2d_rotated() -> None:
 def test_vec2d_get_angle_between() -> None:
     """Test that getting the angle between two vectors produces the correct result."""
     assert Vec2d(0, 0).get_angle_between(Vec2d(1, 1)) == 0
-    assert Vec2d(-3, -2).get_angle_between(Vec2d(-1, -1)) == 0.19739555984988075
-    assert Vec2d(6, 3).get_angle_between(Vec2d(5, 5)) == 0.3217505543966422
+    assert Vec2d(-3, -2).get_angle_between(Vec2d(-1, -1)) == 0.19739555984988044
+    assert Vec2d(6, 3).get_angle_between(Vec2d(5, 5)) == 0.32175055439664213
     assert Vec2d(1, 1).get_angle_between(Vec2d(1, 1)) == 0
     assert Vec2d(-5, 4).get_angle_between(Vec2d(7, -1)) == 3.674436541209182
 

@@ -22,8 +22,13 @@ enum class TileType {
 ///
 /// @param x - The x position of the point.
 /// @param y - The y position of the point.
+// TODO: Maybe rename this to Position?
 struct Point {
   int x, y;
+
+  Point() = default;
+
+  Point(int x_val, int y_val) : x(x_val), y(y_val) {}
 
   inline bool operator==(const Point pnt) const {
     return x == pnt.x && y == pnt.y;
@@ -40,10 +45,6 @@ struct Point {
   inline Point operator-(const Point pnt) const {
     return {abs(x - pnt.x), abs(y - pnt.y)};
   }
-
-  Point() = default;
-
-  Point(int x_val, int y_val) : x(x_val), y(y_val) {}
 };
 
 /// Represents a 2D grid with a set width and height through a 1D vector.
@@ -106,14 +107,6 @@ struct Rect {
   Point centre;
   int width, height;
 
-  inline bool operator==(const Rect &rct) const {
-    return top_left == rct.top_left && bottom_right == rct.bottom_right;
-  }
-
-  inline bool operator!=(const Rect &rct) const {
-    return top_left != rct.top_left || bottom_right != rct.bottom_right;
-  }
-
   Rect() = default;
 
   Rect(Point top_left_val, Point bottom_right_val)
@@ -123,6 +116,14 @@ struct Rect {
                static_cast<int>(std::round((top_left_val + bottom_right_val).y / 2.0))),
         width((top_left_val - bottom_right_val).x),
         height((top_left_val - bottom_right_val).y) {}
+
+  inline bool operator==(const Rect &rct) const {
+    return top_left == rct.top_left && bottom_right == rct.bottom_right;
+  }
+
+  inline bool operator!=(const Rect &rct) const {
+    return top_left != rct.top_left || bottom_right != rct.bottom_right;
+  }
 
   /// Get the Chebyshev distance to another rect.
   ///

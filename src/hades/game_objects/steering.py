@@ -82,9 +82,12 @@ class Vec2d:
         Returns:
             The angle between this vector and the other vector.
         """
-        return math.atan2(
-            self.x * other.y - self.y * other.x,
-            self.x * other.x + self.y * other.y,
+        return (
+            math.atan2(
+                self.x * other.y - self.y * other.x,
+                self.x * other.x + self.y * other.y,
+            )
+            + 2 * math.pi
         ) % (2 * math.pi)
 
     def get_distance_to(self: Vec2d, other: Vec2d) -> float:
