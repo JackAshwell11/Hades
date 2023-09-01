@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 // Custom includes
-#include "astar.hpp"
+#include "generation/astar.hpp"
 
 // ----- STRUCTURES ------------------------------
 /// Represents a grid position and its costs from the start position

@@ -4,7 +4,7 @@
 #include <unordered_set>
 
 // Custom includes
-#include "primitives.hpp"
+#include "generation/primitives.hpp"
 
 // ----- CONSTANTS ------------------------------
 // Defines constants for hallway and entity generation

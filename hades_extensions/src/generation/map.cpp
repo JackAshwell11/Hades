@@ -7,8 +7,8 @@
 #include <unordered_set>
 
 // Custom includes
-#include "astar.hpp"
-#include "map.hpp"
+#include "generation/astar.hpp"
+#include "generation/map.hpp"
 
 // ----- STRUCTURES ------------------------------
 /// Stores a map generation constant which can be calculated.

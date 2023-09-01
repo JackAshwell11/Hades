@@ -17,5 +17,5 @@ add_library(${CPP_LIB} STATIC ${SOURCE_FILES})
 target_include_directories(${CPP_LIB} PUBLIC ${INCLUDE_DIR})
 
 # Create the Python module
-pybind11_add_module(${PY_MODULE} ${CMAKE_SOURCE_DIR}/src/binding.cpp)
+pybind11_add_module(${PY_MODULE} ${BINDING_PATH})
 target_link_libraries(${PY_MODULE} PRIVATE ${CPP_LIB})

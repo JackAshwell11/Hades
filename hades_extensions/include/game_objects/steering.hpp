@@ -46,6 +46,8 @@ struct Vec2d {
     return {std::floor(x / val), std::floor(y / val)};
   }
 
+  // TODO: Maybe bring these methods into source folder
+
   /// Get the magnitude of the vector.
   ///
   /// @return The magnitude of the vector.
@@ -103,11 +105,11 @@ struct Vec2d {
 struct KinematicObject {
   Vec2d position{};
   Vec2d velocity{};
-  double rotation = 0;
+  double rotation{};
 
   KinematicObject() = default;
 
-  KinematicObject(const Vec2d &position_val, const Vec2d &velocity_val, double rotation_val)
+  KinematicObject(const Vec2d &position_val, const Vec2d &velocity_val, double rotation_val = 0)
       : position(position_val), velocity(velocity_val), rotation(rotation_val) {}
 };
 

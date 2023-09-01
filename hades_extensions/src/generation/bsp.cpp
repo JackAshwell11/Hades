@@ -2,7 +2,7 @@
 #include <random>
 
 // Custom includes
-#include "bsp.hpp"
+#include "generation/bsp.hpp"
 
 // ----- CONSTANTS ------------------------------
 #define CONTAINER_RATIO 1.25

@@ -6,7 +6,7 @@
 #include <pybind11/stl.h>
 
 // Custom includes
-#include "map.hpp"
+#include "generation/map.hpp"
 
 // ----- PYTHON MODULE CREATION ------------------------------
 PYBIND11_MODULE(hades_extensions, m) {

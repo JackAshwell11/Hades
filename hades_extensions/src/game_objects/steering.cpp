@@ -1,13 +1,10 @@
-// Ensure this file is only included once
-#pragma once
-
 // Std includes
 #include <stdexcept>
 #include <numbers>
 #include <unordered_set>
 
 // Custom includes
-#include "steering.hpp"
+#include "game_objects/steering.hpp"
 
 // ----- CONSTANTS ------------------------------
 const int SPRITE_SIZE = 64;
@@ -113,6 +110,5 @@ Vec2d wander(const Vec2d &current_velocity, int displacement_angle) {
 
   // Add a displacement force to the centre of the circle to randomise the movement
   Vec2d displacement = (Vec2d(0, -1) * WANDER_CIRCLE_RADIUS).rotated(displacement_angle * PI_RADIANS);
-  std::cout << displacement.x << " " << displacement.y << "\n";
   return (circle_center + displacement).normalised();
 }

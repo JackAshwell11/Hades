@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 // Custom includes
-#include "steering.hpp"
+#include "game_objects/steering.hpp"
 
 // ----- TESTS ------------------------------
 TEST(Tests, TestVec2dAddition) {
