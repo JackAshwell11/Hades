@@ -54,9 +54,9 @@ const MapGenerationConstants MAP_GENERATION_CONSTANTS = {
 };
 
 // ----- FUNCTIONS ------------------------------
-std::vector<Point> collect_positions(Grid &grid, TileType target) {
+std::vector<Position> collect_positions(Grid &grid, TileType target) {
   // Iterate over grid and check each position
-  std::vector<Point> result;
+  std::vector<Position> result;
   for (int y = 0; y < grid.height; y++) {
     for (int x = 0; x < grid.width; x++) {
       if (grid.get_value({x, y}) == target) {
@@ -69,7 +69,7 @@ std::vector<Point> collect_positions(Grid &grid, TileType target) {
   return result;
 }
 
-void split_bsp(Leaf &bsp, Grid &grid, std::mt19937 &random_generator, int split_iteration) {
+void split_bsp(Leaf &bsp, std::mt19937 &random_generator, int split_iteration) {
   // Start the splitting using a queue
   std::queue<std::reference_wrapper<Leaf>> queue({bsp});
   while (split_iteration > 0 && !queue.empty()) {
@@ -164,7 +164,10 @@ std::unordered_set<Edge> create_connections(std::unordered_map<Rect, std::vector
   return mst;
 }
 
-void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile, std::vector<Point> &possible_tiles) {
+void place_tile(Grid &grid,
+                std::mt19937 &random_generator,
+                TileType target_tile,
+                std::vector<Position> &possible_tiles) {
   // Check if at least one tile exists
   if (possible_tiles.empty()) {
     throw std::length_error("Possible tiles size must be bigger than 0.");
@@ -173,7 +176,7 @@ void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile
   // Get a random floor position and place the target tile
   std::uniform_int_distribution<std::size_t> possible_tiles_distribution(0, possible_tiles.size() - 1);
   std::size_t possible_tile_index = possible_tiles_distribution(random_generator);
-  Point possible_tile = possible_tiles[possible_tile_index];
+  Position possible_tile = possible_tiles[possible_tile_index];
   possible_tiles[possible_tile_index] = possible_tiles.back();
   possible_tiles.pop_back();
   grid.set_value(possible_tile, target_tile);
@@ -184,29 +187,29 @@ void create_hallways(Grid &grid,
                      std::unordered_set<Edge> &connections,
                      int obstacle_count) {
   // Place random obstacles in the grid
-  std::vector<Point> obstacle_positions = collect_positions(grid, TileType::Empty);
+  std::vector<Position> obstacle_positions = collect_positions(grid, TileType::Empty);
   for (int i = 0; i < obstacle_count; i++) {
     place_tile(grid, random_generator, TileType::Obstacle, obstacle_positions);
   }
 
   // Use the A* algorithm with to connect each pair of rooms making sure to
   // avoid the obstacles giving us natural looking hallways
-  std::vector<std::vector<Point>> path_points(connections.size());
+  std::vector<std::vector<Position>> path_positions(connections.size());
   std::transform(std::execution::par,
                  connections.begin(),
                  connections.end(),
-                 path_points.begin(),
+                 path_positions.begin(),
                  [&grid](Edge connection) {
                    return calculate_astar_path(grid,
                                                connection.source.centre,
                                                connection.destination.centre);
                  });
-  for (const std::vector<Point> &path : path_points) {
-    for (const Point &path_point : path) {
-      // Place a rect box around the path_point using HALLWAY_SIZE to determine
+  for (const std::vector<Position> &path : path_positions) {
+    for (const Position &path_position : path) {
+      // Place a rect box around the path_position using HALLWAY_SIZE to determine
       // the width and height
-      Rect{{path_point.x - HALF_HALLWAY_SIZE, path_point.y - HALF_HALLWAY_SIZE},
-           {path_point.x + HALF_HALLWAY_SIZE, path_point.y + HALF_HALLWAY_SIZE}}.place_rect(grid);
+      Rect{{path_position.x - HALF_HALLWAY_SIZE, path_position.y - HALF_HALLWAY_SIZE},
+           {path_position.x + HALF_HALLWAY_SIZE, path_position.y + HALF_HALLWAY_SIZE}}.place_rect(grid);
     }
   }
 }
@@ -236,7 +239,7 @@ std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(int level
   Leaf bsp{{{0, 0}, {grid_width - 1, grid_height - 1}}};
 
   // Split the bsp and create the rooms
-  split_bsp(bsp, grid, random_generator, MAP_GENERATION_CONSTANTS.split_iteration.generate_value(level));
+  split_bsp(bsp, random_generator, MAP_GENERATION_CONSTANTS.split_iteration.generate_value(level));
   std::vector<Rect> rooms = generate_rooms(bsp, grid, random_generator);
 
   // Create the hallways between the rooms
@@ -255,7 +258,7 @@ std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(int level
 
   // Place the player and all the items on the tiles which can support items
   // being placed on them
-  std::vector<Point> possible_tiles = collect_positions(grid, TileType::Floor);
+  std::vector<Position> possible_tiles = collect_positions(grid, TileType::Floor);
   place_tile(grid, random_generator, TileType::Player, possible_tiles);
   for (int item = 0; item < MAP_GENERATION_CONSTANTS.item_count.generate_value(level); item++) {
     place_tile(grid, random_generator, TileType::Potion, possible_tiles);

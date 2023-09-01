@@ -13,32 +13,32 @@
 // ----- TESTS ------------------------------
 TEST_F(GenerationFixtures, TestMapCollectPositionsExist) {
   // Test finding a tile that exists in a grid
-  std::vector<Point> tile_exists_result = {{0, 4}, {1, 4}, {2, 4}, {0, 5}, {1, 5}, {2, 5}};
+  std::vector<Position> tile_exists_result = {{0, 4}, {1, 4}, {2, 4}, {0, 5}, {1, 5}, {2, 5}};
   ASSERT_EQ(collect_positions(detailed_grid, TileType::Floor), tile_exists_result);
 }
 
 TEST_F(GenerationFixtures, TestMapCollectPositionsNoExist) {
   // Test finding a tile that doesn't exist in a grid
-  std::vector<Point> tile_not_exist_result;
+  std::vector<Position> tile_not_exist_result;
   ASSERT_EQ(collect_positions(detailed_grid, TileType::Player), tile_not_exist_result);
 }
 
 TEST_F(GenerationFixtures, TestMapCollectPositionsEmptyGrid) {
   // Test finding a tile in an empty grid
-  std::vector<Point> tile_not_exist_result;
+  std::vector<Position> tile_not_exist_result;
   ASSERT_EQ(collect_positions(empty_grid, TileType::Floor), tile_not_exist_result);
 }
 
 TEST_F(GenerationFixtures, TestMapSplitBspNegativeSplit) {
   // Test what happens if split_iteration is -1
-  split_bsp(leaf, grid, random_generator, -1);
+  split_bsp(leaf, random_generator, -1);
   ASSERT_TRUE(leaf.left == nullptr);
   ASSERT_TRUE(leaf.right == nullptr);
 }
 
 TEST_F(GenerationFixtures, TestMapSplitBspZeroSplit) {
   // Test what happens if split_iteration is 0
-  split_bsp(leaf, grid, random_generator, 0);
+  split_bsp(leaf, random_generator, 0);
   ASSERT_TRUE(leaf.left == nullptr);
   ASSERT_TRUE(leaf.right == nullptr);
 }
@@ -46,7 +46,7 @@ TEST_F(GenerationFixtures, TestMapSplitBspZeroSplit) {
 TEST_F(GenerationFixtures, TestMapSplitBspThreeChildren) {
   // Split the bsp 2 times. This should generate two child leafs under the left
   // child and one child leaf on the right
-  split_bsp(leaf, grid, random_generator, 2);
+  split_bsp(leaf, random_generator, 2);
 
   // Test if the child leafs were generated
   ASSERT_TRUE(leaf.left->left->left == nullptr);
@@ -60,7 +60,7 @@ TEST_F(GenerationFixtures, TestMapSplitBspThreeChildren) {
 TEST_F(GenerationFixtures, TestMapSplitBspMaxSplit) {
   // Split the bsp with a split iteration of 10. We want to keep splitting the
   // bsp until it is no longer possible so this value should ensure that
-  split_bsp(leaf, grid, random_generator, 10);
+  split_bsp(leaf, random_generator, 10);
 
   // Collect all the child leafs so that we can test them
   std::vector<std::reference_wrapper<Leaf>> children;
@@ -80,7 +80,7 @@ TEST_F(GenerationFixtures, TestMapSplitBspMaxSplit) {
     }
   }
 
-  // Test that each child leaf cannot be split anymore and that there are
+  // Test that each child leaf cannot be split any more and that there are
   // approximately 4-8 children (this varies based on the toolchain)
   for (Leaf &child : children) {
     ASSERT_FALSE(split(child, random_generator));
@@ -130,14 +130,14 @@ TEST_F(GenerationFixtures, TestMapCreateConnectionsEmpty) {
 
 TEST_F(GenerationFixtures, TestMapPlaceTileGivenPositions) {
   // Test if a tile is correctly placed in the 2D grid
-  std::vector<Point> possible_tiles = {{5, 6}, {4, 2}};
+  std::vector<Position> possible_tiles = {{5, 6}, {4, 2}};
   place_tile(small_grid, random_generator, TileType::Player, possible_tiles);
   ASSERT_TRUE(std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Player) != small_grid.grid->end());
 }
 
 TEST_F(GenerationFixtures, TestMapPlaceTileEmpty) {
   // Test if a tile is not placed in the 2D grid
-  std::vector<Point> possible_tiles;
+  std::vector<Position> possible_tiles;
   ASSERT_THROW(place_tile(grid, random_generator, TileType::Player, possible_tiles), std::length_error);
 }
 
@@ -167,22 +167,22 @@ TEST_F(GenerationFixtures, TestMapCreateHallwaysWithObstacles) {
   // Get the first floor tile in the grid
   int index =
       (int) (std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Floor) - small_grid.grid->begin());
-  Point start = {index % small_grid.width, index / small_grid.width};
+  Position start = {index % small_grid.width, index / small_grid.width};
 
   // Use a Dijkstra map to count the number of floor tiles reachable
-  std::unordered_set<Point> tiles;
-  std::deque<Point> queue = {start};
-  std::vector<Point> offsets = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
+  std::unordered_set<Position> tiles;
+  std::deque<Position> queue = {start};
+  std::vector<Position> offsets = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
   while (!queue.empty()) {
-    // Get the current point to explore
-    Point current = queue.front();
+    // Get the current position to explore
+    Position current = queue.front();
     queue.pop_front();
 
     // Get the current tile's neighbours
-    for (Point offset : offsets) {
+    for (Position offset : offsets) {
       // Calculate the neighbour's position and check if its valid excluding
       // the boundaries as that produces weird paths
-      Point neighbour = current + offset;
+      Position neighbour = current + offset;
       if (neighbour.x < 0 || neighbour.x >= small_grid.width || neighbour.y < 0 || neighbour.y >= small_grid.height) {
         continue;
       } else if (small_grid.get_value(neighbour) == TileType::Floor && !tiles.contains(neighbour)) {

@@ -11,8 +11,8 @@
 /// @details https://en.wikipedia.org/wiki/A*_search_algorithm
 ///
 /// @param grid - The 2D grid which represents the dungeon.
-/// @param start - The start point for the algorithm.
-/// @param end - The end point for the algorithm.
+/// @param start - The start position for the algorithm.
+/// @param end - The end position for the algorithm.
 /// @throws std::length_error - Grid size must be bigger than 0.
-/// @return A vector of points mapping out the shortest path from start to end.
-std::vector<Point> calculate_astar_path(Grid &grid, Point start, Point end);
+/// @return A vector of positions mapping out the shortest path from start to end.
+std::vector<Position> calculate_astar_path(Grid &grid, Position start, Position end);

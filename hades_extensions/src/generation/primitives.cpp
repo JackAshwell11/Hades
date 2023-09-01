@@ -11,18 +11,18 @@
 const std::unordered_set<TileType> REPLACEABLE_TILES = {TileType::Empty, TileType::Obstacle};
 
 // ----- FUNCTIONS ------------------------------
-int Grid::convert_position(const Point &pos) const {
+int Grid::convert_position(const Position &pos) const {
   if (pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height) {
     throw std::out_of_range("Position must be within range");
   }
   return width * pos.y + pos.x;
 }
 
-TileType Grid::get_value(const Point &pos) const {
+TileType Grid::get_value(const Position &pos) const {
   return grid->at(convert_position(pos));
 }
 
-void Grid::set_value(const Point &pos, TileType target) const {
+void Grid::set_value(const Position &pos, TileType target) const {
   grid->at(convert_position(pos)) = target;
 }
 

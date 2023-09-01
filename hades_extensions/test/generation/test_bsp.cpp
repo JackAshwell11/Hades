@@ -10,11 +10,11 @@ TEST_F(GenerationFixtures, TestBspSplitCorrect) {
   // Split the bsp normally
   split(leaf, random_generator);
 
-  // Calculate the difference between the bottom right point of the left leaf
-  // and the top right point of the right leaf, so we can determine it's split
-  // direction
-  Point leaf_diff = leaf.left->container->bottom_right - leaf.right->container->top_left;
-  Point target_diff = (leaf_diff.x == 2) ? Point{2, 19} : Point{19, 2};
+  // Calculate the difference between the bottom right position of the left
+  // leaf and the top right position of the right leaf, so we can determine
+  // it's split direction
+  Position leaf_diff = leaf.left->container->bottom_right - leaf.right->container->top_left;
+  Position target_diff = (leaf_diff.x == 2) ? Position{2, 19} : Position{19, 2};
 
   // Test if the child leafs border each other
   ASSERT_EQ(leaf_diff, target_diff);
@@ -23,7 +23,7 @@ TEST_F(GenerationFixtures, TestBspSplitCorrect) {
 TEST_F(GenerationFixtures, TestBspSplitSmallWidthHeight) {
   // Make sure we test what happens if the container's width and height are
   // both less than MIN_CONTAINER_SIZE
-  leaf.container = std::make_unique<Rect>(Point{-1, -1}, Point{-1, -1});
+  leaf.container = std::make_unique<Rect>(Position{-1, -1}, Position{-1, -1});
   ASSERT_FALSE(split(leaf, random_generator));
 }
 

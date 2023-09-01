@@ -9,26 +9,27 @@
 
 // ----- STRUCTURES ------------------------------
 /// A binary spaced partition leaf used to generate the dungeon's rooms.
-///
-/// @param container - The rect object that represents this leaf.
-/// @details left - The left container of this leaf. If this is null, we have
-/// reached the end of the branch.
-/// @details right - The right container of this leaf. If this is null, we have
-/// reached the end of the branch.
-/// @details room - The rect object for representing the room inside this leaf.
 struct Leaf {
-    // Parameters
-    std::unique_ptr<Rect> container;
+  inline bool operator==(const Leaf &lef) const {
+    return container == lef.container && left == lef.left && right == lef.right;
+  }
 
-    // Attributes
-    std::unique_ptr<Leaf> left, right;
-    std::unique_ptr<Rect> room;
+  /// The rect object that represents this leaf.
+  std::unique_ptr<Rect> container;
 
-    inline bool operator==(const Leaf &lef) const {
-        return container == lef.container && left == lef.left && right == lef.right;
-    }
+  /// The left container of this leaf. If this is null, we have reached the end of the branch.
+  std::unique_ptr<Leaf> left;
 
-    explicit Leaf(Rect container_val) : container(std::make_unique<Rect>(container_val)) {}
+  /// The right container of this leaf. If this is null, we have reached the end of the branch.
+  std::unique_ptr<Leaf> right;
+
+  /// The rect object for representing the room inside this leaf.
+  std::unique_ptr<Rect> room;
+
+  /// Initialise the object.
+  ///
+  /// @param container_val - The rect object that represents this leaf.
+  explicit Leaf(Rect container_val) : container(std::make_unique<Rect>(container_val)) {}
 };
 
 // ----- FUNCTIONS -------------------------------

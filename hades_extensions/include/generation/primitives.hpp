@@ -6,6 +6,9 @@
 #include <memory>
 #include <vector>
 
+// Custom includes
+#include "base.hpp"
+
 // ----- ENUMS ------------------------------
 /// Stores the different types of tiles in the game map.
 enum class TileType {
@@ -18,49 +21,58 @@ enum class TileType {
 };
 
 // ----- STRUCTURES ------------------------------
-/// Represents a point in the grid.
-///
-/// @param x - The x position of the point.
-/// @param y - The y position of the point.
-// TODO: Maybe rename this to Position?
-struct Point {
-  int x, y;
-
-  Point() = default;
-
-  Point(int x_val, int y_val) : x(x_val), y(y_val) {}
-
-  inline bool operator==(const Point pnt) const {
+/// Represents a 2D position.
+struct Position {
+  inline bool operator==(const Position pnt) const {
     return x == pnt.x && y == pnt.y;
   }
 
-  inline bool operator!=(const Point pnt) const {
+  inline bool operator!=(const Position pnt) const {
     return x != pnt.x || y != pnt.y;
   }
 
-  inline Point operator+(const Point pnt) const {
+  inline Position operator+(const Position pnt) const {
     return {x + pnt.x, y + pnt.y};
   }
 
-  inline Point operator-(const Point pnt) const {
-    return {abs(x - pnt.x), abs(y - pnt.y)};
+  inline Position operator-(const Position pnt) const {
+    return {std::abs(x - pnt.x), std::abs(y - pnt.y)};
   }
+
+  /// The x position of the position.
+  int x;
+
+  /// The y position of the position.
+  int y;
+
+  /// The default constructor.
+  Position() = default;
+
+  /// Initialise the object.
+  ///
+  /// @param x_val - The x position of the position.
+  /// @param y_val - The y position of the position.
+  Position(int x_val, int y_val) : x(x_val), y(y_val) {}
 };
 
 /// Represents a 2D grid with a set width and height through a 1D vector.
-///
-/// @param width - The width of the 2D grid.
-/// @param height - The height of the 2D grid.
-/// @details grid - The vector which represents the 2D grid.
 struct Grid {
-  // Parameters
-  int width{}, height{};
+  /// The width of the 2D grid.
+  int width{};
 
-  // Attributes
+  /// The height of the 2D grid.
+  int height{};
+
+  /// The vector which represents the 2D grid.
   std::unique_ptr<std::vector<TileType>> grid;
 
+  /// The default constructor.
   Grid() = default;
 
+  /// Initialise the object.
+  ///
+  /// @param width_val - The width of the 2D grid.
+  /// @param height_val - The height of the 2D grid.
   Grid(int width_val, int height_val)
       : width(width_val),
         height(height_val),
@@ -71,20 +83,20 @@ struct Grid {
   /// @param pos - The position to convert.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The 1D grid position.
-  [[nodiscard]] int convert_position(const Point &pos) const;
+  [[nodiscard]] int convert_position(const Position &pos) const;
 
   /// Get a value in the 2D grid from a given position.
   ///
   /// @param pos - The position to get the value for.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The value at the given position.
-  [[nodiscard]] TileType get_value(const Point &pos) const;
+  [[nodiscard]] TileType get_value(const Position &pos) const;
 
   /// Set a value in the 2D grid from a given position.
   ///
   /// @param pos - The position to set.
   /// @throws std::out_of_range - Position must be within range.
-  void set_value(const Point &pos, TileType target) const;
+  void set_value(const Position &pos, TileType target) const;
 };
 
 /// Represents a rectangle of any size useful for the interacting with the 2D
@@ -93,30 +105,7 @@ struct Grid {
 /// When creating a container, the split wall is included in the rect size,
 /// whereas, rooms don't so MIN_CONTAINER_SIZE must be bigger than
 /// MIN_ROOM_SIZE.
-///
-/// @param top_left - The top left position of the rect.
-/// @param bottom_right - The bottom right position of the rect.
-/// @details centre - The centre position of the rect.
-/// @details width - The width of the rect.
-/// @details height - The height of the rect.
 struct Rect {
-  // Parameters
-  Point top_left, bottom_right;
-
-  // Attributes
-  Point centre;
-  int width, height;
-
-  Rect() = default;
-
-  Rect(Point top_left_val, Point bottom_right_val)
-      : top_left(top_left_val),
-        bottom_right(bottom_right_val),
-        centre(static_cast<int>(std::round((top_left_val + bottom_right_val).x / 2.0)),
-               static_cast<int>(std::round((top_left_val + bottom_right_val).y / 2.0))),
-        width((top_left_val - bottom_right_val).x),
-        height((top_left_val - bottom_right_val).y) {}
-
   inline bool operator==(const Rect &rct) const {
     return top_left == rct.top_left && bottom_right == rct.bottom_right;
   }
@@ -124,6 +113,36 @@ struct Rect {
   inline bool operator!=(const Rect &rct) const {
     return top_left != rct.top_left || bottom_right != rct.bottom_right;
   }
+
+  /// The top left position of the rect.
+  Position top_left;
+
+  /// The bottom right position of the rect.
+  Position bottom_right;
+
+  /// The centre position of the rect.
+  Position centre;
+
+  /// The width of the rect.
+  int width;
+
+  /// The height of the rect.
+  int height;
+
+  /// The default constructor.
+  Rect() = default;
+
+  /// Initialise the object.
+  ///
+  /// @param top_left_val - The top left position of the rect.
+  /// @param bottom_right_val - The bottom right position of the rect.
+  Rect(Position top_left_val, Position bottom_right_val)
+      : top_left(top_left_val),
+        bottom_right(bottom_right_val),
+        centre(static_cast<int>(std::round((top_left_val + bottom_right_val).x / 2.0)),
+               static_cast<int>(std::round((top_left_val + bottom_right_val).y / 2.0))),
+        width((top_left_val - bottom_right_val).x),
+        height((top_left_val - bottom_right_val).y) {}
 
   /// Get the Chebyshev distance to another rect.
   ///
@@ -137,21 +156,11 @@ struct Rect {
   void place_rect(Grid &grid) const;
 };
 
-// ----- FUNCTIONS ------------------------------
-/// Allows multiple hashes to be combined for a struct
-///
-/// @param seed - The seed for initialising the hasher.
-/// @param v - The value to hash.
-template<class T>
-inline void hash_combine(size_t &seed, const T &v) {
-  std::hash<T> hasher;
-  seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-}
-
+// ----- HASHES ------------------------------
 template<>
-struct std::hash<Point> {
-  size_t operator()(const Point &pnt) const {
-    size_t res = 0;
+struct std::hash<Position> {
+  std::size_t operator()(const Position &pnt) const {
+    std::size_t res = 0;
     hash_combine(res, pnt.x);
     hash_combine(res, pnt.y);
     return res;
@@ -160,8 +169,8 @@ struct std::hash<Point> {
 
 template<>
 struct std::hash<Rect> {
-  size_t operator()(const Rect &rct) const {
-    size_t res = 0;
+  std::size_t operator()(const Rect &rct) const {
+    std::size_t res = 0;
     hash_combine(res, rct.top_left);
     hash_combine(res, rct.bottom_right);
     return res;

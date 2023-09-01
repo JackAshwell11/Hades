@@ -9,9 +9,9 @@
 class GenerationFixtures : public testing::Test {
   /// Hold fixtures relating to the generation/ C++ tests.
  protected:
-  Point valid_point_one{3, 5}, valid_point_two{5, 7}, boundary_point{4, 0}, zero_point{0, 0};
-  Rect valid_rect_one{valid_point_one, valid_point_two}, valid_rect_two{valid_point_one, boundary_point},
-      zero_size_rect{zero_point, zero_point};
+  Position valid_position_one{3, 5}, valid_position_two{5, 7}, boundary_position{4, 0}, zero_position{0, 0};
+  Rect valid_rect_one{valid_position_one, valid_position_two}, valid_rect_two{valid_position_one, boundary_position},
+      zero_size_rect{zero_position, zero_position};
   Leaf leaf{{{0, 0}, {19, 19}}};
   Grid empty_grid, grid = {20, 20}, small_grid = {6, 9}, detailed_grid = {6, 9};
   std::mt19937 random_generator;

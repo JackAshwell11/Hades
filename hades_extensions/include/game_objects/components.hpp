@@ -351,7 +351,7 @@ struct SteeringMovement : ComponentBase {
   /// The game object ID of the target.
   int target_id = -1;
 
-  /// The list of points the game object should follow.
+  /// The list of positions the game object should follow.
   std::vector<Vec2d> path_list;
 
   /// Initialise the object.

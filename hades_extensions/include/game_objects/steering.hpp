@@ -2,9 +2,11 @@
 #pragma once
 
 // Std includes
-#include <cmath>
 #include <numbers>
 #include <unordered_set>
+
+// Custom includes
+#include "base.hpp"
 
 // ----- CONSTANTS ------------------------------
 #define PI_RADIANS (std::numbers::pi / 180)
@@ -12,16 +14,8 @@
 
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D vector.
-///
-/// @param x - The x value of the vector.
-/// @param y - The y value of the vector.
+// TODO: See if this and Position can be combined into a base class maybe with a template parameter
 struct Vec2d {
-  double x, y;
-
-  Vec2d() = default;
-
-  Vec2d(double x_val, double y_val) : x(x_val), y(y_val) {}
-
   inline bool operator==(const Vec2d &pnt) const {
     return x == pnt.x && y == pnt.y;
   }
@@ -46,36 +40,39 @@ struct Vec2d {
     return {std::floor(x / val), std::floor(y / val)};
   }
 
-  // TODO: Maybe bring these methods into source folder
+  /// The x value of the vector.
+  double x;
+
+  /// The y value of the vector.
+  double y;
+
+  /// The default constructor.
+  Vec2d() = default;
+
+  /// Initialise the object.
+  ///
+  /// @param x_val - The x value of the vector.
+  /// @param y_val - The y value of the vector.
+  Vec2d(double x_val, double y_val) : x(x_val), y(y_val) {}
 
   /// Get the magnitude of the vector.
   ///
   /// @return The magnitude of the vector.
-  [[nodiscard]] inline double magnitude() const {
-    return std::hypot(x, y);
-  }
+  [[nodiscard]] inline double magnitude() const;
 
   /// Normalise the vector
   ///
   /// @return The normalised vector.
-  [[nodiscard]] inline Vec2d normalised() const {
-    double magnitude = this->magnitude();
-    if (magnitude == 0) {
-      return {0, 0};
-    }
-    return {x / magnitude, y / magnitude};
-  }
+  [[nodiscard]] inline Vec2d normalised() const;
 
   /// Rotate the vector by an angle.
   ///
   /// @param angle - The angle to rotate the vector by in radians.
   ///
   /// @return The rotated vector.
-  [[nodiscard]] inline Vec2d rotated(double angle) const {
-    double cos_angle = std::cos(angle);
-    double sin_angle = std::sin(angle);
-    return {x * cos_angle - y * sin_angle, x * sin_angle + y * cos_angle};
-  }
+  [[nodiscard]] inline Vec2d rotated(double angle) const;
+
+  // TODO: Move this to the source file. Theres some weird problem
 
   /// Get the angle between this vector and another vector.
   ///
@@ -92,25 +89,41 @@ struct Vec2d {
   ///
   /// @param other - The vector to get the distance to.
   /// @return The distance to the other vector.
-  [[nodiscard]] inline double distance_to(const Vec2d &other) const {
-    return std::hypot(x - other.x, y - other.y);
-  }
+  [[nodiscard]] inline double distance_to(const Vec2d &other) const;
 };
 
 /// Stores various data about a game object for use in physics-related operations.
-///
-/// @param position - The position of the game object.
-/// @param velocity - The velocity of the game object.
-/// @param rotation - The rotation of the game object.
 struct KinematicObject {
-  Vec2d position{};
-  Vec2d velocity{};
-  double rotation{};
+  /// The position of the game object.
+  Vec2d position;
 
+  /// The velocity of the game object.
+  Vec2d velocity;
+
+  /// The rotation of the game object.
+  double rotation;
+
+  /// The default constructor.
   KinematicObject() = default;
 
+  /// Initialise the object.
+  ///
+/// @param position_val - The position of the game object.
+/// @param velocity_val - The velocity of the game object.
+/// @param rotation_val - The rotation of the game object.
   KinematicObject(const Vec2d &position_val, const Vec2d &velocity_val, double rotation_val = 0)
       : position(position_val), velocity(velocity_val), rotation(rotation_val) {}
+};
+
+// ----- HASHES ------------------------------
+template<>
+struct std::hash<Vec2d> {
+  size_t operator()(const Vec2d &vec) const {
+    size_t res = 0;
+    hash_combine(res, vec.x);
+    hash_combine(res, vec.y);
+    return res;
+  }
 };
 
 // ----- FUNCTIONS ------------------------------
@@ -139,7 +152,7 @@ Vec2d flee(const Vec2d &current_position, const Vec2d &target_position);
 /// Allow a game object to follow a pre-determined path.
 ///
 /// @param current_position - The position of the game object.
-/// @param path_list - The list of points the game object should follow.
+/// @param path_list - The list of positions the game object should follow.
 /// @throws std::length_error - The path list is empty.
 /// @return The new steering force from this behaviour.
 Vec2d follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list);
@@ -175,23 +188,3 @@ Vec2d seek(const Vec2d &current_position, const Vec2d &target_position);
 /// @param displacement_angle - The angle of the displacement force in degrees.
 /// @return The new steering force from this behaviour.
 Vec2d wander(const Vec2d &current_velocity, int displacement_angle);
-
-/// Allows multiple hashes to be combined for a struct
-///
-/// @param seed - The seed for initialising the hasher.
-/// @param v - The value to hash.
-template<class T>
-inline void hash_combine(size_t &seed, const T &v) {
-  std::hash<T> hasher;
-  seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-}
-
-template<>
-struct std::hash<Vec2d> {
-  size_t operator()(const Vec2d &vec) const {
-    size_t res = 0;
-    hash_combine(res, vec.x);
-    hash_combine(res, vec.y);
-    return res;
-  }
-};

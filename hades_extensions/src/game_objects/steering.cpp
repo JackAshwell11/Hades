@@ -11,10 +11,33 @@ const int SPRITE_SIZE = 64;
 const double MAX_SEE_AHEAD = 2 * SPRITE_SIZE;
 const int MAX_VELOCITY = 200;
 const double OBSTACLE_AVOIDANCE_ANGLE = 60 * PI_RADIANS;
-const double PATH_POINT_RADIUS = 1 * SPRITE_SIZE;
+const double PATH_POSITION_RADIUS = 1 * SPRITE_SIZE;
 const double SLOWING_RADIUS = 3 * SPRITE_SIZE;
 const int WANDER_CIRCLE_DISTANCE = 50;
 const int WANDER_CIRCLE_RADIUS = 25;
+
+// ----- STRUCTURES ------------------------------
+double Vec2d::magnitude() const {
+  return std::hypot(x, y);
+}
+
+Vec2d Vec2d::normalised() const {
+  double magnitude = this->magnitude();
+  if (magnitude == 0) {
+    return {0, 0};
+  }
+  return {x / magnitude, y / magnitude};
+}
+
+Vec2d Vec2d::rotated(double angle) const {
+  double cos_angle = std::cos(angle);
+  double sin_angle = std::sin(angle);
+  return {x * cos_angle - y * sin_angle, x * sin_angle + y * cos_angle};
+}
+
+double Vec2d::distance_to(const Vec2d &other) const {
+  return std::hypot(x - other.x, y - other.y);
+}
 
 // ----- FUNCTIONS ------------------------------
 Vec2d arrive(const Vec2d &current_position, const Vec2d &target_position) {
@@ -46,22 +69,24 @@ Vec2d follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list) 
     throw std::length_error("The path list is empty");
   }
 
-  // Check if the game object has reached the current path point. If so, move it to the end of the vector
-  if (current_position.distance_to(path_list[0]) <= PATH_POINT_RADIUS) {
+  // Check if the game object has reached the current path position. If so, move it to the end of the vector
+  if (current_position.distance_to(path_list[0]) <= PATH_POSITION_RADIUS) {
     path_list.push_back(path_list[0]);
     path_list.erase(path_list.begin());
   }
   return seek(current_position, path_list[0]);
 }
 
-Vec2d obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_velocity, const std::unordered_set<Vec2d> &walls) {
+Vec2d obstacle_avoidance(const Vec2d &current_position,
+                         const Vec2d &current_velocity,
+                         const std::unordered_set<Vec2d> &walls) {
   // Create the lambda function to cast a ray from the game object's position
   // in the direction of its velocity at a given angle
   auto raycast = [&current_position, &current_velocity, &walls](double angle = 0) -> Vec2d {
     for (int step = SPRITE_SIZE; step <= MAX_SEE_AHEAD; step += SPRITE_SIZE) {
-      Vec2d point = current_position + current_velocity.rotated(angle) * (step / 100.0);
-      if (walls.contains(point / SPRITE_SIZE)) {
-        return point;
+      Vec2d position = current_position + current_velocity.rotated(angle) * (step / 100.0);
+      if (walls.contains(position / SPRITE_SIZE)) {
+        return position;
       }
     }
     return {-1, -1};
@@ -101,8 +126,6 @@ Vec2d pursuit(const Vec2d &current_position, const Vec2d &target_position, const
 Vec2d seek(const Vec2d &current_position, const Vec2d &target_position) {
   return (target_position - current_position).normalised();
 }
-
-#include <iostream>
 
 Vec2d wander(const Vec2d &current_velocity, int displacement_angle) {
   // Calculate the position of an invisible circle in front of the game object

@@ -2,9 +2,10 @@
 #pragma once
 
 // Std includes
+#include <initializer_list>
+#include <memory>
 #include <stdexcept>
 #include <string>
-#include <memory>
 #include <typeindex>
 #include <unordered_map>
 #include <unordered_set>
@@ -12,21 +13,29 @@
 // Custom includes
 #include "steering.hpp"
 
+// TODO: Implement registry.cpp, systems and look over all includes (need to
+//  decide if each file includes everything (even duplicates) or only what it
+//  needs (takes from other includes))
+
+// TODO: Need to find someway to have components and system only be subclasses
+//  of ComponentBase and SystemBase
 // ----- STRUCTURES ------------------------------
 // Add a forward declaration for the registry class
 class Registry;
 
 /// The base class for all components.
 struct ComponentBase {
-  ComponentBase(const ComponentBase &component) = default;
+  /// The default constructor.
   ComponentBase() = default;
 
-  virtual ~ComponentBase() = default;
+  /// The copy constructor.
+  ComponentBase(const ComponentBase &component) = default;
 };
 
 /// The base class for all systems.
 struct SystemBase {
-  virtual ~SystemBase() = default;
+  /// The default constructor.
+  SystemBase() = default;
 
   /// Process update logic for a system.
   ///
@@ -37,12 +46,14 @@ struct SystemBase {
 
 // ----- CLASSES ------------------------------
 /// Raised when an error occurs with the registry.
-///
-/// @param not_registered_type - The type of item that is not registered.
-/// @param value - The value that is not registered.
-/// @param error - The error raised by the registry.
 class RegistryError : public std::runtime_error {
  public:
+  /// Initialise the error.
+  ///
+  /// @tparam T - The type of item that is not registered.
+  /// @param not_registered_type - The type of item that is not registered.
+  /// @param value - The value that is not registered.
+  /// @param error - The error raised by the registry.
   template<typename T>
   RegistryError(const std::string &not_registered_type,
                 const T &value,
@@ -53,6 +64,7 @@ class RegistryError : public std::runtime_error {
 /// Manages game objects, components, and systems that are registered.
 class Registry {
  public:
+  /// The default constructor.
   Registry() = default;
 
   /// Update all the systems.
@@ -77,7 +89,7 @@ class Registry {
   ///
   /// @param system - The system to add to the registry.
   /// @throw RegistryError - If the system is already registered.
-  void add_system(std::unique_ptr<SystemBase> system);
+  void add_system(SystemBase system);
 
   /// Get a system from the registry.
   ///
@@ -111,10 +123,21 @@ class Registry {
   KinematicObject &get_kinematic_object(int game_object_id);
 
  private:
-  int next_game_object_id = 0;
+  /// The next game object ID to use.
+  int next_game_object_id_ = 0;
+
+  /// The components registered with the registry.
   std::unordered_map<std::type_index, std::unordered_set<int>> components_;
+
+  /// The game objects registered with the registry.
   std::unordered_map<int, std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>>> game_objects_;
+
+  /// The systems registered with the registry.
   std::unordered_map<std::type_index, std::unique_ptr<SystemBase>> systems_;
+
+  /// The kinematic objects registered with the registry.
   std::unordered_map<int, std::unique_ptr<KinematicObject>> kinematic_objects_;
+
+  /// The walls registered with the registry.
   std::unordered_set<std::unique_ptr<Vec2d>> walls_;
 };

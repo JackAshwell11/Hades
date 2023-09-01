@@ -168,27 +168,29 @@ TEST(Tests, TestFleeNegativePositions) {
   ASSERT_EQ(flee({-50, -50}, {-50, -50}), Vec2d(0, 0));
 }
 
-TEST(Tests, TestFollowPathSinglePoint) {
-  // Test if a single point produces the correct follow path force
+TEST(Tests, TestFollowPathSinglePosition) {
+  // Test if a multiple position list produces the correct follow path force
   std::vector<Vec2d> path_list = {{250, 250}};
   ASSERT_EQ(follow_path({100, 100}, path_list), Vec2d(0.7071067811865475, 0.7071067811865475));
 }
 
-TEST(Tests, TestFollowPathSinglePointReached) {
-  // Test if reaching a single-point list produces the correct follow path force
+TEST(Tests, TestFollowPathSinglePositionReached) {
+  // Test if reaching a position in a single position list produces the correct
+  // follow path force
   std::vector<Vec2d> path_list = {{100, 100}};
   ASSERT_EQ(follow_path({100, 100}, path_list), Vec2d(0, 0));
   ASSERT_EQ(path_list, std::vector<Vec2d>{Vec2d(100, 100)});
 }
 
-TEST(Tests, TestFollowPathMultiplePoints) {
-  // Test if multiple points produces the correct follow path force
+TEST(Tests, TestFollowPathMultiplePositions) {
+  // Test if a multiple position list produces the correct follow path force
   std::vector<Vec2d> path_list = {{350, 350}, {500, 500}};
   ASSERT_EQ(follow_path({200, 200}, path_list), Vec2d(0.7071067811865475, 0.7071067811865475));
 }
 
-TEST(Tests, TestFollowPathMultiplePointsReached) {
-  // Test if reaching a multiple point list produces the correct follow path force
+TEST(Tests, TestFollowPathMultiplePositionsReached) {
+  // Test if reaching a position in a multiple position list produces the
+  // correct follow path force
   std::vector<Vec2d> path_list = {{100, 100}, {250, 250}};
   ASSERT_EQ(follow_path({100, 100}, path_list), Vec2d(0.7071067811865475, 0.7071067811865475));
   ASSERT_EQ(path_list, std::vector<Vec2d>({Vec2d(250, 250), Vec2d(100, 100)}));

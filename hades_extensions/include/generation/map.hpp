@@ -8,16 +8,7 @@
 
 // ----- STRUCTURES ------------------------------
 /// Represents an undirected weighted edge in a graph.
-/// @param cost - The cost of the edge.
-/// @param source - The source rect.
-/// @param destination - The destination rect.
 struct Edge {
-  int cost;
-  Rect source, destination;
-
-  Edge(int cost_val, Rect source_val, Rect destination_val)
-      : cost(cost_val), source(source_val), destination(destination_val) {}
-
   inline bool operator<(const Edge edg) const {
     // The priority_queue data structure gets the maximum priority, so we need
     // to override that functionality to get the minimum priority
@@ -28,9 +19,26 @@ struct Edge {
     return cost == edg.cost && source == edg.source &&
         destination == edg.destination;
   }
+
+  /// The cost of the edge.
+  int cost;
+
+  /// The source rect.
+  Rect source;
+
+  /// The destination rect.
+  Rect destination;
+
+  /// Initialise the object.
+  ///
+  /// @param cost_val - The cost of the edge.
+  /// @param source_val - The source rect.
+  /// @param destination_val - The destination rect.
+  Edge(int cost_val, Rect source_val, Rect destination_val)
+      : cost(cost_val), source(source_val), destination(destination_val) {}
 };
 
-// ----- FUNCTIONS ------------------------------
+// ----- HASHES ------------------------------
 template<>
 struct std::hash<Edge> {
   size_t operator()(const Edge &edg) const {
@@ -42,21 +50,20 @@ struct std::hash<Edge> {
   }
 };
 
-// ----- DEFINITIONS ------------------------------
-/// Collect all points in a given grid that match the target.
+// ----- FUNCTIONS ------------------------------
+/// Collect all positions in a given grid that match the target.
 ///
 /// @param grid - The 2D grid which represents the dungeon.
 /// @param target - The TileType to test for.
-/// @return A vector of points which match the target.
-std::vector<Point> collect_positions(Grid &grid, TileType target);
+/// @return A vector of positions which match the target.
+std::vector<Position> collect_positions(Grid &grid, TileType target);
 
 /// Split the bsp based on the generated constants.
 ///
 /// @param bsp - The root leaf for the binary space partition.
-/// @param grid - The 2D grid which represents the dungeon.
 /// @param random_generator - The random generator used to generate the bsp.
 /// @param split_iteration - The number of splits to perform.
-void split_bsp(Leaf &bsp, Grid &grid, std::mt19937 &random_generator, int split_iteration);
+void split_bsp(Leaf &bsp, std::mt19937 &random_generator, int split_iteration);
 
 /// Generate the rooms for a given game level using the bsp.
 ///
@@ -85,7 +92,10 @@ std::unordered_set<Edge> create_connections(std::unordered_map<Rect, std::vector
 /// @param possible_tiles - The possible tiles that the tile can be placed
 /// into.
 /// @throws std::length_error - Possible tiles size must be bigger than 0.
-void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile, std::vector<Point> &possible_tiles);
+void place_tile(Grid &grid,
+                std::mt19937 &random_generator,
+                TileType target_tile,
+                std::vector<Position> &possible_tiles);
 
 /// Create the hallways by placing random obstacles and pathfinding around
 /// them.

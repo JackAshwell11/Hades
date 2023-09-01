@@ -11,10 +11,10 @@
 /// Represents a grid position and its costs from the start position
 ///
 /// @param cost - The cost to traverse to this neighbour.
-/// @param destination - The destination point in the grid.
+/// @param destination - The destination position in the grid.
 struct Neighbour {
   int cost;
-  Point destination;
+  Position destination;
 
   inline bool operator<(const Neighbour nghbr) const {
     // The priority_queue data structure gets the maximum priority, so we need
@@ -26,26 +26,27 @@ struct Neighbour {
 // ----- CONSTANTS ------------------------------
 // Represents the north, south, east, west, north-east, north-west, south-east
 // and south-west directions on a compass
-const std::array<Point, 8> INTERCARDINAL_OFFSETS = {
-    Point{-1, -1}, Point{0, -1}, Point{1, -1}, Point{-1, 0}, Point{1, 0}, Point{-1, 1}, Point{0, 1}, Point{1, 1},
+const std::array<Position, 8> INTERCARDINAL_OFFSETS = {
+    Position{-1, -1}, Position{0, -1}, Position{1, -1}, Position{-1, 0}, Position{1, 0}, Position{-1, 1},
+    Position{0, 1}, Position{1, 1},
 };
 
 // ----- FUNCTIONS ------------------------------
-std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Point end) {
+std::vector<Position> calculate_astar_path(Grid &grid, const Position start, const Position end) {
   // Check if the grid size is not zero, if not, set up a few variables needed
   // for the pathfinding
   if (!grid.width) {
     throw std::length_error("Grid size must be bigger than 0.");
   }
-  std::vector<Point> result;
+  std::vector<Position> result;
   std::priority_queue<Neighbour> queue;
-  std::unordered_map<Point, Neighbour> neighbours{{start, {0, start}}};
+  std::unordered_map<Position, Neighbour> neighbours{{start, {0, start}}};
   queue.push({0, start});
 
   // Loop until the priority queue is empty
   while (!queue.empty()) {
     // Get the lowest cost pair from the priority queue
-    Point current = queue.top().destination;
+    Position current = queue.top().destination;
     queue.pop();
 
     // Check if we've reached our target
@@ -59,7 +60,7 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
         current = neighbours[current].destination;
       }
 
-      // Add the start point and exit out of the loop
+      // Add the start position and exit out of the loop
       result.push_back(start);
       break;
     }
@@ -69,10 +70,10 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
     //   g - The distance between the start pair and the neighbour pair.
     //   h - The estimated distance from the neighbour pair to the end pair.
     //   We're using the Chebyshev distance for this.
-    for (Point offset : INTERCARDINAL_OFFSETS) {
+    for (Position offset : INTERCARDINAL_OFFSETS) {
       // Calculate the neighbour's position and check if its valid excluding
       // the boundaries as that produces weird paths
-      Point neighbour = current + offset;
+      Position neighbour = current + offset;
       if (neighbour.x < 1 || neighbour.x >= grid.width - 1 || neighbour.y < 1 || neighbour.y >= grid.height - 1) {
         continue;
       }
@@ -91,7 +92,7 @@ std::vector<Point> calculate_astar_path(Grid &grid, const Point start, const Poi
         neighbours[neighbour] = {distance, current};
 
         // Add the neighbour to the priority queue
-        Point diff = end - neighbour;
+        Position diff = end - neighbour;
         queue.emplace(distance + std::max(diff.x, diff.y), neighbour);
       }
     }
