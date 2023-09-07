@@ -15,9 +15,48 @@ class TestGameObjectAttribute : public GameObjectAttributeBase {
   TestGameObjectAttribute(float initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 };
 
+/// Represents a game object component useful for testing.
+struct TestGameObjectComponentOne : public ComponentBase {};
+
+/// Represents a game object component with data useful for testing.
+struct TestGameObjectComponentTwo : public ComponentBase {
+  /// A test list of integers.
+  std::vector<int> test_list;
+
+  /// A test integer.
+  int test_int = 0;
+
+  /// Initialise the object.
+  ///
+  /// @param test_lst - The list to be used for testing.
+  TestGameObjectComponentTwo(std::initializer_list<int> &test_lst) : test_list(test_lst) {}
+};
+
+/// Represents a test system useful for testing.
+struct TestSystem : public SystemBase {
+  /// Whether the system has been called or not.
+  bool called = false;
+
+  /// Update the system.
+  void update(Registry &registry, float delta_time) final {
+    called = true;
+  }
+};
+
 // ----- FIXTURES ------------------------------
+/// Hold fixtures relating to the game_objects/ C++ tests.
 class GameObjectsFixtures : public testing::Test {
-  /// Hold fixtures relating to the game_objects/ C++ tests.
  protected:
+  Registry registry{};
   TestGameObjectAttribute test_game_object_attribute{150, 3};
+
+  template<typename T>
+  static inline std::unique_ptr<T> create_object(std::initializer_list<int> list) {
+    return std::make_unique<T>(list);
+  }
+
+  template<typename T, typename ... Args>
+  static inline std::unique_ptr<T> create_object(Args &&... args) {
+    return std::make_unique<T>(std::forward<Args>(args)...);
+  }
 };

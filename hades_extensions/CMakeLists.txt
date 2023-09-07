@@ -21,7 +21,6 @@ set(HEADER_FILES
         ${INCLUDE_PATH}/generation/primitives.hpp
 )
 set(SOURCE_FILES
-        ${CMAKE_SOURCE_DIR}/src/game_objects/components.cpp
         ${CMAKE_SOURCE_DIR}/src/game_objects/registry.cpp
         ${CMAKE_SOURCE_DIR}/src/game_objects/steering.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/astar.cpp

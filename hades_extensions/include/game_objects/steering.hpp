@@ -4,13 +4,13 @@
 // Std includes
 #include <numbers>
 #include <unordered_set>
+#include <vector>
 
 // Custom includes
 #include "base.hpp"
 
 // ----- CONSTANTS ------------------------------
 #define PI_RADIANS (std::numbers::pi / 180)
-#define TWO_PI (2 * std::numbers::pi)
 
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D vector.
@@ -58,38 +58,39 @@ struct Vec2d {
   /// Get the magnitude of the vector.
   ///
   /// @return The magnitude of the vector.
-  [[nodiscard]] inline double magnitude() const;
+  [[nodiscard]] inline double magnitude() const {
+    return std::hypot(x, y);
+  }
 
   /// Normalise the vector
   ///
   /// @return The normalised vector.
-  [[nodiscard]] inline Vec2d normalised() const;
+  [[nodiscard]] inline Vec2d normalised() const {
+    double magnitude = this->magnitude();
+    return (magnitude == 0) ? Vec2d{0, 0} : Vec2d{x / magnitude, y / magnitude};
+  }
 
   /// Rotate the vector by an angle.
   ///
   /// @param angle - The angle to rotate the vector by in radians.
   ///
   /// @return The rotated vector.
-  [[nodiscard]] inline Vec2d rotated(double angle) const;
-
-  // TODO: Move this to the source file. Theres some weird problem
+  [[nodiscard]] Vec2d rotated(double angle) const;
 
   /// Get the angle between this vector and another vector.
   ///
   /// @details This will always be between 0 and 2π.
   /// @param other - The other vector to get the angle between.
   /// @return The angle between the two vectors.
-  [[nodiscard]] inline double angle_between(const Vec2d &other) const {
-    double cross_product = x * other.y - y * other.x;
-    double dot_product = x * other.x + y * other.y;
-    return std::fmod(std::atan2(cross_product, dot_product) + TWO_PI, TWO_PI);
-  }
+  [[nodiscard]] double angle_between(const Vec2d &other) const;
 
   /// Get the distance to another vector.
   ///
   /// @param other - The vector to get the distance to.
   /// @return The distance to the other vector.
-  [[nodiscard]] inline double distance_to(const Vec2d &other) const;
+  [[nodiscard]] inline double distance_to(const Vec2d &other) const {
+    return std::hypot(x - other.x, y - other.y);
+  }
 };
 
 /// Stores various data about a game object for use in physics-related operations.

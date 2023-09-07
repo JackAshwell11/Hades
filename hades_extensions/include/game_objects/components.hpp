@@ -2,6 +2,7 @@
 #pragma once
 
 // Std includes
+#include <algorithm>
 #include <functional>
 #include <optional>
 #include <typeindex>
@@ -67,17 +68,8 @@ struct StatusEffect {
 };
 
 /// The base class for all game object attributes.
-class GameObjectAttributeBase : ComponentBase {
+class GameObjectAttributeBase : public ComponentBase {
  public:
-  /// The level limit of the game object attribute.
-  int level_limit;
-
-  /// The maximum value of the game object attribute.
-  float max_value;
-
-  /// The current level of the game object attribute.
-  int current_level = 0;
-
   /// The status effect currently applied to the game object.
   std::optional<StatusEffect> applied_status_effect;
 
@@ -87,22 +79,77 @@ class GameObjectAttributeBase : ComponentBase {
   /// @param level_limit - The level limit of the game object attribute.
   GameObjectAttributeBase(float initial_value, int level_limit)
       : value_(initial_value),
-        max_value(has_maximum() ? initial_value : std::numeric_limits<float>::infinity()),
-        level_limit(level_limit) {}
+        max_value_(has_maximum() ? initial_value : std::numeric_limits<float>::infinity()),
+        level_limit_(level_limit) {}
 
   /// Get the game object attribute's value.
   ///
   /// @return The game object attribute's value.
-  [[nodiscard]] float value() const;
+  [[nodiscard]] inline float value() const {
+    return value_;
+  }
 
   /// Set the game object attribute's value.
   ///
   /// @param new_value - The new game object attribute's value.
-  void value(float new_value);
+  inline void value(float new_value) {
+    value_ = std::max(std::min(new_value, max_value_), 0.0f);
+  }
+
+  /// Get the game object attribute's level limit.
+  ///
+  /// @return The game object attribute's level limit.
+  [[nodiscard]] inline int level_limit() const {
+    return level_limit_;
+  }
+
+  /// Set the game object attribute's level limit.
+  ///
+  /// @param new_level_limit - The new game object attribute's level limit.
+  inline void level_limit(int new_level_limit) {
+    level_limit_ = new_level_limit;
+  }
+
+  /// Get the game object attribute's maximum value.
+  ///
+  /// @return The game object attribute's maximum value.
+  [[nodiscard]] inline float max_value() const {
+    return max_value_;
+  }
+
+  /// Set the game object attribute's maximum value.
+  ///
+  /// @param new_max_value - The new game object attribute's maximum value.
+  inline void max_value(float new_max_value) {
+    max_value_ = new_max_value;
+  }
+
+  /// Get the game object attribute's current level.
+  ///
+  /// @return The game object attribute's current level.
+  [[nodiscard]] inline int current_level() const {
+    return current_level_;
+  }
+
+  /// Set the game object attribute's current level.
+  ///
+  /// @param new_current_level - The new game object attribute's current level.
+  inline void current_level(int new_current_level) {
+    current_level_ = new_current_level;
+  }
 
  private:
   /// The game object attribute's value.
   float value_;
+
+  /// The level limit of the game object attribute.
+  int level_limit_;
+
+  /// The maximum value of the game object attribute.
+  float max_value_;
+
+  /// The current level of the game object attribute.
+  int current_level_ = 0;
 
   /// Get if the game object attribute can have instant effects or not.
   ///
@@ -136,7 +183,7 @@ class Armour : public GameObjectAttributeBase {
 };
 
 /// Allows a game object to regenerate armour.
-struct ArmourRegen : ComponentBase {
+struct ArmourRegen : public ComponentBase {
   /// The time since the game object last regenerated armour.
   float time_since_armour_regen = 0;
 };
@@ -163,7 +210,7 @@ class ArmourRegenCooldown : public GameObjectAttributeBase {
 };
 
 /// Allows a game object to attack other game objects.
-struct Attacks : ComponentBase {
+struct Attacks : public ComponentBase {
   /// The attack algorithms the game object can use.
   std::vector<AttackAlgorithms> attack_algorithms;
 
@@ -200,7 +247,7 @@ class FireRatePenalty : public GameObjectAttributeBase {
 /// Allows a game object to periodically leave footprints around the game map.
 ///
 /// @param footprints - The footprints the game object has left.
-struct Footprints : ComponentBase {
+struct Footprints : public ComponentBase {
   /// The footprints the game object has left.
   std::vector<Vec2d> footprints;
 
@@ -224,7 +271,7 @@ class Health : public GameObjectAttributeBase {
 };
 
 /// Allows a game object to provide instant effects.
-struct InstantEffects : ComponentBase {
+struct InstantEffects : public ComponentBase {
   /// The instant effects the game object provides.
   std::unordered_map<std::type_index, std::function<float(int)>> instant_effects;
 
@@ -240,7 +287,7 @@ struct InstantEffects : ComponentBase {
 };
 
 /// Allows a game object to have a fixed size inventory.
-struct Inventory : ComponentBase {
+struct Inventory : public ComponentBase {
   /// The width of the inventory.
   int width;
 
@@ -258,7 +305,7 @@ struct Inventory : ComponentBase {
 };
 
 /// Allows a game object's movement to be controlled by the keyboard.
-struct KeyboardMovement : ComponentBase {
+struct KeyboardMovement : public ComponentBase {
   /// Whether the game object is moving north or not.
   bool moving_north = false;
 
@@ -325,7 +372,7 @@ class MovementForce : public GameObjectAttributeBase {
 };
 
 /// Allows a game object to provide status effects.
-struct StatusEffects : ComponentBase {
+struct StatusEffects : public ComponentBase {
   /// The status effects the game object provides.
   std::unordered_map<std::type_index, std::function<StatusEffect(int)>> status_effects;
 
@@ -341,7 +388,7 @@ struct StatusEffects : ComponentBase {
 };
 
 /// Allows a game object's movement to be controlled by steering algorithms.
-struct SteeringMovement : ComponentBase {
+struct SteeringMovement : public ComponentBase {
   /// The steering behaviours used by the game object.
   std::vector<SteeringBehaviours> behaviours;
 

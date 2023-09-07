@@ -4,6 +4,7 @@
 // Std includes
 #include <cmath>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 // Custom includes
@@ -83,20 +84,29 @@ struct Grid {
   /// @param pos - The position to convert.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The 1D grid position.
-  [[nodiscard]] int convert_position(const Position &pos) const;
+  [[nodiscard]] int convert_position(const Position &pos) const {
+    if (pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height) {
+      throw std::out_of_range("Position must be within range");
+    }
+    return width * pos.y + pos.x;
+  }
 
   /// Get a value in the 2D grid from a given position.
   ///
   /// @param pos - The position to get the value for.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The value at the given position.
-  [[nodiscard]] TileType get_value(const Position &pos) const;
+  [[nodiscard]] inline TileType get_value(const Position &pos) const {
+    return grid->at(convert_position(pos));
+  }
 
   /// Set a value in the 2D grid from a given position.
   ///
   /// @param pos - The position to set.
   /// @throws std::out_of_range - Position must be within range.
-  void set_value(const Position &pos, TileType target) const;
+  inline void set_value(const Position &pos, TileType target) const {
+    grid->at(convert_position(pos)) = target;
+  }
 };
 
 /// Represents a rectangle of any size useful for the interacting with the 2D
@@ -148,7 +158,9 @@ struct Rect {
   ///
   /// @param other - The rect to find the distance to.
   /// @return The Chebyshev distance between this rect and the given rect.
-  [[nodiscard]] int get_distance_to(const Rect &other) const;
+  [[nodiscard]] inline int get_distance_to(const Rect &other) const {
+    return std::max(abs(centre.x - other.centre.x), abs(centre.y - other.centre.y));
+  }
 
   /// Place the rect in the 2D grid.
   ///

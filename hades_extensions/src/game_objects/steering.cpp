@@ -7,6 +7,7 @@
 #include "game_objects/steering.hpp"
 
 // ----- CONSTANTS ------------------------------
+#define TWO_PI (2 * std::numbers::pi)
 const int SPRITE_SIZE = 64;
 const double MAX_SEE_AHEAD = 2 * SPRITE_SIZE;
 const int MAX_VELOCITY = 200;
@@ -17,26 +18,16 @@ const int WANDER_CIRCLE_DISTANCE = 50;
 const int WANDER_CIRCLE_RADIUS = 25;
 
 // ----- STRUCTURES ------------------------------
-double Vec2d::magnitude() const {
-  return std::hypot(x, y);
-}
-
-Vec2d Vec2d::normalised() const {
-  double magnitude = this->magnitude();
-  if (magnitude == 0) {
-    return {0, 0};
-  }
-  return {x / magnitude, y / magnitude};
-}
-
 Vec2d Vec2d::rotated(double angle) const {
   double cos_angle = std::cos(angle);
   double sin_angle = std::sin(angle);
   return {x * cos_angle - y * sin_angle, x * sin_angle + y * cos_angle};
 }
 
-double Vec2d::distance_to(const Vec2d &other) const {
-  return std::hypot(x - other.x, y - other.y);
+double Vec2d::angle_between(const Vec2d &other) const {
+  double cross_product = x * other.y - y * other.x;
+  double dot_product = x * other.x + y * other.y;
+  return std::fmod(std::atan2(cross_product, dot_product) + TWO_PI, TWO_PI);
 }
 
 // ----- FUNCTIONS ------------------------------

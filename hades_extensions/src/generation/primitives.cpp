@@ -1,6 +1,5 @@
 // Std includes
 #include <array>
-#include <stdexcept>
 #include <unordered_set>
 
 // Custom includes
@@ -11,25 +10,6 @@
 const std::unordered_set<TileType> REPLACEABLE_TILES = {TileType::Empty, TileType::Obstacle};
 
 // ----- FUNCTIONS ------------------------------
-int Grid::convert_position(const Position &pos) const {
-  if (pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height) {
-    throw std::out_of_range("Position must be within range");
-  }
-  return width * pos.y + pos.x;
-}
-
-TileType Grid::get_value(const Position &pos) const {
-  return grid->at(convert_position(pos));
-}
-
-void Grid::set_value(const Position &pos, TileType target) const {
-  grid->at(convert_position(pos)) = target;
-}
-
-int Rect::get_distance_to(const Rect &other) const {
-  return std::max(abs(centre.x - other.centre.x), abs(centre.y - other.centre.y));
-}
-
 void Rect::place_rect(Grid &grid) const {
   // Place the walls
   for (int y = std::max(top_left.y, 0); y < std::min(bottom_right.y + 1, grid.height); y++) {
