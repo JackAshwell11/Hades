@@ -23,9 +23,6 @@ struct TestGameObjectComponentTwo : public ComponentBase {
   /// A test list of integers.
   std::vector<int> test_list;
 
-  /// A test integer.
-  int test_int = 0;
-
   /// Initialise the object.
   ///
   /// @param test_lst - The list to be used for testing.
@@ -47,16 +44,29 @@ struct TestSystem : public SystemBase {
 /// Hold fixtures relating to the game_objects/ C++ tests.
 class GameObjectsFixtures : public testing::Test {
  protected:
+  /// The registry that manages the game objects, components, and systems.
   Registry registry{};
+
+  /// A test game object attribute.
   TestGameObjectAttribute test_game_object_attribute{150, 3};
 
+  /// Create a component or system unique pointer.
+  ///
+  /// @tparam T - The type of the component or system.
+  /// @param list - The initializer list to pass to the constructor.
+  /// @return A unique pointer to the component or system.
   template<typename T>
   static inline std::unique_ptr<T> create_object(std::initializer_list<int> list) {
     return std::make_unique<T>(list);
   }
 
+  /// Create a component or system unique pointer.
+  ///
+  /// @tparam T - The type of the component or system.
+  /// @param args - The arguments to pass to the constructor.
+  /// @return A unique pointer to the component or system.
   template<typename T, typename ... Args>
-  static inline std::unique_ptr<T> create_object(Args &&... args) {
-    return std::make_unique<T>(std::forward<Args>(args)...);
+  static inline std::unique_ptr<T> create_object() {
+    return std::make_unique<T>();
   }
 };

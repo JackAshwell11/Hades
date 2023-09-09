@@ -302,6 +302,13 @@ struct Inventory : public ComponentBase {
   /// @param width - The width of the inventory.
   /// @param height - The height of the inventory.
   Inventory(int width, int height) : width(width), height(height) {}
+
+  /// Get the capacity of the inventory.
+  ///
+  /// @return The capacity of the inventory.
+  inline int capacity() const {
+    return width * height;
+  }
 };
 
 /// Allows a game object's movement to be controlled by the keyboard.

@@ -7,7 +7,9 @@
 #include "game_objects/registry.hpp"
 
 // ----- CLASSES ------------------------------
-int Registry::create_game_object(bool kinematic, std::vector<std::unique_ptr<ComponentBase>> &&components) {
+GameObjectID Registry::create_game_object(bool kinematic, std::vector<std::unique_ptr<ComponentBase>> &&components) {
+  // TODO: See if has_component and get_component can be used here. It needs
+  //  simplifying
   // Add the game object to the system
   game_objects_[next_game_object_id_] = std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>>{};
   if (kinematic) {
@@ -18,7 +20,7 @@ int Registry::create_game_object(bool kinematic, std::vector<std::unique_ptr<Com
   for (auto &component : components) {
     // Check if the component already exists in the registry
     const std::type_info &component_type = typeid(*component);
-    if (components_[component_type].count(next_game_object_id_)) {
+    if (components_[component_type].contains(next_game_object_id_)) {
       continue;
     }
 
@@ -32,25 +34,25 @@ int Registry::create_game_object(bool kinematic, std::vector<std::unique_ptr<Com
   return next_game_object_id_ - 1;
 }
 
-void Registry::delete_game_object(int game_object_id) {
+void Registry::delete_game_object(GameObjectID game_object_id) {
   // Check if the game object is registered or not
-  if (game_objects_.find(game_object_id) == game_objects_.end()) {
+  if (!game_objects_.contains(game_object_id)) {
     return;
   }
 
   // Delete the game object from the system
   game_objects_.erase(game_object_id);
-  for (auto [component_type, ids] : components_) {
+  for (auto &[_, ids] : components_) {
     ids.erase(game_object_id);
   }
-  if (kinematic_objects_.find(game_object_id) != kinematic_objects_.end()) {
+  if (kinematic_objects_.contains(game_object_id)) {
     kinematic_objects_.erase(game_object_id);
   }
 }
 
-std::unique_ptr<KinematicObject> Registry::get_kinematic_object(int game_object_id) {
+std::unique_ptr<KinematicObject> Registry::get_kinematic_object(GameObjectID game_object_id) {
   // Check if the game object is registered or not
-  if (kinematic_objects_.find(game_object_id) == kinematic_objects_.end()) {
+  if (!kinematic_objects_.contains(game_object_id)) {
     return nullptr;
   }
 

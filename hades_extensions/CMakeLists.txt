@@ -9,33 +9,47 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Get a path to the include directory as well as all the source and test files
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
-set(BINDING_PATH ${CMAKE_SOURCE_DIR}/src/binding.cpp)
+set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
+set(BINDING_PATH ${SRC_DIR}/binding.cpp)
 set(HEADER_FILES
         ${INCLUDE_PATH}/base.hpp
         ${INCLUDE_PATH}/game_objects/components.hpp
         ${INCLUDE_PATH}/game_objects/registry.hpp
         ${INCLUDE_PATH}/game_objects/steering.hpp
+        ${INCLUDE_PATH}/game_objects/systems/attacks.hpp
+        ${INCLUDE_PATH}/game_objects/systems/attributes.hpp
+        ${INCLUDE_PATH}/game_objects/systems/inventory.hpp
+        ${INCLUDE_PATH}/game_objects/systems/movements.hpp
         ${INCLUDE_PATH}/generation/astar.hpp
         ${INCLUDE_PATH}/generation/bsp.hpp
         ${INCLUDE_PATH}/generation/map.hpp
         ${INCLUDE_PATH}/generation/primitives.hpp
 )
 set(SOURCE_FILES
-        ${CMAKE_SOURCE_DIR}/src/game_objects/registry.cpp
-        ${CMAKE_SOURCE_DIR}/src/game_objects/steering.cpp
-        ${CMAKE_SOURCE_DIR}/src/generation/astar.cpp
-        ${CMAKE_SOURCE_DIR}/src/generation/bsp.cpp
-        ${CMAKE_SOURCE_DIR}/src/generation/map.cpp
-        ${CMAKE_SOURCE_DIR}/src/generation/primitives.cpp
+        ${SRC_DIR}/game_objects/registry.cpp
+        ${SRC_DIR}/game_objects/steering.cpp
+        ${SRC_DIR}/game_objects/systems/attacks.cpp
+        ${SRC_DIR}/game_objects/systems/attributes.cpp
+        ${SRC_DIR}/game_objects/systems/inventory.cpp
+        ${SRC_DIR}/game_objects/systems/movements.cpp
+        ${SRC_DIR}/generation/astar.cpp
+        ${SRC_DIR}/generation/bsp.cpp
+        ${SRC_DIR}/generation/map.cpp
+        ${SRC_DIR}/generation/primitives.cpp
 )
 set(TEST_FILES
-        ${CMAKE_SOURCE_DIR}/test/game_objects/test_components.cpp
-        ${CMAKE_SOURCE_DIR}/test/game_objects/test_registry.cpp
-        ${CMAKE_SOURCE_DIR}/test/game_objects/test_steering.cpp
-        ${CMAKE_SOURCE_DIR}/test/generation/test_astar.cpp
-        ${CMAKE_SOURCE_DIR}/test/generation/test_bsp.cpp
-        ${CMAKE_SOURCE_DIR}/test/generation/test_map.cpp
-        ${CMAKE_SOURCE_DIR}/test/generation/test_primitives.cpp
+        ${TEST_DIR}/game_objects/test_components.cpp
+        ${TEST_DIR}/game_objects/test_registry.cpp
+        ${TEST_DIR}/game_objects/test_steering.cpp
+        ${TEST_DIR}/game_objects/systems/test_attacks.cpp
+        ${TEST_DIR}/game_objects/systems/test_attributes.cpp
+        ${TEST_DIR}/game_objects/systems/test_inventory.cpp
+        ${TEST_DIR}/game_objects/systems/test_movements.cpp
+        ${TEST_DIR}/generation/test_astar.cpp
+        ${TEST_DIR}/generation/test_bsp.cpp
+        ${TEST_DIR}/generation/test_map.cpp
+        ${TEST_DIR}/generation/test_primitives.cpp
 )
 
 # Define the module names and initialise the project

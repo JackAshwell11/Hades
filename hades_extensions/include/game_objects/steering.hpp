@@ -16,16 +16,16 @@
 /// Represents a 2D vector.
 // TODO: See if this and Position can be combined into a base class maybe with a template parameter
 struct Vec2d {
-  inline bool operator==(const Vec2d &pnt) const {
-    return x == pnt.x && y == pnt.y;
+  inline bool operator==(const Vec2d &vec) const {
+    return x == vec.x && y == vec.y;
   }
 
-  inline bool operator!=(const Vec2d vec) const {
+  inline bool operator!=(const Vec2d &vec) const {
     return x != vec.x || y != vec.y;
   }
 
-  inline Vec2d operator+(const Vec2d &pnt) const {
-    return {x + pnt.x, y + pnt.y};
+  inline Vec2d operator+(const Vec2d &vec) const {
+    return {x + vec.x, y + vec.y};
   }
 
   Vec2d operator-(const Vec2d &vec) const {
@@ -45,9 +45,6 @@ struct Vec2d {
 
   /// The y value of the vector.
   double y;
-
-  /// The default constructor.
-  Vec2d() = default;
 
   /// Initialise the object.
   ///
@@ -103,9 +100,6 @@ struct KinematicObject {
 
   /// The rotation of the game object.
   double rotation;
-
-  /// The default constructor.
-  KinematicObject() = default;
 
   /// Initialise the object.
   ///

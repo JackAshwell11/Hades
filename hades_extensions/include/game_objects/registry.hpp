@@ -13,30 +13,21 @@
 // Custom includes
 #include "steering.hpp"
 
-// TODO: Implement systems and look over all includes (need to decide if each
-//  file includes everything (even duplicates) or only what it needs (takes
-//  from other includes))
 // ----- STRUCTURES ------------------------------
+// Create some type aliases to simplify the code
+using GameObjectID = int;
+
 // Add a forward declaration for the registry class
 class Registry;
 
 /// The base class for all components.
 struct ComponentBase {
-  /// The default constructor.
-  ComponentBase() = default;
-
   /// The virtual destructor.
   virtual ~ComponentBase() = default;
 };
 
 /// The base class for all systems.
 struct SystemBase {
-  /// The default constructor.
-  SystemBase() = default;
-
-  /// The virtual destructor.
-  virtual ~SystemBase() = default;
-
   /// Process update logic for a system.
   ///
   /// @param registry - The registry to process the update logic for.
@@ -48,21 +39,28 @@ struct SystemBase {
 /// Manages game objects, components, and systems that are registered.
 class Registry {
  public:
-  /// The default constructor.
-  Registry() = default;
-
   /// Create a new game object.
   ///
   /// @param kinematic - Whether the game object should have a kinematic object or not.
   /// @param components - The components to add to the game object.
   /// @return The game object ID.
-  int create_game_object(bool kinematic, std::vector<std::unique_ptr<ComponentBase>> &&components);
+  GameObjectID create_game_object(bool kinematic, std::vector<std::unique_ptr<ComponentBase>> &&components);
 
   /// Delete a game object.
   ///
   /// @param game_object_id - The game object ID.
   /// @throw RegistryError - If the game object is not registered.
-  void delete_game_object(int game_object_id);
+  void delete_game_object(GameObjectID game_object_id);
+
+  /// Checks if a game object has a given component or not.
+  ///
+  /// @tparam T - The type of component to check for.
+  /// @param game_object_id - The game object ID.
+  /// @return Whether the game object has the component or not.
+  template<typename T>
+  inline bool has_component(GameObjectID game_object_id) {
+    return components_.contains(typeid(T)) && components_[typeid(T)].contains(game_object_id);
+  }
 
   /// Get a component from the registry given a game object ID.
   ///
@@ -70,14 +68,9 @@ class Registry {
   /// @param game_object_id - The game object ID.
   /// @return The component from the registry.
   template<typename T>
-  T *get_component(int game_object_id) {
-    // Check if the game object is registered or not
-    if (game_objects_.find(game_object_id) == game_objects_.end()) {
-      return nullptr;
-    }
-
-    // Check if the component is registered or not
-    if (game_objects_[game_object_id].find(typeid(T)) == game_objects_[game_object_id].end()) {
+  T *get_component(GameObjectID game_object_id) {
+    // Check if the game object has the component or not
+    if (!has_component<T>(game_object_id)) {
       return nullptr;
     }
 
@@ -85,20 +78,21 @@ class Registry {
     return dynamic_cast<T *>(game_objects_[game_object_id][typeid(T)].get());
   }
 
-  /// Get the components for all game objects that have the given components.
+  /// Find all the game objects that have the required components.
   ///
-  /// @tparam Ts - The types of components to get.
-  /// @return A vector of tuples containing the game object ID and the components.
+  /// @tparam Ts - The types of components to find.
+  /// @return A vector of tuples containing the game object ID and the required components.
   template<typename ... Ts>
-  std::vector<std::tuple<int, std::tuple<Ts *...>>> get_components() {
+  std::vector<std::tuple<GameObjectID, std::tuple<Ts *...>>> find_components() {
     // Create a vector of tuples to store the components
-    std::vector<std::tuple<int, std::tuple<Ts *...>>> components;
+    std::vector<std::tuple<GameObjectID, std::tuple<Ts *...>>> components;
 
     // Iterate over all game objects
+    // TODO: See if get_component and has_component can be used here
     for (auto &[game_object_id, game_object_components] : game_objects_) {
       // Check if the game object has all the components using a fold expression
       bool has_components = true;
-      ((has_components &= game_object_components.find(typeid(Ts)) != game_object_components.end()), ...);
+      ((has_components &= game_object_components.contains(typeid(Ts))), ...);
 
       // If the game object has all the components, cast them to T and add them
       // to the vector
@@ -108,7 +102,7 @@ class Registry {
       }
     }
 
-    // Return the component
+    // Return the components
     return components;
   }
 
@@ -121,12 +115,12 @@ class Registry {
     systems_[typeid(T)] = std::move(system);
   }
 
-  /// Get a system from the registry.
+  /// Find a system in the registry.
   ///
-  /// @tparam T - The type of system to get.
+  /// @tparam T - The type of system to find.
   /// @return The system.
   template<typename T>
-  T *get_system() {
+  inline T *find_system() {
     auto system_result = systems_.find(typeid(T));
     return (system_result != systems_.end()) ? dynamic_cast<T *>(system_result->second.get()) : nullptr;
   }
@@ -145,7 +139,7 @@ class Registry {
   /// @param game_object_id - The game object ID.
   /// @throw RegistryError - If the game object is not registered.
   /// @return The kinematic object.
-  std::unique_ptr<KinematicObject> get_kinematic_object(int game_object_id);
+  std::unique_ptr<KinematicObject> get_kinematic_object(GameObjectID game_object_id);
 
   /// Add a wall to the system
   ///
@@ -163,27 +157,34 @@ class Registry {
 
  private:
   /// The next game object ID to use.
-  int next_game_object_id_ = 0;
+  GameObjectID next_game_object_id_ = 0;
 
   /// The components registered with the registry.
-  std::unordered_map<std::type_index, std::unordered_set<int>> components_;
+  std::unordered_map<std::type_index, std::unordered_set<GameObjectID>> components_;
 
   /// The game objects registered with the registry.
-  std::unordered_map<int, std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>>> game_objects_;
+  std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>>> game_objects_;
 
   /// The systems registered with the registry.
   std::unordered_map<std::type_index, std::unique_ptr<SystemBase>> systems_;
 
   /// The kinematic objects registered with the registry.
-  std::unordered_map<int, std::unique_ptr<KinematicObject>> kinematic_objects_;
+  std::unordered_map<GameObjectID, std::unique_ptr<KinematicObject>> kinematic_objects_;
 
   /// The walls registered with the registry.
   std::unordered_set<Vec2d> walls_;
 };
 
-// TODO: Maybe adding a bunch of helper methods to check for game objects and
-//  components in the registry could be helpful in c++ conversion + simplify
-//  the registry tests are
+// TODO: Look over all includes (need to decide if each file includes
+//  everything (even duplicates) or only what it needs (takes from other
+//  includes))
 
-// TODO: See if nesting can be reduced to max 3 in python and c++ + reduce
-//  abbreviations (https://youtu.be/-J3wNP6u5YU?si=thrvnkBpDg2ScXxF)
+// TODO: Try and add some more type aliases
+
+// TODO: Try and see if all raw pointers can be replaced with smart pointers
+//  (maybe switch to shared_ptr (e.g. get_kinematic_object)). Maybe some places
+//  can use raw pointers (only really abstract stuff, idk need more research
+//  and advice)
+
+// TODO: Maybe change all nullptr to exceptions and add new macro in tests to
+//  abstract try catch so message can be tested
