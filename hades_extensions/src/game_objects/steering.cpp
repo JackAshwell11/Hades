@@ -8,7 +8,6 @@
 
 // ----- CONSTANTS ------------------------------
 #define TWO_PI (2 * std::numbers::pi)
-const int SPRITE_SIZE = 64;
 const double MAX_SEE_AHEAD = 2 * SPRITE_SIZE;
 const int MAX_VELOCITY = 200;
 const double OBSTACLE_AVOIDANCE_ANGLE = 60 * PI_RADIANS;

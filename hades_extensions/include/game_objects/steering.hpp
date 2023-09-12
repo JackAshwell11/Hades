@@ -11,6 +11,8 @@
 
 // ----- CONSTANTS ------------------------------
 #define PI_RADIANS (std::numbers::pi / 180)
+const double SPRITE_SCALE = 0.5;
+const double SPRITE_SIZE = 128 * SPRITE_SCALE;
 
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D vector.
@@ -26,6 +28,12 @@ struct Vec2d {
 
   inline Vec2d operator+(const Vec2d &vec) const {
     return {x + vec.x, y + vec.y};
+  }
+
+  inline Vec2d operator+=(const Vec2d &vec) {
+    x += vec.x;
+    y += vec.y;
+    return *this;
   }
 
   Vec2d operator-(const Vec2d &vec) const {

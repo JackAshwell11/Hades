@@ -3,6 +3,7 @@
 
 // Std includes
 #include <algorithm>
+#include <deque>
 #include <functional>
 #include <optional>
 #include <typeindex>
@@ -43,19 +44,19 @@ enum class SteeringMovementState {
 /// Represents a status effect that can be applied to a game object attribute.
 struct StatusEffect {
   /// The value that should be applied to the game object temporarily.
-  float value;
+  double value;
 
   /// The duration the status effect should be applied for.
-  float duration;
+  double duration;
 
   /// The original value of the game object attribute which is being changed.
-  float original_value;
+  double original_value;
 
   /// The original maximum value of the game object attribute which is being changed.
-  float original_max_value;
+  double original_max_value;
 
   /// The time counter for the status effect.
-  float time_counter = 0;
+  double time_counter = 0;
 
   /// Initialise the object.
   ///
@@ -63,13 +64,15 @@ struct StatusEffect {
   /// @param duration - The duration the status effect should be applied for.
   /// @param original_value - The original value of the game object attribute which is being changed.
   /// @param original_max_value - The original maximum value of the game object attribute which is being changed.
-  StatusEffect(float value, float duration, float original_value, float original_max_value)
+  StatusEffect(double value, double duration, double original_value, double original_max_value)
       : value(value), duration(duration), original_value(original_value), original_max_value(original_max_value) {}
 };
 
 /// The base class for all game object attributes.
 class GameObjectAttributeBase : public ComponentBase {
  public:
+  // TODO: Look at making some private/public
+
   /// The status effect currently applied to the game object.
   std::optional<StatusEffect> applied_status_effect;
 
@@ -77,23 +80,23 @@ class GameObjectAttributeBase : public ComponentBase {
   ///
   /// @param initial_value - The initial value of the game object attribute.
   /// @param level_limit - The level limit of the game object attribute.
-  GameObjectAttributeBase(float initial_value, int level_limit)
+  GameObjectAttributeBase(double initial_value, int level_limit)
       : value_(initial_value),
-        max_value_(has_maximum() ? initial_value : std::numeric_limits<float>::infinity()),
+        max_value_(has_maximum() ? initial_value : std::numeric_limits<double>::infinity()),
         level_limit_(level_limit) {}
 
   /// Get the game object attribute's value.
   ///
   /// @return The game object attribute's value.
-  [[nodiscard]] inline float value() const {
+  [[nodiscard]] inline double value() const {
     return value_;
   }
 
   /// Set the game object attribute's value.
   ///
   /// @param new_value - The new game object attribute's value.
-  inline void value(float new_value) {
-    value_ = std::max(std::min(new_value, max_value_), 0.0f);
+  inline void value(double new_value) {
+    value_ = std::max(std::min(new_value, max_value_), 0.0);
   }
 
   /// Get the game object attribute's level limit.
@@ -113,14 +116,14 @@ class GameObjectAttributeBase : public ComponentBase {
   /// Get the game object attribute's maximum value.
   ///
   /// @return The game object attribute's maximum value.
-  [[nodiscard]] inline float max_value() const {
+  [[nodiscard]] inline double max_value() const {
     return max_value_;
   }
 
   /// Set the game object attribute's maximum value.
   ///
   /// @param new_max_value - The new game object attribute's maximum value.
-  inline void max_value(float new_max_value) {
+  inline void max_value(double new_max_value) {
     max_value_ = new_max_value;
   }
 
@@ -140,13 +143,13 @@ class GameObjectAttributeBase : public ComponentBase {
 
  private:
   /// The game object attribute's value.
-  float value_;
+  double value_;
 
   /// The level limit of the game object attribute.
   int level_limit_;
 
   /// The maximum value of the game object attribute.
-  float max_value_;
+  double max_value_;
 
   /// The current level of the game object attribute.
   int current_level_ = 0;
@@ -179,13 +182,13 @@ class Armour : public GameObjectAttributeBase {
   ///
   /// @param initial_value - The initial value of the armour attribute.
   /// @param level_limit - The level limit of the armour attribute.
-  Armour(float initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+  Armour(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 };
 
 /// Allows a game object to regenerate armour.
 struct ArmourRegen : public ComponentBase {
   /// The time since the game object last regenerated armour.
-  float time_since_armour_regen = 0;
+  double time_since_armour_regen = 0;
 };
 
 /// Allows a game object to have an armour regen cooldown attribute.
@@ -195,7 +198,7 @@ class ArmourRegenCooldown : public GameObjectAttributeBase {
   ///
   /// @param initial_value - The initial value of the armour regen cooldown attribute.
   /// @param level_limit - The level limit of the armour regen cooldown attribute.
-  ArmourRegenCooldown(float initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+  ArmourRegenCooldown(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
  private:
   /// Get if the game object attribute can have instant effects or not.
@@ -230,7 +233,7 @@ class FireRatePenalty : public GameObjectAttributeBase {
   ///
   /// @param initial_value - The initial value of the fire rate penalty attribute.
   /// @param level_limit - The level limit of the fire rate penalty attribute.
-  FireRatePenalty(float initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+  FireRatePenalty(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
  private:
   /// Get if the game object attribute can have instant effects or not.
@@ -249,15 +252,15 @@ class FireRatePenalty : public GameObjectAttributeBase {
 /// @param footprints - The footprints the game object has left.
 struct Footprints : public ComponentBase {
   /// The footprints the game object has left.
-  std::vector<Vec2d> footprints;
+  std::deque<Vec2d> footprints;
 
   /// The time since the game object last left a footprint.
-  float time_since_last_footprint = 0;
+  double time_since_last_footprint = 0;
 
   /// Initialise the object.
   ///
   /// @param footprints - The footprints the game object has left.
-  explicit Footprints(std::vector<Vec2d> footprints) : footprints(std::move(footprints)) {}
+  explicit Footprints(std::deque<Vec2d> footprints) : footprints(std::move(footprints)) {}
 };
 
 /// Allows a game object to have a health attribute.
@@ -267,13 +270,13 @@ class Health : public GameObjectAttributeBase {
   ///
   /// @param initial_value - The initial value of the health attribute.
   /// @param level_limit - The level limit of the health attribute.
-  Health(float initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+  Health(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 };
 
 /// Allows a game object to provide instant effects.
 struct InstantEffects : public ComponentBase {
   /// The instant effects the game object provides.
-  std::unordered_map<std::type_index, std::function<float(int)>> instant_effects;
+  std::unordered_map<std::type_index, std::function<double(int)>> instant_effects;
 
   /// The level limit of the instant effects.
   int level_limit;
@@ -282,7 +285,7 @@ struct InstantEffects : public ComponentBase {
   ///
   /// @param instant_effects - The instant effects the game object provides.
   /// @param level_limit - The level limit of the instant effects.
-  InstantEffects(std::unordered_map<std::type_index, std::function<float(int)>> instant_effects, int level_limit)
+  InstantEffects(std::unordered_map<std::type_index, std::function<double(int)>> instant_effects, int level_limit)
       : instant_effects(std::move(instant_effects)), level_limit(level_limit) {}
 };
 
@@ -306,7 +309,7 @@ struct Inventory : public ComponentBase {
   /// Get the capacity of the inventory.
   ///
   /// @return The capacity of the inventory.
-  inline int capacity() const {
+  [[nodiscard]] inline int capacity() const {
     return width * height;
   }
 };
@@ -333,7 +336,7 @@ class Money : public GameObjectAttributeBase {
   ///
   /// @param initial_value - The initial value of the money attribute.
   /// @param level_limit - The level limit of the money attribute.
-  Money(float initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+  Money(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
  private:
   /// Get if the game object attribute can have instant effects or not.
@@ -364,7 +367,7 @@ class MovementForce : public GameObjectAttributeBase {
   ///
   /// @param initial_value - The initial value of the movement force attribute.
   /// @param level_limit - The level limit of the movement force attribute.
-  MovementForce(float initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+  MovementForce(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
  private:
   /// Get if the game object attribute can have instant effects or not.
@@ -397,7 +400,7 @@ struct StatusEffects : public ComponentBase {
 /// Allows a game object's movement to be controlled by steering algorithms.
 struct SteeringMovement : public ComponentBase {
   /// The steering behaviours used by the game object.
-  std::vector<SteeringBehaviours> behaviours;
+  std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> behaviours;
 
   /// The current movement state of the game object.
   SteeringMovementState movement_state = SteeringMovementState::Default;
@@ -411,7 +414,8 @@ struct SteeringMovement : public ComponentBase {
   /// Initialise the object.
   ///
   /// @param behaviours - The steering behaviours used by the game object.
-  explicit SteeringMovement(std::vector<SteeringBehaviours> behaviours) : behaviours(std::move(behaviours)) {}
+  explicit SteeringMovement(std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> behaviours)
+      : behaviours(std::move(behaviours)) {}
 };
 
 /// Allows a game object to have a view distance attribute.
@@ -421,7 +425,7 @@ class ViewDistance : public GameObjectAttributeBase {
   ///
   /// @param initial_value - The initial value of the view distance attribute.
   /// @param level_limit - The level limit of the view distance attribute.
-  ViewDistance(float initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+  ViewDistance(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
  private:
   /// Get if the game object attribute can have instant effects or not.

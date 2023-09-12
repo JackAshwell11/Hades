@@ -13,18 +13,19 @@ set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 set(BINDING_PATH ${SRC_DIR}/binding.cpp)
 set(HEADER_FILES
-        ${INCLUDE_PATH}/base.hpp
-        ${INCLUDE_PATH}/game_objects/components.hpp
-        ${INCLUDE_PATH}/game_objects/registry.hpp
-        ${INCLUDE_PATH}/game_objects/steering.hpp
-        ${INCLUDE_PATH}/game_objects/systems/attacks.hpp
-        ${INCLUDE_PATH}/game_objects/systems/attributes.hpp
-        ${INCLUDE_PATH}/game_objects/systems/inventory.hpp
-        ${INCLUDE_PATH}/game_objects/systems/movements.hpp
-        ${INCLUDE_PATH}/generation/astar.hpp
-        ${INCLUDE_PATH}/generation/bsp.hpp
-        ${INCLUDE_PATH}/generation/map.hpp
-        ${INCLUDE_PATH}/generation/primitives.hpp
+        ${INCLUDE_DIR}/base.hpp
+        ${INCLUDE_DIR}/macros.hpp
+        ${INCLUDE_DIR}/game_objects/components.hpp
+        ${INCLUDE_DIR}/game_objects/registry.hpp
+        ${INCLUDE_DIR}/game_objects/steering.hpp
+        ${INCLUDE_DIR}/game_objects/systems/attacks.hpp
+        ${INCLUDE_DIR}/game_objects/systems/attributes.hpp
+        ${INCLUDE_DIR}/game_objects/systems/inventory.hpp
+        ${INCLUDE_DIR}/game_objects/systems/movements.hpp
+        ${INCLUDE_DIR}/generation/astar.hpp
+        ${INCLUDE_DIR}/generation/bsp.hpp
+        ${INCLUDE_DIR}/generation/map.hpp
+        ${INCLUDE_DIR}/generation/primitives.hpp
 )
 set(SOURCE_FILES
         ${SRC_DIR}/game_objects/registry.cpp
@@ -62,3 +63,5 @@ project(${PY_MODULE} LANGUAGES CXX)
 include(FetchContent)
 add_subdirectory(src)
 add_subdirectory(test)
+
+# TODO: Look at maybe adding clang-tidy and clang-format files

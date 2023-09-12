@@ -37,7 +37,7 @@ GameObjectID Registry::create_game_object(bool kinematic, std::vector<std::uniqu
 void Registry::delete_game_object(GameObjectID game_object_id) {
   // Check if the game object is registered or not
   if (!game_objects_.contains(game_object_id)) {
-    return;
+    throw RegistryException("game object", game_object_id);
   }
 
   // Delete the game object from the system
@@ -53,7 +53,7 @@ void Registry::delete_game_object(GameObjectID game_object_id) {
 std::unique_ptr<KinematicObject> Registry::get_kinematic_object(GameObjectID game_object_id) {
   // Check if the game object is registered or not
   if (!kinematic_objects_.contains(game_object_id)) {
-    return nullptr;
+    throw RegistryException("game object", game_object_id);
   }
 
   // Return the kinematic object

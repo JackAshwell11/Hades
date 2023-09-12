@@ -2,34 +2,53 @@
 #include "gtest/gtest.h"
 
 // Custom includes
-#include "fixtures.hpp"
 #include "game_objects/components.hpp"
 
+// ----- CLASSES ------------------------------
+/// Represents a game object attribute useful for testing.
+class TestGameObjectAttribute : public GameObjectAttributeBase {
+ public:
+  /// Initialise the object.
+  ///
+  /// @param initial_value - The initial value of the movement force attribute.
+  /// @param level_limit - The level limit of the movement force attribute.
+  TestGameObjectAttribute(float initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+};
+
+// ----- FIXTURES ------------------------------
+/// A test fixture for the game_objects/components.hpp tests.
+class ComponentsFixtures : public testing::Test {
+ protected:
+  /// A test game object attribute.
+  TestGameObjectAttribute test_game_object_attribute{150, 3};
+};
+
 // ----- TESTS ------------------------------
-TEST_F(GameObjectsFixtures, TestGameObjectAttributeSetterHigher) {
-  // Test that a game object attribute is set with a higher value correctly
+/// Test that a game object attribute is set with a higher value correctly.
+TEST_F(ComponentsFixtures, TestGameObjectAttributeSetterHigher) {
   test_game_object_attribute.value(200);
   ASSERT_EQ(test_game_object_attribute.value(), 150);
 }
 
-TEST_F(GameObjectsFixtures, TestGameObjectAttributeSetterLower) {
-  // Test that a game object attribute is set with a lower value correctly
+/// Test that a game object attribute is set with a lower value correctly.
+TEST_F(ComponentsFixtures, TestGameObjectAttributeSetterLower) {
   test_game_object_attribute.value(100);
   ASSERT_EQ(test_game_object_attribute.value(), 100);
 }
 
-TEST_F(GameObjectsFixtures, TestGameObjectAttributeSetterIadd) {
-  // Test that adding a value to the game object attribute is correct
+/// Test that adding a value to the game object attribute is correct.
+TEST_F(ComponentsFixtures, TestGameObjectAttributeSetterAdd) {
   test_game_object_attribute.value(test_game_object_attribute.value() + 100);
   ASSERT_EQ(test_game_object_attribute.value(), 150);
 }
 
-TEST_F(GameObjectsFixtures, TestGameObjectAttributeSetterIsub) {
-  // Test that subtracting a value from the game object attribute is correct
+/// Test that subtracting a value from the game object attribute is correct.
+TEST_F(ComponentsFixtures, TestGameObjectAttributeSetterSub) {
   test_game_object_attribute.value(test_game_object_attribute.value() - 200);
   ASSERT_EQ(test_game_object_attribute.value(), 0);
 }
 
+/// Test that the inventory capacity calculation is correct.
 TEST(Tests, TestInventoryCapacity) {
   // Test if an inventory with zero width and height has a zero capacity
   Inventory inventory_zero_capacity{0, 0};

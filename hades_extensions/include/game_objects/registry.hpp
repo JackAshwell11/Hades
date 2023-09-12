@@ -32,7 +32,43 @@ struct SystemBase {
   ///
   /// @param registry - The registry to process the update logic for.
   /// @param delta_time - The time interval since the last time the function was called.
-  virtual void update(Registry &registry, float delta_time) {};
+  virtual void update(Registry &registry, double delta_time) {};
+};
+
+// ----- EXCEPTIONS ------------------------------
+/// Raised when an error occurs with the registry.
+class RegistryException : public std::runtime_error {
+ public:
+  /// Initialise the exception.
+  ///
+  /// @tparam T - The type of item that is not registered.
+  /// @param not_registered_type - The type of item that is not registered.
+  /// @param value - The value that is not registered.
+  /// @param error - The error raised by the registry.
+  template<typename T>
+  RegistryException(const std::string &not_registered_type,
+                    const T &value,
+                    const std::string &error = "is not registered with the registry") : std::runtime_error(
+      "The " + not_registered_type + " `" + to_string(value) + "` " + error + ".") {};
+
+ private:
+  /// Convert a value to a string.
+  ///
+  /// @param value - The value to convert to a string.
+  /// @return The value as a string.
+  static std::string to_string(const char *value) {
+    return {value};
+  }
+
+  /// Convert a value to a string.
+  ///
+  /// @tparam T - The type of value to convert to a string.
+  /// @param value - The value to convert to a string.
+  /// @return The value as a string.
+  template<typename T>
+  static std::string to_string(const T &value) {
+    return std::to_string(value);
+  }
 };
 
 // ----- CLASSES ------------------------------
@@ -49,7 +85,7 @@ class Registry {
   /// Delete a game object.
   ///
   /// @param game_object_id - The game object ID.
-  /// @throw RegistryError - If the game object is not registered.
+  /// @throw RegistryException - If the game object is not registered.
   void delete_game_object(GameObjectID game_object_id);
 
   /// Checks if a game object has a given component or not.
@@ -66,18 +102,20 @@ class Registry {
   ///
   /// @tparam T - The type of component to get.
   /// @param game_object_id - The game object ID.
+  /// @throw RegistryException - If the game object is not registered or if the game object does not have the component.
   /// @return The component from the registry.
   template<typename T>
   T *get_component(GameObjectID game_object_id) {
     // Check if the game object has the component or not
     if (!has_component<T>(game_object_id)) {
-      return nullptr;
+      throw RegistryException("game object", game_object_id);
     }
 
     // Return the specified component casting it to T
     return dynamic_cast<T *>(game_objects_[game_object_id][typeid(T)].get());
   }
 
+  // TODO: Update this to work with passing in the parent type
   /// Find all the game objects that have the required components.
   ///
   /// @tparam Ts - The types of components to find.
@@ -110,25 +148,39 @@ class Registry {
   ///
   /// @tparam T - The type of system to add.
   /// @param system - The system to add to the registry.
+  /// @throw RegistryException - If the system is already registered.
   template<typename T>
-  inline void add_system(std::unique_ptr<T> system) {
+  void add_system(std::unique_ptr<T> system) {
+    // Check if the system is already registered
+    if (systems_.contains(typeid(T))) {
+      throw RegistryException("system", typeid(T).name(), "is already registered with the registry");
+    }
+
+    // Add the system to the registry
     systems_[typeid(T)] = std::move(system);
   }
 
   /// Find a system in the registry.
   ///
   /// @tparam T - The type of system to find.
+  /// @throw RegistryException - If the system is not registered.
   /// @return The system.
   template<typename T>
-  inline T *find_system() {
+  T *find_system() {
+    // Check if the system is registered
     auto system_result = systems_.find(typeid(T));
-    return (system_result != systems_.end()) ? dynamic_cast<T *>(system_result->second.get()) : nullptr;
+    if (system_result == systems_.end()) {
+      throw RegistryException("system", typeid(T).name());
+    }
+
+    // Return the system casting it to T
+    return dynamic_cast<T *>(system_result->second.get());
   }
 
   /// Update all the systems.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  inline void update(float delta_time) {
+  inline void update(double delta_time) {
     for (auto &[_, system] : systems_) {
       system->update(*this, delta_time);
     }
@@ -137,7 +189,7 @@ class Registry {
   /// Get a kinematic object given a game object ID.
   ///
   /// @param game_object_id - The game object ID.
-  /// @throw RegistryError - If the game object is not registered.
+  /// @throw RegistryException - If the game object is not registered.
   /// @return The kinematic object.
   std::unique_ptr<KinematicObject> get_kinematic_object(GameObjectID game_object_id);
 
@@ -151,7 +203,7 @@ class Registry {
   /// Get the walls in the system.
   ///
   /// @return The walls in the system.
-  const inline std::unordered_set<Vec2d> &get_walls() const {
+  [[nodiscard]] const inline std::unordered_set<Vec2d> &get_walls() const {
     return walls_;
   }
 
@@ -188,3 +240,7 @@ class Registry {
 
 // TODO: Maybe change all nullptr to exceptions and add new macro in tests to
 //  abstract try catch so message can be tested
+
+// TODO: Go over generation/ and make it conform to new standards
+
+// TODO: Simplify headers and move stuff that is only for implementation into implementation
