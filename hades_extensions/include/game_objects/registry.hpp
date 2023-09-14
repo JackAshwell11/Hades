@@ -115,7 +115,11 @@ class Registry {
     return dynamic_cast<T *>(game_objects_[game_object_id][typeid(T)].get());
   }
 
-  // TODO: Update this to work with passing in the parent type
+  // TODO: Could may experiment with intersection/union idea where current
+  //  implementation is intersection of all components and adding a `complete`
+  //  or `full` default true parameter may allow us to enable union which will
+  //  return all matches that have at least one of the components
+
   /// Find all the game objects that have the required components.
   ///
   /// @tparam Ts - The types of components to find.
@@ -191,7 +195,7 @@ class Registry {
   /// @param game_object_id - The game object ID.
   /// @throw RegistryException - If the game object is not registered.
   /// @return The kinematic object.
-  std::unique_ptr<KinematicObject> get_kinematic_object(GameObjectID game_object_id);
+  KinematicObject *get_kinematic_object(GameObjectID game_object_id);
 
   /// Add a wall to the system
   ///
@@ -210,6 +214,10 @@ class Registry {
  private:
   /// The next game object ID to use.
   GameObjectID next_game_object_id_ = 0;
+
+  // TODO: Experiment with switching to std::shared_ptr as the ownership model
+  //  may suit the registry better and it could allow for not passing raw
+  //  pointers around
 
   /// The components registered with the registry.
   std::unordered_map<std::type_index, std::unordered_set<GameObjectID>> components_;
@@ -244,3 +252,9 @@ class Registry {
 // TODO: Go over generation/ and make it conform to new standards
 
 // TODO: Simplify headers and move stuff that is only for implementation into implementation
+
+// TODO: Try and use more const and references  in definitions + look at making
+//  all component (maybe all structs and classes) members private
+
+// TODO: Switch to references for lots of return and parameter values instead
+//  of pointers (find out when to use each)

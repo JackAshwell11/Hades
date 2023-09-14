@@ -3,11 +3,9 @@
 #include "game_objects/systems/attributes.hpp"
 
 // ----- CONSTANTS -------------------------------
-const int ATTACK_COOLDOWN = 3;
 const double ATTACK_RANGE = 3 * SPRITE_SIZE;
 const int BULLET_VELOCITY = 300;
 const int DAMAGE = 10;
-const double MAX_BULLET_RANGE = 10 * SPRITE_SIZE;
 const double MELEE_ATTACK_OFFSET_LOWER = 45 * PI_RADIANS;
 const double MELEE_ATTACK_OFFSET_UPPER = (2 * (180 * PI_RADIANS)) - MELEE_ATTACK_OFFSET_LOWER;
 
@@ -15,7 +13,7 @@ const double MELEE_ATTACK_OFFSET_UPPER = (2 * (180 * PI_RADIANS)) - MELEE_ATTACK
 AttackResult AttackSystem::do_attack(Registry &registry, int game_object_id, std::vector<int> &targets) {
   // Perform the attack on the targets
   auto *attacks = registry.get_component<Attacks>(game_object_id);
-  const std::unique_ptr<KinematicObject> kinematic_object = registry.get_kinematic_object(game_object_id);
+  const KinematicObject *kinematic_object = registry.get_kinematic_object(game_object_id);
   switch (attacks->attack_algorithms[attacks->attack_state]) {
     case AttackAlgorithms::AreaOfEffect:area_of_effect_attack(registry, kinematic_object->position, targets);
       break;
@@ -34,7 +32,9 @@ AttackResult AttackSystem::do_attack(Registry &registry, int game_object_id, std
   return {};
 }
 
-void AttackSystem::area_of_effect_attack(Registry &registry, Vec2d &current_position, std::vector<int> &targets) {
+void AttackSystem::area_of_effect_attack(Registry &registry,
+                                         const Vec2d &current_position,
+                                         const std::vector<int> &targets) {
   // Find all targets that are within range and attack them
   for (auto target : targets) {
     if (current_position.distance_to(registry.get_kinematic_object(target)->position) <= ATTACK_RANGE) {
@@ -44,9 +44,9 @@ void AttackSystem::area_of_effect_attack(Registry &registry, Vec2d &current_posi
 }
 
 void AttackSystem::melee_attack(Registry &registry,
-                                Vec2d &current_position,
+                                const Vec2d &current_position,
                                 double current_rotation,
-                                std::vector<int> &targets) {
+                                const std::vector<int> &targets) {
   // Calculate a vector that is perpendicular to the current rotation of the
   // game object
   Vec2d rotation = Vec2d(std::sin(current_rotation), std::cos(current_rotation));
@@ -66,7 +66,7 @@ void AttackSystem::melee_attack(Registry &registry,
   }
 }
 
-AttackResult AttackSystem::ranged_attack(Vec2d &current_position, double current_rotation) {
+AttackResult AttackSystem::ranged_attack(const Vec2d &current_position, double current_rotation) {
   return AttackResult{current_position, BULLET_VELOCITY * std::cos(current_rotation),
                       BULLET_VELOCITY * std::sin(current_rotation)};
 }

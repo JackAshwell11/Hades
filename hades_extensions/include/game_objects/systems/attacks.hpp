@@ -16,7 +16,7 @@ struct AttackResult {
   /// Initialise the object.
   ///
   /// @param ranged_attack_result - The result of a ranged attack.
-  explicit AttackResult(Vec2d &current_position, double x_velocity, double y_velocity) : ranged_attack(std::make_tuple(
+  explicit AttackResult(Vec2d current_position, double x_velocity, double y_velocity) : ranged_attack(std::make_tuple(
       current_position,
       x_velocity,
       y_velocity)) {}
@@ -51,7 +51,7 @@ class AttackSystem : public SystemBase {
   /// @param game_object_id - The ID of the game object to select the previous attack for.
   static inline void next_attack(Registry &registry, int game_object_id) {
     auto *attacks = registry.get_component<Attacks>(game_object_id);
-    if (attacks->attack_state < attacks->attack_algorithms.size() - 1) {
+    if (!attacks->attack_algorithms.empty() && attacks->attack_state < attacks->attack_algorithms.size() - 1) {
       attacks->attack_state++;
     }
   }
@@ -62,7 +62,7 @@ class AttackSystem : public SystemBase {
   /// @param registry - The registry to perform the attack for.
   /// @param current_position - The current position of the game object.
   /// @param targets - The targets to attack.
-  static void area_of_effect_attack(Registry &registry, Vec2d &current_position, std::vector<int> &targets);
+  static void area_of_effect_attack(Registry &registry, const Vec2d &current_position, const std::vector<int> &targets);
 
   /// Performs a melee attack in the direction the game object is facing.
   ///
@@ -71,9 +71,9 @@ class AttackSystem : public SystemBase {
   /// @param current_rotation - The current rotation of the game object in radians.
   /// @param targets - The targets to attack.
   static void melee_attack(Registry &registry,
-                           Vec2d &current_position,
+                           const Vec2d &current_position,
                            double current_rotation,
-                           std::vector<int> &targets);
+                           const std::vector<int> &targets);
 
   /// Performs a ranged attack in the direction the game object is facing.
   ///
@@ -81,5 +81,5 @@ class AttackSystem : public SystemBase {
   /// @param current_rotation - The current rotation of the game object in radians.
   ///
   /// @return The result of the attack.
-  static AttackResult ranged_attack(Vec2d &current_position, double current_rotation);
+  static AttackResult ranged_attack(const Vec2d &current_position, double current_rotation);
 };

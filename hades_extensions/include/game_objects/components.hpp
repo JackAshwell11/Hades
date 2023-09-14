@@ -85,6 +85,26 @@ class GameObjectAttributeBase : public ComponentBase {
         max_value_(has_maximum() ? initial_value : std::numeric_limits<double>::infinity()),
         level_limit_(level_limit) {}
 
+  /// Get if the game object attribute can have instant effects or not.
+  ///
+  /// @return Whether the game object attribute can have instant effects or not.
+  [[nodiscard]] virtual bool has_instant_effect() const { return true; }
+
+  /// Get if the game object attribute has a maximum value or not.
+  ///
+  /// @return Whether the game object attribute has a maximum value or not.
+  [[nodiscard]] virtual bool has_maximum() const { return true; }
+
+  /// Get if the game object attribute can have status effects or not.
+  ///
+  /// @return Whether the game object attribute can have status effects or not.
+  [[nodiscard]] virtual bool has_status_effect() const { return true; }
+
+  /// Get if the game object attribute can be upgraded or not.
+  ///
+  /// @return Whether the game object attribute can be upgraded or not.
+  [[nodiscard]] virtual bool is_upgradable() const { return true; }
+
   /// Get the game object attribute's value.
   ///
   /// @return The game object attribute's value.
@@ -153,26 +173,6 @@ class GameObjectAttributeBase : public ComponentBase {
 
   /// The current level of the game object attribute.
   int current_level_ = 0;
-
-  /// Get if the game object attribute can have instant effects or not.
-  ///
-  /// @return Whether the game object attribute can have instant effects or not.
-  [[nodiscard]] virtual bool has_instant_effect() const { return true; }
-
-  /// Get if the game object attribute has a maximum value or not.
-  ///
-  /// @return Whether the game object attribute has a maximum value or not.
-  [[nodiscard]] virtual bool has_maximum() const { return true; }
-
-  /// Get if the game object attribute can have status effects or not.
-  ///
-  /// @return Whether the game object attribute can have status effects or not.
-  [[nodiscard]] virtual bool has_status_effect() const { return true; }
-
-  /// Get if the game object attribute can be upgraded or not.
-  ///
-  /// @return Whether the game object attribute can be upgraded or not.
-  [[nodiscard]] virtual bool is_upgradable() const { return true; }
 };
 
 /// Allows a game object to have an armour attribute
@@ -200,7 +200,6 @@ class ArmourRegenCooldown : public GameObjectAttributeBase {
   /// @param level_limit - The level limit of the armour regen cooldown attribute.
   ArmourRegenCooldown(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
- private:
   /// Get if the game object attribute can have instant effects or not.
   ///
   /// @return Whether the game object attribute can have instant effects or not.
@@ -235,7 +234,6 @@ class FireRatePenalty : public GameObjectAttributeBase {
   /// @param level_limit - The level limit of the fire rate penalty attribute.
   FireRatePenalty(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
- private:
   /// Get if the game object attribute can have instant effects or not.
   ///
   /// @return Whether the game object attribute can have instant effects or not.
@@ -260,7 +258,7 @@ struct Footprints : public ComponentBase {
   /// Initialise the object.
   ///
   /// @param footprints - The footprints the game object has left.
-  explicit Footprints(std::deque<Vec2d> footprints) : footprints(std::move(footprints)) {}
+  explicit Footprints(std::deque<Vec2d> footprints = {}) : footprints(std::move(footprints)) {}
 };
 
 /// Allows a game object to have a health attribute.
@@ -338,7 +336,6 @@ class Money : public GameObjectAttributeBase {
   /// @param level_limit - The level limit of the money attribute.
   Money(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
- private:
   /// Get if the game object attribute can have instant effects or not.
   ///
   /// @return Whether the game object attribute can have instant effects or not.
@@ -369,7 +366,6 @@ class MovementForce : public GameObjectAttributeBase {
   /// @param level_limit - The level limit of the movement force attribute.
   MovementForce(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
- private:
   /// Get if the game object attribute can have instant effects or not.
   ///
   /// @return Whether the game object attribute can have instant effects or not.
@@ -427,7 +423,6 @@ class ViewDistance : public GameObjectAttributeBase {
   /// @param level_limit - The level limit of the view distance attribute.
   ViewDistance(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
 
- private:
   /// Get if the game object attribute can have instant effects or not.
   ///
   /// @return Whether the game object attribute can have instant effects or not.

@@ -4,37 +4,6 @@
 // Custom includes
 #include "game_objects/components.hpp"
 
-// ----- EXCEPTIONS ------------------------------
-/// Thrown when there is an error with a game object attribute.
-class GameObjectAttributeException : public std::runtime_error {
- public:
-  /// Initialise the exception.
-  ///
-  /// @param name - The name of the game object attribute.
-  /// @param error - The problem raised by the game object attribute.
-  template<typename T>
-  explicit GameObjectAttributeException(const T &name, const std::string &error) : std::runtime_error(
-      "The game object attribute `" + to_string(name) + "` cannot " + error + ".") {}
-
- private:
-  /// Convert a value to a string.
-  ///
-  /// @param value - The value to convert to a string.
-  /// @return The value as a string.
-  static std::string to_string(const char *value) {
-    return {value};
-  }
-
-  /// Convert a value to a string.
-  ///
-  /// @tparam T - The type of value to convert to a string.
-  /// @param value - The value to convert to a string.
-  /// @return The value as a string.
-  static std::string to_string(const std::string &value) {
-    return value;
-  }
-};
-
 // ----- STRUCTURES ------------------------------
 /// Provides facilities to manipulate armour regen components.
 struct ArmourRegenSystem : public SystemBase {
@@ -61,7 +30,8 @@ struct GameObjectAttributeSystem : public SystemBase {
   static bool upgrade(Registry &registry, GameObjectID game_object_id, const std::function<double(int)> &increase) {
     // Check if the attribute can be upgraded or if it is already at max level
     auto *game_object_attribute = registry.get_component<T>(game_object_id);
-    if (!game_object_attribute->upgradable() || game_object_attribute->current_level() >= game_object_attribute->level_limit()) {
+    if (!game_object_attribute->is_upgradable()
+        || game_object_attribute->current_level() >= game_object_attribute->level_limit()) {
       return false;
     }
 
@@ -79,11 +49,15 @@ struct GameObjectAttributeSystem : public SystemBase {
   /// @param increase - The lambda function which calculate the value of the instant effect.
   /// @param level - The level to initialise the instant effect at.
   template<typename T>
-  static bool apply_instant_effect(Registry &registry, GameObjectID game_object_id, const std::function<double(int)> &increase, int level) {
+  static bool apply_instant_effect(Registry &registry,
+                                   GameObjectID game_object_id,
+                                   const std::function<double(int)> &increase,
+                                   int level) {
     // Check if the attribute can have an instant effect or if it is already at
     // the max
     auto *game_object_attribute = registry.get_component<T>(game_object_id);
-    if (!game_object_attribute->instant_effect() || game_object_attribute->value() == game_object_attribute->max_value()) {
+    if (!game_object_attribute->has_instant_effect()
+        || game_object_attribute->value() == game_object_attribute->max_value()) {
       return false;
     }
 
@@ -98,7 +72,11 @@ struct GameObjectAttributeSystem : public SystemBase {
   /// @param status_effect - The lambda functions which calculate the value and duration values for the status effect.
   /// @param level - The level to initialise the status effect at.
   template<typename T>
-  static bool apply_status_effect(Registry &registry, GameObjectID game_object_id, const std::tuple<std::function<double(int)>, std::function<double(int)>> &status_effect, int level) {
+  static bool apply_status_effect(Registry &registry,
+                                  GameObjectID game_object_id,
+                                  const std::tuple<std::function<double(int)>,
+                                                   std::function<double(int)>> &status_effect,
+                                  int level) {
     // Check if the attribute can have a status effect or if it already has one
     // TODO: See if all methods can use &game_object_attribute to avoid pointers
 
@@ -106,7 +84,7 @@ struct GameObjectAttributeSystem : public SystemBase {
     //  https://chat.openai.com/c/4395342c-ea28-47eb-ab8b-7c922ed1cf17 to maybe
     //  sort it
     auto *game_object_attribute = registry.get_component<T>(game_object_id);
-    if (!game_object_attribute->status_effect() || game_object_attribute->applied_status_effect()) {
+    if (!game_object_attribute->has_status_effect() || game_object_attribute->applied_status_effect.has_value()) {
       return false;
     }
 

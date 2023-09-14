@@ -111,7 +111,7 @@ TEST_F(RegistryFixtures, TestRegistryGameObjectComponents) {
 TEST_F(RegistryFixtures, TestRegistryGameObjectKinematic) {
   // Test that creating the kinematic game object works correctly
   registry.create_game_object(true, {});
-  std::unique_ptr<KinematicObject> kinematic_object = registry.get_kinematic_object(0);
+  KinematicObject *kinematic_object = registry.get_kinematic_object(0);
   ASSERT_EQ(kinematic_object->position, Vec2d(0, 0));
   ASSERT_EQ(kinematic_object->velocity, Vec2d(0, 0));
   ASSERT_EQ(kinematic_object->rotation, 0);

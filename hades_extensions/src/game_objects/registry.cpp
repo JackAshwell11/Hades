@@ -50,12 +50,12 @@ void Registry::delete_game_object(GameObjectID game_object_id) {
   }
 }
 
-std::unique_ptr<KinematicObject> Registry::get_kinematic_object(GameObjectID game_object_id) {
+KinematicObject *Registry::get_kinematic_object(GameObjectID game_object_id) {
   // Check if the game object is registered or not
   if (!kinematic_objects_.contains(game_object_id)) {
     throw RegistryException("game object", game_object_id);
   }
 
   // Return the kinematic object
-  return std::move(kinematic_objects_[game_object_id]);
+  return kinematic_objects_[game_object_id].get();
 }

@@ -73,6 +73,8 @@ Vec2d obstacle_avoidance(const Vec2d &current_position,
   // Create the lambda function to cast a ray from the game object's position
   // in the direction of its velocity at a given angle
   auto raycast = [&current_position, &current_velocity, &walls](double angle = 0) -> Vec2d {
+    // TODO: This narrows from double to int, but it is not good practice to
+    //  have double as iteration type. Fix this
     for (int step = SPRITE_SIZE; step <= MAX_SEE_AHEAD; step += SPRITE_SIZE) {
       Vec2d position = current_position + current_velocity.rotated(angle) * (step / 100.0);
       if (walls.contains(position / SPRITE_SIZE)) {

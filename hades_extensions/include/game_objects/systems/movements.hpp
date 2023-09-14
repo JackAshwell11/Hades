@@ -5,6 +5,15 @@
 #include "game_objects/components.hpp"
 
 // ----- STRUCTURES ------------------------------
+/// Provides facilities to manipulate footprint components.
+struct FootprintSystem : public SystemBase {
+  /// Process update logic for a footprint component.
+  ///
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  /// @param delta_time - The time interval since the last time the function was called.
+  void update(Registry &registry, double delta_time) final;
+};
+
 /// Provides facilities to manipulate keyboard movement components.
 struct KeyboardMovementSystem : public SystemBase {
   /// Calculate the new keyboard force to apply to the game object.
@@ -29,14 +38,7 @@ struct SteeringMovementSystem : public SystemBase {
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param target_game_object_id - The ID of the game object to follow.
   /// @param footprints - The list of footprints to follow.
-  static void update_path_list(Registry &registry, GameObjectID target_game_object_id, std::deque<Vec2d> &footprints);
-};
-
-/// Provides facilities to manipulate footprint components.
-struct FootprintSystem : public SystemBase {
-  /// Process update logic for a footprint component.
-  ///
-  /// @param registry - The registry that manages the game objects, components, and systems.
-  /// @param delta_time - The time interval since the last time the function was called.
-  static void update(Registry &registry, double delta_time);
+  static void update_path_list(Registry &registry,
+                               GameObjectID target_game_object_id,
+                               const std::deque<Vec2d> &footprints);
 };
