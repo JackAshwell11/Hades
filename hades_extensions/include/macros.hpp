@@ -16,3 +16,6 @@
     } catch (...) { \
       ADD_FAILURE() << "Expected exception of type " #exception_type; \
     }
+
+// TODO: Maybe move test structs, classes and fixtures to separate include
+//  directory

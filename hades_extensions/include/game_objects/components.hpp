@@ -40,6 +40,9 @@ enum class SteeringMovementState {
   Target,
 };
 
+// TODO: Look at making all component (maybe all structs and classes) members
+//  private
+
 // ----- STRUCTURES ------------------------------
 /// Represents a status effect that can be applied to a game object attribute.
 struct StatusEffect {
@@ -68,11 +71,17 @@ struct StatusEffect {
       : value(value), duration(duration), original_value(original_value), original_max_value(original_max_value) {}
 };
 
+// TODO: Could look at mixins
+//  (https://stackoverflow.com/questions/18773367/what-are-mixins-as-a-concept)
+//  along with redesigning GameObjectAttributeBase to improve the design
+
+// TODO: This is a start but may need further prompting
+//  https://chat.openai.com/c/643af778-04d1-43d1-843f-abc6b9eedad0
+
+
 /// The base class for all game object attributes.
 class GameObjectAttributeBase : public ComponentBase {
  public:
-  // TODO: Look at making some private/public
-
   /// The status effect currently applied to the game object.
   std::optional<StatusEffect> applied_status_effect;
 
@@ -250,15 +259,10 @@ class FireRatePenalty : public GameObjectAttributeBase {
 /// @param footprints - The footprints the game object has left.
 struct Footprints : public ComponentBase {
   /// The footprints the game object has left.
-  std::deque<Vec2d> footprints;
+  std::deque<Vec2d> footprints = {};
 
   /// The time since the game object last left a footprint.
   double time_since_last_footprint = 0;
-
-  /// Initialise the object.
-  ///
-  /// @param footprints - The footprints the game object has left.
-  explicit Footprints(std::deque<Vec2d> footprints = {}) : footprints(std::move(footprints)) {}
 };
 
 /// Allows a game object to have a health attribute.
@@ -283,8 +287,7 @@ struct InstantEffects : public ComponentBase {
   ///
   /// @param instant_effects - The instant effects the game object provides.
   /// @param level_limit - The level limit of the instant effects.
-  InstantEffects(std::unordered_map<std::type_index, std::function<double(int)>> instant_effects, int level_limit)
-      : instant_effects(std::move(instant_effects)), level_limit(level_limit) {}
+  InstantEffects(std::unordered_map<std::type_index, std::function<double(int)>> instant_effects, int level_limit) : instant_effects(std::move(instant_effects)), level_limit(level_limit) {}
 };
 
 /// Allows a game object to have a fixed size inventory.
@@ -389,8 +392,7 @@ struct StatusEffects : public ComponentBase {
   ///
   /// @param status_effects - The status effects the game object provides.
   /// @param level_limit - The level limit of the status effects.
-  StatusEffects(std::unordered_map<std::type_index, std::function<StatusEffect(int)>> status_effects, int level_limit)
-      : status_effects(std::move(status_effects)), level_limit(level_limit) {}
+  StatusEffects(std::unordered_map<std::type_index, std::function<StatusEffect(int)>> status_effects, int level_limit) : status_effects(std::move(status_effects)), level_limit(level_limit) {}
 };
 
 /// Allows a game object's movement to be controlled by steering algorithms.
@@ -410,8 +412,7 @@ struct SteeringMovement : public ComponentBase {
   /// Initialise the object.
   ///
   /// @param behaviours - The steering behaviours used by the game object.
-  explicit SteeringMovement(std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> behaviours)
-      : behaviours(std::move(behaviours)) {}
+  explicit SteeringMovement(std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> behaviours) : behaviours(std::move(behaviours)) {}
 };
 
 /// Allows a game object to have a view distance attribute.

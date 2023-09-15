@@ -11,12 +11,12 @@
 
 // ----- CONSTANTS ------------------------------
 #define PI_RADIANS (std::numbers::pi / 180)
+#define TWO_PI (2 * std::numbers::pi)
 const double SPRITE_SCALE = 0.5;
 const double SPRITE_SIZE = 128 * SPRITE_SCALE;
 
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D vector.
-// TODO: See if this and Position can be combined into a base class maybe with a template parameter
 struct Vec2d {
   inline bool operator==(const Vec2d &vec) const {
     return x == vec.x && y == vec.y;
@@ -36,15 +36,15 @@ struct Vec2d {
     return *this;
   }
 
-  Vec2d operator-(const Vec2d &vec) const {
+  inline Vec2d operator-(const Vec2d &vec) const {
     return {x - vec.x, y - vec.y};
   }
 
-  Vec2d operator*(const double &val) const {
+  inline Vec2d operator*(const double val) const {
     return {x * val, y * val};
   }
 
-  Vec2d operator/(const double &val) const {
+  inline Vec2d operator/(const double val) const {
     return {std::floor(x / val), std::floor(y / val)};
   }
 
@@ -80,14 +80,22 @@ struct Vec2d {
   /// @param angle - The angle to rotate the vector by in radians.
   ///
   /// @return The rotated vector.
-  [[nodiscard]] Vec2d rotated(double angle) const;
+  [[nodiscard]] inline Vec2d rotated(double angle) const {
+    double cos_angle = std::cos(angle);
+    double sin_angle = std::sin(angle);
+    return {x * cos_angle - y * sin_angle, x * sin_angle + y * cos_angle};
+  }
 
   /// Get the angle between this vector and another vector.
   ///
   /// @details This will always be between 0 and 2π.
   /// @param other - The other vector to get the angle between.
   /// @return The angle between the two vectors.
-  [[nodiscard]] double angle_between(const Vec2d &other) const;
+  [[nodiscard]] double angle_between(const Vec2d &other) const {
+    double cross_product = x * other.y - y * other.x;
+    double dot_product = x * other.x + y * other.y;
+    return std::fmod(std::atan2(cross_product, dot_product) + TWO_PI, TWO_PI);
+  }
 
   /// Get the distance to another vector.
   ///

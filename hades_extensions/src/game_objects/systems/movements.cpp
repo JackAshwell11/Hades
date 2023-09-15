@@ -10,7 +10,7 @@ const int FOOTPRINT_LIMIT = 10;
 const double TARGET_DISTANCE = 3 * SPRITE_SIZE;
 
 // ----- STRUCTURES ------------------------------
-void FootprintSystem::update(Registry &registry, double delta_time) {
+void FootprintSystem::update(double delta_time) {
   // Update the time since the last footprint then check if a new footprint
   // should be created
   for (auto &[game_object_id, component_tuple] : registry.find_components<Footprints>()) {
@@ -30,22 +30,22 @@ void FootprintSystem::update(Registry &registry, double delta_time) {
     footprints->footprints.push_back(current_position);
 
     // Update the path list for all SteeringMovement components
-    SteeringMovementSystem::update_path_list(registry, game_object_id, footprints->footprints);
+    registry.find_system<SteeringMovementSystem>()->update_path_list(game_object_id, footprints->footprints);
   }
 }
 
-Vec2d KeyboardMovementSystem::calculate_keyboard_force(Registry &registry, GameObjectID game_object_id) {
-  auto *keyboard_movement = registry.get_component<KeyboardMovement>(game_object_id);
+Vec2d KeyboardMovementSystem::calculate_keyboard_force(GameObjectID game_object_id) {
+  auto keyboard_movement = registry.get_component<KeyboardMovement>(game_object_id);
   return Vec2d{static_cast<double>(keyboard_movement->moving_east - keyboard_movement->moving_west),
                static_cast<double>(keyboard_movement->moving_north - keyboard_movement->moving_south)}
       * registry.get_component<MovementForce>(game_object_id)->value();
 }
 
-Vec2d SteeringMovementSystem::calculate_steering_force(Registry &registry, GameObjectID game_object_id) {
+Vec2d SteeringMovementSystem::calculate_steering_force(GameObjectID game_object_id) {
   // Determine if the movement state should change or not
-  auto *steering_movement = registry.get_component<SteeringMovement>(game_object_id);
-  const KinematicObject *kinematic_owner = registry.get_kinematic_object(game_object_id);
-  const KinematicObject *kinematic_target = registry.get_kinematic_object(steering_movement->target_id);
+  auto steering_movement = registry.get_component<SteeringMovement>(game_object_id);
+  const auto kinematic_owner = registry.get_kinematic_object(game_object_id);
+  const auto kinematic_target = registry.get_kinematic_object(steering_movement->target_id);
   if (kinematic_owner->position.distance_to(kinematic_target->position) <= TARGET_DISTANCE) {
     steering_movement->movement_state = SteeringMovementState::Target;
   } else if (!steering_movement->path_list.empty()) {
@@ -95,9 +95,7 @@ Vec2d SteeringMovementSystem::calculate_steering_force(Registry &registry, GameO
   return steering_force.normalised() * registry.get_component<MovementForce>(game_object_id)->value();
 }
 
-void SteeringMovementSystem::update_path_list(Registry &registry,
-                                              GameObjectID target_game_object_id,
-                                              const std::deque<Vec2d> &footprints) {
+void SteeringMovementSystem::update_path_list(GameObjectID target_game_object_id, const std::deque<Vec2d> &footprints) {
   // Update the path list for all SteeringMovement components that have the correct target ID
   for (auto &[game_object_id, component_tuple] : registry.find_components<SteeringMovement>()) {
     auto steering_movement = std::get<0>(component_tuple);

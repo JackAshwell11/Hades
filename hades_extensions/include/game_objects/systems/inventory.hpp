@@ -23,19 +23,22 @@ class InventorySpaceException : public std::runtime_error {
 // ----- STRUCTURES ------------------------------
 /// Provides facilities to manipulate inventory components.
 struct InventorySystem : public SystemBase {
-  /// Add an item to the inventory of a game object.
+  /// Initialise the system.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
+  explicit InventorySystem(Registry &registry) : SystemBase(registry) {}
+
+  /// Add an item to the inventory of a game object.
+  ///
   /// @param game_object_id - The game object ID.
   /// @param item - The item to add to the inventory.
   /// @throws InventorySpaceException - If the inventory is full.
-  static void add_item_to_inventory(Registry &registry, GameObjectID game_object_id, GameObjectID item);
+  void add_item_to_inventory(GameObjectID game_object_id, GameObjectID item);
 
   /// Remove an item from the inventory of a game object.
   ///
-  /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param game_object_id - The game object ID.
   /// @param index - The index of the item to remove.
   /// @throws InventorySpaceException - If the inventory is empty or the index is out of range.
-  static int remove_item_from_inventory(Registry &registry, GameObjectID game_object_id, int index);
+  int remove_item_from_inventory(GameObjectID game_object_id, int index);
 };

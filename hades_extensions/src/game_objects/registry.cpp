@@ -8,10 +8,8 @@
 
 // ----- CLASSES ------------------------------
 GameObjectID Registry::create_game_object(bool kinematic, std::vector<std::unique_ptr<ComponentBase>> &&components) {
-  // TODO: See if has_component and get_component can be used here. It needs
-  //  simplifying
   // Add the game object to the system
-  game_objects_[next_game_object_id_] = std::unordered_map<std::type_index, std::unique_ptr<ComponentBase>>{};
+  game_objects_[next_game_object_id_] = std::unordered_map<ObjectType, std::shared_ptr<ComponentBase>>{};
   if (kinematic) {
     kinematic_objects_[next_game_object_id_] = std::make_unique<KinematicObject>(Vec2d{0, 0}, Vec2d{0, 0});
   }
@@ -19,7 +17,8 @@ GameObjectID Registry::create_game_object(bool kinematic, std::vector<std::uniqu
   // Add the game object to the components
   for (auto &component : components) {
     // Check if the component already exists in the registry
-    const std::type_info &component_type = typeid(*component);
+    [[maybe_unused]] auto &component_obj = *component;
+    const std::type_info &component_type = typeid(component_obj);
     if (components_[component_type].contains(next_game_object_id_)) {
       continue;
     }
@@ -50,12 +49,24 @@ void Registry::delete_game_object(GameObjectID game_object_id) {
   }
 }
 
-KinematicObject *Registry::get_kinematic_object(GameObjectID game_object_id) {
+void Registry::add_system(std::shared_ptr<SystemBase> system) {
+  // Check if the system is already registered
+  [[maybe_unused]] auto &system_obj = *system;
+  const std::type_info &system_type = typeid(system_obj);
+  if (systems_.contains(typeid(system_obj))) {
+    throw RegistryException("system", system_type.name(), "is already registered with the registry");
+  }
+
+  // Add the system to the registry
+  systems_[system_type] = std::move(system);
+}
+
+std::shared_ptr<KinematicObject> Registry::get_kinematic_object(GameObjectID game_object_id) {
   // Check if the game object is registered or not
   if (!kinematic_objects_.contains(game_object_id)) {
     throw RegistryException("game object", game_object_id);
   }
 
   // Return the kinematic object
-  return kinematic_objects_[game_object_id].get();
+  return kinematic_objects_[game_object_id];
 }

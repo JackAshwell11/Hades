@@ -7,7 +7,6 @@
 #include "game_objects/steering.hpp"
 
 // ----- CONSTANTS ------------------------------
-#define TWO_PI (2 * std::numbers::pi)
 const double MAX_SEE_AHEAD = 2 * SPRITE_SIZE;
 const int MAX_VELOCITY = 200;
 const double OBSTACLE_AVOIDANCE_ANGLE = 60 * PI_RADIANS;
@@ -15,19 +14,6 @@ const double PATH_POSITION_RADIUS = 1 * SPRITE_SIZE;
 const double SLOWING_RADIUS = 3 * SPRITE_SIZE;
 const int WANDER_CIRCLE_DISTANCE = 50;
 const int WANDER_CIRCLE_RADIUS = 25;
-
-// ----- STRUCTURES ------------------------------
-Vec2d Vec2d::rotated(double angle) const {
-  double cos_angle = std::cos(angle);
-  double sin_angle = std::sin(angle);
-  return {x * cos_angle - y * sin_angle, x * sin_angle + y * cos_angle};
-}
-
-double Vec2d::angle_between(const Vec2d &other) const {
-  double cross_product = x * other.y - y * other.x;
-  double dot_product = x * other.x + y * other.y;
-  return std::fmod(std::atan2(cross_product, dot_product) + TWO_PI, TWO_PI);
-}
 
 // ----- FUNCTIONS ------------------------------
 Vec2d arrive(const Vec2d &current_position, const Vec2d &target_position) {
@@ -73,10 +59,13 @@ Vec2d obstacle_avoidance(const Vec2d &current_position,
   // Create the lambda function to cast a ray from the game object's position
   // in the direction of its velocity at a given angle
   auto raycast = [&current_position, &current_velocity, &walls](double angle = 0) -> Vec2d {
-    // TODO: This narrows from double to int, but it is not good practice to
-    //  have double as iteration type. Fix this
-    for (int step = SPRITE_SIZE; step <= MAX_SEE_AHEAD; step += SPRITE_SIZE) {
-      Vec2d position = current_position + current_velocity.rotated(angle) * (step / 100.0);
+    // Pre-calculate some values used during the raycast
+    const auto rotated_velocity = current_velocity.rotated(angle);
+    const int step_count = static_cast<int>(MAX_SEE_AHEAD / SPRITE_SIZE);
+
+    // Perform the raycast
+    for (int step = 1; step <= step_count; step++) {
+      Vec2d position = current_position + rotated_velocity * ((step * SPRITE_SIZE) / 100.0);
       if (walls.contains(position / SPRITE_SIZE)) {
         return position;
       }

@@ -4,9 +4,10 @@
 // Custom includes
 #include "macros.hpp"
 #include "game_objects/systems/attacks.hpp"
+#include "game_objects/systems/attributes.hpp"
 
 // ----- FIXTURES ------------------------------
-/// Implements the fixture for the game_objects/systems/attacks.hpp tests.
+/// Implements the Attacks fixture for the game_objects/systems/attacks.hpp tests.
 class AttacksFixture : public testing::Test {
  protected:
   /// The registry that manages the game objects, components, and systems.
@@ -26,6 +27,8 @@ class AttacksFixture : public testing::Test {
       registry.get_kinematic_object(target)->position = position;
       return target;
     };
+
+    // Create the targets and add the attacks system
     targets = {
         create_target({-20, -100}),
         create_target({20, 60}),
@@ -36,18 +39,26 @@ class AttacksFixture : public testing::Test {
         create_target({0, -192}),
         create_target({0, 0}),
     };
+    registry.add_system(std::make_shared<AttackSystem>(registry));
+    registry.add_system(std::make_shared<GameObjectAttributeSystem>(registry));
   }
 
   /// Create an attacks component for a game object.
   ///
   /// @tparam T - The type of the component or system.
   /// @param list - The initializer list to pass to the constructor.
-  /// @return A unique pointer to the component or system.
   void create_attack_component(const std::vector<AttackAlgorithms> &enabled_attacks) {
     std::vector<std::unique_ptr<ComponentBase>> components;
     components.push_back(std::make_unique<Attacks>(enabled_attacks));
     int game_object_id = registry.create_game_object(true, std::move(components));
     registry.get_kinematic_object(game_object_id)->rotation = 180;
+  }
+
+  /// Get the attacks system from the registry.
+  ///
+  /// @return The attacks system.
+  std::shared_ptr<AttackSystem> get_attacks_system() {
+    return registry.find_system<AttackSystem>();
   }
 };
 
@@ -55,7 +66,7 @@ class AttacksFixture : public testing::Test {
 /// Test that performing an area of effect attack works correctly.
 TEST_F(AttacksFixture, TestAttacksDoAreaOfEffectAttack) {
   create_attack_component({AttackAlgorithms::AreaOfEffect});
-  AttackSystem::do_attack(registry, 8, targets);
+  get_attacks_system()->do_attack(8, targets);
   ASSERT_EQ(registry.get_component<Health>(targets[0])->value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->value(), 50);
@@ -69,7 +80,7 @@ TEST_F(AttacksFixture, TestAttacksDoAreaOfEffectAttack) {
 /// Test that performing a melee attack works correctly.
 TEST_F(AttacksFixture, TestAttacksDoMeleeAttack) {
   create_attack_component({AttackAlgorithms::Melee});
-  AttackSystem::do_attack(registry, 8, targets);
+  get_attacks_system()->do_attack(8, targets);
   ASSERT_EQ(registry.get_component<Health>(targets[0])->value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->value(), 50);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->value(), 50);
@@ -84,16 +95,16 @@ TEST_F(AttacksFixture, TestAttacksDoMeleeAttack) {
 TEST_F(AttacksFixture, TestAttacksDoRangedAttack) {
   // This is due to floating point precision
   create_attack_component({AttackAlgorithms::Ranged});
-  std::tuple<Vec2d, double, double> attack_result = AttackSystem::do_attack(registry, 8, targets).ranged_attack.value();
+  std::tuple<Vec2d, double, double> attack_result = get_attacks_system()->do_attack(8, targets).ranged_attack.value();
   ASSERT_EQ(get<0>(attack_result), Vec2d(0, 0));
   ASSERT_EQ(get<1>(attack_result), -300);
-  ASSERT_NEAR(get<2>(attack_result), 0, 1e-13);  // TODO: Improve this
+  ASSERT_NEAR(get<2>(attack_result), 0, 1e-13);
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(AttacksFixture, TestAttacksDoAttackInvalidGameObjectId) {
   create_attack_component({AttackAlgorithms::Ranged});
-  ASSERT_THROW_MESSAGE(AttackSystem::do_attack(registry, -1, targets),
+  ASSERT_THROW_MESSAGE(get_attacks_system()->do_attack(-1, targets),
                        RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }
@@ -102,9 +113,9 @@ TEST_F(AttacksFixture, TestAttacksDoAttackInvalidGameObjectId) {
 TEST_F(AttacksFixture, TestAttacksPreviousNextAttackSingle) {
   create_attack_component({AttackAlgorithms::AreaOfEffect, AttackAlgorithms::Melee, AttackAlgorithms::Ranged});
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
-  AttackSystem::next_attack(registry, 8);
+  get_attacks_system()->next_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 1);
-  AttackSystem::previous_attack(registry, 8);
+  get_attacks_system()->previous_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
 }
 
@@ -112,17 +123,17 @@ TEST_F(AttacksFixture, TestAttacksPreviousNextAttackSingle) {
 TEST_F(AttacksFixture, TestAttacksPreviousAttackMultiple) {
   create_attack_component({AttackAlgorithms::AreaOfEffect, AttackAlgorithms::Melee, AttackAlgorithms::Ranged});
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
-  AttackSystem::next_attack(registry, 8);
+  get_attacks_system()->next_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 1);
-  AttackSystem::next_attack(registry, 8);
+  get_attacks_system()->next_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 2);
-  AttackSystem::next_attack(registry, 8);
+  get_attacks_system()->next_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 2);
-  AttackSystem::previous_attack(registry, 8);
+  get_attacks_system()->previous_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 1);
-  AttackSystem::previous_attack(registry, 8);
+  get_attacks_system()->previous_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
-  AttackSystem::previous_attack(registry, 8);
+  get_attacks_system()->previous_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
 }
 
@@ -130,19 +141,19 @@ TEST_F(AttacksFixture, TestAttacksPreviousAttackMultiple) {
 TEST_F(AttacksFixture, TestAttacksPreviousNextAttackEmptyAttacks) {
   create_attack_component({});
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
-  AttackSystem::next_attack(registry, 8);
+  get_attacks_system()->next_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
-  AttackSystem::previous_attack(registry, 8);
+  get_attacks_system()->previous_attack(8);
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(AttacksFixture, TestAttacksPreviousNextAttackInvalidGameObjectId) {
   create_attack_component({});
-  ASSERT_THROW_MESSAGE(AttackSystem::next_attack(registry, -1),
+  ASSERT_THROW_MESSAGE(get_attacks_system()->next_attack(-1),
                        RegistryException,
                        "The game object `-1` is not registered with the registry.")
-  ASSERT_THROW_MESSAGE(AttackSystem::previous_attack(registry, -1),
+  ASSERT_THROW_MESSAGE(get_attacks_system()->previous_attack(-1),
                        RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }

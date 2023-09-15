@@ -16,8 +16,8 @@ class TestGameObjectAttribute : public GameObjectAttributeBase {
 };
 
 // ----- FIXTURES ------------------------------
-/// A test fixture for the game_objects/components.hpp tests.
-class ComponentsFixtures : public testing::Test {
+/// Implements the fixture for the game_objects/systems/components.hpp tests.
+class ComponentsFixture : public testing::Test {
  protected:
   /// A test game object attribute.
   TestGameObjectAttribute test_game_object_attribute{150, 3};
@@ -25,25 +25,25 @@ class ComponentsFixtures : public testing::Test {
 
 // ----- TESTS ------------------------------
 /// Test that a game object attribute is set with a higher value correctly.
-TEST_F(ComponentsFixtures, TestGameObjectAttributeSetterHigher) {
+TEST_F(ComponentsFixture, TestGameObjectAttributeSetterHigher) {
   test_game_object_attribute.value(200);
   ASSERT_EQ(test_game_object_attribute.value(), 150);
 }
 
 /// Test that a game object attribute is set with a lower value correctly.
-TEST_F(ComponentsFixtures, TestGameObjectAttributeSetterLower) {
+TEST_F(ComponentsFixture, TestGameObjectAttributeSetterLower) {
   test_game_object_attribute.value(100);
   ASSERT_EQ(test_game_object_attribute.value(), 100);
 }
 
 /// Test that adding a value to the game object attribute is correct.
-TEST_F(ComponentsFixtures, TestGameObjectAttributeSetterAdd) {
+TEST_F(ComponentsFixture, TestGameObjectAttributeSetterAdd) {
   test_game_object_attribute.value(test_game_object_attribute.value() + 100);
   ASSERT_EQ(test_game_object_attribute.value(), 150);
 }
 
 /// Test that subtracting a value from the game object attribute is correct.
-TEST_F(ComponentsFixtures, TestGameObjectAttributeSetterSub) {
+TEST_F(ComponentsFixture, TestGameObjectAttributeSetterSub) {
   test_game_object_attribute.value(test_game_object_attribute.value() - 200);
   ASSERT_EQ(test_game_object_attribute.value(), 0);
 }

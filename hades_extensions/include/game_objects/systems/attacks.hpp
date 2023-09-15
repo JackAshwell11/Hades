@@ -16,30 +16,30 @@ struct AttackResult {
   /// Initialise the object.
   ///
   /// @param ranged_attack_result - The result of a ranged attack.
-  explicit AttackResult(Vec2d current_position, double x_velocity, double y_velocity) : ranged_attack(std::make_tuple(
-      current_position,
-      x_velocity,
-      y_velocity)) {}
+  explicit AttackResult(const Vec2d &current_position, double x_velocity, double y_velocity) : ranged_attack(std::make_tuple(current_position, x_velocity, y_velocity)) {}
 };
 
 /// Provides facilities to manipulate attack components.
 class AttackSystem : public SystemBase {
  public:
+  /// Initialise the system.
+  ///
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  explicit AttackSystem(Registry &registry) : SystemBase(registry) {}
+
   /// Performs the currently selected attack algorithm.
   ///
-  /// @param registry - The registry to perform the attack for.
   /// @param game_object_id - The ID of the game object to perform the attack for.
   /// @param targets - The targets to attack.
   ///
   /// @return The result of the attack.
-  static AttackResult do_attack(Registry &registry, int game_object_id, std::vector<int> &targets);
+  AttackResult do_attack(int game_object_id, std::vector<int> &targets);
 
   /// Selects the previous attack algorithm.
   ///
-  /// @param registry - The registry to select the previous attack for.
   /// @param game_object_id - The ID of the game object to select the previous attack for.
-  static inline void previous_attack(Registry &registry, int game_object_id) {
-    auto *attacks = registry.get_component<Attacks>(game_object_id);
+  inline void previous_attack(int game_object_id) {
+    auto attacks = registry.get_component<Attacks>(game_object_id);
     if (attacks->attack_state > 0) {
       attacks->attack_state--;
     }
@@ -47,39 +47,11 @@ class AttackSystem : public SystemBase {
 
   /// Selects the next attack algorithm.
   ///
-  /// @param registry - The registry to select the next attack for.
   /// @param game_object_id - The ID of the game object to select the previous attack for.
-  static inline void next_attack(Registry &registry, int game_object_id) {
-    auto *attacks = registry.get_component<Attacks>(game_object_id);
+  inline void next_attack(int game_object_id) {
+    auto attacks = registry.get_component<Attacks>(game_object_id);
     if (!attacks->attack_algorithms.empty() && attacks->attack_state < attacks->attack_algorithms.size() - 1) {
       attacks->attack_state++;
     }
   }
-
- private:
-  /// Performs an area of effect attack around the game object.
-  ///
-  /// @param registry - The registry to perform the attack for.
-  /// @param current_position - The current position of the game object.
-  /// @param targets - The targets to attack.
-  static void area_of_effect_attack(Registry &registry, const Vec2d &current_position, const std::vector<int> &targets);
-
-  /// Performs a melee attack in the direction the game object is facing.
-  ///
-  /// @param registry - The registry to perform the attack for.
-  /// @param current_position - The current position of the game object.
-  /// @param current_rotation - The current rotation of the game object in radians.
-  /// @param targets - The targets to attack.
-  static void melee_attack(Registry &registry,
-                           const Vec2d &current_position,
-                           double current_rotation,
-                           const std::vector<int> &targets);
-
-  /// Performs a ranged attack in the direction the game object is facing.
-  ///
-  /// @param current_position - The current position of the game object.
-  /// @param current_rotation - The current rotation of the game object in radians.
-  ///
-  /// @return The result of the attack.
-  static AttackResult ranged_attack(const Vec2d &current_position, double current_rotation);
 };
