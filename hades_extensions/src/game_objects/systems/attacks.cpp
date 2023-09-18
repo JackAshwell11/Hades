@@ -1,6 +1,5 @@
 // Custom includes
 #include "game_objects/systems/attacks.hpp"
-#include "game_objects/systems/attributes.hpp"
 
 // ----- CONSTANTS -------------------------------
 const double ATTACK_RANGE = 3 * SPRITE_SIZE;
@@ -9,7 +8,7 @@ const int DAMAGE = 10;
 const double MELEE_ATTACK_OFFSET_LOWER = 45 * PI_RADIANS;
 const double MELEE_ATTACK_OFFSET_UPPER = (2 * (180 * PI_RADIANS)) - MELEE_ATTACK_OFFSET_LOWER;
 
-// ----- STRUCTURES ------------------------------
+// ----- FUNCTIONS ------------------------------
 /// Performs an area of effect attack around the game object.
 ///
 /// @param registry - The registry that manages the game objects, components, and systems.
@@ -19,7 +18,7 @@ void area_of_effect_attack(Registry &registry, const Vec2d &current_position, co
   // Find all targets that are within range and attack them
   for (auto target : targets) {
     if (current_position.distance_to(registry.get_kinematic_object(target)->position) <= ATTACK_RANGE) {
-      registry.find_system<GameObjectAttributeSystem>()->deal_damage(target, DAMAGE);
+      registry.find_system<DamageSystem>()->deal_damage(target, DAMAGE);
     }
   }
 }
@@ -48,7 +47,7 @@ void melee_attack(Registry &registry,
     // Test if the target is within range and within the circle's sector
     if (current_position.distance_to(target_position) <= ATTACK_RANGE
         && (theta <= MELEE_ATTACK_OFFSET_LOWER || theta >= MELEE_ATTACK_OFFSET_UPPER)) {
-      registry.find_system<GameObjectAttributeSystem>()->deal_damage(target, DAMAGE);
+      registry.find_system<DamageSystem>()->deal_damage(target, DAMAGE);
     }
   }
 }
@@ -59,9 +58,11 @@ void melee_attack(Registry &registry,
 /// @param current_rotation - The current rotation of the game object in radians.
 /// @return The result of the attack.
 AttackResult ranged_attack(const Vec2d &current_position, double current_rotation) {
-  return AttackResult{current_position, BULLET_VELOCITY * std::cos(current_rotation), BULLET_VELOCITY * std::sin(current_rotation)};
+  return AttackResult{current_position, BULLET_VELOCITY * std::cos(current_rotation),
+                      BULLET_VELOCITY * std::sin(current_rotation)};
 }
 
+// ----- STRUCTURES ------------------------------
 AttackResult AttackSystem::do_attack(int game_object_id, std::vector<int> &targets) {
   // Perform the attack on the targets
   auto attacks = registry.get_component<Attacks>(game_object_id);
@@ -82,4 +83,12 @@ AttackResult AttackSystem::do_attack(int game_object_id, std::vector<int> &targe
 
   // Return an empty result as no ranged attack was performed
   return {};
+}
+
+void DamageSystem::deal_damage(GameObjectID game_object_id, int damage) {
+  // Damage the armour and carry over the extra damage to the health
+  auto health = registry.get_component<Health>(game_object_id);
+  auto armour = registry.get_component<Armour>(game_object_id);
+  health->set_value(health->get_value() - std::max(damage - armour->get_value(), 0.0));
+  armour->set_value(armour->get_value() - damage);
 }

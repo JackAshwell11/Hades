@@ -38,7 +38,7 @@ class KeyboardMovementFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     std::vector<std::unique_ptr<ComponentBase>> components;
-    components.push_back(std::make_unique<MovementForce>(100, 5));
+    components.push_back(std::make_unique<MovementForce>(100, -1));
     components.push_back(std::make_unique<KeyboardMovement>());
     registry.create_game_object(true, std::move(components));
     registry.add_system(std::make_shared<KeyboardMovementSystem>(registry));
@@ -85,7 +85,7 @@ class SteeringMovementFixture : public testing::Test {
   int create_steering_movement_component(const std::unordered_map<SteeringMovementState,
                                                                   std::vector<SteeringBehaviours>> &steering_behaviours) {
     std::vector<std::unique_ptr<ComponentBase>> components;
-    components.push_back(std::make_unique<MovementForce>(100, 5));
+    components.push_back(std::make_unique<MovementForce>(100, -1));
     components.push_back(std::make_unique<SteeringMovement>(steering_behaviours));
     int game_object_id = registry.create_game_object(true, std::move(components));
     registry.get_component<SteeringMovement>(game_object_id)->target_id = 0;

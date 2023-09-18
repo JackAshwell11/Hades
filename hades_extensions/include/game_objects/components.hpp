@@ -43,8 +43,8 @@ enum class SteeringMovementState {
 // TODO: Look at making all component (maybe all structs and classes) members
 //  private
 
-// ----- STRUCTURES ------------------------------
-/// Represents a status effect that can be applied to a game object attribute.
+// ----- UTILITY STRUCTURES ------------------------------
+/// Represents a status effect that can be applied to a game object.
 struct StatusEffect {
   /// The value that should be applied to the game object temporarily.
   double value;
@@ -52,172 +52,103 @@ struct StatusEffect {
   /// The duration the status effect should be applied for.
   double duration;
 
-  /// The original value of the game object attribute which is being changed.
+  /// The original value of the game object component.
   double original_value;
 
-  /// The original maximum value of the game object attribute which is being changed.
+  /// The original maximum value of the game object component.
   double original_max_value;
 
   /// The time counter for the status effect.
   double time_counter = 0;
 
-  /// Initialise the object.
+  /// Initialise the status effect.
   ///
   /// @param value - The value that should be applied to the game object temporarily.
   /// @param duration - The duration the status effect should be applied for.
-  /// @param original_value - The original value of the game object attribute which is being changed.
-  /// @param original_max_value - The original maximum value of the game object attribute which is being changed.
+  /// @param original_value - The original value of the game object component.
+  /// @param original_max_value - The original maximum value of the game object component.
   StatusEffect(double value, double duration, double original_value, double original_max_value)
       : value(value), duration(duration), original_value(original_value), original_max_value(original_max_value) {}
 };
 
-// TODO: Could look at mixins
-//  (https://stackoverflow.com/questions/18773367/what-are-mixins-as-a-concept)
-//  along with redesigning GameObjectAttributeBase to improve the design
+/// Holds the lambda functions for a single effect.
+struct EffectFunction {
+  /// The lambda function which calculates the value of the effect.
+  std::function<double(int)> increase;
 
-// TODO: This is a start but may need further prompting
-//  https://chat.openai.com/c/643af778-04d1-43d1-843f-abc6b9eedad0
-
-
-/// The base class for all game object attributes.
-class GameObjectAttributeBase : public ComponentBase {
- public:
-  /// The status effect currently applied to the game object.
-  std::optional<StatusEffect> applied_status_effect;
+  /// The lambda function which calculates the duration of the effect.
+  std::function<double(int)> duration;
 
   /// Initialise the object.
   ///
-  /// @param initial_value - The initial value of the game object attribute.
-  /// @param level_limit - The level limit of the game object attribute.
-  GameObjectAttributeBase(double initial_value, int level_limit)
-      : value_(initial_value),
-        max_value_(has_maximum() ? initial_value : std::numeric_limits<double>::infinity()),
-        level_limit_(level_limit) {}
+  /// @param increase - The lambda function which calculates the value of the effect.
+  /// @param duration - The lambda function which calculates the duration of the effect.
+  explicit EffectFunction(std::function<double(int)> increase,
+                          std::function<double(int)> duration = [](int level) { return 0.0; }) : increase(std::move(
+      increase)), duration(std::move(duration)) {}
+};
 
-  /// Get if the game object attribute can have instant effects or not.
-  ///
-  /// @return Whether the game object attribute can have instant effects or not.
-  [[nodiscard]] virtual bool has_instant_effect() const { return true; }
+// ----- COMPONENTS ------------------------------
+/// Represents a component that has a variable value and maximum value.
+class Stat : public ComponentBase {
+ public:
+  /// The maximum value of the stat.
+  double max_value;
 
-  /// Get if the game object attribute has a maximum value or not.
-  ///
-  /// @return Whether the game object attribute has a maximum value or not.
-  [[nodiscard]] virtual bool has_maximum() const { return true; }
+  /// The current level of the stat.
+  int current_level = 0;
 
-  /// Get if the game object attribute can have status effects or not.
-  ///
-  /// @return Whether the game object attribute can have status effects or not.
-  [[nodiscard]] virtual bool has_status_effect() const { return true; }
+  /// The maximum level of the stat.
+  int maximum_level;
 
-  /// Get if the game object attribute can be upgraded or not.
+  /// Initialise the component.
   ///
-  /// @return Whether the game object attribute can be upgraded or not.
-  [[nodiscard]] virtual bool is_upgradable() const { return true; }
+  /// @param value - The initial and maximum value of the stat.
+  /// @param maximum_level - The maximum level of the stat.
+  /// @param max_value - Whether the stat has a maximum value or not.
+  Stat(double value, int maximum_level, bool max_value = true)
+      : value_(value),
+        maximum_level(maximum_level),
+        max_value(max_value ? value : std::numeric_limits<double>::infinity()) {}
 
-  /// Get the game object attribute's value.
+  /// Get the value of the stat.
   ///
-  /// @return The game object attribute's value.
-  [[nodiscard]] inline double value() const {
+  /// @return The value of the stat.
+  [[nodiscard]] inline double get_value() const {
     return value_;
   }
 
-  /// Set the game object attribute's value.
+  /// Set the value of the stat.
   ///
-  /// @param new_value - The new game object attribute's value.
-  inline void value(double new_value) {
-    value_ = std::max(std::min(new_value, max_value_), 0.0);
+  /// @param new_value - The new value of the stat.
+  inline void set_value(double new_value) {
+    value_ = std::max(std::min(new_value, max_value), 0.0);
   }
 
-  /// Get the game object attribute's level limit.
-  ///
-  /// @return The game object attribute's level limit.
-  [[nodiscard]] inline int level_limit() const {
-    return level_limit_;
-  }
-
-  /// Set the game object attribute's level limit.
-  ///
-  /// @param new_level_limit - The new game object attribute's level limit.
-  inline void level_limit(int new_level_limit) {
-    level_limit_ = new_level_limit;
-  }
-
-  /// Get the game object attribute's maximum value.
-  ///
-  /// @return The game object attribute's maximum value.
-  [[nodiscard]] inline double max_value() const {
-    return max_value_;
-  }
-
-  /// Set the game object attribute's maximum value.
-  ///
-  /// @param new_max_value - The new game object attribute's maximum value.
-  inline void max_value(double new_max_value) {
-    max_value_ = new_max_value;
-  }
-
-  /// Get the game object attribute's current level.
-  ///
-  /// @return The game object attribute's current level.
-  [[nodiscard]] inline int current_level() const {
-    return current_level_;
-  }
-
-  /// Set the game object attribute's current level.
-  ///
-  /// @param new_current_level - The new game object attribute's current level.
-  inline void current_level(int new_current_level) {
-    current_level_ = new_current_level;
-  }
-
- private:
-  /// The game object attribute's value.
+ protected:
+  /// The current value of the variable.
   double value_;
-
-  /// The level limit of the game object attribute.
-  int level_limit_;
-
-  /// The maximum value of the game object attribute.
-  double max_value_;
-
-  /// The current level of the game object attribute.
-  int current_level_ = 0;
 };
 
-/// Allows a game object to have an armour attribute
-class Armour : public GameObjectAttributeBase {
- public:
-  /// Initialise the object.
+/// Allows a game object to have an armour stat.
+struct Armour : public Stat {
+  /// Initialise the component.
   ///
-  /// @param initial_value - The initial value of the armour attribute.
-  /// @param level_limit - The level limit of the armour attribute.
-  Armour(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+  /// @param value - The initial and maximum value of the armour stat.
+  /// @param maximum_level - The maximum level of the armour stat.
+  Armour(double value, int maximum_level) : Stat(value, maximum_level) {}
 };
 
 /// Allows a game object to regenerate armour.
-struct ArmourRegen : public ComponentBase {
+struct ArmourRegen : public Stat {
   /// The time since the game object last regenerated armour.
   double time_since_armour_regen = 0;
-};
 
-/// Allows a game object to have an armour regen cooldown attribute.
-class ArmourRegenCooldown : public GameObjectAttributeBase {
- public:
-  /// Initialise the object.
+  /// Initialise the component.
   ///
-  /// @param initial_value - The initial value of the armour regen cooldown attribute.
-  /// @param level_limit - The level limit of the armour regen cooldown attribute.
-  ArmourRegenCooldown(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
-
-  /// Get if the game object attribute can have instant effects or not.
-  ///
-  /// @return Whether the game object attribute can have instant effects or not.
-  [[nodiscard]] bool has_instant_effect() const final { return false; }
-
-  /// Get if the game object attribute has a maximum value or not.
-  ///
-  /// @return Whether the game object attribute has a maximum value or not.
-  [[nodiscard]] bool has_maximum() const final { return false; }
+  /// @param value - The duration between armour regenerations.
+  /// @param maximum_level - The maximum level of the armour regen stat.
+  ArmourRegen(double value, int maximum_level) : Stat(value, maximum_level, false) {}
 };
 
 /// Allows a game object to attack other game objects.
@@ -228,35 +159,13 @@ struct Attacks : public ComponentBase {
   /// The current state of the game object's attack.
   int attack_state = 0;
 
-  /// Initialise the object.
+  /// Initialise the component.
   ///
   /// @param attack_algorithms - The attack algorithms the game object can use.
   explicit Attacks(std::vector<AttackAlgorithms> attack_algorithms) : attack_algorithms(std::move(attack_algorithms)) {}
 };
 
-/// Allows a game object to have a fire rate penalty attribute.
-class FireRatePenalty : public GameObjectAttributeBase {
- public:
-  /// Initialise the object.
-  ///
-  /// @param initial_value - The initial value of the fire rate penalty attribute.
-  /// @param level_limit - The level limit of the fire rate penalty attribute.
-  FireRatePenalty(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
-
-  /// Get if the game object attribute can have instant effects or not.
-  ///
-  /// @return Whether the game object attribute can have instant effects or not.
-  [[nodiscard]] bool has_instant_effect() const final { return false; }
-
-  /// Get if the game object attribute has a maximum value or not.
-  ///
-  /// @return Whether the game object attribute has a maximum value or not.
-  [[nodiscard]] bool has_maximum() const final { return false; }
-};
-
 /// Allows a game object to periodically leave footprints around the game map.
-///
-/// @param footprints - The footprints the game object has left.
 struct Footprints : public ComponentBase {
   /// The footprints the game object has left.
   std::deque<Vec2d> footprints = {};
@@ -265,29 +174,30 @@ struct Footprints : public ComponentBase {
   double time_since_last_footprint = 0;
 };
 
-/// Allows a game object to have a health attribute.
-class Health : public GameObjectAttributeBase {
- public:
-  /// Initialise the object.
+/// Allows a game object to have a health stat.
+struct Health : public Stat {
+  /// Initialise the component.
   ///
-  /// @param initial_value - The initial value of the health attribute.
-  /// @param level_limit - The level limit of the health attribute.
-  Health(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+  /// @param value - The initial and maximum value of the health stat.
+  /// @param maximum_level - The maximum level of the health stat.
+  Health(double value, int maximum_level) : Stat(value, maximum_level) {}
 };
 
-/// Allows a game object to provide instant effects.
-struct InstantEffects : public ComponentBase {
+/// Allows a game object to provide instant or status effects.
+struct EffectApplier : public ComponentBase {
   /// The instant effects the game object provides.
-  std::unordered_map<std::type_index, std::function<double(int)>> instant_effects;
+  std::unordered_map<std::type_index, EffectFunction> instant_effects;
 
-  /// The level limit of the instant effects.
-  int level_limit;
+  /// The status effects the game object provides.
+  std::unordered_map<std::type_index, EffectFunction> status_effects;
 
-  /// Initialise the object.
+  /// Initialise the component.
   ///
   /// @param instant_effects - The instant effects the game object provides.
   /// @param level_limit - The level limit of the instant effects.
-  InstantEffects(std::unordered_map<std::type_index, std::function<double(int)>> instant_effects, int level_limit) : instant_effects(std::move(instant_effects)), level_limit(level_limit) {}
+  EffectApplier(std::unordered_map<std::type_index, EffectFunction> instant_effects,
+                std::unordered_map<std::type_index, EffectFunction> status_effects) : instant_effects(std::move(
+      instant_effects)), status_effects(std::move(status_effects)) {}
 };
 
 /// Allows a game object to have a fixed size inventory.
@@ -301,7 +211,7 @@ struct Inventory : public ComponentBase {
   /// The game object's inventory.
   std::vector<int> items;
 
-  /// Initialise the object.
+  /// Initialise the component.
   ///
   /// @param width - The width of the inventory.
   /// @param height - The height of the inventory.
@@ -330,69 +240,30 @@ struct KeyboardMovement : public ComponentBase {
   bool moving_west = false;
 };
 
-/// Allows a game object to have a money attribute.
-class Money : public GameObjectAttributeBase {
- public:
-  /// Initialise the object.
-  ///
-  /// @param initial_value - The initial value of the money attribute.
-  /// @param level_limit - The level limit of the money attribute.
-  Money(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+/// Allows a game object to record the amount of money it has.
+struct Money : public ComponentBase {
+  /// The amount of money the game object has.
+  int money;
 
-  /// Get if the game object attribute can have instant effects or not.
+  /// Initialise the component.
   ///
-  /// @return Whether the game object attribute can have instant effects or not.
-  [[nodiscard]] bool has_instant_effect() const final { return false; }
-
-  /// Get if the game object attribute has a maximum value or not.
-  ///
-  /// @return Whether the game object attribute has a maximum value or not.
-  [[nodiscard]] bool has_maximum() const final { return false; }
-
-  /// Get if the game object attribute can have status effects or not.
-  ///
-  /// @return Whether the game object attribute can have status effects or not.
-  [[nodiscard]] bool has_status_effect() const final { return false; }
-
-  /// Get if the game object attribute can be upgraded or not.
-  ///
-  /// @return Whether the game object attribute can be upgraded or not.
-  [[nodiscard]] bool is_upgradable() const final { return false; }
+  /// @param money - The amount of money the game object has.
+  explicit Money(int money) : money(money) {}
 };
 
-/// Allows a game object to have a movement force attribute.
-class MovementForce : public GameObjectAttributeBase {
- public:
-  /// Initialise the object.
+/// Allows a game object to determine how fast it can move.
+struct MovementForce : public Stat {
+  /// Initialise the component.
   ///
-  /// @param initial_value - The initial value of the movement force attribute.
-  /// @param level_limit - The level limit of the movement force attribute.
-  MovementForce(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
-
-  /// Get if the game object attribute can have instant effects or not.
-  ///
-  /// @return Whether the game object attribute can have instant effects or not.
-  [[nodiscard]] bool has_instant_effect() const final { return false; }
-
-  /// Get if the game object attribute has a maximum value or not.
-  ///
-  /// @return Whether the game object attribute has a maximum value or not.
-  [[nodiscard]] bool has_maximum() const final { return false; }
+  /// @param force - The movement force of the game object.
+  /// @param maximum_level - The maximum level of the movement force.
+  MovementForce(double force, int maximum_level) : Stat(force, maximum_level, false) {}
 };
 
-/// Allows a game object to provide status effects.
+/// Allows a game object to have status effects applied to it.
 struct StatusEffects : public ComponentBase {
   /// The status effects the game object provides.
-  std::unordered_map<std::type_index, std::function<StatusEffect(int)>> status_effects;
-
-  /// The level limit of the status effects.
-  int level_limit;
-
-  /// Initialise the object.
-  ///
-  /// @param status_effects - The status effects the game object provides.
-  /// @param level_limit - The level limit of the status effects.
-  StatusEffects(std::unordered_map<std::type_index, std::function<StatusEffect(int)>> status_effects, int level_limit) : status_effects(std::move(status_effects)), level_limit(level_limit) {}
+  std::unordered_map<std::type_index, StatusEffect> status_effects = {};
 };
 
 /// Allows a game object's movement to be controlled by steering algorithms.
@@ -409,28 +280,21 @@ struct SteeringMovement : public ComponentBase {
   /// The list of positions the game object should follow.
   std::vector<Vec2d> path_list;
 
-  /// Initialise the object.
+  /// Initialise the component.
   ///
   /// @param behaviours - The steering behaviours used by the game object.
-  explicit SteeringMovement(std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> behaviours) : behaviours(std::move(behaviours)) {}
+  explicit SteeringMovement(std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> behaviours)
+      : behaviours(std::move(behaviours)) {}
 };
 
-/// Allows a game object to have a view distance attribute.
-class ViewDistance : public GameObjectAttributeBase {
- public:
-  /// Initialise the object.
-  ///
-  /// @param initial_value - The initial value of the view distance attribute.
-  /// @param level_limit - The level limit of the view distance attribute.
-  ViewDistance(double initial_value, int level_limit) : GameObjectAttributeBase(initial_value, level_limit) {}
+/// Allows a game object to be upgraded.
+struct Upgrades : public ComponentBase {
+  /// The upgrades the game object has.
+  std::unordered_map<std::type_index, std::function<double(int)>> upgrades;
 
-  /// Get if the game object attribute can have instant effects or not.
+  /// Initialise the component.
   ///
-  /// @return Whether the game object attribute can have instant effects or not.
-  [[nodiscard]] bool has_instant_effect() const final { return false; }
-
-  /// Get if the game object attribute has a maximum value or not.
-  ///
-  /// @return Whether the game object attribute has a maximum value or not.
-  [[nodiscard]] bool has_maximum() const final { return false; }
+  /// @param upgrades - The upgrades the game object has.
+  explicit Upgrades(std::unordered_map<std::type_index, std::function<double(int)>> upgrades) : upgrades(std::move(
+      upgrades)) {}
 };

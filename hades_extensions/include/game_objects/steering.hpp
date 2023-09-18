@@ -7,7 +7,7 @@
 #include <vector>
 
 // Custom includes
-#include "base.hpp"
+#include "hash_combine.hpp"
 
 // ----- CONSTANTS ------------------------------
 #define PI_RADIANS (std::numbers::pi / 180)

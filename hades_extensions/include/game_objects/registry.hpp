@@ -101,12 +101,11 @@ class Registry {
   /// @tparam T - The type of component to check for.
   /// @param game_object_id - The game object ID.
   /// @return Whether the game object has the component or not.
-  template<typename T>
-  inline bool has_component(GameObjectID game_object_id) {
-    return components_.contains(typeid(T)) && components_[typeid(T)].contains(game_object_id);
+  inline bool has_component(GameObjectID game_object_id, ObjectType object_type) {
+    return components_.contains(object_type) && components_[object_type].contains(game_object_id);
   }
 
-  /// Get a component from the registry given a game object ID.
+  /// Get a component from the registry.
   ///
   /// @tparam T - The type of component to get.
   /// @param game_object_id - The game object ID.
@@ -114,19 +113,15 @@ class Registry {
   /// @return The component from the registry.
   template<typename T>
   std::shared_ptr<T> get_component(GameObjectID game_object_id) {
-    // Check if the game object has the component or not
-    if (!has_component<T>(game_object_id)) {
-      throw RegistryException("game object", game_object_id);
-    }
-
-    // Return the specified component casting it to T
-    return std::static_pointer_cast<T>(game_objects_[game_object_id][typeid(T)]);
+    return std::static_pointer_cast<T>(get_component(game_object_id, typeid(T)));
   }
 
-  // TODO: Could may experiment with intersection/union idea where current
-  //  implementation is intersection of all components and adding a `complete`
-  //  or `full` default true parameter may allow us to enable union which will
-  //  return all matches that have at least one of the components
+  /// Get a component from the registry.
+  ///
+  /// @param game_object_id - The game object ID.
+  /// @param component_type - The type of component to get.
+  /// @return The component from the registry.
+  std::shared_ptr<ComponentBase> get_component(GameObjectID game_object_id, ObjectType component_type);
 
   /// Find all the game objects that have the required components.
   ///
@@ -140,7 +135,7 @@ class Registry {
     // Iterate over all game objects
     for (auto &[game_object_id, game_object_components] : game_objects_) {
       // Check if the game object has all the components using a fold expression
-      if (!(has_component<Ts>(game_object_id) && ...)) {
+      if (!(has_component(game_object_id, typeid(Ts)) && ...)) {
         continue;
       }
 
@@ -187,7 +182,7 @@ class Registry {
     }
   }
 
-  /// Get a kinematic object given a game object ID.
+  /// Get a kinematic object.
   ///
   /// @param game_object_id - The game object ID.
   /// @throw RegistryException - If the game object is not registered.

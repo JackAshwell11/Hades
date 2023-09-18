@@ -4,11 +4,10 @@
 // Custom includes
 #include "macros.hpp"
 #include "game_objects/systems/attacks.hpp"
-#include "game_objects/systems/attributes.hpp"
 
 // ----- FIXTURES ------------------------------
-/// Implements the Attacks fixture for the game_objects/systems/attacks.hpp tests.
-class AttacksFixture : public testing::Test {
+/// Implements the fixture for the AttackSystem tests.
+class AttackSystemFixture : public testing::Test {
  protected:
   /// The registry that manages the game objects, components, and systems.
   Registry registry{};
@@ -40,7 +39,7 @@ class AttacksFixture : public testing::Test {
         create_target({0, 0}),
     };
     registry.add_system(std::make_shared<AttackSystem>(registry));
-    registry.add_system(std::make_shared<GameObjectAttributeSystem>(registry));
+    registry.add_system(std::make_shared<DamageSystem>(registry));
   }
 
   /// Create an attacks component for a game object.
@@ -62,37 +61,64 @@ class AttacksFixture : public testing::Test {
   }
 };
 
+/// Implements the fixture for the DamageSystem tests.
+class DamageSystemFixture : public testing::Test {
+ protected:
+  /// The registry that manages the game objects, components, and systems.
+  Registry registry{};
+
+  /// Set up the fixture for the tests.
+  void SetUp() override {
+    registry.add_system(std::make_shared<DamageSystem>(registry));
+  }
+
+  /// Create health and armour attributes for use in testing.
+  void create_health_and_armour_attributes() {
+    std::vector<std::unique_ptr<ComponentBase>> components;
+    components.push_back(std::make_unique<Health>(300, -1));
+    components.push_back(std::make_unique<Armour>(100, -1));
+    registry.create_game_object(false, std::move(components));
+  }
+
+  /// Get the damage system from the registry.
+  ///
+  /// @return The damage system.
+  std::shared_ptr<DamageSystem> get_damage_system() {
+    return registry.find_system<DamageSystem>();
+  }
+};
+
 // ----- TESTS ----------------------------------
 /// Test that performing an area of effect attack works correctly.
-TEST_F(AttacksFixture, TestAttacksDoAreaOfEffectAttack) {
+TEST_F(AttackSystemFixture, TestAttacksDoAreaOfEffectAttack) {
   create_attack_component({AttackAlgorithms::AreaOfEffect});
   get_attacks_system()->do_attack(8, targets);
-  ASSERT_EQ(registry.get_component<Health>(targets[0])->value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[1])->value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[2])->value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[3])->value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[5])->value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[6])->value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[7])->value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 40);
 }
 
 /// Test that performing a melee attack works correctly.
-TEST_F(AttacksFixture, TestAttacksDoMeleeAttack) {
+TEST_F(AttackSystemFixture, TestAttacksDoMeleeAttack) {
   create_attack_component({AttackAlgorithms::Melee});
   get_attacks_system()->do_attack(8, targets);
-  ASSERT_EQ(registry.get_component<Health>(targets[0])->value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[1])->value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[2])->value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[3])->value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[5])->value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[6])->value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[7])->value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 40);
 }
 
 /// Test that performing a ranged attack works correctly.
-TEST_F(AttacksFixture, TestAttacksDoRangedAttack) {
+TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
   // This is due to floating point precision
   create_attack_component({AttackAlgorithms::Ranged});
   std::tuple<Vec2d, double, double> attack_result = get_attacks_system()->do_attack(8, targets).ranged_attack.value();
@@ -102,7 +128,7 @@ TEST_F(AttacksFixture, TestAttacksDoRangedAttack) {
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
-TEST_F(AttacksFixture, TestAttacksDoAttackInvalidGameObjectId) {
+TEST_F(AttackSystemFixture, TestAttacksDoAttackInvalidGameObjectId) {
   create_attack_component({AttackAlgorithms::Ranged});
   ASSERT_THROW_MESSAGE(get_attacks_system()->do_attack(-1, targets),
                        RegistryException,
@@ -110,7 +136,7 @@ TEST_F(AttacksFixture, TestAttacksDoAttackInvalidGameObjectId) {
 }
 
 /// Test that switching between attacks once works correctly.
-TEST_F(AttacksFixture, TestAttacksPreviousNextAttackSingle) {
+TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackSingle) {
   create_attack_component({AttackAlgorithms::AreaOfEffect, AttackAlgorithms::Melee, AttackAlgorithms::Ranged});
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
   get_attacks_system()->next_attack(8);
@@ -120,7 +146,7 @@ TEST_F(AttacksFixture, TestAttacksPreviousNextAttackSingle) {
 }
 
 /// Test that switching between attacks multiple times works correctly.
-TEST_F(AttacksFixture, TestAttacksPreviousAttackMultiple) {
+TEST_F(AttackSystemFixture, TestAttacksPreviousAttackMultiple) {
   create_attack_component({AttackAlgorithms::AreaOfEffect, AttackAlgorithms::Melee, AttackAlgorithms::Ranged});
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
   get_attacks_system()->next_attack(8);
@@ -138,7 +164,7 @@ TEST_F(AttacksFixture, TestAttacksPreviousAttackMultiple) {
 }
 
 /// Test that changing the attack state works correctly when there are no attacks.
-TEST_F(AttacksFixture, TestAttacksPreviousNextAttackEmptyAttacks) {
+TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackEmptyAttacks) {
   create_attack_component({});
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
   get_attacks_system()->next_attack(8);
@@ -148,12 +174,71 @@ TEST_F(AttacksFixture, TestAttacksPreviousNextAttackEmptyAttacks) {
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
-TEST_F(AttacksFixture, TestAttacksPreviousNextAttackInvalidGameObjectId) {
+TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackInvalidGameObjectId) {
   create_attack_component({});
   ASSERT_THROW_MESSAGE(get_attacks_system()->next_attack(-1),
                        RegistryException,
                        "The game object `-1` is not registered with the registry.")
   ASSERT_THROW_MESSAGE(get_attacks_system()->previous_attack(-1),
+                       RegistryException,
+                       "The game object `-1` is not registered with the registry.")
+}
+
+/// Test that damage is dealt when health and armour are lower than damage.
+TEST_F(DamageSystemFixture, TestGameObjectAttributeSystemDealDamageLowHealthArmour) {
+  create_health_and_armour_attributes();
+  get_damage_system()->deal_damage(0, 350);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Armour>(0)->get_value(), 0);
+}
+
+/// Test that no damage is dealt when armour is larger than damage.
+TEST_F(DamageSystemFixture, TestGameObjectAttributeSystemDealDamageLargeArmour) {
+  create_health_and_armour_attributes();
+  get_damage_system()->deal_damage(0, 50);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 300);
+  ASSERT_EQ(registry.get_component<Armour>(0)->get_value(), 50);
+}
+
+/// Test that no damage is dealt when damage is zero.
+TEST_F(DamageSystemFixture, TestGameObjectAttributeSystemDealDamageZeroDamage) {
+  create_health_and_armour_attributes();
+  get_damage_system()->deal_damage(0, 0);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 300);
+  ASSERT_EQ(registry.get_component<Armour>(0)->get_value(), 100);
+}
+
+/// Test that damage is dealt when armour is zero.
+TEST_F(DamageSystemFixture, TestGameObjectAttributeSystemDealDamageZeroArmour) {
+  create_health_and_armour_attributes();
+  auto armour = registry.get_component<Armour>(0);
+  armour->set_value(0);
+  get_damage_system()->deal_damage(0, 100);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 200);
+  ASSERT_EQ(armour->get_value(), 0);
+}
+
+/// Test that damage is dealt when health is zero.
+TEST_F(DamageSystemFixture, TestGameObjectAttributeSystemDealDamageZeroHealth) {
+  create_health_and_armour_attributes();
+  auto health = registry.get_component<Health>(0);
+  health->set_value(0);
+  get_damage_system()->deal_damage(0, 50);
+  ASSERT_EQ(health->get_value(), 0);
+  ASSERT_EQ(registry.get_component<Armour>(0)->get_value(), 50);
+}
+
+/// Test that no damage is dealt when the attributes are not initialised.
+TEST_F(DamageSystemFixture, TestGameObjectAttributeSystemDealDamageNonexistentAttributes) {
+  registry.create_game_object(false, {});
+  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(0, 100),
+                       RegistryException,
+                       "The game object `0` is not registered with the registry.")
+}
+
+/// Test that an exception is raised if an invalid game object ID is provided.
+TEST_F(DamageSystemFixture, TestGameObjectAttributeSystemDealDamageInvalidGameObjectId) {
+  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(-1, 100),
                        RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }

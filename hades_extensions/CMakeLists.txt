@@ -13,15 +13,17 @@ set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 set(BINDING_PATH ${SRC_DIR}/binding.cpp)
 set(HEADER_FILES
-        ${INCLUDE_DIR}/base.hpp
+        ${INCLUDE_DIR}/hash_combine.hpp
         ${INCLUDE_DIR}/macros.hpp
         ${INCLUDE_DIR}/game_objects/components.hpp
         ${INCLUDE_DIR}/game_objects/registry.hpp
         ${INCLUDE_DIR}/game_objects/steering.hpp
+        ${INCLUDE_DIR}/game_objects/systems/armour_regen.hpp
         ${INCLUDE_DIR}/game_objects/systems/attacks.hpp
-        ${INCLUDE_DIR}/game_objects/systems/attributes.hpp
+        ${INCLUDE_DIR}/game_objects/systems/effects.hpp
         ${INCLUDE_DIR}/game_objects/systems/inventory.hpp
         ${INCLUDE_DIR}/game_objects/systems/movements.hpp
+        ${INCLUDE_DIR}/game_objects/systems/upgrade.hpp
         ${INCLUDE_DIR}/generation/astar.hpp
         ${INCLUDE_DIR}/generation/bsp.hpp
         ${INCLUDE_DIR}/generation/map.hpp
@@ -30,23 +32,26 @@ set(HEADER_FILES
 set(SOURCE_FILES
         ${SRC_DIR}/game_objects/registry.cpp
         ${SRC_DIR}/game_objects/steering.cpp
+        ${SRC_DIR}/game_objects/systems/armour_regen.cpp
         ${SRC_DIR}/game_objects/systems/attacks.cpp
-        ${SRC_DIR}/game_objects/systems/attributes.cpp
+        ${SRC_DIR}/game_objects/systems/effects.cpp
         ${SRC_DIR}/game_objects/systems/inventory.cpp
         ${SRC_DIR}/game_objects/systems/movements.cpp
+        ${SRC_DIR}/game_objects/systems/upgrade.cpp
         ${SRC_DIR}/generation/astar.cpp
         ${SRC_DIR}/generation/bsp.cpp
         ${SRC_DIR}/generation/map.cpp
         ${SRC_DIR}/generation/primitives.cpp
 )
 set(TEST_FILES
-        ${TEST_DIR}/game_objects/test_components.cpp
         ${TEST_DIR}/game_objects/test_registry.cpp
         ${TEST_DIR}/game_objects/test_steering.cpp
+        ${TEST_DIR}/game_objects/systems/test_armour_regen.cpp
         ${TEST_DIR}/game_objects/systems/test_attacks.cpp
-        ${TEST_DIR}/game_objects/systems/test_attributes.cpp
+        ${TEST_DIR}/game_objects/systems/test_effects.cpp
         ${TEST_DIR}/game_objects/systems/test_inventory.cpp
         ${TEST_DIR}/game_objects/systems/test_movements.cpp
+        ${TEST_DIR}/game_objects/systems/test_upgrade.cpp
         ${TEST_DIR}/generation/test_astar.cpp
         ${TEST_DIR}/generation/test_bsp.cpp
         ${TEST_DIR}/generation/test_map.cpp

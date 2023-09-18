@@ -19,7 +19,7 @@ GameObjectID Registry::create_game_object(bool kinematic, std::vector<std::uniqu
     // Check if the component already exists in the registry
     [[maybe_unused]] auto &component_obj = *component;
     const std::type_info &component_type = typeid(component_obj);
-    if (components_[component_type].contains(next_game_object_id_)) {
+    if (has_component(next_game_object_id_, component_type)) {
       continue;
     }
 
@@ -47,6 +47,16 @@ void Registry::delete_game_object(GameObjectID game_object_id) {
   if (kinematic_objects_.contains(game_object_id)) {
     kinematic_objects_.erase(game_object_id);
   }
+}
+
+std::shared_ptr<ComponentBase> Registry::get_component(GameObjectID game_object_id, ObjectType component_type) {
+  // Check if the game object has the component or not
+  if (!has_component(game_object_id, component_type)) {
+    throw RegistryException("game object", game_object_id);
+  }
+
+  // Return the specified component
+  return game_objects_[game_object_id][component_type];
 }
 
 void Registry::add_system(std::shared_ptr<SystemBase> system) {

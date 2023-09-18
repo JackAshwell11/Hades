@@ -16,7 +16,8 @@ struct AttackResult {
   /// Initialise the object.
   ///
   /// @param ranged_attack_result - The result of a ranged attack.
-  explicit AttackResult(const Vec2d &current_position, double x_velocity, double y_velocity) : ranged_attack(std::make_tuple(current_position, x_velocity, y_velocity)) {}
+  explicit AttackResult(const Vec2d &current_position, double x_velocity, double y_velocity)
+      : ranged_attack(std::make_tuple(current_position, x_velocity, y_velocity)) {}
 };
 
 /// Provides facilities to manipulate attack components.
@@ -54,4 +55,18 @@ class AttackSystem : public SystemBase {
       attacks->attack_state++;
     }
   }
+};
+
+/// Provides facilities to damage game objects.
+struct DamageSystem : public SystemBase {
+  /// Initialise the system.
+  ///
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  explicit DamageSystem(Registry &registry) : SystemBase(registry) {}
+
+  /// Deal damage to a game object.
+  ///
+  /// @param game_object_id - The game object ID to deal damage to.
+  /// @param damage - The amount of damage to deal to the game object.
+  void deal_damage(GameObjectID game_object_id, int damage);
 };

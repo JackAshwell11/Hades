@@ -8,7 +8,7 @@
 #include <vector>
 
 // Custom includes
-#include "base.hpp"
+#include "hash_combine.hpp"
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of tiles in the game map.

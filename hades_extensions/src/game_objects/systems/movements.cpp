@@ -38,7 +38,7 @@ Vec2d KeyboardMovementSystem::calculate_keyboard_force(GameObjectID game_object_
   auto keyboard_movement = registry.get_component<KeyboardMovement>(game_object_id);
   return Vec2d{static_cast<double>(keyboard_movement->moving_east - keyboard_movement->moving_west),
                static_cast<double>(keyboard_movement->moving_north - keyboard_movement->moving_south)}
-      * registry.get_component<MovementForce>(game_object_id)->value();
+      * registry.get_component<MovementForce>(game_object_id)->get_value();
 }
 
 Vec2d SteeringMovementSystem::calculate_steering_force(GameObjectID game_object_id) {
@@ -92,7 +92,7 @@ Vec2d SteeringMovementSystem::calculate_steering_force(GameObjectID game_object_
   }
 
   // Return the normalised steering force
-  return steering_force.normalised() * registry.get_component<MovementForce>(game_object_id)->value();
+  return steering_force.normalised() * registry.get_component<MovementForce>(game_object_id)->get_value();
 }
 
 void SteeringMovementSystem::update_path_list(GameObjectID target_game_object_id, const std::deque<Vec2d> &footprints) {

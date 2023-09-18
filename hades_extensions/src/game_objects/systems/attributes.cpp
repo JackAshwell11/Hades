@@ -24,17 +24,6 @@ void update_attribute(const std::shared_ptr<GameObjectAttributeBase> &game_objec
   }
 }
 
-void ArmourRegenSystem::update(double delta_time) {
-  for (auto &[_, component_tuple] : registry.find_components<Armour, ArmourRegen, ArmourRegenCooldown>()) {
-    auto &[armour, armour_regen, armour_regen_cooldown] = component_tuple;
-    armour_regen->time_since_armour_regen += delta_time;
-    if (armour_regen->time_since_armour_regen >= armour_regen_cooldown->value()) {
-      armour->value(armour->value() + ARMOUR_REGEN_AMOUNT);
-      armour_regen->time_since_armour_regen = 0;
-    }
-  }
-}
-
 void GameObjectAttributeSystem::update(double delta_time) {
   for (auto &[_, component_tuple] : registry.find_components<Armour>()) {
     update_attribute(std::get<0>(component_tuple), delta_time);
@@ -63,12 +52,4 @@ void GameObjectAttributeSystem::update(double delta_time) {
   for (auto &[_, component_tuple] : registry.find_components<ViewDistance>()) {
     update_attribute(std::get<0>(component_tuple), delta_time);
   }
-}
-
-void GameObjectAttributeSystem::deal_damage(GameObjectID game_object_id, int damage) {
-  // Damage the armour and carry over the extra damage to the health
-  auto health = registry.get_component<Health>(game_object_id);
-  auto armour = registry.get_component<Armour>(game_object_id);
-  health->value(health->value() - std::max(damage - armour->value(), 0.0));
-  armour->value(armour->value() - damage);
 }
