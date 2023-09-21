@@ -1,4 +1,5 @@
 // Custom includes
+#include "game_objects/stats.hpp"
 #include "game_objects/systems/armour_regen.hpp"
 
 // ----- CONSTANTS -------------------------------

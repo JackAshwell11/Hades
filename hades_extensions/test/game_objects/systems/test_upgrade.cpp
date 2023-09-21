@@ -3,6 +3,7 @@
 
 // Custom includes
 #include "macros.hpp"
+#include "game_objects/stats.hpp"
 #include "game_objects/systems/upgrade.hpp"
 
 // ----- FIXTURES ------------------------------

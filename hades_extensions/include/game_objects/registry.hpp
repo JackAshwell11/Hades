@@ -2,22 +2,22 @@
 #pragma once
 
 // Std includes
-#include <initializer_list>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <typeindex>
-#include <unordered_map>
-#include <unordered_set>
 
 // Custom includes
 #include "steering.hpp"
 
-// ----- STRUCTURES ------------------------------
+// ----- TYPEDEFS ------------------------------
 // Create some type aliases to simplify the code
+using ActionFunction = std::function<double(int)>;
 using GameObjectID = int;
 using ObjectType = std::type_index;
 
+// ----- STRUCTURES ------------------------------
 // Add a forward declaration for the registry class
 class Registry;
 
@@ -64,7 +64,7 @@ class RegistryException : public std::runtime_error {
   ///
   /// @param value - The value to convert to a string.
   /// @return The value as a string.
-  static std::string to_string(const char *value) {
+  static inline std::string to_string(const char *value) {
     return {value};
   }
 
@@ -74,7 +74,7 @@ class RegistryException : public std::runtime_error {
   /// @param value - The value to convert to a string.
   /// @return The value as a string.
   template<typename T>
-  static std::string to_string(const T &value) {
+  static inline std::string to_string(const T &value) {
     return std::to_string(value);
   }
 };
@@ -112,7 +112,7 @@ class Registry {
   /// @throw RegistryException - If the game object is not registered or if the game object does not have the component.
   /// @return The component from the registry.
   template<typename T>
-  std::shared_ptr<T> get_component(GameObjectID game_object_id) {
+  inline std::shared_ptr<T> get_component(GameObjectID game_object_id) {
     return std::static_pointer_cast<T>(get_component(game_object_id, typeid(T)));
   }
 
@@ -139,7 +139,7 @@ class Registry {
         continue;
       }
 
-      // Game object has all the components so cast them to T and add them to
+      // Game object has all the components, so cast them to T and add them to
       // the vector
       auto components_result = std::make_tuple(std::static_pointer_cast<Ts>(game_object_components[typeid(Ts)]) ...);
       components.emplace_back(game_object_id, components_result);

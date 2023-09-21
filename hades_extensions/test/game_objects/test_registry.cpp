@@ -71,7 +71,7 @@ TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
   ASSERT_THROW_MESSAGE(registry.get_component<TestGameObjectComponentOne>(0),
                        RegistryException,
                        "The game object `0` is not registered with the registry.")
-  ASSERT_THROW_MESSAGE(registry.get_component<TestGameObjectComponentTwo>(0),
+  ASSERT_THROW_MESSAGE(registry.get_component(0, typeid(TestGameObjectComponentTwo)),
                        RegistryException,
                        "The game object `0` is not registered with the registry.")
   ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), {});
@@ -84,7 +84,7 @@ TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
 
 /// Test that multiple components are added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
-  // Construct the components list
+  // Construct the component list
   std::vector<std::unique_ptr<ComponentBase>> components;
   components.emplace_back(create_object<TestGameObjectComponentOne>());
   components.emplace_back(create_object<TestGameObjectComponentTwo>({10}));
@@ -92,7 +92,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
   // Test that creating the game object works correctly
   registry.create_game_object(false, std::move(components));
   ASSERT_TRUE(registry.get_component<TestGameObjectComponentOne>(0) != nullptr);
-  ASSERT_TRUE(registry.get_component<TestGameObjectComponentTwo>(0) != nullptr);
+  ASSERT_TRUE(registry.get_component(0, typeid(TestGameObjectComponentTwo)) != nullptr);
   ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 1);
   ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), 1);
   auto multiple_result_one = registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>().size();
@@ -103,7 +103,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
   ASSERT_THROW_MESSAGE(registry.get_component<TestGameObjectComponentOne>(0),
                        RegistryException,
                        "The game object `0` is not registered with the registry.")
-  ASSERT_THROW_MESSAGE(registry.get_component<TestGameObjectComponentTwo>(0),
+  ASSERT_THROW_MESSAGE(registry.get_component(0, typeid(TestGameObjectComponentTwo)),
                        RegistryException,
                        "The game object `0` is not registered with the registry.")
   ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 0);
@@ -130,7 +130,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectKinematic) {
 
 /// Test that multiple game objects are added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
-  // Construct the components list for both game objects
+  // Construct the component list for both game objects
   std::vector<std::unique_ptr<ComponentBase>> components_one, components_two;
   components_one.emplace_back(create_object<TestGameObjectComponentOne>());
   components_two.emplace_back(create_object<TestGameObjectComponentOne>());
@@ -154,7 +154,7 @@ TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
 
 /// Test that a game object with duplicate components is added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryGameObjectDuplicateComponents) {
-  // Construct the components list
+  // Construct the component list
   std::vector<std::unique_ptr<ComponentBase>> components;
   components.emplace_back(create_object<TestGameObjectComponentTwo>({10}));
   components.emplace_back(create_object<TestGameObjectComponentTwo>({20}));

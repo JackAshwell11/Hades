@@ -15,8 +15,8 @@ set(BINDING_PATH ${SRC_DIR}/binding.cpp)
 set(HEADER_FILES
         ${INCLUDE_DIR}/hash_combine.hpp
         ${INCLUDE_DIR}/macros.hpp
-        ${INCLUDE_DIR}/game_objects/components.hpp
         ${INCLUDE_DIR}/game_objects/registry.hpp
+        ${INCLUDE_DIR}/game_objects/stats.hpp
         ${INCLUDE_DIR}/game_objects/steering.hpp
         ${INCLUDE_DIR}/game_objects/systems/armour_regen.hpp
         ${INCLUDE_DIR}/game_objects/systems/attacks.hpp

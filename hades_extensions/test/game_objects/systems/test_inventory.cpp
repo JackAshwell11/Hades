@@ -6,8 +6,8 @@
 #include "game_objects/systems/inventory.hpp"
 
 // ----- FIXTURES ------------------------------
-/// Implements the Inventory fixture for the game_objects/systems/inventory.hpp tests.
-class InventoryFixture : public testing::Test {
+/// Implements the fixture for the InventorySystem fixture.
+class InventorySystemFixture : public testing::Test {
  protected:
   /// The registry that manages the game objects, components, and systems.
   Registry registry{};
@@ -40,13 +40,13 @@ TEST(Tests, TestThrowInventorySpaceErrorEmpty) {
 }
 
 /// Test that a valid item is added to the inventory correctly.
-TEST_F(InventoryFixture, TestInventorySystemAddItemToInventoryValid) {
+TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   get_inventory_system()->add_item_to_inventory(0, 50);
   ASSERT_EQ(registry.get_component<Inventory>(0)->items, std::vector<int>{50});
 }
 
 /// Test that a valid item is not added to a zero size inventory.
-TEST_F(InventoryFixture, TestInventorySystemAddItemToInventoryZeroSize) {
+TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryZeroSize) {
   registry.get_component<Inventory>(0)->width = 0;
   ASSERT_THROW_MESSAGE(get_inventory_system()->add_item_to_inventory(0, 50),
                        InventorySpaceException,
@@ -54,14 +54,14 @@ TEST_F(InventoryFixture, TestInventorySystemAddItemToInventoryZeroSize) {
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
-TEST_F(InventoryFixture, TestInventorySystemAddItemToInventoryInvalidGameObjectID) {
+TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryInvalidGameObjectID) {
   ASSERT_THROW_MESSAGE(get_inventory_system()->add_item_to_inventory(-1, 50),
                        RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }
 
 /// Test that a valid item is removed from the inventory correctly.
-TEST_F(InventoryFixture, TestInventorySystemRemoveItemFromInventoryValid) {
+TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
   std::vector<int> result{1, 4};
   get_inventory_system()->add_item_to_inventory(0, 1);
   get_inventory_system()->add_item_to_inventory(0, 7);
@@ -71,7 +71,7 @@ TEST_F(InventoryFixture, TestInventorySystemRemoveItemFromInventoryValid) {
 }
 
 /// Test that an exception is raised if a larger index is provided.
-TEST_F(InventoryFixture, TestInventorySystemRemoveItemFromInventoryLargeIndex) {
+TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryLargeIndex) {
   get_inventory_system()->add_item_to_inventory(0, 5);
   get_inventory_system()->add_item_to_inventory(0, 10);
   get_inventory_system()->add_item_to_inventory(0, 50);
@@ -81,7 +81,7 @@ TEST_F(InventoryFixture, TestInventorySystemRemoveItemFromInventoryLargeIndex) {
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
-TEST_F(InventoryFixture, TestInventorySystemRemoveItemFromInventoryInvalidGameObjectID) {
+TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryInvalidGameObjectID) {
   ASSERT_THROW_MESSAGE(get_inventory_system()->remove_item_from_inventory(-1, 0),
                        RegistryException,
                        "The game object `-1` is not registered with the registry.")

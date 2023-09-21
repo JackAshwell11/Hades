@@ -1,12 +1,13 @@
 // Custom includes
+#include "game_objects/stats.hpp"
 #include "game_objects/systems/attacks.hpp"
 
 // ----- CONSTANTS -------------------------------
-const double ATTACK_RANGE = 3 * SPRITE_SIZE;
+constexpr double ATTACK_RANGE = 3 * SPRITE_SIZE;
 const int BULLET_VELOCITY = 300;
 const int DAMAGE = 10;
-const double MELEE_ATTACK_OFFSET_LOWER = 45 * PI_RADIANS;
-const double MELEE_ATTACK_OFFSET_UPPER = (2 * (180 * PI_RADIANS)) - MELEE_ATTACK_OFFSET_LOWER;
+constexpr double MELEE_ATTACK_OFFSET_LOWER = 45 * PI_RADIANS;
+constexpr double MELEE_ATTACK_OFFSET_UPPER = (2 * (180 * PI_RADIANS)) - MELEE_ATTACK_OFFSET_LOWER;
 
 // ----- FUNCTIONS ------------------------------
 /// Performs an area of effect attack around the game object.

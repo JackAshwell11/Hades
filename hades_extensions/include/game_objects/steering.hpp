@@ -4,7 +4,6 @@
 // Std includes
 #include <numbers>
 #include <unordered_set>
-#include <vector>
 
 // Custom includes
 #include "hash_combine.hpp"
@@ -12,8 +11,8 @@
 // ----- CONSTANTS ------------------------------
 #define PI_RADIANS (std::numbers::pi / 180)
 #define TWO_PI (2 * std::numbers::pi)
-const double SPRITE_SCALE = 0.5;
-const double SPRITE_SIZE = 128 * SPRITE_SCALE;
+constexpr double SPRITE_SCALE = 0.5;
+constexpr double SPRITE_SIZE = 128 * SPRITE_SCALE;
 
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D vector.

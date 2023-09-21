@@ -2,12 +2,13 @@
 #include <random>
 
 // Custom includes
+#include "game_objects/stats.hpp"
 #include "game_objects/systems/movements.hpp"
 
 // ----- CONSTANTS ------------------------------
 const double FOOTPRINT_INTERVAL = 0.5;
 const int FOOTPRINT_LIMIT = 10;
-const double TARGET_DISTANCE = 3 * SPRITE_SIZE;
+constexpr double TARGET_DISTANCE = 3 * SPRITE_SIZE;
 
 // ----- STRUCTURES ------------------------------
 void FootprintSystem::update(double delta_time) {

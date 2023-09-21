@@ -2,9 +2,9 @@
 #pragma once
 
 // Custom includes
-#include "game_objects/components.hpp"
+#include "game_objects/registry.hpp"
 
-// ----- STRUCTURES ------------------------------
+// ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate armour regen components.
 struct ArmourRegenSystem : public SystemBase {
   /// Initialise the system.

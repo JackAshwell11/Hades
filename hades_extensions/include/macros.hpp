@@ -20,19 +20,7 @@
 // TODO: Maybe move test structs, classes and fixtures to separate include
 //  directory
 
+
 // TODO: Look over generation/ (header, source and test) to make sure it all
-//  conforms to standards set by game_objects/
-
-// TODO: Look over all includes (need to decide if each file includes
-//  everything (even duplicates) or only what it needs (takes from other
-//  includes)). Leaning towards each file only including what it needs and not
-//  including what has already been included
-
-// TODO: See if const, consteval, constexpr, inline and references can be used
-//  more
-
-// TODO: Move all fixtures to local files (for independence)
-
-// TODO: Rename all Fixtures to Fixture
-
-// TODO: Switch to docstrings for explaining tests
+//  conforms to standards set by game_objects/. This includes const, consteval,
+//  constexpr, inline, references, docs, includes, local fixtures, etc

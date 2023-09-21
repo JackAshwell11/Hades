@@ -3,11 +3,12 @@
 
 // Custom includes
 #include "macros.hpp"
+#include "game_objects/stats.hpp"
 #include "game_objects/systems/movements.hpp"
 
 // ----- FIXTURES ------------------------------
-/// Implements the Footprints fixture for the game_objects/systems/movements.hpp tests.
-class FootprintsFixture : public testing::Test {
+/// Implements the fixture for the FootprintSystem tests.
+class FootprintSystemFixture : public testing::Test {
  protected:
   /// The registry that manages the game objects, components, and systems.
   Registry registry{};
@@ -29,7 +30,7 @@ class FootprintsFixture : public testing::Test {
   }
 };
 
-/// Implements the KeyboardMovement fixture for the game_objects/systems/movements.hpp tests.
+/// Implements the fixture for the KeyboardMovementSystem tests.
 class KeyboardMovementFixture : public testing::Test {
  protected:
   /// The registry that manages the game objects, components, and systems.
@@ -52,7 +53,7 @@ class KeyboardMovementFixture : public testing::Test {
   }
 };
 
-/// Implements the SteeringMovement fixture for the game_objects/systems/movements.hpp tests.
+/// Implements the fixture for the SteeringMovementSystem tests.
 class SteeringMovementFixture : public testing::Test {
  protected:
   /// The registry that manages the game objects, components, and systems.
@@ -95,7 +96,7 @@ class SteeringMovementFixture : public testing::Test {
 
 // ----- TESTS ----------------------------------
 /// Test that the footprint systems is updated with a small delta time.
-TEST_F(FootprintsFixture, TestFootprintSystemUpdateSmallDeltaTime) {
+TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateSmallDeltaTime) {
   get_footprint_system()->update(0.1);
   auto footprints = registry.get_component<Footprints>(0);
   ASSERT_EQ(footprints->footprints, std::deque<Vec2d>{});
@@ -103,7 +104,7 @@ TEST_F(FootprintsFixture, TestFootprintSystemUpdateSmallDeltaTime) {
 }
 
 /// Test that the footprint system creates a footprint in an empty list.
-TEST_F(FootprintsFixture, TestFootprintSystemUpdateLargeDeltaTimeEmptyList) {
+TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeEmptyList) {
   get_footprint_system()->update(1);
   auto footprints = registry.get_component<Footprints>(0);
   ASSERT_EQ(footprints->footprints, std::deque<Vec2d>{Vec2d(0, 0)});
@@ -111,7 +112,7 @@ TEST_F(FootprintsFixture, TestFootprintSystemUpdateLargeDeltaTimeEmptyList) {
 }
 
 /// Test that the footprint system creates a footprint in a non-empty list.
-TEST_F(FootprintsFixture, TestFootprintSystemUpdateLargeDeltaTimeNonEmptyList) {
+TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeNonEmptyList) {
   auto footprints = registry.get_component<Footprints>(0);
   footprints->footprints = {{1, 1}, {2, 2}, {3, 3}};
   get_footprint_system()->update(0.5);
@@ -120,7 +121,7 @@ TEST_F(FootprintsFixture, TestFootprintSystemUpdateLargeDeltaTimeNonEmptyList) {
 }
 
 /// Test that the footprint system creates a footprint and removes the oldest one.
-TEST_F(FootprintsFixture, TestFootprintSystemUpdateLargeDeltaTimeFullList) {
+TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeFullList) {
   auto footprints = registry.get_component<Footprints>(0);
   footprints->footprints = {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}, {8, 8}, {9, 9}, {10, 10}};
   get_footprint_system()->update(0.5);
@@ -130,7 +131,7 @@ TEST_F(FootprintsFixture, TestFootprintSystemUpdateLargeDeltaTimeFullList) {
 }
 
 /// Test that the footprint system is updated correctly multiple times.
-TEST_F(FootprintsFixture, TestFootprintSystemUpdateMultipleUpdates) {
+TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateMultipleUpdates) {
   auto footprints = registry.get_component<Footprints>(0);
   get_footprint_system()->update(0.6);
   ASSERT_EQ(footprints->footprints, std::deque<Vec2d>{Vec2d(0, 0)});
