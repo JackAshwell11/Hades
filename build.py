@@ -52,7 +52,6 @@ class CMakeBuild(build_ext):
                 [
                     "cmake",
                     str(current_dir.joinpath(ext.sources[0])),
-                    "-DDO_PYTHON=true",
                     f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE={build_dir}",
                 ],
             ),
@@ -103,7 +102,7 @@ def cpp() -> None:
     result_path = Path(__file__).parent.joinpath(
         setup(
             name="hades_extensions",
-            ext_modules=[Extension("hades_extensions", ["hades_extensions"])],
+            ext_modules=[Extension("hades_extensions", ["src/hades_extensions"])],
             script_args=["bdist_wheel"],
             cmdclass={"build_ext": CMakeBuild},
         ).dist_files[0][2],
