@@ -1,6 +1,7 @@
 // Custom includes
-#include "game_objects/stats.hpp"
 #include "game_objects/systems/upgrade.hpp"
+
+#include "game_objects/stats.hpp"
 
 // ----- STRUCTURES ------------------------------
 bool UpgradeSystem::upgrade_component(GameObjectID game_object_id, const std::type_index &target_component) {
@@ -9,8 +10,8 @@ bool UpgradeSystem::upgrade_component(GameObjectID game_object_id, const std::ty
   auto upgrades_component = registry.get_component<Upgrades>(game_object_id);
 
   // Check if the component can be upgraded
-  if (upgrades_component == nullptr || !upgrades_component->upgrades.contains(target_component)
-      || component->current_level >= component->maximum_level) {
+  if (upgrades_component == nullptr || !upgrades_component->upgrades.contains(target_component) ||
+      component->current_level >= component->maximum_level) {
     return false;
   }
 

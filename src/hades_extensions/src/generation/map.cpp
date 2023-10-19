@@ -24,7 +24,7 @@ struct MapGenerationConstant {
   /// @param level - The game level to generate a value for.
   /// @return The generated value.
   [[nodiscard]] inline int generate_value(int level) const {
-    return (int) std::min(round(base_value * pow(increase, level)), max_value);
+    return (int)std::min(round(base_value * pow(increase, level)), max_value);
   }
 };
 
@@ -46,11 +46,7 @@ struct MapGenerationConstants {
 
 // Defines the constants for the map generation
 const MapGenerationConstants MAP_GENERATION_CONSTANTS = {
-    {30, 1.2, 150},
-    {20, 1.2, 100},
-    {5, 1.5, 25},
-    {20, 1.3, 200},
-    {5, 1.1, 30},
+    {30, 1.2, 150}, {20, 1.2, 100}, {5, 1.5, 25}, {20, 1.3, 200}, {5, 1.1, 30},
 };
 
 // ----- FUNCTIONS ------------------------------
@@ -112,7 +108,8 @@ std::vector<Rect> generate_rooms(Leaf &bsp, Grid &grid, std::mt19937 &random_gen
     } else {
       // Create a room in the current leaf and save the rect. If a room cannot
       // be created, the width to height ratio is outside of range so try again
-      while (!create_room(current, grid, random_generator)) {}
+      while (!create_room(current, grid, random_generator)) {
+      }
 
       // Add the created room to the rooms list
       rooms.emplace_back(*current.room);
@@ -164,9 +161,7 @@ std::unordered_set<Edge> create_connections(std::unordered_map<Rect, std::vector
   return mst;
 }
 
-void place_tile(Grid &grid,
-                std::mt19937 &random_generator,
-                TileType target_tile,
+void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile,
                 std::vector<Position> &possible_tiles) {
   // Check if at least one tile exists
   if (possible_tiles.empty()) {
@@ -182,9 +177,7 @@ void place_tile(Grid &grid,
   grid.set_value(possible_tile, target_tile);
 }
 
-void create_hallways(Grid &grid,
-                     std::mt19937 &random_generator,
-                     std::unordered_set<Edge> &connections,
+void create_hallways(Grid &grid, std::mt19937 &random_generator, std::unordered_set<Edge> &connections,
                      int obstacle_count) {
   // Place random obstacles in the grid
   std::vector<Position> obstacle_positions = collect_positions(grid, TileType::Empty);
@@ -195,21 +188,17 @@ void create_hallways(Grid &grid,
   // Use the A* algorithm with to connect each pair of rooms making sure to
   // avoid the obstacles giving us natural looking hallways
   std::vector<std::vector<Position>> path_positions(connections.size());
-  std::transform(std::execution::par,
-                 connections.begin(),
-                 connections.end(),
-                 path_positions.begin(),
+  std::transform(std::execution::par, connections.begin(), connections.end(), path_positions.begin(),
                  [&grid](Edge connection) {
-                   return calculate_astar_path(grid,
-                                               connection.source.centre,
-                                               connection.destination.centre);
+                   return calculate_astar_path(grid, connection.source.centre, connection.destination.centre);
                  });
   for (const std::vector<Position> &path : path_positions) {
     for (const Position &path_position : path) {
       // Place a rect box around the path_position using HALLWAY_SIZE to determine
       // the width and height
       Rect{{path_position.x - HALF_HALLWAY_SIZE, path_position.y - HALF_HALLWAY_SIZE},
-           {path_position.x + HALF_HALLWAY_SIZE, path_position.y + HALF_HALLWAY_SIZE}}.place_rect(grid);
+           {path_position.x + HALF_HALLWAY_SIZE, path_position.y + HALF_HALLWAY_SIZE}}
+          .place_rect(grid);
     }
   }
 }

@@ -2,8 +2,8 @@
 #include "gtest/gtest.h"
 
 // Custom includes
-#include "macros.hpp"
 #include "game_objects/systems/inventory.hpp"
+#include "macros.hpp"
 
 // ----- FIXTURES ------------------------------
 /// Implements the fixture for the InventorySystem fixture.
@@ -22,21 +22,17 @@ class InventorySystemFixture : public testing::Test {
   /// Get the inventory system from the registry.
   ///
   /// @return The inventory system.
-  std::shared_ptr<InventorySystem> get_inventory_system() {
-    return registry.find_system<InventorySystem>();
-  }
+  std::shared_ptr<InventorySystem> get_inventory_system() { return registry.find_system<InventorySystem>(); }
 };
 
 // ----- TESTS ----------------------------------
 /// Test that InventorySpaceError is raised correctly when full.
-TEST(Tests, TestThrowInventorySpaceErrorFull) {
-  ASSERT_THROW_MESSAGE(throw InventorySpaceException(true), InventorySpaceException, "The inventory is full.")
-}
+TEST(Tests, TestThrowInventorySpaceErrorFull){
+    ASSERT_THROW_MESSAGE(throw InventorySpaceException(true), InventorySpaceException, "The inventory is full.")}
 
 /// Test that InventorySpaceError is raised correctly when empty.
-TEST(Tests, TestThrowInventorySpaceErrorEmpty) {
-  ASSERT_THROW_MESSAGE(throw InventorySpaceException(false), InventorySpaceException, "The inventory is empty.")
-}
+TEST(Tests, TestThrowInventorySpaceErrorEmpty){
+    ASSERT_THROW_MESSAGE(throw InventorySpaceException(false), InventorySpaceException, "The inventory is empty.")}
 
 /// Test that a valid item is added to the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
@@ -47,17 +43,14 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
 /// Test that a valid item is not added to a zero size inventory.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryZeroSize) {
   registry.get_component<Inventory>(0)->width = 0;
-  ASSERT_THROW_MESSAGE(get_inventory_system()->add_item_to_inventory(0, 50),
-                       InventorySpaceException,
+  ASSERT_THROW_MESSAGE(get_inventory_system()->add_item_to_inventory(0, 50), InventorySpaceException,
                        "The inventory is full.")
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
-TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryInvalidGameObjectID) {
-  ASSERT_THROW_MESSAGE(get_inventory_system()->add_item_to_inventory(-1, 50),
-                       RegistryException,
-                       "The game object `-1` is not registered with the registry.")
-}
+TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryInvalidGameObjectID){
+    ASSERT_THROW_MESSAGE(get_inventory_system()->add_item_to_inventory(-1, 50), RegistryException,
+                         "The game object `-1` is not registered with the registry.")}
 
 /// Test that a valid item is removed from the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
@@ -74,14 +67,12 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryLargeIn
   get_inventory_system()->add_item_to_inventory(0, 5);
   get_inventory_system()->add_item_to_inventory(0, 10);
   get_inventory_system()->add_item_to_inventory(0, 50);
-  ASSERT_THROW_MESSAGE(get_inventory_system()->remove_item_from_inventory(0, 10),
-                       InventorySpaceException,
+  ASSERT_THROW_MESSAGE(get_inventory_system()->remove_item_from_inventory(0, 10), InventorySpaceException,
                        "The index is out of range.")
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryInvalidGameObjectID) {
-  ASSERT_THROW_MESSAGE(get_inventory_system()->remove_item_from_inventory(-1, 0),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(get_inventory_system()->remove_item_from_inventory(-1, 0), RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }

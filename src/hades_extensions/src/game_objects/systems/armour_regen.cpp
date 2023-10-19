@@ -1,6 +1,7 @@
 // Custom includes
-#include "game_objects/stats.hpp"
 #include "game_objects/systems/armour_regen.hpp"
+
+#include "game_objects/stats.hpp"
 
 // ----- CONSTANTS -------------------------------
 const int ARMOUR_REGEN_AMOUNT = 1;

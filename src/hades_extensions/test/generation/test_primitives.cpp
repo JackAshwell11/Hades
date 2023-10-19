@@ -33,12 +33,12 @@ TEST_F(GenerationFixtures, TestGridConvertPositionEdgeRight) {
 
 TEST_F(GenerationFixtures, TestGridConvertPositionSmall) {
   // Test if converting a position outside the array throws an exception
-  ASSERT_THROW(small_grid.convert_position({-1, -1}), std::out_of_range);
+  ASSERT_THROW(static_cast<void>(small_grid.convert_position({-1, -1})), std::out_of_range);
 }
 
 TEST_F(GenerationFixtures, TestGridConvertPositionLarge) {
   // Test if converting a position outside the array throws an exception
-  ASSERT_THROW(small_grid.convert_position({10, 10}), std::out_of_range);
+  ASSERT_THROW(static_cast<void>(small_grid.convert_position({10, 10})), std::out_of_range);
 }
 
 TEST_F(GenerationFixtures, TestGridGetValueMiddle) {
@@ -55,7 +55,7 @@ TEST_F(GenerationFixtures, TestGridGetValueEdge) {
 
 TEST_F(GenerationFixtures, TestGridGetValueLarge) {
   // Test if getting a position outside the array throws an exception
-  ASSERT_THROW(small_grid.get_value({10, 10}), std::out_of_range);
+  ASSERT_THROW(static_cast<void>(small_grid.get_value({10, 10})), std::out_of_range);
 }
 
 TEST_F(GenerationFixtures, TestGridSetValueMiddle) {
@@ -99,9 +99,9 @@ TEST_F(GenerationFixtures, TestRectPlaceRectCorrect) {
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
   ASSERT_EQ(*small_grid.grid, target_result);

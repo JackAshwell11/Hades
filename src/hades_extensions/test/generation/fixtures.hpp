@@ -19,15 +19,17 @@ class GenerationFixtures : public testing::Test {
   void SetUp() override {
     random_generator.seed(0);
     detailed_grid.grid = std::make_unique<std::vector<TileType>>(std::vector<TileType>{
-        TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-        TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle,
-        TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty,
-        TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Obstacle, TileType::Obstacle, TileType::Empty,
-        TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
-        TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Obstacle,
-        TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Obstacle, TileType::Empty,
-        TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty,
-        TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+        TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,
+        TileType::Empty,    TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,
+        TileType::Empty,    TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,
+        TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Obstacle,
+        TileType::Empty,    TileType::Obstacle, TileType::Obstacle, TileType::Empty,    TileType::Floor,
+        TileType::Floor,    TileType::Floor,    TileType::Empty,    TileType::Empty,    TileType::Empty,
+        TileType::Floor,    TileType::Floor,    TileType::Floor,    TileType::Empty,    TileType::Empty,
+        TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Obstacle,
+        TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Obstacle,
+        TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Empty,
+        TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,
     });
   }
 };

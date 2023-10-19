@@ -18,7 +18,7 @@ enum class AttackAlgorithms {
 // ----- STRUCTURES ------------------------------
 /// Holds the result of an attack.
 struct AttackResult {
-/// The result of a ranged attack.
+  /// The result of a ranged attack.
   std::optional<std::tuple<Vec2d, double, double>> ranged_attack;
 
   /// The default constructor.

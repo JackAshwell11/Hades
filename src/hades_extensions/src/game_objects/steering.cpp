@@ -1,6 +1,6 @@
 // Std includes
-#include <stdexcept>
 #include <numbers>
+#include <stdexcept>
 #include <unordered_set>
 
 // Custom includes
@@ -53,8 +53,7 @@ Vec2d follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list) 
   return seek(current_position, path_list[0]);
 }
 
-Vec2d obstacle_avoidance(const Vec2d &current_position,
-                         const Vec2d &current_velocity,
+Vec2d obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_velocity,
                          const std::unordered_set<Vec2d> &walls) {
   // Create the lambda function to cast a ray from the game object's position
   // in the direction of its velocity at a given angle

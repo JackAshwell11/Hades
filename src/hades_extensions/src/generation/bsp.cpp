@@ -21,11 +21,11 @@ bool split(Leaf &leaf, std::mt19937 &random_generator) {
   // than the height, if so we split vertically. However, if the height is 25%
   // larger than the width, we split horizontally. Otherwise, we split randomly
   bool split_vertical;
-  if (leaf.container->width > leaf.container->height
-      && (leaf.container->width >= CONTAINER_RATIO * leaf.container->height)) {
+  if (leaf.container->width > leaf.container->height &&
+      (leaf.container->width >= CONTAINER_RATIO * leaf.container->height)) {
     split_vertical = true;
-  } else if (leaf.container->height > leaf.container->width
-      && (leaf.container->height >= CONTAINER_RATIO * leaf.container->width)) {
+  } else if (leaf.container->height > leaf.container->width &&
+             (leaf.container->height >= CONTAINER_RATIO * leaf.container->width)) {
     split_vertical = false;
   } else {
     std::uniform_int_distribution<> split_vertical_distribution{0, 1};
@@ -81,11 +81,11 @@ bool create_room(Leaf &leaf, Grid &grid, std::mt19937 &random_generator) {
 
   // Use the width and height to find a suitable x and y position which can
   // create the room
-  std::uniform_int_distribution<>
-      x_pos_distribution{leaf.container->top_left.x, leaf.container->bottom_right.x - width};
+  std::uniform_int_distribution<> x_pos_distribution{leaf.container->top_left.x,
+                                                     leaf.container->bottom_right.x - width};
   int x_pos = x_pos_distribution(random_generator);
-  std::uniform_int_distribution<>
-      y_pos_distribution{leaf.container->top_left.y, leaf.container->bottom_right.y - height};
+  std::uniform_int_distribution<> y_pos_distribution{leaf.container->top_left.y,
+                                                     leaf.container->bottom_right.y - height};
   int y_pos = y_pos_distribution(random_generator);
 
   // Create the room rect and test if its width to height ratio will make an

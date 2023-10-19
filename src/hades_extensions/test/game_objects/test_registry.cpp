@@ -2,8 +2,8 @@
 #include "gtest/gtest.h"
 
 // Custom includes
-#include "macros.hpp"
 #include "game_objects/registry.hpp"
+#include "macros.hpp"
 
 // ----- CLASSES ------------------------------
 /// Represents a game object component useful for testing.
@@ -31,9 +31,7 @@ struct TestSystem : public SystemBase {
   explicit TestSystem(Registry &registry) : SystemBase(registry) {}
 
   /// Update the system.
-  void update(double delta_time) final {
-    called = true;
-  }
+  void update(double delta_time) final { called = true; }
 };
 
 // ----- FIXTURES ------------------------------
@@ -48,20 +46,16 @@ class RegistryFixture : public testing::Test {
 /// Test that an exception is thrown if a component is not registered.
 TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
   ASSERT_EQ(registry.create_game_object({}), 0);
-  ASSERT_THROW_MESSAGE(registry.add_component<TestGameObjectComponentOne>(1),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(registry.add_component<TestGameObjectComponentOne>(1), RegistryException,
                        "The game object `1` is not registered with the registry.")
-  ASSERT_THROW_MESSAGE(registry.get_component<TestGameObjectComponentOne>(0),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(registry.get_component<TestGameObjectComponentOne>(0), RegistryException,
                        "The game object `0` is not registered with the registry.")
   ASSERT_THROW_MESSAGE(static_cast<void>(registry.get_component(0, typeid(TestGameObjectComponentTwo))),
-                       RegistryException,
-                       "The game object `0` is not registered with the registry.")
+                       RegistryException, "The game object `0` is not registered with the registry.")
   ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), {});
   ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), {});
   ASSERT_EQ(registry.get_walls().size(), 0);
-  ASSERT_THROW_MESSAGE(static_cast<void>(registry.get_kinematic_object(0)),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(static_cast<void>(registry.get_kinematic_object(0)), RegistryException,
                        "The game object `0` is not registered with the registry.")
 }
 
@@ -81,12 +75,10 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
 
   // Test that deleting the game object works correctly
   registry.delete_game_object(0);
-  ASSERT_THROW_MESSAGE(registry.get_component<TestGameObjectComponentOne>(0),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(registry.get_component<TestGameObjectComponentOne>(0), RegistryException,
                        "The game object `0` is not registered with the registry.")
   ASSERT_THROW_MESSAGE(static_cast<void>(registry.get_component(0, typeid(TestGameObjectComponentTwo))),
-                       RegistryException,
-                       "The game object `0` is not registered with the registry.")
+                       RegistryException, "The game object `0` is not registered with the registry.")
   ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 0);
   ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), 0);
   auto multiple_result_two = registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>().size();
@@ -104,8 +96,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectKinematic) {
 
   // Test that deleting the kinematic game object works correctly
   registry.delete_game_object(0);
-  ASSERT_THROW_MESSAGE(static_cast<void>(registry.get_kinematic_object(0)),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(static_cast<void>(registry.get_kinematic_object(0)), RegistryException,
                        "The game object `0` is not registered with the registry.")
 }
 
@@ -144,18 +135,15 @@ TEST_F(RegistryFixture, TestRegistryGameObjectDuplicateComponents) {
 }
 
 /// Test that an exception is thrown if a system is not registered.
-TEST_F(RegistryFixture, TestRegistryZeroSystems) {
-  ASSERT_THROW_MESSAGE(registry.find_system<TestSystem>(),
-                       RegistryException,
-                       "The system `struct TestSystem` is not registered with the registry.")
-}
+TEST_F(RegistryFixture, TestRegistryZeroSystems){
+    ASSERT_THROW_MESSAGE(registry.find_system<TestSystem>(), RegistryException,
+                         "The system `struct TestSystem` is not registered with the registry.")}
 
 /// Test that a system is updated correctly.
 TEST_F(RegistryFixture, TestRegistrySystemUpdate) {
   // Test that the system is added correctly
   registry.add_system<TestSystem>();
-  ASSERT_THROW_MESSAGE(registry.add_system<TestSystem>(),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(registry.add_system<TestSystem>(), RegistryException,
                        "The system `struct TestSystem` is already registered with the registry.")
   auto system_result = registry.find_system<TestSystem>();
   ASSERT_TRUE(system_result != nullptr);

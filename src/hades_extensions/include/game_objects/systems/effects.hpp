@@ -64,10 +64,8 @@ struct StatusEffectData {
   /// @param increase_function - The increase function to apply.
   /// @param duration_function - The duration function to apply.
   /// @param interval_function - The interval function to apply.
-  StatusEffectData(StatusEffectType status_effect_type,
-                   ActionFunction increase_function,
-                   ActionFunction duration_function,
-                   ActionFunction interval_function)
+  StatusEffectData(StatusEffectType status_effect_type, ActionFunction increase_function,
+                   ActionFunction duration_function, ActionFunction interval_function)
       : status_effect_type(status_effect_type),
         increase_function(std::move(increase_function)),
         duration_function(std::move(duration_function)),
@@ -88,8 +86,8 @@ struct EffectApplier : public ComponentBase {
   /// @param instant_effects - The instant effects the game object provides.
   /// @param status_effects - The status effects the game object provides.
   EffectApplier(std::unordered_map<std::type_index, ActionFunction> instant_effects,
-                std::unordered_map<std::type_index, StatusEffectData> status_effects) : instant_effects(std::move(
-      instant_effects)), status_effects(std::move(status_effects)) {}
+                std::unordered_map<std::type_index, StatusEffectData> status_effects)
+      : instant_effects(std::move(instant_effects)), status_effects(std::move(status_effects)) {}
 };
 
 /// Allows a game object to have status effects applied to it.
@@ -119,10 +117,8 @@ struct EffectSystem : public SystemBase {
   /// @param level - The level of the effect to apply.
   /// @throws RegistryException - If the game object does not exist or does not have the target component.
   /// @return Whether the instant effect was applied or not.
-  bool apply_instant_effect(GameObjectID game_object_id,
-                            const std::type_index &target_component,
-                            const ActionFunction &increase_function,
-                            int level);
+  bool apply_instant_effect(GameObjectID game_object_id, const std::type_index &target_component,
+                            const ActionFunction &increase_function, int level);
 
   /// Apply a status effect to a game object.
   ///
@@ -132,8 +128,6 @@ struct EffectSystem : public SystemBase {
   /// @param level - The level of the effect to apply.
   /// @throws RegistryException - If the game object does not exist or does not have the target component.
   /// @return Whether the status effect was applied or not.
-  bool apply_status_effect(GameObjectID game_object_id,
-                           const std::type_index &target_component,
-                           const StatusEffectData &status_effect_data,
-                           int level);
+  bool apply_status_effect(GameObjectID game_object_id, const std::type_index &target_component,
+                           const StatusEffectData &status_effect_data, int level);
 };

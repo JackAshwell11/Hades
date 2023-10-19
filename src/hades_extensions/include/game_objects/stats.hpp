@@ -34,16 +34,12 @@ class Stat : public ComponentBase {
   /// Get the value of the stat.
   ///
   /// @return The value of the stat.
-  [[nodiscard]] inline double get_value() const {
-    return value_;
-  }
+  [[nodiscard]] inline double get_value() const { return value_; }
 
   /// Set the value of the stat.
   ///
   /// @param new_value - The new value of the stat.
-  inline void set_value(double new_value) {
-    value_ = std::max(std::min(new_value, max_value), 0.0);
-  }
+  inline void set_value(double new_value) { value_ = std::max(std::min(new_value, max_value), 0.0); }
 
  protected:
   /// The current value of the variable.

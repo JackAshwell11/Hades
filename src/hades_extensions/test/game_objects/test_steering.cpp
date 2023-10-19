@@ -127,9 +127,7 @@ TEST(Tests, TestArriveNearTarget) {
 }
 
 /// Test if a position on the target produces the correct arrive force.
-TEST(Tests, TestArriveOnTarget) {
-  ASSERT_EQ(arrive({0, 0}, {0, 0}), Vec2d(0, 0));
-}
+TEST(Tests, TestArriveOnTarget) { ASSERT_EQ(arrive({0, 0}, {0, 0}), Vec2d(0, 0)); }
 
 /// Test if a non-moving target produces the correct evade force.
 TEST(Tests, TestEvadeNonMovingTarget) {
@@ -158,9 +156,7 @@ TEST(Tests, TestFleeHigherTarget) {
 }
 
 /// Test if two equal positions produce the correct flee force.
-TEST(Tests, TestFleeEqual) {
-  ASSERT_EQ(flee({100, 100}, {100, 100}), Vec2d(0, 0));
-}
+TEST(Tests, TestFleeEqual) { ASSERT_EQ(flee({100, 100}, {100, 100}), Vec2d(0, 0)); }
 
 /// Test if a negative current position produces the correct flee force.
 TEST(Tests, TestFleeNegativeCurrent) {
@@ -173,9 +169,7 @@ TEST(Tests, TestFleeNegativeTarget) {
 }
 
 /// Test if two negative positions produce the correct flee force.
-TEST(Tests, TestFleeNegativePositions) {
-  ASSERT_EQ(flee({-50, -50}, {-50, -50}), Vec2d(0, 0));
-}
+TEST(Tests, TestFleeNegativePositions) { ASSERT_EQ(flee({-50, -50}, {-50, -50}), Vec2d(0, 0)); }
 
 /// Test if a multiple position list produces the correct follow path force.
 TEST(Tests, TestFollowPathSinglePosition) {
@@ -210,9 +204,7 @@ TEST(Tests, TestFollowPathEmptyList) {
 }
 
 /// Test if no obstacles produce the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceNoObstacles) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {}), Vec2d(0, 0));
-}
+TEST(Tests, TestObstacleAvoidanceNoObstacles) { ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {}), Vec2d(0, 0)); }
 
 /// Test if an out of range obstacle produces the correct obstacle avoidance force.
 TEST(Tests, TestObstacleAvoidanceObstacleOutOfRange) {
@@ -298,9 +290,7 @@ TEST(Tests, TestSeekHigherTarget) {
 }
 
 /// Test if two equal positions produce the correct seek force.
-TEST(Tests, TestSeekEqual) {
-  ASSERT_EQ(seek({100, 100}, {100, 100}), Vec2d(0, 0));
-}
+TEST(Tests, TestSeekEqual) { ASSERT_EQ(seek({100, 100}, {100, 100}), Vec2d(0, 0)); }
 
 /// Test if a negative current position produces the correct seek force.
 TEST(Tests, TestSeekNegativeCurrent) {
@@ -313,9 +303,7 @@ TEST(Tests, TestSeekNegativeTarget) {
 }
 
 /// Test if two negative positions produce the correct seek force.
-TEST(Tests, TestSeekNegativePositions) {
-  ASSERT_EQ(seek({-50, -50}, {-50, -50}), Vec2d(0, 0));
-}
+TEST(Tests, TestSeekNegativePositions) { ASSERT_EQ(seek({-50, -50}, {-50, -50}), Vec2d(0, 0)); }
 
 /// Test if a non-moving game object produces the correct wander force.
 TEST(Tests, TestWanderNonMoving) {
@@ -326,11 +314,7 @@ TEST(Tests, TestWanderNonMoving) {
 }
 
 /// Test if a moving game object produces the correct wander force.
-TEST(Tests, TestWanderMoving) {
-  ASSERT_EQ(wander({100, -100}, 60), Vec2d(0.7659012135559103, -0.6429582654213131));
-}
+TEST(Tests, TestWanderMoving) { ASSERT_EQ(wander({100, -100}, 60), Vec2d(0.7659012135559103, -0.6429582654213131)); }
 
 /// Test if a zero angle produces the correct wander force.
-TEST(Tests, TestWanderZeroAngle) {
-  ASSERT_EQ(wander({0, 0}, 0), Vec2d(0, -1));
-}
+TEST(Tests, TestWanderZeroAngle) { ASSERT_EQ(wander({0, 0}, 0), Vec2d(0, -1)); }

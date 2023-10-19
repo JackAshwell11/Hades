@@ -24,21 +24,13 @@ enum class TileType {
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D position.
 struct Position {
-  inline bool operator==(const Position pnt) const {
-    return x == pnt.x && y == pnt.y;
-  }
+  inline bool operator==(const Position pnt) const { return x == pnt.x && y == pnt.y; }
 
-  inline bool operator!=(const Position pnt) const {
-    return x != pnt.x || y != pnt.y;
-  }
+  inline bool operator!=(const Position pnt) const { return x != pnt.x || y != pnt.y; }
 
-  inline Position operator+(const Position pnt) const {
-    return {x + pnt.x, y + pnt.y};
-  }
+  inline Position operator+(const Position pnt) const { return {x + pnt.x, y + pnt.y}; }
 
-  inline Position operator-(const Position pnt) const {
-    return {std::abs(x - pnt.x), std::abs(y - pnt.y)};
-  }
+  inline Position operator-(const Position pnt) const { return {std::abs(x - pnt.x), std::abs(y - pnt.y)}; }
 
   /// The x position of the position.
   int x;
@@ -96,17 +88,13 @@ struct Grid {
   /// @param pos - The position to get the value for.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The value at the given position.
-  [[nodiscard]] inline TileType get_value(const Position &pos) const {
-    return grid->at(convert_position(pos));
-  }
+  [[nodiscard]] inline TileType get_value(const Position &pos) const { return grid->at(convert_position(pos)); }
 
   /// Set a value in the 2D grid from a given position.
   ///
   /// @param pos - The position to set.
   /// @throws std::out_of_range - Position must be within range.
-  inline void set_value(const Position &pos, TileType target) const {
-    grid->at(convert_position(pos)) = target;
-  }
+  inline void set_value(const Position &pos, TileType target) const { grid->at(convert_position(pos)) = target; }
 };
 
 /// Represents a rectangle of any size useful for the interacting with the 2D
@@ -116,13 +104,9 @@ struct Grid {
 /// whereas, rooms don't so MIN_CONTAINER_SIZE must be bigger than
 /// MIN_ROOM_SIZE.
 struct Rect {
-  inline bool operator==(const Rect &rct) const {
-    return top_left == rct.top_left && bottom_right == rct.bottom_right;
-  }
+  inline bool operator==(const Rect &rct) const { return top_left == rct.top_left && bottom_right == rct.bottom_right; }
 
-  inline bool operator!=(const Rect &rct) const {
-    return top_left != rct.top_left || bottom_right != rct.bottom_right;
-  }
+  inline bool operator!=(const Rect &rct) const { return top_left != rct.top_left || bottom_right != rct.bottom_right; }
 
   /// The top left position of the rect.
   Position top_left;
@@ -169,7 +153,7 @@ struct Rect {
 };
 
 // ----- HASHES ------------------------------
-template<>
+template <>
 struct std::hash<Position> {
   std::size_t operator()(const Position &pnt) const {
     std::size_t res = 0;
@@ -179,7 +163,7 @@ struct std::hash<Position> {
   }
 };
 
-template<>
+template <>
 struct std::hash<Rect> {
   std::size_t operator()(const Rect &rct) const {
     std::size_t res = 0;

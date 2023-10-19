@@ -1,6 +1,7 @@
 // Custom includes
-#include "game_objects/stats.hpp"
 #include "game_objects/systems/attacks.hpp"
+
+#include "game_objects/stats.hpp"
 
 // ----- CONSTANTS -------------------------------
 constexpr double ATTACK_RANGE = 3 * SPRITE_SIZE;
@@ -30,9 +31,7 @@ void area_of_effect_attack(Registry &registry, const Vec2d &current_position, co
 /// @param current_position - The current position of the game object.
 /// @param current_rotation - The current rotation of the game object in radians.
 /// @param targets - The targets to attack.
-void melee_attack(Registry &registry,
-                  const Vec2d &current_position,
-                  double current_rotation,
+void melee_attack(Registry &registry, const Vec2d &current_position, double current_rotation,
                   const std::vector<int> &targets) {
   // Calculate a vector that is perpendicular to the current rotation of the
   // game object
@@ -46,8 +45,8 @@ void melee_attack(Registry &registry,
     double theta = (target_position - current_position).angle_between(rotation);
 
     // Test if the target is within range and within the circle's sector
-    if (current_position.distance_to(target_position) <= ATTACK_RANGE
-        && (theta <= MELEE_ATTACK_OFFSET_LOWER || theta >= MELEE_ATTACK_OFFSET_UPPER)) {
+    if (current_position.distance_to(target_position) <= ATTACK_RANGE &&
+        (theta <= MELEE_ATTACK_OFFSET_LOWER || theta >= MELEE_ATTACK_OFFSET_UPPER)) {
       registry.find_system<DamageSystem>()->deal_damage(target, DAMAGE);
     }
   }
@@ -69,17 +68,14 @@ AttackResult AttackSystem::do_attack(int game_object_id, std::vector<int> &targe
   auto attacks = registry.get_component<Attacks>(game_object_id);
   const auto kinematic_object = registry.get_kinematic_object(game_object_id);
   switch (attacks->attack_algorithms[attacks->attack_state]) {
-    case AttackAlgorithms::AreaOfEffect:area_of_effect_attack(registry, kinematic_object->position, targets);
+    case AttackAlgorithms::AreaOfEffect:
+      area_of_effect_attack(registry, kinematic_object->position, targets);
       break;
     case AttackAlgorithms::Melee:
-      melee_attack(registry,
-                   kinematic_object->position,
-                   kinematic_object->rotation * PI_RADIANS,
-                   targets);
+      melee_attack(registry, kinematic_object->position, kinematic_object->rotation * PI_RADIANS, targets);
       break;
     case AttackAlgorithms::Ranged:
-      return ranged_attack(kinematic_object->position,
-                           kinematic_object->rotation * PI_RADIANS);
+      return ranged_attack(kinematic_object->position, kinematic_object->rotation * PI_RADIANS);
   }
 
   // Return an empty result as no ranged attack was performed

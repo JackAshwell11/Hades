@@ -2,9 +2,9 @@
 #include "gtest/gtest.h"
 
 // Custom includes
-#include "macros.hpp"
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/movements.hpp"
+#include "macros.hpp"
 
 // ----- FIXTURES ------------------------------
 /// Implements the fixture for the FootprintSystem tests.
@@ -24,9 +24,7 @@ class FootprintSystemFixture : public testing::Test {
   /// Get the footprint system from the registry.
   ///
   /// @return The footprint system.
-  std::shared_ptr<FootprintSystem> get_footprint_system() {
-    return registry.find_system<FootprintSystem>();
-  }
+  std::shared_ptr<FootprintSystem> get_footprint_system() { return registry.find_system<FootprintSystem>(); }
 };
 
 /// Implements the fixture for the KeyboardMovementSystem tests.
@@ -80,8 +78,8 @@ class SteeringMovementFixture : public testing::Test {
   ///
   /// @param steering_behaviours - The steering behaviours to initialise the component with.
   /// @return The game object ID of the created game object.
-  int create_steering_movement_component(const std::unordered_map<SteeringMovementState,
-                                                                  std::vector<SteeringBehaviours>> &steering_behaviours) {
+  int create_steering_movement_component(
+      const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> &steering_behaviours) {
     int game_object_id = registry.create_game_object(true);
     registry.add_component<MovementForce>(game_object_id, 100, -1);
     registry.add_component<SteeringMovement>(game_object_id, steering_behaviours);
@@ -121,8 +119,8 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeFullList) 
   auto footprints = registry.get_component<Footprints>(0);
   footprints->footprints = {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}, {8, 8}, {9, 9}, {10, 10}};
   get_footprint_system()->update(0.5);
-  std::deque<Vec2d>
-      expected_footprints{{2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}, {8, 8}, {9, 9}, {10, 10}, {0, 0}};
+  std::deque<Vec2d> expected_footprints{{2, 2}, {3, 3}, {4, 4}, {5, 5},   {6, 6},
+                                        {7, 7}, {8, 8}, {9, 9}, {10, 10}, {0, 0}};
   ASSERT_EQ(footprints->footprints, expected_footprints);
 }
 
@@ -201,11 +199,9 @@ TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceSouthEas
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
-TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE(get_keyboard_movement_system()->calculate_keyboard_force(-1),
-                       RegistryException,
-                       "The game object `-1` is not registered with the registry.")
-}
+TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceInvalidGameObjectId){
+    ASSERT_THROW_MESSAGE(get_keyboard_movement_system()->calculate_keyboard_force(-1), RegistryException,
+                         "The game object `-1` is not registered with the registry.")}
 
 /// Test if the state is correctly changed to the default state.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceOutsideDistanceEmptyPathList) {
@@ -239,8 +235,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceArrive) 
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Arrive}}});
   registry.get_kinematic_object(0)->position = {0, 0};
   registry.get_kinematic_object(2)->position = {100, 100};
-  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2),
-            Vec2d(-70.71067811865476, -70.71067811865476));
+  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2), Vec2d(-70.71067811865476, -70.71067811865476));
 }
 
 /// Test if the correct force is calculated for the evade behaviour.
@@ -248,8 +243,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceEvade) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Evade}}});
   registry.get_kinematic_object(0)->position = {100, 100};
   registry.get_kinematic_object(0)->velocity = {-50, 0};
-  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2),
-            Vec2d(-54.28888213891886, -83.98045770360257));
+  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2), Vec2d(-54.28888213891886, -83.98045770360257));
 }
 
 /// Test if the correct force is calculated for the flee behaviour.
@@ -274,8 +268,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceObstacle
   registry.get_kinematic_object(2)->position = {100, 100};
   registry.get_kinematic_object(2)->velocity = {100, 100};
   registry.add_wall({1, 2});
-  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2),
-            Vec2d(25.881904510252056, -96.59258262890683));
+  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2), Vec2d(25.881904510252056, -96.59258262890683));
 }
 
 /// Test if the correct force is calculated for the pursuit behaviour.
@@ -291,8 +284,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceSeek) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Seek}}});
   registry.get_kinematic_object(0)->position = {50, 50};
   registry.get_kinematic_object(2)->position = {100, 100};
-  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2),
-            Vec2d(-70.71067811865475, -70.71067811865475));
+  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2), Vec2d(-70.71067811865475, -70.71067811865475));
 }
 
 /// Test if the correct force is calculated for the wander behaviour.
@@ -306,12 +298,11 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceWander) 
 
 /// Test if the correct force is calculated when multiple behaviours are selected.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceMultipleBehaviours) {
-  create_steering_movement_component({{SteeringMovementState::Footprint,
-                                       {SteeringBehaviours::FollowPath, SteeringBehaviours::Seek}}});
+  create_steering_movement_component(
+      {{SteeringMovementState::Footprint, {SteeringBehaviours::FollowPath, SteeringBehaviours::Seek}}});
   registry.get_kinematic_object(2)->position = {300, 300};
   registry.get_component<SteeringMovement>(2)->path_list = {{100, 200}, {-100, 0}};
-  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2),
-            Vec2d(-81.12421851755609, -58.47102846637651));
+  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2), Vec2d(-81.12421851755609, -58.47102846637651));
 }
 
 /// Test if the correct force is calculated when multiple states are initialised.
@@ -323,21 +314,17 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceMultiple
   // Test the target state
   registry.get_kinematic_object(0)->velocity = {-50, 100};
   registry.get_kinematic_object(2)->position = {100, 100};
-  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2),
-            Vec2d(-97.73793955511094, -21.14935392681019));
+  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2), Vec2d(-97.73793955511094, -21.14935392681019));
 
   // Test the default state
   registry.get_kinematic_object(2)->position = {300, 300};
-  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2),
-            Vec2d(-70.71067811865476, -70.71067811865476));
+  ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2), Vec2d(-70.71067811865476, -70.71067811865476));
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
-TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE(get_steering_movement_system()->calculate_steering_force(-1),
-                       RegistryException,
-                       "The game object `-1` is not registered with the registry.")
-}
+TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceInvalidGameObjectId){
+    ASSERT_THROW_MESSAGE(get_steering_movement_system()->calculate_steering_force(-1), RegistryException,
+                         "The game object `-1` is not registered with the registry.")}
 
 /// Test if the path list is updated if the position is within the view distance.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemUpdatePathListWithinDistance) {

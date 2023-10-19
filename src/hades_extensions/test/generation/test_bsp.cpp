@@ -37,7 +37,8 @@ TEST_F(GenerationFixtures, TestBspSplitNotNullLeftRight) {
 TEST_F(GenerationFixtures, TestBspCreateRoomChildLeaf) {
   // Repeat until a room is created since the ratio may be wrong sometimes then
   // test that the room is not null
-  while (!create_room(leaf, grid, random_generator)) {}
+  while (!create_room(leaf, grid, random_generator)) {
+  }
   ASSERT_TRUE(leaf.room != nullptr);
 }
 

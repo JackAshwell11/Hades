@@ -16,8 +16,8 @@ class InventorySpaceException : public std::runtime_error {
   /// Initialise the object.
   ///
   /// @param full - Whether the inventory is full or not.
-  explicit InventorySpaceException(const bool full) : std::runtime_error(
-      std::string("The inventory is ") + (full ? "full" : "empty") + ".") {}
+  explicit InventorySpaceException(const bool full)
+      : std::runtime_error(std::string("The inventory is ") + (full ? "full" : "empty") + ".") {}
 };
 
 // ----- COMPONENTS ------------------------------
@@ -41,9 +41,7 @@ struct Inventory : public ComponentBase {
   /// Get the capacity of the inventory.
   ///
   /// @return The capacity of the inventory.
-  [[nodiscard]] inline int get_capacity() const {
-    return width * height;
-  }
+  [[nodiscard]] inline int get_capacity() const { return width * height; }
 };
 
 // ----- SYSTEMS --------------------------------
@@ -59,7 +57,7 @@ struct InventorySystem : public SystemBase {
   /// @param game_object_id - The ID of the game object to add the item to.
   /// @param item - The item to add to the inventory.
   /// @throws RegistryException - If the game object does not exist or does not have an inventory component.
-/// @throws InventorySpaceException - If the inventory is full.
+  /// @throws InventorySpaceException - If the inventory is full.
   void add_item_to_inventory(GameObjectID game_object_id, GameObjectID item);
 
   /// Remove an item from the inventory of a game object.

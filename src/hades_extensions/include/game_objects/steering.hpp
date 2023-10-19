@@ -17,17 +17,11 @@ constexpr double SPRITE_SIZE = 128 * SPRITE_SCALE;
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D vector.
 struct Vec2d {
-  inline bool operator==(const Vec2d &vec) const {
-    return x == vec.x && y == vec.y;
-  }
+  inline bool operator==(const Vec2d &vec) const { return x == vec.x && y == vec.y; }
 
-  inline bool operator!=(const Vec2d &vec) const {
-    return x != vec.x || y != vec.y;
-  }
+  inline bool operator!=(const Vec2d &vec) const { return x != vec.x || y != vec.y; }
 
-  inline Vec2d operator+(const Vec2d &vec) const {
-    return {x + vec.x, y + vec.y};
-  }
+  inline Vec2d operator+(const Vec2d &vec) const { return {x + vec.x, y + vec.y}; }
 
   inline Vec2d operator+=(const Vec2d &vec) {
     x += vec.x;
@@ -35,17 +29,11 @@ struct Vec2d {
     return *this;
   }
 
-  inline Vec2d operator-(const Vec2d &vec) const {
-    return {x - vec.x, y - vec.y};
-  }
+  inline Vec2d operator-(const Vec2d &vec) const { return {x - vec.x, y - vec.y}; }
 
-  inline Vec2d operator*(const double val) const {
-    return {x * val, y * val};
-  }
+  inline Vec2d operator*(const double val) const { return {x * val, y * val}; }
 
-  inline Vec2d operator/(const double val) const {
-    return {std::floor(x / val), std::floor(y / val)};
-  }
+  inline Vec2d operator/(const double val) const { return {std::floor(x / val), std::floor(y / val)}; }
 
   /// The x value of the vector.
   double x;
@@ -62,9 +50,7 @@ struct Vec2d {
   /// Get the magnitude of the vector.
   ///
   /// @return The magnitude of the vector.
-  [[nodiscard]] inline double magnitude() const {
-    return std::hypot(x, y);
-  }
+  [[nodiscard]] inline double magnitude() const { return std::hypot(x, y); }
 
   /// Normalise the vector
   ///
@@ -100,9 +86,7 @@ struct Vec2d {
   ///
   /// @param other - The vector to get the distance to.
   /// @return The distance to the other vector.
-  [[nodiscard]] inline double distance_to(const Vec2d &other) const {
-    return std::hypot(x - other.x, y - other.y);
-  }
+  [[nodiscard]] inline double distance_to(const Vec2d &other) const { return std::hypot(x - other.x, y - other.y); }
 };
 
 /// Stores various data about a game object for use in physics-related operations.
@@ -118,7 +102,7 @@ struct KinematicObject {
 };
 
 // ----- HASHES ------------------------------
-template<>
+template <>
 struct std::hash<Vec2d> {
   size_t operator()(const Vec2d &vec) const {
     size_t res = 0;
@@ -165,8 +149,7 @@ Vec2d follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list);
 /// @param current_velocity - The velocity of the game object.
 /// @param walls - The set of walls in the game.
 /// @return The new steering force from this behaviour.
-Vec2d obstacle_avoidance(const Vec2d &current_position,
-                         const Vec2d &current_velocity,
+Vec2d obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_velocity,
                          const std::unordered_set<Vec2d> &walls);
 
 /// Allow a game object to seek towards another game object's predicted position.

@@ -2,9 +2,9 @@
 #include "gtest/gtest.h"
 
 // Custom includes
-#include "macros.hpp"
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/attacks.hpp"
+#include "macros.hpp"
 
 // ----- FIXTURES ------------------------------
 /// Implements the fixture for the AttackSystem tests.
@@ -30,14 +30,8 @@ class AttackSystemFixture : public testing::Test {
 
     // Create the targets and add the attacks system
     targets = {
-        create_target({-20, -100}),
-        create_target({20, 60}),
-        create_target({-200, 100}),
-        create_target({100, -100}),
-        create_target({-100, -99}),
-        create_target({0, -200}),
-        create_target({0, -192}),
-        create_target({0, 0}),
+        create_target({-20, -100}), create_target({20, 60}),  create_target({-200, 100}), create_target({100, -100}),
+        create_target({-100, -99}), create_target({0, -200}), create_target({0, -192}),   create_target({0, 0}),
     };
     registry.add_system<AttackSystem>();
     registry.add_system<DamageSystem>();
@@ -56,9 +50,7 @@ class AttackSystemFixture : public testing::Test {
   /// Get the attacks system from the registry.
   ///
   /// @return The attacks system.
-  std::shared_ptr<AttackSystem> get_attacks_system() {
-    return registry.find_system<AttackSystem>();
-  }
+  std::shared_ptr<AttackSystem> get_attacks_system() { return registry.find_system<AttackSystem>(); }
 };
 
 /// Implements the fixture for the DamageSystem tests.
@@ -68,9 +60,7 @@ class DamageSystemFixture : public testing::Test {
   Registry registry{};
 
   /// Set up the fixture for the tests.
-  void SetUp() override {
-    registry.add_system<DamageSystem>();
-  }
+  void SetUp() override { registry.add_system<DamageSystem>(); }
 
   /// Create health and armour attributes for use in testing.
   void create_health_and_armour_attributes() {
@@ -82,9 +72,7 @@ class DamageSystemFixture : public testing::Test {
   /// Get the damage system from the registry.
   ///
   /// @return The damage system.
-  std::shared_ptr<DamageSystem> get_damage_system() {
-    return registry.find_system<DamageSystem>();
-  }
+  std::shared_ptr<DamageSystem> get_damage_system() { return registry.find_system<DamageSystem>(); }
 };
 
 // ----- TESTS ----------------------------------
@@ -129,8 +117,7 @@ TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttacksDoAttackInvalidGameObjectId) {
   create_attack_component({AttackAlgorithms::Ranged});
-  ASSERT_THROW_MESSAGE(get_attacks_system()->do_attack(-1, targets),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(get_attacks_system()->do_attack(-1, targets), RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }
 
@@ -175,11 +162,9 @@ TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackEmptyAttacks) {
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackInvalidGameObjectId) {
   create_attack_component({});
-  ASSERT_THROW_MESSAGE(get_attacks_system()->next_attack(-1),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(get_attacks_system()->next_attack(-1), RegistryException,
                        "The game object `-1` is not registered with the registry.")
-  ASSERT_THROW_MESSAGE(get_attacks_system()->previous_attack(-1),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(get_attacks_system()->previous_attack(-1), RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }
 
@@ -230,14 +215,12 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
 /// Test that no damage is dealt when the attributes are not initialised.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageNonexistentAttributes) {
   registry.create_game_object({});
-  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(0, 100),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(0, 100), RegistryException,
                        "The game object `0` is not registered with the registry.")
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(-1, 100),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(-1, 100), RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }

@@ -1,6 +1,7 @@
 // Custom includes
-#include "game_objects/stats.hpp"
 #include "game_objects/systems/effects.hpp"
+
+#include "game_objects/stats.hpp"
 
 // ----- STRUCTURES ------------------------------
 void EffectSystem::update(double delta_time) {
@@ -34,10 +35,8 @@ void EffectSystem::update(double delta_time) {
   }
 }
 
-bool EffectSystem::apply_instant_effect(GameObjectID game_object_id,
-                                        const std::type_index &target_component,
-                                        const ActionFunction &increase_function,
-                                        int level) {
+bool EffectSystem::apply_instant_effect(GameObjectID game_object_id, const std::type_index &target_component,
+                                        const ActionFunction &increase_function, int level) {
   // Check if the component is already at the maximum
   auto component = std::static_pointer_cast<Stat>(registry.get_component(game_object_id, target_component));
   if (component->get_value() == component->max_value) {
@@ -49,10 +48,8 @@ bool EffectSystem::apply_instant_effect(GameObjectID game_object_id,
   return true;
 }
 
-bool EffectSystem::apply_status_effect(GameObjectID game_object_id,
-                                       const std::type_index &target_component,
-                                       const StatusEffectData &status_effect_data,
-                                       int level) {
+bool EffectSystem::apply_status_effect(GameObjectID game_object_id, const std::type_index &target_component,
+                                       const StatusEffectData &status_effect_data, int level) {
   // Check if the status effect has already been applied
   auto status_effects = registry.get_component<StatusEffects>(game_object_id);
   if (status_effects->applied_effects.contains(status_effect_data.status_effect_type)) {

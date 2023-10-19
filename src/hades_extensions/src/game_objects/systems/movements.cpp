@@ -38,8 +38,8 @@ void FootprintSystem::update(double delta_time) {
 Vec2d KeyboardMovementSystem::calculate_keyboard_force(GameObjectID game_object_id) {
   auto keyboard_movement = registry.get_component<KeyboardMovement>(game_object_id);
   return Vec2d{static_cast<double>(keyboard_movement->moving_east - keyboard_movement->moving_west),
-               static_cast<double>(keyboard_movement->moving_north - keyboard_movement->moving_south)}
-      * registry.get_component<MovementForce>(game_object_id)->get_value();
+               static_cast<double>(keyboard_movement->moving_north - keyboard_movement->moving_south)} *
+         registry.get_component<MovementForce>(game_object_id)->get_value();
 }
 
 Vec2d SteeringMovementSystem::calculate_steering_force(GameObjectID game_object_id) {
@@ -62,29 +62,27 @@ Vec2d SteeringMovementSystem::calculate_steering_force(GameObjectID game_object_
   std::uniform_int_distribution<> degree_distribution{0, 360};
   for (const auto &behaviour : steering_movement->behaviours[steering_movement->movement_state]) {
     switch (behaviour) {
-      case SteeringBehaviours::Arrive:steering_force += arrive(kinematic_owner->position, kinematic_target->position);
+      case SteeringBehaviours::Arrive:
+        steering_force += arrive(kinematic_owner->position, kinematic_target->position);
         break;
       case SteeringBehaviours::Evade:
-        steering_force += evade(kinematic_owner->position,
-                                kinematic_target->position,
-                                kinematic_target->velocity);
+        steering_force += evade(kinematic_owner->position, kinematic_target->position, kinematic_target->velocity);
         break;
-      case SteeringBehaviours::Flee:steering_force += flee(kinematic_owner->position, kinematic_target->position);
+      case SteeringBehaviours::Flee:
+        steering_force += flee(kinematic_owner->position, kinematic_target->position);
         break;
       case SteeringBehaviours::FollowPath:
         steering_force += follow_path(kinematic_owner->position, steering_movement->path_list);
         break;
       case SteeringBehaviours::ObstacleAvoidance:
-        steering_force += obstacle_avoidance(kinematic_owner->position,
-                                             kinematic_owner->velocity,
-                                             registry.get_walls());
+        steering_force +=
+            obstacle_avoidance(kinematic_owner->position, kinematic_owner->velocity, registry.get_walls());
         break;
       case SteeringBehaviours::Pursuit:
-        steering_force += pursuit(kinematic_owner->position,
-                                  kinematic_target->position,
-                                  kinematic_target->velocity);
+        steering_force += pursuit(kinematic_owner->position, kinematic_target->position, kinematic_target->velocity);
         break;
-      case SteeringBehaviours::Seek:steering_force += seek(kinematic_owner->position, kinematic_target->position);
+      case SteeringBehaviours::Seek:
+        steering_force += seek(kinematic_owner->position, kinematic_target->position);
         break;
       case SteeringBehaviours::Wander:
         steering_force += wander(kinematic_owner->velocity, degree_distribution(number_generator));

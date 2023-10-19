@@ -2,9 +2,9 @@
 #include "gtest/gtest.h"
 
 // Custom includes
-#include "macros.hpp"
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/upgrade.hpp"
+#include "macros.hpp"
 
 // ----- FIXTURES ------------------------------
 /// Implements the fixture for the UpgradeSystem tests.
@@ -14,33 +14,27 @@ class UpgradeSystemFixture : public testing::Test {
   Registry registry{};
 
   /// Set up the fixture for the tests.
-  void SetUp() override {
-    registry.add_system<UpgradeSystem>();
-  }
+  void SetUp() override { registry.add_system<UpgradeSystem>(); }
 
   /// Create a game object with a given value and maximum level
   ///
   /// @param value - The value of the game object.
   /// @param max_level - The maximum level of the game object.
   void create_game_object(int value, int max_level) {
-    std::unordered_map<std::type_index, std::function<double(int)>>
-        upgrades{{typeid(Stat), [](int level) { return 150 * (level + 1); }}};
+    std::unordered_map<std::type_index, std::function<double(int)>> upgrades{
+        {typeid(Stat), [](int level) { return 150 * (level + 1); }}};
     registry.create_game_object();
     registry.add_component<Stat>(0, value, max_level);
     registry.add_component<Upgrades>(0, upgrades);
   }
 
   /// Create a game object that is upgradable multiple times.
-  void create_upgradeable_game_object() {
-    create_game_object(200, 3);
-  }
+  void create_upgradeable_game_object() { create_game_object(200, 3); }
 
   /// Get the upgrade system from the registry.
   ///
   /// @return The upgrade system.
-  std::shared_ptr<UpgradeSystem> get_upgrade_system() {
-    return registry.find_system<UpgradeSystem>();
-  }
+  std::shared_ptr<UpgradeSystem> get_upgrade_system() { return registry.find_system<UpgradeSystem>(); }
 };
 
 // ----- TESTS ----------------------------------
@@ -90,7 +84,6 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeNonUpgradeable) {
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE(get_upgrade_system()->upgrade_component(-1, typeid(Stat)),
-                       RegistryException,
+  ASSERT_THROW_MESSAGE(get_upgrade_system()->upgrade_component(-1, typeid(Stat)), RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }

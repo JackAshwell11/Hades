@@ -147,14 +147,14 @@ TEST_F(GenerationFixtures, TestMapCreateHallwaysNoObstacles) {
   create_hallways(small_grid, random_generator, connections, 0);
   std::vector<TileType> create_hallways_no_obstacles_result = {
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
-      TileType::Empty, TileType::Wall, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
   };
   ASSERT_EQ(*small_grid.grid, create_hallways_no_obstacles_result);
 }
@@ -166,7 +166,7 @@ TEST_F(GenerationFixtures, TestMapCreateHallwaysWithObstacles) {
 
   // Get the first floor tile in the grid
   int index =
-      (int) (std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Floor) - small_grid.grid->begin());
+      (int)(std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Floor) - small_grid.grid->begin());
   Position start = {index % small_grid.width, index / small_grid.width};
 
   // Use a Dijkstra map to count the number of floor tiles reachable
@@ -202,15 +202,15 @@ TEST_F(GenerationFixtures, TestMapCreateHallwaysNoConnections) {
   std::unordered_set<Edge> connections = {};
   create_hallways(small_grid, random_generator, connections, 5);
   std::vector<TileType> create_hallways_no_connections_result = {
-      TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Obstacle, TileType::Empty, TileType::Empty,
-      TileType::Obstacle, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Empty, TileType::Empty,
+      TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
   };
 
   // Determine if there's 5 obstacles and no floor tiles
@@ -240,8 +240,8 @@ TEST_F(GenerationFixtures, TestMapCreateMapEmptySeed) {
 
   // Test if the player exists in the 2D grid
   bool has_player = false;
-  if (std::find(create_map_empty_seed.first.begin(), create_map_empty_seed.first.end(), TileType::Player)
-      != create_map_empty_seed.first.end()) {
+  if (std::find(create_map_empty_seed.first.begin(), create_map_empty_seed.first.end(), TileType::Player) !=
+      create_map_empty_seed.first.end()) {
     has_player = true;
   }
   ASSERT_TRUE(has_player);

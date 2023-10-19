@@ -23,9 +23,7 @@ class ArmourRegenSystemFixture : public testing::Test {
   /// Get the armour regen system from the registry.
   ///
   /// @return The armour regen system.
-  std::shared_ptr<ArmourRegenSystem> get_armour_regen_system() {
-    return registry.find_system<ArmourRegenSystem>();
-  }
+  std::shared_ptr<ArmourRegenSystem> get_armour_regen_system() { return registry.find_system<ArmourRegenSystem>(); }
 };
 
 // ----- TESTS ----------------------------------

@@ -16,8 +16,7 @@ struct Edge {
   }
 
   inline bool operator==(const Edge edg) const {
-    return cost == edg.cost && source == edg.source &&
-        destination == edg.destination;
+    return cost == edg.cost && source == edg.source && destination == edg.destination;
   }
 
   /// The cost of the edge.
@@ -39,7 +38,7 @@ struct Edge {
 };
 
 // ----- HASHES ------------------------------
-template<>
+template <>
 struct std::hash<Edge> {
   size_t operator()(const Edge &edg) const {
     size_t res = 0;
@@ -92,9 +91,7 @@ std::unordered_set<Edge> create_connections(std::unordered_map<Rect, std::vector
 /// @param possible_tiles - The possible tiles that the tile can be placed
 /// into.
 /// @throws std::length_error - Possible tiles size must be bigger than 0.
-void place_tile(Grid &grid,
-                std::mt19937 &random_generator,
-                TileType target_tile,
+void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile,
                 std::vector<Position> &possible_tiles);
 
 /// Create the hallways by placing random obstacles and pathfinding around
@@ -105,9 +102,7 @@ void place_tile(Grid &grid,
 /// positions.
 /// @param connections - The connections to pathfind using the A* algorithm.
 /// @param obstacle_count - The number of obstacles to place in the 2D grid.
-void create_hallways(Grid &grid,
-                     std::mt19937 &random_generator,
-                     std::unordered_set<Edge> &connections,
+void create_hallways(Grid &grid, std::mt19937 &random_generator, std::unordered_set<Edge> &connections,
                      int obstacle_count);
 
 /// Generate the game map for a given game level.

@@ -40,7 +40,7 @@ struct SystemBase {
   /// Process update logic for a system.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  virtual void update(double delta_time) {};
+  virtual void update(double delta_time){};
 };
 
 // ----- EXCEPTIONS ------------------------------
@@ -53,27 +53,24 @@ class RegistryException : public std::runtime_error {
   /// @param not_registered_type - The type of item that is not registered.
   /// @param value - The value that is not registered.
   /// @param error - The error raised by the registry.
-  template<typename T>
-  RegistryException(const std::string &not_registered_type,
-                    const T &value,
-                    const std::string &error = "is not registered with the registry") : std::runtime_error(
-      "The " + not_registered_type + " `" + to_string(value) + "` " + error + ".") {};
+  template <typename T>
+  RegistryException(const std::string &not_registered_type, const T &value,
+                    const std::string &error = "is not registered with the registry")
+      : std::runtime_error("The " + not_registered_type + " `" + to_string(value) + "` " + error + "."){};
 
  private:
   /// Convert a value to a string.
   ///
   /// @param value - The value to convert to a string.
   /// @return The value as a string.
-  static inline std::string to_string(const char *value) {
-    return {value};
-  }
+  static inline std::string to_string(const char *value) { return {value}; }
 
   /// Convert a value to a string.
   ///
   /// @tparam T - The type of value to convert to a string.
   /// @param value - The value to convert to a string.
   /// @return The value as a string.
-  template<typename T>
+  template <typename T>
   static inline std::string to_string(const T &value) {
     return std::to_string(value);
   }
@@ -111,8 +108,8 @@ class Registry {
   /// @param game_object_id - The game object ID.
   /// @param args - The arguments to pass to the component constructor.
   /// @throws RegistryException - If the game object is not registered or if the game object already has the component.
-  template<typename ComponentType, typename ... Args>
-  void add_component(GameObjectID game_object_id, Args &&... args) {
+  template <typename ComponentType, typename... Args>
+  void add_component(GameObjectID game_object_id, Args &&...args) {
     // Check if the game object is registered or not
     if (!game_objects_.contains(game_object_id)) {
       throw RegistryException("game object", game_object_id);
@@ -125,16 +122,17 @@ class Registry {
 
     // Add the component to the registry
     components_[typeid(ComponentType)].insert(game_object_id);
-    game_objects_[game_object_id][typeid(ComponentType)] = std::make_shared<ComponentType>(std::forward<Args>(args) ...);
+    game_objects_[game_object_id][typeid(ComponentType)] = std::make_shared<ComponentType>(std::forward<Args>(args)...);
   }
 
   /// Get a component from the registry.
   ///
   /// @tparam T - The type of component to get.
   /// @param game_object_id - The game object ID.
-  /// @throws RegistryException - If the game object is not registered or if the game object does not have the component.
+  /// @throws RegistryException - If the game object is not registered or if the game object does not have the
+  /// component.
   /// @return The component from the registry.
-  template<typename T>
+  template <typename T>
   inline std::shared_ptr<T> get_component(GameObjectID game_object_id) const {
     return std::static_pointer_cast<T>(get_component(game_object_id, typeid(T)));
   }
@@ -151,10 +149,10 @@ class Registry {
   ///
   /// @tparam Ts - The types of components to find.
   /// @return A vector of tuples containing the game object ID and the required components.
-  template<typename ... Ts>
-  std::vector<std::tuple<GameObjectID, std::tuple<std::shared_ptr<Ts> ...>>> find_components() const {
+  template <typename... Ts>
+  std::vector<std::tuple<GameObjectID, std::tuple<std::shared_ptr<Ts>...>>> find_components() const {
     // Create a vector of tuples to store the components
-    std::vector<std::tuple<GameObjectID, std::tuple<std::shared_ptr<Ts> ...>>> components;
+    std::vector<std::tuple<GameObjectID, std::tuple<std::shared_ptr<Ts>...>>> components;
 
     // Iterate over all game objects
     for (auto &[game_object_id, game_object_components] : game_objects_) {
@@ -165,7 +163,7 @@ class Registry {
 
       // Game object has all the components, so cast them to T and add them to
       // the vector
-      auto components_result = std::make_tuple(std::static_pointer_cast<Ts>(game_object_components.at(typeid(Ts))) ...);
+      auto components_result = std::make_tuple(std::static_pointer_cast<Ts>(game_object_components.at(typeid(Ts)))...);
       components.emplace_back(game_object_id, components_result);
     }
 
@@ -177,7 +175,7 @@ class Registry {
   ///
   /// @tparam SystemType - The type of system to add.
   /// @throws RegistryException - If the system is already registered.
-  template<typename SystemType>
+  template <typename SystemType>
   void add_system() {
     // Check if the system is already registered
     const std::type_info &system_type = typeid(SystemType);
@@ -194,7 +192,7 @@ class Registry {
   /// @tparam T - The type of system to find.
   /// @throws RegistryException - If the system is not registered.
   /// @return The system.
-  template<typename T>
+  template <typename T>
   std::shared_ptr<T> find_system() const {
     // Check if the system is registered
     auto system_result = systems_.find(typeid(T));
@@ -226,16 +224,12 @@ class Registry {
   /// Add a wall to the registry.
   ///
   /// @param wall - The wall to add to the registry.
-  inline void add_wall(const Vec2d &wall) {
-    walls_.emplace(wall);
-  }
+  inline void add_wall(const Vec2d &wall) { walls_.emplace(wall); }
 
   /// Get the walls in the registry.
   ///
   /// @return The walls in the registry.
-  [[nodiscard]] inline const std::unordered_set<Vec2d> &get_walls() const {
-    return walls_;
-  }
+  [[nodiscard]] inline const std::unordered_set<Vec2d> &get_walls() const { return walls_; }
 
  private:
   /// The next game object ID to use.

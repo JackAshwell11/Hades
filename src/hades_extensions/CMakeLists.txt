@@ -5,9 +5,16 @@ cmake_minimum_required(VERSION 3.18.2)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Get a path to the include directory as well as all the source and test files
+# Define the module names and initialise the project
+set(PY_MODULE hades_extensions)
+set(CPP_LIB hades_extensions_lib)
+set(TEST_MODULE hades_extensions_tests)
+project(${PY_MODULE} LANGUAGES CXX)
+
+# Get the various paths that will be used as well as all files
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
@@ -58,15 +65,10 @@ set(TEST_FILES
         ${TEST_DIR}/generation/test_primitives.cpp
 )
 
-# Define the module names and initialise the project
-set(PY_MODULE hades_extensions)
-set(CPP_LIB hades_extensions_lib)
-set(TEST_MODULE hades_extensions_tests)
-project(${PY_MODULE} LANGUAGES CXX)
-
 # Add the src and test directories to the project
 include(FetchContent)
 add_subdirectory(src)
 add_subdirectory(test)
 
-# TODO: Look at maybe adding clang-tidy and clang-format files
+# TODO: Try and see if include formatting can be improved
+# TODO: Try and have clang-tidy and cppcheck in CI

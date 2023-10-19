@@ -1,0 +1,23 @@
+Checks:
+  - "*"
+  - "clang-analyzer-*"
+  - "bugprone-*"
+  - "modernize-*"
+  - "cppcoreguidelines-*"
+  - "readability-*"
+  - "misc-*"
+  - "google-*"
+  - "performance-*"
+  - "hicpp-*"
+  - "fuchsia-*"
+  - "llvm-*"
+  - "cert-*"
+  - "mpi-*"
+  - "openmp-*"
+  - "zircon-*"
+  - "abseil-*"
+  - "llvmlibc-*"
+  - "android-*"
+
+WarningsAsErrors:
+  - "*"

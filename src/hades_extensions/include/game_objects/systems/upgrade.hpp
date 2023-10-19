@@ -5,8 +5,6 @@
 #include "game_objects/registry.hpp"
 
 // ----- COMPONENTS ------------------------------
-// TODO: Maybe move this
-
 /// Allows a game object to record the amount of money it has.
 struct Money : public ComponentBase {
   /// The amount of money the game object has.
