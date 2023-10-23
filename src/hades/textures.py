@@ -1,4 +1,5 @@
 """Handles loading and storage of textures needed by the game."""
+
 from __future__ import annotations
 
 # Builtin

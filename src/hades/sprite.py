@@ -1,4 +1,5 @@
 """Manages the operations related to the sprite object."""
+
 from __future__ import annotations
 
 # Builtin

@@ -1,4 +1,5 @@
 """Manages the entity component system and its processes."""
+
 from __future__ import annotations
 
 # Builtin

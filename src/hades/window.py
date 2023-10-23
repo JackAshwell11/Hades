@@ -1,4 +1,5 @@
 """Acts as the entry point to the game by creating and initialising the window."""
+
 from __future__ import annotations
 
 # Builtin

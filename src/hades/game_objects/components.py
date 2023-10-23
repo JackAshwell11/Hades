@@ -1,4 +1,5 @@
 """Manages various components available to the game objects."""
+
 from __future__ import annotations
 
 # Builtin

@@ -1,4 +1,5 @@
 """Initialises and manages the main game."""
+
 from __future__ import annotations
 
 # Builtin
