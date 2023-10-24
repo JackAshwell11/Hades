@@ -5,7 +5,6 @@
 #include <cmath>
 #include <memory>
 #include <stdexcept>
-#include <vector>
 
 // Custom includes
 #include "hash_combine.hpp"
@@ -51,16 +50,13 @@ struct Position {
 /// Represents a 2D grid with a set width and height through a 1D vector.
 struct Grid {
   /// The width of the 2D grid.
-  int width{};
+  int width;
 
   /// The height of the 2D grid.
-  int height{};
+  int height;
 
   /// The vector which represents the 2D grid.
   std::unique_ptr<std::vector<TileType>> grid;
-
-  /// The default constructor.
-  Grid() = default;
 
   /// Initialise the object.
   ///
@@ -122,9 +118,6 @@ struct Rect {
 
   /// The height of the rect.
   int height;
-
-  /// The default constructor.
-  Rect() = default;
 
   /// Initialise the object.
   ///

@@ -72,3 +72,4 @@ add_subdirectory(test)
 
 # TODO: Try and see if include formatting can be improved
 # TODO: Try and have clang-tidy and cppcheck in CI
+# TODO: Could have yaml/toml/json templates for game objects. Could have it specify tile size, image, attributes, components, etc and they're loaded on startup. Could maybe have this even as public api
