@@ -25,7 +25,7 @@ struct Neighbour {
   ///
   /// @param cost - The cost to traverse to this neighbour.
   /// @param destination - The destination position in the grid.
-  Neighbour(int cost, Position destination) : cost(cost), destination(destination) {}
+  Neighbour(int cost, const Position &destination) : cost(cost), destination(destination) {}
 };
 
 // ----- CONSTANTS ------------------------------
@@ -65,11 +65,11 @@ std::vector<Position> calculate_astar_path(const Grid &grid, const Position &sta
     }
 
     // Add all the neighbours to the heap with their cost being f = g + h:
-    //   f - The total cost of traversing the neighbour.
-    //   g - The distance between the start pair and the neighbour pair.
-    //   h - The estimated distance from the neighbour pair to the end pair (this uses the Chebyshev distance).
+    //   f - The total cost of traversing the neighbour
+    //   g - The distance between the start pair and the neighbour pair
+    //   h - The estimated distance from the neighbour pair to the end pair (this uses the Chebyshev distance)
     for (const Position &offset : INTERCARDINAL_OFFSETS) {
-      // Calculate the neighbour's position and check if its valid excluding the boundaries
+      // Move around the neighbour if it is an obstacle as they have an infinite cost
       Position neighbour = current + offset;
       if (neighbour.x < 1 || neighbour.x >= grid.width - 1 || neighbour.y < 1 || neighbour.y >= grid.height - 1) {
         continue;

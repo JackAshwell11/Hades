@@ -7,6 +7,11 @@
 
 // ----- FUNCTIONS ------------------------------
 void Rect::place_rect(Grid &grid) const {
+  // Check if the grid is big enough for the rect to be placed
+  if (bottom_right.x > grid.width || bottom_right.y > grid.height) {
+    throw std::length_error("Rect is larger than the grid");
+  }
+
   // Place the walls
   for (int y = std::max(top_left.y, 0); y < std::min(bottom_right.y + 1, grid.height); y++) {
     for (int x = std::max(top_left.x, 0); x < std::min(bottom_right.x + 1, grid.width); x++) {

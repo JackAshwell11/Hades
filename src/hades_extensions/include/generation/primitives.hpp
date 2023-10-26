@@ -23,13 +23,15 @@ enum class TileType {
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D position.
 struct Position {
-  inline bool operator==(const Position pnt) const { return x == pnt.x && y == pnt.y; }
+  inline bool operator==(const Position &position) const { return x == position.x && y == position.y; }
 
-  inline bool operator!=(const Position pnt) const { return x != pnt.x || y != pnt.y; }
+  inline bool operator!=(const Position &position) const { return x != position.x || y != position.y; }
 
-  inline Position operator+(const Position pnt) const { return {x + pnt.x, y + pnt.y}; }
+  inline Position operator+(const Position &position) const { return {x + position.x, y + position.y}; }
 
-  inline Position operator-(const Position pnt) const { return {std::abs(x - pnt.x), std::abs(y - pnt.y)}; }
+  inline Position operator-(const Position &position) const {
+    return {std::abs(x - position.x), std::abs(y - position.y)};
+  }
 
   /// The x position of the position.
   int x;
@@ -72,6 +74,7 @@ struct Grid {
   /// @param pos - The position to convert.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The 1D grid position.
+  // todo: inline or move to .cpp
   [[nodiscard]] int convert_position(const Position &pos) const {
     if (pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height) {
       throw std::out_of_range("Position must be within range");
@@ -90,19 +93,18 @@ struct Grid {
   ///
   /// @param pos - The position to set.
   /// @throws std::out_of_range - Position must be within range.
-  inline void set_value(const Position &pos, TileType target) const { grid->at(convert_position(pos)) = target; }
+  inline void set_value(const Position &pos, const TileType target) const { grid->at(convert_position(pos)) = target; }
 };
 
-/// Represents a rectangle of any size useful for the interacting with the 2D
-/// grid.
-///
-/// When creating a container, the split wall is included in the rect size,
-/// whereas, rooms don't so MIN_CONTAINER_SIZE must be bigger than
-/// MIN_ROOM_SIZE.
+/// Represents a rectangle in 2D space.
 struct Rect {
-  inline bool operator==(const Rect &rct) const { return top_left == rct.top_left && bottom_right == rct.bottom_right; }
+  inline bool operator==(const Rect &rect) const {
+    return top_left == rect.top_left && bottom_right == rect.bottom_right;
+  }
 
-  inline bool operator!=(const Rect &rct) const { return top_left != rct.top_left || bottom_right != rct.bottom_right; }
+  inline bool operator!=(const Rect &rect) const {
+    return top_left != rect.top_left || bottom_right != rect.bottom_right;
+  }
 
   /// The top left position of the rect.
   Position top_left;
@@ -121,15 +123,14 @@ struct Rect {
 
   /// Initialise the object.
   ///
-  /// @param top_left_val - The top left position of the rect.
-  /// @param bottom_right_val - The bottom right position of the rect.
-  Rect(Position top_left_val, Position bottom_right_val)
-      : top_left(top_left_val),
-        bottom_right(bottom_right_val),
-        centre(static_cast<int>(std::round((top_left_val + bottom_right_val).x / 2.0)),
-               static_cast<int>(std::round((top_left_val + bottom_right_val).y / 2.0))),
-        width((top_left_val - bottom_right_val).x),
-        height((top_left_val - bottom_right_val).y) {}
+  /// @param top_left - The top left position of the rect.
+  /// @param bottom_right - The bottom right position of the rect.
+  Rect(const Position &top_left, const Position &bottom_right)
+      : top_left(top_left),
+        bottom_right(bottom_right),
+        centre(static_cast<int>(std::round((top_left + bottom_right).x / 2.0)), static_cast<int>(std::round((top_left + bottom_right).y / 2.0))),
+        width((top_left - bottom_right).x),
+        height((top_left - bottom_right).y) {}
 
   /// Get the Chebyshev distance to another rect.
   ///
@@ -148,20 +149,20 @@ struct Rect {
 // ----- HASHES ------------------------------
 template <>
 struct std::hash<Position> {
-  std::size_t operator()(const Position &pnt) const {
+  std::size_t operator()(const Position &position) const {
     std::size_t res = 0;
-    hash_combine(res, pnt.x);
-    hash_combine(res, pnt.y);
+    hash_combine(res, position.x);
+    hash_combine(res, position.y);
     return res;
   }
 };
 
 template <>
 struct std::hash<Rect> {
-  std::size_t operator()(const Rect &rct) const {
+  std::size_t operator()(const Rect &rect) const {
     std::size_t res = 0;
-    hash_combine(res, rct.top_left);
-    hash_combine(res, rct.bottom_right);
+    hash_combine(res, rect.top_left);
+    hash_combine(res, rect.bottom_right);
     return res;
   }
 };

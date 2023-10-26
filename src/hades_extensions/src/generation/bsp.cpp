@@ -5,10 +5,10 @@
 #include "generation/bsp.hpp"
 
 // ----- CONSTANTS ------------------------------
-#define CONTAINER_RATIO 1.25
-#define MIN_CONTAINER_SIZE 5
-#define MIN_ROOM_SIZE 4
-#define ROOM_RATIO 0.625
+const double CONTAINER_RATIO = 1.25;
+const int MIN_CONTAINER_SIZE = 5;
+const int MIN_ROOM_SIZE = 4;
+const double ROOM_RATIO = 0.625;
 
 // ----- FUNCTIONS ------------------------------
 bool split(Leaf &leaf, std::mt19937 &random_generator) {
@@ -17,15 +17,14 @@ bool split(Leaf &leaf, std::mt19937 &random_generator) {
     return false;
   }
 
-  // To determine the direction of split, we test if the width is 25% larger
-  // than the height, if so we split vertically. However, if the height is 25%
-  // larger than the width, we split horizontally. Otherwise, we split randomly
+  // To determine which direction to split it, we have three options:
+  //   1. Split vertically if the width is 25% larger than the height.
+  //   2. Split horizontally if the height is 25% larger than the width.
+  //   3. Split randomly if neither of the above is true.
   bool split_vertical;
-  if (leaf.container->width > leaf.container->height &&
-      (leaf.container->width >= CONTAINER_RATIO * leaf.container->height)) {
+  if (leaf.container->width >= CONTAINER_RATIO * leaf.container->height) {
     split_vertical = true;
-  } else if (leaf.container->height > leaf.container->width &&
-             (leaf.container->height >= CONTAINER_RATIO * leaf.container->width)) {
+  } else if (leaf.container->height >= CONTAINER_RATIO * leaf.container->width) {
     split_vertical = false;
   } else {
     std::uniform_int_distribution<> split_vertical_distribution{0, 1};

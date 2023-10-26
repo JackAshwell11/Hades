@@ -2,107 +2,124 @@
 #include "gtest/gtest.h"
 
 // Custom includes
-#include "fixtures.hpp"
 #include "generation/primitives.hpp"
+#include "macros.hpp"
+
+// ----- FIXTURES ------------------------------
+/// Implements the fixture for the generation/primitives.hpp tests.
+class PrimitivesFixture : public testing::Test {
+ protected:
+  /// A 2D grid for use in testing.
+  Grid grid{5, 5};
+
+  /// A large rect inside the grid for use in testing.
+  Rect rect_one{{0, 0}, {2, 3}};
+
+  /// A small rect inside the grid for use in testing.
+  Rect rect_two{{2, 2}, {4, 4}};
+};
 
 // ----- TESTS ------------------------------
-TEST_F(GenerationFixtures, TestGridConvertPositionMiddle) {
-  // Test if a position in the middle can be converted correctly
-  ASSERT_EQ(small_grid.convert_position({3, 4}), 27);
+/// Test that a position in the middle of the grid can be converted correctly.
+TEST_F(PrimitivesFixture, TestGridConvertPositionMiddle) { ASSERT_EQ(grid.convert_position({1, 2}), 11); }
+
+/// Test that a position on the top of the grid can be converted correctly.
+TEST_F(PrimitivesFixture, TestGridConvertPositionEdgeTop) { ASSERT_EQ(grid.convert_position({3, 0}), 3); }
+
+/// Test that a position on the bottom of the grid can be converted correctly.
+TEST_F(PrimitivesFixture, TestGridConvertPositionEdgeBottom) { ASSERT_EQ(grid.convert_position({2, 4}), 22); }
+
+/// Test that a position on the left of the grid can be converted correctly.
+TEST_F(PrimitivesFixture, TestGridConvertPositionEdgeLeft) { ASSERT_EQ(grid.convert_position({0, 3}), 15); }
+
+/// Test that a position on the right of the grid can be converted correctly.
+TEST_F(PrimitivesFixture, TestGridConvertPositionEdgeRight) { ASSERT_EQ(grid.convert_position({1, 4}), 21); }
+
+/// Test that converting a position smaller than the array throws an exception.
+TEST_F(PrimitivesFixture,
+       TestGridConvertPositionSmaller){ASSERT_THROW_MESSAGE(static_cast<void>(grid.convert_position({-1, -1})),
+                                                            std::out_of_range, "Position must be within range")}
+
+/// Test that converting a position larger than the array throws an exception.
+TEST_F(PrimitivesFixture,
+       TestGridConvertPositionLarger){ASSERT_THROW_MESSAGE(static_cast<void>(grid.convert_position({10, 10})),
+                                                           std::out_of_range, "Position must be within range")}
+
+/// Test that a position in the middle of the grid can be retrieved correctly.
+TEST_F(PrimitivesFixture, TestGridGetValueMiddle) {
+  (*grid.grid)[13] = TileType::Player;
+  ASSERT_EQ(grid.get_value({3, 2}), TileType::Player);
 }
 
-TEST_F(GenerationFixtures, TestGridConvertPositionEdgeTop) {
-  // Test if a position on the top edge can be converted correctly
-  ASSERT_EQ(small_grid.convert_position({3, 0}), 3);
+/// Test that a position on the edge of the grid can be retrieved correctly.
+TEST_F(PrimitivesFixture, TestGridGetValueEdge) {
+  (*grid.grid)[23] = TileType::Player;
+  ASSERT_EQ(grid.get_value({3, 4}), TileType::Player);
 }
 
-TEST_F(GenerationFixtures, TestGridConvertPositionEdgeBottom) {
-  // Test if a position on the bottom edge can be converted correctly
-  ASSERT_EQ(small_grid.convert_position({4, 8}), 52);
+/// Test that getting a position smaller than the array throws an exception.
+TEST_F(PrimitivesFixture,
+       TestGridGetValueSmaller){ASSERT_THROW_MESSAGE(static_cast<void>(grid.get_value({-1, -1})), std::out_of_range,
+                                                     "Position must be within range")}
+
+/// Test that getting a position larger than the array throws an exception.
+TEST_F(PrimitivesFixture,
+       TestGridGetValueLarger){ASSERT_THROW_MESSAGE(static_cast<void>(grid.get_value({10, 10})), std::out_of_range,
+                                                    "Position must be within range")}
+
+/// Test that a position in the middle can be set correctly.
+TEST_F(PrimitivesFixture, TestGridSetValueMiddle) {
+  grid.set_value({1, 3}, TileType::Player);
+  ASSERT_EQ((*grid.grid)[16], TileType::Player);
 }
 
-TEST_F(GenerationFixtures, TestGridConvertPositionEdgeLeft) {
-  // Test if a position on the left edge can be converted correctly
-  ASSERT_EQ(small_grid.convert_position({0, 7}), 42);
+/// Test that a position on the edge can be set correctly.
+TEST_F(PrimitivesFixture, TestGridSetValueEdge) {
+  grid.set_value({4, 4}, TileType::Player);
+  ASSERT_EQ((*grid.grid)[24], TileType::Player);
 }
 
-TEST_F(GenerationFixtures, TestGridConvertPositionEdgeRight) {
-  // Test if a position on the right edge can be converted correctly
-  ASSERT_EQ(small_grid.convert_position({2, 8}), 50);
+/// Test that setting a position smaller than the array throws an exception.
+TEST_F(PrimitivesFixture,
+       TestGridSetValueSmaller){ASSERT_THROW_MESSAGE(static_cast<void>(grid.set_value({-1, -1}, TileType::Player)),
+                                                     std::out_of_range, "Position must be within range")}
+
+/// Test that setting a position larger than the array throws an exception.
+TEST_F(PrimitivesFixture,
+       TestGridSetValueLarger){ASSERT_THROW_MESSAGE(static_cast<void>(grid.set_value({10, 10}, TileType::Player)),
+                                                    std::out_of_range, "Position must be within range")}
+
+/// Test that finding the distance between two identical rects works correctly.
+TEST_F(PrimitivesFixture, TestRectGetDistanceToIdentical) {
+  ASSERT_EQ(rect_one.get_distance_to(rect_one), 0);
 }
 
-TEST_F(GenerationFixtures, TestGridConvertPositionSmall) {
-  // Test if converting a position outside the array throws an exception
-  ASSERT_THROW(static_cast<void>(small_grid.convert_position({-1, -1})), std::out_of_range);
-}
+/// Test that finding the distance between two different rects works correctly.
+TEST_F(PrimitivesFixture, TestRectGetDistanceToDifferent) { ASSERT_EQ(rect_one.get_distance_to(rect_two), 2); }
 
-TEST_F(GenerationFixtures, TestGridConvertPositionLarge) {
-  // Test if converting a position outside the array throws an exception
-  ASSERT_THROW(static_cast<void>(small_grid.convert_position({10, 10})), std::out_of_range);
-}
-
-TEST_F(GenerationFixtures, TestGridGetValueMiddle) {
-  // Test if a position in the middle can be got correctly
-  (*small_grid.grid)[47] = TileType::Player;
-  ASSERT_EQ(small_grid.get_value({5, 7}), TileType::Player);
-}
-
-TEST_F(GenerationFixtures, TestGridGetValueEdge) {
-  // Test if a position on the edge can be got correctly
-  (*small_grid.grid)[29] = TileType::Player;
-  ASSERT_EQ(small_grid.get_value({5, 4}), TileType::Player);
-}
-
-TEST_F(GenerationFixtures, TestGridGetValueLarge) {
-  // Test if getting a position outside the array throws an exception
-  ASSERT_THROW(static_cast<void>(small_grid.get_value({10, 10})), std::out_of_range);
-}
-
-TEST_F(GenerationFixtures, TestGridSetValueMiddle) {
-  // Test if a position in the middle can be set correctly
-  small_grid.set_value({1, 7}, TileType::Player);
-  ASSERT_EQ((*small_grid.grid)[43], TileType::Player);
-}
-
-TEST_F(GenerationFixtures, TestGridSetValueEdge) {
-  // Test if a position on the edge can be set correctly
-  small_grid.set_value({5, 2}, TileType::Player);
-  ASSERT_EQ((*small_grid.grid)[17], TileType::Player);
-}
-
-TEST_F(GenerationFixtures, TestGridSetValueSmall) {
-  // Test if setting a position outside the array throws an exception
-  ASSERT_THROW(small_grid.set_value({-1, -1}, TileType::Player), std::out_of_range);
-}
-
-TEST_F(GenerationFixtures, TestRectGetDistanceToValid) {
-  // Test finding the distance between two valid rects
-  ASSERT_EQ(valid_rect_one.get_distance_to(valid_rect_two), 3);
-}
-
-TEST_F(GenerationFixtures, TestRectGetDistanceToIdentical) {
-  // Test finding the distance between two identical rects
-  ASSERT_EQ(valid_rect_one.get_distance_to(valid_rect_one), 0);
-}
-
-TEST_F(GenerationFixtures, TestRectGetDistanceToZero) {
-  // Test finding the distance between a valid and zero size rect
-  ASSERT_EQ(valid_rect_one.get_distance_to(zero_size_rect), 6);
-}
-
-TEST_F(GenerationFixtures, TestRectPlaceRectCorrect) {
-  // Test if the place_rect function places a rect correctly in the grid
-  valid_rect_one.place_rect(small_grid);
+/// Test that a rect can be placed correctly in a valid grid.
+TEST_F(PrimitivesFixture, TestRectPlaceRectValidGrid) {
+  rect_one.place_rect(grid);
   std::vector<TileType> target_result = {
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty,
+      TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty,
+      TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty,
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
-  ASSERT_EQ(*small_grid.grid, target_result);
+  ASSERT_EQ(*grid.grid, target_result);
+}
+
+/// Test that placing a rect in a zero size grid throws an exception.
+TEST_F(PrimitivesFixture, TestRectPlaceRectZeroSizeGrid) {
+  Grid empty_grid{0, 0};
+  ASSERT_THROW_MESSAGE(static_cast<void>(rect_one.place_rect(empty_grid)), std::length_error,
+                       "Rect is larger than the grid")
+}
+
+/// Test that placing a rect in a zero size grid throws an exception.
+TEST_F(PrimitivesFixture, TestRectPlaceRectOutsideGrid) {
+  Rect invalid_rect{{0, 0}, {10, 10}};
+  ASSERT_THROW_MESSAGE(static_cast<void>(invalid_rect.place_rect(grid)), std::length_error,
+                       "Rect is larger than the grid")
 }

@@ -10,8 +10,8 @@
 // ----- STRUCTURES ------------------------------
 /// A binary spaced partition leaf used to generate the dungeon's rooms.
 struct Leaf {
-  inline bool operator==(const Leaf &lef) const {
-    return container == lef.container && left == lef.left && right == lef.right;
+  inline bool operator==(const Leaf &leaf) const {
+    return container == leaf.container && left == leaf.left && right == leaf.right;
   }
 
   /// The rect object that represents this leaf.
@@ -29,7 +29,7 @@ struct Leaf {
   /// Initialise the object.
   ///
   /// @param container_val - The rect object that represents this leaf.
-  explicit Leaf(Rect container_val) : container(std::make_unique<Rect>(container_val)) {}
+  explicit Leaf(const Rect &container_val) : container(std::make_unique<Rect>(container_val)) {}
 };
 
 // ----- FUNCTIONS -------------------------------
@@ -47,3 +47,8 @@ bool split(Leaf &leaf, std::mt19937 &random_generator);
 /// @param random_generator - The random generator used to generate the bsp.
 /// @return Whether the room creation was successful or not.
 bool create_room(Leaf &leaf, Grid &grid, std::mt19937 &random_generator);
+
+/// TODO: LOOK AT AND MAYBE REMOVE (OR MOVE TO COMMENT IN BSP.HPP)
+/// When creating a container, the split wall is included in the rect size,
+/// whereas, rooms don't so MIN_CONTAINER_SIZE must be bigger than
+/// MIN_ROOM_SIZE.
