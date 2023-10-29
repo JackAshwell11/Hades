@@ -19,7 +19,6 @@ from arcade import (
     key,
     schedule,
 )
-from hades_extensions import TileType, create_map
 
 # Custom
 from hades.constants import (
@@ -46,6 +45,7 @@ from hades.game_objects.systems.attacks import AttackSystem
 from hades.physics import PhysicsEngine
 from hades.sprite import HadesSprite
 from hades.textures import grid_pos_to_pixel
+from hades_extensions import TileType, create_map
 
 all__ = ("Game",)
 
