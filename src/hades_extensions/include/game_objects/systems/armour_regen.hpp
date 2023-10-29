@@ -1,7 +1,7 @@
 // Ensure this file is only included once
 #pragma once
 
-// Custom includes
+// Local headers
 #include "game_objects/registry.hpp"
 
 // ----- SYSTEMS ------------------------------

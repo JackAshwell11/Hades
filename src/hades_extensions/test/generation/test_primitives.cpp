@@ -1,7 +1,4 @@
-// External includes
-#include "gtest/gtest.h"
-
-// Custom includes
+// Local headers
 #include "generation/primitives.hpp"
 #include "macros.hpp"
 
@@ -12,10 +9,10 @@ class PrimitivesFixture : public testing::Test {
   /// A 2D grid for use in testing.
   Grid grid{5, 5};
 
-  /// A large rect inside the grid for use in testing.
+  /// A rect inside the grid for use in testing.
   Rect rect_one{{0, 0}, {2, 3}};
 
-  /// A small rect inside the grid for use in testing.
+  /// A rect inside the grid for use in testing.
   Rect rect_two{{2, 2}, {4, 4}};
 };
 
@@ -100,7 +97,7 @@ TEST_F(PrimitivesFixture, TestRectGetDistanceToDifferent) { ASSERT_EQ(rect_one.g
 /// Test that a rect can be placed correctly in a valid grid.
 TEST_F(PrimitivesFixture, TestRectPlaceRectValidGrid) {
   rect_one.place_rect(grid);
-  std::vector<TileType> target_result = {
+  std::vector<TileType> target_result{
       TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty,
       TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty,
       TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty,
@@ -110,16 +107,16 @@ TEST_F(PrimitivesFixture, TestRectPlaceRectValidGrid) {
   ASSERT_EQ(*grid.grid, target_result);
 }
 
-/// Test that placing a rect in a zero size grid throws an exception.
-TEST_F(PrimitivesFixture, TestRectPlaceRectZeroSizeGrid) {
-  Grid empty_grid{0, 0};
-  ASSERT_THROW_MESSAGE(static_cast<void>(rect_one.place_rect(empty_grid)), std::length_error,
-                       "Rect is larger than the grid")
-}
-
-/// Test that placing a rect in a zero size grid throws an exception.
+/// Test that placing a rect that doesn't fit in the grid works correctly.
 TEST_F(PrimitivesFixture, TestRectPlaceRectOutsideGrid) {
   Rect invalid_rect{{0, 0}, {10, 10}};
-  ASSERT_THROW_MESSAGE(static_cast<void>(invalid_rect.place_rect(grid)), std::length_error,
-                       "Rect is larger than the grid")
+  invalid_rect.place_rect(grid);
+  std::vector<TileType> target_result{
+      TileType::Wall, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+  };
+  ASSERT_EQ(*grid.grid, target_result);
 }

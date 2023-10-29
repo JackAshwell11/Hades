@@ -1,12 +1,13 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std includes
+// Std headers
 #include <cmath>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 
-// Custom includes
+// Local headers
 #include "hash_combine.hpp"
 
 // ----- ENUMS ------------------------------
@@ -44,9 +45,9 @@ struct Position {
 
   /// Initialise the object.
   ///
-  /// @param x_val - The x position of the position.
-  /// @param y_val - The y position of the position.
-  Position(int x_val, int y_val) : x(x_val), y(y_val) {}
+  /// @param x - The x position of the position.
+  /// @param y - The y position of the position.
+  Position(int x, int y) : x(x), y(y) {}
 };
 
 /// Represents a 2D grid with a set width and height through a 1D vector.
@@ -74,8 +75,7 @@ struct Grid {
   /// @param pos - The position to convert.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The 1D grid position.
-  // todo: inline or move to .cpp
-  [[nodiscard]] int convert_position(const Position &pos) const {
+  [[nodiscard]] inline int convert_position(const Position &pos) const {
     if (pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height) {
       throw std::out_of_range("Position must be within range");
     }
@@ -128,7 +128,8 @@ struct Rect {
   Rect(const Position &top_left, const Position &bottom_right)
       : top_left(top_left),
         bottom_right(bottom_right),
-        centre(static_cast<int>(std::round((top_left + bottom_right).x / 2.0)), static_cast<int>(std::round((top_left + bottom_right).y / 2.0))),
+        centre(static_cast<int>(std::round((top_left + bottom_right).x / 2.0)),
+               static_cast<int>(std::round((top_left + bottom_right).y / 2.0))),
         width((top_left - bottom_right).x),
         height((top_left - bottom_right).y) {}
 
@@ -142,6 +143,7 @@ struct Rect {
 
   /// Place the rect in the 2D grid.
   ///
+  /// @details It is the responsibility of the caller to ensure that the rect fits in the grid.
   /// @param grid - The 2D grid which represents the dungeon.
   void place_rect(Grid &grid) const;
 };

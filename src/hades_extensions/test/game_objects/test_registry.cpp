@@ -1,7 +1,4 @@
-// External includes
-#include "gtest/gtest.h"
-
-// Custom includes
+// Local headers
 #include "game_objects/registry.hpp"
 #include "macros.hpp"
 
@@ -66,8 +63,8 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
   registry.create_game_object();
   registry.add_component<TestGameObjectComponentOne>(0);
   registry.add_component<TestGameObjectComponentTwo>(0, test_list);
-  ASSERT_TRUE(registry.get_component<TestGameObjectComponentOne>(0) != nullptr);
-  ASSERT_TRUE(registry.get_component(0, typeid(TestGameObjectComponentTwo)) != nullptr);
+  ASSERT_NE(registry.get_component<TestGameObjectComponentOne>(0), nullptr);
+  ASSERT_NE(registry.get_component(0, typeid(TestGameObjectComponentTwo)), nullptr);
   ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 1);
   ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), 1);
   auto multiple_result_one = registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>().size();
@@ -146,7 +143,7 @@ TEST_F(RegistryFixture, TestRegistrySystemUpdate) {
   ASSERT_THROW_MESSAGE(registry.add_system<TestSystem>(), RegistryException,
                        "The system `struct TestSystem` is already registered with the registry.")
   auto system_result = registry.find_system<TestSystem>();
-  ASSERT_TRUE(system_result != nullptr);
+  ASSERT_NE(system_result, nullptr);
 
   // Test that the system is updated correctly
   registry.update(0);

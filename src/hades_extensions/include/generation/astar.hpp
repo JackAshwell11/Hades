@@ -1,15 +1,14 @@
 // Ensure this file is only included once
 #pragma once
 
-// Custom includes
+// Local headers
 #include "primitives.hpp"
 
 // ----- DEFINITIONS ------------------------------
 /// Calculate the shortest path in a grid from one pair to another using the A*
 /// algorithm.
 ///
-/// @details https://en.wikipedia.org/wiki/A*_search_algorithm
-///
+/// @details https://en.wikipedia.org/wiki/A%2A_search_algorithm
 /// @param grid - The 2D grid which represents the dungeon.
 /// @param start - The start position for the algorithm.
 /// @param end - The end position for the algorithm.

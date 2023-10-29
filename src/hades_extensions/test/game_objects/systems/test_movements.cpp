@@ -1,7 +1,4 @@
-// Std includes
-#include "gtest/gtest.h"
-
-// Custom includes
+// Local headers
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/movements.hpp"
 #include "macros.hpp"
@@ -293,7 +290,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceWander) 
   registry.get_kinematic_object(2)->velocity = {100, -100};
   Vec2d steering_force = get_steering_movement_system()->calculate_steering_force(2);
   ASSERT_EQ(round(steering_force.magnitude()), 100);
-  ASSERT_TRUE(steering_force != get_steering_movement_system()->calculate_steering_force(2));
+  ASSERT_NE(steering_force, get_steering_movement_system()->calculate_steering_force(2));
 }
 
 /// Test if the correct force is calculated when multiple behaviours are selected.

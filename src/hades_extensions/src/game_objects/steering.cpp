@@ -1,10 +1,10 @@
-// Std includes
+// Related header
+#include "game_objects/steering.hpp"
+
+// Std headers
 #include <numbers>
 #include <stdexcept>
 #include <unordered_set>
-
-// Custom includes
-#include "game_objects/steering.hpp"
 
 // ----- CONSTANTS ------------------------------
 const double MAX_SEE_AHEAD = 2 * SPRITE_SIZE;

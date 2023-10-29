@@ -1,14 +1,14 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std includes
+// Std headers
 #include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <typeindex>
 
-// Custom includes
+// Local headers
 #include "steering.hpp"
 
 // ----- TYPEDEFS ------------------------------

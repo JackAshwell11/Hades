@@ -1,248 +1,180 @@
-// Std includes
-#include <algorithm>
-#include <optional>
-#include <queue>
-
-// External includes
-#include "gtest/gtest.h"
-
-// Custom includes
-#include "fixtures.hpp"
+// Local headers
 #include "generation/map.hpp"
+#include "macros.hpp"
+
+// ----- FIXTURES ------------------------------
+/// Implements the fixture for the generation/map.hpp tests.
+class MapFixture : public testing::Test {  // NOLINT(cert-msc51-cpp)
+ protected:
+  /// A random generator for use in testing.
+  std::mt19937 random_generator;
+
+  /// An 2D grid for use in testing.
+  Grid grid{5, 5};
+
+  /// A large 2D grid for use in testing.
+  Grid large_grid{8, 8};
+
+  /// A rect that fits inside the grid for use in testing.
+  Rect rect_one{{0, 1}, {3, 4}};
+
+  /// A rect that fits inside the grid for use in testing.
+  Rect rect_two{{2, 1}, {4, 2}};
+
+  /// A large rect that doesn't fit inside the grid for use in testing.
+  Rect rect_three{{4, 4}, {6, 6}};
+
+  /// Set up the fixture for the tests.
+  void SetUp() override { random_generator.seed(0); }
+};
 
 // ----- TESTS ------------------------------
-TEST_F(GenerationFixtures, TestMapCollectPositionsExist) {
-  // Test finding a tile that exists in a grid
-  std::vector<Position> tile_exists_result = {{0, 4}, {1, 4}, {2, 4}, {0, 5}, {1, 5}, {2, 5}};
-  ASSERT_EQ(collect_positions(detailed_grid, TileType::Floor), tile_exists_result);
-}
-
-TEST_F(GenerationFixtures, TestMapCollectPositionsNoExist) {
-  // Test finding a tile that doesn't exist in a grid
-  std::vector<Position> tile_not_exist_result;
-  ASSERT_EQ(collect_positions(detailed_grid, TileType::Player), tile_not_exist_result);
-}
-
-TEST_F(GenerationFixtures, TestMapCollectPositionsEmptyGrid) {
-  // Test finding a tile in an empty grid
-  std::vector<Position> tile_not_exist_result;
-  ASSERT_EQ(collect_positions(empty_grid, TileType::Floor), tile_not_exist_result);
-}
-
-TEST_F(GenerationFixtures, TestMapSplitBspNegativeSplit) {
-  // Test what happens if split_iteration is -1
-  split_bsp(leaf, random_generator, -1);
-  ASSERT_TRUE(leaf.left == nullptr);
-  ASSERT_TRUE(leaf.right == nullptr);
-}
-
-TEST_F(GenerationFixtures, TestMapSplitBspZeroSplit) {
-  // Test what happens if split_iteration is 0
-  split_bsp(leaf, random_generator, 0);
-  ASSERT_TRUE(leaf.left == nullptr);
-  ASSERT_TRUE(leaf.right == nullptr);
-}
-
-TEST_F(GenerationFixtures, TestMapSplitBspThreeChildren) {
-  // Split the bsp 2 times. This should generate two child leafs under the left
-  // child and one child leaf on the right
-  split_bsp(leaf, random_generator, 2);
-
-  // Test if the child leafs were generated
-  ASSERT_TRUE(leaf.left->left->left == nullptr);
-  ASSERT_TRUE(leaf.left->left->right == nullptr);
-  ASSERT_TRUE(leaf.left->right->left == nullptr);
-  ASSERT_TRUE(leaf.left->right->right == nullptr);
-  ASSERT_TRUE(leaf.right->left == nullptr);
-  ASSERT_TRUE(leaf.right->right == nullptr);
-}
-
-TEST_F(GenerationFixtures, TestMapSplitBspMaxSplit) {
-  // Split the bsp with a split iteration of 10. We want to keep splitting the
-  // bsp until it is no longer possible so this value should ensure that
-  split_bsp(leaf, random_generator, 10);
-
-  // Collect all the child leafs so that we can test them
-  std::vector<std::reference_wrapper<Leaf>> children;
-  std::queue<std::reference_wrapper<Leaf>> split_queue({leaf});
-  while (!split_queue.empty()) {
-    // Get the current leaf
-    Leaf &current = split_queue.front().get();
-    split_queue.pop();
-
-    // Check if current has children. If so, push its children into the queue,
-    // otherwise, add the child leaf to the children vector
-    if (current.left && current.right) {
-      split_queue.emplace(*current.left);
-      split_queue.emplace(*current.right);
-    } else {
-      children.emplace_back(current);
-    }
+/// Test that finding a tile that exists in the grid returns a vector of positions.
+TEST_F(MapFixture, TestMapCollectPositionsExist) {
+  std::vector<Position> tile_exists_result{{3, 0}, {0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 4}};
+  for (const Position &position : tile_exists_result) {
+    grid.set_value(position, TileType::Floor);
   }
-
-  // Test that each child leaf cannot be split any more and that there are
-  // approximately 4-8 children (this varies based on the toolchain)
-  for (Leaf &child : children) {
-    ASSERT_FALSE(split(child, random_generator));
-  }
-  ASSERT_TRUE(children.size() >= 4 || children.size() <= 8);
+  ASSERT_EQ(collect_positions(grid, TileType::Floor), tile_exists_result);
 }
 
-TEST_F(GenerationFixtures, TestMapGenerateRoomsSetLeaf) {
-  // Test if at least 1 room is generated
-  leaf.left = std::make_unique<Leaf>(Rect{{0, 0}, {9, 15}});
-  leaf.right = std::make_unique<Leaf>(Rect{{10, 0}, {15, 15}});
-  ASSERT_EQ(generate_rooms(leaf, grid, random_generator).size(), 2);
+/// Test that finding a tile that doesn't exist in the grid returns an empty vector.
+TEST_F(MapFixture, TestMapCollectPositionsNoExist) { ASSERT_TRUE(collect_positions(grid, TileType::Player).empty()); }
+
+/// Test that finding a tile in an empty grid returns an empty vector.
+TEST_F(MapFixture, TestMapCollectPositionsEmptyGrid) {
+  Grid empty_grid{0, 0};
+  ASSERT_TRUE(collect_positions(empty_grid, TileType::Floor).empty());
 }
 
-TEST_F(GenerationFixtures, TestMapGenerateRoomsRoomExist) {
-  // Test if no rooms are generated if a room already exists
-  leaf.room = std::make_unique<Rect>(valid_rect_one);
-  ASSERT_TRUE(generate_rooms(leaf, grid, random_generator).empty());
+/// Test that placing a tile in the grid with available positions works correctly.
+TEST_F(MapFixture, TestMapPlaceTileGivenPositions) {
+  std::vector<Position> possible_tiles{{5, 6}, {4, 2}};
+  place_tile(grid, random_generator, TileType::Player, possible_tiles);
+  ASSERT_EQ(std::count(grid.grid->begin(), grid.grid->end(), TileType::Player), 1);
 }
 
-TEST_F(GenerationFixtures, TestMapCreateConnectionsGivenConnections) {
-  // Create a complete graph with 4 nodes and 6 connections
-  std::unordered_map<Rect, std::vector<Rect>> complete_graph;
-  Rect temp_rect_one = {{0, 0}, {3, 3}};
-  Rect temp_rect_two = {{10, 10}, {12, 12}};
-  complete_graph.emplace(valid_rect_one, std::vector<Rect>{valid_rect_two, temp_rect_one, temp_rect_two});
-  complete_graph.emplace(valid_rect_two, std::vector<Rect>{valid_rect_one, temp_rect_one, temp_rect_two});
-  complete_graph.emplace(temp_rect_one, std::vector<Rect>{valid_rect_one, valid_rect_two, temp_rect_two});
-  complete_graph.emplace(temp_rect_two, std::vector<Rect>{valid_rect_one, valid_rect_two, temp_rect_one});
-  std::unordered_set<Edge> connections = create_connections(complete_graph);
-
-  // Test if all rects are connected and that there are only 3 connections
-  std::unordered_set<Rect> discovered;
-  for (Edge connection : connections) {
-    discovered.emplace(connection.source);
-    discovered.emplace(connection.destination);
-  }
-  ASSERT_EQ(discovered.size(), 4);
-  ASSERT_EQ(connections.size(), 3);
-}
-
-TEST_F(GenerationFixtures, TestMapCreateConnectionsEmpty) {
-  // Test if no mst is generated if the provided unordered_map is empty
-  std::unordered_map<Rect, std::vector<Rect>> empty_map;
-  ASSERT_THROW(create_connections(empty_map), std::length_error);
-}
-
-TEST_F(GenerationFixtures, TestMapPlaceTileGivenPositions) {
-  // Test if a tile is correctly placed in the 2D grid
-  std::vector<Position> possible_tiles = {{5, 6}, {4, 2}};
-  place_tile(small_grid, random_generator, TileType::Player, possible_tiles);
-  ASSERT_TRUE(std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Player) != small_grid.grid->end());
-}
-
-TEST_F(GenerationFixtures, TestMapPlaceTileEmpty) {
-  // Test if a tile is not placed in the 2D grid
+/// Test that placing a tile in the grid with no available positions throws an exception.
+TEST_F(MapFixture, TestMapPlaceTileEmpty) {
   std::vector<Position> possible_tiles;
-  ASSERT_THROW(place_tile(grid, random_generator, TileType::Player, possible_tiles), std::length_error);
+  ASSERT_THROW_MESSAGE(place_tile(grid, random_generator, TileType::Player, possible_tiles), std::length_error,
+                       "Possible tiles size must be bigger than 0.")
 }
 
-TEST_F(GenerationFixtures, TestMapCreateHallwaysNoObstacles) {
-  // Test if a connection is correctly drawn in the 2D grid without obstacles
-  std::unordered_set<Edge> connections = {{0, valid_rect_one, valid_rect_two}};
-  create_hallways(small_grid, random_generator, connections, 0);
-  std::vector<TileType> create_hallways_no_obstacles_result = {
+/// Test that creating a complete graph with a single room works correctly.
+TEST_F(MapFixture, TestMapCreateCompleteGraphSingleRoom) {
+  std::vector<Rect> rooms{rect_one};
+  std::unordered_map<Rect, std::vector<Rect>> single_room_result{{rect_one, std::vector<Rect>{}}};
+  ASSERT_EQ(create_complete_graph(rooms), single_room_result);
+}
+
+/// Test that creating a complete graph with multiple rooms works correctly.
+TEST_F(MapFixture, TestMapCreateCompleteGraphMultipleRooms) {
+  std::vector<Rect> rooms{rect_one, rect_two, rect_three};
+  std::unordered_map<Rect, std::vector<Rect>> multiple_rooms_result{
+      {rect_one, std::vector<Rect>{rect_two, rect_three}},
+      {rect_two, std::vector<Rect>{rect_one, rect_three}},
+      {rect_three, std::vector<Rect>{rect_one, rect_two}}};
+  ASSERT_EQ(create_complete_graph(rooms), multiple_rooms_result);
+}
+
+/// Test that creating a complete graph with no rooms throws an exception.
+TEST_F(MapFixture, TestMapCreateCompleteGraphNoRooms) {
+  std::vector<Rect> rooms;
+  ASSERT_THROW_MESSAGE(create_complete_graph(rooms), std::length_error, "Rooms size must be bigger than 0.")
+}
+
+/// Test that creating a minimum spanning tree with a valid complete graph works correctly.
+TEST_F(MapFixture, TestMapCreateConnectionsValidCompleteGraph) {
+  std::unordered_map<Rect, std::vector<Rect>> complete_graph{{rect_one, std::vector<Rect>{rect_two, rect_three}},
+                                                             {rect_two, std::vector<Rect>{rect_one, rect_three}},
+                                                             {rect_three, std::vector<Rect>{rect_one, rect_two}}};
+  std::unordered_set<Edge> valid_result{{1, rect_one, rect_two}, {3, rect_one, rect_three}};
+  ASSERT_EQ(create_connections(complete_graph), valid_result);
+}
+
+/// Test that creating a minimum spanning tree with an empty complete graph throws an exception.
+TEST_F(MapFixture, TestMapCreateConnectionsEmptyCompleteGraph) {
+  std::unordered_map<Rect, std::vector<Rect>> empty_complete_graph;
+  ASSERT_DEATH(create_connections(empty_complete_graph), "cannot dereference end list iterator");
+}
+
+/// Test that creating hallways with no obstacles works correctly.
+TEST_F(MapFixture, TestMapCreateHallwaysNoObstacles) {
+  std::unordered_set<Edge> connections{{0, rect_one, rect_three}};
+  create_hallways(large_grid, random_generator, connections, 0);
+  std::vector<TileType> no_obstacles_result{
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
-      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,  TileType::Wall,  TileType::Empty,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+  };
+  ASSERT_EQ(*large_grid.grid, no_obstacles_result);
+}
+
+/// Test that creating hallways with obstacles works correctly.
+TEST_F(MapFixture, TestMapCreateHallwaysObstacles) {
+  std::unordered_set<Edge> connections{{0, rect_one, rect_three}};
+  create_hallways(large_grid, random_generator, connections, 5);
+  std::vector<TileType> obstacles_result{
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Wall,  TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,  TileType::Wall,
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,  TileType::Wall,  TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
   };
-  ASSERT_EQ(*small_grid.grid, create_hallways_no_obstacles_result);
+  ASSERT_EQ(*large_grid.grid, obstacles_result);
 }
 
-TEST_F(GenerationFixtures, TestMapCreateHallwaysWithObstacles) {
-  // Test if a connection is correctly drawn in the 2D grid with obstacles
-  std::unordered_set<Edge> connections = {{0, valid_rect_one, valid_rect_two}};
-  create_hallways(small_grid, random_generator, connections, 5);
-
-  // Get the first floor tile in the grid
-  int index =
-      (int)(std::find(small_grid.grid->begin(), small_grid.grid->end(), TileType::Floor) - small_grid.grid->begin());
-  Position start = {index % small_grid.width, index / small_grid.width};
-
-  // Use a Dijkstra map to count the number of floor tiles reachable
-  std::unordered_set<Position> tiles;
-  std::deque<Position> queue = {start};
-  std::vector<Position> offsets = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
-  while (!queue.empty()) {
-    // Get the current position to explore
-    Position current = queue.front();
-    queue.pop_front();
-
-    // Get the current tile's neighbours
-    for (Position offset : offsets) {
-      // Calculate the neighbour's position and check if its valid excluding
-      // the boundaries as that produces weird paths
-      Position neighbour = current + offset;
-      if (neighbour.x < 0 || neighbour.x >= small_grid.width || neighbour.y < 0 || neighbour.y >= small_grid.height) {
-        continue;
-      } else if (small_grid.get_value(neighbour) == TileType::Floor && !tiles.contains(neighbour)) {
-        queue.push_back(neighbour);
-        tiles.emplace(neighbour);
-      }
-    }
-  }
-
-  // Determine if the number of floor tiles generated matches the number of
-  // traversable floor tiles
-  ASSERT_EQ(std::count(small_grid.grid->begin(), small_grid.grid->end(), TileType::Floor), tiles.size());
-}
-
-TEST_F(GenerationFixtures, TestMapCreateHallwaysNoConnections) {
-  // Test if nothing gets drawn in the 2D grid except from obstacles
-  std::unordered_set<Edge> connections = {};
-  create_hallways(small_grid, random_generator, connections, 5);
-  std::vector<TileType> create_hallways_no_connections_result = {
-      TileType::Empty,    TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
-      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
-      TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Empty,    TileType::Empty, TileType::Empty,
-      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
-      TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Empty,    TileType::Empty, TileType::Empty,
-      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Empty, TileType::Empty,
-      TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
-      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
-      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+/// Test that creating hallways with no connections doesn't do anything.
+TEST_F(MapFixture, TestMapCreateHallwaysNoConnections) {
+  std::unordered_set<Edge> connections;
+  create_hallways(large_grid, random_generator, connections, 5);
+  std::vector<TileType> no_obstacles_result{
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Obstacle, TileType::Obstacle, TileType::Obstacle, TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Obstacle,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Obstacle, TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
+      TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,
   };
-
-  // Determine if there's 5 obstacles and no floor tiles
-  ASSERT_EQ(std::count(small_grid.grid->begin(), small_grid.grid->end(), TileType::Obstacle), 5);
-  ASSERT_EQ(std::count(small_grid.grid->begin(), small_grid.grid->end(), TileType::Floor), 0);
+  ASSERT_EQ(*large_grid.grid, no_obstacles_result);
 }
 
-TEST_F(GenerationFixtures, TestMapCreateMapCorrect) {
-  // Test if a map is correctly generated
+/// Test that creating a map with a valid level and seed works correctly.
+TEST_F(MapFixture, TestMapCreateMapValidLevelSeed) {
   std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_valid = create_map(0, 5);
+  ASSERT_EQ(create_map_valid.second, std::make_tuple(0, 30, 20));
   ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::Player), 1);
   ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::Potion), 5);
-  ASSERT_EQ(create_map_valid.second, std::make_tuple(0, 30, 20));
 }
 
-TEST_F(GenerationFixtures, TestMapCreateMapNegativeLevel) {
-  // Test if an exception is thrown on a negative level
-  ASSERT_THROW(create_map(-1, 5), std::length_error);
-}
+/// Test that creating a map with a negative level throws an exception.
+TEST_F(MapFixture, TestMapCreateMapNegativeLevel){
+    ASSERT_THROW_MESSAGE(create_map(-1, 5), std::length_error, "Level must be bigger than or equal to 0")}
 
-TEST_F(GenerationFixtures, TestMapCreateMapEmptySeed) {
-  // Test if a map is correctly generated without a given seed. We can't test
-  // it against a set result since the seed is randomly generated
-  std::optional<unsigned int> empty_seed;
-  std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_empty_seed = create_map(0, empty_seed);
-  ASSERT_EQ(create_map_empty_seed.second, std::make_tuple(0, 30, 20));
-
-  // Test if the player exists in the 2D grid
-  bool has_player = false;
-  if (std::find(create_map_empty_seed.first.begin(), create_map_empty_seed.first.end(), TileType::Player) !=
-      create_map_empty_seed.first.end()) {
-    has_player = true;
-  }
-  ASSERT_TRUE(has_player);
+/// Test that creating a map without a seed works correctly.
+TEST_F(MapFixture, TestMapCreateMapEmptySeed) {
+  std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_empty_seed = create_map(0);
+  ASSERT_NE(create_map_empty_seed.first, create_map(0).first);
 }

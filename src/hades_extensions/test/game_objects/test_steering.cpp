@@ -1,11 +1,6 @@
-// Std includes
-#include <stdexcept>
-
-// External includes
-#include "gtest/gtest.h"
-
-// Custom includes
+// Local headers
 #include "game_objects/steering.hpp"
+#include "macros.hpp"
 
 // ----- TESTS ------------------------------
 /// Test that adding two vectors produce the correct result.
@@ -200,7 +195,7 @@ TEST(Tests, TestFollowPathMultiplePositionsReached) {
 /// Test if an empty list raises the correct exception.
 TEST(Tests, TestFollowPathEmptyList) {
   std::vector<Vec2d> path_list;
-  ASSERT_THROW(follow_path({100, 100}, path_list), std::length_error);
+  ASSERT_THROW_MESSAGE(follow_path({100, 100}, path_list), std::length_error, "The path list is empty")
 }
 
 /// Test if no obstacles produce the correct obstacle avoidance force.

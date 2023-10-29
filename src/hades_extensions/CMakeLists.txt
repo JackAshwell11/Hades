@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.18.2)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -14,62 +15,37 @@ set(CPP_LIB hades_extensions_lib)
 set(TEST_MODULE hades_extensions_tests)
 project(${PY_MODULE} LANGUAGES CXX)
 
-# Get the various paths that will be used as well as all files
-set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
-set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
-set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
-set(BINDING_PATH ${SRC_DIR}/binding.cpp)
-set(HEADER_FILES
-        ${INCLUDE_DIR}/hash_combine.hpp
-        ${INCLUDE_DIR}/macros.hpp
-        ${INCLUDE_DIR}/game_objects/registry.hpp
-        ${INCLUDE_DIR}/game_objects/stats.hpp
-        ${INCLUDE_DIR}/game_objects/steering.hpp
-        ${INCLUDE_DIR}/game_objects/systems/armour_regen.hpp
-        ${INCLUDE_DIR}/game_objects/systems/attacks.hpp
-        ${INCLUDE_DIR}/game_objects/systems/effects.hpp
-        ${INCLUDE_DIR}/game_objects/systems/inventory.hpp
-        ${INCLUDE_DIR}/game_objects/systems/movements.hpp
-        ${INCLUDE_DIR}/game_objects/systems/upgrade.hpp
-        ${INCLUDE_DIR}/generation/astar.hpp
-        ${INCLUDE_DIR}/generation/bsp.hpp
-        ${INCLUDE_DIR}/generation/map.hpp
-        ${INCLUDE_DIR}/generation/primitives.hpp
-)
-set(SOURCE_FILES
-        ${SRC_DIR}/game_objects/registry.cpp
-        ${SRC_DIR}/game_objects/steering.cpp
-        ${SRC_DIR}/game_objects/systems/armour_regen.cpp
-        ${SRC_DIR}/game_objects/systems/attacks.cpp
-        ${SRC_DIR}/game_objects/systems/effects.cpp
-        ${SRC_DIR}/game_objects/systems/inventory.cpp
-        ${SRC_DIR}/game_objects/systems/movements.cpp
-        ${SRC_DIR}/game_objects/systems/upgrade.cpp
-        ${SRC_DIR}/generation/astar.cpp
-        ${SRC_DIR}/generation/bsp.cpp
-        ${SRC_DIR}/generation/map.cpp
-        ${SRC_DIR}/generation/primitives.cpp
-)
-set(TEST_FILES
-        ${TEST_DIR}/game_objects/test_registry.cpp
-        ${TEST_DIR}/game_objects/test_steering.cpp
-        ${TEST_DIR}/game_objects/systems/test_armour_regen.cpp
-        ${TEST_DIR}/game_objects/systems/test_attacks.cpp
-        ${TEST_DIR}/game_objects/systems/test_effects.cpp
-        ${TEST_DIR}/game_objects/systems/test_inventory.cpp
-        ${TEST_DIR}/game_objects/systems/test_movements.cpp
-        ${TEST_DIR}/game_objects/systems/test_upgrade.cpp
-        ${TEST_DIR}/generation/test_astar.cpp
-        ${TEST_DIR}/generation/test_bsp.cpp
-        ${TEST_DIR}/generation/test_map.cpp
-        ${TEST_DIR}/generation/test_primitives.cpp
-)
+# Enable coverage if supported by the compiler
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(STATUS "Compiler is GNU or Clang, coverage enabled")
+    set(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage --coverage")
+else ()
+    message(STATUS "Compiler is not GNU or Clang, coverage disabled")
+endif ()
 
-# Add the src and test directories to the project
+## Enable clang-tidy if found
+#find_program(CLANG_TIDY_EXE NAMES "clang-tidy")
+#if (CLANG_TIDY_EXE)
+#    message(STATUS "Found clang-tidy: ${CLANG_TIDY_EXE}")
+#    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+#else ()
+#    message(STATUS "clang-tidy not found")
+#endif ()
+#
+## Enable cppcheck if found
+#find_program(CPPCHECK_EXE NAMES "cppcheck")
+#if (CPPCHECK_EXE)
+#    message(STATUS "Found cppcheck: ${CPPCHECK_EXE}")
+#    set(CMAKE_CXX_CPPCHECK "${CPPCHECK_EXE}")
+#    list(APPEND CMAKE_CXX_CPPCHECK "--enable=all" "--suppress=missingInclude" "--suppress=missingIncludeSystem")
+#else ()
+#    message(STATUS "cppcheck not found")
+#endif ()
+
+# Add the subdirectories for the different parts of the project
 include(FetchContent)
 add_subdirectory(src)
 add_subdirectory(test)
 
-# TODO: Try and see if include formatting can be improved
-# TODO: Try and have clang-tidy and cppcheck in CI
+# TODO: Should clang-tidy and cppcheck only be run in CI?
 # TODO: Could have yaml/toml/json templates for game objects. Could have it specify tile size, image, attributes, components, etc and they're loaded on startup. Could maybe have this even as public api

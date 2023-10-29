@@ -1,11 +1,11 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std includes
+// Std headers
 #include <numbers>
 #include <unordered_set>
 
-// Custom includes
+// Local headers
 #include "hash_combine.hpp"
 
 // ----- CONSTANTS ------------------------------

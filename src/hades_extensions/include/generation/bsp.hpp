@@ -1,10 +1,10 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std includes
+// Std headers
 #include <random>
 
-// Custom includes
+// Local headers
 #include "primitives.hpp"
 
 // ----- STRUCTURES ------------------------------
@@ -28,27 +28,21 @@ struct Leaf {
 
   /// Initialise the object.
   ///
-  /// @param container_val - The rect object that represents this leaf.
-  explicit Leaf(const Rect &container_val) : container(std::make_unique<Rect>(container_val)) {}
+  /// @param container - The rect object that represents this leaf.
+  explicit Leaf(const Rect &container) : container(std::make_unique<Rect>(container)) {}
 };
 
 // ----- FUNCTIONS -------------------------------
-/// Split a container either horizontally or vertically.
+/// Split a leaf either horizontally or vertically recursively.
 ///
 /// @param leaf - The leaf to split.
-/// @param random_generator - The random generator used to generate the bsp.
-/// @return Whether the split was successful or not.
-bool split(Leaf &leaf, std::mt19937 &random_generator);
+/// @param random_generator - The random generator to use.
+void split(Leaf &leaf, std::mt19937 &random_generator);
 
 /// Create a random sized room inside a container.
 ///
 /// @param leaf - The leaf to create a room inside of.
 /// @param grid - The 2D grid which represents the dungeon.
-/// @param random_generator - The random generator used to generate the bsp.
-/// @return Whether the room creation was successful or not.
-bool create_room(Leaf &leaf, Grid &grid, std::mt19937 &random_generator);
-
-/// TODO: LOOK AT AND MAYBE REMOVE (OR MOVE TO COMMENT IN BSP.HPP)
-/// When creating a container, the split wall is included in the rect size,
-/// whereas, rooms don't so MIN_CONTAINER_SIZE must be bigger than
-/// MIN_ROOM_SIZE.
+/// @param random_generator - The random generator to use.
+/// @param rooms - The vector of rooms to add the new room to.
+void create_room(Leaf &leaf, Grid &grid, std::mt19937 &random_generator, std::vector<Rect> &rooms);

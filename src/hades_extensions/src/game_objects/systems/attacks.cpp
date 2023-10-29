@@ -1,6 +1,7 @@
-// Custom includes
+// Related header
 #include "game_objects/systems/attacks.hpp"
 
+// Local headers
 #include "game_objects/stats.hpp"
 
 // ----- CONSTANTS -------------------------------

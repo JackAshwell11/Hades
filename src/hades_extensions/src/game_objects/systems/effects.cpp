@@ -1,6 +1,7 @@
-// Custom includes
+// Related header
 #include "game_objects/systems/effects.hpp"
 
+// Local headers
 #include "game_objects/stats.hpp"
 
 // ----- STRUCTURES ------------------------------

@@ -1,10 +1,10 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std includes
+// Std headers
 #include <optional>
 
-// Custom includes
+// Local headers
 #include "game_objects/registry.hpp"
 
 // ----- ENUMS ------------------------------

@@ -1,10 +1,4 @@
-// Std includes
-#include <stdexcept>
-
-// External includes
-#include "gtest/gtest.h"
-
-// Custom includes
+// Local headers
 #include "generation/astar.hpp"
 #include "macros.hpp"
 
@@ -24,23 +18,6 @@ class AstarFixture : public testing::Test {
   /// A position on the edge of the grid for use in testing.
   Position position_three{4, 0};
 
-  /// Set up the fixture for the tests.
-  void SetUp() override {
-    grid.grid = std::make_unique<std::vector<TileType>>(std::vector<TileType>{
-        TileType::Obstacle, TileType::Obstacle, TileType::Obstacle, TileType::Obstacle, TileType::Obstacle,
-        TileType::Obstacle, TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,
-        TileType::Empty,    TileType::Obstacle, TileType::Obstacle, TileType::Empty,    TileType::Empty,
-        TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Obstacle, TileType::Empty,
-        TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Obstacle,
-        TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Obstacle,
-        TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty,
-        TileType::Obstacle, TileType::Obstacle, TileType::Empty,    TileType::Empty,    TileType::Empty,
-        TileType::Empty,    TileType::Obstacle, TileType::Obstacle, TileType::Empty,    TileType::Empty,
-        TileType::Empty,    TileType::Empty,    TileType::Obstacle, TileType::Obstacle, TileType::Obstacle,
-        TileType::Obstacle, TileType::Obstacle, TileType::Obstacle, TileType::Obstacle,
-    });
-  }
-
   /// Add obstacles to the grid for use in testing.
   void add_obstacles() {
     grid.set_value({1, 3}, TileType::Obstacle);
@@ -56,27 +33,27 @@ class AstarFixture : public testing::Test {
 // ----- TESTS ------------------------------
 /// Test that A* works in a grid with no obstacles when started in the middle.
 TEST_F(AstarFixture, TestCalculateAstarPathNoObstaclesMiddleStart) {
-  std::vector<Position> no_obstacles_result{{4, 1}, {3, 2}, {2, 3}, {2, 4}, {2, 5}, {2, 6}, {3, 7}};
+  std::vector<Position> no_obstacles_result{{4, 1}, {3, 2}, {2, 3}, {3, 4}, {4, 5}, {4, 6}, {3, 7}};
   ASSERT_EQ(calculate_astar_path(grid, position_one, position_two), no_obstacles_result);
 }
 
 /// Test that A* fails in a grid with no obstacles when ended on the edge.
 TEST_F(AstarFixture, TestCalculateAstarPathNoObstaclesBoundaryEnd) {
-  std::vector<Position> no_obstacles_result;
+  std::vector<Position> no_obstacles_result{{4, 0}, {3, 1}, {3, 2}, {2, 3}, {3, 4}, {4, 5}, {4, 6}, {3, 7}};
   ASSERT_EQ(calculate_astar_path(grid, position_one, position_three), no_obstacles_result);
 }
 
 /// Test that A* works in a grid with obstacles when started in the middle.
 TEST_F(AstarFixture, TestCalculateAstarPathObstaclesMiddleStart) {
   add_obstacles();
-  std::vector<Position> obstacles_result{{4, 1}, {3, 1}, {2, 2}, {2, 3}, {1, 4}, {1, 5}, {2, 6}, {3, 7}};
+  std::vector<Position> obstacles_result{{4, 1}, {4, 2}, {5, 3}, {4, 4}, {3, 5}, {2, 6}, {3, 7}};
   ASSERT_EQ(calculate_astar_path(grid, position_one, position_two), obstacles_result);
 }
 
 /// Test that A* fails in a grid with obstacles when ended on the edge.
 TEST_F(AstarFixture, TestCalculateAstarPathObstaclesBoundaryEnd) {
   add_obstacles();
-  std::vector<Position> obstacles_result;
+  std::vector<Position> obstacles_result{{4, 0}, {3, 1}, {2, 2}, {2, 3}, {3, 4}, {2, 5}, {2, 6}, {3, 7}};
   ASSERT_EQ(calculate_astar_path(grid, position_one, position_three), obstacles_result);
 }
 

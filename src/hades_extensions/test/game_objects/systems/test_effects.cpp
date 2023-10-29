@@ -1,7 +1,4 @@
-// External includes
-#include "gtest/gtest.h"
-
-// Custom includes
+// Local headers
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/effects.hpp"
 #include "macros.hpp"

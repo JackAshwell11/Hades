@@ -1,10 +1,10 @@
-// Std includes
+// Related header
+#include "generation/astar.hpp"
+
+// Std headers
 #include <array>
 #include <queue>
 #include <unordered_map>
-
-// Custom includes
-#include "generation/astar.hpp"
 
 // ----- STRUCTURES ------------------------------
 /// Represents a grid position and its distance from the start position.
@@ -69,9 +69,9 @@ std::vector<Position> calculate_astar_path(const Grid &grid, const Position &sta
     //   g - The distance between the start pair and the neighbour pair
     //   h - The estimated distance from the neighbour pair to the end pair (this uses the Chebyshev distance)
     for (const Position &offset : INTERCARDINAL_OFFSETS) {
-      // Move around the neighbour if it is an obstacle as they have an infinite cost
-      Position neighbour = current + offset;
-      if (neighbour.x < 1 || neighbour.x >= grid.width - 1 || neighbour.y < 1 || neighbour.y >= grid.height - 1) {
+      // Get the neighbour position and check if it is within the grid
+      const Position neighbour = current + offset;
+      if (neighbour.x < 0 || neighbour.y < 0 || neighbour.x >= grid.width || neighbour.y >= grid.height) {
         continue;
       }
 

@@ -7,10 +7,22 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# Create an executable from our test code linking it against GTest and the C++
-# shared library then add it as a test
+# Create an executable from our test code and link it against GTest and the C++ library then add it as a test
 include(CTest)
-add_executable(${TEST_MODULE} ${TEST_FILES})
+add_executable(${TEST_MODULE}
+        ${CMAKE_SOURCE_DIR}/test/game_objects/test_registry.cpp
+        ${CMAKE_SOURCE_DIR}/test/game_objects/test_steering.cpp
+        ${CMAKE_SOURCE_DIR}/test/game_objects/systems/test_armour_regen.cpp
+        ${CMAKE_SOURCE_DIR}/test/game_objects/systems/test_attacks.cpp
+        ${CMAKE_SOURCE_DIR}/test/game_objects/systems/test_effects.cpp
+        ${CMAKE_SOURCE_DIR}/test/game_objects/systems/test_inventory.cpp
+        ${CMAKE_SOURCE_DIR}/test/game_objects/systems/test_movements.cpp
+        ${CMAKE_SOURCE_DIR}/test/game_objects/systems/test_upgrade.cpp
+        ${CMAKE_SOURCE_DIR}/test/generation/test_astar.cpp
+        ${CMAKE_SOURCE_DIR}/test/generation/test_bsp.cpp
+        ${CMAKE_SOURCE_DIR}/test/generation/test_map.cpp
+        ${CMAKE_SOURCE_DIR}/test/generation/test_primitives.cpp
+)
 target_link_libraries(
         ${TEST_MODULE}
         gtest_main

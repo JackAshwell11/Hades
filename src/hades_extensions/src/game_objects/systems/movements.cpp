@@ -1,9 +1,11 @@
-// Std includes
+// Related header
+#include "game_objects/systems/movements.hpp"
+
+// Std headers
 #include <random>
 
-// Custom includes
+// Local headers
 #include "game_objects/stats.hpp"
-#include "game_objects/systems/movements.hpp"
 
 // ----- CONSTANTS ------------------------------
 const double FOOTPRINT_INTERVAL = 0.5;

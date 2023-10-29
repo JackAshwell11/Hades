@@ -1,4 +1,4 @@
-// Custom includes
+// Related header
 #include "game_objects/systems/inventory.hpp"
 
 // ----- STRUCTURES ------------------------------

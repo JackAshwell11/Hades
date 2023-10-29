@@ -1,10 +1,10 @@
-// Std includes
+// Related header
+#include "game_objects/registry.hpp"
+
+// Std headers
 #include <memory>
 #include <typeindex>
 #include <unordered_map>
-
-// Custom includes
-#include "game_objects/registry.hpp"
 
 // ----- CLASSES ------------------------------
 GameObjectID Registry::create_game_object(bool kinematic) {

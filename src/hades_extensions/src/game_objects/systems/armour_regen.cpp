@@ -1,6 +1,7 @@
-// Custom includes
+// Related header
 #include "game_objects/systems/armour_regen.hpp"
 
+// Local headers
 #include "game_objects/stats.hpp"
 
 // ----- CONSTANTS -------------------------------

@@ -1,7 +1,7 @@
 // Ensure this file is only included once
 #pragma once
 
-// External includes
+// External headers
 #include "gtest/gtest.h"
 
 // ----- MACROS ------------------------------
@@ -16,8 +16,3 @@
   } catch (...) {                                                     \
     ADD_FAILURE() << "Expected exception of type " #exception_type;   \
   }
-
-// TODO: Look over generation/ (header, source and test) to make sure it all
-//  conforms to standards set by game_objects/. This includes const, consteval,
-//  constexpr, inline, references, documentation, includes, local fixtures,
-//  constructors, etc

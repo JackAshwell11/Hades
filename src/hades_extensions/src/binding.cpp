@@ -1,11 +1,11 @@
-// Std includes
+// Std headers
 #include <optional>
 
-// External includes
+// External headers
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-// Custom includes
+// Local headers
 #include "game_objects/stats.hpp"
 #include "game_objects/steering.hpp"
 #include "game_objects/systems/armour_regen.hpp"
@@ -23,6 +23,7 @@
 /// @param registry_class - The registry class to bind the method to.
 template <typename... T>
 void bind_components(pybind11::class_<Registry> &registry_class) {
+  // TODO: Fix this binding error
   (registry_class.def("add_component", &Registry::add_component<T>, pybind11::arg("game_object_id"),
                       ("Add a component to a game object in the registry.\n\n"
                        "Args:\n"
