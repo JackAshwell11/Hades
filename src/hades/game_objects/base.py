@@ -1,4 +1,5 @@
 """Stores the foundations for the entity component system and its functionality."""
+
 from __future__ import annotations
 
 # Builtin

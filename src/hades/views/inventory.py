@@ -1,4 +1,5 @@
 """Displays the player's inventory graphically."""
+
 from __future__ import annotations
 
 # Builtin
