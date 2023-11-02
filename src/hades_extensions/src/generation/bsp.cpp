@@ -24,7 +24,7 @@ void split(Leaf &leaf, std::mt19937 &random_generator) {  // NOLINT(misc-no-recu
   } else if (leaf.container->height >= CONTAINER_RATIO * leaf.container->width) {
     split_vertical = false;
   } else {
-    split_vertical = std::uniform_int_distribution<>{0, 1}(random_generator);
+    split_vertical = (std::uniform_int_distribution<>{0, 1}(random_generator) == 1);
   }
 
   // Check if the container is too small to split
@@ -62,6 +62,11 @@ void create_room(Leaf &leaf, Grid &grid, std::mt19937 &random_generator,  // NOL
   if (leaf.left && leaf.right) {
     create_room(*leaf.left, grid, random_generator, rooms);
     create_room(*leaf.right, grid, random_generator, rooms);
+    return;
+  }
+
+  // Check if this leaf is too small to create a room. If the leaf has been split correctly, this should never happen
+  if (leaf.container->width < MIN_ROOM_SIZE || leaf.container->height < MIN_ROOM_SIZE) {
     return;
   }
 

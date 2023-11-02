@@ -23,16 +23,6 @@
 /// @param registry_class - The registry class to bind the method to.
 template <typename... T>
 void bind_components(pybind11::class_<Registry> &registry_class) {
-  // TODO: Fix this binding error
-  (registry_class.def("add_component", &Registry::add_component<T>, pybind11::arg("game_object_id"),
-                      ("Add a component to a game object in the registry.\n\n"
-                       "Args:\n"
-                       "    game_object_id: The game object ID.\n"
-                       "    component: The component to add to the game object.\n\n"
-                       "Raises:\n"
-                       "    RegistryException: If the game object is not registered or if the game object already has "
-                       "the component.")),
-   ...);
   (registry_class.def("get_component", &Registry::get_component<T>, pybind11::arg("game_object_id"),
                       ("Get a component from the registry\n\n"
                        "Args:\n"
@@ -209,6 +199,13 @@ PYBIND11_MODULE(hades_extensions, m) {
             "    component_type: The type of component to check for.\n\n"
             "Returns:\n"
             "    Whether the game object has the component or not."))
+      .def("add_components", &Registry::add_components, pybind11::arg("game_object_id"), pybind11::arg("components"),
+           ("Add multiple components to a game object.\n\n"
+            "Args:\n"
+            "    game_object_id: The game object ID.\n"
+            "    components: The components to add to the game object.\n\n"
+            "Raises:\n"
+            "    RegistryException: If the game object is not registered."))
       .def("update", &Registry::update, pybind11::arg("delta_time"),
            ("Update all systems in the registry.\n\n"
             "Args:\n"
@@ -294,8 +291,7 @@ PYBIND11_MODULE(hades_extensions, m) {
             "Args:\n"
             "    delta_time: The time interval since the last time the function was called."));
 
-  // Add the attack system and the damage system as well as relevant
-  // structures/components
+  // Add the attack system and the damage system as well as relevant structures/components
   pybind11::enum_<AttackAlgorithms>(systems, "AttackAlgorithms",
                                     "Stores the different types of attack algorithms available.")
       .value("AreaOfEffect", AttackAlgorithms::AreaOfEffect)
@@ -381,18 +377,18 @@ PYBIND11_MODULE(hades_extensions, m) {
   pybind11::class_<StatusEffectData>(systems, "StatusEffectData",
                                      "Represents the data required to apply a status effect.")
       .def(pybind11::init<StatusEffectType, ActionFunction, ActionFunction, ActionFunction>(),
-           pybind11::arg("status_effect_type"), pybind11::arg("increase_function"), pybind11::arg("duration_function"),
-           pybind11::arg("interval_function"),
+           pybind11::arg("status_effect_type"), pybind11::arg("increase"), pybind11::arg("duration"),
+           pybind11::arg("interval"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    status_effect_type: The type of status effect.\n"
-            "    increase_function: The increase function to apply.\n"
-            "    duration_function: The duration function to apply.\n"
-            "    interval_function: The interval function to apply."))
+            "    increase: The increase function to apply.\n"
+            "    duration: The duration function to apply.\n"
+            "    interval: The interval function to apply."))
       .def_readwrite("status_effect_type", &StatusEffectData::status_effect_type)
-      .def_readwrite("increase_function", &StatusEffectData::increase_function)
-      .def_readwrite("duration_function", &StatusEffectData::duration_function)
-      .def_readwrite("interval_function", &StatusEffectData::interval_function);
+      .def_readwrite("increase", &StatusEffectData::increase)
+      .def_readwrite("duration", &StatusEffectData::duration)
+      .def_readwrite("interval", &StatusEffectData::interval);
   pybind11::class_<EffectApplier, ComponentBase>(systems, "EffectApplier",
                                                  "Allows a game object to provide instant or status effects.")
       .def(pybind11::init<std::unordered_map<std::type_index, ActionFunction>,
@@ -419,12 +415,12 @@ PYBIND11_MODULE(hades_extensions, m) {
             "Args:\n"
             "    delta_time: The time interval since the last time the function was called."))
       .def("apply_instant_effect", &EffectSystem::apply_instant_effect, pybind11::arg("game_object_id"),
-           pybind11::arg("target_component"), pybind11::arg("increase_function"), pybind11::arg("level"),
+           pybind11::arg("target_component"), pybind11::arg("increase"), pybind11::arg("level"),
            ("Apply an instant effect to a game object.\n\n"
             "Args:\n"
             "    game_object_id: The ID of the game object to apply the effect to.\n"
             "    target_component: The component to apply the effect to.\n"
-            "    increase_function: The increase function to apply.\n"
+            "    increase: The increase function to apply.\n"
             "    level: The level of the effect to apply.\n\n"
             "Raises:\n"
             "    RegistryException: If the game object does not exist or does not have the target component.\n\n"
@@ -484,8 +480,8 @@ PYBIND11_MODULE(hades_extensions, m) {
             "    RegistryException: If the game object does not exist or does not have an inventory component.\n"
             "    InventorySpaceException: If the inventory is empty or if the index is out of bounds."));
 
-  // Add the footprint system, the keyboard movement system, and the steering
-  // movement system as well as relevant structures/components
+  // Add the footprint system, the keyboard movement system, and the steering movement system as well as relevant
+  // structures/components
   pybind11::enum_<SteeringBehaviours>(systems, "SteeringBehaviours",
                                       "Stores the different types of steering behaviours available.")
       .value("Arrive", SteeringBehaviours::Arrive)

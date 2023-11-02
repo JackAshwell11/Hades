@@ -13,7 +13,7 @@ class FootprintSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     registry.create_game_object(true);
-    registry.add_component<Footprints>(0);
+    registry.add_components(0, {std::make_shared<Footprints>()});
     registry.add_system<FootprintSystem>();
     registry.add_system<SteeringMovementSystem>();
   }
@@ -33,8 +33,7 @@ class KeyboardMovementFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     registry.create_game_object(true);
-    registry.add_component<MovementForce>(0, 100, -1);
-    registry.add_component<KeyboardMovement>(0);
+    registry.add_components(0, {std::make_shared<MovementForce>(100, -1), std::make_shared<KeyboardMovement>()});
     registry.add_system<KeyboardMovementSystem>();
   }
 
@@ -56,7 +55,7 @@ class SteeringMovementFixture : public testing::Test {
   void SetUp() override {
     // Create the target game object
     registry.create_game_object(true);
-    registry.add_component<Footprints>(0);
+    registry.add_components(0, {std::make_shared<Footprints>()});
 
     // Create the game object to follow the target and add the required systems
     create_steering_movement_component({});
@@ -77,9 +76,9 @@ class SteeringMovementFixture : public testing::Test {
   /// @return The game object ID of the created game object.
   int create_steering_movement_component(
       const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> &steering_behaviours) {
-    int game_object_id = registry.create_game_object(true);
-    registry.add_component<MovementForce>(game_object_id, 100, -1);
-    registry.add_component<SteeringMovement>(game_object_id, steering_behaviours);
+    const int game_object_id = registry.create_game_object(true);
+    registry.add_components(game_object_id, {std::make_shared<MovementForce>(100, -1),
+                                             std::make_shared<SteeringMovement>(steering_behaviours)});
     registry.get_component<SteeringMovement>(game_object_id)->target_id = 0;
     return game_object_id;
   }
@@ -107,7 +106,7 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeNonEmptyLi
   auto footprints = registry.get_component<Footprints>(0);
   footprints->footprints = {{1, 1}, {2, 2}, {3, 3}};
   get_footprint_system()->update(0.5);
-  std::deque<Vec2d> expected_footprints{{1, 1}, {2, 2}, {3, 3}, {0, 0}};
+  const std::deque<Vec2d> expected_footprints{{1, 1}, {2, 2}, {3, 3}, {0, 0}};
   ASSERT_EQ(footprints->footprints, expected_footprints);
 }
 
@@ -116,8 +115,8 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeFullList) 
   auto footprints = registry.get_component<Footprints>(0);
   footprints->footprints = {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}, {8, 8}, {9, 9}, {10, 10}};
   get_footprint_system()->update(0.5);
-  std::deque<Vec2d> expected_footprints{{2, 2}, {3, 3}, {4, 4}, {5, 5},   {6, 6},
-                                        {7, 7}, {8, 8}, {9, 9}, {10, 10}, {0, 0}};
+  const std::deque<Vec2d> expected_footprints{{2, 2}, {3, 3}, {4, 4}, {5, 5},   {6, 6},
+                                              {7, 7}, {8, 8}, {9, 9}, {10, 10}, {0, 0}};
   ASSERT_EQ(footprints->footprints, expected_footprints);
 }
 
@@ -129,7 +128,7 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateMultipleUpdates) {
   ASSERT_EQ(footprints->time_since_last_footprint, 0);
   registry.get_kinematic_object(0)->position = {1, 1};
   get_footprint_system()->update(0.7);
-  std::deque<Vec2d> expected_footprints{{0, 0}, {1, 1}};
+  const std::deque<Vec2d> expected_footprints{{0, 0}, {1, 1}};
   ASSERT_EQ(footprints->footprints, expected_footprints);
   ASSERT_EQ(footprints->time_since_last_footprint, 0);
 }
@@ -288,7 +287,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceSeek) {
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceWander) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Wander}}});
   registry.get_kinematic_object(2)->velocity = {100, -100};
-  Vec2d steering_force = get_steering_movement_system()->calculate_steering_force(2);
+  const Vec2d steering_force = get_steering_movement_system()->calculate_steering_force(2);
   ASSERT_EQ(round(steering_force.magnitude()), 100);
   ASSERT_NE(steering_force, get_steering_movement_system()->calculate_steering_force(2));
 }
@@ -326,7 +325,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceInvalidG
 /// Test if the path list is updated if the position is within the view distance.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemUpdatePathListWithinDistance) {
   get_steering_movement_system()->update_path_list(0, {{100, 100}, {300, 300}});
-  std::vector<Vec2d> expected_path_list{{100, 100}, {300, 300}};
+  const std::vector<Vec2d> expected_path_list{{100, 100}, {300, 300}};
   ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, expected_path_list);
 }
 
@@ -346,7 +345,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemUpdatePathListEqualDis
 /// Test if the path list is updated if multiple footprints are within view distance.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemUpdatePathListMultiplePoints) {
   get_steering_movement_system()->update_path_list(0, {{100, 100}, {300, 300}, {50, 100}, {500, 500}});
-  std::vector<Vec2d> expected_path_list{{50, 100}, {500, 500}};
+  const std::vector<Vec2d> expected_path_list{{50, 100}, {500, 500}};
   ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, expected_path_list);
 }
 

@@ -15,12 +15,9 @@ class AttackSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    // The lambda function for creating a target
     auto create_target = [&](Vec2d position) {
-      std::vector<std::unique_ptr<ComponentBase>> components;
-      int target = registry.create_game_object(true);
-      registry.add_component<Health>(target, 50, -1);
-      registry.add_component<Armour>(target, 0, -1);
+      const int target = registry.create_game_object(true);
+      registry.add_components(target, {std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1)});
       registry.get_kinematic_object(target)->position = position;
       return target;
     };
@@ -39,8 +36,8 @@ class AttackSystemFixture : public testing::Test {
   /// @tparam T - The type of the component or system.
   /// @param list - The initializer list to pass to the constructor.
   void create_attack_component(const std::vector<AttackAlgorithms> &enabled_attacks) {
-    int game_object_id = registry.create_game_object(true);
-    registry.add_component<Attacks>(game_object_id, enabled_attacks);
+    const int game_object_id = registry.create_game_object(true);
+    registry.add_components(game_object_id, {std::make_shared<Attacks>(enabled_attacks)});
     registry.get_kinematic_object(game_object_id)->rotation = 180;
   }
 
@@ -62,8 +59,7 @@ class DamageSystemFixture : public testing::Test {
   /// Create health and armour attributes for use in testing.
   void create_health_and_armour_attributes() {
     registry.create_game_object();
-    registry.add_component<Health>(0, 300, -1);
-    registry.add_component<Armour>(0, 100, -1);
+    registry.add_components(0, {std::make_shared<Health>(300, -1), std::make_shared<Armour>(100, -1)});
   }
 
   /// Get the damage system from the registry.
@@ -76,7 +72,7 @@ class DamageSystemFixture : public testing::Test {
 /// Test that performing an area of effect attack works correctly.
 TEST_F(AttackSystemFixture, TestAttacksDoAreaOfEffectAttack) {
   create_attack_component({AttackAlgorithms::AreaOfEffect});
-  get_attacks_system()->do_attack(8, targets);
+  ASSERT_FALSE(get_attacks_system()->do_attack(8, targets).has_value());
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
@@ -90,7 +86,7 @@ TEST_F(AttackSystemFixture, TestAttacksDoAreaOfEffectAttack) {
 /// Test that performing a melee attack works correctly.
 TEST_F(AttackSystemFixture, TestAttacksDoMeleeAttack) {
   create_attack_component({AttackAlgorithms::Melee});
-  get_attacks_system()->do_attack(8, targets);
+  ASSERT_FALSE(get_attacks_system()->do_attack(8, targets).has_value());
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 50);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
@@ -105,7 +101,7 @@ TEST_F(AttackSystemFixture, TestAttacksDoMeleeAttack) {
 TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
   // This is due to floating point precision
   create_attack_component({AttackAlgorithms::Ranged});
-  std::tuple<Vec2d, double, double> attack_result = get_attacks_system()->do_attack(8, targets).ranged_attack.value();
+  std::tuple<Vec2d, double, double> attack_result = get_attacks_system()->do_attack(8, targets).value();
   ASSERT_EQ(get<0>(attack_result), Vec2d(0, 0));
   ASSERT_EQ(get<1>(attack_result), -300);
   ASSERT_NEAR(get<2>(attack_result), 0, 1e-13);

@@ -28,14 +28,13 @@ class EffectSystemFixture : public testing::Test {
   /// Create a game object for the instant effect tests.
   void create_instant_game_object() {
     registry.create_game_object();
-    registry.add_component<Stat>(0, 100, -1);
+    registry.add_components(0, {std::make_shared<Stat>(100, -1)});
   }
 
   /// Create a game object for the status effect tests.
   void create_status_game_object() {
     registry.create_game_object();
-    registry.add_component<Stat>(0, 200, -1);
-    registry.add_component<StatusEffects>(0);
+    registry.add_components(0, {std::make_shared<Stat>(200, -1), std::make_shared<StatusEffects>()});
   }
 
   /// Get the effect system from the registry.

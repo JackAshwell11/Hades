@@ -69,18 +69,18 @@ TEST(Tests, TestVec2dNormalised) {
 /// Test that rotating a vector produces the correct result.
 TEST(Tests, TestVec2dRotated) {
   ASSERT_EQ(Vec2d(0, 0).rotated(360 * PI_RADIANS), Vec2d(0, 0));
-  Vec2d rotated_result_one = Vec2d(-3, -2).rotated(270 * PI_RADIANS);
-  ASSERT_DOUBLE_EQ(rotated_result_one.x, -2);
-  ASSERT_DOUBLE_EQ(rotated_result_one.y, 3);
-  Vec2d rotated_result_two = Vec2d(6, 3).rotated(180 * PI_RADIANS);
-  ASSERT_DOUBLE_EQ(rotated_result_two.x, -6);
-  ASSERT_DOUBLE_EQ(rotated_result_two.y, -3);
-  Vec2d rotated_result_three = Vec2d(1, 1).rotated(90 * PI_RADIANS);
-  ASSERT_DOUBLE_EQ(rotated_result_three.x, -1);
-  ASSERT_DOUBLE_EQ(rotated_result_three.y, 1);
-  Vec2d rotated_result_four = Vec2d(-5, 4).rotated(0 * PI_RADIANS);
-  ASSERT_DOUBLE_EQ(rotated_result_four.x, -5);
-  ASSERT_DOUBLE_EQ(rotated_result_four.y, 4);
+  const Vec2d rotated_result_one = Vec2d(-3, -2).rotated(270 * PI_RADIANS);
+  ASSERT_DOUBLE_EQ(rotated_result_one.get_x(), -2);
+  ASSERT_DOUBLE_EQ(rotated_result_one.get_y(), 3);
+  const Vec2d rotated_result_two = Vec2d(6, 3).rotated(180 * PI_RADIANS);
+  ASSERT_DOUBLE_EQ(rotated_result_two.get_x(), -6);
+  ASSERT_DOUBLE_EQ(rotated_result_two.get_y(), -3);
+  const Vec2d rotated_result_three = Vec2d(1, 1).rotated(90 * PI_RADIANS);
+  ASSERT_DOUBLE_EQ(rotated_result_three.get_x(), -1);
+  ASSERT_DOUBLE_EQ(rotated_result_three.get_y(), 1);
+  const Vec2d rotated_result_four = Vec2d(-5, 4).rotated(0 * PI_RADIANS);
+  ASSERT_DOUBLE_EQ(rotated_result_four.get_x(), -5);
+  ASSERT_DOUBLE_EQ(rotated_result_four.get_y(), 4);
 }
 
 /// Test that getting the angle of a vector produces the correct result.
@@ -224,33 +224,33 @@ TEST(Tests, TestObstacleAvoidanceSingleForward) {
 /// Test if a single left obstacle produces the correct obstacle avoidance force.
 TEST(Tests, TestObstacleAvoidanceSingleLeft) {
   // This is due to floating point precision
-  Vec2d single_left_result = obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}});
-  ASSERT_EQ(single_left_result.x, 0.8660254037844387);
-  ASSERT_DOUBLE_EQ(single_left_result.y, -0.5);
+  const Vec2d single_left_result = obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}});
+  ASSERT_EQ(single_left_result.get_x(), 0.8660254037844387);
+  ASSERT_DOUBLE_EQ(single_left_result.get_y(), -0.5);
 }
 
 /// Test if a single right obstacle produces the correct obstacle avoidance force.
 TEST(Tests, TestObstacleAvoidanceSingleRight) {
   // This is due to floating point precision
-  Vec2d single_right_result = obstacle_avoidance({100, 100}, {0, 100}, {{2, 2}});
-  ASSERT_EQ(single_right_result.x, -0.8660254037844386);
-  ASSERT_DOUBLE_EQ(single_right_result.y, -0.5);
+  const Vec2d single_right_result = obstacle_avoidance({100, 100}, {0, 100}, {{2, 2}});
+  ASSERT_EQ(single_right_result.get_x(), -0.8660254037844386);
+  ASSERT_DOUBLE_EQ(single_right_result.get_y(), -0.5);
 }
 
 /// Test if a left and forward obstacle produces the correct obstacle avoidance force.
 TEST(Tests, TestObstacleAvoidanceLeftForward) {
   // This is due to floating point precision
-  Vec2d left_forward_result = obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}});
-  ASSERT_EQ(left_forward_result.x, 0.8660254037844387);
-  ASSERT_DOUBLE_EQ(left_forward_result.y, -0.5);
+  const Vec2d left_forward_result = obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}});
+  ASSERT_EQ(left_forward_result.get_x(), 0.8660254037844387);
+  ASSERT_DOUBLE_EQ(left_forward_result.get_y(), -0.5);
 }
 
 /// Test if a right and forward obstacle produces the correct obstacle avoidance force.
 TEST(Tests, TestObstacleAvoidanceRightForward) {
   // This is due to floating point precision
-  Vec2d right_forward_result = obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}, {2, 2}});
-  ASSERT_EQ(right_forward_result.x, -0.8660254037844386);
-  ASSERT_DOUBLE_EQ(right_forward_result.y, -0.5);
+  const Vec2d right_forward_result = obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}, {2, 2}});
+  ASSERT_EQ(right_forward_result.get_x(), -0.8660254037844386);
+  ASSERT_DOUBLE_EQ(right_forward_result.get_y(), -0.5);
 }
 
 /// Test if all three obstacles produce the correct obstacle avoidance force.
@@ -303,9 +303,9 @@ TEST(Tests, TestSeekNegativePositions) { ASSERT_EQ(seek({-50, -50}, {-50, -50}),
 /// Test if a non-moving game object produces the correct wander force.
 TEST(Tests, TestWanderNonMoving) {
   // This is due to floating point precision
-  Vec2d non_moving_result = wander({0, 0}, 60);
-  ASSERT_EQ(non_moving_result.x, 0.8660254037844385);
-  ASSERT_DOUBLE_EQ(non_moving_result.y, -0.5);
+  const Vec2d non_moving_result = wander({0, 0}, 60);
+  ASSERT_EQ(non_moving_result.get_x(), 0.8660254037844385);
+  ASSERT_DOUBLE_EQ(non_moving_result.get_y(), -0.5);
 }
 
 /// Test if a moving game object produces the correct wander force.

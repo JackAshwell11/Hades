@@ -12,7 +12,7 @@ class InventorySystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     registry.create_game_object();
-    registry.add_component<Inventory>(0, 3, 6);
+    registry.add_components(0, {std::make_shared<Inventory>(3, 6)});
     registry.add_system<InventorySystem>();
   }
 
@@ -51,7 +51,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryInvalidGameO
 
 /// Test that a valid item is removed from the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
-  std::vector<int> result{1, 4};
+  const std::vector<int> result{1, 4};
   get_inventory_system()->add_item_to_inventory(0, 1);
   get_inventory_system()->add_item_to_inventory(0, 7);
   get_inventory_system()->add_item_to_inventory(0, 4);

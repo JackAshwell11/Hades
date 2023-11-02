@@ -15,8 +15,7 @@ class ArmourRegenSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     registry.create_game_object();
-    registry.add_component<Armour>(0, 50, -1);
-    registry.add_component<ArmourRegen>(0, 4, -1);
+    registry.add_components(0, {std::make_shared<Armour>(50, -1), std::make_shared<ArmourRegen>(4, -1)});
     registry.add_system<ArmourRegenSystem>();
   }
 

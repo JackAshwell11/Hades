@@ -33,33 +33,33 @@ class AstarFixture : public testing::Test {
 // ----- TESTS ------------------------------
 /// Test that A* works in a grid with no obstacles when started in the middle.
 TEST_F(AstarFixture, TestCalculateAstarPathNoObstaclesMiddleStart) {
-  std::vector<Position> no_obstacles_result{{4, 1}, {3, 2}, {2, 3}, {3, 4}, {4, 5}, {4, 6}, {3, 7}};
+  const std::vector<Position> no_obstacles_result{{4, 1}, {3, 2}, {2, 3}, {3, 4}, {4, 5}, {4, 6}, {3, 7}};
   ASSERT_EQ(calculate_astar_path(grid, position_one, position_two), no_obstacles_result);
 }
 
 /// Test that A* fails in a grid with no obstacles when ended on the edge.
 TEST_F(AstarFixture, TestCalculateAstarPathNoObstaclesBoundaryEnd) {
-  std::vector<Position> no_obstacles_result{{4, 0}, {3, 1}, {3, 2}, {2, 3}, {3, 4}, {4, 5}, {4, 6}, {3, 7}};
+  const std::vector<Position> no_obstacles_result{{4, 0}, {3, 1}, {3, 2}, {2, 3}, {3, 4}, {4, 5}, {4, 6}, {3, 7}};
   ASSERT_EQ(calculate_astar_path(grid, position_one, position_three), no_obstacles_result);
 }
 
 /// Test that A* works in a grid with obstacles when started in the middle.
 TEST_F(AstarFixture, TestCalculateAstarPathObstaclesMiddleStart) {
   add_obstacles();
-  std::vector<Position> obstacles_result{{4, 1}, {4, 2}, {5, 3}, {4, 4}, {3, 5}, {2, 6}, {3, 7}};
+  const std::vector<Position> obstacles_result{{4, 1}, {4, 2}, {5, 3}, {4, 4}, {3, 5}, {2, 6}, {3, 7}};
   ASSERT_EQ(calculate_astar_path(grid, position_one, position_two), obstacles_result);
 }
 
 /// Test that A* fails in a grid with obstacles when ended on the edge.
 TEST_F(AstarFixture, TestCalculateAstarPathObstaclesBoundaryEnd) {
   add_obstacles();
-  std::vector<Position> obstacles_result{{4, 0}, {3, 1}, {2, 2}, {2, 3}, {3, 4}, {2, 5}, {2, 6}, {3, 7}};
+  const std::vector<Position> obstacles_result{{4, 0}, {3, 1}, {2, 2}, {2, 3}, {3, 4}, {2, 5}, {2, 6}, {3, 7}};
   ASSERT_EQ(calculate_astar_path(grid, position_one, position_three), obstacles_result);
 }
 
 /// Test that A* fails in an empty grid.
 TEST_F(AstarFixture, TestCalculateAstarPathEmptyGrid) {
-  Grid empty_grid{0, 0};
+  const Grid empty_grid{0, 0};
   ASSERT_THROW_MESSAGE(calculate_astar_path(empty_grid, position_one, position_two), std::length_error,
                        "Grid size must be bigger than 0.")
 }

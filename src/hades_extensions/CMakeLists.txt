@@ -47,5 +47,7 @@ include(FetchContent)
 add_subdirectory(src)
 add_subdirectory(test)
 
+# TODO: Go over all clang-tidy and cppcheck rules and decide which ones to enable
+# TODO: Add stub files and modify Python game to use new ECS
 # TODO: Should clang-tidy and cppcheck only be run in CI?
 # TODO: Could have yaml/toml/json templates for game objects. Could have it specify tile size, image, attributes, components, etc and they're loaded on startup. Could maybe have this even as public api

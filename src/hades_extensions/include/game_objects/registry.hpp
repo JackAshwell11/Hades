@@ -21,26 +21,81 @@ using ObjectType = std::type_index;
 // Add a forward declaration for the registry class
 class Registry;
 
+// todo: see if these need to be virtual or are needed
+
 /// The base class for all components.
 struct ComponentBase {
   /// The virtual destructor.
   virtual ~ComponentBase() = default;
+
+  /// The default constructor.
+  ComponentBase() = default;
+
+  /// The copy constructor.
+  ///
+  /// @param other - The other component to copy.
+  ComponentBase(const ComponentBase &) = default;
+
+  /// The copy assignment operator.
+  ///
+  /// @param other - The other component to copy.
+  ComponentBase &operator=(const ComponentBase &) = default;
+
+  /// The move constructor.
+  ///
+  /// @param other - The other component to move.
+  ComponentBase(ComponentBase &&) = default;
+
+  /// The move assignment operator.
+  ///
+  /// @param other - The other component to move.
+  ComponentBase &operator=(ComponentBase &&) = default;
 };
 
 /// The base class for all systems.
-struct SystemBase {
-  ///
-  Registry &registry;
+class SystemBase {
+ public:
+  /// The virtual destructor.
+  virtual ~SystemBase() = default;
 
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit SystemBase(Registry &registry) : registry(registry) {}
+  explicit SystemBase(Registry *registry) : registry(registry) {}
+
+  /// The copy constructor.
+  ///
+  /// @param other - The other system to copy.
+  SystemBase(const SystemBase &) = default;
+
+  /// The copy assignment operator.
+  ///
+  /// @param other - The other system to copy.
+  SystemBase &operator=(const SystemBase &) = default;
+
+  /// The move constructor.
+  ///
+  /// @param other - The other system to move.
+  SystemBase(SystemBase &&) = default;
+
+  /// The move assignment operator.
+  ///
+  /// @param other - The other system to move.
+  SystemBase &operator=(SystemBase &&) = default;
+
+  /// Get the registry that manages the game objects, components, and systems.
+  ///
+  /// @return The registry that manages the game objects, components, and systems.
+  [[nodiscard]] inline Registry *get_registry() const { return registry; }
 
   /// Process update logic for a system.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  virtual void update(double delta_time){};
+  virtual void update(double delta_time) const {};
+
+ private:
+  /// The registry that manages the game objects, components, and systems.
+  Registry *registry;
 };
 
 // ----- EXCEPTIONS ------------------------------
@@ -101,29 +156,12 @@ class Registry {
     return components_.contains(component_type) && components_.at(component_type).contains(game_object_id);
   }
 
-  /// Add a component to a game object in the registry.
+  /// Add multiple components to a game object.
   ///
-  /// @tparam ComponentType - The type of component to add.
-  /// @tparam Args - The types of arguments to pass to the component constructor.
   /// @param game_object_id - The game object ID.
-  /// @param args - The arguments to pass to the component constructor.
-  /// @throws RegistryException - If the game object is not registered or if the game object already has the component.
-  template <typename ComponentType, typename... Args>
-  void add_component(GameObjectID game_object_id, Args &&...args) {
-    // Check if the game object is registered or not
-    if (!game_objects_.contains(game_object_id)) {
-      throw RegistryException("game object", game_object_id);
-    }
-
-    // Check if the component already exists in the registry
-    if (has_component(game_object_id, typeid(ComponentType))) {
-      return;
-    }
-
-    // Add the component to the registry
-    components_[typeid(ComponentType)].insert(game_object_id);
-    game_objects_[game_object_id][typeid(ComponentType)] = std::make_shared<ComponentType>(std::forward<Args>(args)...);
-  }
+  /// @param components - The components to add to the game object.
+  /// @throws RegistryException - If the game object is not registered.
+  void add_components(GameObjectID game_object_id, const std::vector<std::shared_ptr<ComponentBase>> &components);
 
   /// Get a component from the registry.
   ///
@@ -155,14 +193,13 @@ class Registry {
     std::vector<std::tuple<GameObjectID, std::tuple<std::shared_ptr<Ts>...>>> components;
 
     // Iterate over all game objects
-    for (auto &[game_object_id, game_object_components] : game_objects_) {
+    for (const auto &[game_object_id, game_object_components] : game_objects_) {
       // Check if the game object has all the components using a fold expression
       if (!(has_component(game_object_id, typeid(Ts)) && ...)) {
         continue;
       }
 
-      // Game object has all the components, so cast them to T and add them to
-      // the vector
+      // Game object has all the components, so cast them to T and add them to the vector
       auto components_result = std::make_tuple(std::static_pointer_cast<Ts>(game_object_components.at(typeid(Ts)))...);
       components.emplace_back(game_object_id, components_result);
     }
@@ -184,7 +221,7 @@ class Registry {
     }
 
     // Add the system to the registry
-    systems_[system_type] = std::make_shared<SystemType>(*this);
+    systems_[system_type] = std::make_shared<SystemType>(this);
   }
 
   /// Find a system in the registry.
@@ -208,7 +245,7 @@ class Registry {
   ///
   /// @param delta_time - The time interval since the last time the function was called.
   inline void update(double delta_time) const {
-    for (auto &[_, system] : systems_) {
+    for (const auto &[_, system] : systems_) {
       system->update(delta_time);
     }
   }

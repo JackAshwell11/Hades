@@ -36,7 +36,7 @@ struct MapGenerationConstant {
   /// @param level - The game level to generate a value for.
   /// @return The generated value.
   [[nodiscard]] inline int generate_value(const int level) const {
-    return (int)std::min(round(base_value * pow(increase, level)), max_value);
+    return static_cast<int>(std::min(round(base_value * pow(increase, level)), max_value));
   }
 };
 
@@ -99,6 +99,11 @@ std::unordered_map<Rect, std::vector<Rect>> create_complete_graph(const std::vec
 }
 
 std::unordered_set<Edge> create_connections(const std::unordered_map<Rect, std::vector<Rect>> &complete_graph) {
+  // Check if the complete_graph is empty
+  if (complete_graph.empty()) {
+    throw std::length_error("Complete graph size must be bigger than 0.");
+  }
+
   // Use Prim's algorithm to construct a minimum spanning tree from complete_graph
   const Rect start = complete_graph.begin()->first;
   std::priority_queue<Edge> unexplored;
@@ -107,7 +112,7 @@ std::unordered_set<Edge> create_connections(const std::unordered_map<Rect, std::
   unexplored.emplace(0, start, start);
   while (mst.size() < complete_graph.size() && !unexplored.empty()) {
     // Get the neighbour with the lowest cost
-    Edge lowest = unexplored.top();
+    const Edge lowest = unexplored.top();
     unexplored.pop();
 
     // Check if the neighbour is already visited or not
@@ -161,7 +166,7 @@ std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(const int
                                                                        std::optional<unsigned int> seed) {
   // Check that the level number is valid
   if (level < 0) {
-    throw std::length_error("Level must be bigger than or equal to 0");
+    throw std::length_error("Level must be bigger than or equal to 0.");
   }
 
   // Create the random generator generating a seed if one isn't provided

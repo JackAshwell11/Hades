@@ -20,15 +20,15 @@ struct TestGameObjectComponentTwo : public ComponentBase {
 /// Represents a test system useful for testing.
 struct TestSystem : public SystemBase {
   /// Whether the system has been called or not.
-  bool called = false;
+  mutable bool called{false};
 
   /// Initialise the system.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit TestSystem(Registry &registry) : SystemBase(registry) {}
+  explicit TestSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Update the system.
-  void update(double delta_time) final { called = true; }
+  void update(double /*delta_time*/) const final { called = true; }
 };
 
 // ----- FIXTURES ------------------------------
@@ -43,7 +43,7 @@ class RegistryFixture : public testing::Test {
 /// Test that an exception is thrown if a component is not registered.
 TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
   ASSERT_EQ(registry.create_game_object({}), 0);
-  ASSERT_THROW_MESSAGE(registry.add_component<TestGameObjectComponentOne>(1), RegistryException,
+  ASSERT_THROW_MESSAGE(registry.add_components(1, {std::make_shared<TestGameObjectComponentOne>()}), RegistryException,
                        "The game object `1` is not registered with the registry.")
   ASSERT_THROW_MESSAGE(registry.get_component<TestGameObjectComponentOne>(0), RegistryException,
                        "The game object `0` is not registered with the registry.")
@@ -61,8 +61,8 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
   // Test that creating the game object works correctly
   std::vector<int> test_list{10};
   registry.create_game_object();
-  registry.add_component<TestGameObjectComponentOne>(0);
-  registry.add_component<TestGameObjectComponentTwo>(0, test_list);
+  registry.add_components(
+      0, {std::make_shared<TestGameObjectComponentOne>(), std::make_shared<TestGameObjectComponentTwo>(test_list)});
   ASSERT_NE(registry.get_component<TestGameObjectComponentOne>(0), nullptr);
   ASSERT_NE(registry.get_component(0, typeid(TestGameObjectComponentTwo)), nullptr);
   ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 1);
@@ -86,7 +86,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
 TEST_F(RegistryFixture, TestRegistryGameObjectKinematic) {
   // Test that creating the kinematic game object works correctly
   registry.create_game_object(true);
-  std::shared_ptr<KinematicObject> kinematic_object = registry.get_kinematic_object(0);
+  const std::shared_ptr<KinematicObject> kinematic_object = registry.get_kinematic_object(0);
   ASSERT_EQ(kinematic_object->position, Vec2d(0, 0));
   ASSERT_EQ(kinematic_object->velocity, Vec2d(0, 0));
   ASSERT_EQ(kinematic_object->rotation, 0);
@@ -102,10 +102,10 @@ TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
   // Test that creating two game objects works correctly
   std::vector<int> test_list{10};
   ASSERT_EQ(registry.create_game_object(), 0);
-  registry.add_component<TestGameObjectComponentOne>(0);
+  registry.add_components(0, {std::make_shared<TestGameObjectComponentOne>()});
   ASSERT_EQ(registry.create_game_object(), 1);
-  registry.add_component<TestGameObjectComponentOne>(1);
-  registry.add_component<TestGameObjectComponentTwo>(1, test_list);
+  registry.add_components(
+      1, {std::make_shared<TestGameObjectComponentOne>(), std::make_shared<TestGameObjectComponentTwo>(test_list)});
   ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 2);
   ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), 1);
   auto multiple_result_one = registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>().size();
@@ -121,14 +121,27 @@ TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
 
 /// Test that a game object with duplicate components is added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryGameObjectDuplicateComponents) {
-  // Test that creating a game object with two of the same components only adds
-  // the first one
+  // Test that creating a game object with two of the same components only adds the first one
   std::vector<int> test_list_one{10};
   std::vector<int> test_list_two{20};
   registry.create_game_object();
-  registry.add_component<TestGameObjectComponentTwo>(0, test_list_one);
-  registry.add_component<TestGameObjectComponentTwo>(0, test_list_two);
+  registry.add_components(0, {std::make_shared<TestGameObjectComponentTwo>(test_list_one),
+                              std::make_shared<TestGameObjectComponentTwo>(test_list_two)});
   ASSERT_EQ(registry.get_component<TestGameObjectComponentTwo>(0)->test_list[0], 10);
+}
+
+/// Test that passing the same component to multiple game objects works correctly.
+TEST_F(RegistryFixture, TestRegistryGameObjectSameComponent) {
+  std::vector<int> test_list{10};
+  const std::shared_ptr<TestGameObjectComponentTwo> component_one =
+      std::make_shared<TestGameObjectComponentTwo>(test_list);
+  registry.create_game_object();
+  registry.create_game_object();
+  registry.add_components(0, {component_one});
+  registry.add_components(1, {component_one});
+  registry.get_component<TestGameObjectComponentTwo>(0)->test_list[0] = 20;
+  ASSERT_EQ(registry.get_component<TestGameObjectComponentTwo>(0)->test_list[0], 20);
+  ASSERT_EQ(registry.get_component<TestGameObjectComponentTwo>(1)->test_list[0], 20);
 }
 
 /// Test that an exception is thrown if a system is not registered.
@@ -139,6 +152,9 @@ TEST_F(RegistryFixture, TestRegistryZeroSystems){
 /// Test that a system is updated correctly.
 TEST_F(RegistryFixture, TestRegistrySystemUpdate) {
   // Test that the system is added correctly
+  std::vector<int> test_list{10};
+  registry.create_game_object();
+  registry.add_components(0, {std::make_shared<TestGameObjectComponentTwo>(test_list)});
   registry.add_system<TestSystem>();
   ASSERT_THROW_MESSAGE(registry.add_system<TestSystem>(), RegistryException,
                        "The system `struct TestSystem` is already registered with the registry.")

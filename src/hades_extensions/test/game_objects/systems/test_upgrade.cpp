@@ -18,11 +18,10 @@ class UpgradeSystemFixture : public testing::Test {
   /// @param value - The value of the game object.
   /// @param max_level - The maximum level of the game object.
   void create_game_object(int value, int max_level) {
-    std::unordered_map<std::type_index, std::function<double(int)>> upgrades{
+    const std::unordered_map<std::type_index, ActionFunction> upgrades{
         {typeid(Stat), [](int level) { return 150 * (level + 1); }}};
     registry.create_game_object();
-    registry.add_component<Stat>(0, value, max_level);
-    registry.add_component<Upgrades>(0, upgrades);
+    registry.add_components(0, {std::make_shared<Stat>(value, max_level), std::make_shared<Upgrades>(upgrades)});
   }
 
   /// Create a game object that is upgradable multiple times.

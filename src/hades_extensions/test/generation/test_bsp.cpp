@@ -26,8 +26,8 @@ TEST_F(BspFixture, TestBspSplitVertical) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  Rect left_container{{0, 0}, {7, 10}};
-  Rect right_container{{9, 0}, {15, 10}};
+  const Rect left_container{{0, 0}, {7, 10}};
+  const Rect right_container{{9, 0}, {15, 10}};
   ASSERT_EQ(*leaf.left->container, left_container);
   ASSERT_EQ(*leaf.right->container, right_container);
 }
@@ -39,8 +39,8 @@ TEST_F(BspFixture, TestBspSplitHorizontal) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  Rect left_container{{0, 0}, {10, 7}};
-  Rect right_container{{0, 9}, {10, 15}};
+  const Rect left_container{{0, 0}, {10, 7}};
+  const Rect right_container{{0, 9}, {10, 15}};
   ASSERT_EQ(*leaf.left->container, left_container);
   ASSERT_EQ(*leaf.right->container, right_container);
 }
@@ -52,8 +52,8 @@ TEST_F(BspFixture, TestBspSplitRandom) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  Rect left_container{{0, 0}, {7, 15}};
-  Rect right_container{{9, 0}, {15, 15}};
+  const Rect left_container{{0, 0}, {7, 15}};
+  const Rect right_container{{9, 0}, {15, 15}};
   ASSERT_EQ(*leaf.left->container, left_container);
   ASSERT_EQ(*leaf.right->container, right_container);
 }
@@ -65,12 +65,12 @@ TEST_F(BspFixture, TestBspSplitMultiple) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  Rect left_container{{0, 0}, {10, 20}};
-  Rect left_left_container{{0, 0}, {10, 11}};
-  Rect left_right_container{{0, 13}, {10, 20}};
-  Rect right_container{{12, 0}, {20, 20}};
-  Rect right_left_container{{12, 0}, {20, 10}};
-  Rect right_right_container{{12, 12}, {20, 20}};
+  const Rect left_container{{0, 0}, {10, 20}};
+  const Rect left_left_container{{0, 0}, {10, 11}};
+  const Rect left_right_container{{0, 13}, {10, 20}};
+  const Rect right_container{{12, 0}, {20, 20}};
+  const Rect right_left_container{{12, 0}, {20, 10}};
+  const Rect right_right_container{{12, 12}, {20, 20}};
   ASSERT_EQ(*leaf.left->container, left_container);
   ASSERT_EQ(*leaf.left->left->container, left_left_container);
   ASSERT_EQ(*leaf.left->right->container, left_right_container);
@@ -88,8 +88,8 @@ TEST_F(BspFixture, TestBspSplitExistingChildren) {
   split(leaf, random_generator);
 
   // Make sure the children haven't changed
-  Rect left_container{{0, 0}, {0, 0}};
-  Rect right_container{{0, 0}, {0, 0}};
+  const Rect left_container{{0, 0}, {0, 0}};
+  const Rect right_container{{0, 0}, {0, 0}};
   ASSERT_EQ(*leaf.left->container, left_container);
   ASSERT_EQ(*leaf.right->container, right_container);
 }
@@ -102,8 +102,8 @@ TEST_F(BspFixture, TestBspSplitSingleChild) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  Rect left_container{{0, 0}, {7, 15}};
-  Rect right_container{{9, 0}, {15, 15}};
+  const Rect left_container{{0, 0}, {7, 15}};
+  const Rect right_container{{9, 0}, {15, 15}};
   ASSERT_EQ(*leaf.left->container, left_container);
   ASSERT_EQ(*leaf.right->container, right_container);
 }
@@ -124,7 +124,7 @@ TEST_F(BspFixture, TestBspCreateRoomSingleLeaf) {
   create_room(leaf, grid, random_generator, rooms);
 
   // Make sure the room is correct
-  Rect room{{4, 4}, {13, 14}};
+  const Rect room{{4, 4}, {13, 14}};
   ASSERT_EQ(*leaf.room, room);
   ASSERT_EQ(rooms.size(), 1);
 }
@@ -139,8 +139,8 @@ TEST_F(BspFixture, TestBspCreateRoomChildLeafs) {
   create_room(leaf, grid, random_generator, rooms);
 
   // Make sure the room is correct
-  Rect left_room{{2, 0}, {6, 6}};
-  Rect right_room{{9, 4}, {14, 10}};
+  const Rect left_room{{2, 0}, {6, 6}};
+  const Rect right_room{{9, 4}, {14, 10}};
   ASSERT_EQ(*leaf.left->room, left_room);
   ASSERT_EQ(*leaf.right->room, right_room);
   ASSERT_EQ(rooms.size(), 2);
@@ -155,16 +155,16 @@ TEST_F(BspFixture, TestBspCreateRoomExistingRoom) {
   create_room(leaf, grid, random_generator, rooms);
 
   // Make sure the room is correct
-  Rect room{{4, 4}, {13, 14}};
+  const Rect room{{4, 4}, {13, 14}};
   ASSERT_EQ(*leaf.room, room);
   ASSERT_EQ(rooms.size(), 1);
 }
 
-/// Test that the create_room function raises an error if the leaf is too small.
+/// Test that the create_room function throws an exception if the leaf is too small.
 TEST_F(BspFixture, TestBspCreateRoomTooSmallLeaf) {
   std::vector<Rect> rooms;
   Leaf leaf{{{0, 0}, {0, 0}}};
-  ASSERT_DEATH(create_room(leaf, grid, random_generator, rooms), "invalid min and max arguments for uniform_int");
+  create_room(leaf, grid, random_generator, rooms);
   ASSERT_EQ(leaf.room, nullptr);
   ASSERT_TRUE(rooms.empty());
 }

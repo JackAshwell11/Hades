@@ -9,31 +9,22 @@
 struct Money : public ComponentBase {
   /// The amount of money the game object has.
   int money;
-
-  /// Initialise the object.
-  ///
-  /// @param money - The amount of money the game object has.
-  explicit Money(int money) : money(money) {}
 };
 
 /// Allows a game object to be upgraded.
 struct Upgrades : public ComponentBase {
   /// The upgrades the game object has.
   std::unordered_map<std::type_index, ActionFunction> upgrades;
-
-  /// Initialise the object.
-  ///
-  /// @param upgrades - The upgrades the game object has.
-  explicit Upgrades(std::unordered_map<std::type_index, ActionFunction> upgrades) : upgrades(std::move(upgrades)) {}
 };
 
 // ----- SYSTEMS --------------------------------
 /// Provides facilities to manipulate game object upgrades.
-struct UpgradeSystem : public SystemBase {
+class UpgradeSystem : public SystemBase {
+ public:
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit UpgradeSystem(Registry &registry) : SystemBase(registry) {}
+  explicit UpgradeSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Upgrade a component to the next level if possible.
   ///
@@ -41,5 +32,5 @@ struct UpgradeSystem : public SystemBase {
   /// @param target_component - The type of component to upgrade.
   /// @throws RegistryException if the game object does not exist or does not have the target component.
   /// @return Whether the component upgrade was successful or not.
-  bool upgrade_component(GameObjectID game_object_id, const std::type_index &target_component);
+  [[nodiscard]] bool upgrade_component(GameObjectID game_object_id, const std::type_index &target_component) const;
 };

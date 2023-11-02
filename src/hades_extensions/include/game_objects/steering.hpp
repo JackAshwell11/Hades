@@ -16,7 +16,8 @@ constexpr double SPRITE_SIZE = 128 * SPRITE_SCALE;
 
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D vector.
-struct Vec2d {
+class Vec2d {
+ public:
   inline bool operator==(const Vec2d &vec) const { return x == vec.x && y == vec.y; }
 
   inline bool operator!=(const Vec2d &vec) const { return x != vec.x || y != vec.y; }
@@ -35,17 +36,21 @@ struct Vec2d {
 
   inline Vec2d operator/(const double val) const { return {std::floor(x / val), std::floor(y / val)}; }
 
-  /// The x value of the vector.
-  double x;
-
-  /// The y value of the vector.
-  double y;
-
   /// Initialise the object.
   ///
   /// @param x - The x value of the vector.
   /// @param y - The y value of the vector.
   Vec2d(double x, double y) : x(x), y(y) {}
+
+  /// Get the x value of the vector.
+  ///
+  /// @return The x value of the vector.
+  [[nodiscard]] inline double get_x() const { return x; }
+
+  /// Get the y value of the vector.
+  ///
+  /// @return The y value of the vector.
+  [[nodiscard]] inline double get_y() const { return y; }
 
   /// Get the magnitude of the vector.
   ///
@@ -56,7 +61,7 @@ struct Vec2d {
   ///
   /// @return The normalised vector.
   [[nodiscard]] inline Vec2d normalised() const {
-    double magnitude = this->magnitude();
+    const double magnitude = this->magnitude();
     return (magnitude == 0) ? Vec2d{0, 0} : Vec2d{x / magnitude, y / magnitude};
   }
 
@@ -66,8 +71,8 @@ struct Vec2d {
   ///
   /// @return The rotated vector.
   [[nodiscard]] inline Vec2d rotated(double angle) const {
-    double cos_angle = std::cos(angle);
-    double sin_angle = std::sin(angle);
+    const double cos_angle = std::cos(angle);
+    const double sin_angle = std::sin(angle);
     return {x * cos_angle - y * sin_angle, x * sin_angle + y * cos_angle};
   }
 
@@ -77,8 +82,8 @@ struct Vec2d {
   /// @param other - The other vector to get the angle between.
   /// @return The angle between the two vectors.
   [[nodiscard]] double angle_between(const Vec2d &other) const {
-    double cross_product = x * other.y - y * other.x;
-    double dot_product = x * other.x + y * other.y;
+    const double cross_product = x * other.y - y * other.x;
+    const double dot_product = x * other.x + y * other.y;
     return std::fmod(std::atan2(cross_product, dot_product) + TWO_PI, TWO_PI);
   }
 
@@ -87,6 +92,13 @@ struct Vec2d {
   /// @param other - The vector to get the distance to.
   /// @return The distance to the other vector.
   [[nodiscard]] inline double distance_to(const Vec2d &other) const { return std::hypot(x - other.x, y - other.y); }
+
+ private:
+  /// The x value of the vector.
+  double x;
+
+  /// The y value of the vector.
+  double y;
 };
 
 /// Stores various data about a game object for use in physics-related operations.
@@ -98,7 +110,7 @@ struct KinematicObject {
   Vec2d velocity{0, 0};
 
   /// The rotation of the game object.
-  double rotation = 0;
+  double rotation{0};
 };
 
 // ----- HASHES ------------------------------
@@ -106,8 +118,8 @@ template <>
 struct std::hash<Vec2d> {
   size_t operator()(const Vec2d &vec) const {
     size_t res = 0;
-    hash_combine(res, vec.x);
-    hash_combine(res, vec.y);
+    hash_combine(res, vec.get_x());
+    hash_combine(res, vec.get_y());
     return res;
   }
 };

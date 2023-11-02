@@ -30,27 +30,17 @@ struct Inventory : public ComponentBase {
   int height;
 
   /// The game object's inventory.
-  std::vector<int> items;
-
-  /// Initialise the object.
-  ///
-  /// @param width - The width of the inventory.
-  /// @param height - The height of the inventory.
-  Inventory(int width, int height) : width(width), height(height) {}
-
-  /// Get the capacity of the inventory.
-  ///
-  /// @return The capacity of the inventory.
-  [[nodiscard]] inline int get_capacity() const { return width * height; }
+  std::vector<int> items{};
 };
 
 // ----- SYSTEMS --------------------------------
 /// Provides facilities to manipulate inventory components.
-struct InventorySystem : public SystemBase {
+class InventorySystem : public SystemBase {
+ public:
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit InventorySystem(Registry &registry) : SystemBase(registry) {}
+  explicit InventorySystem(Registry *registry) : SystemBase(registry) {}
 
   /// Add an item to the inventory of a game object.
   ///
@@ -58,7 +48,7 @@ struct InventorySystem : public SystemBase {
   /// @param item - The item to add to the inventory.
   /// @throws RegistryException - If the game object does not exist or does not have an inventory component.
   /// @throws InventorySpaceException - If the inventory is full.
-  void add_item_to_inventory(GameObjectID game_object_id, GameObjectID item);
+  void add_item_to_inventory(GameObjectID game_object_id, GameObjectID item) const;
 
   /// Remove an item from the inventory of a game object.
   ///
@@ -66,5 +56,5 @@ struct InventorySystem : public SystemBase {
   /// @param index - The index of the item to remove from the inventory.
   /// @throws RegistryException - If the game object does not exist or does not have an inventory component.
   /// @throws InventorySpaceException - If the inventory is empty or the index is out of bounds
-  int remove_item_from_inventory(GameObjectID game_object_id, int index);
+  [[nodiscard]] int remove_item_from_inventory(GameObjectID game_object_id, int index) const;
 };

@@ -97,7 +97,7 @@ TEST_F(PrimitivesFixture, TestRectGetDistanceToDifferent) { ASSERT_EQ(rect_one.g
 /// Test that a rect can be placed correctly in a valid grid.
 TEST_F(PrimitivesFixture, TestRectPlaceRectValidGrid) {
   rect_one.place_rect(grid);
-  std::vector<TileType> target_result{
+  const std::vector<TileType> target_result{
       TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty,
       TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty,
       TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty,
@@ -109,9 +109,9 @@ TEST_F(PrimitivesFixture, TestRectPlaceRectValidGrid) {
 
 /// Test that placing a rect that doesn't fit in the grid works correctly.
 TEST_F(PrimitivesFixture, TestRectPlaceRectOutsideGrid) {
-  Rect invalid_rect{{0, 0}, {10, 10}};
+  const Rect invalid_rect{{0, 0}, {10, 10}};
   invalid_rect.place_rect(grid);
-  std::vector<TileType> target_result{
+  const std::vector<TileType> target_result{
       TileType::Wall, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
       TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
       TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,

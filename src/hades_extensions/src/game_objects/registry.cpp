@@ -35,6 +35,28 @@ void Registry::delete_game_object(GameObjectID game_object_id) {
   }
 }
 
+void Registry::add_components(GameObjectID game_object_id,
+                              const std::vector<std::shared_ptr<ComponentBase>> &components) {
+  // Check if the game object is registered or not
+  if (!game_objects_.contains(game_object_id)) {
+    throw RegistryException("game object", game_object_id);
+  }
+
+  // Add the components to the game object
+  for (const auto &component : components) {
+    // Check if the component already exists in the registry
+    auto &obj = *component;
+    const std::type_index component_type = typeid(obj);
+    if (has_component(game_object_id, component_type)) {
+      continue;
+    }
+
+    // Add the component to the registry
+    components_[component_type].insert(game_object_id);
+    game_objects_[game_object_id][component_type] = component;
+  }
+}
+
 std::shared_ptr<ComponentBase> Registry::get_component(GameObjectID game_object_id, ObjectType component_type) const {
   // Check if the game object has the component or not
   if (!has_component(game_object_id, component_type)) {

@@ -37,7 +37,7 @@ const std::array<Position, 8> INTERCARDINAL_OFFSETS = {Position{-1, -1}, Positio
 // ----- FUNCTIONS ------------------------------
 std::vector<Position> calculate_astar_path(const Grid &grid, const Position &start, const Position &end) {
   // Check if the grid size is not zero
-  if (!grid.width) {
+  if (grid.width == 0 || grid.height == 0) {
     throw std::length_error("Grid size must be bigger than 0.");
   }
 
@@ -81,7 +81,7 @@ std::vector<Position> calculate_astar_path(const Grid &grid, const Position &sta
       }
 
       // Check if we've found a more efficient path to the neighbour and if so, add all of its neighbours to the queue
-      int distance = neighbours.at(current).cost + 1;
+      const int distance = neighbours.at(current).cost + 1;
       if (!neighbours.contains(neighbour) || distance < neighbours.at(neighbour).cost) {
         neighbours[neighbour] = {distance, current};
 

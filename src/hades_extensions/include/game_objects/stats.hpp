@@ -16,10 +16,10 @@ class Stat : public ComponentBase {
   double max_value;
 
   /// The current level of the stat.
-  int current_level = 0;
+  int current_level{0};
 
   /// The maximum level of the stat.
-  int maximum_level;
+  int maximum_level{};
 
   /// Initialise the object.
   ///
@@ -41,47 +41,23 @@ class Stat : public ComponentBase {
   /// @param new_value - The new value of the stat.
   inline void set_value(double new_value) { value_ = std::max(std::min(new_value, max_value), 0.0); }
 
- protected:
+ private:
   /// The current value of the variable.
   double value_;
 };
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to have an armour stat.
-struct Armour : public Stat {
-  /// Initialise the object.
-  ///
-  /// @param value - The initial and maximum value of the armour stat.
-  /// @param maximum_level - The maximum level of the armour stat.
-  Armour(double value, int maximum_level) : Stat(value, maximum_level) {}
-};
+struct Armour : public Stat {};
 
 /// Allows a game object to regenerate armour.
 struct ArmourRegen : public Stat {
   /// The time since the game object last regenerated armour.
   double time_since_armour_regen = 0;
-
-  /// Initialise the object.
-  ///
-  /// @param value - The duration between armour regenerations.
-  /// @param maximum_level - The maximum level of the armour regen stat.
-  ArmourRegen(double value, int maximum_level) : Stat(value, maximum_level, false) {}
 };
 
 /// Allows a game object to have a health stat.
-struct Health : public Stat {
-  /// Initialise the object.
-  ///
-  /// @param value - The initial and maximum value of the health stat.
-  /// @param maximum_level - The maximum level of the health stat.
-  Health(double value, int maximum_level) : Stat(value, maximum_level) {}
-};
+struct Health : public Stat {};
 
 /// Allows a game object to determine how fast it can move.
-struct MovementForce : public Stat {
-  /// Initialise the object.
-  ///
-  /// @param force - The movement force of the game object.
-  /// @param maximum_level - The maximum level of the movement force.
-  MovementForce(double force, int maximum_level) : Stat(force, maximum_level, false) {}
-};
+struct MovementForce : public Stat {};

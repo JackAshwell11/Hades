@@ -5,10 +5,10 @@
 #include "game_objects/stats.hpp"
 
 // ----- STRUCTURES ------------------------------
-bool UpgradeSystem::upgrade_component(GameObjectID game_object_id, const std::type_index &target_component) {
+bool UpgradeSystem::upgrade_component(GameObjectID game_object_id, const std::type_index &target_component) const {
   // Get the component to upgrade as well as the upgrade function
-  auto component = std::static_pointer_cast<Stat>(registry.get_component(game_object_id, target_component));
-  auto upgrades_component = registry.get_component<Upgrades>(game_object_id);
+  auto component = std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component));
+  auto upgrades_component = get_registry()->get_component<Upgrades>(game_object_id);
 
   // Check if the component can be upgraded
   if (upgrades_component == nullptr || !upgrades_component->upgrades.contains(target_component) ||

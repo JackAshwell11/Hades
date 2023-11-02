@@ -5,8 +5,6 @@
 #include "game_objects/registry.hpp"
 
 // ----- ENUMS ------------------------------
-// TODO: Add valid status effect types
-
 /// Stores the different types of status effects available.
 enum class StatusEffectType {
   TEMP,
@@ -29,50 +27,28 @@ struct StatusEffect {
   std::type_index target_component;
 
   /// Tracks the time the status effect has been applied for.
-  double time_counter = 0;
+  double time_counter{0};
 
   /// Tracks the time left over from the last interval.
-  double leftover_time = 0;
-
-  /// Initialise the object.
-  ///
-  /// @param value - The value of the status effect.
-  /// @param duration - The duration of the status effect.
-  /// @param interval - The interval of the status effect.
-  /// @param target_component - The component the status effect should be applied to.
-  StatusEffect(double value, double duration, double interval, const std::type_index &target_component)
-      : value(value), duration(duration), interval(interval), target_component(target_component) {}
+  double leftover_time{0};
 };
 
+// ----- COMPONENTS ------------------------------
 /// Represents the data required to apply a status effect.
 struct StatusEffectData {
   /// The type of status effect.
   StatusEffectType status_effect_type;
 
   /// The increase function to apply.
-  ActionFunction increase_function;
+  ActionFunction increase;
 
   /// The duration function to apply.
-  ActionFunction duration_function;
+  ActionFunction duration;
 
   /// The interval function to apply.
-  ActionFunction interval_function;
-
-  /// Initialise the object.
-  ///
-  /// @param status_effect_type - The type of status effect.
-  /// @param increase_function - The increase function to apply.
-  /// @param duration_function - The duration function to apply.
-  /// @param interval_function - The interval function to apply.
-  StatusEffectData(StatusEffectType status_effect_type, ActionFunction increase_function,
-                   ActionFunction duration_function, ActionFunction interval_function)
-      : status_effect_type(status_effect_type),
-        increase_function(std::move(increase_function)),
-        duration_function(std::move(duration_function)),
-        interval_function(std::move(interval_function)) {}
+  ActionFunction interval;
 };
 
-// ----- COMPONENTS ------------------------------
 /// Allows a game object to provide instant or status effects.
 struct EffectApplier : public ComponentBase {
   /// The instant effects the game object provides.
@@ -80,14 +56,6 @@ struct EffectApplier : public ComponentBase {
 
   /// The status effects the game object provides.
   std::unordered_map<std::type_index, StatusEffectData> status_effects;
-
-  /// Initialise the object.
-  ///
-  /// @param instant_effects - The instant effects the game object provides.
-  /// @param status_effects - The status effects the game object provides.
-  EffectApplier(std::unordered_map<std::type_index, ActionFunction> instant_effects,
-                std::unordered_map<std::type_index, StatusEffectData> status_effects)
-      : instant_effects(std::move(instant_effects)), status_effects(std::move(status_effects)) {}
 };
 
 /// Allows a game object to have status effects applied to it.
@@ -98,16 +66,17 @@ struct StatusEffects : public ComponentBase {
 
 // ----- STRUCTURES ------------------------------
 /// Provides facilities to manipulate instant and status effects.
-struct EffectSystem : public SystemBase {
+class EffectSystem : public SystemBase {
+ public:
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit EffectSystem(Registry &registry) : SystemBase(registry) {}
+  explicit EffectSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Process update logic for a status effect component.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  void update(double delta_time) final;
+  void update(double delta_time) const final;
 
   /// Apply an instant effect to a game object.
   ///

@@ -10,6 +10,7 @@
 // ----- STRUCTURES ------------------------------
 /// A binary spaced partition leaf used to generate the dungeon's rooms.
 struct Leaf {
+  // todo: is this needed?
   inline bool operator==(const Leaf &leaf) const {
     return container == leaf.container && left == leaf.left && right == leaf.right;
   }

@@ -5,17 +5,16 @@
 #include "game_objects/stats.hpp"
 
 // ----- STRUCTURES ------------------------------
-void EffectSystem::update(double delta_time) {
-  for (auto &[game_object_id, component_tuple] : registry.find_components<StatusEffects>()) {
+void EffectSystem::update(double delta_time) const {
+  for (auto &[game_object_id, component_tuple] : get_registry()->find_components<StatusEffects>()) {
     // Create a vector to store the expired status effects
     auto &applied_effects = std::get<0>(component_tuple)->applied_effects;
     std::vector<StatusEffectType> expired_status_effects;
 
-    // Update the status effects and keep track of the expired ones
-    // Note that in reality, delta_time will be ~0.016 (60 FPS) so big jumps in
-    // time where multiple intervals are covered within a single update should
-    // never happen, but if they do, the leftover time is accumulated and
-    // the status effect is applied in subsequent updates
+    // Update the status effects and keep track of the expired ones.
+    // Note that in reality, delta_time will be ~0.016 (60 FPS), so big jumps in time where multiple intervals are
+    // covered within a single update should never happen.
+    // But if they do, this will accumulate the leftover time and the status effect is applied in subsequent updates
     for (auto &[status_effect_type, status_effect] : std::get<0>(component_tuple)->applied_effects) {
       status_effect.time_counter += delta_time;
       status_effect.leftover_time += delta_time;
@@ -23,7 +22,7 @@ void EffectSystem::update(double delta_time) {
         expired_status_effects.push_back(status_effect_type);
       } else if (status_effect.leftover_time >= status_effect.interval) {
         auto component =
-            std::static_pointer_cast<Stat>(registry.get_component(game_object_id, status_effect.target_component));
+            std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, status_effect.target_component));
         component->set_value(component->get_value() + status_effect.value);
         status_effect.leftover_time -= status_effect.interval;
       }
@@ -39,7 +38,7 @@ void EffectSystem::update(double delta_time) {
 bool EffectSystem::apply_instant_effect(GameObjectID game_object_id, const std::type_index &target_component,
                                         const ActionFunction &increase_function, int level) {
   // Check if the component is already at the maximum
-  auto component = std::static_pointer_cast<Stat>(registry.get_component(game_object_id, target_component));
+  auto component = std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component));
   if (component->get_value() == component->max_value) {
     return false;
   }
@@ -52,16 +51,16 @@ bool EffectSystem::apply_instant_effect(GameObjectID game_object_id, const std::
 bool EffectSystem::apply_status_effect(GameObjectID game_object_id, const std::type_index &target_component,
                                        const StatusEffectData &status_effect_data, int level) {
   // Check if the status effect has already been applied
-  auto status_effects = registry.get_component<StatusEffects>(game_object_id);
+  auto status_effects = get_registry()->get_component<StatusEffects>(game_object_id);
   if (status_effects->applied_effects.contains(status_effect_data.status_effect_type)) {
     return false;
   }
 
   // Apply the status effect
-  StatusEffect status_effect{status_effect_data.increase_function(level), status_effect_data.duration_function(level),
-                             status_effect_data.interval_function(level), target_component};
+  const StatusEffect status_effect{status_effect_data.increase(level), status_effect_data.duration(level),
+                                   status_effect_data.interval(level), target_component};
   status_effects->applied_effects.emplace(status_effect_data.status_effect_type, status_effect);
-  auto component = std::static_pointer_cast<Stat>(registry.get_component(game_object_id, target_component));
+  auto component = std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component));
   component->set_value(component->get_value() + status_effect.value);
   return true;
 }

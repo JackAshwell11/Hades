@@ -18,7 +18,7 @@ const int WANDER_CIRCLE_RADIUS = 25;
 // ----- FUNCTIONS ------------------------------
 Vec2d arrive(const Vec2d &current_position, const Vec2d &target_position) {
   // Calculate a vector to the target and its length
-  Vec2d direction = target_position - current_position;
+  const Vec2d direction = target_position - current_position;
 
   // Check if the game object is inside the slowing area
   if (direction.magnitude() < SLOWING_RADIUS) {
@@ -28,9 +28,8 @@ Vec2d arrive(const Vec2d &current_position, const Vec2d &target_position) {
 }
 
 Vec2d evade(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) {
-  // Calculate the future position of the target based on their distance and
-  // steer away from it. Higher distances will require more time to reach, so
-  // the future position will be further away
+  // Calculate the future position of the target based on their distance, and steer away from it.
+  // Higher distances will require more time to reach, so the future position will be further away
   return flee(current_position,
               target_position + target_velocity * (target_position.distance_to(current_position) / MAX_VELOCITY));
 }
@@ -55,8 +54,8 @@ Vec2d follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list) 
 
 Vec2d obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_velocity,
                          const std::unordered_set<Vec2d> &walls) {
-  // Create the lambda function to cast a ray from the game object's position
-  // in the direction of its velocity at a given angle
+  // Create the lambda function to cast a ray from the game object's position in the direction of its velocity at a
+  // given angle
   auto raycast = [&current_position, &current_velocity, &walls](double angle = 0) -> Vec2d {
     // Pre-calculate some values used during the raycast
     const auto rotated_velocity = current_velocity.rotated(angle);
@@ -73,9 +72,9 @@ Vec2d obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_vel
   };
 
   // Check if the game object is going to collide with an obstacle
-  Vec2d forward_ray = raycast();
-  Vec2d left_ray = raycast(OBSTACLE_AVOIDANCE_ANGLE);
-  Vec2d right_ray = raycast(-OBSTACLE_AVOIDANCE_ANGLE);
+  const Vec2d forward_ray = raycast();
+  const Vec2d left_ray = raycast(OBSTACLE_AVOIDANCE_ANGLE);
+  const Vec2d right_ray = raycast(-OBSTACLE_AVOIDANCE_ANGLE);
 
   // Check if there are any obstacles ahead
   if (forward_ray != Vec2d{-1, -1} && left_ray != Vec2d{-1, -1} && right_ray != Vec2d{-1, -1}) {
@@ -96,9 +95,8 @@ Vec2d obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_vel
 }
 
 Vec2d pursuit(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) {
-  // Calculate the future position of the target based on their distance and
-  // steer towards it. Higher distances will require more time to reach, so the
-  // future position will be further away
+  // Calculate the future position of the target based on their distance, and steer away from it.
+  // Higher distances will require more time to reach, so the future position will be further away
   return seek(current_position,
               target_position + target_velocity * (target_position.distance_to(current_position) / MAX_VELOCITY));
 }
@@ -109,9 +107,9 @@ Vec2d seek(const Vec2d &current_position, const Vec2d &target_position) {
 
 Vec2d wander(const Vec2d &current_velocity, int displacement_angle) {
   // Calculate the position of an invisible circle in front of the game object
-  Vec2d circle_center = current_velocity.normalised() * WANDER_CIRCLE_DISTANCE;
+  const Vec2d circle_center = current_velocity.normalised() * WANDER_CIRCLE_DISTANCE;
 
   // Add a displacement force to the centre of the circle to randomise the movement
-  Vec2d displacement = (Vec2d(0, -1) * WANDER_CIRCLE_RADIUS).rotated(displacement_angle * PI_RADIANS);
+  const Vec2d displacement = (Vec2d(0, -1) * WANDER_CIRCLE_RADIUS).rotated(displacement_angle * PI_RADIANS);
   return (circle_center + displacement).normalised();
 }
