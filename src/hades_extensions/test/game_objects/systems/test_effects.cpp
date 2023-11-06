@@ -11,13 +11,13 @@ class EffectSystemFixture : public testing::Test {
   Registry registry{};
 
   /// The increase function for an effect.
-  ActionFunction increase_function = [](int level) { return 5 + std::pow(level, 2); };
+  ActionFunction increase_function{[](int level) { return 5 + std::pow(level, 2); }};
 
   /// The duration function for an effect.
-  ActionFunction duration_function = [](int level) { return 10 * level; };
+  ActionFunction duration_function{[](int level) { return 10 * level; }};
 
   /// The interval function for an effect.
-  ActionFunction interval_function = [](int level) { return std::pow(2, level); };
+  ActionFunction interval_function{[](int level) { return std::pow(2, level); }};
 
   /// The data for a status effect.
   StatusEffectData status_effect_data{StatusEffectType::TEMP, increase_function, duration_function, interval_function};
@@ -40,14 +40,14 @@ class EffectSystemFixture : public testing::Test {
   /// Get the effect system from the registry.
   ///
   /// @return The effect system.
-  std::shared_ptr<EffectSystem> get_effect_system() { return registry.find_system<EffectSystem>(); }
+  auto get_effect_system() -> std::shared_ptr<EffectSystem> { return registry.find_system<EffectSystem>(); }
 };
 
 // ----- TESTS ----------------------------------
 /// Test that a status effect is updated correctly with a small delta time.
 TEST_F(EffectSystemFixture, TestEffectSystemUpdateSmallDeltaTime) {
   create_status_game_object();
-  auto stat = registry.get_component<Stat>(0);
+  auto stat{registry.get_component<Stat>(0)};
   stat->set_value(100);
   get_effect_system()->apply_status_effect(0, typeid(Stat), status_effect_data, 1);
   ASSERT_EQ(stat->get_value(), 106);
@@ -59,7 +59,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemUpdateSmallDeltaTime) {
 /// Test that a status effect is updated correctly with a large delta time.
 TEST_F(EffectSystemFixture, TestEffectSystemUpdateLargeDeltaTime) {
   create_status_game_object();
-  auto stat = registry.get_component<Stat>(0);
+  auto stat{registry.get_component<Stat>(0)};
   stat->set_value(100);
   get_effect_system()->apply_status_effect(0, typeid(Stat), status_effect_data, 1);
   ASSERT_EQ(stat->get_value(), 106);
@@ -71,10 +71,10 @@ TEST_F(EffectSystemFixture, TestEffectSystemUpdateLargeDeltaTime) {
 /// Test that a status effect is updated correctly after multiple updates.
 TEST_F(EffectSystemFixture, TestEffectSystemUpdateMultipleDeltaTimes) {
   create_status_game_object();
-  auto stat = registry.get_component<Stat>(0);
+  auto stat{registry.get_component<Stat>(0)};
   stat->set_value(100);
   get_effect_system()->apply_status_effect(0, typeid(Stat), status_effect_data, 1);
-  auto &applied_effects = registry.get_component<StatusEffects>(0)->applied_effects;
+  auto &applied_effects{registry.get_component<StatusEffects>(0)->applied_effects};
   get_effect_system()->update(1);
   ASSERT_EQ(stat->get_value(), 106);
   ASSERT_EQ(applied_effects.at(StatusEffectType::TEMP).time_counter, 1);
@@ -95,7 +95,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemUpdateMultipleDeltaTimes) {
 /// Test that a status effect is not updated if one does not exist.
 TEST_F(EffectSystemFixture, TestEffectSystemUpdateNoStatusEffect) {
   create_status_game_object();
-  auto stat = registry.get_component<Stat>(0);
+  auto stat{registry.get_component<Stat>(0)};
   stat->set_value(100);
   get_effect_system()->update(5);
   ASSERT_EQ(stat->get_value(), 100);
@@ -111,7 +111,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyInstantEffectValueEqualMax) {
 /// Test that an instant effect is applied correctly if the value is lower than the maximum.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyInstantEffectValueLowerMax) {
   create_instant_game_object();
-  auto component = registry.get_component<Stat>(0);
+  auto component{registry.get_component<Stat>(0)};
   component->set_value(40);
   get_effect_system()->apply_instant_effect(0, typeid(Stat), increase_function, 0);
   ASSERT_EQ(component->get_value(), 45);
@@ -134,7 +134,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectNoAppliedEffect) {
   create_status_game_object();
   ASSERT_TRUE(get_effect_system()->apply_status_effect(0, typeid(Stat), status_effect_data, 1));
   ASSERT_EQ(registry.get_component<Stat>(0)->get_value(), 200);
-  auto applied_status_effect = registry.get_component<StatusEffects>(0)->applied_effects.at(StatusEffectType::TEMP);
+  auto applied_status_effect{registry.get_component<StatusEffects>(0)->applied_effects.at(StatusEffectType::TEMP)};
   ASSERT_EQ(applied_status_effect.value, 6);
   ASSERT_EQ(applied_status_effect.duration, 10);
   ASSERT_EQ(applied_status_effect.interval, 2);
@@ -144,7 +144,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectNoAppliedEffect) {
 /// Test that a status effect is applied correctly if the value is lower than the max.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectValueLowerMax) {
   create_status_game_object();
-  auto component = registry.get_component<Stat>(0);
+  auto component{registry.get_component<Stat>(0)};
   component->set_value(150);
   ASSERT_TRUE(get_effect_system()->apply_status_effect(0, typeid(Stat), status_effect_data, 1));
   ASSERT_EQ(component->get_value(), 156);
@@ -165,7 +165,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectMultipleStatusEffec
   StatusEffectData status_effect_data_two{StatusEffectType::TEMP2, increase_function, duration_function,
                                           interval_function};
   ASSERT_TRUE(get_effect_system()->apply_status_effect(0, typeid(Stat), status_effect_data_two, 1));
-  auto status_effects = registry.get_component<StatusEffects>(0)->applied_effects;
+  auto status_effects{registry.get_component<StatusEffects>(0)->applied_effects};
   ASSERT_TRUE(status_effects.contains(StatusEffectType::TEMP));
   ASSERT_TRUE(status_effects.contains(StatusEffectType::TEMP2));
 }

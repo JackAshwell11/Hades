@@ -1,9 +1,6 @@
 // Related header
 #include "generation/primitives.hpp"
 
-// Std headers
-#include <array>
-
 // ----- FUNCTIONS ------------------------------
 void Rect::place_rect(Grid &grid) const {
   // Place the walls

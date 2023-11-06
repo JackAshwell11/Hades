@@ -17,7 +17,7 @@ class UpgradeSystemFixture : public testing::Test {
   ///
   /// @param value - The value of the game object.
   /// @param max_level - The maximum level of the game object.
-  void create_game_object(int value, int max_level) {
+  void create_game_object(const int value, const int max_level) {
     const std::unordered_map<std::type_index, ActionFunction> upgrades{
         {typeid(Stat), [](int level) { return 150 * (level + 1); }}};
     registry.create_game_object();
@@ -30,7 +30,7 @@ class UpgradeSystemFixture : public testing::Test {
   /// Get the upgrade system from the registry.
   ///
   /// @return The upgrade system.
-  std::shared_ptr<UpgradeSystem> get_upgrade_system() { return registry.find_system<UpgradeSystem>(); }
+  auto get_upgrade_system() -> std::shared_ptr<UpgradeSystem> { return registry.find_system<UpgradeSystem>(); }
 };
 
 // ----- TESTS ----------------------------------
@@ -39,8 +39,8 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeValueEqualMax) {
   create_upgradeable_game_object();
   ASSERT_TRUE(get_upgrade_system()->upgrade_component(0, typeid(Stat)));
   ASSERT_EQ(registry.get_component<Stat>(0)->get_value(), 350);
-  ASSERT_EQ(registry.get_component<Stat>(0)->max_value, 350);
-  ASSERT_EQ(registry.get_component<Stat>(0)->current_level, 1);
+  ASSERT_EQ(registry.get_component<Stat>(0)->get_max_value(), 350);
+  ASSERT_EQ(registry.get_component<Stat>(0)->get_current_level(), 1);
 }
 
 /// Test that a stat is upgraded correctly if the value is lower than the maximum.
@@ -49,8 +49,8 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeValueLowerMax) {
   registry.get_component<Stat>(0)->set_value(150);
   ASSERT_TRUE(get_upgrade_system()->upgrade_component(0, typeid(Stat)));
   ASSERT_EQ(registry.get_component<Stat>(0)->get_value(), 300);
-  ASSERT_EQ(registry.get_component<Stat>(0)->max_value, 350);
-  ASSERT_EQ(registry.get_component<Stat>(0)->current_level, 1);
+  ASSERT_EQ(registry.get_component<Stat>(0)->get_max_value(), 350);
+  ASSERT_EQ(registry.get_component<Stat>(0)->get_current_level(), 1);
 }
 
 /// Test that a stat that can be upgraded multiple times is upgraded correctly.
@@ -61,8 +61,8 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeMultipleTimes) {
   ASSERT_TRUE(get_upgrade_system()->upgrade_component(0, typeid(Stat)));
   ASSERT_FALSE(get_upgrade_system()->upgrade_component(0, typeid(Stat)));
   ASSERT_EQ(registry.get_component<Stat>(0)->get_value(), 1100);
-  ASSERT_EQ(registry.get_component<Stat>(0)->max_value, 1100);
-  ASSERT_EQ(registry.get_component<Stat>(0)->current_level, 3);
+  ASSERT_EQ(registry.get_component<Stat>(0)->get_max_value(), 1100);
+  ASSERT_EQ(registry.get_component<Stat>(0)->get_current_level(), 3);
 }
 
 /// Test that a stat is upgraded only one time.
@@ -80,6 +80,6 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeNonUpgradeable) {
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE(get_upgrade_system()->upgrade_component(-1, typeid(Stat)), RegistryException,
+  ASSERT_THROW_MESSAGE((get_upgrade_system()->upgrade_component(-1, typeid(Stat))), RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }

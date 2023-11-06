@@ -3,6 +3,7 @@
 
 // Std headers
 #include <execution>
+#include <queue>
 
 // Local headers
 #include "generation/astar.hpp"
@@ -22,34 +23,28 @@ struct MapGenerationConstant {
 
   /// The max value for the exponential calculation.
   double max_value;
-
-  /// Initialise the object.
-  ///
-  /// @param base_value - The base value for the exponential calculation.
-  /// @param increase - The percentage increase for the constant.
-  /// @param max_value - The max value for the exponential calculation.
-  MapGenerationConstant(const double base_value, const double increase, const double max_value)
-      : base_value(base_value), increase(increase), max_value(max_value) {}
-
-  /// Generate a value based on the exponential equation.
-  ///
-  /// @param level - The game level to generate a value for.
-  /// @return The generated value.
-  [[nodiscard]] inline int generate_value(const int level) const {
-    return static_cast<int>(std::min(round(base_value * pow(increase, level)), max_value));
-  }
 };
 
 // ----- CONSTANTS ------------------------------
-const int HALLWAY_SIZE = 5;
-constexpr int HALF_HALLWAY_SIZE = HALLWAY_SIZE / 2;
+constexpr int HALLWAY_SIZE{5};
+constexpr int HALF_HALLWAY_SIZE{HALLWAY_SIZE / 2};
 const MapGenerationConstant WIDTH{30, 1.2, 150};
 const MapGenerationConstant HEIGHT{20, 1.2, 100};
 const MapGenerationConstant OBSTACLE_COUNT{20, 1.3, 200};
 const MapGenerationConstant ITEM_COUNT{5, 1.1, 30};
 
 // ----- FUNCTIONS ------------------------------
-std::vector<Position> collect_positions(const Grid &grid, TileType target) {
+/// Generate a value based on the exponential equation.
+///
+/// @param level - The game level to generate a value for.
+/// @return The generated value.
+[[nodiscard]] inline auto generate_value(const MapGenerationConstant &map_generation_constant, const int level) -> int {
+  return static_cast<int>(
+      std::min(round(map_generation_constant.base_value * pow(map_generation_constant.increase, level)),
+               map_generation_constant.max_value));
+}
+
+auto collect_positions(const Grid &grid, const TileType target) -> std::vector<Position> {
   // Get all positions in the grid that match the target
   std::vector<Position> result;
   for (int y = 0; y < grid.height; y++) {
@@ -62,7 +57,7 @@ std::vector<Position> collect_positions(const Grid &grid, TileType target) {
   return result;
 }
 
-void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile,
+void place_tile(Grid &grid, std::mt19937 &random_generator, const TileType target_tile,
                 std::vector<Position> &possible_tiles) {
   // Check if at least one tile exists
   if (possible_tiles.empty()) {
@@ -70,15 +65,15 @@ void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile
   }
 
   // Get a random tile and place the target tile there
-  const std::size_t tile_index =
-      std::uniform_int_distribution<std::size_t>{0, possible_tiles.size() - 1}(random_generator);
-  const Position possible_tile = possible_tiles[tile_index];
+  const std::size_t tile_index{
+      std::uniform_int_distribution<std::size_t>{0, possible_tiles.size() - 1}(random_generator)};
+  const Position possible_tile{possible_tiles[tile_index]};
   possible_tiles[tile_index] = possible_tiles.back();
   possible_tiles.pop_back();
   grid.set_value(possible_tile, target_tile);
 }
 
-std::unordered_map<Rect, std::vector<Rect>> create_complete_graph(const std::vector<Rect> &rooms) {
+auto create_complete_graph(const std::vector<Rect> &rooms) -> std::unordered_map<Rect, std::vector<Rect>> {
   // Check if the rooms vector is empty
   if (rooms.empty()) {
     throw std::length_error("Rooms size must be bigger than 0.");
@@ -88,31 +83,28 @@ std::unordered_map<Rect, std::vector<Rect>> create_complete_graph(const std::vec
   std::unordered_map<Rect, std::vector<Rect>> complete_graph;
   for (const Rect &room : rooms) {
     std::vector<Rect> temp;
-    for (const Rect &neighbour : rooms) {
-      if (neighbour != room) {
-        temp.push_back(neighbour);
-      }
-    }
+    std::copy_if(rooms.begin(), rooms.end(), std::back_inserter(temp),
+                 [&room](const Rect &neighbour) { return neighbour != room; });
     complete_graph.insert({room, temp});
   }
   return complete_graph;
 }
 
-std::unordered_set<Edge> create_connections(const std::unordered_map<Rect, std::vector<Rect>> &complete_graph) {
+auto create_connections(const std::unordered_map<Rect, std::vector<Rect>> &complete_graph) -> std::unordered_set<Edge> {
   // Check if the complete_graph is empty
   if (complete_graph.empty()) {
     throw std::length_error("Complete graph size must be bigger than 0.");
   }
 
   // Use Prim's algorithm to construct a minimum spanning tree from complete_graph
-  const Rect start = complete_graph.begin()->first;
+  const Rect start{complete_graph.begin()->first};
   std::priority_queue<Edge> unexplored;
   std::unordered_set<Rect> visited;
   std::unordered_set<Edge> mst;
   unexplored.emplace(0, start, start);
   while (mst.size() < complete_graph.size() && !unexplored.empty()) {
     // Get the neighbour with the lowest cost
-    const Edge lowest = unexplored.top();
+    const Edge lowest{unexplored.top()};
     unexplored.pop();
 
     // Check if the neighbour is already visited or not
@@ -140,8 +132,8 @@ std::unordered_set<Edge> create_connections(const std::unordered_map<Rect, std::
 void create_hallways(Grid &grid, std::mt19937 &random_generator, const std::unordered_set<Edge> &connections,
                      const int obstacle_count) {
   // Place random obstacles in the grid
-  std::vector<Position> obstacle_positions = collect_positions(grid, TileType::Empty);
-  for (int i = 0; i < obstacle_count; i++) {
+  std::vector<Position> obstacle_positions{collect_positions(grid, TileType::Empty)};
+  for (int _ = 0; _ < obstacle_count; _++) {
     place_tile(grid, random_generator, TileType::Obstacle, obstacle_positions);
   }
 
@@ -162,8 +154,8 @@ void create_hallways(Grid &grid, std::mt19937 &random_generator, const std::unor
   }
 }
 
-std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(const int level,
-                                                                       std::optional<unsigned int> seed) {
+auto create_map(const int level, std::optional<unsigned int> seed)
+    -> std::pair<std::vector<TileType>, std::tuple<int, int, int>> {
   // Check that the level number is valid
   if (level < 0) {
     throw std::length_error("Level must be bigger than or equal to 0.");
@@ -173,14 +165,13 @@ std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(const int
   if (!seed.has_value()) {
     std::random_device random_device;
     std::mt19937_64 seed_generator{random_device()};
-    std::uniform_int_distribution<unsigned int> seed_distribution;
-    seed = seed_distribution(seed_generator);
+    seed = std::uniform_int_distribution<unsigned int>{}(seed_generator);
   }
   std::mt19937 random_generator{seed.value()};
 
   // Initialise a few variables needed for the map generation
-  const int grid_width = WIDTH.generate_value(level);
-  const int grid_height = HEIGHT.generate_value(level);
+  const int grid_width{generate_value(WIDTH, level)};
+  const int grid_height{generate_value(HEIGHT, level)};
   Grid grid{grid_width, grid_height};
   Leaf bsp{{{0, 0}, {grid_width - 1, grid_height - 1}}};
 
@@ -189,12 +180,12 @@ std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map(const int
   split(bsp, random_generator);
   create_room(bsp, grid, random_generator, rooms);
   create_hallways(grid, random_generator, create_connections(create_complete_graph(rooms)),
-                  OBSTACLE_COUNT.generate_value(level));
+                  generate_value(OBSTACLE_COUNT, level));
 
   // Place the player tile as well as the items in the grid
-  std::vector<Position> possible_tiles = collect_positions(grid, TileType::Floor);
+  std::vector<Position> possible_tiles{collect_positions(grid, TileType::Floor)};
   place_tile(grid, random_generator, TileType::Player, possible_tiles);
-  for (int _ = 0; _ < ITEM_COUNT.generate_value(level); _++) {
+  for (int _ = 0; _ < generate_value(ITEM_COUNT, level); _++) {
     place_tile(grid, random_generator, TileType::Potion, possible_tiles);
   }
 

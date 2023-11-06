@@ -65,12 +65,18 @@ struct SteeringMovement : public ComponentBase {
 
   /// The list of positions the game object should follow.
   std::vector<Vec2d> path_list{};
+
+  /// Initialise the object.
+  ///
+  /// @param behaviours - The steering behaviours used by the game object.
+  explicit SteeringMovement(
+      const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> &behaviours)
+      : behaviours(behaviours) {}
 };
 
 // ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate footprint components.
-class FootprintSystem : public SystemBase {
- public:
+struct FootprintSystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -83,8 +89,7 @@ class FootprintSystem : public SystemBase {
 };
 
 /// Provides facilities to manipulate keyboard movement components.
-class KeyboardMovementSystem : public SystemBase {
- public:
+struct KeyboardMovementSystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -95,12 +100,11 @@ class KeyboardMovementSystem : public SystemBase {
   /// @param game_object_id - The ID of the game object to calculate the keyboard force for.
   /// @throws RegistryException - If the game object does not exist or does not have a keyboard movement component.
   /// @return The new force to apply to the game object.
-  [[nodiscard]] Vec2d calculate_keyboard_force(GameObjectID game_object_id) const;
+  [[nodiscard]] auto calculate_keyboard_force(GameObjectID game_object_id) const -> Vec2d;
 };
 
 /// Provides facilities to manipulate steering movement components.
-class SteeringMovementSystem : public SystemBase {
- public:
+struct SteeringMovementSystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -111,7 +115,7 @@ class SteeringMovementSystem : public SystemBase {
   /// @param game_object_id - The ID of the game object to calculate the steering force for.
   /// @throws RegistryException - If the game object does not exist or does not have a steering movement component.
   /// @return The new force to apply to the game object.
-  [[nodiscard]] Vec2d calculate_steering_force(GameObjectID game_object_id) const;
+  [[nodiscard]] auto calculate_steering_force(GameObjectID game_object_id) const -> Vec2d;
 
   /// Update the path lists for the game objects to follow.
   ///

@@ -6,8 +6,8 @@
 #include <typeindex>
 #include <unordered_map>
 
-// ----- CLASSES ------------------------------
-GameObjectID Registry::create_game_object(bool kinematic) {
+// ----- FUNCTIONS ------------------------------
+auto Registry::create_game_object(const bool kinematic) -> GameObjectID {
   // Add the game object to the system
   game_objects_[next_game_object_id_] = std::unordered_map<ObjectType, std::shared_ptr<ComponentBase>>{};
   if (kinematic) {
@@ -19,7 +19,7 @@ GameObjectID Registry::create_game_object(bool kinematic) {
   return next_game_object_id_ - 1;
 }
 
-void Registry::delete_game_object(GameObjectID game_object_id) {
+void Registry::delete_game_object(const GameObjectID game_object_id) {
   // Check if the game object is registered or not
   if (!game_objects_.contains(game_object_id)) {
     throw RegistryException("game object", game_object_id);
@@ -35,8 +35,8 @@ void Registry::delete_game_object(GameObjectID game_object_id) {
   }
 }
 
-void Registry::add_components(GameObjectID game_object_id,
-                              const std::vector<std::shared_ptr<ComponentBase>> &components) {
+void Registry::add_components(const GameObjectID game_object_id,
+                              const std::vector<std::shared_ptr<ComponentBase>> &&components) {
   // Check if the game object is registered or not
   if (!game_objects_.contains(game_object_id)) {
     throw RegistryException("game object", game_object_id);
@@ -45,8 +45,8 @@ void Registry::add_components(GameObjectID game_object_id,
   // Add the components to the game object
   for (const auto &component : components) {
     // Check if the component already exists in the registry
-    auto &obj = *component;
-    const std::type_index component_type = typeid(obj);
+    [[maybe_unused]] const auto &obj{*component};
+    const std::type_index component_type{typeid(obj)};
     if (has_component(game_object_id, component_type)) {
       continue;
     }
@@ -57,7 +57,8 @@ void Registry::add_components(GameObjectID game_object_id,
   }
 }
 
-std::shared_ptr<ComponentBase> Registry::get_component(GameObjectID game_object_id, ObjectType component_type) const {
+auto Registry::get_component(const GameObjectID game_object_id, const ObjectType component_type) const
+    -> std::shared_ptr<ComponentBase> {
   // Check if the game object has the component or not
   if (!has_component(game_object_id, component_type)) {
     throw RegistryException("game object", game_object_id);
@@ -67,7 +68,7 @@ std::shared_ptr<ComponentBase> Registry::get_component(GameObjectID game_object_
   return game_objects_.at(game_object_id).at(component_type);
 }
 
-std::shared_ptr<KinematicObject> Registry::get_kinematic_object(GameObjectID game_object_id) const {
+auto Registry::get_kinematic_object(const GameObjectID game_object_id) const -> std::shared_ptr<KinematicObject> {
   // Check if the game object is registered or not
   if (!kinematic_objects_.contains(game_object_id)) {
     throw RegistryException("game object", game_object_id);

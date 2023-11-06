@@ -31,6 +31,15 @@ struct StatusEffect {
 
   /// Tracks the time left over from the last interval.
   double leftover_time{0};
+
+  /// Initialise the object.
+  ///
+  /// @param value - The value that should be applied to the game object temporarily.
+  /// @param duration - The duration the status effect should be applied for.
+  /// @param interval - The interval the status effect should be applied at.
+  /// @param target_component - The component the status effect should be applied to.
+  StatusEffect(const double value, const double duration, const double interval, const std::type_index target_component)
+      : value(value), duration(duration), interval(interval), target_component(target_component) {}
 };
 
 // ----- COMPONENTS ------------------------------
@@ -56,18 +65,25 @@ struct EffectApplier : public ComponentBase {
 
   /// The status effects the game object provides.
   std::unordered_map<std::type_index, StatusEffectData> status_effects;
+
+  /// Initialise the object.
+  ///
+  /// @param instant_effects - The instant effects the game object provides.
+  /// @param status_effects - The status effects the game object provides.
+  EffectApplier(const std::unordered_map<std::type_index, ActionFunction> &instant_effects,
+                const std::unordered_map<std::type_index, StatusEffectData> &status_effects)
+      : instant_effects(instant_effects), status_effects(status_effects) {}
 };
 
 /// Allows a game object to have status effects applied to it.
 struct StatusEffects : public ComponentBase {
   /// The status effects currently applied to the game object.
-  std::unordered_map<StatusEffectType, StatusEffect> applied_effects;
+  std::unordered_map<StatusEffectType, StatusEffect> applied_effects{};
 };
 
-// ----- STRUCTURES ------------------------------
+// ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate instant and status effects.
-class EffectSystem : public SystemBase {
- public:
+struct EffectSystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -86,8 +102,8 @@ class EffectSystem : public SystemBase {
   /// @param level - The level of the effect to apply.
   /// @throws RegistryException - If the game object does not exist or does not have the target component.
   /// @return Whether the instant effect was applied or not.
-  bool apply_instant_effect(GameObjectID game_object_id, const std::type_index &target_component,
-                            const ActionFunction &increase_function, int level);
+  auto apply_instant_effect(GameObjectID game_object_id, const std::type_index &target_component,
+                            const ActionFunction &increase_function, int level) -> bool;
 
   /// Apply a status effect to a game object.
   ///
@@ -97,6 +113,6 @@ class EffectSystem : public SystemBase {
   /// @param level - The level of the effect to apply.
   /// @throws RegistryException - If the game object does not exist or does not have the target component.
   /// @return Whether the status effect was applied or not.
-  bool apply_status_effect(GameObjectID game_object_id, const std::type_index &target_component,
-                           const StatusEffectData &status_effect_data, int level);
+  auto apply_status_effect(GameObjectID game_object_id, const std::type_index &target_component,
+                           const StatusEffectData &status_effect_data, int level) -> bool;
 };

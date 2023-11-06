@@ -6,8 +6,7 @@
 
 // ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate armour regen components.
-class ArmourRegenSystem : public SystemBase {
- public:
+struct ArmourRegenSystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.

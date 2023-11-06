@@ -4,7 +4,7 @@
 
 // ----- FIXTURES ------------------------------
 /// Implements the fixture for the generation/map.hpp tests.
-class MapFixture : public testing::Test {  // NOLINT(cert-msc51-cpp)
+class MapFixture : public testing::Test {
  protected:
   /// A random generator for use in testing.
   std::mt19937 random_generator;
@@ -164,7 +164,7 @@ TEST_F(MapFixture, TestMapCreateHallwaysNoConnections) {
 
 /// Test that creating a map with a valid level and seed works correctly.
 TEST_F(MapFixture, TestMapCreateMapValidLevelSeed) {
-  std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_valid = create_map(0, 5);
+  std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_valid{create_map(0, 5)};
   ASSERT_EQ(create_map_valid.second, std::make_tuple(0, 30, 20));
   ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::Player), 1);
   ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::Potion), 5);
@@ -176,6 +176,6 @@ TEST_F(MapFixture, TestMapCreateMapNegativeLevel){
 
 /// Test that creating a map without a seed works correctly.
 TEST_F(MapFixture, TestMapCreateMapEmptySeed) {
-  const std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_empty_seed = create_map(0);
+  const std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_empty_seed{create_map(0)};
   ASSERT_NE(create_map_empty_seed.first, create_map(0).first);
 }

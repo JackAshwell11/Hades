@@ -33,14 +33,12 @@ TEST_F(PrimitivesFixture, TestGridConvertPositionEdgeLeft) { ASSERT_EQ(grid.conv
 TEST_F(PrimitivesFixture, TestGridConvertPositionEdgeRight) { ASSERT_EQ(grid.convert_position({1, 4}), 21); }
 
 /// Test that converting a position smaller than the array throws an exception.
-TEST_F(PrimitivesFixture,
-       TestGridConvertPositionSmaller){ASSERT_THROW_MESSAGE(static_cast<void>(grid.convert_position({-1, -1})),
-                                                            std::out_of_range, "Position must be within range")}
+TEST_F(PrimitivesFixture, TestGridConvertPositionSmaller){
+    ASSERT_THROW_MESSAGE((grid.convert_position({-1, -1})), std::out_of_range, "Position must be within range")}
 
 /// Test that converting a position larger than the array throws an exception.
-TEST_F(PrimitivesFixture,
-       TestGridConvertPositionLarger){ASSERT_THROW_MESSAGE(static_cast<void>(grid.convert_position({10, 10})),
-                                                           std::out_of_range, "Position must be within range")}
+TEST_F(PrimitivesFixture, TestGridConvertPositionLarger){
+    ASSERT_THROW_MESSAGE((grid.convert_position({10, 10})), std::out_of_range, "Position must be within range")}
 
 /// Test that a position in the middle of the grid can be retrieved correctly.
 TEST_F(PrimitivesFixture, TestGridGetValueMiddle) {
@@ -55,14 +53,12 @@ TEST_F(PrimitivesFixture, TestGridGetValueEdge) {
 }
 
 /// Test that getting a position smaller than the array throws an exception.
-TEST_F(PrimitivesFixture,
-       TestGridGetValueSmaller){ASSERT_THROW_MESSAGE(static_cast<void>(grid.get_value({-1, -1})), std::out_of_range,
-                                                     "Position must be within range")}
+TEST_F(PrimitivesFixture, TestGridGetValueSmaller){
+    ASSERT_THROW_MESSAGE((grid.get_value({-1, -1})), std::out_of_range, "Position must be within range")}
 
 /// Test that getting a position larger than the array throws an exception.
-TEST_F(PrimitivesFixture,
-       TestGridGetValueLarger){ASSERT_THROW_MESSAGE(static_cast<void>(grid.get_value({10, 10})), std::out_of_range,
-                                                    "Position must be within range")}
+TEST_F(PrimitivesFixture, TestGridGetValueLarger){
+    ASSERT_THROW_MESSAGE((grid.get_value({10, 10})), std::out_of_range, "Position must be within range")}
 
 /// Test that a position in the middle can be set correctly.
 TEST_F(PrimitivesFixture, TestGridSetValueMiddle) {
@@ -78,13 +74,13 @@ TEST_F(PrimitivesFixture, TestGridSetValueEdge) {
 
 /// Test that setting a position smaller than the array throws an exception.
 TEST_F(PrimitivesFixture,
-       TestGridSetValueSmaller){ASSERT_THROW_MESSAGE(static_cast<void>(grid.set_value({-1, -1}, TileType::Player)),
-                                                     std::out_of_range, "Position must be within range")}
+       TestGridSetValueSmaller){ASSERT_THROW_MESSAGE((grid.set_value({-1, -1}, TileType::Player)), std::out_of_range,
+                                                     "Position must be within range")}
 
 /// Test that setting a position larger than the array throws an exception.
 TEST_F(PrimitivesFixture,
-       TestGridSetValueLarger){ASSERT_THROW_MESSAGE(static_cast<void>(grid.set_value({10, 10}, TileType::Player)),
-                                                    std::out_of_range, "Position must be within range")}
+       TestGridSetValueLarger){ASSERT_THROW_MESSAGE((grid.set_value({10, 10}, TileType::Player)), std::out_of_range,
+                                                    "Position must be within range")}
 
 /// Test that finding the distance between two identical rects works correctly.
 TEST_F(PrimitivesFixture, TestRectGetDistanceToIdentical) {

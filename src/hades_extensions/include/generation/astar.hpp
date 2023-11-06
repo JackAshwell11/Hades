@@ -4,7 +4,7 @@
 // Local headers
 #include "primitives.hpp"
 
-// ----- DEFINITIONS ------------------------------
+// ----- FUNCTIONS ------------------------------
 /// Calculate the shortest path in a grid from one pair to another using the A*
 /// algorithm.
 ///
@@ -14,4 +14,4 @@
 /// @param end - The end position for the algorithm.
 /// @throws std::length_error - Grid size must be bigger than 0.
 /// @return A vector of positions mapping out the shortest path from start to end.
-std::vector<Position> calculate_astar_path(const Grid &grid, const Position &start, const Position &end);
+auto calculate_astar_path(const Grid &grid, const Position &start, const Position &end) -> std::vector<Position>;

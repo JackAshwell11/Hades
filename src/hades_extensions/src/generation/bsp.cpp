@@ -2,10 +2,10 @@
 #include "generation/bsp.hpp"
 
 // ----- CONSTANTS ------------------------------
-const double CONTAINER_RATIO = 1.25;
-const int MIN_CONTAINER_SIZE = 5;
-const int MIN_ROOM_SIZE = 4;
-const double ROOM_RATIO = 0.625;
+constexpr double CONTAINER_RATIO{1.25};
+constexpr int MIN_CONTAINER_SIZE{5};
+constexpr int MIN_ROOM_SIZE{4};
+constexpr double ROOM_RATIO{0.625};
 
 // ----- FUNCTIONS ------------------------------
 void split(Leaf &leaf, std::mt19937 &random_generator) {  // NOLINT(misc-no-recursion)
@@ -18,7 +18,7 @@ void split(Leaf &leaf, std::mt19937 &random_generator) {  // NOLINT(misc-no-recu
   //   1. Split vertically if the width is 25% larger than the height.
   //   2. Split horizontally if the height is 25% larger than the width.
   //   3. Split randomly if neither of the above is true.
-  bool split_vertical;
+  bool split_vertical;  // NOLINT(cppcoreguidelines-init-variables)
   if (leaf.container->width >= CONTAINER_RATIO * leaf.container->height) {
     split_vertical = true;
   } else if (leaf.container->height >= CONTAINER_RATIO * leaf.container->width) {
@@ -28,15 +28,15 @@ void split(Leaf &leaf, std::mt19937 &random_generator) {  // NOLINT(misc-no-recu
   }
 
   // Check if the container is too small to split
-  const int max_size =
-      (split_vertical) ? leaf.container->width - MIN_CONTAINER_SIZE : leaf.container->height - MIN_CONTAINER_SIZE;
+  const int max_size{(split_vertical) ? leaf.container->width - MIN_CONTAINER_SIZE
+                                      : leaf.container->height - MIN_CONTAINER_SIZE};
   if (max_size <= MIN_CONTAINER_SIZE) {
     return;
   }
 
   // Determine the random split position to use ensuring that the containers are at least MIN_CONTAINER_SIZE wide
-  const int pos = std::uniform_int_distribution<>{MIN_CONTAINER_SIZE, max_size}(random_generator);
-  const int split_pos = (split_vertical) ? leaf.container->top_left.x + pos : leaf.container->top_left.y + pos;
+  const int pos{std::uniform_int_distribution<>{MIN_CONTAINER_SIZE, max_size}(random_generator)};
+  const int split_pos{(split_vertical) ? leaf.container->top_left.x + pos : leaf.container->top_left.y + pos};
 
   // Generate the left and right leafs making sure that the containers do not include the split position
   if (split_vertical) {
@@ -71,14 +71,14 @@ void create_room(Leaf &leaf, Grid &grid, std::mt19937 &random_generator,  // NOL
   }
 
   // Determine the width and height of the room making sure it is at least MIN_ROOM_SIZE wide
-  const int width = std::uniform_int_distribution<>{MIN_ROOM_SIZE, leaf.container->width}(random_generator);
-  const int height = std::uniform_int_distribution<>{MIN_ROOM_SIZE, leaf.container->height}(random_generator);
+  const int width{std::uniform_int_distribution<>{MIN_ROOM_SIZE, leaf.container->width}(random_generator)};
+  const int height{std::uniform_int_distribution<>{MIN_ROOM_SIZE, leaf.container->height}(random_generator)};
 
   // Determine the top left position of the new room based on the width and height
-  const int x_pos = std::uniform_int_distribution<>{leaf.container->top_left.x,
-                                                    leaf.container->bottom_right.x - width}(random_generator);
-  const int y_pos = std::uniform_int_distribution<>{leaf.container->top_left.y,
-                                                    leaf.container->bottom_right.y - height}(random_generator);
+  const int x_pos{std::uniform_int_distribution<>{leaf.container->top_left.x,
+                                                  leaf.container->bottom_right.x - width}(random_generator)};
+  const int y_pos{std::uniform_int_distribution<>{leaf.container->top_left.y,
+                                                  leaf.container->bottom_right.y - height}(random_generator)};
 
   // Create the room rect and check its width to height ratio so oddly shaped rooms can be avoided
   const Rect rect{{x_pos, y_pos}, {x_pos + width - 1, y_pos + height - 1}};

@@ -7,18 +7,18 @@
 #include <unordered_set>
 
 // ----- CONSTANTS ------------------------------
-const double MAX_SEE_AHEAD = 2 * SPRITE_SIZE;
-const int MAX_VELOCITY = 200;
-const double OBSTACLE_AVOIDANCE_ANGLE = 60 * PI_RADIANS;
-const double PATH_POSITION_RADIUS = 1 * SPRITE_SIZE;
-const double SLOWING_RADIUS = 3 * SPRITE_SIZE;
-const int WANDER_CIRCLE_DISTANCE = 50;
-const int WANDER_CIRCLE_RADIUS = 25;
+constexpr double MAX_SEE_AHEAD{2 * SPRITE_SIZE};
+constexpr int MAX_VELOCITY{200};
+constexpr double OBSTACLE_AVOIDANCE_ANGLE{60 * PI_RADIANS};
+constexpr double PATH_POSITION_RADIUS{1 * SPRITE_SIZE};
+constexpr double SLOWING_RADIUS{3 * SPRITE_SIZE};
+constexpr int WANDER_CIRCLE_DISTANCE{50};
+constexpr int WANDER_CIRCLE_RADIUS{25};
 
 // ----- FUNCTIONS ------------------------------
-Vec2d arrive(const Vec2d &current_position, const Vec2d &target_position) {
+auto arrive(const Vec2d &current_position, const Vec2d &target_position) -> Vec2d {
   // Calculate a vector to the target and its length
-  const Vec2d direction = target_position - current_position;
+  const Vec2d direction{target_position - current_position};
 
   // Check if the game object is inside the slowing area
   if (direction.magnitude() < SLOWING_RADIUS) {
@@ -27,18 +27,18 @@ Vec2d arrive(const Vec2d &current_position, const Vec2d &target_position) {
   return direction.normalised();
 }
 
-Vec2d evade(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) {
+auto evade(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) -> Vec2d {
   // Calculate the future position of the target based on their distance, and steer away from it.
   // Higher distances will require more time to reach, so the future position will be further away
   return flee(current_position,
               target_position + target_velocity * (target_position.distance_to(current_position) / MAX_VELOCITY));
 }
 
-Vec2d flee(const Vec2d &current_position, const Vec2d &target_position) {
+auto flee(const Vec2d &current_position, const Vec2d &target_position) -> Vec2d {
   return (current_position - target_position).normalised();
 }
 
-Vec2d follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list) {
+auto follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list) -> Vec2d {
   // Check if the path list is empty
   if (path_list.empty()) {
     throw std::length_error("The path list is empty");
@@ -52,29 +52,29 @@ Vec2d follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list) 
   return seek(current_position, path_list[0]);
 }
 
-Vec2d obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_velocity,
-                         const std::unordered_set<Vec2d> &walls) {
+auto obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_velocity,
+                        const std::unordered_set<Vec2d> &walls) -> Vec2d {
   // Create the lambda function to cast a ray from the game object's position in the direction of its velocity at a
   // given angle
-  auto raycast = [&current_position, &current_velocity, &walls](double angle = 0) -> Vec2d {
+  auto raycast{[&current_position, &current_velocity, &walls](double angle = 0) -> Vec2d {
     // Pre-calculate some values used during the raycast
-    const auto rotated_velocity = current_velocity.rotated(angle);
-    const int step_count = static_cast<int>(MAX_SEE_AHEAD / SPRITE_SIZE);
+    const auto rotated_velocity{current_velocity.rotated(angle)};
+    const int step_count{static_cast<int>(MAX_SEE_AHEAD / SPRITE_SIZE)};
 
     // Perform the raycast
     for (int step = 1; step <= step_count; step++) {
-      Vec2d position = current_position + rotated_velocity * ((step * SPRITE_SIZE) / 100.0);
+      Vec2d position{current_position + rotated_velocity * ((step * SPRITE_SIZE) / 100.0)};
       if (walls.contains(position / SPRITE_SIZE)) {
         return position;
       }
     }
     return {-1, -1};
-  };
+  }};
 
   // Check if the game object is going to collide with an obstacle
-  const Vec2d forward_ray = raycast();
-  const Vec2d left_ray = raycast(OBSTACLE_AVOIDANCE_ANGLE);
-  const Vec2d right_ray = raycast(-OBSTACLE_AVOIDANCE_ANGLE);
+  const Vec2d forward_ray{raycast()};
+  const Vec2d left_ray{raycast(OBSTACLE_AVOIDANCE_ANGLE)};
+  const Vec2d right_ray{raycast(-OBSTACLE_AVOIDANCE_ANGLE)};
 
   // Check if there are any obstacles ahead
   if (forward_ray != Vec2d{-1, -1} && left_ray != Vec2d{-1, -1} && right_ray != Vec2d{-1, -1}) {
@@ -94,22 +94,22 @@ Vec2d obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_vel
   return Vec2d{0, 0};
 }
 
-Vec2d pursuit(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) {
+auto pursuit(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) -> Vec2d {
   // Calculate the future position of the target based on their distance, and steer away from it.
   // Higher distances will require more time to reach, so the future position will be further away
   return seek(current_position,
               target_position + target_velocity * (target_position.distance_to(current_position) / MAX_VELOCITY));
 }
 
-Vec2d seek(const Vec2d &current_position, const Vec2d &target_position) {
+auto seek(const Vec2d &current_position, const Vec2d &target_position) -> Vec2d {
   return (target_position - current_position).normalised();
 }
 
-Vec2d wander(const Vec2d &current_velocity, int displacement_angle) {
+auto wander(const Vec2d &current_velocity, const int displacement_angle) -> Vec2d {
   // Calculate the position of an invisible circle in front of the game object
-  const Vec2d circle_center = current_velocity.normalised() * WANDER_CIRCLE_DISTANCE;
+  const Vec2d circle_center{current_velocity.normalised() * WANDER_CIRCLE_DISTANCE};
 
   // Add a displacement force to the centre of the circle to randomise the movement
-  const Vec2d displacement = (Vec2d(0, -1) * WANDER_CIRCLE_RADIUS).rotated(displacement_angle * PI_RADIANS);
+  const Vec2d displacement{(Vec2d{0, -1} * WANDER_CIRCLE_RADIUS).rotated(displacement_angle * PI_RADIANS)};
   return (circle_center + displacement).normalised();
 }

@@ -16,7 +16,7 @@
 #include "game_objects/systems/upgrade.hpp"
 #include "generation/map.hpp"
 
-// ----- HELPER FUNCTIONS ---------------------------------------
+// ----- FUNCTIONS ---------------------------------------
 /// Binds the get_component method for a given number of arbitrary component types.
 ///
 /// @tparam T - The types of components to bind the method for.
@@ -56,12 +56,13 @@ void bind_systems(pybind11::class_<Registry> &registry_class) {
 }
 
 // ----- PYTHON MODULE CREATION ------------------------------
-PYBIND11_MODULE(hades_extensions, m) {
+PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   // Add the module docstring
-  m.doc() = "Manages the various C++ extension modules for the game.";
+  module.doc() = "Manages the various C++ extension modules for the game.";
 
   // Create the generation module
-  pybind11::module generation = m.def_submodule("generation", "Generates the dungeon and places game objects in it.");
+  pybind11::module generation =
+      module.def_submodule("generation", "Generates the dungeon and places game objects in it.");
   generation.def("create_map", &create_map, pybind11::arg("level"), pybind11::arg("seed") = pybind11::none(),
                  ("Generate the game map for a given game level.\n\n"
                   "Args:\n"
@@ -78,13 +79,14 @@ PYBIND11_MODULE(hades_extensions, m) {
       .value("Potion", TileType::Potion);
 
   // Create the game objects module and the game_objects/systems submodules
-  pybind11::module game_objects = m.def_submodule(
+  pybind11::module game_objects = module.def_submodule(
       "game_objects", "Contains the registry and the various components and systems that can be used with it.");
-  pybind11::module systems =
+  const pybind11::module systems =
       game_objects.def_submodule("systems", "Contains the systems which manage the game objects.");
   game_objects.attr("SPRITE_SCALE") = SPRITE_SCALE;
   game_objects.attr("SPRITE_SIZE") = SPRITE_SIZE;
-  pybind11::class_<ComponentBase> component_base(game_objects, "ComponentBase", "The base class for all components.");
+  const pybind11::class_<ComponentBase> component_base(game_objects, "ComponentBase",
+                                                       "The base class for all components.");
   pybind11::class_<SystemBase>(game_objects, "SystemBase", "The base class for all systems.")
       .def("update", &SystemBase::update,
            ("Process update logic for a system.\n\n"
@@ -282,7 +284,7 @@ PYBIND11_MODULE(hades_extensions, m) {
   // Add the armour regen system as well as relevant structures/components
   pybind11::class_<ArmourRegenSystem, SystemBase>(systems, "ArmourRegenSystem",
                                                   "Provides facilities to manipulate armour regen components.")
-      .def(pybind11::init<Registry &>(), pybind11::arg("registry"),
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
@@ -297,15 +299,6 @@ PYBIND11_MODULE(hades_extensions, m) {
       .value("AreaOfEffect", AttackAlgorithms::AreaOfEffect)
       .value("Melee", AttackAlgorithms::Melee)
       .value("Ranged", AttackAlgorithms::Ranged);
-  pybind11::class_<AttackResult>(systems, "AttackResult", "Holds the result of an attack.")
-      .def(pybind11::init<Vec2d, double, double>(), pybind11::arg("current_position"), pybind11::arg("x_velocity"),
-           pybind11::arg("y_velocity"),
-           ("Initialise the object.\n\n"
-            "Args:\n"
-            "    current_position: The current position of the game object.\n"
-            "    x_velocity: The x velocity of the projectile.\n"
-            "    y_velocity: The y velocity of the projectile."))
-      .def_readwrite("ranged_attack", &AttackResult::ranged_attack);
   pybind11::class_<Attacks, ComponentBase>(systems, "Attacks", "Allows a game object to attack other game objects.")
       .def(pybind11::init<std::vector<AttackAlgorithms>>(), pybind11::arg("attack_algorithms"),
            ("Initialise the object.\n\n"
@@ -315,7 +308,7 @@ PYBIND11_MODULE(hades_extensions, m) {
       .def_readwrite("attack_state", &Attacks::attack_state);
   pybind11::class_<AttackSystem, SystemBase>(systems, "AttackSystem",
                                              "Provides facilities to manipulate attack components.")
-      .def(pybind11::init<Registry &>(), pybind11::arg("registry"),
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
@@ -341,7 +334,7 @@ PYBIND11_MODULE(hades_extensions, m) {
             "Raises:\n"
             "    RegistryException: If the game object does not exist or does not have an attack component."));
   pybind11::class_<DamageSystem, SystemBase>(systems, "DamageSystem", "Provides facilities to damage game objects.")
-      .def(pybind11::init<Registry &>(), pybind11::arg("registry"),
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
@@ -406,7 +399,7 @@ PYBIND11_MODULE(hades_extensions, m) {
       .def_readwrite("applied_effects", &StatusEffects::applied_effects);
   pybind11::class_<EffectSystem, SystemBase>(systems, "EffectSystem",
                                              "Provides facilities to manipulate instant and status effects.")
-      .def(pybind11::init<Registry &>(), pybind11::arg("registry"),
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
@@ -457,7 +450,7 @@ PYBIND11_MODULE(hades_extensions, m) {
             "    The capacity of the inventory."));
   pybind11::class_<InventorySystem, SystemBase>(systems, "InventorySystem",
                                                 "Provides facilities to manipulate inventory components.")
-      .def(pybind11::init<Registry &>(), pybind11::arg("registry"),
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
@@ -522,7 +515,7 @@ PYBIND11_MODULE(hades_extensions, m) {
       .def_readwrite("path_list", &SteeringMovement::path_list);
   pybind11::class_<FootprintSystem, SystemBase>(systems, "FootprintSystem",
                                                 "Provides facilities to manipulate footprint components.")
-      .def(pybind11::init<Registry &>(), pybind11::arg("registry"),
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
@@ -532,7 +525,7 @@ PYBIND11_MODULE(hades_extensions, m) {
             "    delta_time: The time interval since the last time the function was called."));
   pybind11::class_<KeyboardMovementSystem, SystemBase>(
       systems, "KeyboardMovementSystem", "Provides facilities to manipulate keyboard movement components.")
-      .def(pybind11::init<Registry &>(), pybind11::arg("registry"),
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
@@ -548,7 +541,7 @@ PYBIND11_MODULE(hades_extensions, m) {
             "    The new force to apply to the game object."));
   pybind11::class_<SteeringMovementSystem, SystemBase>(
       systems, "SteeringMovementSystem", "Provides facilities to manipulate steering movement components.")
-      .def(pybind11::init<Registry &>(), pybind11::arg("registry"),
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
@@ -584,7 +577,7 @@ PYBIND11_MODULE(hades_extensions, m) {
       .def_readwrite("upgrades", &Upgrades::upgrades);
   pybind11::class_<UpgradeSystem, SystemBase>(systems, "UpgradeSystem",
                                               "Provides facilities to manipulate game object upgrades.")
-      .def(pybind11::init<Registry &>(), pybind11::arg("registry"),
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))

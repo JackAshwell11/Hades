@@ -24,13 +24,13 @@ enum class TileType {
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D position.
 struct Position {
-  inline bool operator==(const Position &position) const { return x == position.x && y == position.y; }
+  inline auto operator==(const Position &position) const -> bool { return x == position.x && y == position.y; }
 
-  inline bool operator!=(const Position &position) const { return x != position.x || y != position.y; }
+  inline auto operator!=(const Position &position) const -> bool { return x != position.x || y != position.y; }
 
-  inline Position operator+(const Position &position) const { return {x + position.x, y + position.y}; }
+  inline auto operator+(const Position &position) const -> Position { return {x + position.x, y + position.y}; }
 
-  inline Position operator-(const Position &position) const {
+  inline auto operator-(const Position &position) const -> Position {
     return {std::abs(x - position.x), std::abs(y - position.y)};
   }
 
@@ -39,15 +39,6 @@ struct Position {
 
   /// The y position of the position.
   int y;
-
-  /// The default constructor.
-  Position() = default;
-
-  /// Initialise the object.
-  ///
-  /// @param x - The x position of the position.
-  /// @param y - The y position of the position.
-  Position(int x, int y) : x(x), y(y) {}
 };
 
 /// Represents a 2D grid with a set width and height through a 1D vector.
@@ -63,19 +54,17 @@ struct Grid {
 
   /// Initialise the object.
   ///
-  /// @param width_val - The width of the 2D grid.
-  /// @param height_val - The height of the 2D grid.
-  Grid(int width_val, int height_val)
-      : width(width_val),
-        height(height_val),
-        grid(std::make_unique<std::vector<TileType>>(width * height, TileType::Empty)) {}
+  /// @param width - The width of the 2D grid.
+  /// @param height - The height of the 2D grid.
+  Grid(const int width, const int height)
+      : width(width), height(height), grid(std::make_unique<std::vector<TileType>>(width * height, TileType::Empty)) {}
 
   /// Convert a 2D grid position to a 1D grid position.
   ///
   /// @param pos - The position to convert.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The 1D grid position.
-  [[nodiscard]] inline int convert_position(const Position &pos) const {
+  [[nodiscard]] inline auto convert_position(const Position &pos) const -> int {
     if (pos.x < 0 || pos.x >= width || pos.y < 0 || pos.y >= height) {
       throw std::out_of_range("Position must be within range");
     }
@@ -87,7 +76,7 @@ struct Grid {
   /// @param pos - The position to get the value for.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The value at the given position.
-  [[nodiscard]] inline TileType get_value(const Position &pos) const { return grid->at(convert_position(pos)); }
+  [[nodiscard]] inline auto get_value(const Position &pos) const -> TileType { return grid->at(convert_position(pos)); }
 
   /// Set a value in the 2D grid from a given position.
   ///
@@ -98,11 +87,11 @@ struct Grid {
 
 /// Represents a rectangle in 2D space.
 struct Rect {
-  inline bool operator==(const Rect &rect) const {
+  inline auto operator==(const Rect &rect) const -> bool {
     return top_left == rect.top_left && bottom_right == rect.bottom_right;
   }
 
-  inline bool operator!=(const Rect &rect) const {
+  inline auto operator!=(const Rect &rect) const -> bool {
     return top_left != rect.top_left || bottom_right != rect.bottom_right;
   }
 
@@ -128,8 +117,8 @@ struct Rect {
   Rect(const Position &top_left, const Position &bottom_right)
       : top_left(top_left),
         bottom_right(bottom_right),
-        centre(static_cast<int>(std::round((top_left + bottom_right).x / 2.0)),
-               static_cast<int>(std::round((top_left + bottom_right).y / 2.0))),
+        centre(static_cast<int>(std::round((top_left + bottom_right).x / 2.0)),   // NOLINT
+               static_cast<int>(std::round((top_left + bottom_right).y / 2.0))),  // NOLINT
         width((top_left - bottom_right).x),
         height((top_left - bottom_right).y) {}
 
@@ -137,7 +126,7 @@ struct Rect {
   ///
   /// @param other - The rect to find the distance to.
   /// @return The Chebyshev distance between this rect and the given rect.
-  [[nodiscard]] inline int get_distance_to(const Rect &other) const {
+  [[nodiscard]] inline auto get_distance_to(const Rect &other) const -> int {
     return std::max(abs(centre.x - other.centre.x), abs(centre.y - other.centre.y));
   }
 
@@ -151,8 +140,8 @@ struct Rect {
 // ----- HASHES ------------------------------
 template <>
 struct std::hash<Position> {
-  std::size_t operator()(const Position &position) const {
-    std::size_t res = 0;
+  auto operator()(const Position &position) const -> std::size_t {
+    std::size_t res{0};
     hash_combine(res, position.x);
     hash_combine(res, position.y);
     return res;
@@ -161,8 +150,8 @@ struct std::hash<Position> {
 
 template <>
 struct std::hash<Rect> {
-  std::size_t operator()(const Rect &rect) const {
-    std::size_t res = 0;
+  auto operator()(const Rect &rect) const -> std::size_t {
+    std::size_t res{0};
     hash_combine(res, rect.top_left);
     hash_combine(res, rect.bottom_right);
     return res;

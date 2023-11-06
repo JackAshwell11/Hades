@@ -19,7 +19,7 @@ class InventorySystemFixture : public testing::Test {
   /// Get the inventory system from the registry.
   ///
   /// @return The inventory system.
-  std::shared_ptr<InventorySystem> get_inventory_system() { return registry.find_system<InventorySystem>(); }
+  auto get_inventory_system() -> std::shared_ptr<InventorySystem> { return registry.find_system<InventorySystem>(); }
 };
 
 // ----- TESTS ----------------------------------
@@ -64,12 +64,12 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryLargeIn
   get_inventory_system()->add_item_to_inventory(0, 5);
   get_inventory_system()->add_item_to_inventory(0, 10);
   get_inventory_system()->add_item_to_inventory(0, 50);
-  ASSERT_THROW_MESSAGE(get_inventory_system()->remove_item_from_inventory(0, 10), InventorySpaceException,
+  ASSERT_THROW_MESSAGE((get_inventory_system()->remove_item_from_inventory(0, 10)), InventorySpaceException,
                        "The index is out of range.")
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryInvalidGameObjectID) {
-  ASSERT_THROW_MESSAGE(get_inventory_system()->remove_item_from_inventory(-1, 0), RegistryException,
+  ASSERT_THROW_MESSAGE((get_inventory_system()->remove_item_from_inventory(-1, 0)), RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }

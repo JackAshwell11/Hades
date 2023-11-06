@@ -15,12 +15,12 @@ class AttackSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    auto create_target = [&](Vec2d position) {
-      const int target = registry.create_game_object(true);
+    auto create_target{[&](Vec2d position) {
+      const int target{registry.create_game_object(true)};
       registry.add_components(target, {std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1)});
       registry.get_kinematic_object(target)->position = position;
       return target;
-    };
+    }};
 
     // Create the targets and add the attacks system
     targets = {
@@ -35,8 +35,8 @@ class AttackSystemFixture : public testing::Test {
   ///
   /// @tparam T - The type of the component or system.
   /// @param list - The initializer list to pass to the constructor.
-  void create_attack_component(const std::vector<AttackAlgorithms> &enabled_attacks) {
-    const int game_object_id = registry.create_game_object(true);
+  void create_attack_component(const std::vector<AttackAlgorithms> &&enabled_attacks) {
+    const int game_object_id{registry.create_game_object(true)};
     registry.add_components(game_object_id, {std::make_shared<Attacks>(enabled_attacks)});
     registry.get_kinematic_object(game_object_id)->rotation = 180;
   }
@@ -44,7 +44,7 @@ class AttackSystemFixture : public testing::Test {
   /// Get the attacks system from the registry.
   ///
   /// @return The attacks system.
-  std::shared_ptr<AttackSystem> get_attacks_system() { return registry.find_system<AttackSystem>(); }
+  auto get_attacks_system() -> std::shared_ptr<AttackSystem> { return registry.find_system<AttackSystem>(); }
 };
 
 /// Implements the fixture for the DamageSystem tests.
@@ -65,7 +65,7 @@ class DamageSystemFixture : public testing::Test {
   /// Get the damage system from the registry.
   ///
   /// @return The damage system.
-  std::shared_ptr<DamageSystem> get_damage_system() { return registry.find_system<DamageSystem>(); }
+  auto get_damage_system() -> std::shared_ptr<DamageSystem> { return registry.find_system<DamageSystem>(); }
 };
 
 // ----- TESTS ----------------------------------
@@ -101,7 +101,7 @@ TEST_F(AttackSystemFixture, TestAttacksDoMeleeAttack) {
 TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
   // This is due to floating point precision
   create_attack_component({AttackAlgorithms::Ranged});
-  std::tuple<Vec2d, double, double> attack_result = get_attacks_system()->do_attack(8, targets).value();
+  std::tuple<Vec2d, double, double> attack_result{get_attacks_system()->do_attack(8, targets).value()};
   ASSERT_EQ(get<0>(attack_result), Vec2d(0, 0));
   ASSERT_EQ(get<1>(attack_result), -300);
   ASSERT_NEAR(get<2>(attack_result), 0, 1e-13);
@@ -110,7 +110,7 @@ TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttacksDoAttackInvalidGameObjectId) {
   create_attack_component({AttackAlgorithms::Ranged});
-  ASSERT_THROW_MESSAGE(get_attacks_system()->do_attack(-1, targets), RegistryException,
+  ASSERT_THROW_MESSAGE((get_attacks_system()->do_attack(-1, targets)), RegistryException,
                        "The game object `-1` is not registered with the registry.")
 }
 
@@ -188,7 +188,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroDamage) {
 /// Test that damage is dealt when armour is zero.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroArmour) {
   create_health_and_armour_attributes();
-  auto armour = registry.get_component<Armour>(0);
+  auto armour{registry.get_component<Armour>(0)};
   armour->set_value(0);
   get_damage_system()->deal_damage(0, 100);
   ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 200);
@@ -198,7 +198,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroArmour) {
 /// Test that damage is dealt when health is zero.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
   create_health_and_armour_attributes();
-  auto health = registry.get_component<Health>(0);
+  auto health{registry.get_component<Health>(0)};
   health->set_value(0);
   get_damage_system()->deal_damage(0, 50);
   ASSERT_EQ(health->get_value(), 0);

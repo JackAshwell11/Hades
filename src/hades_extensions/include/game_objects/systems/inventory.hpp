@@ -6,8 +6,7 @@
 
 // ----- EXCEPTIONS ------------------------------
 /// Thrown when there is a space problem with the inventory.
-class InventorySpaceException : public std::runtime_error {
- public:
+struct InventorySpaceException : public std::runtime_error {
   /// Initialise the object.
   ///
   /// @param message - The message to display.
@@ -31,12 +30,22 @@ struct Inventory : public ComponentBase {
 
   /// The game object's inventory.
   std::vector<int> items{};
+
+  /// Initialise the object.
+  ///
+  /// @param width - The width of the inventory.
+  /// @param height - The height of the inventory.
+  Inventory(const int width, const int height) : width(width), height(height) {}
+
+  /// Get the capacity of the inventory.
+  ///
+  /// @return The capacity of the inventory.
+  [[nodiscard]] inline auto get_capacity() const -> int { return width * height; }
 };
 
 // ----- SYSTEMS --------------------------------
 /// Provides facilities to manipulate inventory components.
-class InventorySystem : public SystemBase {
- public:
+struct InventorySystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -56,5 +65,5 @@ class InventorySystem : public SystemBase {
   /// @param index - The index of the item to remove from the inventory.
   /// @throws RegistryException - If the game object does not exist or does not have an inventory component.
   /// @throws InventorySpaceException - If the inventory is empty or the index is out of bounds
-  [[nodiscard]] int remove_item_from_inventory(GameObjectID game_object_id, int index) const;
+  [[nodiscard]] auto remove_item_from_inventory(GameObjectID game_object_id, int index) const -> int;
 };

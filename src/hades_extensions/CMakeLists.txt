@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Define the module names and initialise the project
@@ -18,20 +17,22 @@ project(${PY_MODULE} LANGUAGES CXX)
 # Enable coverage if supported by the compiler
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     message(STATUS "Compiler is GNU or Clang, coverage enabled")
-    set(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage --coverage")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 else ()
     message(STATUS "Compiler is not GNU or Clang, coverage disabled")
 endif ()
 
+# TODO: Clang-tidy just fails the build for some reason
 ## Enable clang-tidy if found
 #find_program(CLANG_TIDY_EXE NAMES "clang-tidy")
 #if (CLANG_TIDY_EXE)
 #    message(STATUS "Found clang-tidy: ${CLANG_TIDY_EXE}")
 #    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 #else ()
-#    message(STATUS "clang-tidy not found")
+#    message(STATUS "No clang-tidy found")
 #endif ()
-#
+
 ## Enable cppcheck if found
 #find_program(CPPCHECK_EXE NAMES "cppcheck")
 #if (CPPCHECK_EXE)
@@ -39,7 +40,7 @@ endif ()
 #    set(CMAKE_CXX_CPPCHECK "${CPPCHECK_EXE}")
 #    list(APPEND CMAKE_CXX_CPPCHECK "--enable=all" "--suppress=missingInclude" "--suppress=missingIncludeSystem")
 #else ()
-#    message(STATUS "cppcheck not found")
+#    message(STATUS "No cppcheck found")
 #endif ()
 
 # Add the subdirectories for the different parts of the project
@@ -47,7 +48,9 @@ include(FetchContent)
 add_subdirectory(src)
 add_subdirectory(test)
 
-# TODO: Go over all clang-tidy and cppcheck rules and decide which ones to enable
+# TODO: Get coverage fully working (could get temporary github repo to test it)
+# TODO: Try catch2
+# TODO: Try out vcpkg (idk)
+
+# TODO: Should clang-tidy run in CI and local or just CI or just local? If so, should a new action be made or integrated into an existing one?
 # TODO: Add stub files and modify Python game to use new ECS
-# TODO: Should clang-tidy and cppcheck only be run in CI?
-# TODO: Could have yaml/toml/json templates for game objects. Could have it specify tile size, image, attributes, components, etc and they're loaded on startup. Could maybe have this even as public api

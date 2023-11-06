@@ -10,32 +10,23 @@
 /// Represents a grid position and its distance from the start position.
 struct Neighbour {
   // std::priority_queue uses a max heap, but we want a min heap, so the operator needs to be reversed
-  inline bool operator<(const Neighbour &neighbour) const { return cost > neighbour.cost; }
+  inline auto operator<(const Neighbour &neighbour) const -> bool { return cost > neighbour.cost; }
 
   /// The cost to traverse to this neighbour.
   int cost;
 
   /// The destination position in the grid.
   Position destination;
-
-  /// Initialise the object.
-  Neighbour() = default;
-
-  /// Initialise the object.
-  ///
-  /// @param cost - The cost to traverse to this neighbour.
-  /// @param destination - The destination position in the grid.
-  Neighbour(int cost, const Position &destination) : cost(cost), destination(destination) {}
 };
 
 // ----- CONSTANTS ------------------------------
 // Represents the north, south, east, west, north-east, north-west, south-east and south-west directions on a compass
-const std::array<Position, 8> INTERCARDINAL_OFFSETS = {Position{-1, -1}, Position{0, -1}, Position{1, -1},
-                                                       Position{-1, 0},  Position{1, 0},  Position{-1, 1},
-                                                       Position{0, 1},   Position{1, 1}};
+constexpr std::array<Position, 8> INTERCARDINAL_OFFSETS{Position{-1, -1}, Position{0, -1}, Position{1, -1},
+                                                        Position{-1, 0},  Position{1, 0},  Position{-1, 1},
+                                                        Position{0, 1},   Position{1, 1}};
 
 // ----- FUNCTIONS ------------------------------
-std::vector<Position> calculate_astar_path(const Grid &grid, const Position &start, const Position &end) {
+auto calculate_astar_path(const Grid &grid, const Position &start, const Position &end) -> std::vector<Position> {
   // Check if the grid size is not zero
   if (grid.width == 0 || grid.height == 0) {
     throw std::length_error("Grid size must be bigger than 0.");
@@ -49,7 +40,7 @@ std::vector<Position> calculate_astar_path(const Grid &grid, const Position &sta
 
   // Loop until we have explored every neighbour or until we've reached the end
   while (!queue.empty()) {
-    Position current = queue.top().destination;
+    Position current{queue.top().destination};
     queue.pop();
 
     // Check if we've reached the end. If so, backtrack through the neighbours to get the resultant path
@@ -70,7 +61,7 @@ std::vector<Position> calculate_astar_path(const Grid &grid, const Position &sta
     //   h - The estimated distance from the neighbour pair to the end pair (this uses the Chebyshev distance)
     for (const Position &offset : INTERCARDINAL_OFFSETS) {
       // Get the neighbour position and check if it is within the grid
-      const Position neighbour = current + offset;
+      const Position neighbour{current + offset};
       if (neighbour.x < 0 || neighbour.y < 0 || neighbour.x >= grid.width || neighbour.y >= grid.height) {
         continue;
       }
@@ -81,7 +72,7 @@ std::vector<Position> calculate_astar_path(const Grid &grid, const Position &sta
       }
 
       // Check if we've found a more efficient path to the neighbour and if so, add all of its neighbours to the queue
-      const int distance = neighbours.at(current).cost + 1;
+      const int distance{neighbours.at(current).cost + 1};
       if (!neighbours.contains(neighbour) || distance < neighbours.at(neighbour).cost) {
         neighbours[neighbour] = {distance, current};
 
