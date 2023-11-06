@@ -1,4 +1,5 @@
 """Stores all the functionality which creates the game and makes it playable."""
+
 from __future__ import annotations
 
 # Builtin

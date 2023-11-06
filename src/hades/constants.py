@@ -1,4 +1,5 @@
 """Stores constants relating to the game and its functionality."""
+
 from __future__ import annotations
 
 # Builtin
