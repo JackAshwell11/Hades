@@ -7,6 +7,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(ENABLE_COVERAGE OFF CACHE BOOL "Enable coverage reporting for GCC/Clang")
+set(DO_TESTS ON CACHE BOOL "Enable testing")
 
 # Define the module names and initialise the project
 set(PY_MODULE hades_extensions)
@@ -15,12 +17,12 @@ set(TEST_MODULE hades_extensions_tests)
 project(${PY_MODULE} LANGUAGES CXX)
 
 # Enable coverage if supported by the compiler
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    message(STATUS "Compiler is GNU or Clang, coverage enabled")
+if (ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(STATUS "Compiler is GCC/Clang, coverage enabled")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 else ()
-    message(STATUS "Compiler is not GNU or Clang, coverage disabled")
+    message(STATUS "Compiler is not GCC/Clang or coverage disabled")
 endif ()
 
 # TODO: Clang-tidy just fails the build for some reason
@@ -46,11 +48,8 @@ endif ()
 # Add the subdirectories for the different parts of the project
 include(FetchContent)
 add_subdirectory(src)
-add_subdirectory(test)
-
-# TODO: Get coverage fully working (could get temporary github repo to test it)
-# TODO: Try catch2
-# TODO: Try out vcpkg (idk)
+if (DO_TESTS)
+    add_subdirectory(test)
+endif ()
 
 # TODO: Should clang-tidy run in CI and local or just CI or just local? If so, should a new action be made or integrated into an existing one?
-# TODO: Add stub files and modify Python game to use new ECS

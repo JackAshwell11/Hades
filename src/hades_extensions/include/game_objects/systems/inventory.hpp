@@ -6,16 +6,16 @@
 
 // ----- EXCEPTIONS ------------------------------
 /// Thrown when there is a space problem with the inventory.
-struct InventorySpaceException : public std::runtime_error {
+struct InventorySpaceError : public std::runtime_error {
   /// Initialise the object.
   ///
   /// @param message - The message to display.
-  explicit InventorySpaceException(const char *message) : std::runtime_error(message) {}
+  explicit InventorySpaceError(const char *message) : std::runtime_error(message) {}
 
   /// Initialise the object.
   ///
   /// @param full - Whether the inventory is full or not.
-  explicit InventorySpaceException(const bool full)
+  explicit InventorySpaceError(const bool full)
       : std::runtime_error(std::string("The inventory is ") + (full ? "full" : "empty") + ".") {}
 };
 
@@ -55,15 +55,16 @@ struct InventorySystem : public SystemBase {
   ///
   /// @param game_object_id - The ID of the game object to add the item to.
   /// @param item - The item to add to the inventory.
-  /// @throws RegistryException - If the game object does not exist or does not have an inventory component.
-  /// @throws InventorySpaceException - If the inventory is full.
+  /// @throws RegistryError - If the game object does not exist or does not have an inventory component.
+  /// @throws InventorySpaceError - If the inventory is full.
   void add_item_to_inventory(GameObjectID game_object_id, GameObjectID item) const;
 
   /// Remove an item from the inventory of a game object.
   ///
   /// @param game_object_id - The ID of the game object to remove the item from.
   /// @param index - The index of the item to remove from the inventory.
-  /// @throws RegistryException - If the game object does not exist or does not have an inventory component.
-  /// @throws InventorySpaceException - If the inventory is empty or the index is out of bounds
+  /// @throws RegistryError - If the game object does not exist or does not have an inventory component.
+  /// @throws InventorySpaceError - If the inventory is empty or the index is out of bounds.
+  /// @return The item that was removed from the inventory.
   [[nodiscard]] auto remove_item_from_inventory(GameObjectID game_object_id, int index) const -> int;
 };

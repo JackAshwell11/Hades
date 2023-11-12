@@ -22,7 +22,7 @@ auto Registry::create_game_object(const bool kinematic) -> GameObjectID {
 void Registry::delete_game_object(const GameObjectID game_object_id) {
   // Check if the game object is registered or not
   if (!game_objects_.contains(game_object_id)) {
-    throw RegistryException("game object", game_object_id);
+    throw RegistryError("game object", game_object_id);
   }
 
   // Delete the game object from the system
@@ -39,7 +39,7 @@ void Registry::add_components(const GameObjectID game_object_id,
                               const std::vector<std::shared_ptr<ComponentBase>> &&components) {
   // Check if the game object is registered or not
   if (!game_objects_.contains(game_object_id)) {
-    throw RegistryException("game object", game_object_id);
+    throw RegistryError("game object", game_object_id);
   }
 
   // Add the components to the game object
@@ -57,11 +57,11 @@ void Registry::add_components(const GameObjectID game_object_id,
   }
 }
 
-auto Registry::get_component(const GameObjectID game_object_id, const ObjectType component_type) const
+auto Registry::get_component(GameObjectID game_object_id, ObjectType component_type) const
     -> std::shared_ptr<ComponentBase> {
   // Check if the game object has the component or not
   if (!has_component(game_object_id, component_type)) {
-    throw RegistryException("game object", game_object_id);
+    throw RegistryError("game object", game_object_id);
   }
 
   // Return the specified component
@@ -71,7 +71,7 @@ auto Registry::get_component(const GameObjectID game_object_id, const ObjectType
 auto Registry::get_kinematic_object(const GameObjectID game_object_id) const -> std::shared_ptr<KinematicObject> {
   // Check if the game object is registered or not
   if (!kinematic_objects_.contains(game_object_id)) {
-    throw RegistryException("game object", game_object_id);
+    throw RegistryError("game object", game_object_id);
   }
 
   // Return the kinematic object

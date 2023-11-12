@@ -16,14 +16,24 @@
 #include "game_objects/systems/upgrade.hpp"
 #include "generation/map.hpp"
 
+// TODO: Rearrange the definitions of this to align with stub files and change
+//  which modules stuff is in to make it easier to use
+
 // ----- FUNCTIONS ---------------------------------------
-/// Binds the get_component method for a given number of arbitrary component types.
+// TODO: Check if this works
+auto has_component_py(const Registry &registry, const GameObjectID game_object_id, const pybind11::object &component_type) -> bool {
+  return registry.has_component(game_object_id, typeid(component_type));
+}
+
+// TODO: REDO HERE
+
+/// Binds the get_component_by_type method for a given number of arbitrary component types.
 ///
 /// @tparam T - The types of components to bind the method for.
 /// @param registry_class - The registry class to bind the method to.
 template <typename... T>
 void bind_components(pybind11::class_<Registry> &registry_class) {
-  (registry_class.def("get_component", &Registry::get_component<T>, pybind11::arg("game_object_id"),
+  (registry_class.def("get_component_by_type", &Registry::get_component<T>, pybind11::arg("game_object_id"),
                       ("Get a component from the registry\n\n"
                        "Args:\n"
                        "    game_object_id: The game object ID.\n\n"
@@ -35,10 +45,10 @@ void bind_components(pybind11::class_<Registry> &registry_class) {
    ...);
 }
 
-/// Binds the find_system method for a given number of arbitrary system types.
+/// Binds the add_system and find_system methods in the registry class.
 ///
-/// @tparam T - The types of systems to bind the method for.
-/// @param registry_class - The registry class to bind the method to.
+/// @tparam T - The types of systems to bind the methods for.
+/// @param registry_class - The registry class to bind the methods to.
 template <typename... T>
 void bind_systems(pybind11::class_<Registry> &registry_class) {
   (registry_class.def("add_system", &Registry::add_system<T>,
@@ -57,13 +67,13 @@ void bind_systems(pybind11::class_<Registry> &registry_class) {
 
 // ----- PYTHON MODULE CREATION ------------------------------
 PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
-  // Add the module docstring
+  // Add the module docstring and the custom converters
   module.doc() = "Manages the various C++ extension modules for the game.";
 
   // Create the generation module
   pybind11::module generation =
       module.def_submodule("generation", "Generates the dungeon and places game objects in it.");
-  generation.def("create_map", &create_map, pybind11::arg("level"), pybind11::arg("seed") = pybind11::none(),
+  generation.def("create_map", &create_map, pybind11::arg("level"), pybind11::arg("seed").none(),
                  ("Generate the game map for a given game level.\n\n"
                   "Args:\n"
                   "    level: The game level to generate a map for.\n"
@@ -88,7 +98,15 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   const pybind11::class_<ComponentBase> component_base(game_objects, "ComponentBase",
                                                        "The base class for all components.");
   pybind11::class_<SystemBase>(game_objects, "SystemBase", "The base class for all systems.")
-      .def("update", &SystemBase::update,
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
+           ("Initialise the object.\n\n"
+            "Args:\n"
+            "    registry: The registry that manages the game objects, components, and systems."))
+      .def("get_registry", &SystemBase::get_registry,
+           ("Get the registry that manages the game objects, components, and systems.\n\n"
+            "Returns:\n"
+            "    The registry."))
+      .def("update", &SystemBase::update, pybind11::arg("delta_time"),
            ("Process update logic for a system.\n\n"
             "Args:\n"
             "    delta_time: The time interval since the last time the function was called."));
@@ -178,7 +196,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def_readwrite("rotation", &KinematicObject::rotation);
 
   // Add the registry class
-  register_exception<RegistryException>(game_objects, "RegistryException");
+  register_exception<RegistryError>(game_objects, "RegistryError");
   pybind11::class_<Registry> registry_class(game_objects, "Registry",
                                             "Manages game objects, components, and systems that are registered.");
   registry_class.def(pybind11::init<>(), "Initialise the object.")
@@ -193,8 +211,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "Args:\n"
             "    game_object_id: The game object ID.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object is not registered."))
-      .def("has_component", &Registry::has_component, pybind11::arg("game_object_id"), pybind11::arg("component_type"),
+            "    RegistryError: If the game object is not registered."))
+      .def("has_component", &has_component_py, pybind11::arg("game_object_id"), pybind11::arg("component_type"),
            ("Checks if a game object has a given component or not.\n\n"
             "Args:\n"
             "    game_object_id: The game object ID.\n"
@@ -207,7 +225,17 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "    game_object_id: The game object ID.\n"
             "    components: The components to add to the game object.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object is not registered."))
+            "    RegistryError: If the game object is not registered."))
+      .def("get_component", &Registry::get_component, pybind11::arg("game_object_id"), pybind11::arg("component_type"),
+           ("Get a component from the registry by type.\n\n"
+            "Args:\n"
+            "    game_object_id: The game object ID.\n"
+            "    component_type: The type of component to get.\n\n"
+            "Raises:\n"
+            "    RegistryError: If the game object is not registered or if the game object does not have the "
+            "component.\n\n"
+            "Returns:\n"
+            "    The component from the registry by type."))
       .def("update", &Registry::update, pybind11::arg("delta_time"),
            ("Update all systems in the registry.\n\n"
             "Args:\n"
@@ -217,7 +245,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "Args:\n"
             "    game_object_id: The game object ID.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object is not registered or if the game object does not have a "
+            "    RegistryError: If the game object is not registered or if the game object does not have a "
             "kinematic object.\n\n"
             "Returns:\n"
             "    The kinematic object."))
@@ -235,17 +263,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
                KeyboardMovementSystem, SteeringMovementSystem, UpgradeSystem>(registry_class);
 
   // Add the stat components
-  pybind11::class_<Stat>(game_objects, "Stat", "Represents a component that has a variable value and maximum value.")
-      .def(pybind11::init<double, int, bool>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           pybind11::arg("max_value") = true,
+  pybind11::class_<Stat, ComponentBase>(game_objects, "Stat",
+                                        "Represents a component that has a variable value and maximum value.")
+      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    value: The initial and maximum value of the stat.\n"
-            "    maximum_level: The maximum level of the stat.\n"
-            "    max_value: Whether the stat has a maximum value or not."))
-      .def_readwrite("max_value", &Stat::max_value)
-      .def_readwrite("current_level", &Stat::current_level)
-      .def_readwrite("maximum_level", &Stat::maximum_level)
+            "    maximum_level: The maximum level of the stat."))
       .def("get_value", &Stat::get_value,
            ("Get the value of the stat.\n\n"
             "Returns:\n"
@@ -253,7 +277,24 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def("set_value", &Stat::set_value,
            ("Set the value of the stat.\n\n"
             "Args:\n"
-            "    new_value: The new value of the stat."));
+            "    new_value: The new value of the stat."))
+      .def("get_max_value", &Stat::get_max_value,
+           ("Get the maximum value of the stat.\n\n"
+            "Returns:\n"
+            "    The maximum value of the stat."))
+      .def("add_to_max_value", &Stat::add_to_max_value,
+           ("Add a value to the maximum value of the stat.\n\n"
+            "Args:\n"
+            "    value: The value to add to the maximum value of the stat."))
+      .def("get_current_level", &Stat::get_current_level,
+           ("Get the current level of the stat.\n\n"
+            "Returns:\n"
+            "    The current level of the stat."))
+      .def("increment_current_level", &Stat::increment_current_level, ("Increment the current level of the stat."))
+      .def("get_maximum_level", &Stat::get_maximum_level,
+           ("Get the maximum level of the stat.\n\n"
+            "Returns:\n"
+            "    The maximum level of the stat."));
   pybind11::class_<Armour, Stat>(game_objects, "Armour", "Allows a game object to have an armour stat.")
       .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
            ("Initialise the object.\n\n"
@@ -294,13 +335,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "    delta_time: The time interval since the last time the function was called."));
 
   // Add the attack system and the damage system as well as relevant structures/components
-  pybind11::enum_<AttackAlgorithms>(systems, "AttackAlgorithms",
-                                    "Stores the different types of attack algorithms available.")
-      .value("AreaOfEffect", AttackAlgorithms::AreaOfEffect)
-      .value("Melee", AttackAlgorithms::Melee)
-      .value("Ranged", AttackAlgorithms::Ranged);
+  pybind11::enum_<AttackAlgorithm>(systems, "AttackAlgorithm",
+                                   "Stores the different types of attack algorithms available.")
+      .value("AreaOfEffect", AttackAlgorithm::AreaOfEffect)
+      .value("Melee", AttackAlgorithm::Melee)
+      .value("Ranged", AttackAlgorithm::Ranged);
   pybind11::class_<Attacks, ComponentBase>(systems, "Attacks", "Allows a game object to attack other game objects.")
-      .def(pybind11::init<std::vector<AttackAlgorithms>>(), pybind11::arg("attack_algorithms"),
+      .def(pybind11::init<std::vector<AttackAlgorithm>>(), pybind11::arg("attack_algorithms"),
            ("Initialise the object.\n\n"
             "Args:\n"
             "    attack_algorithms: The attack algorithms the game object can use."))
@@ -318,7 +359,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "    game_object_id: The ID of the game object to perform the attack for.\n"
             "    targets: The targets to attack.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have an attack component.\n\n"
+            "    RegistryError: If the game object does not exist or does not have an attack component.\n\n"
             "Returns:\n"
             "    The result of the attack."))
       .def("previous_attack", &AttackSystem::previous_attack, pybind11::arg("game_object_id"),
@@ -326,13 +367,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "Args:\n"
             "    game_object_id: The ID of the game object to select the previous attack algorithm for.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have an attack component."))
+            "    RegistryError: If the game object does not exist or does not have an attack component."))
       .def("next_attack", &AttackSystem::next_attack, pybind11::arg("game_object_id"),
            ("Select the next attack algorithm.\n\n"
             "Args:\n"
             "    game_object_id: The ID of the game object to select the next attack algorithm for.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have an attack component."));
+            "    RegistryError: If the game object does not exist or does not have an attack component."));
   pybind11::class_<DamageSystem, SystemBase>(systems, "DamageSystem", "Provides facilities to damage game objects.")
       .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
            ("Initialise the object.\n\n"
@@ -344,7 +385,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "    game_object_id: The ID of the game object to deal damage to.\n"
             "    damage: The amount of damage to deal.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have a health component."));
+            "    RegistryError: If the game object does not exist or does not have a health component."));
 
   // Add the effect system as well as relevant structures/components
   pybind11::enum_<StatusEffectType>(systems, "StatusEffectType",
@@ -364,9 +405,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def_readwrite("value", &StatusEffect::value)
       .def_readwrite("duration", &StatusEffect::duration)
       .def_readwrite("interval", &StatusEffect::interval)
-      .def_readwrite("target_component", &StatusEffect::target_component)
-      .def_readwrite("time_counter", &StatusEffect::time_counter)
-      .def_readwrite("leftover_time", &StatusEffect::leftover_time);
+      .def_readwrite("target_component", &StatusEffect::target_component);
   pybind11::class_<StatusEffectData>(systems, "StatusEffectData",
                                      "Represents the data required to apply a status effect.")
       .def(pybind11::init<StatusEffectType, ActionFunction, ActionFunction, ActionFunction>(),
@@ -416,7 +455,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "    increase: The increase function to apply.\n"
             "    level: The level of the effect to apply.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have the target component.\n\n"
+            "    RegistryError: If the game object does not exist or does not have the target component.\n\n"
             "Returns:\n"
             "    Whether the instant effect was applied or not."))
       .def("apply_status_effect", &EffectSystem::apply_status_effect, pybind11::arg("game_object_id"),
@@ -428,12 +467,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "    status_effect_data: The data required to apply the status effect.\n"
             "    level: The level of the effect to apply.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have the target component.\n\n"
+            "    RegistryError: If the game object does not exist or does not have the target component.\n\n"
             "Returns:\n"
             "    Whether the status effect was applied or not."));
 
   // Add the inventory system as well as relevant structures/components
-  register_exception<InventorySpaceException>(systems, "InventorySpaceException");
+  register_exception<InventorySpaceError>(systems, "InventorySpaceError");
   pybind11::class_<Inventory, ComponentBase>(systems, "Inventory",
                                              "Allows a game object to have a fixed size inventory.")
       .def(pybind11::init<int, int>(), pybind11::arg("width"), pybind11::arg("height"),
@@ -461,8 +500,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "    game_object_id: The ID of the game object to add the item to.\n"
             "    item: The item to add to the inventory.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have an inventory component.\n"
-            "    InventorySpaceException: If the inventory is full."))
+            "    RegistryError: If the game object does not exist or does not have an inventory component.\n"
+            "    InventorySpaceError: If the inventory is full."))
       .def("remove_item_from_inventory", &InventorySystem::remove_item_from_inventory, pybind11::arg("game_object_id"),
            pybind11::arg("index"),
            ("Remove an item from the inventory of a game object.\n\n"
@@ -470,8 +509,10 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "    game_object_id: The ID of the game object to remove the item from.\n"
             "    index: The index of the item to remove from the inventory.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have an inventory component.\n"
-            "    InventorySpaceException: If the inventory is empty or if the index is out of bounds."));
+            "    RegistryError: If the game object does not exist or does not have an inventory component.\n"
+            "    InventorySpaceError: If the inventory is empty or if the index is out of bounds.\n\n"
+            "Returns:\n"
+            "    The item removed from the inventory."));
 
   // Add the footprint system, the keyboard movement system, and the steering movement system as well as relevant
   // structures/components
@@ -482,7 +523,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Flee", SteeringBehaviours::Flee)
       .value("FollowPath", SteeringBehaviours::FollowPath)
       .value("ObstacleAvoidance", SteeringBehaviours::ObstacleAvoidance)
-      .value("Pursuit", SteeringBehaviours::Pursuit)
+      .value("Pursue", SteeringBehaviours::Pursue)
       .value("Seek", SteeringBehaviours::Seek)
       .value("Wander", SteeringBehaviours::Wander);
   pybind11::enum_<SteeringMovementState>(systems, "SteeringMovementState",
@@ -535,7 +576,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "Args:\n"
             "    game_object_id: The ID of the game object to calculate the keyboard force for.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have a keyboard movement "
+            "    RegistryError: If the game object does not exist or does not have a keyboard movement "
             "component.\n\n"
             "Returns:\n"
             "    The new force to apply to the game object."));
@@ -551,7 +592,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "Args:\n"
             "    game_object_id: The ID of the game object to calculate the steering force for.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have a steering movement "
+            "    RegistryError: If the game object does not exist or does not have a steering movement "
             "component.\n\n"
             "Returns:\n"
             "    The new force to apply to the game object."))
@@ -588,7 +629,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             "    game_object_id: The ID of the game object to upgrade the component for.\n"
             "    target_component: The type of component to upgrade.\n\n"
             "Raises:\n"
-            "    RegistryException: If the game object does not exist or does not have the target component.\n\n"
+            "    RegistryError: If the game object does not exist or does not have the target component.\n\n"
             "Returns:\n"
             "    Whether the component upgrade was successful or not."));
 }

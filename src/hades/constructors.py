@@ -1,4 +1,5 @@
 """Stores all the constructors used to make the game objects."""
+
 from __future__ import annotations
 
 # Builtin
@@ -6,20 +7,21 @@ from typing import TYPE_CHECKING, ClassVar, Final, NamedTuple
 
 # Custom
 from hades.constants import GameObjectType
-from hades.game_objects.base import SteeringBehaviours, SteeringMovementState
-from hades.game_objects.components import (
-    Footprint,
+from hades.textures import TextureType
+from hades_extensions.game_objects import MovementForce
+from hades_extensions.game_objects.systems import (
+    Footprints,
     Inventory,
     KeyboardMovement,
-    MovementForce,
+    SteeringBehaviours,
     SteeringMovement,
+    SteeringMovementState,
 )
-from hades.textures import TextureType
 
 if TYPE_CHECKING:
     from arcade import Texture
 
-    from hades.game_objects.base import ComponentBase
+    from hades_extensions.game_objects import ComponentBase
 
 __all__ = (
     "ENEMY",
@@ -76,7 +78,7 @@ PLAYER: Final = GameObjectConstructor(
         Inventory(6, 5),
         MovementForce(5000, 5),
         KeyboardMovement(),
-        Footprint(),
+        Footprints(),
     ],
     kinematic=True,
 )
@@ -89,12 +91,12 @@ ENEMY: Final = GameObjectConstructor(
         MovementForce(1000, 5),
         SteeringMovement(
             {
-                SteeringMovementState.DEFAULT: [
-                    SteeringBehaviours.OBSTACLE_AVOIDANCE,
-                    SteeringBehaviours.WANDER,
+                SteeringMovementState.Default: [
+                    SteeringBehaviours.ObstacleAvoidance,
+                    SteeringBehaviours.Wander,
                 ],
-                SteeringMovementState.FOOTPRINT: [SteeringBehaviours.FOLLOW_PATH],
-                SteeringMovementState.TARGET: [SteeringBehaviours.PURSUIT],
+                SteeringMovementState.Footprint: [SteeringBehaviours.FollowPath],
+                SteeringMovementState.Target: [SteeringBehaviours.Pursue],
             },
         ),
     ],
@@ -106,3 +108,5 @@ POTION: Final = GameObjectConstructor(
     GameObjectType.POTION,
     GameObjectTextures(TextureType.HEALTH_POTION.value),
 )
+
+# TODO: This file needs redoing

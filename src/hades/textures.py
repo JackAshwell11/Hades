@@ -1,4 +1,5 @@
 """Handles loading and storage of textures needed by the game."""
+
 from __future__ import annotations
 
 # Builtin
@@ -9,7 +10,7 @@ from pathlib import Path
 from arcade import Texture, load_texture, load_texture_pair
 
 # Custom
-from hades.constants import SPRITE_SIZE
+from hades_extensions.game_objects import SPRITE_SIZE
 
 __all__ = (
     "BiggerThanError",

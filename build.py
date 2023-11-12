@@ -1,4 +1,5 @@
 """Manages various building/compiling operations on the game."""
+
 from __future__ import annotations
 
 # Builtin
@@ -53,6 +54,7 @@ class CMakeBuild(build_ext):
                     "cmake",
                     str(current_dir.joinpath(ext.sources[0])),
                     f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE={build_dir}",
+                    "-DDO_TESTS=OFF",
                 ],
             ),
             cwd=build_temp,

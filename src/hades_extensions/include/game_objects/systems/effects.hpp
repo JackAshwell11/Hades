@@ -100,7 +100,7 @@ struct EffectSystem : public SystemBase {
   /// @param target_component - The component to apply the effect to.
   /// @param increase_function - The increase function to apply.
   /// @param level - The level of the effect to apply.
-  /// @throws RegistryException - If the game object does not exist or does not have the target component.
+  /// @throws RegistryError - If the game object does not exist or does not have the target component.
   /// @return Whether the instant effect was applied or not.
   auto apply_instant_effect(GameObjectID game_object_id, const std::type_index &target_component,
                             const ActionFunction &increase_function, int level) -> bool;
@@ -111,7 +111,7 @@ struct EffectSystem : public SystemBase {
   /// @param target_component - The component to apply the effect to.
   /// @param status_effect_data - The data required to apply the status effect.
   /// @param level - The level of the effect to apply.
-  /// @throws RegistryException - If the game object does not exist or does not have the target component.
+  /// @throws RegistryError - If the game object does not exist or does not have the target component.
   /// @return Whether the status effect was applied or not.
   auto apply_status_effect(GameObjectID game_object_id, const std::type_index &target_component,
                            const StatusEffectData &status_effect_data, int level) -> bool;

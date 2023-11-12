@@ -39,7 +39,7 @@ struct UpgradeSystem : public SystemBase {
   ///
   /// @param game_object_id - The ID of the game object to upgrade the component for.
   /// @param target_component - The type of component to upgrade.
-  /// @throws RegistryException if the game object does not exist or does not have the target component.
+  /// @throws RegistryError if the game object does not exist or does not have the target component.
   /// @return Whether the component upgrade was successful or not.
   [[nodiscard]] auto upgrade_component(GameObjectID game_object_id, const std::type_index &target_component) const
       -> bool;

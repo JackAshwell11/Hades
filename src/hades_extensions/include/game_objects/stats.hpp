@@ -16,11 +16,7 @@ class Stat : public ComponentBase {
   ///
   /// @param value - The initial and maximum value of the stat.
   /// @param maximum_level - The maximum level of the stat.
-  /// @param max_value - Whether the stat has a maximum value or not.
-  Stat(const double value, const int maximum_level, const bool max_value = true)
-      : value_(value),
-        maximum_level(maximum_level),
-        max_value_(max_value ? value : std::numeric_limits<double>::infinity()) {}
+  Stat(const double value, const int maximum_level) : value_(value), maximum_level(maximum_level), max_value_(value) {}
 
   /// Get the value of the stat.
   ///
@@ -75,9 +71,7 @@ struct Armour : public Stat {
   ///
   /// @param value - The initial and maximum value of the armour stat.
   /// @param maximum_level - The maximum level of the armour stat.
-  /// @param max_value - Whether the armour stat has a maximum value or not.
-  Armour(const double value, const int maximum_level, const bool max_value = true)
-      : Stat(value, maximum_level, max_value) {}
+  Armour(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
 /// Allows a game object to regenerate armour.
@@ -89,9 +83,7 @@ struct ArmourRegen : public Stat {
   ///
   /// @param value - The initial and maximum value of the armour regen stat.
   /// @param maximum_level - The maximum level of the armour regen stat.
-  /// @param max_value - Whether the armour regen stat has a maximum value or not.
-  ArmourRegen(const double value, const int maximum_level, const bool max_value = true)
-      : Stat(value, maximum_level, max_value) {}
+  ArmourRegen(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
 /// Allows a game object to have a health stat.
@@ -100,9 +92,7 @@ struct Health : public Stat {
   ///
   /// @param value - The initial and maximum value of the health stat.
   /// @param maximum_level - The maximum level of the health stat.
-  /// @param max_value - Whether the health stat has a maximum value or not.
-  Health(const double value, const int maximum_level, const bool max_value = true)
-      : Stat(value, maximum_level, max_value) {}
+  Health(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
 /// Allows a game object to determine how fast it can move.
@@ -111,7 +101,5 @@ struct MovementForce : public Stat {
   ///
   /// @param value - The initial and maximum value of the movement force stat.
   /// @param maximum_level - The maximum level of the movement force stat.
-  /// @param max_value - Whether the movement force stat has a maximum value or not.
-  MovementForce(const double value, const int maximum_level, const bool max_value = true)
-      : Stat(value, maximum_level, max_value) {}
+  MovementForce(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };

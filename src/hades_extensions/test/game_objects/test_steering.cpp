@@ -258,20 +258,20 @@ TEST(Tests, TestObstacleAvoidanceLeftRightForward) {
   ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}, {2, 2}}), Vec2d(0, -1));
 }
 
-/// Test if a non-moving target produces the correct pursuit force.
-TEST(Tests, TestPursuitNonMovingTarget) {
-  ASSERT_EQ(pursuit({0, 0}, {100, 100}, {0, 0}), Vec2d(0.7071067811865475, 0.7071067811865475));
+/// Test if a non-moving target produces the correct pursue force.
+TEST(Tests, TestPursueNonMovingTarget) {
+  ASSERT_EQ(pursue({0, 0}, {100, 100}, {0, 0}), Vec2d(0.7071067811865475, 0.7071067811865475));
 }
 
-/// Test if a moving target produces the correct pursuit force.
-TEST(Tests, TestPursuitMovingTarget) {
-  ASSERT_EQ(pursuit({0, 0}, {100, 100}, {-50, 0}), Vec2d(0.5428888213891885, 0.8398045770360255));
+/// Test if a moving target produces the correct pursue force.
+TEST(Tests, TestPursueMovingTarget) {
+  ASSERT_EQ(pursue({0, 0}, {100, 100}, {-50, 0}), Vec2d(0.5428888213891885, 0.8398045770360255));
 }
 
-/// Test if having the same position produces the correct pursuit force.
-TEST(Tests, TestPursuitSamePositions) {
-  ASSERT_EQ(pursuit({0, 0}, {0, 0}, {0, 0}), Vec2d(0, 0));
-  ASSERT_EQ(pursuit({0, 0}, {0, 0}, {-50, 0}), Vec2d(0, 0));
+/// Test if having the same position produces the correct pursue force.
+TEST(Tests, TestPursueSamePositions) {
+  ASSERT_EQ(pursue({0, 0}, {0, 0}, {0, 0}), Vec2d(0, 0));
+  ASSERT_EQ(pursue({0, 0}, {0, 0}, {-50, 0}), Vec2d(0, 0));
 }
 
 /// Test if a higher current position produces the correct seek force.

@@ -66,13 +66,13 @@ auto AttackSystem::do_attack(const GameObjectID game_object_id, const std::vecto
   auto attacks{get_registry()->get_component<Attacks>(game_object_id)};
   const auto kinematic_object{get_registry()->get_kinematic_object(game_object_id)};
   switch (attacks->attack_algorithms[attacks->attack_state]) {
-    case AttackAlgorithms::AreaOfEffect:
+    case AttackAlgorithm::AreaOfEffect:
       area_of_effect_attack(get_registry(), kinematic_object->position, targets);
       break;
-    case AttackAlgorithms::Melee:
+    case AttackAlgorithm::Melee:
       melee_attack(get_registry(), kinematic_object->position, kinematic_object->rotation * PI_RADIANS, targets);
       break;
-    case AttackAlgorithms::Ranged:
+    case AttackAlgorithm::Ranged:
       return ranged_attack(kinematic_object->position, kinematic_object->rotation * PI_RADIANS);
   }
 

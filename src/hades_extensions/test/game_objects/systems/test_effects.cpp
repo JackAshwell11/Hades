@@ -121,13 +121,13 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyInstantEffectValueLowerMax) {
 TEST_F(EffectSystemFixture, TestEffectSystemApplyInstantEffectNonexistentTargetComponent) {
   registry.create_game_object({});
   ASSERT_THROW_MESSAGE(get_effect_system()->apply_instant_effect(0, typeid(Stat), increase_function, 1),
-                       RegistryException, "The game object `0` is not registered with the registry.")
+                       RegistryError, "The game object `0` is not registered with the registry.")
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyInstantEffectInvalidGameObjectId){
     ASSERT_THROW_MESSAGE(get_effect_system()->apply_instant_effect(-1, typeid(Stat), increase_function, 1),
-                         RegistryException, "The game object `-1` is not registered with the registry.")}
+                         RegistryError, "The game object `-1` is not registered with the registry.")}
 
 /// Test that a status effect is applied correctly if no status effect is currently applied.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectNoAppliedEffect) {
@@ -174,11 +174,11 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectMultipleStatusEffec
 TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectNonexistentTargetComponent) {
   registry.create_game_object({});
   ASSERT_THROW_MESSAGE(get_effect_system()->apply_status_effect(0, typeid(Stat), status_effect_data, 1),
-                       RegistryException, "The game object `0` is not registered with the registry.")
+                       RegistryError, "The game object `0` is not registered with the registry.")
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectInvalidGameObjectId) {
   ASSERT_THROW_MESSAGE(get_effect_system()->apply_status_effect(-1, typeid(Stat), status_effect_data, 1),
-                       RegistryException, "The game object `-1` is not registered with the registry.")
+                       RegistryError, "The game object `-1` is not registered with the registry.")
 }

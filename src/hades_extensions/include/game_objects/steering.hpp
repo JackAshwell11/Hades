@@ -156,7 +156,7 @@ auto obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_velo
 /// @param target_position - The position of the target game object.
 /// @param target_velocity - The velocity of the target game object.
 /// @return The new steering force from this behaviour.
-auto pursuit(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) -> Vec2d;
+auto pursue(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) -> Vec2d;
 
 /// Allow a game object to move towards another game object.
 ///

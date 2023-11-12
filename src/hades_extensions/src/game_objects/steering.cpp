@@ -94,7 +94,7 @@ auto obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_velo
   return Vec2d{0, 0};
 }
 
-auto pursuit(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) -> Vec2d {
+auto pursue(const Vec2d &current_position, const Vec2d &target_position, const Vec2d &target_velocity) -> Vec2d {
   // Calculate the future position of the target based on their distance, and steer away from it.
   // Higher distances will require more time to reach, so the future position will be further away
   return seek(current_position,

@@ -15,7 +15,7 @@ enum class SteeringBehaviours {
   Flee,
   FollowPath,
   ObstacleAvoidance,
-  Pursuit,
+  Pursue,
   Seek,
   Wander,
 };
@@ -98,7 +98,7 @@ struct KeyboardMovementSystem : public SystemBase {
   /// Calculate the new keyboard force to apply to the game object.
   ///
   /// @param game_object_id - The ID of the game object to calculate the keyboard force for.
-  /// @throws RegistryException - If the game object does not exist or does not have a keyboard movement component.
+  /// @throws RegistryError - If the game object does not exist or does not have a keyboard movement component.
   /// @return The new force to apply to the game object.
   [[nodiscard]] auto calculate_keyboard_force(GameObjectID game_object_id) const -> Vec2d;
 };
@@ -113,7 +113,7 @@ struct SteeringMovementSystem : public SystemBase {
   /// Calculate the new steering force to apply to the game object.
   ///
   /// @param game_object_id - The ID of the game object to calculate the steering force for.
-  /// @throws RegistryException - If the game object does not exist or does not have a steering movement component.
+  /// @throws RegistryError - If the game object does not exist or does not have a steering movement component.
   /// @return The new force to apply to the game object.
   [[nodiscard]] auto calculate_steering_force(GameObjectID game_object_id) const -> Vec2d;
 

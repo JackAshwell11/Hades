@@ -1,4 +1,5 @@
 """Manages the operations related to the sprite object."""
+
 from __future__ import annotations
 
 # Builtin
@@ -8,18 +9,17 @@ from typing import TYPE_CHECKING
 from arcade import Sprite
 
 # Custom
-from hades.constants import SPRITE_SCALE
-from hades.game_objects.steering import Vec2d
-from hades.game_objects.systems.movements import (
+from hades.textures import grid_pos_to_pixel
+from hades_extensions.game_objects import SPRITE_SCALE, Vec2d
+from hades_extensions.game_objects.systems import (
     KeyboardMovementSystem,
     SteeringMovementSystem,
 )
-from hades.textures import grid_pos_to_pixel
 
 if TYPE_CHECKING:
-    from hades.game_objects.constructors import GameObjectTextures
-    from hades.game_objects.registry import Registry
+    from hades.constructors import GameObjectTextures
     from hades.physics import PhysicsEngine
+    from hades_extensions.game_objects import Registry
 
 __all__ = ("HadesSprite",)
 

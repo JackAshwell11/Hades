@@ -196,7 +196,7 @@ TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceSouthEas
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceInvalidGameObjectId){
-    ASSERT_THROW_MESSAGE((get_keyboard_movement_system()->calculate_keyboard_force(-1)), RegistryException,
+    ASSERT_THROW_MESSAGE((get_keyboard_movement_system()->calculate_keyboard_force(-1)), RegistryError,
                          "The game object `-1` is not registered with the registry.")}
 
 /// Test if the state is correctly changed to the default state.
@@ -267,9 +267,9 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceObstacle
   ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2), Vec2d(25.881904510252056, -96.59258262890683));
 }
 
-/// Test if the correct force is calculated for the pursuit behaviour.
-TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForcePursuit) {
-  create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Pursuit}}});
+/// Test if the correct force is calculated for the pursue behaviour.
+TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForcePursue) {
+  create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Pursue}}});
   registry.get_kinematic_object(0)->position = {100, 100};
   registry.get_kinematic_object(0)->velocity = {-50, 0};
   ASSERT_EQ(get_steering_movement_system()->calculate_steering_force(2), Vec2d(54.28888213891886, 83.98045770360257));
@@ -304,7 +304,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceMultiple
 /// Test if the correct force is calculated when multiple states are initialised.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceMultipleStates) {
   // Initialise the steering movement component with multiple states
-  create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Pursuit}},
+  create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Pursue}},
                                       {SteeringMovementState::Default, {SteeringBehaviours::Seek}}});
 
   // Test the target state
@@ -319,7 +319,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceMultiple
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceInvalidGameObjectId){
-    ASSERT_THROW_MESSAGE((get_steering_movement_system()->calculate_steering_force(-1)), RegistryException,
+    ASSERT_THROW_MESSAGE((get_steering_movement_system()->calculate_steering_force(-1)), RegistryError,
                          "The game object `-1` is not registered with the registry.")}
 
 /// Test if the path list is updated if the position is within the view distance.

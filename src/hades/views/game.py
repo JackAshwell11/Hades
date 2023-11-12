@@ -1,4 +1,5 @@
 """Initialises and manages the main game."""
+
 from __future__ import annotations
 
 # Builtin
@@ -29,23 +30,16 @@ from hades.constants import (
     TOTAL_ENEMY_COUNT,
     GameObjectType,
 )
-from hades.game_objects import SYSTEMS
-from hades.game_objects.components import KeyboardMovement, SteeringMovement
-from hades.game_objects.constructors import (
-    ENEMY,
-    FLOOR,
-    PLAYER,
-    POTION,
-    WALL,
-    GameObjectConstructor,
-)
-from hades.game_objects.registry import Registry
-from hades.game_objects.steering import Vec2d
-from hades.game_objects.systems.attacks import AttackSystem
 from hades.physics import PhysicsEngine
 from hades.sprite import HadesSprite
 from hades.textures import grid_pos_to_pixel
-from hades_extensions import TileType, create_map
+from hades_extensions.game_objects import Registry, Vec2d
+from hades_extensions.game_objects.systems import (
+    AttackSystem,
+    KeyboardMovement,
+    SteeringMovement,
+)
+from hades_extensions.generation import TileType, create_map
 
 all__ = ("Game",)
 

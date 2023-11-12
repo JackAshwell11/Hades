@@ -80,8 +80,8 @@ auto SteeringMovementSystem::calculate_steering_force(const GameObjectID game_ob
         steering_force +=
             obstacle_avoidance(kinematic_owner->position, kinematic_owner->velocity, get_registry()->get_walls());
         break;
-      case SteeringBehaviours::Pursuit:
-        steering_force += pursuit(kinematic_owner->position, kinematic_target->position, kinematic_target->velocity);
+      case SteeringBehaviours::Pursue:
+        steering_force += pursue(kinematic_owner->position, kinematic_target->position, kinematic_target->velocity);
         break;
       case SteeringBehaviours::Seek:
         steering_force += seek(kinematic_owner->position, kinematic_target->position);

@@ -17,19 +17,19 @@ python = "^3.10"
 arcade = "3.0.0.dev25"
 
 [tool.poetry.dev-dependencies]
-black = "23.9.1"
-mypy = "1.5.1"
-nuitka = "1.8.1"
+black = "23.11.0"
+mypy = "1.7.0"
+nuitka = "1.8.5"
 ordered-set = "4.1.0"
-pre-commit = "3.4.0"
-pylint = "2.17.5"
-pytest = "7.4.2"
+pre-commit = "3.5.0"
+pylint = "3.0.2"
+pytest = "7.4.3"
 pytest-cov = "4.1.0"
-pytest-icdiff = "0.7"
+pytest-icdiff = "0.8"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.15.0"
 pytest-sugar = "0.9.7"
-ruff = "0.0.290"
+ruff = "0.1.5"
 ssort = "v0.11.6"
 tox = "4.11.3"
 
@@ -102,7 +102,7 @@ load-plugins = [
     "pylint.extensions.consider_refactoring_into_while_condition",
     "pylint.extensions.consider_ternary_expression",  # Disallow spreading multiple assignment statements across if/else blocks
     "pylint.extensions.dunder",  # Disallow mispelled dunder methods
-    "pylint.extensions.emptystring",  # Disallow comparisons to empty strings
+#    "pylint.extensions.emptystring",  # Disallow comparisons to empty strings
     "pylint.extensions.eq_without_hash",  # Disallow implementing __eq__ without __hash__
     "pylint.extensions.for_any_all",  # Disallow using a for loop to check for a condition and return a bool
     "pylint.extensions.magic_value",  # Disallow using magic values
@@ -113,6 +113,7 @@ load-plugins = [
     "pylint.extensions.redefined_variable_type",  # Disallow redefining variable types
     "pylint.extensions.set_membership",  # Disallow not using sets for membership tests
     "pylint.extensions.typing",  # Disallow bad typing
+    "pylint.extensions.code_style",  # Disallow code that reduces code consistency
 ]
 
 [tool.pylint."MESSAGES CONTROL"]
@@ -122,6 +123,7 @@ enable = [
     "file-ignored",  # Disallow messages to inform that files won't be checked
     "use-symbolic-message-instead",  # Disallow messages enabled/disabled by ID
     "useless-suppression",  # Disallow disabled messages when they aren't triggered
+    "prefer-typing-namedtuple", # Enforce typing.NamedTuple over collections.namedtuple
 ]
 include-naming-hint = true
 disable = [
@@ -153,7 +155,7 @@ extend-exclude = [
 extend-ignore = [
     "S311",  # Allow use of the random library
 ]
-format = "grouped"
+output-format = "grouped"
 line-length = 88
 preview = true
 select = [
@@ -217,7 +219,7 @@ src = ["src"]
     "S607",  # Ignore flake8-bandit start process with a partial path rule
     "T201",  # Ignore flake8-print print rule
 ]
-"hades_extensions/__init__.pyi" = [
+"hades_extensions/*.pyi" = [
     "D100",  # Ignore pydocstyle module docstring rule
     "D101",  # Ignore pydocstyle class docstring rule
     "D103",  # Ignore pydocstyle method docstring rule

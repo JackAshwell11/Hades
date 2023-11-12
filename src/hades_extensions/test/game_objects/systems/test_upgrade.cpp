@@ -80,6 +80,6 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeNonUpgradeable) {
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE((get_upgrade_system()->upgrade_component(-1, typeid(Stat))), RegistryException,
+  ASSERT_THROW_MESSAGE((get_upgrade_system()->upgrade_component(-1, typeid(Stat))), RegistryError,
                        "The game object `-1` is not registered with the registry.")
 }
