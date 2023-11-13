@@ -1,4 +1,5 @@
 """Stores all the constructors used to make the game objects."""
+
 from __future__ import annotations
 
 # Builtin

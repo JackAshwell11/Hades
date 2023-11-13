@@ -1,4 +1,5 @@
 """Creates a shop for upgrades and special attributes/items."""
+
 from __future__ import annotations
 
 # Builtin

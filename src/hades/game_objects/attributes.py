@@ -1,4 +1,5 @@
 """Manages the different game object attributes available."""
+
 from __future__ import annotations
 
 # Builtin

@@ -1,4 +1,5 @@
 """Manages various building/compiling operations on the game."""
+
 from __future__ import annotations
 
 # Builtin

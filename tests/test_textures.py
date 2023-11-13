@@ -1,4 +1,5 @@
 """Tests all functions in textures.py."""
+
 from __future__ import annotations
 
 # Pip
