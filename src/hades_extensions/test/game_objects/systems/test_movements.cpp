@@ -12,8 +12,7 @@ class FootprintSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(true);
-    registry.add_components(0, {std::make_shared<Footprints>()});
+    registry.create_game_object({std::make_shared<Footprints>()}, true);
     registry.add_system<FootprintSystem>();
     registry.add_system<SteeringMovementSystem>();
   }
@@ -21,7 +20,7 @@ class FootprintSystemFixture : public testing::Test {
   /// Get the footprint system from the registry.
   ///
   /// @return The footprint system.
-  auto get_footprint_system() -> std::shared_ptr<FootprintSystem> { return registry.find_system<FootprintSystem>(); }
+  auto get_footprint_system() -> std::shared_ptr<FootprintSystem> { return registry.get_system<FootprintSystem>(); }
 };
 
 /// Implements the fixture for the KeyboardMovementSystem tests.
@@ -32,8 +31,7 @@ class KeyboardMovementFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(true);
-    registry.add_components(0, {std::make_shared<MovementForce>(100, -1), std::make_shared<KeyboardMovement>()});
+    registry.create_game_object({std::make_shared<MovementForce>(100, -1), std::make_shared<KeyboardMovement>()}, true);
     registry.add_system<KeyboardMovementSystem>();
   }
 
@@ -41,7 +39,7 @@ class KeyboardMovementFixture : public testing::Test {
   ///
   /// @return The keyboard movement system.
   auto get_keyboard_movement_system() -> std::shared_ptr<KeyboardMovementSystem> {
-    return registry.find_system<KeyboardMovementSystem>();
+    return registry.get_system<KeyboardMovementSystem>();
   }
 };
 
@@ -54,8 +52,7 @@ class SteeringMovementFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     // Create the target game object
-    registry.create_game_object(true);
-    registry.add_components(0, {std::make_shared<Footprints>()});
+    registry.create_game_object({std::make_shared<Footprints>()}, true);
 
     // Create the game object to follow the target and add the required systems
     create_steering_movement_component({});
@@ -67,7 +64,7 @@ class SteeringMovementFixture : public testing::Test {
   ///
   /// @return The steering movement system.
   auto get_steering_movement_system() -> std::shared_ptr<SteeringMovementSystem> {
-    return registry.find_system<SteeringMovementSystem>();
+    return registry.get_system<SteeringMovementSystem>();
   }
 
   /// Create a steering movement component.
@@ -76,9 +73,8 @@ class SteeringMovementFixture : public testing::Test {
   /// @return The game object ID of the created game object.
   auto create_steering_movement_component(
       const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> &steering_behaviours) -> int {
-    const int game_object_id{registry.create_game_object(true)};
-    registry.add_components(game_object_id, {std::make_shared<MovementForce>(100, -1),
-                                             std::make_shared<SteeringMovement>(steering_behaviours)});
+    const int game_object_id{registry.create_game_object(
+        {std::make_shared<MovementForce>(100, -1), std::make_shared<SteeringMovement>(steering_behaviours)}, true)};
     registry.get_component<SteeringMovement>(game_object_id)->target_id = 0;
     return game_object_id;
   }
@@ -364,6 +360,6 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementUpdatePathListDifferentTarge
 
 /// Test if the path list is updated correctly if the Footprints component updates it.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemUpdatePathListFootprintUpdate) {
-  registry.find_system<FootprintSystem>()->update(0.5);
+  registry.get_system<FootprintSystem>()->update(0.5);
   ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, std::vector<Vec2d>{Vec2d(0, 0)});
 }

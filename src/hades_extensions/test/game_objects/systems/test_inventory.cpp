@@ -11,15 +11,14 @@ class InventorySystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object();
-    registry.add_components(0, {std::make_shared<Inventory>(3, 6)});
+    registry.create_game_object({std::make_shared<Inventory>(3, 6)});
     registry.add_system<InventorySystem>();
   }
 
   /// Get the inventory system from the registry.
   ///
   /// @return The inventory system.
-  auto get_inventory_system() -> std::shared_ptr<InventorySystem> { return registry.find_system<InventorySystem>(); }
+  auto get_inventory_system() -> std::shared_ptr<InventorySystem> { return registry.get_system<InventorySystem>(); }
 };
 
 // ----- TESTS ----------------------------------

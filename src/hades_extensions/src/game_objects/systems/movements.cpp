@@ -32,7 +32,7 @@ void FootprintSystem::update(const double delta_time) const {
     footprints->footprints.push_back(current_position);
 
     // Update the path list for all SteeringMovement components
-    get_registry()->find_system<SteeringMovementSystem>()->update_path_list(game_object_id, footprints->footprints);
+    get_registry()->get_system<SteeringMovementSystem>()->update_path_list(game_object_id, footprints->footprints);
   }
 }
 

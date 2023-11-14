@@ -5,7 +5,7 @@
 #include "game_objects/stats.hpp"
 
 // ----- FUNCTIONS ------------------------------
-auto UpgradeSystem::upgrade_component(const GameObjectID game_object_id, const std::type_index &target_component) const
+auto UpgradeSystem::upgrade_component(const GameObjectID game_object_id, const std::string &target_component) const
     -> bool {
   // Get the component to upgrade as well as the upgrade function
   auto component{std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component))};

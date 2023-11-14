@@ -103,3 +103,31 @@ struct MovementForce : public Stat {
   /// @param maximum_level - The maximum level of the movement force stat.
   MovementForce(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
+
+/// Stores the identifier for the armour component.
+template <>
+struct ComponentIdentifier<Armour> {
+  /// The identifier for the armour component.
+  static constexpr auto identifier{"Armour"};
+};
+
+/// Stores the identifier for the armour regen component.
+template <>
+struct ComponentIdentifier<ArmourRegen> {
+  /// The identifier for the armour regen component.
+  static constexpr auto identifier{"ArmourRegen"};
+};
+
+/// Stores the identifier for the health component.
+template <>
+struct ComponentIdentifier<Health> {
+  /// The identifier for the health component.
+  static constexpr auto identifier{"Health"};
+};
+
+/// Stores the identifier for the movement force component.
+template <>
+struct ComponentIdentifier<MovementForce> {
+  /// The identifier for the movement force component.
+  static constexpr auto identifier{"MovementForce"};
+};

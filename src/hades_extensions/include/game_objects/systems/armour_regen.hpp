@@ -17,3 +17,10 @@ struct ArmourRegenSystem : public SystemBase {
   /// @param delta_time - The time interval since the last time the function was called.
   void update(double delta_time) const final;
 };
+
+/// Stores the identifier for the armour regen system.
+template <>
+struct SystemIdentifier<ArmourRegenSystem> {
+  /// The identifier for the armour regen system.
+  static constexpr auto identifier{"ArmourRegenSystem"};
+};

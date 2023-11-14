@@ -21,7 +21,7 @@ void area_of_effect_attack(const Registry *registry, const Vec2d &current_positi
   // Find all targets that are within range and attack them
   for (auto target : targets) {
     if (current_position.distance_to(registry->get_kinematic_object(target)->position) <= ATTACK_RANGE) {
-      registry->find_system<DamageSystem>()->deal_damage(target, DAMAGE);
+      registry->get_system<DamageSystem>()->deal_damage(target, DAMAGE);
     }
   }
 }
@@ -46,7 +46,7 @@ void melee_attack(const Registry *registry, const Vec2d &current_position, const
     // Test if the target is within range and within the circle's sector
     if (current_position.distance_to(target_position) <= ATTACK_RANGE &&
         (theta <= MELEE_ATTACK_OFFSET_LOWER || theta >= MELEE_ATTACK_OFFSET_UPPER)) {
-      registry->find_system<DamageSystem>()->deal_damage(target, DAMAGE);
+      registry->get_system<DamageSystem>()->deal_damage(target, DAMAGE);
     }
   }
 }

@@ -6,23 +6,16 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <typeindex>
 
 // Local headers
 #include "steering.hpp"
 
-// TODO: Look at how entt represents stuff
-// TODO: Could move away from objecttype and towards ints or strings or enums (probably string)
-// TODO: https://david-delassus.medium.com/a-short-introduction-to-entity-component-system-in-c-with-entt-330b7def345b
-// TODO: https://github.com/skypjack/entt/blob/master/src/entt/entity/registry.hpp
-
 // ----- TYPEDEFS ------------------------------
-// Create some type aliases to simplify the code
-using ActionFunction = std::function<double(int)>;
+// Represents unique identifiers for game objects
 using GameObjectID = int;
-using ObjectType = std::type_index;
+using ActionFunction = std::function<double(int)>;
 
-// ----- STRUCTURES ------------------------------
+// ----- BASE TYPES ------------------------------
 // Add a forward declaration for the registry class
 class Registry;
 
@@ -53,6 +46,15 @@ struct ComponentBase {
   ///
   /// @param other - The other component to move.
   ComponentBase(ComponentBase &&) = default;
+};
+
+/// Stores the identifier for the component.
+///
+/// @tparam T - The type of component.
+template <typename T>
+struct ComponentIdentifier {
+  /// The identifier for the component.
+  static const std::string identifier;
 };
 
 /// The base class for all systems.
@@ -101,6 +103,15 @@ class SystemBase {
   Registry *registry;
 };
 
+/// Stores the identifier for the system.
+///
+/// @tparam T - The type of system.
+template <typename T>
+struct SystemIdentifier {
+  /// The identifier for the system.
+  static const std::string identifier;
+};
+
 // ----- EXCEPTIONS ------------------------------
 /// Raised when an error occurs with the registry.
 class RegistryError : public std::runtime_error {
@@ -113,7 +124,7 @@ class RegistryError : public std::runtime_error {
   /// @param error - The error raised by the registry.
   template <typename T>
   RegistryError(const std::string &not_registered_type, const T &value,
-                    const std::string &error = "is not registered with the registry")
+                const std::string &error = "is not registered with the registry")
       : std::runtime_error("The " + not_registered_type + " `" + to_string(value) + "` " + error + "."){};
 
  private:
@@ -121,7 +132,7 @@ class RegistryError : public std::runtime_error {
   ///
   /// @param value - The value to convert to a string.
   /// @return The value as a string.
-  static inline auto to_string(const char *value) -> std::string { return {value}; }
+  static inline auto to_string(const std::string &value) -> std::string { return value; }
 
   /// Convert a value to a string.
   ///
@@ -140,9 +151,11 @@ class Registry {
  public:
   /// Create a new game object.
   ///
+  /// @param components - The components to add to the game object.
   /// @param kinematic - Whether the game object should have a kinematic object or not.
   /// @return The game object ID.
-  auto create_game_object(bool kinematic = false) -> GameObjectID;
+  auto create_game_object(const std::vector<std::shared_ptr<ComponentBase>> &&components, bool kinematic = false)
+      -> GameObjectID;
 
   /// Delete a game object.
   ///
@@ -155,17 +168,10 @@ class Registry {
   /// @param game_object_id - The game object ID.
   /// @param component_type - The type of component to check for.
   /// @return Whether the game object has the component or not.
-  [[nodiscard]] inline auto has_component(const GameObjectID game_object_id, const ObjectType component_type) const
+  [[nodiscard]] inline auto has_component(const GameObjectID game_object_id, const std::string &component_type) const
       -> bool {
-    return components_.contains(component_type) && components_.at(component_type).contains(game_object_id);
+    return game_objects_.contains(game_object_id) && game_objects_.at(game_object_id).contains(component_type);
   }
-
-  /// Add multiple components to a game object.
-  ///
-  /// @param game_object_id - The game object ID.
-  /// @param components - The components to add to the game object.
-  /// @throws RegistryError - If the game object is not registered.
-  void add_components(GameObjectID game_object_id, const std::vector<std::shared_ptr<ComponentBase>> &&components);
 
   /// Get a component from the registry.
   ///
@@ -175,7 +181,7 @@ class Registry {
   /// @return The component from the registry.
   template <typename T>
   inline auto get_component(const GameObjectID game_object_id) const -> std::shared_ptr<T> {
-    return std::static_pointer_cast<T>(get_component(game_object_id, typeid(T)));
+    return std::static_pointer_cast<T>(get_component(game_object_id, ComponentIdentifier<T>::identifier));
   }
 
   /// Get a component from the registry.
@@ -184,7 +190,8 @@ class Registry {
   /// @param component_type - The type of component to get.
   /// @throws RegistryError - If the game object is not registered or if the game object does not have the component.
   /// @return The component from the registry.
-  [[nodiscard]] auto get_component(GameObjectID game_object_id, ObjectType component_type) const -> std::shared_ptr<ComponentBase>;
+  [[nodiscard]] auto get_component(GameObjectID game_object_id, const std::string &component_type) const
+      -> std::shared_ptr<ComponentBase>;
 
   /// Find all the game objects that have the required components.
   ///
@@ -198,12 +205,12 @@ class Registry {
     // Iterate over all game objects
     for (const auto &[game_object_id, game_object_components] : game_objects_) {
       // Check if the game object has all the components using a fold expression
-      if (!(has_component(game_object_id, typeid(Ts)) && ...)) {
+      if (!(has_component(game_object_id, ComponentIdentifier<Ts>::identifier) && ...)) {
         continue;
       }
 
       // Game object has all the components, so cast them to T and add them to the vector
-      auto components_result{std::make_tuple(std::static_pointer_cast<Ts>(game_object_components.at(typeid(Ts)))...)};
+      auto components_result{std::make_tuple(std::static_pointer_cast<Ts>(game_object_components.at(ComponentIdentifier<Ts>::identifier))...)};
       components.emplace_back(game_object_id, components_result);
     }
 
@@ -218,31 +225,32 @@ class Registry {
   template <typename T>
   void add_system() {
     // Check if the system is already registered
-    const std::type_info &system_type{typeid(T)};
+    std::shared_ptr<T> system{std::make_shared<T>(this)};
+    const std::string system_type{SystemIdentifier<T>::identifier};
     if (systems_.contains(system_type)) {
-      throw RegistryError("system", system_type.name(), "is already registered with the registry");
+      throw RegistryError("system type", system_type, "is already registered with the registry");
     }
 
     // Add the system to the registry
-    systems_[system_type] = std::make_shared<T>(this);
+    systems_[system_type] = system;
   }
 
-  /// Find a system in the registry.
+  /// Get a system from the registry.
   ///
-  /// @tparam T - The type of system to find.
+  /// @tparam T - The type of system to get.
   /// @throws RegistryError - If the system is not registered.
-  /// @return The system.
+  /// @return The system from the registry.
   template <typename T>
-  auto find_system() const -> std::shared_ptr<T> {
-    // Check if the system is registered
-    auto system_result{systems_.find(typeid(T))};
-    if (system_result == systems_.end()) {
-      throw RegistryError("system", typeid(T).name());
-    }
-
-    // Return the system casting it to T
-    return std::static_pointer_cast<T>(system_result->second);
+  auto get_system() const -> std::shared_ptr<T> {
+    return std::static_pointer_cast<T>(get_system(SystemIdentifier<T>::identifier));
   }
+
+  /// Get a system from the registry.
+  ///
+  /// @param system_type - The type of system to get.
+  /// @throws RegistryError - If the system is not registered.
+  /// @return The system from the registry.
+  [[nodiscard]] auto get_system(const std::string &system_type) const -> std::shared_ptr<SystemBase>;
 
   /// Update all the systems in the registry.
   ///
@@ -275,14 +283,11 @@ class Registry {
   /// The next game object ID to use.
   GameObjectID next_game_object_id_{0};
 
-  /// The components registered with the registry.
-  std::unordered_map<ObjectType, std::unordered_set<GameObjectID>> components_;
-
-  /// The game objects registered with the registry.
-  std::unordered_map<GameObjectID, std::unordered_map<ObjectType, std::shared_ptr<ComponentBase>>> game_objects_;
+  /// The game objects and their components registered with the registry.
+  std::unordered_map<GameObjectID, std::unordered_map<std::string, std::shared_ptr<ComponentBase>>> game_objects_;
 
   /// The systems registered with the registry.
-  std::unordered_map<ObjectType, std::shared_ptr<SystemBase>> systems_;
+  std::unordered_map<std::string, std::shared_ptr<SystemBase>> systems_;
 
   /// The kinematic objects registered with the registry.
   std::unordered_map<GameObjectID, std::shared_ptr<KinematicObject>> kinematic_objects_;
@@ -290,3 +295,5 @@ class Registry {
   /// The walls registered with the registry.
   std::unordered_set<Vec2d> walls_;
 };
+
+// TODO: Use https://github.com/SanderMertens/ecs-faq#archetypes-aka-dense-ecs-or-table-based-ecs for improvements

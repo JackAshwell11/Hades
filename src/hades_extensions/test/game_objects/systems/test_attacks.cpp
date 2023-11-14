@@ -16,8 +16,8 @@ class AttackSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     auto create_target{[&](Vec2d position) {
-      const int target{registry.create_game_object(true)};
-      registry.add_components(target, {std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1)});
+      const int target{
+          registry.create_game_object({std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1)}, true)};
       registry.get_kinematic_object(target)->position = position;
       return target;
     }};
@@ -36,15 +36,14 @@ class AttackSystemFixture : public testing::Test {
   /// @tparam T - The type of the component or system.
   /// @param list - The initializer list to pass to the constructor.
   void create_attack_component(const std::vector<AttackAlgorithm> &&enabled_attacks) {
-    const int game_object_id{registry.create_game_object(true)};
-    registry.add_components(game_object_id, {std::make_shared<Attacks>(enabled_attacks)});
+    const int game_object_id{registry.create_game_object({std::make_shared<Attacks>(enabled_attacks)}, true)};
     registry.get_kinematic_object(game_object_id)->rotation = 180;
   }
 
   /// Get the attacks system from the registry.
   ///
   /// @return The attacks system.
-  auto get_attacks_system() -> std::shared_ptr<AttackSystem> { return registry.find_system<AttackSystem>(); }
+  auto get_attacks_system() -> std::shared_ptr<AttackSystem> { return registry.get_system<AttackSystem>(); }
 };
 
 /// Implements the fixture for the DamageSystem tests.
@@ -58,14 +57,13 @@ class DamageSystemFixture : public testing::Test {
 
   /// Create health and armour attributes for use in testing.
   void create_health_and_armour_attributes() {
-    registry.create_game_object();
-    registry.add_components(0, {std::make_shared<Health>(300, -1), std::make_shared<Armour>(100, -1)});
+    registry.create_game_object({std::make_shared<Health>(300, -1), std::make_shared<Armour>(100, -1)});
   }
 
   /// Get the damage system from the registry.
   ///
   /// @return The damage system.
-  auto get_damage_system() -> std::shared_ptr<DamageSystem> { return registry.find_system<DamageSystem>(); }
+  auto get_damage_system() -> std::shared_ptr<DamageSystem> { return registry.get_system<DamageSystem>(); }
 };
 
 // ----- TESTS ----------------------------------

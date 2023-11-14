@@ -14,8 +14,7 @@ class ArmourRegenSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object();
-    registry.add_components(0, {std::make_shared<Armour>(50, -1), std::make_shared<ArmourRegen>(4, -1)});
+    registry.create_game_object({std::make_shared<Armour>(50, -1), std::make_shared<ArmourRegen>(4, -1)});
     registry.add_system<ArmourRegenSystem>();
   }
 
@@ -23,7 +22,7 @@ class ArmourRegenSystemFixture : public testing::Test {
   ///
   /// @return The armour regen system.
   auto get_armour_regen_system() -> std::shared_ptr<ArmourRegenSystem> {
-    return registry.find_system<ArmourRegenSystem>();
+    return registry.get_system<ArmourRegenSystem>();
   }
 };
 

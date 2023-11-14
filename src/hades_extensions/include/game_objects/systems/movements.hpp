@@ -74,6 +74,27 @@ struct SteeringMovement : public ComponentBase {
       : behaviours(behaviours) {}
 };
 
+/// Stores the identifier for the footprints component.
+template <>
+struct ComponentIdentifier<Footprints> {
+  /// The identifier for the footprints component.
+  static constexpr auto identifier{"Footprints"};
+};
+
+/// Stores the identifier for the keyboard movement component.
+template <>
+struct ComponentIdentifier<KeyboardMovement> {
+  /// The identifier for the keyboard movement component.
+  static constexpr auto identifier{"KeyboardMovement"};
+};
+
+/// Stores the identifier for the steering movement component.
+template <>
+struct ComponentIdentifier<SteeringMovement> {
+  /// The identifier for the steering movement component.
+  static constexpr auto identifier{"SteeringMovement"};
+};
+
 // ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate footprint components.
 struct FootprintSystem : public SystemBase {
@@ -122,4 +143,25 @@ struct SteeringMovementSystem : public SystemBase {
   /// @param target_game_object_id - The ID of the game object to follow.
   /// @param footprints - The list of footprints to follow.
   void update_path_list(GameObjectID target_game_object_id, const std::deque<Vec2d> &footprints) const;
+};
+
+/// Stores the identifier for the footprint system.
+template <>
+struct SystemIdentifier<FootprintSystem> {
+  /// The identifier for the footprint system.
+  static constexpr auto identifier{"FootprintSystem"};
+};
+
+/// Stores the identifier for the keyboard movement system.
+template <>
+struct SystemIdentifier<KeyboardMovementSystem> {
+  /// The identifier for the keyboard movement system.
+  static constexpr auto identifier{"KeyboardMovementSystem"};
+};
+
+/// Stores the identifier for the steering movement system.
+template <>
+struct SystemIdentifier<SteeringMovementSystem> {
+  /// The identifier for the steering movement system.
+  static constexpr auto identifier{"SteeringMovementSystem"};
 };
