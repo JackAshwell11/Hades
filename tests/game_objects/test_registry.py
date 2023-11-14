@@ -1,4 +1,5 @@
 """Tests all classes and functions in game_objects/registry.py."""
+
 from __future__ import annotations
 
 # Builtin

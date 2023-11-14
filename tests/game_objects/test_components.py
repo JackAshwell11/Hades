@@ -1,4 +1,5 @@
 """Tests all classes and functions in game_objects/components.py."""
+
 from __future__ import annotations
 
 # Pip
