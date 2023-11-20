@@ -48,6 +48,7 @@ class CMakeBuild(build_ext):
         build_temp.mkdir(parents=True, exist_ok=True)
 
         # Compile and build the CMake extension
+        # TODO: Add CMake presets here
         subprocess.run(
             " ".join(
                 [

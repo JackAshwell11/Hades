@@ -19,7 +19,7 @@ arcade = "3.0.0.dev25"
 [tool.poetry.dev-dependencies]
 black = "23.11.0"
 mypy = "1.7.0"
-nuitka = "1.8.5"
+nuitka = "1.8.6"
 ordered-set = "4.1.0"
 pre-commit = "3.5.0"
 pylint = "3.0.2"
@@ -29,7 +29,7 @@ pytest-icdiff = "0.8"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.15.0"
 pytest-sugar = "0.9.7"
-ruff = "0.1.5"
+ruff = "0.1.6"
 ssort = "v0.11.6"
 tox = "4.11.3"
 
@@ -247,7 +247,9 @@ python =
 [testenv]
 passenv = *
 deps = pytest-cov
-commands = pytest --cov-append
+commands =
+    python -m build -c
+    pytest --cov-append
 
 [testenv:clean]
 deps = pytest-cov

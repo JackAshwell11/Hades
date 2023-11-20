@@ -53,4 +53,4 @@ jobs:
           cmakeListsTxtPath: "${{ github.workspace }}/src/hades_extensions/CMakeLists.txt"
           buildDirectory: "${{ github.workspace }}/build"
       - name: Run CTest
-        run: ctest --output-on-failure --test-dir ${{ github.workspace }}/build/test
+        run: ctest --output-on-failure --test-dir ${{ github.workspace }}/build/tests
