@@ -35,7 +35,7 @@ void EffectSystem::update(const double delta_time) const {
   }
 }
 
-auto EffectSystem::apply_instant_effect(const GameObjectID game_object_id, const std::string &target_component,
+auto EffectSystem::apply_instant_effect(const GameObjectID game_object_id, const std::type_index &target_component,
                                         const ActionFunction &increase_function, const int level) -> bool {
   // Check if the component is already at the maximum
   auto component{std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component))};
@@ -48,7 +48,7 @@ auto EffectSystem::apply_instant_effect(const GameObjectID game_object_id, const
   return true;
 }
 
-auto EffectSystem::apply_status_effect(const GameObjectID game_object_id, const std::string &target_component,
+auto EffectSystem::apply_status_effect(const GameObjectID game_object_id, const std::type_index &target_component,
                                        const StatusEffectData &status_effect_data, const int level) -> bool {
   // Check if the status effect has already been applied
   auto status_effects{get_registry()->get_component<StatusEffects>(game_object_id)};

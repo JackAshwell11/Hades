@@ -19,26 +19,12 @@ struct Money : public ComponentBase {
 /// Allows a game object to be upgraded.
 struct Upgrades : public ComponentBase {
   /// The upgrades the game object has.
-  std::unordered_map<std::string, ActionFunction> upgrades;
+  std::unordered_map<std::type_index, ActionFunction> upgrades;
 
   /// Initialise the object.
   ///
   /// @param upgrades - The upgrades the game object has.
-  explicit Upgrades(const std::unordered_map<std::string, ActionFunction> &upgrades) : upgrades(upgrades) {}
-};
-
-/// Stores the identifier for the money component.
-template <>
-struct ComponentIdentifier<Money> {
-  /// The identifier for the money component.
-  static constexpr auto identifier{"Money"};
-};
-
-/// Stores the identifier for the upgrades component.
-template <>
-struct ComponentIdentifier<Upgrades> {
-  /// The identifier for the upgrades component.
-  static constexpr auto identifier{"Upgrades"};
+  explicit Upgrades(const std::unordered_map<std::type_index, ActionFunction> &upgrades) : upgrades(upgrades) {}
 };
 
 // ----- SYSTEMS --------------------------------
@@ -55,12 +41,6 @@ struct UpgradeSystem : public SystemBase {
   /// @param target_component - The type of component to upgrade.
   /// @throws RegistryError if the game object does not exist or does not have the target component.
   /// @return Whether the component upgrade was successful or not.
-  [[nodiscard]] auto upgrade_component(GameObjectID game_object_id, const std::string &target_component) const -> bool;
-};
-
-/// Stores the identifier for the upgrade system.
-template <>
-struct SystemIdentifier<UpgradeSystem> {
-  /// The identifier for the upgrade system.
-  static constexpr auto identifier{"UpgradeSystem"};
+  [[nodiscard]] auto upgrade_component(GameObjectID game_object_id, const std::type_index &target_component) const
+      -> bool;
 };

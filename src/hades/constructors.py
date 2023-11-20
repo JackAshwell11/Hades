@@ -8,14 +8,13 @@ from typing import TYPE_CHECKING, ClassVar, Final, NamedTuple
 # Custom
 from hades.constants import GameObjectType
 from hades.textures import TextureType
-from hades_extensions.game_objects import MovementForce
-from hades_extensions.game_objects.systems import (
+from hades_extensions.game_objects import SteeringBehaviours, SteeringMovementState
+from hades_extensions.game_objects.components import (
     Footprints,
     Inventory,
     KeyboardMovement,
-    SteeringBehaviours,
+    MovementForce,
     SteeringMovement,
-    SteeringMovementState,
 )
 
 if TYPE_CHECKING:
@@ -47,7 +46,7 @@ class GameObjectConstructor(NamedTuple):
         game_object_type: The type of this game object.
         game_object_textures: The collection of textures which relate to this game
         object.
-        components: A list of component that are part of this game object.
+        components: A list of components that are part of this game object.
         blocking: Whether the game object blocks sprite movement or not.
         kinematic: Whether the game object should have a kinematic object or not.
     """

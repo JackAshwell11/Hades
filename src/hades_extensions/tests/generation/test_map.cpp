@@ -86,11 +86,26 @@ TEST_F(MapFixture, TestMapCreateCompleteGraphNoRooms) {
 
 /// Test that creating a minimum spanning tree with a valid complete graph works correctly.
 TEST_F(MapFixture, TestMapCreateConnectionsValidCompleteGraph) {
+  // Create the minimum-spanning tree and check its size
   const std::unordered_map<Rect, std::vector<Rect>> complete_graph{{rect_one, std::vector<Rect>{rect_two, rect_three}},
                                                                    {rect_two, std::vector<Rect>{rect_one, rect_three}},
                                                                    {rect_three, std::vector<Rect>{rect_one, rect_two}}};
-  const std::unordered_set<Edge> valid_result{{1, rect_one, rect_two}, {3, rect_one, rect_three}};
-  ASSERT_EQ(create_connections(complete_graph), valid_result);
+  auto connections{create_connections(complete_graph)};
+  const std::unordered_set<Rect> all_rects{rect_one, rect_two, rect_three};
+  ASSERT_EQ(connections.size(), 2);
+
+  // Check that the minimum spanning tree has the correct total cost
+  int sum{0};
+  for (const auto &edge : connections) {
+    sum += edge.cost;
+  }
+  ASSERT_EQ(sum, 4);
+
+  // Check that every rect can be reached in the minimum spanning tree
+  for (const auto &rect : all_rects) {
+    ASSERT_TRUE(std::any_of(connections.begin(), connections.end(),
+                            [&rect](const Edge &edge) { return edge.source == rect || edge.destination == rect; }));
+  }
 }
 
 /// Test that creating a minimum spanning tree with an empty complete graph throws an exception.

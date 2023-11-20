@@ -30,13 +30,6 @@ struct Attacks : public ComponentBase {
   explicit Attacks(const std::vector<AttackAlgorithm> &attack_algorithms) : attack_algorithms(attack_algorithms) {}
 };
 
-/// Stores the identifier for the attacks component.
-template <>
-struct ComponentIdentifier<Attacks> {
-  /// The identifier for the attacks component.
-  static constexpr auto identifier{"Attacks"};
-};
-
 // ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate attack components.
 struct AttackSystem : public SystemBase {
@@ -90,18 +83,4 @@ struct DamageSystem : public SystemBase {
   /// @param damage - The amount of damage to deal to the game object.
   /// @throws RegistryError - If the game object does not exist or does not have health and armour components.
   void deal_damage(GameObjectID game_object_id, int damage) const;
-};
-
-/// Stores the identifier for the attack system.
-template <>
-struct SystemIdentifier<AttackSystem> {
-  /// The identifier for the attack system.
-  static constexpr auto identifier{"AttackSystem"};
-};
-
-/// Stores the identifier for the damage system.
-template <>
-struct SystemIdentifier<DamageSystem> {
-  /// The identifier for the damage system.
-  static constexpr auto identifier{"DamageSystem"};
 };

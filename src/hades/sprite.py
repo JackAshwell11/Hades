@@ -89,7 +89,7 @@ class HadesSprite(Sprite):
             physics_engine: The game object's physics engine.
         """
         kinematic_object, body = (
-            self.registry.get_kinematic_object_for_game_object(self.game_object_id),
+            self.registry.get_kinematic_object(self.game_object_id),
             physics_engine.get_physics_object(self).body,
         )
         if body is None:

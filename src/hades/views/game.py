@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 # Pip
 from arcade import (
@@ -26,20 +26,20 @@ from hades.constants import (
     ENEMY_GENERATE_INTERVAL,
     ENEMY_GENERATION_DISTANCE,
     ENEMY_RETRY_COUNT,
-    SPRITE_SIZE,
     TOTAL_ENEMY_COUNT,
     GameObjectType,
 )
+from hades.constructors import ENEMY, FLOOR, PLAYER, POTION, WALL
 from hades.physics import PhysicsEngine
 from hades.sprite import HadesSprite
 from hades.textures import grid_pos_to_pixel
-from hades_extensions.game_objects import Registry, Vec2d
-from hades_extensions.game_objects.systems import (
-    AttackSystem,
-    KeyboardMovement,
-    SteeringMovement,
-)
+from hades_extensions.game_objects import SPRITE_SIZE, Registry, Vec2d
+from hades_extensions.game_objects.components import KeyboardMovement, SteeringMovement
+from hades_extensions.game_objects.systems import AttackSystem
 from hades_extensions.generation import TileType, create_map
+
+if TYPE_CHECKING:
+    from hades.constructors import GameObjectConstructor
 
 all__ = ("Game",)
 
@@ -97,7 +97,7 @@ class Game(View):
         """
         # Initialise a sprite object
         game_object_id = self.registry.create_game_object(
-            *constructor.components,
+            constructor.components,
             kinematic=constructor.kinematic,
         )
         sprite_obj = HadesSprite(
@@ -120,7 +120,7 @@ class Game(View):
                 blocking=constructor.blocking,
             )
         if constructor.blocking:
-            self.registry.walls.add(Vec2d(*position))
+            self.registry.add_wall(Vec2d(*position))
 
         # Return the game object ID
         return game_object_id
@@ -152,11 +152,8 @@ class Game(View):
             font_size=20,
         )
 
-        # Initialise all the systems
-        for system in SYSTEMS:
-            self.registry.add_system(system(self.registry))
-
-        # Initialise the game objects
+        # Initialise all the systems then the game objects
+        self.registry.add_systems()
         for count, tile in enumerate(generation_result[0]):
             # Skip all empty tiles
             if tile in {TileType.Empty, TileType.Obstacle}:
@@ -251,7 +248,7 @@ class Game(View):
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
-        player_movement = self.registry.get_component_for_game_object(
+        player_movement = self.registry.get_component(
             self.ids[GameObjectType.PLAYER][0].game_object_id,
             KeyboardMovement,
         )
@@ -262,13 +259,13 @@ class Game(View):
         )
         match symbol:
             case key.W:
-                player_movement.north_pressed = True
+                player_movement.moving_north = True
             case key.S:
-                player_movement.south_pressed = True
+                player_movement.moving_south = True
             case key.A:
-                player_movement.west_pressed = True
+                player_movement.moving_west = True
             case key.D:
-                player_movement.east_pressed = True
+                player_movement.moving_east = True
 
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.
@@ -278,7 +275,7 @@ class Game(View):
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
-        player_movement = self.registry.get_component_for_game_object(
+        player_movement = self.registry.get_component(
             self.ids[GameObjectType.PLAYER][0].game_object_id,
             KeyboardMovement,
         )
@@ -289,13 +286,13 @@ class Game(View):
         )
         match symbol:
             case key.W:
-                player_movement.north_pressed = False
+                player_movement.moving_north = False
             case key.S:
-                player_movement.south_pressed = False
+                player_movement.moving_south = False
             case key.A:
-                player_movement.west_pressed = False
+                player_movement.moving_west = False
             case key.D:
-                player_movement.east_pressed = False
+                player_movement.moving_east = False
 
     def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
         """Process mouse button functionality.
@@ -341,7 +338,7 @@ class Game(View):
                 continue
 
             # Set the required data for the steering to correctly function
-            steering_movement = self.registry.get_component_for_game_object(
+            steering_movement = self.registry.get_component(
                 self._initialise_game_object(ENEMY, self.entity_sprites, position),
                 SteeringMovement,
             )

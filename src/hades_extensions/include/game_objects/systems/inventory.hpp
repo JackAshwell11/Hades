@@ -43,13 +43,6 @@ struct Inventory : public ComponentBase {
   [[nodiscard]] inline auto get_capacity() const -> int { return width * height; }
 };
 
-/// Stores the identifier for the inventory component.
-template <>
-struct ComponentIdentifier<Inventory> {
-  /// The identifier for the inventory component.
-  static constexpr auto identifier{"Inventory"};
-};
-
 // ----- SYSTEMS --------------------------------
 /// Provides facilities to manipulate inventory components.
 struct InventorySystem : public SystemBase {
@@ -74,11 +67,4 @@ struct InventorySystem : public SystemBase {
   /// @throws InventorySpaceError - If the inventory is empty or the index is out of bounds.
   /// @return The item that was removed from the inventory.
   [[nodiscard]] auto remove_item_from_inventory(GameObjectID game_object_id, int index) const -> int;
-};
-
-/// Stores the identifier for the inventory system.
-template <>
-struct SystemIdentifier<InventorySystem> {
-  /// The identifier for the inventory system.
-  static constexpr auto identifier{"InventorySystem"};
 };

@@ -1,5 +1,5 @@
 # Define the minimum CMake version
-cmake_minimum_required(VERSION 3.18.2)
+cmake_minimum_required(VERSION 3.25.2)
 
 # Define some environment variables
 set(CMAKE_CXX_STANDARD 20)
@@ -17,12 +17,16 @@ set(TEST_MODULE hades_extensions_tests)
 project(${PY_MODULE} LANGUAGES CXX)
 
 # Enable coverage if supported by the compiler
-if (ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    message(STATUS "Compiler is GCC/Clang, coverage enabled")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+if (ENABLE_COVERAGE)
+    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(STATUS "Coverage enabled (compiler is GCC/Clang)")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    else ()
+        message(STATUS "Coverage disabled (compiler is not GCC/Clang)")
+    endif ()
 else ()
-    message(STATUS "Compiler is not GCC/Clang or coverage disabled")
+    message(STATUS "Coverage disabled (ENABLE_COVERAGE is not set)")
 endif ()
 
 # TODO: Clang-tidy just fails the build for some reason
@@ -49,7 +53,5 @@ endif ()
 include(FetchContent)
 add_subdirectory(src)
 if (DO_TESTS)
-    add_subdirectory(test)
+    add_subdirectory(tests)
 endif ()
-
-# TODO: Should clang-tidy run in CI and local or just CI or just local? If so, should a new action be made or integrated into an existing one?

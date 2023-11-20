@@ -108,8 +108,9 @@ TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttacksDoAttackInvalidGameObjectId) {
   create_attack_component({AttackAlgorithm::Ranged});
-  ASSERT_THROW_MESSAGE((get_attacks_system()->do_attack(-1, targets)), RegistryError,
-                       "The game object `-1` is not registered with the registry.")
+  ASSERT_THROW_MESSAGE(
+      (get_attacks_system()->do_attack(-1, targets)), RegistryError,
+      "The game object `-1` is not registered with the registry or does not have the required component.")
 }
 
 /// Test that switching between attacks once works correctly.
@@ -153,10 +154,12 @@ TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackEmptyAttacks) {
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackInvalidGameObjectId) {
   create_attack_component({});
-  ASSERT_THROW_MESSAGE(get_attacks_system()->next_attack(-1), RegistryError,
-                       "The game object `-1` is not registered with the registry.")
-  ASSERT_THROW_MESSAGE(get_attacks_system()->previous_attack(-1), RegistryError,
-                       "The game object `-1` is not registered with the registry.")
+  ASSERT_THROW_MESSAGE(
+      get_attacks_system()->next_attack(-1), RegistryError,
+      "The game object `-1` is not registered with the registry or does not have the required component.")
+  ASSERT_THROW_MESSAGE(
+      get_attacks_system()->previous_attack(-1), RegistryError,
+      "The game object `-1` is not registered with the registry or does not have the required component.")
 }
 
 /// Test that damage is dealt when health and armour are lower than damage.
@@ -206,12 +209,14 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
 /// Test that no damage is dealt when the attributes are not initialised.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageNonexistentAttributes) {
   registry.create_game_object({});
-  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(0, 100), RegistryError,
-                       "The game object `0` is not registered with the registry.")
+  ASSERT_THROW_MESSAGE(
+      get_damage_system()->deal_damage(0, 100), RegistryError,
+      "The game object `0` is not registered with the registry or does not have the required component.")
 }
 
 /// Test that an exception is raised if an invalid game object ID is provided.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(-1, 100), RegistryError,
-                       "The game object `-1` is not registered with the registry.")
+  ASSERT_THROW_MESSAGE(
+      get_damage_system()->deal_damage(-1, 100), RegistryError,
+      "The game object `-1` is not registered with the registry or does not have the required component.")
 }

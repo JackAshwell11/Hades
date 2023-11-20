@@ -26,7 +26,7 @@ struct StatusEffect {
   double interval;
 
   /// The component the status effect should be applied to.
-  std::string target_component;
+  std::type_index target_component;
 
   /// Tracks the time the status effect has been applied for.
   double time_counter{0};
@@ -40,13 +40,14 @@ struct StatusEffect {
   /// @param duration - The duration the status effect should be applied for.
   /// @param interval - The interval the status effect should be applied at.
   /// @param target_component - The component the status effect should be applied to.
-  StatusEffect(const double value, const double duration, const double interval, const std::string &target_component)
+  StatusEffect(const double value, const double duration, const double interval,
+               const std::type_index &target_component)
       : value(value), duration(duration), interval(interval), target_component(target_component) {}
 };
 
 // ----- COMPONENTS ------------------------------
 /// Represents the data required to apply a status effect.
-struct StatusEffectData {
+struct StatusEffectData : public ComponentBase {
   /// The type of status effect.
   StatusEffectType status_effect_type;
 
@@ -58,22 +59,35 @@ struct StatusEffectData {
 
   /// The interval function to apply.
   ActionFunction interval;
+
+  /// Initialise the object.
+  ///
+  /// @param status_effect_type - The type of status effect.
+  /// @param increase - The increase function to apply.
+  /// @param duration - The duration function to apply.
+  /// @param interval - The interval function to apply.
+  StatusEffectData(const StatusEffectType &status_effect_type, ActionFunction increase, ActionFunction duration,
+                   ActionFunction interval)
+      : status_effect_type(status_effect_type),
+        increase(std::move(increase)),
+        duration(std::move(duration)),
+        interval(std::move(interval)) {}
 };
 
 /// Allows a game object to provide instant or status effects.
 struct EffectApplier : public ComponentBase {
   /// The instant effects the game object provides.
-  std::unordered_map<std::string, ActionFunction> instant_effects;
+  std::unordered_map<std::type_index, ActionFunction> instant_effects;
 
   /// The status effects the game object provides.
-  std::unordered_map<std::string, StatusEffectData> status_effects;
+  std::unordered_map<std::type_index, StatusEffectData> status_effects;
 
   /// Initialise the object.
   ///
   /// @param instant_effects - The instant effects the game object provides.
   /// @param status_effects - The status effects the game object provides.
-  EffectApplier(const std::unordered_map<std::string, ActionFunction> &instant_effects,
-                const std::unordered_map<std::string, StatusEffectData> &status_effects)
+  EffectApplier(const std::unordered_map<std::type_index, ActionFunction> &instant_effects,
+                const std::unordered_map<std::type_index, StatusEffectData> &status_effects)
       : instant_effects(instant_effects), status_effects(status_effects) {}
 };
 
@@ -81,27 +95,6 @@ struct EffectApplier : public ComponentBase {
 struct StatusEffects : public ComponentBase {
   /// The status effects currently applied to the game object.
   std::unordered_map<StatusEffectType, StatusEffect> applied_effects{};
-};
-
-/// Stores the identifier for the status effect data component.
-template <>
-struct ComponentIdentifier<StatusEffectData> {
-  /// The identifier for the status effect data component.
-  static constexpr auto identifier{"StatusEffectData"};
-};
-
-/// Stores the identifier for the effect applier component.
-template <>
-struct ComponentIdentifier<EffectApplier> {
-  /// The identifier for the effect applier component.
-  static constexpr auto identifier{"EffectApplier"};
-};
-
-/// Stores the identifier for the status effects component.
-template <>
-struct ComponentIdentifier<StatusEffects> {
-  /// The identifier for the status effects component.
-  static constexpr auto identifier{"StatusEffects"};
 };
 
 // ----- SYSTEMS ------------------------------
@@ -125,7 +118,7 @@ struct EffectSystem : public SystemBase {
   /// @param level - The level of the effect to apply.
   /// @throws RegistryError - If the game object does not exist or does not have the target component.
   /// @return Whether the instant effect was applied or not.
-  auto apply_instant_effect(GameObjectID game_object_id, const std::string &target_component,
+  auto apply_instant_effect(GameObjectID game_object_id, const std::type_index &target_component,
                             const ActionFunction &increase_function, int level) -> bool;
 
   /// Apply a status effect to a game object.
@@ -136,13 +129,6 @@ struct EffectSystem : public SystemBase {
   /// @param level - The level of the effect to apply.
   /// @throws RegistryError - If the game object does not exist or does not have the target component.
   /// @return Whether the status effect was applied or not.
-  auto apply_status_effect(GameObjectID game_object_id, const std::string &target_component,
+  auto apply_status_effect(GameObjectID game_object_id, const std::type_index &target_component,
                            const StatusEffectData &status_effect_data, int level) -> bool;
-};
-
-/// Stores the identifier for the effect system.
-template <>
-struct SystemIdentifier<EffectSystem> {
-  /// The identifier for the effect system.
-  static constexpr auto identifier{"EffectSystem"};
 };
