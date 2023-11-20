@@ -1,0 +1,37 @@
+{
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 2
+  },
+  "configurePresets": [
+    {
+      "binaryDir": "${sourceDir}/build-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "description": "Debug build",
+      "generator": "Ninja",
+      "name": "Debug"
+    },
+    {
+      "binaryDir": "${sourceDir}/build-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "description": "Release build",
+      "generator": "Ninja",
+      "name": "Release"
+    },
+    {
+      "binaryDir": "${sourceDir}/build-coverage",
+      "cacheVariables": {
+        "ENABLE_COVERAGE": "ON"
+      },
+      "description": "Coverage build",
+      "inherits": "Debug",
+      "name": "Coverage"
+    }
+  ],
+  "version": 3
+}

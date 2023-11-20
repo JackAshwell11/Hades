@@ -1,4 +1,5 @@
 """Manages the physics using an abstracted version of the Pymunk physics engine."""
+
 from __future__ import annotations
 
 # Builtin

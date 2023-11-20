@@ -1,4 +1,5 @@
 """Stores constants relating to the game and its functionality."""
+
 from __future__ import annotations
 
 # Builtin
@@ -7,6 +8,9 @@ from datetime import datetime, timezone
 from enum import Enum, auto
 from pathlib import Path
 from typing import Final
+
+# Custom
+from hades_extensions.game_objects import SPRITE_SIZE
 
 __all__ = (
     "ARMOUR_REGEN_AMOUNT",
@@ -33,8 +37,6 @@ __all__ = (
     "OBSTACLE_AVOIDANCE_ANGLE",
     "PATH_POINT_RADIUS",
     "SLOWING_RADIUS",
-    "SPRITE_SCALE",
-    "SPRITE_SIZE",
     "TARGET_DISTANCE",
     "TOTAL_ENEMY_COUNT",
     "WANDER_CIRCLE_DISTANCE",
@@ -101,10 +103,6 @@ LOGGING_DICT_CONFIG: Final = {
         },
     },
 }
-
-# Sprite sizes
-SPRITE_SCALE: Final = 0.5
-SPRITE_SIZE: Final = 128 * SPRITE_SCALE
 
 # Attack constants
 ATTACK_COOLDOWN: Final = 3

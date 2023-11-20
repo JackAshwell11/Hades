@@ -1,4 +1,5 @@
 """Manages various building/compiling operations on the game."""
+
 from __future__ import annotations
 
 # Builtin
@@ -47,13 +48,14 @@ class CMakeBuild(build_ext):
         build_temp.mkdir(parents=True, exist_ok=True)
 
         # Compile and build the CMake extension
+        # TODO: Add CMake presets here
         subprocess.run(
             " ".join(
                 [
                     "cmake",
                     str(current_dir.joinpath(ext.sources[0])),
-                    "-DDO_PYTHON=true",
                     f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE={build_dir}",
+                    "-DDO_TESTS=OFF",
                 ],
             ),
             cwd=build_temp,
@@ -103,7 +105,7 @@ def cpp() -> None:
     result_path = Path(__file__).parent.joinpath(
         setup(
             name="hades_extensions",
-            ext_modules=[Extension("hades_extensions", ["hades_extensions"])],
+            ext_modules=[Extension("hades_extensions", ["src/hades_extensions"])],
             script_args=["bdist_wheel"],
             cmdclass={"build_ext": CMakeBuild},
         ).dist_files[0][2],
