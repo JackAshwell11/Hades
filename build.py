@@ -43,25 +43,21 @@ class CMakeBuild(build_ext):
         build_dir = current_dir.joinpath(self.get_ext_fullpath(ext.name)).parent
         build_dir.mkdir(parents=True, exist_ok=True)
 
-        # Determine where the extension's build files should be located
-        build_temp = current_dir.joinpath(self.build_temp).joinpath(ext.name)
-        build_temp.mkdir(parents=True, exist_ok=True)
-
         # Compile and build the CMake extension
-        # TODO: Add CMake presets here
         subprocess.run(
-            " ".join(
-                [
-                    "cmake",
-                    str(current_dir.joinpath(ext.sources[0])),
-                    f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE={build_dir}",
-                    "-DDO_TESTS=OFF",
-                ],
-            ),
-            cwd=build_temp,
+            [
+                "cmake",
+                str(current_dir.joinpath(ext.sources[0])),
+                "--preset Release",
+                "-DDO_TESTS=OFF",
+                f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE={build_dir}",
+            ],
             check=True,
         )
-        subprocess.run("cmake --build . --config Release", cwd=build_temp, check=True)
+        subprocess.run(
+            ["cmake", "--build", "src/hades_extensions/build-release"],
+            check=True,
+        )
 
 
 def executable() -> None:
@@ -110,7 +106,7 @@ def cpp() -> None:
             cmdclass={"build_ext": CMakeBuild},
         ).dist_files[0][2],
     )
-    subprocess.run(f'pip install --force-reinstall "{result_path}"', check=True)
+    subprocess.run(["pip", "install", "--force-reinstall", result_path], check=True)
 
 
 if __name__ == "__main__":

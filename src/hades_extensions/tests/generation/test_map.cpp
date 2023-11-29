@@ -1,3 +1,6 @@
+// Std headers
+#include <numeric>
+
 // Local headers
 #include "generation/map.hpp"
 #include "macros.hpp"
@@ -95,11 +98,9 @@ TEST_F(MapFixture, TestMapCreateConnectionsValidCompleteGraph) {
   ASSERT_EQ(connections.size(), 2);
 
   // Check that the minimum spanning tree has the correct total cost
-  int sum{0};
-  for (const auto &edge : connections) {
-    sum += edge.cost;
-  }
-  ASSERT_EQ(sum, 4);
+  ASSERT_EQ(std::accumulate(connections.begin(), connections.end(), 0,
+                            [](const int &sum, const Edge &edge) { return sum + edge.cost; }),
+            4);
 
   // Check that every rect can be reached in the minimum spanning tree
   for (const auto &rect : all_rects) {

@@ -13,17 +13,16 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         python-version: ["3.10", "3.11"]
-    defaults:
-      run:
-        shell: bash
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v4.7.1
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Set up CMake
+        uses: lukka/get-cmake@v3.27.7
+      - name: Install Python dependencies
         run: pip install tox tox-gh-actions
       - name: Install EGL on Linux for headless Arcade
         if: matrix.os == 'ubuntu-latest'
@@ -31,26 +30,43 @@ jobs:
       - name: Run Tox
         run: tox
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@v2.2.3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./coverage.lcov
+          file: coverage.lcov
+          flag-name: run-python-${{ matrix.os }}-${{ matrix.python-version }}
+          parallel: true
   cpp:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
       - name: Set up CMake
-        uses: lukka/get-cmake@v3.25.2
+        uses: lukka/get-cmake@v3.27.7
       - name: Configure and build CMake
-        uses: lukka/run-cmake@v3
+        working-directory: ${{ github.workspace }}/src/hades_extensions
+        run: |
+          cmake --preset Coverage
+          cmake --build build-coverage
+      - name: Run CTest and generate the coverage report
+        working-directory: ${{ github.workspace }}/src/hades_extensions
+        run: |
+          ctest --output-on-failure --no-tests=error --test-dir build-coverage/tests
+          pip install gcovr
+          gcovr --exclude build-coverage --exclude tests --exclude src/binding.cpp --coveralls coverage.json
+      - name: Upload coverage report
+        uses: coverallsapp/github-action@v2.2.3
         with:
-          cmakeListsTxtPath: "${{ github.workspace }}/src/hades_extensions/CMakeLists.txt"
-          buildDirectory: "${{ github.workspace }}/build"
-      - name: Run CTest
-        run: ctest --output-on-failure --test-dir ${{ github.workspace }}/build/tests
+          file: ${{ github.workspace }}/src/hades_extensions/coverage.json
+          flag-name: run-cpp-${{ matrix.os }}
+          parallel: true
+  finish:
+    runs-on: ubuntu-latest
+    needs: [python, cpp]
+    steps:
+      - name: Upload coverage report
+        uses: coverallsapp/github-action@v2.2.3
+        with:
+          parallel-finished: true

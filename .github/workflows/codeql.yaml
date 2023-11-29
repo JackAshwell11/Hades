@@ -1,4 +1,4 @@
-name: "CodeQL"
+name: CodeQL
 
 on:
   push:
@@ -6,50 +6,46 @@ on:
       - main
   pull_request:
   schedule:
-    - cron: '0 0 * * 1'
+    - cron: 0 0 * * 1
 
 jobs:
   CodeQL:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
-      actions: read
-      contents: read
     strategy:
       matrix:
-        language: ["python", "cpp"]
+        language: [python, cpp]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Set up Python 3.11
-        if: matrix.language == 'python'
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-      - name: Set up CMake
-        if: matrix.language == 'cpp'
-        uses: lukka/get-cmake@v3.25.2
-      - name: Install Poetry
-        if: matrix.language == 'python'
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-      - name: Install dependencies
-        if: matrix.language == 'python'
-        run: poetry install --no-interaction
+        uses: actions/checkout@v4.1.1
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v2.22.8
         with:
           languages: ${{ matrix.language }}
           setup-python-dependencies: false
-      - name: Configure and build CMake
+      - name: Set up Python 3.11
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v4.7.1
+        with:
+          python-version: 3.11
+      - name: Set up CMake
         if: matrix.language == 'cpp'
-        uses: lukka/run-cmake@v3
+        uses: lukka/get-cmake@v3.27.7
+      - name: Install Poetry
+        if: matrix.language == 'python'
+        uses: snok/install-poetry@v1.3.4
         with:
-          cmakeListsTxtPath: "${{ github.workspace }}/src/hades_extensions/CMakeLists.txt"
-          buildDirectory: "${{ github.workspace }}/build"
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      - name: Install Python dependencies
+        if: matrix.language == 'python'
+        run: poetry install --no-interaction
+      - name: Configure CMake
+        if: matrix.language == 'cpp'
+        working-directory: ${{ github.workspace }}/src/hades_extensions
+        run: cmake --preset Debug
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v2.22.8
         with:
-          category: "/language:${{ matrix.language }}"
+          category: /language:${{ matrix.language }}

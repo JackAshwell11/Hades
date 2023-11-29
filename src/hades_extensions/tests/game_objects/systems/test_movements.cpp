@@ -80,6 +80,17 @@ class SteeringMovementFixture : public testing::Test {
   }
 };
 
+// ----- FUNCTIONS -----------------------------
+// todo: i do not like this. maybe look at it with assert_throw_message
+/// Test if two vectors are equal within a small margin of error.
+///
+/// @param expected - The expected vector.
+/// @param actual - The actual vector.
+void test_force_double(const Vec2d &actual, const double expected_x, const double expected_y) {
+  ASSERT_DOUBLE_EQ(actual.x, expected_x);
+  ASSERT_DOUBLE_EQ(actual.y, expected_y);
+}
+
 // ----- TESTS ----------------------------------
 /// Test that the footprint systems is updated with a small delta time.
 TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateSmallDeltaTime) {
@@ -235,7 +246,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceEvade) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Evade}}});
   registry.get_kinematic_object(0)->position = {100, 100};
   registry.get_kinematic_object(0)->velocity = {-50, 0};
-  ASSERT_EQ(get_steering_movement_system()->calculate_force(2), Vec2d(-54.28888213891886, -83.98045770360257));
+  test_force_double(get_steering_movement_system()->calculate_force(2), -54.28888213891886, -83.98045770360257);
 }
 
 /// Test if the correct force is calculated for the flee behaviour.
@@ -268,7 +279,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForcePursue) 
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Pursue}}});
   registry.get_kinematic_object(0)->position = {100, 100};
   registry.get_kinematic_object(0)->velocity = {-50, 0};
-  ASSERT_EQ(get_steering_movement_system()->calculate_force(2), Vec2d(54.28888213891886, 83.98045770360257));
+  test_force_double(get_steering_movement_system()->calculate_force(2), 54.28888213891886, 83.98045770360257);
 }
 
 /// Test if the correct force is calculated for the seek behaviour.
@@ -294,7 +305,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceMultiple
       {{SteeringMovementState::Footprint, {SteeringBehaviours::FollowPath, SteeringBehaviours::Seek}}});
   registry.get_kinematic_object(2)->position = {300, 300};
   registry.get_component<SteeringMovement>(2)->path_list = {{100, 200}, {-100, 0}};
-  ASSERT_EQ(get_steering_movement_system()->calculate_force(2), Vec2d(-81.12421851755609, -58.47102846637651));
+  test_force_double(get_steering_movement_system()->calculate_force(2), -81.12421851755609, -58.47102846637651);
 }
 
 /// Test if the correct force is calculated when multiple states are initialised.

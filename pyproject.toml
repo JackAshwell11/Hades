@@ -237,7 +237,6 @@ convention = "google"
 legacy_tox_ini = """
 [tox]
 envlist = clean, py310, py311, report
-isolated_build = true
 
 [gh-actions]
 python =
@@ -245,17 +244,16 @@ python =
     3.11: clean, py311, report
 
 [testenv]
-passenv = *
-deps = pytest-cov
 commands =
     python -m build -c
     pytest --cov-append
+deps = pytest-cov
 
 [testenv:clean]
-deps = pytest-cov
 commands = coverage erase
+deps = pytest-cov
 
 [testenv:report]
-deps = pytest-cov
 commands = coverage lcov
+deps = pytest-cov
 """

@@ -1,0 +1,35 @@
+Checks: "
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+
+  cert-*,
+  -cert-err51-cpp,
+  -cert-err58-cpp,
+
+  clang-analyzer-*,
+
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -cppcoreguidelines-owning-memory,
+
+  google-*,
+
+  hicpp-*,
+
+  misc-*,
+  -misc-non-private-member-variables-in-classes,
+
+  modernize-*,
+  -modernize-use-trailing-return-type,
+
+  performance-*,
+
+  portability-*,
+
+  readability-*,
+  -readability-function-cognitive-complexity,
+  -readability-magic-numbers,
+"
+WarningsAsErrors: "*"

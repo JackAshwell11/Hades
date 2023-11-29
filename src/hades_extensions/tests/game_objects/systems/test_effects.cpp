@@ -169,7 +169,8 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectExistingStatusEffec
 TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectMultipleStatusEffects) {
   create_status_game_object();
   ASSERT_TRUE(get_effect_system()->apply_status_effect(0, typeid(TestStat), status_effect_data, 1));
-  const StatusEffectData status_effect_data_two{StatusEffectType::TEMP2, increase_function, duration_function, interval_function};
+  const StatusEffectData status_effect_data_two{StatusEffectType::TEMP2, increase_function, duration_function,
+                                                interval_function};
   ASSERT_TRUE(get_effect_system()->apply_status_effect(0, typeid(TestStat), status_effect_data_two, 1));
   auto status_effects{registry.get_component<StatusEffects>(0)->applied_effects};
   ASSERT_TRUE(status_effects.contains(StatusEffectType::TEMP));

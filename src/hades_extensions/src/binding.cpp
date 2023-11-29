@@ -649,8 +649,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
-      .def("calculate_force", &KeyboardMovementSystem::calculate_force,
-           pybind11::arg("game_object_id"),
+      .def("calculate_force", &KeyboardMovementSystem::calculate_force, pybind11::arg("game_object_id"),
            ("Calculate the new keyboard force to apply to the game object.\n\n"
             "Args:\n"
             "    game_object_id: The ID of the game object to calculate the keyboard force for.\n\n"
@@ -665,8 +664,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            ("Initialise the object.\n\n"
             "Args:\n"
             "    registry: The registry that manages the game objects, components, and systems."))
-      .def("calculate_force", &SteeringMovementSystem::calculate_force,
-           pybind11::arg("game_object_id"),
+      .def("calculate_force", &SteeringMovementSystem::calculate_force, pybind11::arg("game_object_id"),
            ("Calculate the new steering force to apply to the game object.\n\n"
             "Args:\n"
             "    game_object_id: The ID of the game object to calculate the steering force for.\n\n"

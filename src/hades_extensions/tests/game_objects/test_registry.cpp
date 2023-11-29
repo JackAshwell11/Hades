@@ -105,7 +105,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectKinematic) {
 /// Test that multiple game objects are added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
   // Test that creating two game objects works correctly
-  std::vector<int> test_list{10};
+  const std::vector<int> test_list{10};
   ASSERT_EQ(registry.create_game_object({std::make_shared<TestGameObjectComponentOne>()}), 0);
   ASSERT_EQ(registry.create_game_object({std::make_shared<TestGameObjectComponentOne>(),
                                          std::make_shared<TestGameObjectComponentTwo>(test_list)}),
@@ -126,8 +126,8 @@ TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
 /// Test that a game object with duplicate components is added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryGameObjectDuplicateComponents) {
   // Test that creating a game object with two of the same components only adds the first one
-  std::vector<int> test_list_one{10};
-  std::vector<int> test_list_two{20};
+  const std::vector<int> test_list_one{10};
+  const std::vector<int> test_list_two{20};
   registry.create_game_object({std::make_shared<TestGameObjectComponentTwo>(test_list_one),
                                std::make_shared<TestGameObjectComponentTwo>(test_list_two)});
   ASSERT_EQ(registry.get_component<TestGameObjectComponentTwo>(0)->test_list[0], 10);
@@ -135,7 +135,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectDuplicateComponents) {
 
 /// Test that passing the same component to multiple game objects works correctly.
 TEST_F(RegistryFixture, TestRegistryGameObjectSameComponent) {
-  std::vector<int> test_list{10};
+  const std::vector<int> test_list{10};
   const std::shared_ptr<TestGameObjectComponentTwo> component_one{
       std::make_shared<TestGameObjectComponentTwo>(test_list)};
   registry.create_game_object({component_one});
