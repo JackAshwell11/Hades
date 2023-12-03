@@ -1,5 +1,5 @@
 # Fetch the pybind11 repository and initialise it
-find_package(PythonInterp REQUIRED)
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
 FetchContent_Declare(
         pybind11_source
         GIT_REPOSITORY https://github.com/pybind/pybind11.git

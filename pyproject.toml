@@ -245,9 +245,10 @@ python =
 
 [testenv]
 commands =
-    python -m build -c
+    python -m build --cpp
     pytest --cov-append
 deps = pytest-cov
+passenv = *
 
 [testenv:clean]
 commands = coverage erase

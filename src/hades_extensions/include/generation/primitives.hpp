@@ -34,6 +34,15 @@ struct Position {
     return {std::abs(x - position.x), std::abs(y - position.y)};
   }
 
+  /// The default constructor.
+  Position() = default;
+
+  /// Initialise the object.
+  ///
+  /// @param x - The x position of the position.
+  /// @param y - The y position of the position.
+  constexpr Position(const int x, const int y) : x(x), y(y) {}
+
   /// The x position of the position.
   int x;
 
@@ -117,8 +126,8 @@ struct Rect {
   Rect(const Position &top_left, const Position &bottom_right)
       : top_left(top_left),
         bottom_right(bottom_right),
-        centre(static_cast<int>(std::round((top_left + bottom_right).x / 2.0)),   // NOLINT
-               static_cast<int>(std::round((top_left + bottom_right).y / 2.0))),  // NOLINT
+        centre(static_cast<int>(std::round((top_left + bottom_right).x / 2.0)),
+               static_cast<int>(std::round((top_left + bottom_right).y / 2.0))),
         width((top_left - bottom_right).x),
         height((top_left - bottom_right).y) {}
 

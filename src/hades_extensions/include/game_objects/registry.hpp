@@ -2,7 +2,6 @@
 #pragma once
 
 // Std headers
-#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>

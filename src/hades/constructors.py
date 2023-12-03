@@ -108,4 +108,4 @@ POTION: Final = GameObjectConstructor(
     GameObjectTextures(TextureType.HEALTH_POTION.value),
 )
 
-# TODO: This file needs redoing
+# TODO: This file needs rewriting

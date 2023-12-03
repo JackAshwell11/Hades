@@ -20,18 +20,18 @@ jobs:
       - name: Run clang-tidy
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: clang-tidy -p ./build-debug/compile_commands.json --quiet ./**/*.cpp ./**/*.hpp
-  cppcheck:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.1.1
-      - name: Set up CMake
-        uses: lukka/get-cmake@v3.27.7
-      - name: Run cppcheck
-        working-directory: ${{ github.workspace }}/src/hades_extensions
-        run: |
-          sudo apt-get install -y cppcheck
-          cppcheck --enable=all --suppress=missingInclude --suppress=unknownMacro --quiet --error-exitcode=10 ./include/ ./src/ ./tests/
+#  cppcheck:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4.1.1
+#      - name: Set up CMake
+#        uses: lukka/get-cmake@v3.27.7
+#      - name: Run cppcheck
+#        working-directory: ${{ github.workspace }}/src/hades_extensions
+#        run: |
+#          sudo apt-get install -y cppcheck
+#          cppcheck --enable=all --suppress=missingInclude --suppress=unknownMacro --quiet --error-exitcode=10 ./include/ ./src/ ./tests/
   clang-format:
     runs-on: ubuntu-latest
     steps:

@@ -35,11 +35,9 @@ class CMakeBuild(build_ext):
         Args:
             ext: The extension to build.
         """
-        # Determine the current directory to build the CMake extension with
-        current_dir = Path(__file__).parent
-
         # Determine where the extension should be transferred to after it has been
         # compiled
+        current_dir = Path(__file__).parent
         build_dir = current_dir.joinpath(self.get_ext_fullpath(ext.name)).parent
         build_dir.mkdir(parents=True, exist_ok=True)
 
@@ -48,9 +46,10 @@ class CMakeBuild(build_ext):
             [
                 "cmake",
                 str(current_dir.joinpath(ext.sources[0])),
-                "--preset Release",
-                "-DDO_TESTS=OFF",
                 f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE={build_dir}",
+                "-DDO_TESTS=OFF",
+                "--preset",
+                "Release",
             ],
             check=True,
         )

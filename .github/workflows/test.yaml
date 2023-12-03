@@ -20,15 +20,17 @@ jobs:
         uses: actions/setup-python@v4.7.1
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1.12.1
       - name: Set up CMake
         uses: lukka/get-cmake@v3.27.7
-      - name: Install Python dependencies
-        run: pip install tox tox-gh-actions
       - name: Install EGL on Linux for headless Arcade
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install libegl1
       - name: Run Tox
-        run: tox
+        run: |
+          pip install tox tox-gh-actions
+          tox
       - name: Upload coverage report
         uses: coverallsapp/github-action@v2.2.3
         with:
@@ -51,15 +53,14 @@ jobs:
           cmake --preset Coverage
           cmake --build build-coverage
       - name: Run CTest and generate the coverage report
-        working-directory: ${{ github.workspace }}/src/hades_extensions
         run: |
-          ctest --output-on-failure --no-tests=error --test-dir build-coverage/tests
           pip install gcovr
-          gcovr --exclude build-coverage --exclude tests --exclude src/binding.cpp --coveralls coverage.json
+          ctest --output-on-failure --no-tests=error --test-dir ${{ github.workspace }}/src/hades_extensions/build-coverage/tests
+          gcovr -r ${{ github.workspace }} --exclude src/hades_extensions/build-coverage --exclude src/hades_extensions/tests --exclude src/hades_extensions/src/binding.cpp --coveralls coverage.json
       - name: Upload coverage report
         uses: coverallsapp/github-action@v2.2.3
         with:
-          file: ${{ github.workspace }}/src/hades_extensions/coverage.json
+          file: coverage.json
           flag-name: run-cpp-${{ matrix.os }}
           parallel: true
   finish:

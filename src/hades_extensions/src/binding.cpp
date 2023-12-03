@@ -24,7 +24,7 @@ struct py_handle_hash {
   ///
   /// @param handle The handle to calculate the hash of.
   /// @return The hash of the handle.
-  auto operator()(const pybind11::handle &handle) const noexcept -> std::size_t { return pybind11::hash(handle); }
+  auto operator()(const pybind11::handle &handle) const -> std::size_t { return pybind11::hash(handle); }
 
   /// Check if two pybind11 handles are equal.
   ///
