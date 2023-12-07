@@ -45,19 +45,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1.12.1
       - name: Set up CMake
         uses: lukka/get-cmake@v3.27.7
-      - name: Configure and build CMake
+      - name: Build CMake and run CTest
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: |
-          cmake --preset Coverage
+          cmake -DDO_PYTHON=OFF --preset Coverage
           cmake --build build-coverage
-      - name: Run CTest and generate the coverage report
+          ctest --output-on-failure --no-tests=error --test-dir ${{ github.workspace }}/src/hades_extensions/build-coverage/tests
+      - name: Generate the coverage report
+        if: matrix.os == 'ubuntu-latest'
         run: |
           pip install gcovr
-          ctest --output-on-failure --no-tests=error --test-dir ${{ github.workspace }}/src/hades_extensions/build-coverage/tests
           gcovr -r ${{ github.workspace }} --exclude src/hades_extensions/build-coverage --exclude src/hades_extensions/tests --exclude src/hades_extensions/src/binding.cpp --coveralls coverage.json
       - name: Upload coverage report
+        if: matrix.os == 'ubuntu-latest'
         uses: coverallsapp/github-action@v2.2.3
         with:
           file: coverage.json

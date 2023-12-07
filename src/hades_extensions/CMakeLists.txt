@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(ENABLE_COVERAGE OFF CACHE BOOL "Enable coverage reporting for GCC/Clang")
-set(ENABLE_STATIC_ANALYSIS OFF CACHE BOOL "Enable static analysis using clang-tidy")
+set(DO_PYTHON ON CACHE BOOL "Enable Python bindings")
 set(DO_TESTS ON CACHE BOOL "Enable testing")
 
 # Define the module names and initialise the project
@@ -40,6 +40,5 @@ if (DO_TESTS)
     add_subdirectory(tests)
 endif ()
 
-# TODO: maybe add vcpkg to the c++ project
 # TODO: maybe switch to catch2
 # TODO: maybe change the components to pass by value and use std::move to signify that ownership is being transferred (or find another way)

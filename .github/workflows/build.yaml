@@ -25,9 +25,7 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: Install Python dependencies
-        run: |
-          poetry --version
-          poetry install --no-interaction
+        run: poetry install --no-interaction
       - name: Build the game
         run: python -m build --executable
       - name: Upload the release
