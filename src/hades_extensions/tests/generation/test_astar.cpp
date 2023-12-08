@@ -10,16 +10,16 @@ class AstarFixture : public testing::Test {
   Grid grid{6, 9};
 
   /// A position in the middle of the grid for use in testing.
-  Position position_one{3, 7};
+  const Position position_one{3, 7};
 
   /// An extra position in the middle of the grid for use in testing.
-  Position position_two{4, 1};
+  const Position position_two{4, 1};
 
   /// A position on the edge of the grid for use in testing.
-  Position position_three{4, 0};
+  const Position position_three{4, 0};
 
   /// Add obstacles to the grid for use in testing.
-  void add_obstacles() {
+  void add_obstacles() const {
     grid.set_value({1, 3}, TileType::Obstacle);
     grid.set_value({2, 7}, TileType::Obstacle);
     grid.set_value({3, 2}, TileType::Obstacle);

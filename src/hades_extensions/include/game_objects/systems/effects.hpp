@@ -103,7 +103,7 @@ struct EffectSystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit EffectSystem(Registry *registry) : SystemBase(registry) {}
+  explicit EffectSystem(const Registry *registry) : SystemBase(registry) {}
 
   /// Process update logic for a status effect component.
   ///

@@ -36,7 +36,7 @@ struct AttackSystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit AttackSystem(Registry *registry) : SystemBase(registry) {}
+  explicit AttackSystem(const Registry *registry) : SystemBase(registry) {}
 
   /// Perform the currently selected attack algorithm.
   ///
@@ -44,7 +44,7 @@ struct AttackSystem : public SystemBase {
   /// @param targets - The targets to attack.
   /// @throws RegistryError - If the game object does not exist or does not have an attack component.
   /// @return The result of the attack.
-  [[nodiscard]] auto do_attack(int game_object_id, const std::vector<int> &targets) const
+  [[nodiscard]] auto do_attack(GameObjectID game_object_id, const std::vector<int> &targets) const
       -> std::optional<std::tuple<Vec2d, double, double>>;
 
   /// Select the previous attack algorithm.
@@ -64,7 +64,8 @@ struct AttackSystem : public SystemBase {
   /// @throws RegistryError - If the game object does not exist or does not have an attack component.
   inline void next_attack(const GameObjectID game_object_id) const {
     auto attacks{get_registry()->get_component<Attacks>(game_object_id)};
-    if (!attacks->attack_algorithms.empty() && attacks->attack_state < attacks->attack_algorithms.size() - 1) {
+    if (!attacks->attack_algorithms.empty() &&
+        attacks->attack_state < static_cast<int>(attacks->attack_algorithms.size()) - 1) {
       attacks->attack_state++;
     }
   }
@@ -75,7 +76,7 @@ struct DamageSystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit DamageSystem(Registry *registry) : SystemBase(registry) {}
+  explicit DamageSystem(const Registry *registry) : SystemBase(registry) {}
 
   /// Deal damage to a game object.
   ///

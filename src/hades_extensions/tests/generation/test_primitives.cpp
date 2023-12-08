@@ -10,10 +10,10 @@ class PrimitivesFixture : public testing::Test {
   Grid grid{5, 5};
 
   /// A rect inside the grid for use in testing.
-  Rect rect_one{{0, 0}, {2, 3}};
+  const Rect rect_one{{0, 0}, {2, 3}};
 
   /// A rect inside the grid for use in testing.
-  Rect rect_two{{2, 2}, {4, 4}};
+  const Rect rect_two{{2, 2}, {4, 4}};
 };
 
 // ----- TESTS ------------------------------

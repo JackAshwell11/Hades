@@ -36,7 +36,7 @@ void FootprintSystem::update(const double delta_time) const {
   }
 }
 
-auto KeyboardMovementSystem::calculate_force(GameObjectID game_object_id) const -> Vec2d {
+auto KeyboardMovementSystem::calculate_force(const GameObjectID game_object_id) const -> Vec2d {
   auto keyboard_movement{get_registry()->get_component<KeyboardMovement>(game_object_id)};
   return Vec2d{static_cast<double>(static_cast<int>(keyboard_movement->moving_east) -
                                    static_cast<int>(keyboard_movement->moving_west)),
@@ -45,7 +45,7 @@ auto KeyboardMovementSystem::calculate_force(GameObjectID game_object_id) const 
          get_registry()->get_component<MovementForce>(game_object_id)->get_value();
 }
 
-auto SteeringMovementSystem::calculate_force(GameObjectID game_object_id) const -> Vec2d {
+auto SteeringMovementSystem::calculate_force(const GameObjectID game_object_id) const -> Vec2d {
   // Determine if the movement state should change or not
   auto steering_movement{get_registry()->get_component<SteeringMovement>(game_object_id)};
   const auto kinematic_owner{get_registry()->get_kinematic_object(game_object_id)};

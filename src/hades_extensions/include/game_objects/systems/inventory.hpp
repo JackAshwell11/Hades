@@ -49,7 +49,7 @@ struct InventorySystem : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit InventorySystem(Registry *registry) : SystemBase(registry) {}
+  explicit InventorySystem(const Registry *registry) : SystemBase(registry) {}
 
   /// Add an item to the inventory of a game object.
   ///

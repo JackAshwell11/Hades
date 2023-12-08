@@ -21,16 +21,17 @@ class EffectSystemFixture : public testing::Test {
   Registry registry{};
 
   /// The increase function for an effect.
-  ActionFunction increase_function{[](int level) { return 5 + std::pow(level, 2); }};
+  const ActionFunction increase_function{[](int level) { return 5 + std::pow(level, 2); }};
 
   /// The duration function for an effect.
-  ActionFunction duration_function{[](int level) { return 10 * level; }};
+  const ActionFunction duration_function{[](int level) { return 10 * level; }};
 
   /// The interval function for an effect.
-  ActionFunction interval_function{[](int level) { return std::pow(2, level); }};
+  const ActionFunction interval_function{[](int level) { return std::pow(2, level); }};
 
   /// The data for a status effect.
-  StatusEffectData status_effect_data{StatusEffectType::TEMP, increase_function, duration_function, interval_function};
+  const StatusEffectData status_effect_data{StatusEffectType::TEMP, increase_function, duration_function,
+                                            interval_function};
 
   /// Set up the fixture for the tests.
   void SetUp() override { registry.add_system<EffectSystem>(); }
@@ -46,7 +47,9 @@ class EffectSystemFixture : public testing::Test {
   /// Get the effect system from the registry.
   ///
   /// @return The effect system.
-  auto get_effect_system() -> std::shared_ptr<EffectSystem> { return registry.get_system<EffectSystem>(); }
+  [[nodiscard]] auto get_effect_system() const -> std::shared_ptr<EffectSystem> {
+    return registry.get_system<EffectSystem>();
+  }
 };
 
 // ----- TESTS ----------------------------------
@@ -131,7 +134,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyInstantEffectNonexistentTargetC
       "The game object `0` is not registered with the registry or does not have the required component.")
 }
 
-/// Test that an exception is raised if an invalid game object ID is provided.
+/// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyInstantEffectInvalidGameObjectId){ASSERT_THROW_MESSAGE(
     get_effect_system()->apply_instant_effect(-1, typeid(TestStat), increase_function, 1), RegistryError,
     "The game object `-1` is not registered with the registry or does not have the required component.")}
@@ -185,7 +188,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectNonexistentTargetCo
       "The game object `0` is not registered with the registry or does not have the required component.")
 }
 
-/// Test that an exception is raised if an invalid game object ID is provided.
+/// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectInvalidGameObjectId) {
   ASSERT_THROW_MESSAGE(
       get_effect_system()->apply_status_effect(-1, typeid(TestStat), status_effect_data, 1), RegistryError,

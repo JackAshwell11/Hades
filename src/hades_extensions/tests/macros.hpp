@@ -2,7 +2,7 @@
 #pragma once
 
 // External headers
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 // ----- MACROS ------------------------------
 /// Assert that a statement throws an exception of a given type with a given message.

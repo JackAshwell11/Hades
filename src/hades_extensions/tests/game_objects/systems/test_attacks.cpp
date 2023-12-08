@@ -43,7 +43,9 @@ class AttackSystemFixture : public testing::Test {
   /// Get the attacks system from the registry.
   ///
   /// @return The attacks system.
-  auto get_attacks_system() -> std::shared_ptr<AttackSystem> { return registry.get_system<AttackSystem>(); }
+  [[nodiscard]] auto get_attacks_system() const -> std::shared_ptr<AttackSystem> {
+    return registry.get_system<AttackSystem>();
+  }
 };
 
 /// Implements the fixture for the DamageSystem tests.
@@ -63,7 +65,9 @@ class DamageSystemFixture : public testing::Test {
   /// Get the damage system from the registry.
   ///
   /// @return The damage system.
-  auto get_damage_system() -> std::shared_ptr<DamageSystem> { return registry.get_system<DamageSystem>(); }
+  [[nodiscard]] auto get_damage_system() const -> std::shared_ptr<DamageSystem> {
+    return registry.get_system<DamageSystem>();
+  }
 };
 
 // ----- TESTS ----------------------------------
@@ -105,7 +109,7 @@ TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
   ASSERT_NEAR(get<2>(attack_result), 0, 1e-13);
 }
 
-/// Test that an exception is raised if an invalid game object ID is provided.
+/// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttacksDoAttackInvalidGameObjectId) {
   create_attack_component({AttackAlgorithm::Ranged});
   ASSERT_THROW_MESSAGE(
@@ -151,7 +155,7 @@ TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackEmptyAttacks) {
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
 }
 
-/// Test that an exception is raised if an invalid game object ID is provided.
+/// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackInvalidGameObjectId) {
   create_attack_component({});
   ASSERT_THROW_MESSAGE(
@@ -214,7 +218,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageNonexistentAttributes) {
       "The game object `0` is not registered with the registry or does not have the required component.")
 }
 
-/// Test that an exception is raised if an invalid game object ID is provided.
+/// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageInvalidGameObjectId) {
   ASSERT_THROW_MESSAGE(
       get_damage_system()->deal_damage(-1, 100), RegistryError,

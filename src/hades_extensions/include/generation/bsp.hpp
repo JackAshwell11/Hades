@@ -11,7 +11,7 @@
 /// A binary spaced partition leaf used to generate the dungeon's rooms.
 struct Leaf {
   /// The rect object that represents this leaf.
-  std::unique_ptr<Rect> container;
+  const std::unique_ptr<Rect> container;
 
   /// The left container of this leaf. If this is null, we have reached the end of the branch.
   std::unique_ptr<Leaf> left{};

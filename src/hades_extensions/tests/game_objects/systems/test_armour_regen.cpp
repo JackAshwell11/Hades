@@ -1,5 +1,5 @@
 // External includes
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 // Local headers
 #include "game_objects/stats.hpp"
@@ -21,7 +21,7 @@ class ArmourRegenSystemFixture : public testing::Test {
   /// Get the armour regen system from the registry.
   ///
   /// @return The armour regen system.
-  auto get_armour_regen_system() -> std::shared_ptr<ArmourRegenSystem> {
+  [[nodiscard]] auto get_armour_regen_system() const -> std::shared_ptr<ArmourRegenSystem> {
     return registry.get_system<ArmourRegenSystem>();
   }
 };

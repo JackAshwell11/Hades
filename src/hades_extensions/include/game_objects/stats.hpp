@@ -16,7 +16,7 @@ class Stat : public ComponentBase {
   ///
   /// @param value - The initial and maximum value of the stat.
   /// @param maximum_level - The maximum level of the stat.
-  Stat(const double value, const int maximum_level) : value_(value), maximum_level(maximum_level), max_value_(value) {}
+  Stat(const double value, const int maximum_level) : value_(value), max_value_(value), maximum_level(maximum_level) {}
 
   /// Get the value of the stat.
   ///

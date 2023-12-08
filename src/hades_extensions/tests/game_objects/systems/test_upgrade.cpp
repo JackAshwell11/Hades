@@ -39,7 +39,9 @@ class UpgradeSystemFixture : public testing::Test {
   /// Get the upgrade system from the registry.
   ///
   /// @return The upgrade system.
-  auto get_upgrade_system() -> std::shared_ptr<UpgradeSystem> { return registry.get_system<UpgradeSystem>(); }
+  [[nodiscard]] auto get_upgrade_system() const -> std::shared_ptr<UpgradeSystem> {
+    return registry.get_system<UpgradeSystem>();
+  }
 };
 
 // ----- TESTS ----------------------------------
@@ -95,7 +97,7 @@ TEST_F(UpgradeSystemFixture, TestEffectSystemApplyStatusEffectNonexistentTargetC
       "The game object `0` is not registered with the registry or does not have the required component.")
 }
 
-/// Test that an exception is raised if an invalid game object ID is provided.
+/// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeInvalidGameObjectId) {
   ASSERT_THROW_MESSAGE(
       (get_upgrade_system()->upgrade_component(-1, typeid(TestStat))), RegistryError,

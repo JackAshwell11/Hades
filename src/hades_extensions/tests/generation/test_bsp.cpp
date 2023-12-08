@@ -1,5 +1,5 @@
 // External headers
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 // Local headers
 #include "generation/bsp.hpp"

@@ -19,13 +19,13 @@ class MapFixture : public testing::Test {
   Grid large_grid{8, 8};
 
   /// A rect that fits inside the grid for use in testing.
-  Rect rect_one{{0, 1}, {3, 4}};
+  const Rect rect_one{{0, 1}, {3, 4}};
 
   /// A rect that fits inside the grid for use in testing.
-  Rect rect_two{{2, 1}, {4, 2}};
+  const Rect rect_two{{2, 1}, {4, 2}};
 
   /// A large rect that doesn't fit inside the grid for use in testing.
-  Rect rect_three{{4, 4}, {6, 6}};
+  const Rect rect_three{{4, 4}, {6, 6}};
 
   /// Set up the fixture for the tests.
   void SetUp() override { random_generator.seed(0); }

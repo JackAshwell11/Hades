@@ -64,7 +64,7 @@ class SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit SystemBase(Registry *registry) : registry(registry) {}
+  explicit SystemBase(const Registry *registry) : registry(registry) {}
 
   /// The virtual destructor.
   virtual ~SystemBase() = default;
@@ -82,16 +82,16 @@ class SystemBase {
   /// Get the registry that manages the game objects, components, and systems.
   ///
   /// @return The registry that manages the game objects, components, and systems.
-  [[nodiscard]] inline auto get_registry() const -> Registry * { return registry; }
+  [[nodiscard]] inline auto get_registry() const -> const Registry * { return registry; }
 
   /// Process update logic for a system.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  virtual void update(double delta_time) const {};
+  virtual void update(double /*delta_time*/) const {}
 
  private:
   /// The registry that manages the game objects, components, and systems.
-  Registry *registry;
+  const Registry *registry;
 };
 
 // ----- EXCEPTIONS ------------------------------
@@ -111,7 +111,7 @@ struct RegistryError : public std::runtime_error {
   template <typename T>
   RegistryError(const std::string &not_registered_type, const T &value, const std::string &extra = "")
       : std::runtime_error("The " + not_registered_type + " `" + std::to_string(value) +
-                           "` is not registered with the registry" + extra + "."){};
+                           "` is not registered with the registry" + extra + ".") {}
 };
 
 // ----- CLASSES ------------------------------

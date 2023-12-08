@@ -13,8 +13,8 @@ struct TestGameObjectComponentTwo : public ComponentBase {
 
   /// Initialise the object.
   ///
-  /// @param test_lst - The list to be used for testing.
-  explicit TestGameObjectComponentTwo(const std::vector<int> &test_lst) : test_list(test_lst) {}
+  /// @param test_list - The list to be used for testing.
+  explicit TestGameObjectComponentTwo(const std::vector<int> &test_list) : test_list(test_list) {}
 };
 
 // ----- SYSTEMS --------------------------------
@@ -26,10 +26,10 @@ struct TestSystem : public SystemBase {
   /// Initialise the system.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit TestSystem(Registry *registry) : SystemBase(registry) {}
+  explicit TestSystem(const Registry *registry) : SystemBase(registry) {}
 
   /// Update the system.
-  void update(const double /*delta_time*/) const final { called = true; }
+  void update(double /*delta_time*/) const final { called = true; }
 };
 
 // ----- FIXTURES ------------------------------
@@ -40,7 +40,36 @@ class RegistryFixture : public testing::Test {
   Registry registry{};
 };
 
+// ----- HELPER FUNCTIONS -----------------------------
+/// Throw a RegistryError with given values.
+///
+/// @tparam Ts - The types of the values.
+/// @param vals - The values to be used for testing.
+/// @throws RegistryError - Always for testing.
+template <typename... Ts>
+void throw_registry_error(const Ts... vals) {
+  throw RegistryError(vals...);
+}
+
 // ----- TESTS ------------------------------
+/// Test that RegistryError is thrown correctly when given a message.
+TEST(Tests, TestThrowRegistryError){
+    ASSERT_THROW_MESSAGE(throw_registry_error("test"), RegistryError, "The templated type test.")}
+
+/// Test that RegistryError is thrown correctly when given an empty message.
+TEST(Tests, TestThrowRegistryErrorEmptyMessage){
+    ASSERT_THROW_MESSAGE(throw_registry_error(), RegistryError,
+                         "The templated type is not registered with the registry.")}
+
+/// Test that RegistryError is thrown correctly when given multiple values.
+TEST(Tests,
+     TestThrowRegistryErrorValues){ASSERT_THROW_MESSAGE(throw_registry_error("test", 1, " test"), RegistryError,
+                                                        "The test `1` is not registered with the registry test.")}
+
+/// Test that RegistryError is thrown correctly when given multiple empty values.
+TEST(Tests, TestThrowRegistryErrorEmpty){
+    ASSERT_THROW_MESSAGE(throw_registry_error("", 1), RegistryError, "The  `1` is not registered with the registry.")}
+
 /// Test that an exception is thrown if a component is not registered.
 TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
   ASSERT_EQ(registry.create_game_object({}), 0);
