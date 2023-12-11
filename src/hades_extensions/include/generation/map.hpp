@@ -3,7 +3,6 @@
 
 // Std headers
 #include <optional>
-#include <unordered_map>
 #include <unordered_set>
 
 // Local headers
@@ -13,9 +12,9 @@
 /// Represents an undirected weighted edge in a graph.
 struct Edge {
   // std::priority_queue uses a max heap, but we want a min heap, so the operator needs to be reversed
-  inline auto operator<(const Edge &edge) const -> bool { return cost > edge.cost; }
+  auto operator<(const Edge &edge) const -> bool { return cost > edge.cost; }
 
-  inline auto operator==(const Edge &edge) const -> bool {
+  auto operator==(const Edge &edge) const -> bool {
     return cost == edge.cost && source == edge.source && destination == edge.destination;
   }
 
@@ -32,7 +31,7 @@ struct Edge {
 // ----- HASHES ------------------------------
 template <>
 struct std::hash<Edge> {
-  auto operator()(const Edge &edge) const -> size_t {
+  auto operator()(const Edge &edge) const noexcept -> size_t {
     size_t res{0};
     hash_combine(res, edge.cost);
     hash_combine(res, edge.source);
@@ -56,7 +55,7 @@ auto collect_positions(const Grid &grid, TileType target) -> std::vector<Positio
 /// @param target_tile - The tile to place in the 2D grid.
 /// @param possible_tiles - The possible tiles that the tile can be placed into.
 /// @throws std::length_error - Possible tiles size must be bigger than 0.
-void place_tile(Grid &grid, std::mt19937 &random_generator, TileType target_tile,
+void place_tile(const Grid &grid, std::mt19937 &random_generator, TileType target_tile,
                 std::vector<Position> &possible_tiles);
 
 /// Create a complete graph from a given list of rooms.

@@ -3,6 +3,7 @@
 
 // Std headers
 #include <memory>
+#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <typeindex>
@@ -22,13 +23,9 @@ class Registry;
 /// The base class for all components.
 struct ComponentBase {
   /// The copy assignment operator.
-  ///
-  /// @param other - The other component to copy.
   auto operator=(const ComponentBase &) -> ComponentBase & = default;
 
   /// The move assignment operator.
-  ///
-  /// @param other - The other component to move.
   auto operator=(ComponentBase &&) -> ComponentBase & = default;
 
   /// The default constructor.
@@ -38,13 +35,9 @@ struct ComponentBase {
   virtual ~ComponentBase() = default;
 
   /// The copy constructor.
-  ///
-  /// @param other - The other component to copy.
   ComponentBase(const ComponentBase &) = default;
 
   /// The move constructor.
-  ///
-  /// @param other - The other component to move.
   ComponentBase(ComponentBase &&) = default;
 };
 
@@ -52,13 +45,9 @@ struct ComponentBase {
 class SystemBase {
  public:
   /// The copy assignment operator.
-  ///
-  /// @param other - The other system to copy.
   auto operator=(const SystemBase &) -> SystemBase & = default;
 
   /// The move assignment operator.
-  ///
-  /// @param other - The other system to move.
   auto operator=(SystemBase &&) -> SystemBase & = default;
 
   /// Initialise the object.
@@ -70,23 +59,17 @@ class SystemBase {
   virtual ~SystemBase() = default;
 
   /// The copy constructor.
-  ///
-  /// @param other - The other system to copy.
   SystemBase(const SystemBase &) = default;
 
   /// The move constructor.
-  ///
-  /// @param other - The other system to move.
   SystemBase(SystemBase &&) = default;
 
   /// Get the registry that manages the game objects, components, and systems.
   ///
   /// @return The registry that manages the game objects, components, and systems.
-  [[nodiscard]] inline auto get_registry() const -> const Registry * { return registry; }
+  [[nodiscard]] auto get_registry() const -> const Registry * { return registry; }
 
   /// Process update logic for a system.
-  ///
-  /// @param delta_time - The time interval since the last time the function was called.
   virtual void update(double /*delta_time*/) const {}
 
  private:
@@ -96,10 +79,10 @@ class SystemBase {
 
 // ----- EXCEPTIONS ------------------------------
 /// Raised when an error occurs with the registry.
-struct RegistryError : public std::runtime_error {
+struct RegistryError final : std::runtime_error {
   /// Initialise the object
   ///
-  /// @param not_registered_type - The type of item that is not registered.
+  /// @param error - The error message.
   explicit RegistryError(const std::string &error = "is not registered with the registry")
       : std::runtime_error("The templated type " + error + "."){};
 
@@ -108,6 +91,7 @@ struct RegistryError : public std::runtime_error {
   /// @tparam T - The type of item that is not registered.
   /// @param not_registered_type - The type of item that is not registered.
   /// @param value - The value that is not registered.
+  /// @param extra - Any extra information to add to the error message.
   template <typename T>
   RegistryError(const std::string &not_registered_type, const T &value, const std::string &extra = "")
       : std::runtime_error("The " + not_registered_type + " `" + std::to_string(value) +
@@ -137,8 +121,7 @@ class Registry {
   /// @param game_object_id - The game object ID.
   /// @param component_type - The type of component to check for.
   /// @return Whether the game object has the component or not.
-  [[nodiscard]] inline auto has_component(const GameObjectID game_object_id,
-                                          const std::type_index &component_type) const -> bool {
+  [[nodiscard]] auto has_component(const GameObjectID game_object_id, const std::type_index &component_type) const -> bool {
     return game_objects_.contains(game_object_id) && game_objects_.at(game_object_id).contains(component_type);
   }
 
@@ -149,7 +132,7 @@ class Registry {
   /// @throws RegistryError - If the game object is not registered or if the game object does not have the component.
   /// @return The component from the registry.
   template <typename T>
-  inline auto get_component(const GameObjectID game_object_id) const -> std::shared_ptr<T> {
+  auto get_component(const GameObjectID game_object_id) const -> std::shared_ptr<T> {
     return std::static_pointer_cast<T>(get_component(game_object_id, typeid(T)));
   }
 
@@ -212,7 +195,7 @@ class Registry {
   auto get_system() const -> std::shared_ptr<T> {
     // Check if the system is registered
     const std::type_index system_type{typeid(T)};
-    auto system_result{systems_.find(system_type)};
+    const auto system_result{systems_.find(system_type)};
     if (system_result == systems_.end()) {
       throw RegistryError();
     }
@@ -224,8 +207,8 @@ class Registry {
   /// Update all the systems in the registry.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  inline void update(const double delta_time) const {
-    for (const auto &[_, system] : systems_) {
+  void update(const double delta_time) const {
+    for (const auto& system : std::views::values(systems_)) {
       system->update(delta_time);
     }
   }
@@ -241,12 +224,12 @@ class Registry {
   /// Add a wall to the registry.
   ///
   /// @param wall - The wall to add to the registry.
-  inline void add_wall(const Vec2d &wall) { walls_.emplace(wall); }
+  void add_wall(const Vec2d &wall) { walls_.emplace(wall); }
 
   /// Get the walls in the registry.
   ///
   /// @return The walls in the registry.
-  [[nodiscard]] inline auto get_walls() const -> const std::unordered_set<Vec2d> & { return walls_; }
+  [[nodiscard]] auto get_walls() const -> const std::unordered_set<Vec2d> & { return walls_; }
 
  private:
   /// The next game object ID to use.

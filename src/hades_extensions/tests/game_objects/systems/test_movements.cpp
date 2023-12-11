@@ -98,7 +98,7 @@ void test_force_double(const Vec2d &actual, const double expected_x, const doubl
 /// Test that the footprint systems is updated with a small delta time.
 TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateSmallDeltaTime) {
   get_footprint_system()->update(0.1);
-  auto footprints{registry.get_component<Footprints>(0)};
+  const auto footprints{registry.get_component<Footprints>(0)};
   ASSERT_EQ(footprints->footprints, std::deque<Vec2d>{});
   ASSERT_EQ(footprints->time_since_last_footprint, 0.1);
 }
@@ -106,14 +106,14 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateSmallDeltaTime) {
 /// Test that the footprint system creates a footprint in an empty list.
 TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeEmptyList) {
   get_footprint_system()->update(1);
-  auto footprints{registry.get_component<Footprints>(0)};
-  ASSERT_EQ(footprints->footprints, std::deque<Vec2d>{Vec2d(0, 0)});
+  const auto footprints{registry.get_component<Footprints>(0)};
+  ASSERT_EQ(footprints->footprints, std::deque{Vec2d(0, 0)});
   ASSERT_EQ(footprints->time_since_last_footprint, 0);
 }
 
 /// Test that the footprint system creates a footprint in a non-empty list.
 TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeNonEmptyList) {
-  auto footprints{registry.get_component<Footprints>(0)};
+  const auto footprints{registry.get_component<Footprints>(0)};
   footprints->footprints = {{1, 1}, {2, 2}, {3, 3}};
   get_footprint_system()->update(0.5);
   const std::deque<Vec2d> expected_footprints{{1, 1}, {2, 2}, {3, 3}, {0, 0}};
@@ -122,7 +122,7 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeNonEmptyLi
 
 /// Test that the footprint system creates a footprint and removes the oldest one.
 TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeFullList) {
-  auto footprints{registry.get_component<Footprints>(0)};
+  const auto footprints{registry.get_component<Footprints>(0)};
   footprints->footprints = {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}, {8, 8}, {9, 9}, {10, 10}};
   get_footprint_system()->update(0.5);
   const std::deque<Vec2d> expected_footprints{{2, 2}, {3, 3}, {4, 4}, {5, 5},   {6, 6},
@@ -132,9 +132,9 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateLargeDeltaTimeFullList) 
 
 /// Test that the footprint system is updated correctly multiple times.
 TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateMultipleUpdates) {
-  auto footprints{registry.get_component<Footprints>(0)};
+  const auto footprints{registry.get_component<Footprints>(0)};
   get_footprint_system()->update(0.6);
-  ASSERT_EQ(footprints->footprints, std::deque<Vec2d>{Vec2d(0, 0)});
+  ASSERT_EQ(footprints->footprints, std::deque{Vec2d(0, 0)});
   ASSERT_EQ(footprints->time_since_last_footprint, 0);
   registry.get_kinematic_object(0)->position = {1, 1};
   get_footprint_system()->update(0.7);
@@ -174,7 +174,7 @@ TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceWest) {
 
 /// Test if the correct force is calculated if east and west are pressed.
 TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceEastWest) {
-  auto keyboard_movement{registry.get_component<KeyboardMovement>(0)};
+  const auto keyboard_movement{registry.get_component<KeyboardMovement>(0)};
   keyboard_movement->moving_east = true;
   keyboard_movement->moving_west = true;
   ASSERT_EQ(get_keyboard_movement_system()->calculate_force(0), Vec2d(0, 0));
@@ -182,7 +182,7 @@ TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceEastWest
 
 /// Test if the correct force is calculated if north and south are pressed.
 TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceNorthSouth) {
-  auto keyboard_movement{registry.get_component<KeyboardMovement>(0)};
+  const auto keyboard_movement{registry.get_component<KeyboardMovement>(0)};
   keyboard_movement->moving_east = true;
   keyboard_movement->moving_west = true;
   ASSERT_EQ(get_keyboard_movement_system()->calculate_force(0), Vec2d(0, 0));
@@ -190,7 +190,7 @@ TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceNorthSou
 
 /// Test if the correct force is calculated if north and west are pressed.
 TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceNorthWest) {
-  auto keyboard_movement{registry.get_component<KeyboardMovement>(0)};
+  const auto keyboard_movement{registry.get_component<KeyboardMovement>(0)};
   keyboard_movement->moving_north = true;
   keyboard_movement->moving_west = true;
   ASSERT_EQ(get_keyboard_movement_system()->calculate_force(0), Vec2d(-100, 100));
@@ -198,7 +198,7 @@ TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceNorthWes
 
 /// Test if the correct force is calculated if south and east are pressed.
 TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceSouthEast) {
-  auto keyboard_movement{registry.get_component<KeyboardMovement>(0)};
+  const auto keyboard_movement{registry.get_component<KeyboardMovement>(0)};
   keyboard_movement->moving_south = true;
   keyboard_movement->moving_east = true;
   ASSERT_EQ(get_keyboard_movement_system()->calculate_force(0), Vec2d(100, -100));
@@ -206,7 +206,7 @@ TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceSouthEas
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(KeyboardMovementFixture, TestKeyboardMovementSystemCalculateForceInvalidGameObjectId){ASSERT_THROW_MESSAGE(
-    (get_keyboard_movement_system()->calculate_force(-1)), RegistryError,
+    get_keyboard_movement_system()->calculate_force(-1), RegistryError,
     "The game object `-1` is not registered with the registry or does not have the required component.")}
 
 /// Test if the state is correctly changed to the default state.
@@ -219,7 +219,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceOutsideD
 /// Test if the state is correctly changed to the footprint state.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceOutsideDistanceNonEmptyPathList) {
   registry.get_kinematic_object(1)->position = {500, 500};
-  auto steering_movement{registry.get_component<SteeringMovement>(1)};
+  const auto steering_movement{registry.get_component<SteeringMovement>(1)};
   steering_movement->path_list = {{300, 300}, {400, 400}};
   static_cast<void>(get_steering_movement_system()->calculate_force(1));
   ASSERT_EQ(steering_movement->movement_state, SteeringMovementState::Footprint);
@@ -329,7 +329,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceMultiple
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemCalculateForceInvalidGameObjectId){ASSERT_THROW_MESSAGE(
-    (get_steering_movement_system()->calculate_force(-1)), RegistryError,
+    get_steering_movement_system()->calculate_force(-1), RegistryError,
     "The game object `-1` is not registered with the registry or does not have the required component.")}
 
 /// Test if the path list is updated if the position is within the view distance.
@@ -348,8 +348,7 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementSystemUpdatePathListOutsideD
 /// Test if the path list is updated if the position is equal to the view distance.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemUpdatePathListEqualDistance) {
   get_steering_movement_system()->update_path_list(0, {{135.764501987, 135.764501987}});
-  ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list,
-            std::vector<Vec2d>{Vec2d(135.764501987, 135.764501987)});
+  ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, std::vector{Vec2d(135.764501987, 135.764501987)});
 }
 
 /// Test if the path list is updated if multiple footprints are within view distance.
@@ -375,5 +374,5 @@ TEST_F(SteeringMovementFixture, TestSteeringMovementUpdatePathListDifferentTarge
 /// Test if the path list is updated correctly if the Footprints component updates it.
 TEST_F(SteeringMovementFixture, TestSteeringMovementSystemUpdatePathListFootprintUpdate) {
   registry.get_system<FootprintSystem>()->update(0.5);
-  ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, std::vector<Vec2d>{Vec2d(0, 0)});
+  ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, std::vector{Vec2d(0, 0)});
 }

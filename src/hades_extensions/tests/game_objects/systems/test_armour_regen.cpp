@@ -36,7 +36,7 @@ TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateFullArmour) {
 
 /// Test that the armour regen component is updated with a small delta time.
 TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateSmallDeltaTime) {
-  auto armour{registry.get_component<Armour>(0)};
+  const auto armour{registry.get_component<Armour>(0)};
   armour->set_value(armour->get_value() - 10);
   get_armour_regen_system()->update(2);
   ASSERT_EQ(armour->get_value(), 40);
@@ -45,7 +45,7 @@ TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateSmallDeltaTime) {
 
 /// Test that the armour regen component is updated with a large delta time.
 TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateLargeDeltaTime) {
-  auto armour{registry.get_component<Armour>(0)};
+  const auto armour{registry.get_component<Armour>(0)};
   armour->set_value(armour->get_value() - 10);
   get_armour_regen_system()->update(6);
   ASSERT_EQ(armour->get_value(), 41);
@@ -54,7 +54,7 @@ TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateLargeDeltaTime) {
 
 /// Test that the armour regen component is updated multiple times correctly.
 TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateMultipleUpdates) {
-  auto armour{registry.get_component<Armour>(0)};
+  const auto armour{registry.get_component<Armour>(0)};
   armour->set_value(armour->get_value() - 10);
   get_armour_regen_system()->update(1);
   ASSERT_EQ(armour->get_value(), 40);

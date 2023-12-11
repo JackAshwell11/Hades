@@ -1,4 +1,5 @@
 // Std headers
+#include <algorithm>
 #include <numeric>
 
 // Local headers
@@ -7,7 +8,7 @@
 
 // ----- FIXTURES ------------------------------
 /// Implements the fixture for the generation/map.hpp tests.
-class MapFixture : public testing::Test {
+class MapFixture : public testing::Test {  // NOLINT
  protected:
   /// A random generator for use in testing.
   std::mt19937 random_generator;
@@ -54,7 +55,7 @@ TEST_F(MapFixture, TestMapCollectPositionsEmptyGrid) {
 TEST_F(MapFixture, TestMapPlaceTileGivenPositions) {
   std::vector<Position> possible_tiles{{5, 6}, {4, 2}};
   place_tile(grid, random_generator, TileType::Player, possible_tiles);
-  ASSERT_EQ(std::count(grid.grid->begin(), grid.grid->end(), TileType::Player), 1);
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Player), 1);
 }
 
 /// Test that placing a tile in the grid with no available positions throws an exception.
@@ -66,18 +67,18 @@ TEST_F(MapFixture, TestMapPlaceTileEmpty) {
 
 /// Test that creating a complete graph with a single room works correctly.
 TEST_F(MapFixture, TestMapCreateCompleteGraphSingleRoom) {
-  const std::vector<Rect> rooms{rect_one};
+  const std::vector rooms{rect_one};
   const std::unordered_map<Rect, std::vector<Rect>> single_room_result{{rect_one, std::vector<Rect>{}}};
   ASSERT_EQ(create_complete_graph(rooms), single_room_result);
 }
 
 /// Test that creating a complete graph with multiple rooms works correctly.
 TEST_F(MapFixture, TestMapCreateCompleteGraphMultipleRooms) {
-  const std::vector<Rect> rooms{rect_one, rect_two, rect_three};
+  const std::vector rooms{rect_one, rect_two, rect_three};
   const std::unordered_map<Rect, std::vector<Rect>> multiple_rooms_result{
-      {rect_one, std::vector<Rect>{rect_two, rect_three}},
-      {rect_two, std::vector<Rect>{rect_one, rect_three}},
-      {rect_three, std::vector<Rect>{rect_one, rect_two}}};
+      {rect_one, std::vector{rect_two, rect_three}},
+      {rect_two, std::vector{rect_one, rect_three}},
+      {rect_three, std::vector{rect_one, rect_two}}};
   ASSERT_EQ(create_complete_graph(rooms), multiple_rooms_result);
 }
 
@@ -90,11 +91,11 @@ TEST_F(MapFixture, TestMapCreateCompleteGraphNoRooms) {
 /// Test that creating a minimum spanning tree with a valid complete graph works correctly.
 TEST_F(MapFixture, TestMapCreateConnectionsValidCompleteGraph) {
   // Create the minimum-spanning tree and check its size
-  const std::unordered_map<Rect, std::vector<Rect>> complete_graph{{rect_one, std::vector<Rect>{rect_two, rect_three}},
-                                                                   {rect_two, std::vector<Rect>{rect_one, rect_three}},
-                                                                   {rect_three, std::vector<Rect>{rect_one, rect_two}}};
+  const std::unordered_map<Rect, std::vector<Rect>> complete_graph{{rect_one, std::vector{rect_two, rect_three}},
+                                                                   {rect_two, std::vector{rect_one, rect_three}},
+                                                                   {rect_three, std::vector{rect_one, rect_two}}};
   auto connections{create_connections(complete_graph)};
-  const std::unordered_set<Rect> all_rects{rect_one, rect_two, rect_three};
+  const std::unordered_set all_rects{rect_one, rect_two, rect_three};
   ASSERT_EQ(connections.size(), 2);
 
   // Check that the minimum spanning tree has the correct total cost
@@ -104,8 +105,9 @@ TEST_F(MapFixture, TestMapCreateConnectionsValidCompleteGraph) {
 
   // Check that every rect can be reached in the minimum spanning tree
   for (const auto &rect : all_rects) {
-    ASSERT_TRUE(std::any_of(connections.begin(), connections.end(),
-                            [&rect](const Edge &edge) { return edge.source == rect || edge.destination == rect; }));
+    ASSERT_TRUE(std::ranges::any_of(connections.begin(), connections.end(), [&rect](const Edge &edge) {
+      return edge.source == rect || edge.destination == rect;
+    }));
   }
 }
 
@@ -120,7 +122,7 @@ TEST_F(MapFixture, TestMapCreateConnectionsEmptyCompleteGraph) {
 TEST_F(MapFixture, TestMapCreateHallwaysNoObstacles) {
   const std::unordered_set<Edge> connections{{0, rect_one, rect_three}};
   create_hallways(large_grid, random_generator, connections, 0);
-  const std::vector<TileType> no_obstacles_result{
+  const std::vector no_obstacles_result{
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
       TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Floor,
@@ -140,7 +142,7 @@ TEST_F(MapFixture, TestMapCreateHallwaysNoObstacles) {
 TEST_F(MapFixture, TestMapCreateHallwaysObstacles) {
   const std::unordered_set<Edge> connections{{0, rect_one, rect_three}};
   create_hallways(large_grid, random_generator, connections, 5);
-  const std::vector<TileType> obstacles_result{
+  const std::vector obstacles_result{
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
       TileType::Wall,  TileType::Empty, TileType::Empty, TileType::Empty, TileType::Wall,  TileType::Floor,
@@ -160,7 +162,7 @@ TEST_F(MapFixture, TestMapCreateHallwaysObstacles) {
 TEST_F(MapFixture, TestMapCreateHallwaysNoConnections) {
   const std::unordered_set<Edge> connections;
   create_hallways(large_grid, random_generator, connections, 5);
-  const std::vector<TileType> no_obstacles_result{
+  const std::vector no_obstacles_result{
       TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
       TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
       TileType::Empty,    TileType::Empty,    TileType::Empty,    TileType::Empty, TileType::Empty,
@@ -180,10 +182,10 @@ TEST_F(MapFixture, TestMapCreateHallwaysNoConnections) {
 
 /// Test that creating a map with a valid level and seed works correctly.
 TEST_F(MapFixture, TestMapCreateMapValidLevelSeed) {
-  std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_valid{create_map(0, 5)};
-  ASSERT_EQ(create_map_valid.second, std::make_tuple(0, 30, 20));
-  ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::Player), 1);
-  ASSERT_EQ(std::count(create_map_valid.first.begin(), create_map_valid.first.end(), TileType::Potion), 5);
+  const auto [create_map_valid_grid, create_map_valid_constants] = create_map(0, 5);
+  ASSERT_EQ(create_map_valid_constants, std::make_tuple(0, 30, 20));
+  ASSERT_EQ(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Player), 1);
+  ASSERT_EQ(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Potion), 5);
 }
 
 /// Test that creating a map with a negative level throws an exception.
@@ -192,6 +194,6 @@ TEST_F(MapFixture, TestMapCreateMapNegativeLevel){
 
 /// Test that creating a map without a seed works correctly.
 TEST_F(MapFixture, TestMapCreateMapEmptySeed) {
-  const std::pair<std::vector<TileType>, std::tuple<int, int, int>> create_map_empty_seed{create_map(0)};
-  ASSERT_NE(create_map_empty_seed.first, create_map(0).first);
+  const auto [create_map_empty_seed_grid, _] = create_map(0);
+  ASSERT_NE(create_map_empty_seed_grid, create_map(0).first);
 }

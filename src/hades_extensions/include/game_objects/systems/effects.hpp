@@ -1,14 +1,15 @@
 // Ensure this file is only included once
 #pragma once
 
-// Local headers
-#include <utility>
+// Std headers
+#include <cstdint>
 
+// Local headers
 #include "game_objects/registry.hpp"
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of status effects available.
-enum class StatusEffectType {
+enum class StatusEffectType : std::uint8_t {
   TEMP,
   TEMP2,
 };
@@ -45,9 +46,8 @@ struct StatusEffect {
       : value(value), duration(duration), interval(interval), target_component(target_component) {}
 };
 
-// ----- COMPONENTS ------------------------------
 /// Represents the data required to apply a status effect.
-struct StatusEffectData : public ComponentBase {
+struct StatusEffectData {
   /// The type of status effect.
   StatusEffectType status_effect_type;
 
@@ -74,8 +74,9 @@ struct StatusEffectData : public ComponentBase {
         interval(std::move(interval)) {}
 };
 
+// ----- COMPONENTS ------------------------------
 /// Allows a game object to provide instant or status effects.
-struct EffectApplier : public ComponentBase {
+struct EffectApplier final : ComponentBase {
   /// The instant effects the game object provides.
   std::unordered_map<std::type_index, ActionFunction> instant_effects;
 
@@ -92,14 +93,14 @@ struct EffectApplier : public ComponentBase {
 };
 
 /// Allows a game object to have status effects applied to it.
-struct StatusEffects : public ComponentBase {
+struct StatusEffects final : ComponentBase {
   /// The status effects currently applied to the game object.
   std::unordered_map<StatusEffectType, StatusEffect> applied_effects{};
 };
 
 // ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate instant and status effects.
-struct EffectSystem : public SystemBase {
+struct EffectSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -108,7 +109,7 @@ struct EffectSystem : public SystemBase {
   /// Process update logic for a status effect component.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  void update(double delta_time) const final;
+  void update(double delta_time) const override;
 
   /// Apply an instant effect to a game object.
   ///
@@ -119,7 +120,7 @@ struct EffectSystem : public SystemBase {
   /// @throws RegistryError - If the game object does not exist or does not have the target component.
   /// @return Whether the instant effect was applied or not.
   auto apply_instant_effect(GameObjectID game_object_id, const std::type_index &target_component,
-                            const ActionFunction &increase_function, int level) -> bool;
+                            const ActionFunction &increase_function, int level) const -> bool;
 
   /// Apply a status effect to a game object.
   ///
@@ -130,5 +131,5 @@ struct EffectSystem : public SystemBase {
   /// @throws RegistryError - If the game object does not exist or does not have the target component.
   /// @return Whether the status effect was applied or not.
   auto apply_status_effect(GameObjectID game_object_id, const std::type_index &target_component,
-                           const StatusEffectData &status_effect_data, int level) -> bool;
+                           const StatusEffectData &status_effect_data, int level) const -> bool;
 };

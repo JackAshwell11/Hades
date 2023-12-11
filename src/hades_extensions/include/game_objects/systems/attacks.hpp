@@ -2,6 +2,7 @@
 #pragma once
 
 // Std headers
+#include <cstdint>
 #include <optional>
 
 // Local headers
@@ -9,7 +10,7 @@
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of attack algorithms available.
-enum class AttackAlgorithm {
+enum class AttackAlgorithm : std::uint8_t {
   AreaOfEffect,
   Melee,
   Ranged,
@@ -17,7 +18,7 @@ enum class AttackAlgorithm {
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to attack other game objects.
-struct Attacks : public ComponentBase {
+struct Attacks final : ComponentBase {
   /// The attack algorithms the game object can use.
   std::vector<AttackAlgorithm> attack_algorithms;
 
@@ -32,7 +33,7 @@ struct Attacks : public ComponentBase {
 
 // ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate attack components.
-struct AttackSystem : public SystemBase {
+struct AttackSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -51,9 +52,8 @@ struct AttackSystem : public SystemBase {
   ///
   /// @param game_object_id - The ID of the game object to select the previous attack for.
   /// @throws RegistryError - If the game object does not exist or does not have an attack component.
-  inline void previous_attack(const GameObjectID game_object_id) const {
-    auto attacks{get_registry()->get_component<Attacks>(game_object_id)};
-    if (attacks->attack_state > 0) {
+  void previous_attack(const GameObjectID game_object_id) const {
+    if (const auto attacks{get_registry()->get_component<Attacks>(game_object_id)}; attacks->attack_state > 0) {
       attacks->attack_state--;
     }
   }
@@ -62,17 +62,17 @@ struct AttackSystem : public SystemBase {
   ///
   /// @param game_object_id - The ID of the game object to select the previous attack for.
   /// @throws RegistryError - If the game object does not exist or does not have an attack component.
-  inline void next_attack(const GameObjectID game_object_id) const {
-    auto attacks{get_registry()->get_component<Attacks>(game_object_id)};
-    if (!attacks->attack_algorithms.empty() &&
-        attacks->attack_state < static_cast<int>(attacks->attack_algorithms.size()) - 1) {
+  void next_attack(const GameObjectID game_object_id) const {
+    if (const auto attacks{get_registry()->get_component<Attacks>(game_object_id)};
+        !attacks->attack_algorithms.empty() &&
+        attacks->attack_state < static_cast<int>(attacks->attack_algorithms.size() - 1)) {
       attacks->attack_state++;
     }
   }
 };
 
 /// Provides facilities to damage game objects.
-struct DamageSystem : public SystemBase {
+struct DamageSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.

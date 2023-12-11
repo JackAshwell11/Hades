@@ -1,9 +1,6 @@
 // Related header
 #include "game_objects/registry.hpp"
 
-// Std headers
-#include <memory>
-
 // ----- FUNCTIONS ------------------------------
 auto Registry::create_game_object(const std::vector<std::shared_ptr<ComponentBase>> &&components, const bool kinematic)
     -> GameObjectID {

@@ -28,14 +28,15 @@ struct MapGenerationConstant {
 // ----- CONSTANTS ------------------------------
 constexpr int HALLWAY_SIZE{5};
 constexpr int HALF_HALLWAY_SIZE{HALLWAY_SIZE / 2};
-const MapGenerationConstant WIDTH{30, 1.2, 150};
-const MapGenerationConstant HEIGHT{20, 1.2, 100};
-const MapGenerationConstant OBSTACLE_COUNT{20, 1.3, 200};
-const MapGenerationConstant ITEM_COUNT{5, 1.1, 30};
+constexpr MapGenerationConstant WIDTH{30, 1.2, 150};
+constexpr MapGenerationConstant HEIGHT{20, 1.2, 100};
+constexpr MapGenerationConstant OBSTACLE_COUNT{20, 1.3, 200};
+constexpr MapGenerationConstant ITEM_COUNT{5, 1.1, 30};
 
 // ----- FUNCTIONS ------------------------------
 /// Generate a value based on the exponential equation.
 ///
+/// @param map_generation_constant - The map generation constant to use.
 /// @param level - The game level to generate a value for.
 /// @return The generated value.
 [[nodiscard]] inline auto generate_value(const MapGenerationConstant &map_generation_constant, const int level) -> int {
@@ -57,7 +58,7 @@ auto collect_positions(const Grid &grid, const TileType target) -> std::vector<P
   return result;
 }
 
-void place_tile(Grid &grid, std::mt19937 &random_generator, const TileType target_tile,
+void place_tile(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile,
                 std::vector<Position> &possible_tiles) {
   // Check if at least one tile exists
   if (possible_tiles.empty()) {
@@ -83,8 +84,8 @@ auto create_complete_graph(const std::vector<Rect> &rooms) -> std::unordered_map
   std::unordered_map<Rect, std::vector<Rect>> complete_graph;
   for (const Rect &room : rooms) {
     std::vector<Rect> temp;
-    std::copy_if(rooms.begin(), rooms.end(), std::back_inserter(temp),
-                 [&room](const Rect &neighbour) { return neighbour != room; });
+    std::ranges::copy_if(rooms.begin(), rooms.end(), std::back_inserter(temp),
+                         [&room](const Rect &neighbour) { return neighbour != room; });
     complete_graph.insert({room, temp});
   }
   return complete_graph;
@@ -132,7 +133,7 @@ auto create_connections(const std::unordered_map<Rect, std::vector<Rect>> &compl
 void create_hallways(Grid &grid, std::mt19937 &random_generator, const std::unordered_set<Edge> &connections,
                      const int obstacle_count) {
   // Place random obstacles in the grid
-  std::vector<Position> obstacle_positions{collect_positions(grid, TileType::Empty)};
+  std::vector obstacle_positions{collect_positions(grid, TileType::Empty)};
   for (int _ = 0; _ < obstacle_count; _++) {
     place_tile(grid, random_generator, TileType::Obstacle, obstacle_positions);
   }
@@ -140,7 +141,7 @@ void create_hallways(Grid &grid, std::mt19937 &random_generator, const std::unor
   // Use the A* algorithm to connect each pair of rooms avoiding the obstacles
   std::vector<std::vector<Position>> path_positions(connections.size());
   std::transform(std::execution::par, connections.begin(), connections.end(), path_positions.begin(),
-                 [&grid](Edge connection) {
+                 [&grid](const Edge &connection) {
                    return calculate_astar_path(grid, connection.source.centre, connection.destination.centre);
                  });
 
@@ -183,7 +184,7 @@ auto create_map(const int level, std::optional<unsigned int> seed)
                   generate_value(OBSTACLE_COUNT, level));
 
   // Place the player tile as well as the items in the grid
-  std::vector<Position> possible_tiles{collect_positions(grid, TileType::Floor)};
+  std::vector possible_tiles{collect_positions(grid, TileType::Floor)};
   place_tile(grid, random_generator, TileType::Player, possible_tiles);
   for (int _ = 0; _ < generate_value(ITEM_COUNT, level); _++) {
     place_tile(grid, random_generator, TileType::Potion, possible_tiles);

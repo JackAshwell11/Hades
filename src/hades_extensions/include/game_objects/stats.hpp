@@ -1,10 +1,6 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std headers
-#include <algorithm>
-#include <limits>
-
 // Local headers
 #include "game_objects/registry.hpp"
 
@@ -21,35 +17,35 @@ class Stat : public ComponentBase {
   /// Get the value of the stat.
   ///
   /// @return The value of the stat.
-  [[nodiscard]] inline auto get_value() const -> double { return value_; }
+  [[nodiscard]] auto get_value() const -> double { return value_; }
 
   /// Set the value of the stat.
   ///
   /// @param new_value - The new value of the stat.
-  inline void set_value(const double new_value) { value_ = std::max(std::min(new_value, max_value_), 0.0); }
+  void set_value(const double new_value) { value_ = std::max(std::min(new_value, max_value_), 0.0); }
 
   /// Get the maximum value of the stat.
   ///
   /// @return The maximum value of the stat.
-  [[nodiscard]] inline auto get_max_value() const -> double { return max_value_; }
+  [[nodiscard]] auto get_max_value() const -> double { return max_value_; }
 
   /// Add a value to the maximum value of the stat.
   ///
   /// @param value - The value to add to the maximum value of the stat.
-  inline void add_to_max_value(const double value) { max_value_ += value; }
+  void add_to_max_value(const double value) { max_value_ += value; }
 
   /// Get the current level of the stat.
   ///
   /// @return The current level of the stat.
-  [[nodiscard]] inline auto get_current_level() const -> int { return current_level; }
+  [[nodiscard]] auto get_current_level() const -> int { return current_level; }
 
   /// Increment the current level of the stat.
-  inline void increment_current_level() { current_level++; }
+  void increment_current_level() { current_level++; }
 
   /// Get the maximum level of the stat.
   ///
   /// @return The maximum level of the stat.
-  [[nodiscard]] inline auto get_maximum_level() const -> int { return maximum_level; }
+  [[nodiscard]] auto get_maximum_level() const -> int { return maximum_level; }
 
  private:
   /// The current value of the variable.
@@ -66,7 +62,7 @@ class Stat : public ComponentBase {
 };
 
 /// Allows a game object to have an armour stat.
-struct Armour : public Stat {
+struct Armour final : Stat {
   /// Initialise the object.
   ///
   /// @param value - The initial and maximum value of the armour stat.
@@ -75,7 +71,7 @@ struct Armour : public Stat {
 };
 
 /// Allows a game object to regenerate armour.
-struct ArmourRegen : public Stat {
+struct ArmourRegen final : Stat {
   /// The time since the game object last regenerated armour.
   double time_since_armour_regen{0};
 
@@ -87,7 +83,7 @@ struct ArmourRegen : public Stat {
 };
 
 /// Allows a game object to have a health stat.
-struct Health : public Stat {
+struct Health final : Stat {
   /// Initialise the object.
   ///
   /// @param value - The initial and maximum value of the health stat.
@@ -96,7 +92,7 @@ struct Health : public Stat {
 };
 
 /// Allows a game object to determine how fast it can move.
-struct MovementForce : public Stat {
+struct MovementForce final : Stat {
   /// Initialise the object.
   ///
   /// @param value - The initial and maximum value of the movement force stat.

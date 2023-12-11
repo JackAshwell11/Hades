@@ -25,8 +25,6 @@ jobs:
 #    steps:
 #      - name: Checkout repository
 #        uses: actions/checkout@v4.1.1
-#      - name: Set up CMake
-#        uses: lukka/get-cmake@v3.27.7
 #      - name: Run cppcheck
 #        working-directory: ${{ github.workspace }}/src/hades_extensions
 #        run: |
@@ -37,8 +35,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
-      - name: Set up CMake
-        uses: lukka/get-cmake@v3.27.7
       - name: Run clang-format
         uses: jidicula/clang-format-action@v4.11.0
         with:

@@ -21,7 +21,7 @@ void EffectSystem::update(const double delta_time) const {
       if (status_effect.time_counter >= status_effect.duration) {
         expired_status_effects.push_back(status_effect_type);
       } else if (status_effect.leftover_time >= status_effect.interval) {
-        auto component = std::static_pointer_cast<Stat>(
+        const auto component = std::static_pointer_cast<Stat>(
             get_registry()->get_component(game_object_id, status_effect.target_component));
         component->set_value(component->get_value() + status_effect.value);
         status_effect.leftover_time -= status_effect.interval;
@@ -36,9 +36,9 @@ void EffectSystem::update(const double delta_time) const {
 }
 
 auto EffectSystem::apply_instant_effect(const GameObjectID game_object_id, const std::type_index &target_component,
-                                        const ActionFunction &increase_function, const int level) -> bool {
+                                        const ActionFunction &increase_function, const int level) const -> bool {
   // Check if the component is already at the maximum
-  auto component{std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component))};
+  const auto component{std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component))};
   if (component->get_value() == component->get_max_value()) {
     return false;
   }
@@ -49,9 +49,9 @@ auto EffectSystem::apply_instant_effect(const GameObjectID game_object_id, const
 }
 
 auto EffectSystem::apply_status_effect(const GameObjectID game_object_id, const std::type_index &target_component,
-                                       const StatusEffectData &status_effect_data, const int level) -> bool {
+                                       const StatusEffectData &status_effect_data, const int level) const -> bool {
   // Check if the status effect has already been applied
-  auto status_effects{get_registry()->get_component<StatusEffects>(game_object_id)};
+  const auto status_effects{get_registry()->get_component<StatusEffects>(game_object_id)};
   if (status_effects->applied_effects.contains(status_effect_data.status_effect_type)) {
     return false;
   }
@@ -60,7 +60,7 @@ auto EffectSystem::apply_status_effect(const GameObjectID game_object_id, const 
   const StatusEffect status_effect{status_effect_data.increase(level), status_effect_data.duration(level),
                                    status_effect_data.interval(level), target_component};
   status_effects->applied_effects.emplace(status_effect_data.status_effect_type, status_effect);
-  auto component{std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component))};
+  const auto component{std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component))};
   component->set_value(component->get_value() + status_effect.value);
   return true;
 }

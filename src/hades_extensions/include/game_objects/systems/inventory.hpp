@@ -6,7 +6,7 @@
 
 // ----- EXCEPTIONS ------------------------------
 /// Thrown when there is a space problem with the inventory.
-struct InventorySpaceError : public std::runtime_error {
+struct InventorySpaceError final : std::runtime_error {
   /// Initialise the object.
   ///
   /// @param message - The message to display.
@@ -21,7 +21,7 @@ struct InventorySpaceError : public std::runtime_error {
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to have a fixed size inventory.
-struct Inventory : public ComponentBase {
+struct Inventory final : ComponentBase {
   /// The width of the inventory.
   int width;
 
@@ -40,12 +40,12 @@ struct Inventory : public ComponentBase {
   /// Get the capacity of the inventory.
   ///
   /// @return The capacity of the inventory.
-  [[nodiscard]] inline auto get_capacity() const -> int { return width * height; }
+  [[nodiscard]] auto get_capacity() const -> int { return width * height; }
 };
 
 // ----- SYSTEMS --------------------------------
 /// Provides facilities to manipulate inventory components.
-struct InventorySystem : public SystemBase {
+struct InventorySystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.

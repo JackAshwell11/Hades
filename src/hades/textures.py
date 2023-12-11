@@ -31,10 +31,8 @@ class BiggerThanError(Exception):
     def __init__(self: BiggerThanError, *, min_value: float) -> None:
         """Initialise the object.
 
-        Parameters
-        ----------
-        min_value: float
-            The minimum value that is allowed.
+        Args:
+            min_value: The minimum value that is allowed.
         """
         super().__init__(f"The input must be bigger than or equal to {min_value}.")
 
@@ -56,7 +54,6 @@ def load_non_moving_texture(texture: str) -> Texture:
 
     Args:
         texture: The non-moving texture to load
-
 
     Returns:
         The loaded non-moving texture.

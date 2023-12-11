@@ -3,16 +3,16 @@
 
 // Std headers
 #include <cmath>
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
-#include <vector>
 
 // Local headers
 #include "hash_combine.hpp"
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of tiles in the game map.
-enum class TileType {
+enum class TileType : std::uint8_t {
   Empty,
   Floor,
   Wall,
@@ -24,13 +24,13 @@ enum class TileType {
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D position.
 struct Position {
-  inline auto operator==(const Position &position) const -> bool { return x == position.x && y == position.y; }
+  auto operator==(const Position &position) const -> bool { return x == position.x && y == position.y; }
 
-  inline auto operator!=(const Position &position) const -> bool { return x != position.x || y != position.y; }
+  auto operator!=(const Position &position) const -> bool { return x != position.x || y != position.y; }
 
-  inline auto operator+(const Position &position) const -> Position { return {x + position.x, y + position.y}; }
+  auto operator+(const Position &position) const -> Position { return {x + position.x, y + position.y}; }
 
-  inline auto operator-(const Position &position) const -> Position {
+  auto operator-(const Position &position) const -> Position {
     return {std::abs(x - position.x), std::abs(y - position.y)};
   }
 
@@ -73,7 +73,7 @@ struct Grid {
   /// @param position - The position to convert.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The 1D grid position.
-  [[nodiscard]] inline auto convert_position(const Position &position) const -> int {
+  [[nodiscard]] auto convert_position(const Position &position) const -> int {
     if (position.x < 0 || position.x >= width || position.y < 0 || position.y >= height) {
       throw std::out_of_range("Position must be within range");
     }
@@ -85,26 +85,27 @@ struct Grid {
   /// @param position - The position to get the value for.
   /// @throws std::out_of_range - Position must be within range.
   /// @return The value at the given position.
-  [[nodiscard]] inline auto get_value(const Position &position) const -> TileType {
+  [[nodiscard]] auto get_value(const Position &position) const -> TileType {
     return grid->at(convert_position(position));
   }
 
   /// Set a value in the 2D grid from a given position.
   ///
   /// @param position - The position to set.
+  /// @param target - The value to set at the given position.
   /// @throws std::out_of_range - Position must be within range.
-  inline void set_value(const Position &position, const TileType target) const {
+  void set_value(const Position &position, const TileType target) const {
     grid->at(convert_position(position)) = target;
   }
 };
 
 /// Represents a rectangle in 2D space.
 struct Rect {
-  inline auto operator==(const Rect &rect) const -> bool {
+  auto operator==(const Rect &rect) const -> bool {
     return top_left == rect.top_left && bottom_right == rect.bottom_right;
   }
 
-  inline auto operator!=(const Rect &rect) const -> bool {
+  auto operator!=(const Rect &rect) const -> bool {
     return top_left != rect.top_left || bottom_right != rect.bottom_right;
   }
 
@@ -130,8 +131,10 @@ struct Rect {
   Rect(const Position &top_left, const Position &bottom_right)
       : top_left(top_left),
         bottom_right(bottom_right),
+        // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
         centre(static_cast<int>(std::round((top_left + bottom_right).x / 2.0)),
                static_cast<int>(std::round((top_left + bottom_right).y / 2.0))),
+        // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
         width((top_left - bottom_right).x),
         height((top_left - bottom_right).y) {}
 
@@ -139,7 +142,7 @@ struct Rect {
   ///
   /// @param other - The rect to find the distance to.
   /// @return The Chebyshev distance between this rect and the given rect.
-  [[nodiscard]] inline auto get_distance_to(const Rect &other) const -> int {
+  [[nodiscard]] auto get_distance_to(const Rect &other) const -> int {
     return std::max(abs(centre.x - other.centre.x), abs(centre.y - other.centre.y));
   }
 
@@ -147,13 +150,13 @@ struct Rect {
   ///
   /// @details It is the responsibility of the caller to ensure that the rect fits in the grid.
   /// @param grid - The 2D grid which represents the dungeon.
-  void place_rect(Grid &grid) const;
+  void place_rect(const Grid &grid) const;
 };
 
 // ----- HASHES ------------------------------
 template <>
 struct std::hash<Position> {
-  auto operator()(const Position &position) const -> std::size_t {
+  auto operator()(const Position &position) const noexcept -> std::size_t {
     std::size_t res{0};
     hash_combine(res, position.x);
     hash_combine(res, position.y);
@@ -163,7 +166,7 @@ struct std::hash<Position> {
 
 template <>
 struct std::hash<Rect> {
-  auto operator()(const Rect &rect) const -> std::size_t {
+  auto operator()(const Rect &rect) const noexcept -> std::size_t {
     std::size_t res{0};
     hash_combine(res, rect.top_left);
     hash_combine(res, rect.bottom_right);

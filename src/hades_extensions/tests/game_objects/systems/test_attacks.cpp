@@ -15,7 +15,7 @@ class AttackSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    auto create_target{[&](Vec2d position) {
+    auto create_target{[&](const Vec2d position) {
       const int target{
           registry.create_game_object({std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1)}, true)};
       registry.get_kinematic_object(target)->position = position;
@@ -33,8 +33,7 @@ class AttackSystemFixture : public testing::Test {
 
   /// Create an attacks component for a game object.
   ///
-  /// @tparam T - The type of the component or system.
-  /// @param list - The initializer list to pass to the constructor.
+  /// @param enabled_attacks - The attacks to include in the component.
   void create_attack_component(const std::vector<AttackAlgorithm> &&enabled_attacks) {
     const int game_object_id{registry.create_game_object({std::make_shared<Attacks>(enabled_attacks)}, true)};
     registry.get_kinematic_object(game_object_id)->rotation = 180;
@@ -103,7 +102,7 @@ TEST_F(AttackSystemFixture, TestAttacksDoMeleeAttack) {
 TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
   // This is due to floating point precision
   create_attack_component({AttackAlgorithm::Ranged});
-  std::tuple<Vec2d, double, double> attack_result{get_attacks_system()->do_attack(8, targets).value()};
+  const std::tuple attack_result{get_attacks_system()->do_attack(8, targets).value()};
   ASSERT_EQ(get<0>(attack_result), Vec2d(0, 0));
   ASSERT_EQ(get<1>(attack_result), -300);
   ASSERT_NEAR(get<2>(attack_result), 0, 1e-13);
@@ -193,7 +192,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroDamage) {
 /// Test that damage is dealt when armour is zero.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroArmour) {
   create_health_and_armour_attributes();
-  auto armour{registry.get_component<Armour>(0)};
+  const auto armour{registry.get_component<Armour>(0)};
   armour->set_value(0);
   get_damage_system()->deal_damage(0, 100);
   ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 200);
@@ -203,7 +202,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroArmour) {
 /// Test that damage is dealt when health is zero.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
   create_health_and_armour_attributes();
-  auto health{registry.get_component<Health>(0)};
+  const auto health{registry.get_component<Health>(0)};
   health->set_value(0);
   get_damage_system()->deal_damage(0, 50);
   ASSERT_EQ(health->get_value(), 0);

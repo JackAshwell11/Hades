@@ -26,7 +26,7 @@ class InventorySystemFixture : public testing::Test {
 // ----- HELPER FUNCTIONS -----------------------------
 /// Throw an InventorySpaceError with a given boolean.
 ///
-/// @param full - Whether the inventory is full or not.
+/// @param val - The value to throw the error with.
 /// @throws InventorySpaceError - Always for testing.
 template <typename T>
 void throw_inventory_space_error(const T val) {
@@ -53,7 +53,7 @@ TEST(Tests, TestThrowInventorySpaceErrorEmpty){
 /// Test that a valid item is added to the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   get_inventory_system()->add_item_to_inventory(0, 50);
-  ASSERT_EQ(registry.get_component<Inventory>(0)->items, std::vector<int>{50});
+  ASSERT_EQ(registry.get_component<Inventory>(0)->items, std::vector{50});
 }
 
 /// Test that a valid item is not added to a zero size inventory.
@@ -70,7 +70,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryInvalidGameO
 
 /// Test that a valid item is removed from the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
-  const std::vector<int> result{1, 4};
+  const std::vector result{1, 4};
   get_inventory_system()->add_item_to_inventory(0, 1);
   get_inventory_system()->add_item_to_inventory(0, 7);
   get_inventory_system()->add_item_to_inventory(0, 4);

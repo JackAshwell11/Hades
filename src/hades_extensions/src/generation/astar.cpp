@@ -4,13 +4,12 @@
 // Std headers
 #include <array>
 #include <queue>
-#include <unordered_map>
 
 // ----- STRUCTURES ------------------------------
 /// Represents a grid position and its distance from the start position.
 struct Neighbour {
   // std::priority_queue uses a max heap, but we want a min heap, so the operator needs to be reversed
-  inline auto operator<(const Neighbour &neighbour) const -> bool { return cost > neighbour.cost; }
+  auto operator<(const Neighbour &neighbour) const -> bool { return cost > neighbour.cost; }
 
   /// The cost to traverse to this neighbour.
   int cost;
@@ -21,9 +20,8 @@ struct Neighbour {
 
 // ----- CONSTANTS ------------------------------
 // Represents the north, south, east, west, north-east, north-west, south-east and south-west directions on a compass
-constexpr std::array<Position, 8> INTERCARDINAL_OFFSETS{Position{-1, -1}, Position{0, -1}, Position{1, -1},
-                                                        Position{-1, 0},  Position{1, 0},  Position{-1, 1},
-                                                        Position{0, 1},   Position{1, 1}};
+constexpr std::array INTERCARDINAL_OFFSETS{Position{-1, -1}, Position{0, -1}, Position{1, -1}, Position{-1, 0},
+                                           Position{1, 0},   Position{-1, 1}, Position{0, 1},  Position{1, 1}};
 
 // ----- FUNCTIONS ------------------------------
 auto calculate_astar_path(const Grid &grid, const Position &start, const Position &end) -> std::vector<Position> {
@@ -45,7 +43,7 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
 
     // Check if we've reached the end. If so, backtrack through the neighbours to get the resultant path
     if (current == end) {
-      while (!(neighbours.at(current).destination == current)) {
+      while (neighbours.at(current).destination != current) {
         result.push_back(current);
         current = neighbours.at(current).destination;
       }
@@ -72,8 +70,8 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
       }
 
       // Check if we've found a more efficient path to the neighbour and if so, add all of its neighbours to the queue
-      const int distance{neighbours.at(current).cost + 1};
-      if (!neighbours.contains(neighbour) || distance < neighbours.at(neighbour).cost) {
+      if (const int distance{neighbours.at(current).cost + 1};
+          !neighbours.contains(neighbour) || distance < neighbours.at(neighbour).cost) {
         neighbours[neighbour] = {distance, current};
 
         // Add the neighbour to the priority queue

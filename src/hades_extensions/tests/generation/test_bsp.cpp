@@ -6,7 +6,7 @@
 
 // ----- FIXTURES ------------------------------
 /// Implements the fixture for the generation/bsp.hpp tests.
-class BspFixture : public testing::Test {
+class BspFixture : public testing::Test {  // NOLINT
  protected:
   /// The random number generator for use in testing.
   std::mt19937 random_generator;

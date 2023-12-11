@@ -46,5 +46,3 @@ add_subdirectory(src)
 if (DO_TESTS)
     add_subdirectory(tests)
 endif ()
-
-# TODO: see if do_python and do_tests can be used elsewhere

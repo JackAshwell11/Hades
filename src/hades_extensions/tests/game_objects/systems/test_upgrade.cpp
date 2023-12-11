@@ -5,7 +5,7 @@
 
 // ----- STRUCTURES -----------------------------
 /// Represents a test stat useful for testing.
-struct TestStat : public Stat {
+struct TestStat final : Stat {
   /// Initialise the object.
   ///
   /// @param value - The initial and maximum value of the test stat.
@@ -29,7 +29,7 @@ class UpgradeSystemFixture : public testing::Test {
   /// @param max_level - The maximum level of the game object.
   void create_game_object(const int value, const int max_level) {
     const std::unordered_map<std::type_index, ActionFunction> upgrades{
-        {typeid(TestStat), [](int level) { return 150 * (level + 1); }}};
+        {typeid(TestStat), [](const int level) { return 150 * (level + 1); }}};
     registry.create_game_object({std::make_shared<TestStat>(value, max_level), std::make_shared<Upgrades>(upgrades)});
   }
 

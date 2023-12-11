@@ -2,7 +2,7 @@
 #include "generation/primitives.hpp"
 
 // ----- FUNCTIONS ------------------------------
-void Rect::place_rect(Grid &grid) const {
+void Rect::place_rect(const Grid &grid) const {
   // Place the walls
   for (int y = std::max(top_left.y, 0); y < std::min(bottom_right.y + 1, grid.height); y++) {
     for (int x = std::max(top_left.x, 0); x < std::min(bottom_right.x + 1, grid.width); x++) {

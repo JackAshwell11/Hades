@@ -5,7 +5,6 @@
 #include <cmath>
 #include <numbers>
 #include <unordered_set>
-#include <vector>
 
 // Local headers
 #include "hash_combine.hpp"
@@ -19,23 +18,23 @@ constexpr double SPRITE_SIZE{128 * SPRITE_SCALE};
 // ----- STRUCTURES ------------------------------
 /// Represents a 2D vector.
 struct Vec2d {
-  inline auto operator==(const Vec2d &vec) const -> bool { return x == vec.x && y == vec.y; }
+  auto operator==(const Vec2d &vec) const -> bool { return x == vec.x && y == vec.y; }
 
-  inline auto operator!=(const Vec2d &vec) const -> bool { return x != vec.x || y != vec.y; }
+  auto operator!=(const Vec2d &vec) const -> bool { return x != vec.x || y != vec.y; }
 
-  inline auto operator+(const Vec2d &vec) const -> Vec2d { return {x + vec.x, y + vec.y}; }
+  auto operator+(const Vec2d &vec) const -> Vec2d { return {x + vec.x, y + vec.y}; }
 
-  inline auto operator+=(const Vec2d &vec) -> Vec2d {
+  auto operator+=(const Vec2d &vec) -> Vec2d {
     x += vec.x;
     y += vec.y;
     return *this;
   }
 
-  inline auto operator-(const Vec2d &vec) const -> Vec2d { return {x - vec.x, y - vec.y}; }
+  auto operator-(const Vec2d &vec) const -> Vec2d { return {x - vec.x, y - vec.y}; }
 
-  inline auto operator*(const double val) const -> Vec2d { return {x * val, y * val}; }
+  auto operator*(const double val) const -> Vec2d { return {x * val, y * val}; }
 
-  inline auto operator/(const double val) const -> Vec2d { return {std::floor(x / val), std::floor(y / val)}; }
+  auto operator/(const double val) const -> Vec2d { return {std::floor(x / val), std::floor(y / val)}; }
 
   /// The x value of the vector.
   double x;
@@ -46,12 +45,12 @@ struct Vec2d {
   /// Get the magnitude of the vector.
   ///
   /// @return The magnitude of the vector.
-  [[nodiscard]] inline auto magnitude() const -> double { return std::hypot(x, y); }
+  [[nodiscard]] auto magnitude() const -> double { return std::hypot(x, y); }
 
   /// Normalise the vector
   ///
   /// @return The normalised vector.
-  [[nodiscard]] inline auto normalised() const -> Vec2d {
+  [[nodiscard]] auto normalised() const -> Vec2d {
     const double magnitude{this->magnitude()};
     return (magnitude == 0) ? Vec2d{0, 0} : Vec2d{x / magnitude, y / magnitude};
   }
@@ -61,7 +60,7 @@ struct Vec2d {
   /// @param angle - The angle to rotate the vector by in radians.
   ///
   /// @return The rotated vector.
-  [[nodiscard]] inline auto rotated(const double angle) const -> Vec2d {
+  [[nodiscard]] auto rotated(const double angle) const -> Vec2d {
     const double cos_angle{std::cos(angle)};
     const double sin_angle{std::sin(angle)};
     return {x * cos_angle - y * sin_angle, x * sin_angle + y * cos_angle};
@@ -82,7 +81,7 @@ struct Vec2d {
   ///
   /// @param other - The vector to get the distance to.
   /// @return The distance to the other vector.
-  [[nodiscard]] inline auto distance_to(const Vec2d &other) const -> double {
+  [[nodiscard]] auto distance_to(const Vec2d &other) const -> double {
     return std::hypot(x - other.x, y - other.y);
   }
 };
@@ -102,7 +101,7 @@ struct KinematicObject {
 // ----- HASHES ------------------------------
 template <>
 struct std::hash<Vec2d> {
-  auto operator()(const Vec2d &vec) const -> size_t {
+  auto operator()(const Vec2d &vec) const noexcept -> size_t {
     size_t res{0};
     hash_combine(res, vec.x);
     hash_combine(res, vec.y);
@@ -129,7 +128,7 @@ auto evade(const Vec2d &current_position, const Vec2d &target_position, const Ve
 /// Allow a game object to run away from another game object.
 ///
 /// @param current_position - The position of the game object.
-/// @param current_velocity - The velocity of the game object.
+/// @param target_position - The position of the target game object.
 /// @return The new steering force from this behaviour.
 auto flee(const Vec2d &current_position, const Vec2d &target_position) -> Vec2d;
 

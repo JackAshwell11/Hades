@@ -2,6 +2,7 @@
 #pragma once
 
 // Std headers
+#include <cstdint>
 #include <deque>
 
 // Local headers
@@ -9,7 +10,7 @@
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of steering behaviours available.
-enum class SteeringBehaviours {
+enum class SteeringBehaviours : std::uint8_t {
   Arrive,
   Evade,
   Flee,
@@ -21,7 +22,7 @@ enum class SteeringBehaviours {
 };
 
 /// Stores the different states the steering movement component can be in.
-enum class SteeringMovementState {
+enum class SteeringMovementState : std::uint8_t {
   Default,
   Footprint,
   Target,
@@ -29,7 +30,7 @@ enum class SteeringMovementState {
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to periodically leave footprints around the game map.
-struct Footprints : public ComponentBase {
+struct Footprints final : ComponentBase {
   /// The footprints the game object has left.
   std::deque<Vec2d> footprints{};
 
@@ -38,7 +39,7 @@ struct Footprints : public ComponentBase {
 };
 
 /// Allows a game object's movement to be controlled by the keyboard.
-struct KeyboardMovement : public ComponentBase {
+struct KeyboardMovement final : ComponentBase {
   /// Whether the game object is moving north or not.
   bool moving_north{false};
 
@@ -53,7 +54,7 @@ struct KeyboardMovement : public ComponentBase {
 };
 
 /// Allows a game object's movement to be controlled by steering behaviours.
-struct SteeringMovement : public ComponentBase {
+struct SteeringMovement final : ComponentBase {
   /// The steering behaviours used by the game object.
   std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> behaviours;
 
@@ -76,7 +77,7 @@ struct SteeringMovement : public ComponentBase {
 
 // ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate footprint components.
-struct FootprintSystem : public SystemBase {
+struct FootprintSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -85,11 +86,11 @@ struct FootprintSystem : public SystemBase {
   /// Process update logic for a footprint component.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  void update(double delta_time) const final;
+  void update(double delta_time) const override;
 };
 
 /// Provides facilities to manipulate keyboard movement components.
-struct KeyboardMovementSystem : public SystemBase {
+struct KeyboardMovementSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -104,7 +105,7 @@ struct KeyboardMovementSystem : public SystemBase {
 };
 
 /// Provides facilities to manipulate steering movement components.
-struct SteeringMovementSystem : public SystemBase {
+struct SteeringMovementSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.

@@ -6,7 +6,7 @@
 
 // ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate armour regen components.
-struct ArmourRegenSystem : public SystemBase {
+struct ArmourRegenSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
@@ -15,5 +15,5 @@ struct ArmourRegenSystem : public SystemBase {
   /// Process update logic for an armour regeneration component.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  void update(double delta_time) const final;
+  void update(double delta_time) const override;
 };

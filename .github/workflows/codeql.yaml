@@ -24,28 +24,12 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           setup-python-dependencies: false
-      - name: Set up Python 3.11
-        if: matrix.language == 'python'
-        uses: actions/setup-python@v4.7.1
-        with:
-          python-version: 3.11
-      - name: Set up CMake
+      - name: Autobuild C++
         if: matrix.language == 'cpp'
-        uses: lukka/get-cmake@v3.27.7
-      - name: Install Poetry
-        if: matrix.language == 'python'
-        uses: snok/install-poetry@v1.3.4
+        uses: github/codeql-action/autobuild@v2.22.9
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-      - name: Install Python dependencies
-        if: matrix.language == 'python'
-        run: poetry install --no-interaction
-      - name: Configure CMake
-        if: matrix.language == 'cpp'
-        working-directory: ${{ github.workspace }}/src/hades_extensions
-        run: cmake --preset Debug
+          working-directory: ${{ github.workspace }}/src/hades_extensions
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v2.22.8
+        uses: github/codeql-action/analyze@v2.22.9
         with:
           category: /language:${{ matrix.language }}

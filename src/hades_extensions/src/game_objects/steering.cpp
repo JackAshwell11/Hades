@@ -2,9 +2,7 @@
 #include "game_objects/steering.hpp"
 
 // Std headers
-#include <numbers>
 #include <stdexcept>
-#include <unordered_set>
 
 // ----- CONSTANTS ------------------------------
 constexpr double MAX_SEE_AHEAD{2 * SPRITE_SIZE};
@@ -56,15 +54,15 @@ auto obstacle_avoidance(const Vec2d &current_position, const Vec2d &current_velo
                         const std::unordered_set<Vec2d> &walls) -> Vec2d {
   // Create the lambda function to cast a ray from the game object's position in the direction of its velocity at a
   // given angle
-  auto raycast{[&current_position, &current_velocity, &walls](double angle = 0) -> Vec2d {
+  auto raycast{[&current_position, &current_velocity, &walls](const double angle = 0) -> Vec2d {
     // Pre-calculate some values used during the raycast
     const auto rotated_velocity{current_velocity.rotated(angle)};
-    const int step_count{static_cast<int>(MAX_SEE_AHEAD / SPRITE_SIZE)};
+    constexpr int step_count{static_cast<int>(MAX_SEE_AHEAD / SPRITE_SIZE)};
 
     // Perform the raycast
     for (int step = 1; step <= step_count; step++) {
-      Vec2d position{current_position + rotated_velocity * ((step * SPRITE_SIZE) / 100.0)};
-      if (walls.contains(position / SPRITE_SIZE)) {
+      if (Vec2d position{current_position + rotated_velocity * (step * SPRITE_SIZE / 100.0)};
+          walls.contains(position / SPRITE_SIZE)) {
         return position;
       }
     }

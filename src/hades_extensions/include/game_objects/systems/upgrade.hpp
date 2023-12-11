@@ -6,7 +6,7 @@
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to record the amount of money it has.
-struct Money : public ComponentBase {
+struct Money final : ComponentBase {
   /// The amount of money the game object has.
   int money;
 
@@ -17,7 +17,7 @@ struct Money : public ComponentBase {
 };
 
 /// Allows a game object to be upgraded.
-struct Upgrades : public ComponentBase {
+struct Upgrades final : ComponentBase {
   /// The upgrades the game object has.
   std::unordered_map<std::type_index, ActionFunction> upgrades;
 
@@ -29,7 +29,7 @@ struct Upgrades : public ComponentBase {
 
 // ----- SYSTEMS --------------------------------
 /// Provides facilities to manipulate game object upgrades.
-struct UpgradeSystem : public SystemBase {
+struct UpgradeSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.

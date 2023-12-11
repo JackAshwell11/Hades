@@ -17,7 +17,7 @@ constexpr int MAX_DEGREE{360};
 void FootprintSystem::update(const double delta_time) const {
   // Update the time since the last footprint then check if a new footprint should be created
   for (auto &[game_object_id, component_tuple] : get_registry()->find_components<Footprints>()) {
-    auto footprints{std::get<0>(component_tuple)};
+    const auto footprints{std::get<0>(component_tuple)};
     footprints->time_since_last_footprint += delta_time;
     if (footprints->time_since_last_footprint < FOOTPRINT_INTERVAL) {
       return;
@@ -37,7 +37,7 @@ void FootprintSystem::update(const double delta_time) const {
 }
 
 auto KeyboardMovementSystem::calculate_force(const GameObjectID game_object_id) const -> Vec2d {
-  auto keyboard_movement{get_registry()->get_component<KeyboardMovement>(game_object_id)};
+  const auto keyboard_movement{get_registry()->get_component<KeyboardMovement>(game_object_id)};
   return Vec2d{static_cast<double>(static_cast<int>(keyboard_movement->moving_east) -
                                    static_cast<int>(keyboard_movement->moving_west)),
                static_cast<double>(static_cast<int>(keyboard_movement->moving_north) -
@@ -47,7 +47,7 @@ auto KeyboardMovementSystem::calculate_force(const GameObjectID game_object_id) 
 
 auto SteeringMovementSystem::calculate_force(const GameObjectID game_object_id) const -> Vec2d {
   // Determine if the movement state should change or not
-  auto steering_movement{get_registry()->get_component<SteeringMovement>(game_object_id)};
+  const auto steering_movement{get_registry()->get_component<SteeringMovement>(game_object_id)};
   const auto kinematic_owner{get_registry()->get_kinematic_object(game_object_id)};
   const auto kinematic_target{get_registry()->get_kinematic_object(steering_movement->target_id)};
   if (kinematic_owner->position.distance_to(kinematic_target->position) <= TARGET_DISTANCE) {
@@ -88,7 +88,7 @@ auto SteeringMovementSystem::calculate_force(const GameObjectID game_object_id) 
         break;
       case SteeringBehaviours::Wander:
         steering_force +=
-            wander(kinematic_owner->velocity, std::uniform_int_distribution<>{0, MAX_DEGREE}(number_generator));
+            wander(kinematic_owner->velocity, std::uniform_int_distribution{0, MAX_DEGREE}(number_generator));
         break;
     }
   }
@@ -101,7 +101,7 @@ void SteeringMovementSystem::update_path_list(const GameObjectID target_game_obj
                                               const std::deque<Vec2d> &footprints) const {
   // Update the path list for all SteeringMovement components that have the correct target ID
   for (auto &[game_object_id, component_tuple] : get_registry()->find_components<SteeringMovement>()) {
-    auto steering_movement{std::get<0>(component_tuple)};
+    const auto steering_movement{std::get<0>(component_tuple)};
     if (steering_movement->target_id != target_game_object_id) {
       continue;
     }
@@ -114,8 +114,7 @@ void SteeringMovementSystem::update_path_list(const GameObjectID target_game_obj
     auto closest_footprint{footprints.end()};
     double closest_distance{TARGET_DISTANCE};
     for (auto it = footprints.begin(); it != footprints.end(); ++it) {
-      const double distance{current_position.distance_to(*it)};
-      if (distance < closest_distance) {
+      if (const double distance{current_position.distance_to(*it)}; distance < closest_distance) {
         closest_footprint = it;
         closest_distance = distance;
       }
