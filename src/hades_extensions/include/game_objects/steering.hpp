@@ -51,8 +51,8 @@ struct Vec2d {
   ///
   /// @return The normalised vector.
   [[nodiscard]] auto normalised() const -> Vec2d {
-    const double magnitude{this->magnitude()};
-    return (magnitude == 0) ? Vec2d{0, 0} : Vec2d{x / magnitude, y / magnitude};
+    const double magnitude_val{this->magnitude()};
+    return (magnitude_val == 0) ? Vec2d{0, 0} : Vec2d{x / magnitude_val, y / magnitude_val};
   }
 
   /// Rotate the vector by an angle.
@@ -81,9 +81,7 @@ struct Vec2d {
   ///
   /// @param other - The vector to get the distance to.
   /// @return The distance to the other vector.
-  [[nodiscard]] auto distance_to(const Vec2d &other) const -> double {
-    return std::hypot(x - other.x, y - other.y);
-  }
+  [[nodiscard]] auto distance_to(const Vec2d &other) const -> double { return std::hypot(x - other.x, y - other.y); }
 };
 
 /// Stores various data about a game object for use in physics-related operations.

@@ -240,7 +240,8 @@ TEST(Tests, TestObstacleAvoidanceSingleRight) {
 /// Test if a left and forward obstacle produces the correct obstacle avoidance force.
 TEST(Tests, TestObstacleAvoidanceLeftForward) {
   // This is due to floating point precision
-  const auto [left_forward_result_x, left_forward_result_y] = obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}});
+  const auto [left_forward_result_x, left_forward_result_y] =
+      obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}});
   ASSERT_DOUBLE_EQ(left_forward_result_x, 0.8660254037844387);
   ASSERT_DOUBLE_EQ(left_forward_result_y, -0.5);
 }
@@ -248,7 +249,8 @@ TEST(Tests, TestObstacleAvoidanceLeftForward) {
 /// Test if a right and forward obstacle produces the correct obstacle avoidance force.
 TEST(Tests, TestObstacleAvoidanceRightForward) {
   // This is due to floating point precision
-  const auto [right_forward_result_x, right_forward_result_y] = obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}, {2, 2}});
+  const auto [right_forward_result_x, right_forward_result_y] =
+      obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}, {2, 2}});
   ASSERT_DOUBLE_EQ(right_forward_result_x, -0.8660254037844386);
   ASSERT_DOUBLE_EQ(right_forward_result_y, -0.5);
 }

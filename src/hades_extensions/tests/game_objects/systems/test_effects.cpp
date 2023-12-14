@@ -144,7 +144,8 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyStatusEffectNoAppliedEffect) {
   create_status_game_object();
   ASSERT_TRUE(get_effect_system()->apply_status_effect(0, typeid(TestStat), status_effect_data, 1));
   ASSERT_EQ(registry.get_component<TestStat>(0)->get_value(), 200);
-  const auto applied_status_effect{registry.get_component<StatusEffects>(0)->applied_effects.at(StatusEffectType::TEMP)};
+  const auto applied_status_effect{
+      registry.get_component<StatusEffects>(0)->applied_effects.at(StatusEffectType::TEMP)};
   ASSERT_EQ(applied_status_effect.value, 6);
   ASSERT_EQ(applied_status_effect.duration, 10);
   ASSERT_EQ(applied_status_effect.interval, 2);

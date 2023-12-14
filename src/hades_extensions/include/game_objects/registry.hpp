@@ -121,7 +121,8 @@ class Registry {
   /// @param game_object_id - The game object ID.
   /// @param component_type - The type of component to check for.
   /// @return Whether the game object has the component or not.
-  [[nodiscard]] auto has_component(const GameObjectID game_object_id, const std::type_index &component_type) const -> bool {
+  [[nodiscard]] auto has_component(const GameObjectID game_object_id, const std::type_index &component_type) const
+      -> bool {
     return game_objects_.contains(game_object_id) && game_objects_.at(game_object_id).contains(component_type);
   }
 
@@ -208,7 +209,7 @@ class Registry {
   ///
   /// @param delta_time - The time interval since the last time the function was called.
   void update(const double delta_time) const {
-    for (const auto& system : std::views::values(systems_)) {
+    for (const auto &[_, system] : systems_) {
       system->update(delta_time);
     }
   }
