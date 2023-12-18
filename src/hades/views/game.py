@@ -6,12 +6,13 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 # Pip
 from arcade import (
     MOUSE_BUTTON_LEFT,
     Camera,
+    Sprite,
     SpriteList,
     Text,
     View,
@@ -27,21 +28,22 @@ from hades.constants import (
     ENEMY_GENERATION_DISTANCE,
     ENEMY_RETRY_COUNT,
     TOTAL_ENEMY_COUNT,
+)
+from hades.constructors import (
+    PHYSICS_CONSTRUCTORS,
+    STATIC_CONSTRUCTORS,
+    GameObjectConstructorManager,
     GameObjectType,
 )
-from hades.constructors import ENEMY, FLOOR, PLAYER, POTION, WALL
 from hades.physics import PhysicsEngine
-from hades.sprite import HadesSprite
+from hades.sprite import HadesSprite, KinematicSprite
 from hades.textures import grid_pos_to_pixel
-from hades_extensions.game_objects import SPRITE_SIZE, Registry, Vec2d
+from hades_extensions.game_objects import SPRITE_SCALE, SPRITE_SIZE, Registry, Vec2d
 from hades_extensions.game_objects.components import KeyboardMovement, SteeringMovement
 from hades_extensions.game_objects.systems import AttackSystem
 from hades_extensions.generation import TileType, create_map
 
-if TYPE_CHECKING:
-    from hades.constructors import GameObjectConstructor
-
-all__ = ("Game",)
+__all__ = ("Game",)
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -81,14 +83,14 @@ class Game(View):
 
     def _initialise_game_object(
         self: Game,
-        constructor: GameObjectConstructor,
+        game_object_type: GameObjectType,
         sprite_list: SpriteList[HadesSprite],
         position: tuple[int, int],
     ) -> int:
         """Initialise a game object from a constructor into the ECS.
 
         Args:
-            constructor: The game object constructor to initialise.
+            game_object_type: The type of game object to initialise.
             sprite_list: The sprite list to add the sprite object too.
             position: The position of the game object in the grid.
 
@@ -96,33 +98,49 @@ class Game(View):
             The game object ID.
         """
         # Initialise a sprite object
-        game_object_id = self.registry.create_game_object(
-            constructor.components,
-            kinematic=constructor.kinematic,
-        )
-        sprite_obj = HadesSprite(
-            (game_object_id, constructor.game_object_type is not GameObjectType.PLAYER),
-            self.registry,
-            position,
-            constructor.game_object_textures,
-        )
+        # TODO: Still not sure about this initialisation
+        blocking = False
+        game_object_id = -1
+        if game_object_type in STATIC_CONSTRUCTORS:
+            texture, blocking = GameObjectConstructorManager.get_static_constructor(
+                game_object_type,
+            )
+            sprite_obj = Sprite(texture, SPRITE_SCALE, *grid_pos_to_pixel(*position))
+            if blocking:
+                self.registry.add_wall(Vec2d(*position))
+        else:
+            constructor = GameObjectConstructorManager.get_dynamic_constructor(
+                game_object_type,
+            )
+            game_object_id = self.registry.create_game_object(
+                constructor.components,
+                kinematic=constructor.kinematic,
+            )
+            sprite_obj = (
+                KinematicSprite(
+                    game_object_id,
+                    self.registry,
+                    position,
+                    constructor.textures,
+                )
+                if constructor.kinematic
+                else HadesSprite(
+                    game_object_id,
+                    self.registry,
+                    position,
+                    constructor.textures,
+                )
+            )
+            self.ids.setdefault(game_object_type, []).append(sprite_obj)
 
-        # Add it to the various collections and systems
+        # Add the sprite to the sprite list and physics engine
         sprite_list.append(sprite_obj)
-        self.ids.setdefault(constructor.game_object_type, []).append(sprite_obj)
-        if constructor.game_object_type not in {
-            GameObjectType.FLOOR,
-            GameObjectType.POTION,
-        }:
+        if game_object_type in PHYSICS_CONSTRUCTORS:
             self.physics_engine.add_game_object(
                 sprite_obj,
-                constructor.game_object_type,
-                blocking=constructor.blocking,
+                game_object_type,
+                blocking=blocking,
             )
-        if constructor.blocking:
-            self.registry.add_wall(Vec2d(*position))
-
-        # Return the game object ID
         return game_object_id
 
     def __init__(self: Game, level: int) -> None:
@@ -167,15 +185,31 @@ class Game(View):
 
             # Determine the type of the tile
             if tile == TileType.Wall:
-                self._initialise_game_object(WALL, self.tile_sprites, position)
+                self._initialise_game_object(
+                    GameObjectType.WALL,
+                    self.tile_sprites,
+                    position,
+                )
             else:
                 if tile == TileType.Player:
-                    self._initialise_game_object(PLAYER, self.entity_sprites, position)
+                    self._initialise_game_object(
+                        GameObjectType.PLAYER,
+                        self.entity_sprites,
+                        position,
+                    )
                 elif tile == TileType.Potion:
-                    self._initialise_game_object(POTION, self.item_sprites, position)
+                    self._initialise_game_object(
+                        GameObjectType.POTION,
+                        self.item_sprites,
+                        position,
+                    )
 
                 # Make the game object's backdrop a floor
-                self._initialise_game_object(FLOOR, self.tile_sprites, position)
+                self._initialise_game_object(
+                    GameObjectType.FLOOR,
+                    self.tile_sprites,
+                    position,
+                )
                 self.possible_enemy_spawns.append(position)
 
         # Calculate upper_camera_x and upper_camera_y
@@ -339,7 +373,11 @@ class Game(View):
 
             # Set the required data for the steering to correctly function
             steering_movement = self.registry.get_component(
-                self._initialise_game_object(ENEMY, self.entity_sprites, position),
+                self._initialise_game_object(
+                    GameObjectType.ENEMY,
+                    self.entity_sprites,
+                    position,
+                ),
                 SteeringMovement,
             )
             steering_movement.target_id = self.ids[GameObjectType.PLAYER][

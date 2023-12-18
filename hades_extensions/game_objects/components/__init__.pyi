@@ -9,6 +9,17 @@ from hades_extensions.game_objects import (
     Vec2d,
 )
 
+class StatusEffectData:
+    status_effect_type: StatusEffectType
+    increase: ActionFunction
+    def __init__(
+        self: StatusEffectData,
+        status_effect_type: StatusEffectType,
+        increase: ActionFunction,
+        duration: ActionFunction,
+        interval: ActionFunction,
+    ) -> None: ...
+
 class Stat(ComponentBase):
     def __init__(self: Stat, value: float, maximum_level: float) -> None: ...
     def get_value(self: Stat) -> float: ...
@@ -26,18 +37,6 @@ class Attacks(ComponentBase):
     attack_algorithms: list[AttackAlgorithm]
     attack_state: int
     def __init__(self: Attacks, attack_algorithms: list[AttackAlgorithm]) -> None: ...
-
-# TODO: decide where this should go
-class StatusEffectData:
-    status_effect_type: StatusEffectType
-    increase: ActionFunction
-    def __init__(
-        self: StatusEffectData,
-        status_effect_type: StatusEffectType,
-        increase: ActionFunction,
-        duration: ActionFunction,
-        interval: ActionFunction,
-    ) -> None: ...
 
 class EffectApplier(ComponentBase):
     def __init__(

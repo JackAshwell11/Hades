@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "setuptools"]
+requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
@@ -13,23 +13,23 @@ homepage = "https://github.com/Aspect1103/Hades"
 repository = "https://github.com/Aspect1103/Hades"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 arcade = "3.0.0.dev25"
 
 [tool.poetry.dev-dependencies]
-black = "23.11.0"
+black = "23.12.0"
 mypy = "1.7.1"
-nuitka = "1.9.3"
+nuitka = "1.9.5"
 ordered-set = "4.1.0"
-pre-commit = "3.5.0"
-pylint = "3.0.2"
+pre-commit = "3.6.0"
+pylint = "3.0.3"
 pytest = "7.4.3"
 pytest-cov = "4.1.0"
 pytest-icdiff = "0.9"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.15.0"
 pytest-sugar = "0.9.7"
-ruff = "0.1.7"
+ruff = "0.1.8"
 ssort = "v0.11.6"
 tox = "4.11.4"
 
@@ -76,7 +76,7 @@ exclude = [
 ]
 ignore_missing_imports = true
 pretty = true
-python_version = "3.10"
+python_version = "3.11"
 show_column_numbers = true
 show_error_code_links = true
 show_error_context = true
@@ -236,12 +236,12 @@ convention = "google"
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = clean, py310, py311, report
+envlist = clean, py311, py312, report
 
 [gh-actions]
 python =
-    3.10: clean, py310, report
     3.11: clean, py311, report
+    3.12: clean, py312, report
 
 [testenv]
 commands =
