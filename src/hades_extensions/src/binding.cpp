@@ -16,7 +16,7 @@
 struct py_handle_hash {
   /// Calculate the hash of a pybind11 handle.
   ///
-  /// @param handle The handle to calculate the hash of.
+  /// @param handle - The handle to calculate the hash of.
   /// @return The hash of the handle.
   auto operator()(const pybind11::handle &handle) const -> std::size_t { return hash(handle); }
 };
@@ -25,8 +25,8 @@ struct py_handle_hash {
 struct py_handle_equal {
   /// Check if two pybind11 handles are equal.
   ///
-  /// @param handle_one The first handle to compare.
-  /// @param handle_two The second handle to compare.
+  /// @param handle_one - The first handle to compare.
+  /// @param handle_two - The second handle to compare.
   /// @return Whether the two handles are equal or not.
   auto operator()(const pybind11::handle &handle_one, const pybind11::handle &handle_two) const noexcept -> bool {
     return handle_one.is(handle_two);
@@ -36,9 +36,9 @@ struct py_handle_equal {
 // ----- FUNCTIONS -------------------------------------------
 /// Get the system from the registry.
 ///
-/// @tparam T The type of system to find.
-/// @param registry The registry that manages the game objects, components, and systems.
-/// @throws RegistryError If the system is not registered.
+/// @tparam T - The type of system to find.
+/// @param registry - The registry that manages the game objects, components, and systems.
+/// @throws RegistryError - If the system is not registered.
 /// @return The system from the registry.
 template <typename T>
 auto get_system_impl(const Registry &registry) -> std::shared_ptr<SystemBase> {
@@ -65,8 +65,8 @@ auto make_system_types()
 
 /// Get the type index for a given component type.
 ///
-/// @param component_type The component type.
-/// @throws std::runtime_error If the component type is invalid.
+/// @param component_type - The component type.
+/// @throws std::runtime_error - If the component type is invalid.
 /// @return The type index for the component type.
 inline auto get_type_index(const pybind11::handle &component_type) -> std::type_index {
   static const auto &component_types =
@@ -187,6 +187,11 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    scalar: The scalar to divide by.\n\n"
            "Returns:\n"
            "    The quotient of the vector and the scalar.")
+      .def(
+          "__iter__", [](const Vec2d &vec) { return pybind11::make_iterator(&vec.x, &vec.y + 1); },
+          "Get an iterator to the vector.\n\n"
+          "Returns:\n"
+          "    An iterator to the vector.")
       .def("magnitude", &Vec2d::magnitude,
            "Calculate the magnitude of the vector.\n\n"
            "Returns:\n"

@@ -4,11 +4,7 @@ from __future__ import annotations
 
 # Builtin
 from enum import Enum, auto
-from pathlib import Path
 from typing import TYPE_CHECKING, Final, NamedTuple
-
-# Pip
-from arcade import Texture, load_texture
 
 # Custom
 from hades_extensions.game_objects import SteeringBehaviours, SteeringMovementState
@@ -25,15 +21,7 @@ if TYPE_CHECKING:
 
     from hades_extensions.game_objects import ComponentBase
 
-__all__ = (
-    "GameObjectConstructorManager",
-    "GameObjectType",
-    "PHYSICS_CONSTRUCTORS",
-    "STATIC_CONSTRUCTORS",
-)
-
-# Create the texture path
-texture_path = Path(__file__).resolve().parent / "resources" / "textures"
+__all__ = ("GameObjectConstructorManager", "GameObjectType", "COLLECTIBLE_TYPES")
 
 
 class GameObjectType(Enum):
@@ -51,98 +39,71 @@ class GameObjectConstructor(NamedTuple):
 
     Args:
         name: The game object's name.
-        textures: The game object's textures.
+        textures: The game object's texture paths.
         components: The game object's components.
+        blocking: Whether the game object blocks sprite movement or not.
         kinematic: Whether the game object should have a kinematic object or not.
     """
 
     name: str
     textures: list[str]
     components: ClassVar[list[ComponentBase]] = []
+    blocking: bool = False
     kinematic: bool = False
 
 
 class GameObjectConstructorManager:
     """Holds the various templates for game objects and sprites."""
 
-    _static_constructors: ClassVar[dict[GameObjectType, tuple[Texture, bool]]] = {}
-    _dynamic_constructors: ClassVar[dict[GameObjectType, GameObjectConstructor]] = {}
+    # Class variables
+    _constructors: ClassVar[dict[GameObjectType, GameObjectConstructor]] = {}
 
     @classmethod
-    def add_static_constructor(
-        cls: GameObjectConstructorManager,
-        game_object_type: GameObjectType,
-        texture: str,
-        *,
-        blocking: bool = False,
-    ) -> None:
-        """Add a static constructor to the manager.
-
-        Args:
-            game_object_type: The type of constructor.
-            texture: The game object's texture.
-            blocking: Whether the game object blocks sprite movement or not.
-        """
-        cls._static_constructors[game_object_type] = (
-            load_texture(texture_path.joinpath(texture)),
-            blocking,
-        )
-
-    @classmethod
-    def add_dynamic_constructor(
+    def add_constructor(
         cls: GameObjectConstructorManager,
         game_object_type: GameObjectType,
         constructor: GameObjectConstructor,
     ) -> None:
-        """Add a dynamic constructor to the manager.
+        """Add a constructor to the manager.
 
         Args:
             game_object_type: The type of constructor.
             constructor: The constructor to add.
         """
-        cls._dynamic_constructors[game_object_type] = constructor
+        cls._constructors[game_object_type] = constructor
 
     @classmethod
-    def get_static_constructor(
-        cls: GameObjectConstructorManager,
-        game_object_type: GameObjectType,
-    ) -> tuple[Texture, bool]:
-        """Get a static constructor from the manager.
-
-        Args:
-            game_object_type: The type of game object.
-
-        Returns:
-            The static constructor.
-        """
-        return cls._static_constructors[game_object_type]
-
-    @classmethod
-    def get_dynamic_constructor(
+    def get_constructor(
         cls: GameObjectConstructorManager,
         game_object_type: GameObjectType,
     ) -> GameObjectConstructor:
-        """Get a dynamic constructor from the manager.
+        """Get a constructor from the manager.
 
         Args:
             game_object_type: The type of game object.
 
         Returns:
-            The dynamic constructor.
+            The constructor.
         """
-        return cls._dynamic_constructors[game_object_type]
+        return cls._constructors[game_object_type]
 
 
 # Add the static tiles
-GameObjectConstructorManager.add_static_constructor(
+GameObjectConstructorManager.add_constructor(
     GameObjectType.WALL,
-    "wall.png",
-    blocking=True,
+    GameObjectConstructor(
+        "Wall",
+        ["wall.png"],
+        blocking=True,
+    ),
 )
-GameObjectConstructorManager.add_static_constructor(GameObjectType.FLOOR, "floor.png")
+GameObjectConstructorManager.add_constructor(
+    GameObjectType.FLOOR,
+    GameObjectConstructor("Floor", ["floor.png"]),
+)
 
 # Add the entities
-GameObjectConstructorManager.add_dynamic_constructor(
+GameObjectConstructorManager.add_constructor(
     GameObjectType.PLAYER,
     GameObjectConstructor(
         "Player",
@@ -156,7 +117,7 @@ GameObjectConstructorManager.add_dynamic_constructor(
         kinematic=True,
     ),
 )
-GameObjectConstructorManager.add_dynamic_constructor(
+GameObjectConstructorManager.add_constructor(
     GameObjectType.ENEMY,
     GameObjectConstructor(
         "Enemy",
@@ -179,18 +140,12 @@ GameObjectConstructorManager.add_dynamic_constructor(
 )
 
 # Add the items
-GameObjectConstructorManager.add_dynamic_constructor(
+GameObjectConstructorManager.add_constructor(
     GameObjectType.POTION,
     GameObjectConstructor("Health Potion", ["health_potion.png"]),
 )
 
 # Define some collections for game object types
-STATIC_CONSTRUCTORS: Final[set[GameObjectType]] = {
-    GameObjectType.FLOOR,
-    GameObjectType.WALL,
-}
-PHYSICS_CONSTRUCTORS: Final[set[GameObjectType]] = {
-    GameObjectType.ENEMY,
-    GameObjectType.PLAYER,
-    GameObjectType.WALL,
+COLLECTIBLE_TYPES: Final[set[GameObjectType]] = {
+    GameObjectType.POTION,
 }

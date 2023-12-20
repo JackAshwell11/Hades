@@ -54,14 +54,14 @@ auto collect_positions(const Grid &grid, TileType target) -> std::vector<Positio
 /// @param random_generator - The random generator used to pick the position.
 /// @param target_tile - The tile to place in the 2D grid.
 /// @param possible_tiles - The possible tiles that the tile can be placed into.
-/// @throws std::length_error - Possible tiles size must be bigger than 0.
+/// @throws std::length_error - If possible tiles is empty.
 void place_tile(const Grid &grid, std::mt19937 &random_generator, TileType target_tile,
                 std::vector<Position> &possible_tiles);
 
 /// Create a complete graph from a given list of rooms.
 ///
 /// @param rooms - The rooms to create connections between.
-/// @throws std::length_error - Rooms size must be bigger than 0.
+/// @throws std::length_error - If rooms is empty.
 /// @return A adjacency list of all the rooms and their neighbours.
 auto create_complete_graph(const std::vector<Rect> &rooms) -> std::unordered_map<Rect, std::vector<Rect>>;
 

@@ -134,7 +134,7 @@ auto flee(const Vec2d &current_position, const Vec2d &target_position) -> Vec2d;
 ///
 /// @param current_position - The position of the game object.
 /// @param path_list - The list of positions the game object should follow.
-/// @throws std::length_error - The path list is empty.
+/// @throws std::length_error - If the path list is empty.
 /// @return The new steering force from this behaviour.
 auto follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list) -> Vec2d;
 
