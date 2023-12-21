@@ -57,7 +57,7 @@ struct InventorySystem final : SystemBase {
   /// @param item - The item to add to the inventory.
   /// @throws RegistryError - If the game object does not exist or does not have an inventory component.
   /// @throws InventorySpaceError - If the inventory is full.
-  void add_item_to_inventory(GameObjectID game_object_id, GameObjectID item) const;
+  [[nodiscard]] auto add_item_to_inventory(GameObjectID game_object_id, GameObjectID item) const -> bool;
 
   /// Remove an item from the inventory of a game object.
   ///

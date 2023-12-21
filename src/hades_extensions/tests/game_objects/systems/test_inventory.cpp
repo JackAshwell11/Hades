@@ -52,7 +52,7 @@ TEST(Tests, TestThrowInventorySpaceErrorEmpty){
 
 /// Test that a valid item is added to the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
-  get_inventory_system()->add_item_to_inventory(0, 50);
+  ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 50));
   ASSERT_EQ(registry.get_component<Inventory>(0)->items, std::vector{50});
 }
 
@@ -71,18 +71,18 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryInvalidGameO
 /// Test that a valid item is removed from the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
   const std::vector result{1, 4};
-  get_inventory_system()->add_item_to_inventory(0, 1);
-  get_inventory_system()->add_item_to_inventory(0, 7);
-  get_inventory_system()->add_item_to_inventory(0, 4);
+  ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 1));
+  ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 7));
+  ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 4));
   ASSERT_EQ(get_inventory_system()->remove_item_from_inventory(0, 1), 7);
   ASSERT_EQ(registry.get_component<Inventory>(0)->items, result);
 }
 
 /// Test that an exception is thrown if a larger index is provided.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryLargeIndex) {
-  get_inventory_system()->add_item_to_inventory(0, 5);
-  get_inventory_system()->add_item_to_inventory(0, 10);
-  get_inventory_system()->add_item_to_inventory(0, 50);
+  ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 5));
+  ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 10));
+  ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 50));
   ASSERT_THROW_MESSAGE((get_inventory_system()->remove_item_from_inventory(0, 10)), InventorySpaceError,
                        "The index is out of range.")
 }

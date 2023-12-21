@@ -16,4 +16,4 @@ __version__ = "0.1.0"
 if (
     os.getenv("GITHUB_ACTIONS") == "true" and os.getenv("RUNNER_OS") == "Linux"
 ):  # pragma: no cover
-    pyglet.options["headless"] = True
+    pyglet.options["headless"] = True  # type: ignore[misc]

@@ -4,12 +4,16 @@ from __future__ import annotations
 
 # Builtin
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 # Pip
 from arcade import Sprite, Texture, load_texture, load_texture_pair
 
 # Custom
 from hades_extensions.game_objects import SPRITE_SCALE, SPRITE_SIZE
+
+if TYPE_CHECKING:
+    from hades.constructors import GameObjectType
 
 __all__ = ("AnimatedSprite", "BiggerThanError", "HadesSprite", "grid_pos_to_pixel")
 
@@ -50,18 +54,23 @@ def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
 
 
 class HadesSprite(Sprite):
-    """Represents a sprite object in the game."""
+    """Represents a sprite object in the game.
+
+    Attributes:
+        game_object_id: The game object's ID.
+        game_object_type: The game object's type.
+    """
 
     def __init__(
         self: HadesSprite,
-        game_object_id: int,
+        game_object: tuple[int, GameObjectType],
         position: tuple[int, int],
         sprite_textures: list[str],
     ) -> None:
         """Initialise the object.
 
         Args:
-            game_object_id: The game object's ID.
+            game_object: The game object's ID and type.
             position: The position of the sprite object in the grid.
             sprite_textures: The sprites' texture paths.
         """
@@ -70,7 +79,7 @@ class HadesSprite(Sprite):
             SPRITE_SCALE,
             *grid_pos_to_pixel(*position),
         )
-        self.game_object_id: int = game_object_id
+        self.game_object_id, self.game_object_type = game_object
 
     def __repr__(self: HadesSprite) -> str:
         """Return a human-readable representation of this object.
@@ -89,18 +98,18 @@ class AnimatedSprite(HadesSprite):
 
     def __init__(
         self: AnimatedSprite,
-        game_object_id: int,
+        game_object: tuple[int, GameObjectType],
         position: tuple[int, int],
         sprite_textures: list[str],
     ) -> None:
         """Initialise the object.
 
         Args:
-            game_object_id: The game object's ID.
+            game_object: The game object's ID and type.
             position: The position of the sprite object in the grid.
             sprite_textures: The sprites' texture paths.
         """
-        super().__init__(game_object_id, position, sprite_textures)
+        super().__init__(game_object, position, sprite_textures)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
             load_texture_pair(texture_path.joinpath(texture))
             for texture in sprite_textures

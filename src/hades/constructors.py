@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Final, NamedTuple
 # Custom
 from hades_extensions.game_objects import SteeringBehaviours, SteeringMovementState
 from hades_extensions.game_objects.components import (
+    EffectApplier,
     Footprints,
     Inventory,
     KeyboardMovement,
@@ -60,7 +61,7 @@ class GameObjectConstructorManager:
 
     @classmethod
     def add_constructor(
-        cls: GameObjectConstructorManager,
+        cls: type[GameObjectConstructorManager],
         game_object_type: GameObjectType,
         constructor: GameObjectConstructor,
     ) -> None:
@@ -74,7 +75,7 @@ class GameObjectConstructorManager:
 
     @classmethod
     def get_constructor(
-        cls: GameObjectConstructorManager,
+        cls: type[GameObjectConstructorManager],
         game_object_type: GameObjectType,
     ) -> GameObjectConstructor:
         """Get a constructor from the manager.
@@ -142,7 +143,11 @@ GameObjectConstructorManager.add_constructor(
 # Add the items
 GameObjectConstructorManager.add_constructor(
     GameObjectType.POTION,
-    GameObjectConstructor("Health Potion", ["health_potion.png"]),
+    GameObjectConstructor(
+        "Health Potion",
+        ["health_potion.png"],
+        [EffectApplier({}, {})],
+    ),
 )
 
 # Define some collections for game object types
