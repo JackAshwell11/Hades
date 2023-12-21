@@ -9,7 +9,7 @@
 
 // ----- CONSTANTS ------------------------------
 constexpr double FOOTPRINT_INTERVAL{0.5};
-constexpr int FOOTPRINT_LIMIT{10};
+constexpr int FOOTPRINT_LIMIT{5};
 constexpr double TARGET_DISTANCE{3 * SPRITE_SIZE};
 constexpr int MAX_DEGREE{360};
 

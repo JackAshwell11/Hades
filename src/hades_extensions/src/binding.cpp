@@ -188,6 +188,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Returns:\n"
            "    The quotient of the vector and the scalar.")
       .def(
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           "__iter__", [](const Vec2d &vec) { return pybind11::make_iterator(&vec.x, &vec.y + 1); },
           "Get an iterator to the vector.\n\n"
           "Returns:\n"

@@ -12,6 +12,7 @@ from typing import NamedTuple
 from arcade import (
     MOUSE_BUTTON_LEFT,
     Camera,
+    PymunkPhysicsEngine,
     SpriteList,
     Text,
     View,
@@ -23,13 +24,14 @@ from arcade import (
 
 # Custom
 from hades.constants import (
+    DAMPING,
     ENEMY_GENERATE_INTERVAL,
     ENEMY_GENERATION_DISTANCE,
     ENEMY_RETRY_COUNT,
+    MAX_VELOCITY,
     TOTAL_ENEMY_COUNT,
 )
 from hades.constructors import GameObjectConstructorManager, GameObjectType
-from hades.physics import PhysicsEngine
 from hades.sprite import AnimatedSprite, HadesSprite, grid_pos_to_pixel
 from hades_extensions.game_objects import SPRITE_SIZE, Registry, Vec2d
 from hades_extensions.game_objects.components import KeyboardMovement, SteeringMovement
@@ -110,10 +112,18 @@ class Game(View):
 
         # Add the game object to the physics engine if it is blocking or kinematic
         if constructor.blocking or constructor.kinematic:
-            self.physics_engine.add_game_object(
+            self.physics_engine.add_sprite(
                 sprite,
-                game_object_type,
-                blocking=constructor.blocking,
+                moment_of_inertia=(
+                    None if constructor.blocking else self.physics_engine.MOMENT_INF
+                ),
+                body_type=(
+                    self.physics_engine.STATIC
+                    if constructor.blocking
+                    else self.physics_engine.DYNAMIC
+                ),
+                max_velocity=MAX_VELOCITY,
+                collision_type=game_object_type.name,
             )
         return sprite
 
@@ -124,25 +134,30 @@ class Game(View):
             level: The level to create a game for.
         """
         super().__init__()
+        # Generate a level
         generation_result = create_map(level)
-        self.level_constants: LevelConstants = LevelConstants(*generation_result[1])
-        self.registry: Registry = Registry()
-        self.ids: dict[GameObjectType, list[HadesSprite]] = {}
+
+        # Arcade types
+        self.game_camera: Camera = Camera()
+        self.gui_camera: Camera = Camera()
+        self.physics_engine: PymunkPhysicsEngine = PymunkPhysicsEngine(damping=DAMPING)
         self.tile_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.entity_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.item_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
-        self.physics_engine: PhysicsEngine = PhysicsEngine()
-        self.game_camera: Camera = Camera()
-        self.gui_camera: Camera = Camera()
-        self.possible_enemy_spawns: list[tuple[int, int]] = []
-        self.upper_camera_x: float = -1
-        self.upper_camera_y: float = -1
         self.player_status_text: Text = Text(
             "Money: 0",
             10,
             10,
             font_size=20,
         )
+
+        # Custom types
+        self.level_constants: LevelConstants = LevelConstants(*generation_result[1])
+        self.registry: Registry = Registry()
+
+        # Custom collections
+        self.ids: dict[GameObjectType, list[HadesSprite]] = {}
+        self.possible_enemy_spawns: list[tuple[int, int]] = []
 
         # Initialise all the systems then the game objects
         self.registry.add_systems()
@@ -178,17 +193,6 @@ class Game(View):
                 )
                 self.possible_enemy_spawns.append(position)
 
-        # Calculate upper_camera_x and upper_camera_y
-        half_sprite_size = SPRITE_SIZE / 2
-        screen_width, screen_height = grid_pos_to_pixel(
-            self.level_constants.width,
-            self.level_constants.height,
-        )
-        self.upper_camera_x, self.upper_camera_y = (
-            screen_width - self.game_camera.viewport_width - half_sprite_size,
-            screen_height - self.game_camera.viewport_height - half_sprite_size,
-        )
-
         # Generate half of the total enemies allowed to then schedule their generation
         for _ in range(TOTAL_ENEMY_COUNT // 2):
             self.generate_enemy()
@@ -196,6 +200,8 @@ class Game(View):
             self.generate_enemy,
             ENEMY_GENERATE_INTERVAL,
         )
+
+        # self.window.push_handlers(on_key_press)
 
     def on_draw(self: Game) -> None:
         """Render the screen."""
@@ -258,8 +264,8 @@ class Game(View):
             kinematic_object.position = Vec2d(*body.position)
             kinematic_object.velocity = Vec2d(*body.velocity)
 
-        # Position the camera
-        self.center_camera_on_player()
+        # Position the camera on the player
+        self.game_camera.center(self.ids[GameObjectType.PLAYER][0].position)
 
     def on_key_press(self: Game, symbol: int, modifiers: int) -> None:
         """Process key press functionality.
@@ -369,30 +375,6 @@ class Game(View):
                 0
             ].game_object_id
             return
-
-    def center_camera_on_player(self: Game) -> None:
-        """Centers the camera on the player."""
-        # Check if the camera is already centered on the player
-        player_sprite = self.ids[GameObjectType.PLAYER][0]
-        if self.game_camera.position == player_sprite.position:
-            return
-
-        # Make sure the camera doesn't extend beyond the boundaries
-        screen_center = (
-            min(
-                max(player_sprite.center_x - (self.game_camera.viewport_width / 2), 0),
-                self.upper_camera_x,
-            ),
-            min(
-                max(player_sprite.center_y - (self.game_camera.viewport_height / 2), 0),
-                self.upper_camera_y,
-            ),
-        )
-
-        # Check if the camera position has changed. If so, move the camera to the new
-        # position
-        if self.game_camera.position != screen_center:
-            self.game_camera.move_to(screen_center)
 
     def __repr__(self: Game) -> str:
         """Return a human-readable representation of this object.
