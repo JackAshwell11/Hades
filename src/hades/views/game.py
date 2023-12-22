@@ -33,6 +33,7 @@ from hades.constants import (
 )
 from hades.constructors import (
     COLLECTIBLE_TYPES,
+    USABLE_TYPES,
     GameObjectConstructorManager,
     GameObjectType,
 )
@@ -41,6 +42,7 @@ from hades_extensions.game_objects import SPRITE_SIZE, Registry, Vec2d
 from hades_extensions.game_objects.components import KeyboardMovement, SteeringMovement
 from hades_extensions.game_objects.systems import (
     AttackSystem,
+    EffectSystem,
     InventorySystem,
     KeyboardMovementSystem,
     SteeringMovementSystem,
@@ -313,6 +315,16 @@ class Game(View):
                     and self.registry.get_system(InventorySystem).add_item_to_inventory(
                         self.ids[GameObjectType.PLAYER][0].game_object_id,
                         self.nearest_item[0].game_object_id,
+                    )
+                ):
+                    self.nearest_item[0].remove_from_sprite_lists()
+            case key.E:
+                if (
+                    self.nearest_item
+                    and self.nearest_item[0].game_object_type in USABLE_TYPES
+                    and self.registry.get_system(EffectSystem).apply_effects(
+                        self.nearest_item[0].game_object_id,
+                        self.ids[GameObjectType.PLAYER][0].game_object_id,
                     )
                 ):
                     self.nearest_item[0].remove_from_sprite_lists()

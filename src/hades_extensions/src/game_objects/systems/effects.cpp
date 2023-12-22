@@ -35,32 +35,43 @@ void EffectSystem::update(const double delta_time) const {
   }
 }
 
-auto EffectSystem::apply_instant_effect(const GameObjectID game_object_id, const std::type_index &target_component,
-                                        const ActionFunction &increase_function, const int level) const -> bool {
-  // Check if the component is already at the maximum
-  const auto component{std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component))};
-  if (component->get_value() == component->get_max_value()) {
-    return false;
+auto EffectSystem::apply_effects(const GameObjectID game_object_id, const GameObjectID target_game_object_id) const
+    -> bool {
+  // Get the required components
+  const auto effect_applier{get_registry()->get_component<EffectApplier>(game_object_id)};
+  const auto target_status_effects{get_registry()->get_component<StatusEffects>(target_game_object_id)};
+
+  // Check if the instant effects can be applied
+  for (const auto &instant_types : std::views::keys(effect_applier->instant_effects)) {
+    if (const auto target_component{
+            std::static_pointer_cast<Stat>(get_registry()->get_component(target_game_object_id, instant_types))};
+        target_component->get_value() == target_component->get_max_value()) {
+      return false;
+    }
   }
 
-  // Apply the instant effect
-  component->set_value(component->get_value() + increase_function(level));
-  return true;
-}
-
-auto EffectSystem::apply_status_effect(const GameObjectID game_object_id, const std::type_index &target_component,
-                                       const StatusEffectData &status_effect_data, const int level) const -> bool {
-  // Check if the status effect has already been applied
-  const auto status_effects{get_registry()->get_component<StatusEffects>(game_object_id)};
-  if (status_effects->applied_effects.contains(status_effect_data.status_effect_type)) {
-    return false;
+  // Check if the status effects can be applied
+  for (const auto &status_types : std::views::values(effect_applier->status_effects)) {
+    if (target_status_effects->applied_effects.contains(status_types.status_effect_type)) {
+      return false;
+    }
   }
 
-  // Apply the status effect
-  const StatusEffect status_effect{status_effect_data.increase(level), status_effect_data.duration(level),
-                                   status_effect_data.interval(level), target_component};
-  status_effects->applied_effects.emplace(status_effect_data.status_effect_type, status_effect);
-  const auto component{std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, target_component))};
-  component->set_value(component->get_value() + status_effect.value);
+  // Apply the instant effects
+  for (const auto &[component_type, increase_function] : effect_applier->instant_effects) {
+    const auto target_component{
+        std::static_pointer_cast<Stat>(get_registry()->get_component(target_game_object_id, component_type))};
+    target_component->set_value(target_component->get_value() + increase_function(1));
+  }
+
+  // Apply the status effects
+  for (const auto &[component_type, status_effect_data] : effect_applier->status_effects) {
+    const auto target_component{
+        std::static_pointer_cast<Stat>(get_registry()->get_component(target_game_object_id, component_type))};
+    const StatusEffect status_effect{status_effect_data.increase(1), status_effect_data.duration(1),
+                                     status_effect_data.interval(1), component_type};
+    target_status_effects->applied_effects.emplace(status_effect_data.status_effect_type, status_effect);
+    target_component->set_value(target_component->get_value() + status_effect.value);
+  }
   return true;
 }

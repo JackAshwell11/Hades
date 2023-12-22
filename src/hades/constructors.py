@@ -22,7 +22,12 @@ if TYPE_CHECKING:
 
     from hades_extensions.game_objects import ComponentBase
 
-__all__ = ("GameObjectConstructorManager", "GameObjectType", "COLLECTIBLE_TYPES")
+__all__ = (
+    "GameObjectConstructorManager",
+    "GameObjectType",
+    "COLLECTIBLE_TYPES",
+    "USABLE_TYPES",
+)
 
 
 class GameObjectType(Enum):
@@ -152,5 +157,8 @@ GameObjectConstructorManager.add_constructor(
 
 # Define some collections for game object types
 COLLECTIBLE_TYPES: Final[set[GameObjectType]] = {
+    GameObjectType.POTION,
+}
+USABLE_TYPES: Final[set[GameObjectType]] = {
     GameObjectType.POTION,
 }
