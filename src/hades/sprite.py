@@ -61,6 +61,8 @@ class HadesSprite(Sprite):
         game_object_type: The game object's type.
     """
 
+    __slots__ = ("game_object_id", "game_object_type")
+
     def __init__(
         self: HadesSprite,
         game_object: tuple[int, GameObjectType],
@@ -94,25 +96,30 @@ class HadesSprite(Sprite):
 
 
 class AnimatedSprite(HadesSprite):
-    """Represents an animated sprite object in the game."""
+    """Represents an animated sprite object in the game.
+
+    Attributes:
+        sprite_textures: The sprite's textures.
+    """
+
+    __slots__ = ("sprite_textures",)
 
     def __init__(
         self: AnimatedSprite,
         game_object: tuple[int, GameObjectType],
         position: tuple[int, int],
-        sprite_textures: list[str],
+        textures: list[str],
     ) -> None:
         """Initialise the object.
 
         Args:
             game_object: The game object's ID and type.
             position: The position of the sprite object in the grid.
-            sprite_textures: The sprites' texture paths.
+            textures: The sprite's texture paths.
         """
-        super().__init__(game_object, position, sprite_textures)
+        super().__init__(game_object, position, textures)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
-            load_texture_pair(texture_path.joinpath(texture))
-            for texture in sprite_textures
+            load_texture_pair(texture_path.joinpath(texture)) for texture in textures
         ]
 
     def __repr__(self: AnimatedSprite) -> str:

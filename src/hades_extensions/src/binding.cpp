@@ -79,6 +79,14 @@ inline auto get_type_index(const pybind11::handle &component_type) -> std::type_
   return iter->second;
 }
 
+/// Make a C++ action function from a pybind11 function.
+///
+/// @param py_func - The pybind11 function.
+/// @return The C++ action function.
+auto make_action_function(const pybind11::function &py_func) -> ActionFunction {
+  return [py_func](int level) { return py_func(level).cast<double>(); };
+}
+
 // ----- PYTHON MODULE CREATION ------------------------------
 PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   // Add the module docstring and the custom converters
@@ -113,12 +121,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   // Add the global constants and the base classes
   game_objects.attr("SPRITE_SCALE") = SPRITE_SCALE;
   game_objects.attr("SPRITE_SIZE") = SPRITE_SIZE;
-  game_objects.def(
-      "ActionFunction",
-      [](const ActionFunction &func) {
-        return pybind11::cpp_function([func](const int level) { return func(level); });
-      },
-      "A function that can be applied to a component.");
   const pybind11::class_<ComponentBase, std::shared_ptr<ComponentBase>> component_base(
       game_objects, "ComponentBase", "The base class for all components.");
   pybind11::class_<SystemBase, std::shared_ptr<SystemBase>>(game_objects, "SystemBase",
@@ -478,7 +480,11 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def_readwrite("target_component", &StatusEffect::target_component);
   pybind11::class_<StatusEffectData>(components, "StatusEffectData",
                                      "Represents the data required to apply a status effect.")
-      .def(pybind11::init<StatusEffectType, ActionFunction, ActionFunction, ActionFunction>(),
+      .def(pybind11::init([](const StatusEffectType status_effect_type, const pybind11::function &increase,
+                             const pybind11::function &duration, const pybind11::function &interval) {
+             return StatusEffectData(status_effect_type, make_action_function(increase), make_action_function(duration),
+                                     make_action_function(interval));
+           }),
            pybind11::arg("status_effect_type"), pybind11::arg("increase"), pybind11::arg("duration"),
            pybind11::arg("interval"),
            "Initialise the object.\n\n"
@@ -500,12 +506,19 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
 
              // Iterate through the instant effects and add them to the mapping
              for (const auto &[type, func] : instant_effects) {
-               target_instant_effects.emplace(get_type_index(type), func.cast<ActionFunction>());
+               target_instant_effects.emplace(get_type_index(type),
+                                              make_action_function(func.cast<pybind11::function>()));
              }
 
              // Iterate through the status effects and add them to the mapping
              for (const auto &[type, data] : status_effects) {
-               target_status_effects.emplace(get_type_index(type), data.cast<StatusEffectData>());
+               auto data_dict = data.cast<pybind11::dict>();
+               const auto status_effect_type = data_dict["status_effect_type"].cast<StatusEffectType>();
+               const auto increase = make_action_function(data_dict["increase"].cast<pybind11::function>());
+               const auto duration = make_action_function(data_dict["duration"].cast<pybind11::function>());
+               const auto interval = make_action_function(data_dict["interval"].cast<pybind11::function>());
+               target_status_effects.emplace(get_type_index(type),
+                                             StatusEffectData{status_effect_type, increase, duration, interval});
              }
 
              // Initialise the object
@@ -529,30 +542,16 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Process update logic for a status effect component.\n\n"
            "Args:\n"
            "    delta_time: The time interval since the last time the function was called.")
-      .def("apply_instant_effect", &EffectSystem::apply_instant_effect, pybind11::arg("game_object_id"),
-           pybind11::arg("target_component"), pybind11::arg("increase"), pybind11::arg("level"),
-           "Apply an instant effect to a game object.\n\n"
+      .def("apply_effects", &EffectSystem::apply_effects, pybind11::arg("game_object_id"),
+           pybind11::arg("target_game_object_id"),
+           "Apply effects to a game object..\n\n"
            "Args:\n"
-           "    game_object_id: The ID of the game object to apply the effect to.\n"
-           "    target_component: The component to apply the effect to.\n"
-           "    increase: The increase function to apply.\n"
-           "    level: The level of the effect to apply.\n\n"
+           "    game_object_id: The ID of the game object to get the effects from.\n"
+           "    target_game_object_id: The ID of the game object to apply the effects to.\n\n"
            "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have the target component.\n\n"
+           "    RegistryError: If either game object does not exist or does not have the required components.\n\n"
            "Returns:\n"
-           "    Whether the instant effect was applied or not.")
-      .def("apply_status_effect", &EffectSystem::apply_status_effect, pybind11::arg("game_object_id"),
-           pybind11::arg("target_component"), pybind11::arg("status_effect_data"), pybind11::arg("level"),
-           "Apply a status effect to a game object.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to apply the effect to.\n"
-           "    target_component: The component to apply the effect to.\n"
-           "    status_effect_data: The data required to apply the status effect.\n"
-           "    level: The level of the effect to apply.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have the target component.\n\n"
-           "Returns:\n"
-           "    Whether the status effect was applied or not.");
+           "    Whether the effects were applied or not.");
 
   // Add the inventory system as well as relevant structures/components
   register_exception<InventorySpaceError>(game_objects, "InventorySpaceError");
@@ -699,7 +698,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
 
              // Iterate through the upgrades and add them to the mapping
              for (const auto &[type, func] : upgrades) {
-               target_upgrades.emplace(get_type_index(type), func.cast<ActionFunction>());
+               target_upgrades.emplace(get_type_index(type), make_action_function(func.cast<pybind11::function>()));
              }
 
              // Initialise the object

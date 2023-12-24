@@ -7,7 +7,7 @@ name = "hades"
 version = "0.1.0"
 description = "A procedurally generated bullet bullet-hell dungeon crawler made in Python."
 authors = ["Aspect1103 <jack.ashwell1@gmail.com>"]
-license = "MIT"
+license = "GPL-3.0-or-later"
 readme = "README.md"
 homepage = "https://github.com/Aspect1103/Hades"
 repository = "https://github.com/Aspect1103/Hades"
@@ -17,8 +17,8 @@ python = "^3.11"
 arcade = "3.0.0.dev25"
 
 [tool.poetry.dev-dependencies]
-black = "23.12.0"
-mypy = "1.7.1"
+black = "23.12.1"
+mypy = "1.8.0"
 nuitka = "1.9.5"
 ordered-set = "4.1.0"
 pre-commit = "3.6.0"
@@ -29,7 +29,7 @@ pytest-icdiff = "0.9"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.15.0"
 pytest-sugar = "0.9.7"
-ruff = "0.1.8"
+ruff = "0.1.9"
 ssort = "v0.11.6"
 tox = "4.11.4"
 
@@ -72,7 +72,6 @@ exclude = [
     "build.py",  # Setuptools is untyped so we need to ignore it
     "src/hades/views/start_menu.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
     "src/hades/views/inventory.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
-    "src/hades/views/shop.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 ignore_missing_imports = true
 pretty = true
@@ -85,7 +84,6 @@ strict = true
 warn_unreachable = true
 warn_unused_configs = true
 
-# TODO: Once Ruff implements all of Pylint's rules, switch Pylint out for Ruff
 [tool.pylint."BASIC"]
 good-names = "i,j,k,x,y,a,b,dx,dy,x1,x2,y1,y2"
 
@@ -94,26 +92,30 @@ max-line-length = 88
 
 [tool.pylint."MASTER"]
 load-plugins = [
-    "pylint.extensions.bad_builtin",  # Disallow the use of deprecated builtin functions
-    "pylint.extensions.check_elif",  # Disallow the use of following an else statement with an if
-    "pylint.extensions.code_style",  # Disallow code that reduces code consistency
-    "pylint.extensions.comparison_placement",  # Disallow placing the constant on the left of the comparison
-    "pylint.extensions.confusing_elif",  # Disallow placing an elif after an indented block (could be hard to understand)
-    "pylint.extensions.consider_refactoring_into_while_condition",
-    "pylint.extensions.consider_ternary_expression",  # Disallow spreading multiple assignment statements across if/else blocks
-    "pylint.extensions.dunder",  # Disallow mispelled dunder methods
-#    "pylint.extensions.emptystring",  # Disallow comparisons to empty strings
+    "pylint.extensions.bad_builtin",  # Disallow bad docstrings
+    "pylint.extensions.docstyle",  # Disallow bad docstrings
+    "pylint.extensions.dunder",  # Disallow bad typing
+    "pylint.extensions.while_used",  # Disallow broad try clauses
+    "pylint.extensions.check_elif",  # Disallow code that reduces code consistency
+    "pylint.extensions.comparison_placement",  # Disallow empty comments
     "pylint.extensions.eq_without_hash",  # Disallow implementing __eq__ without __hash__
-    "pylint.extensions.for_any_all",  # Disallow using a for loop to check for a condition and return a bool
-    "pylint.extensions.magic_value",  # Disallow using magic values
-    "pylint.extensions.no_self_use",  # Disallow methods which don't use their bound instance
-    "pylint.extensions.overlapping_exceptions",  # Disallow overlapping exceptions
-    "pylint.extensions.private_import",  # Disallow private imports
+    "pylint.extensions.for_any_all",  # Disallow methods which don't use their bound instance
+    "pylint.extensions.overlapping_exceptions",  # Disallow mispelled dunder methods
+    "pylint.extensions.empty_comment",  # Disallow mutating a dictionary during initialisation
+    "pylint.extensions.docparams",  # Disallow not using sets for membership tests
+    "pylint.extensions.typing",  # Disallow overlapping exceptions
+    "pylint.extensions.private_import",  # Disallow placing an elif after an indented block (could be hard to understand)
+    "pylint.extensions.consider_refactoring_into_while_condition",  # Disallow placing the constant on the left of the comparison
+    "pylint.extensions.confusing_elif",  # Disallow private imports
     "pylint.extensions.redefined_loop_name",  # Disallow redefining loop variables
     "pylint.extensions.redefined_variable_type",  # Disallow redefining variable types
-    "pylint.extensions.set_membership",  # Disallow not using sets for membership tests
-    "pylint.extensions.typing",  # Disallow bad typing
-    "pylint.extensions.code_style",  # Disallow code that reduces code consistency
+    "pylint.extensions.set_membership",  # Disallow spreading multiple assignment statements across if/else blocks
+    "pylint.extensions.dict_init_mutate",  # Disallow the use of deprecated builtin functions
+    "pylint.extensions.broad_try_clause",  # Disallow the use of following an else statement with an if
+    "pylint.extensions.code_style",  # Disallow using a for loop to check for a condition and return a bool
+    "pylint.extensions.magic_value",  # Disallow using a while loop with a condition that can be refactored into the while loop
+    "pylint.extensions.consider_ternary_expression",  # Disallow using magic values
+    "pylint.extensions.no_self_use",  # Disallow using while loops
 ]
 
 [tool.pylint."MESSAGES CONTROL"]
@@ -150,14 +152,12 @@ testpaths = ["tests"]
 
 [tool.ruff]
 extend-exclude = [
-    "src/hades/views/shop.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
     "src/hades/views/inventory.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 extend-ignore = [
     "S311",  # Allow use of the random library
 ]
 output-format = "grouped"
-line-length = 88
 preview = true
 select = [
     "A",  # Enable flake8-builtins
@@ -173,25 +173,26 @@ select = [
     "E",  # Enable pycodestyle errors
     "EM",  # Enable flake8-errmsg
     "ERA",  # Enable eradicate
+    "EXE",  # Enable flake8-executable
     "F",  # Enable Pyflakes
     "FA",  # Enable flake8-future-annotations
     "FBT",  # Enable flake8-boolean-trap
     "FIX", # Enable flake8-fixme
     "FLY",  # Enable flynt
+    "FURB",  # Enable refurb
     "G",  # Enable flake8-logging-format
     "I",  # Enable isort
     "ICN",  # Enable flake8-import-conventions
     "INP",  # Enable flake8-no-pep420
     "INT",  # Enable flake8-gettext
     "ISC",  # Enable flake8-implicit-str-concat
+    "LOG",  # Enable flake8-logging
     "N",  # Enable pep8-naming
+    "Q",  # Enable flake8-quotes
     "PERF",  # Enable Perflint
     "PGH",  # Enable pygrep-hooks
     "PIE",  # Enable flake8-pie
-    "PLC",  # Enable Pylint convention
-    "PLE",  # Enable Pylint error
-    "PLR",  # Enable Pylint refactor
-    "PLW",  # Enable Pylint warning
+    "PL",  # Enable Pylint
     "PT",  # Enable flake8-pytest-style
     "PTH",  # Enable flake8-use-pathlib
     "PYI",  # Enable flake8-pyi
@@ -202,6 +203,7 @@ select = [
     "SIM",  # Enable flake8-simplify
     "SLF",  # Enable flake8-self
     "SLOT",  # Enable flake8-slots
+    "T10",  # Enable flake8-debugger
     "T20",  # Enable flake8-print
     "TCH",  # Enable flake8-type-checking
     "TD",  # Enable flake8-todos
@@ -209,12 +211,17 @@ select = [
     "TRY",  # Enable tryceratops
     "UP",  # Enable pyupgrade
     "W",  # Enable pycodestyle warnings
+    "YTT",  # Enable flake8-2020
 ]
 show-fixes = true
 show-source = true
 src = ["src"]
 
 [tool.ruff.per-file-ignores]
+"*test_*" = [
+    "PLR2004",  # Ignore pylint-refactor magic number rule for the tests
+    "S101",  # Ignore flake8-bandit assert rule for the tests
+]
 "build.py" = [
     "S603",  # Ignore flake8-bandit subprocess with shell=True rule
     "S607",  # Ignore flake8-bandit start process with a partial path rule
@@ -225,10 +232,6 @@ src = ["src"]
     "D101",  # Ignore pydocstyle class docstring rule
     "D103",  # Ignore pydocstyle method docstring rule
     "PIE796",  # Ignore flake8-pie duplicate enum values rule
-]
-"*test_*" = [
-    "PLR2004",  # Ignore pylint-refactor magic number rule for the tests
-    "S101",  # Ignore flake8-bandit assert rule for the tests
 ]
 
 [tool.ruff.pydocstyle]

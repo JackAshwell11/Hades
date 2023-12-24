@@ -3,12 +3,10 @@ from abc import abstractmethod
 
 # Custom
 from hades_extensions.game_objects import (
-    ActionFunction,
     ComponentBase,
     SystemBase,
     Vec2d,
 )
-from hades_extensions.game_objects.components import StatusEffectData
 
 class ArmourRegenSystem(SystemBase):
     def update(self: ArmourRegenSystem, delta_time: float) -> None: ...
@@ -30,19 +28,10 @@ class DamageSystem(SystemBase):
     def update(self: SystemBase, delta_time: float) -> None: ...
 
 class EffectSystem(SystemBase):
-    def apply_instant_effect(
+    def apply_effects(
         self: EffectSystem,
         game_object_id: int,
-        target_component: type[ComponentBase],
-        increase: ActionFunction,
-        level: int,
-    ) -> None: ...
-    def apply_status_effect(
-        self: EffectSystem,
-        game_object_id: int,
-        target_component: type[ComponentBase],
-        status_effect_data: StatusEffectData,
-        level: int,
+        target_game_object_id: int,
     ) -> None: ...
     def update(self: SystemBase, delta_time: float) -> None: ...
 

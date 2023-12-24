@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 # Pip
 from arcade import (
@@ -48,6 +48,9 @@ from hades_extensions.game_objects.systems import (
     SteeringMovementSystem,
 )
 from hades_extensions.generation import TileType, create_map
+
+if TYPE_CHECKING:
+    from hades.indicator_bar import IndicatorBar
 
 __all__ = ("Game",)
 
@@ -170,6 +173,7 @@ class Game(View):
         # Custom collections
         self.ids: dict[GameObjectType, list[HadesSprite]] = {}
         self.possible_enemy_spawns: list[tuple[int, int]] = []
+        self.indicator_bars: list[IndicatorBar] = []
 
         # Initialise all the systems then the game objects
         self.registry.add_systems()
@@ -267,7 +271,7 @@ class Game(View):
             self.item_sprites,
         )
 
-        # Update the entity sprites with the physics engine's data
+        # Process the results from the physics engine
         for entity in self.ids.get(GameObjectType.PLAYER, []) + self.ids.get(
             GameObjectType.ENEMY,
             [],
@@ -278,6 +282,8 @@ class Game(View):
             )
             kinematic_object.position = Vec2d(*body.position)
             kinematic_object.velocity = Vec2d(*body.velocity)
+        for indicator_bar in self.indicator_bars:
+            indicator_bar.on_update(delta_time)
 
         # Position the camera on the player
         self.game_camera.center(self.ids[GameObjectType.PLAYER][0].position)
