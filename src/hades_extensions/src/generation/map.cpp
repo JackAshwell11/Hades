@@ -5,9 +5,6 @@
 #include <execution>
 #include <queue>
 
-// Local headers
-#include "generation/astar.hpp"
-
 // ----- STRUCTURES ------------------------------
 /// Stores a map generation constant which can be calculated.
 ///
@@ -28,6 +25,7 @@ struct MapGenerationConstant {
 // ----- CONSTANTS ------------------------------
 constexpr int HALLWAY_SIZE{5};
 constexpr int HALF_HALLWAY_SIZE{HALLWAY_SIZE / 2};
+constexpr double WITHIN_MIN_DISTANCE_CHANCE{0.3};
 constexpr MapGenerationConstant WIDTH{30, 1.2, 150};
 constexpr MapGenerationConstant HEIGHT{20, 1.2, 100};
 constexpr MapGenerationConstant OBSTACLE_COUNT{20, 1.3, 200};
@@ -45,33 +43,45 @@ constexpr MapGenerationConstant ITEM_COUNT{5, 1.1, 30};
                map_generation_constant.max_value));
 }
 
-auto collect_positions(const Grid &grid, const TileType target) -> std::vector<Position> {
-  // Get all positions in the grid that match the target
-  std::vector<Position> result;
+void place_tiles(const Grid &grid, std::mt19937 &random_generator, std::unordered_set<Position> &item_positions,
+                 const TileType target_tile, const int count) {
+  // Place each tile using the Dijkstra map
+  for (int _ = 0; _ < count; _++) {
+    // Determine if we should select a position within or outside the minimum distance
+    const bool within_min_distance{std::uniform_real_distribution<>{0, 1}(random_generator) <
+                                   WITHIN_MIN_DISTANCE_CHANCE};
+
+    // Generate the Dijkstra map for the grid and place the tile in a random position
+    const Position possible_tile{generate_dijkstra_map_position(grid, item_positions, within_min_distance)};
+    grid.set_value(possible_tile, target_tile);
+    item_positions.emplace(possible_tile);
+  }
+}
+
+auto place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType replaceable_tile,
+                 const TileType target_tile, const int count) -> std::unordered_set<Position> {
+  // Get all the positions that match the replaceable tile
+  std::vector<Position> replaceable_tiles;
   for (int y = 0; y < grid.height; y++) {
     for (int x = 0; x < grid.width; x++) {
-      if (grid.get_value({x, y}) == target) {
-        result.emplace_back(x, y);
+      if (grid.get_value({x, y}) == replaceable_tile) {
+        replaceable_tiles.emplace_back(x, y);
       }
     }
   }
-  return result;
-}
 
-void place_tile(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile,
-                std::vector<Position> &possible_tiles) {
-  // Check if at least one tile exists
-  if (possible_tiles.empty()) {
-    throw std::length_error("Possible tiles size must be bigger than 0.");
+  // Create a collection to store the item positions then place each tile
+  std::unordered_set<Position> item_positions;
+  for (int _ = 0; _ < count; _++) {
+    const std::size_t tile_index{
+        std::uniform_int_distribution<std::size_t>{0, replaceable_tiles.size() - 1}(random_generator)};
+    const Position possible_tile{replaceable_tiles[tile_index]};
+    replaceable_tiles[tile_index] = replaceable_tiles.back();
+    grid.set_value(possible_tile, target_tile);
+    replaceable_tiles.pop_back();
+    item_positions.emplace(possible_tile);
   }
-
-  // Get a random tile and place the target tile there
-  const std::size_t tile_index{
-      std::uniform_int_distribution<std::size_t>{0, possible_tiles.size() - 1}(random_generator)};
-  const Position possible_tile{possible_tiles[tile_index]};
-  possible_tiles[tile_index] = possible_tiles.back();
-  possible_tiles.pop_back();
-  grid.set_value(possible_tile, target_tile);
+  return item_positions;
 }
 
 auto create_complete_graph(const std::vector<Rect> &rooms) -> std::unordered_map<Rect, std::vector<Rect>> {
@@ -130,14 +140,7 @@ auto create_connections(const std::unordered_map<Rect, std::vector<Rect>> &compl
   return mst;
 }
 
-void create_hallways(Grid &grid, std::mt19937 &random_generator, const std::unordered_set<Edge> &connections,
-                     const int obstacle_count) {
-  // Place random obstacles in the grid
-  std::vector obstacle_positions{collect_positions(grid, TileType::Empty)};
-  for (int _ = 0; _ < obstacle_count; _++) {
-    place_tile(grid, random_generator, TileType::Obstacle, obstacle_positions);
-  }
-
+void create_hallways(Grid &grid, const std::unordered_set<Edge> &connections) {
   // Use the A* algorithm to connect each pair of rooms avoiding the obstacles
   std::vector<std::vector<Position>> path_positions(connections.size());
   std::transform(std::execution::par, connections.begin(), connections.end(), path_positions.begin(),
@@ -147,13 +150,14 @@ void create_hallways(Grid &grid, std::mt19937 &random_generator, const std::unor
 
   // Place a rect box around each path_position to create the hallways
   for (const std::vector<Position> &path : path_positions) {
-    for (const Position &path_position : path) {
-      Rect{{path_position.x - HALF_HALLWAY_SIZE, path_position.y - HALF_HALLWAY_SIZE},
-           {path_position.x + HALF_HALLWAY_SIZE, path_position.y + HALF_HALLWAY_SIZE}}
-          .place_rect(grid);
+    for (const auto &[x_pos, y_pos] : path) {
+      grid.place_rect({{x_pos - HALF_HALLWAY_SIZE, y_pos - HALF_HALLWAY_SIZE},
+                       {x_pos + HALF_HALLWAY_SIZE, y_pos + HALF_HALLWAY_SIZE}});
     }
   }
 }
+
+#include <iostream>
 
 auto create_map(const int level, std::optional<unsigned int> seed)
     -> std::pair<std::vector<TileType>, std::tuple<int, int, int>> {
@@ -180,16 +184,17 @@ auto create_map(const int level, std::optional<unsigned int> seed)
   std::vector<Rect> rooms;
   split(bsp, random_generator);
   create_room(bsp, grid, random_generator, rooms);
-  create_hallways(grid, random_generator, create_connections(create_complete_graph(rooms)),
-                  generate_value(OBSTACLE_COUNT, level));
 
-  // Place the player tile as well as the items in the grid
-  std::vector possible_tiles{collect_positions(grid, TileType::Floor)};
-  place_tile(grid, random_generator, TileType::Player, possible_tiles);
-  for (int _ = 0; _ < generate_value(ITEM_COUNT, level); _++) {
-    place_tile(grid, random_generator, TileType::Potion, possible_tiles);
-  }
+  // Place random obstacles in the grid then create hallways between the rooms
+  place_tiles(grid, random_generator, TileType::Empty, TileType::Obstacle, generate_value(OBSTACLE_COUNT, level));
+  create_hallways(grid, create_connections(create_complete_graph(rooms)));
+
+  // Place the player as well as the item tiles in the grid
+  auto item_positions{place_tiles(grid, random_generator, TileType::Floor, TileType::Player)};
+  place_tiles(grid, random_generator, item_positions, TileType::Potion, generate_value(ITEM_COUNT, level));
 
   // Return the grid and a LevelConstants object
   return std::make_pair(*grid.grid, std::make_tuple(level, grid_width, grid_height));
 }
+
+// TODO: Optimise/simplify this whole file and maybe combine place_tiles with a boolean

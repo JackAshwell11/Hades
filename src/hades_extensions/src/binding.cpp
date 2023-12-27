@@ -84,6 +84,7 @@ inline auto get_type_index(const pybind11::handle &component_type) -> std::type_
 /// @param py_func - The pybind11 function.
 /// @return The C++ action function.
 auto make_action_function(const pybind11::function &py_func) -> ActionFunction {
+  // NOLINTNEXTLINE(bugprone-exception-escape)
   return [py_func](int level) { return py_func(level).cast<double>(); };
 }
 

@@ -41,55 +41,6 @@ struct Position {
   int y;
 };
 
-/// Represents a 2D grid with a set width and height through a 1D vector.
-struct Grid {
-  /// The width of the 2D grid.
-  int width;
-
-  /// The height of the 2D grid.
-  int height;
-
-  /// The vector which represents the 2D grid.
-  std::unique_ptr<std::vector<TileType>> grid;
-
-  /// Initialise the object.
-  ///
-  /// @param width - The width of the 2D grid.
-  /// @param height - The height of the 2D grid.
-  Grid(const int width, const int height)
-      : width(width), height(height), grid(std::make_unique<std::vector<TileType>>(width * height, TileType::Empty)) {}
-
-  /// Convert a 2D grid position to a 1D grid position.
-  ///
-  /// @param position - The position to convert.
-  /// @throws std::out_of_range - If position is not within range.
-  /// @return The 1D grid position.
-  [[nodiscard]] auto convert_position(const Position &position) const -> int {
-    if (position.x < 0 || position.x >= width || position.y < 0 || position.y >= height) {
-      throw std::out_of_range("Position must be within range");
-    }
-    return width * position.y + position.x;
-  }
-
-  /// Get a value in the 2D grid from a given position.
-  ///
-  /// @param position - The position to get the value for.
-  /// @throws std::out_of_range - If position is not within range.
-  /// @return The value at the given position.
-  [[nodiscard]] auto get_value(const Position &position) const -> TileType {
-    return grid->at(convert_position(position));
-  }
-
-  /// Set a value in the 2D grid from a given position.
-  ///
-  /// @param position - The position to set.
-  /// @param target - The value to set at the given position.
-  /// @throws std::out_of_range - If position is not within range.
-  void set_value(const Position &position, const TileType target) const {
-    grid->at(convert_position(position)) = target;
-  }
-};
-
 /// Represents a rectangle in 2D space.
 struct Rect {
   auto operator==(const Rect &rect) const -> bool {
@@ -136,12 +87,69 @@ struct Rect {
   [[nodiscard]] auto get_distance_to(const Rect &other) const -> int {
     return std::max(abs(centre.x - other.centre.x), abs(centre.y - other.centre.y));
   }
+};
 
-  /// Place the rect in the 2D grid.
+/// Represents a 2D grid with a set width and height through a 1D vector.
+struct Grid {
+  /// The width of the 2D grid.
+  int width;
+
+  /// The height of the 2D grid.
+  int height;
+
+  /// The vector which represents the 2D grid.
+  std::unique_ptr<std::vector<TileType>> grid;
+
+  /// Initialise the object.
+  ///
+  /// @param width - The width of the 2D grid.
+  /// @param height - The height of the 2D grid.
+  Grid(const int width, const int height)
+      : width(width), height(height), grid(std::make_unique<std::vector<TileType>>(width * height, TileType::Empty)) {}
+
+  /// Check if a position is within the 2D grid.
+  ///
+  /// @param position - The position to check for.
+  /// @return Whether the position is within the 2D grid or not.
+  [[nodiscard]] auto is_position_within(const Position &position) const -> bool {
+    return position.x >= 0 && position.x < width && position.y >= 0 && position.y < height;
+  }
+
+  /// Convert a 2D grid position to a 1D grid position.
+  ///
+  /// @param position - The position to convert.
+  /// @throws std::out_of_range - If position is not within range.
+  /// @return The 1D grid position.
+  [[nodiscard]] auto convert_position(const Position &position) const -> int {
+    if (!is_position_within(position)) {
+      throw std::out_of_range("Position must be within range");
+    }
+    return width * position.y + position.x;
+  }
+
+  /// Get a value in the 2D grid from a given position.
+  ///
+  /// @param position - The position to get the value for.
+  /// @throws std::out_of_range - If position is not within range.
+  /// @return The value at the given position.
+  [[nodiscard]] auto get_value(const Position &position) const -> TileType {
+    return grid->at(convert_position(position));
+  }
+
+  /// Set a value in the 2D grid from a given position.
+  ///
+  /// @param position - The position to set.
+  /// @param target - The value to set at the given position.
+  /// @throws std::out_of_range - If position is not within range.
+  void set_value(const Position &position, const TileType target) const {
+    grid->at(convert_position(position)) = target;
+  }
+
+  /// Place a rect in the 2D grid.
   ///
   /// @details It is the responsibility of the caller to ensure that the rect fits in the grid.
-  /// @param grid - The 2D grid which represents the dungeon.
-  void place_rect(const Grid &grid) const;
+  /// @param rect - The rect to place in the 2D grid.
+  void place_rect(const Rect &rect) const;
 };
 
 // ----- HASHES ------------------------------

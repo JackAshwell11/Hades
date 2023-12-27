@@ -17,6 +17,12 @@ class PrimitivesFixture : public testing::Test {
 };
 
 // ----- TESTS ------------------------------
+/// Test that finding the distance between two identical rects works correctly.
+TEST_F(PrimitivesFixture, TestRectGetDistanceToIdentical) { ASSERT_EQ(rect_one.get_distance_to(rect_one), 0); }
+
+/// Test that finding the distance between two different rects works correctly.
+TEST_F(PrimitivesFixture, TestRectGetDistanceToDifferent) { ASSERT_EQ(rect_one.get_distance_to(rect_two), 2); }
+
 /// Test that a position in the middle of the grid can be converted correctly.
 TEST_F(PrimitivesFixture, TestGridConvertPositionMiddle) { ASSERT_EQ(grid.convert_position({1, 2}), 11); }
 
@@ -82,17 +88,9 @@ TEST_F(PrimitivesFixture,
        TestGridSetValueLarger){ASSERT_THROW_MESSAGE((grid.set_value({10, 10}, TileType::Player)), std::out_of_range,
                                                     "Position must be within range")}
 
-/// Test that finding the distance between two identical rects works correctly.
-TEST_F(PrimitivesFixture, TestRectGetDistanceToIdentical) {
-  ASSERT_EQ(rect_one.get_distance_to(rect_one), 0);
-}
-
-/// Test that finding the distance between two different rects works correctly.
-TEST_F(PrimitivesFixture, TestRectGetDistanceToDifferent) { ASSERT_EQ(rect_one.get_distance_to(rect_two), 2); }
-
 /// Test that a rect can be placed correctly in a valid grid.
-TEST_F(PrimitivesFixture, TestRectPlaceRectValidGrid) {
-  rect_one.place_rect(grid);
+TEST_F(PrimitivesFixture, TestGridPlaceRectValidGrid) {
+  grid.place_rect(rect_one);
   const std::vector target_result{
       TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty,
       TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty,
@@ -104,9 +102,9 @@ TEST_F(PrimitivesFixture, TestRectPlaceRectValidGrid) {
 }
 
 /// Test that placing a rect that doesn't fit in the grid works correctly.
-TEST_F(PrimitivesFixture, TestRectPlaceRectOutsideGrid) {
+TEST_F(PrimitivesFixture, TestGridPlaceRectOutsideGrid) {
   const Rect invalid_rect{{0, 0}, {10, 10}};
-  invalid_rect.place_rect(grid);
+  grid.place_rect(invalid_rect);
   const std::vector target_result{
       TileType::Wall, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
       TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,

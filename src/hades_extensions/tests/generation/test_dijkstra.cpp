@@ -1,9 +1,9 @@
 // Local headers
-#include "generation/astar.hpp"
+#include "generation/dijkstra.hpp"
 #include "macros.hpp"
 
 // ----- FIXTURES ------------------------------
-/// Implements the fixture for the generation/astar.hpp tests.
+/// Implements the fixture for the generation/dijkstra.hpp tests.
 class AstarFixture : public testing::Test {
  protected:
   /// A 2D grid for use in testing.

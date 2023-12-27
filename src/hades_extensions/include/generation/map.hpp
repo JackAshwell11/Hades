@@ -7,6 +7,7 @@
 
 // Local headers
 #include "bsp.hpp"
+#include "dijkstra.hpp"
 
 // ----- STRUCTURES ------------------------------
 /// Represents an undirected weighted edge in a graph.
@@ -41,22 +42,26 @@ struct std::hash<Edge> {
 };
 
 // ----- FUNCTIONS ------------------------------
-/// Collect all positions in a given grid that match the target.
-///
-/// @param grid - The 2D grid which represents the dungeon.
-/// @param target - The TileType to test for.
-/// @return A vector of positions which match the target.
-auto collect_positions(const Grid &grid, TileType target) -> std::vector<Position>;
-
-/// Places a given tile in the 2D grid.
+/// Places a tile in the 2D grid using a Dijkstra map.
 ///
 /// @param grid - The 2D grid which represents the dungeon.
 /// @param random_generator - The random generator used to pick the position.
+/// @param item_positions - The positions of all the items in the 2D grid.
 /// @param target_tile - The tile to place in the 2D grid.
-/// @param possible_tiles - The possible tiles that the tile can be placed into.
-/// @throws std::length_error - If possible tiles is empty.
-void place_tile(const Grid &grid, std::mt19937 &random_generator, TileType target_tile,
-                std::vector<Position> &possible_tiles);
+/// @param count - The number of tiles to place.
+/// @throws std::length_error - If the grid is empty.
+void place_tiles(const Grid &grid, std::mt19937 &random_generator, std::unordered_set<Position> &item_positions,
+                 TileType target_tile, int count);
+
+/// Place a random tile in the 2D grid.
+///
+/// @param grid - The 2D grid which represents the dungeon.
+/// @param random_generator - The random generator used to pick the position.
+/// @param replaceable_tile - The tile to replace in the 2D grid.
+/// @param target_tile - The tile to place in the 2D grid.
+/// @param count - The number of tiles to place.
+[[maybe_unused]] auto place_tiles(const Grid &grid, std::mt19937 &random_generator, TileType replaceable_tile,
+                                  TileType target_tile, int count = 1) -> std::unordered_set<Position>;
 
 /// Create a complete graph from a given list of rooms.
 ///
@@ -72,14 +77,11 @@ auto create_complete_graph(const std::vector<Rect> &rooms) -> std::unordered_map
 /// @return A set of edges which form the connections between rects.
 auto create_connections(const std::unordered_map<Rect, std::vector<Rect>> &complete_graph) -> std::unordered_set<Edge>;
 
-/// Create the hallways by placing random obstacles and pathfinding around them.
+/// Create the hallways by using A* to pathfind between the rooms.
 ///
 /// @param grid - The 2D grid which represents the dungeon.
-/// @param random_generator - The random generator used to pick the obstacle positions.
 /// @param connections - The connections to pathfind using the A* algorithm.
-/// @param obstacle_count - The number of obstacles to place in the 2D grid.
-void create_hallways(Grid &grid, std::mt19937 &random_generator, const std::unordered_set<Edge> &connections,
-                     int obstacle_count);
+void create_hallways(Grid &grid, const std::unordered_set<Edge> &connections);
 
 /// Generate the game map for a given game level.
 ///
@@ -88,3 +90,5 @@ void create_hallways(Grid &grid, std::mt19937 &random_generator, const std::unor
 /// @return A tuple containing the generated map and the level constants.
 auto create_map(int level, std::optional<unsigned int> seed = std::nullopt)
     -> std::pair<std::vector<TileType>, std::tuple<int, int, int>>;
+
+// TODO: Go over documentation for whole of generation/ to check for more @throws

@@ -90,7 +90,7 @@ void create_room(Leaf &leaf, Grid &grid, std::mt19937 &random_generator,  // NOL
   }
 
   // Place the rect in the 2D grid then save it in the leaf and the rooms vector
-  rect.place_rect(grid);
+  grid.place_rect(rect);
   leaf.room = std::make_unique<Rect>(rect);
   rooms.push_back(rect);
 }
