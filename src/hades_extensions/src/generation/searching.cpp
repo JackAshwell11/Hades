@@ -1,5 +1,5 @@
 // Related header
-#include "generation/dijkstra.hpp"
+#include "generation/searching.hpp"
 
 // Std headers
 #include <array>
@@ -90,10 +90,8 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
   return result;
 }
 
-// TODO: Optimise this and try to combine/simplify them
-
-auto generate_dijkstra_map_position(const Grid &grid, const std::unordered_set<Position> &item_positions,
-                                    const bool within) -> Position {
+auto generate_item_position(const Grid &grid, const std::unordered_set<Position> &item_positions, const bool within)
+    -> Position {
   // Check if the grid size is not zero
   if (grid.width == 0 || grid.height == 0) {
     throw std::length_error("Grid size must be bigger than 0.");
@@ -143,7 +141,7 @@ auto generate_dijkstra_map_position(const Grid &grid, const std::unordered_set<P
   if (within && !within_positions.empty()) {
     return *within_positions.begin();
   }
-  if (!outside_positions.empty()) {
+  if (!within && !outside_positions.empty()) {
     return *outside_positions.begin();
   }
   return {-1, -1};

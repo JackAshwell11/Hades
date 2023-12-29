@@ -23,6 +23,42 @@ TEST_F(PrimitivesFixture, TestRectGetDistanceToIdentical) { ASSERT_EQ(rect_one.g
 /// Test that finding the distance between two different rects works correctly.
 TEST_F(PrimitivesFixture, TestRectGetDistanceToDifferent) { ASSERT_EQ(rect_one.get_distance_to(rect_two), 2); }
 
+/// Test that a position with two small values is not within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinSmallerXY) { ASSERT_FALSE(grid.is_position_within({-1, -1})); }
+
+/// Test that a position with a small X value is not within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinSmallerX) { ASSERT_FALSE(grid.is_position_within({-1, 3})); }
+
+/// Test that a position with a small Y value is not within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinSmallerY) { ASSERT_FALSE(grid.is_position_within({3, -1})); }
+
+/// Test that a position with two lower boundary values is within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinLowerBoundaryXY) { ASSERT_TRUE(grid.is_position_within({0, 0})); }
+
+/// Test that a position with a lower boundary X value is within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinLowerBoundaryX) { ASSERT_TRUE(grid.is_position_within({0, 3})); }
+
+/// Test that a position with a lower boundary Y value is within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinLowerBoundaryY) { ASSERT_TRUE(grid.is_position_within({3, 0})); }
+
+/// Test that a position with two upper boundary values is within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinUpperBoundaryXY) { ASSERT_TRUE(grid.is_position_within({4, 4})); }
+
+/// Test that a position with an upper boundary X value is within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinUpperBoundaryX) { ASSERT_TRUE(grid.is_position_within({4, 3})); }
+
+/// Test that a position with an upper boundary Y value is within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinUpperBoundaryY) { ASSERT_TRUE(grid.is_position_within({3, 4})); }
+
+/// Test that a position with two large values is not within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinLargerXY) { ASSERT_FALSE(grid.is_position_within({5, 5})); }
+
+/// Test that a position with a large X value is not within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinLargerX) { ASSERT_FALSE(grid.is_position_within({5, 3})); }
+
+/// Test that a position with a large Y value is not within the grid.
+TEST_F(PrimitivesFixture, TestGridIsPositionWithinLargerY) { ASSERT_FALSE(grid.is_position_within({3, 5})); }
+
 /// Test that a position in the middle of the grid can be converted correctly.
 TEST_F(PrimitivesFixture, TestGridConvertPositionMiddle) { ASSERT_EQ(grid.convert_position({1, 2}), 11); }
 
@@ -103,8 +139,7 @@ TEST_F(PrimitivesFixture, TestGridPlaceRectValidGrid) {
 
 /// Test that placing a rect that doesn't fit in the grid works correctly.
 TEST_F(PrimitivesFixture, TestGridPlaceRectOutsideGrid) {
-  const Rect invalid_rect{{0, 0}, {10, 10}};
-  grid.place_rect(invalid_rect);
+  grid.place_rect({{0, 0}, {10, 10}});
   const std::vector target_result{
       TileType::Wall, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
       TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,

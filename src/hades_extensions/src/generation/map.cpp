@@ -43,23 +43,8 @@ constexpr MapGenerationConstant ITEM_COUNT{5, 1.1, 30};
                map_generation_constant.max_value));
 }
 
-void place_tiles(const Grid &grid, std::mt19937 &random_generator, std::unordered_set<Position> &item_positions,
-                 const TileType target_tile, const int count) {
-  // Place each tile using the Dijkstra map
-  for (int _ = 0; _ < count; _++) {
-    // Determine if we should select a position within or outside the minimum distance
-    const bool within_min_distance{std::uniform_real_distribution<>{0, 1}(random_generator) <
-                                   WITHIN_MIN_DISTANCE_CHANCE};
-
-    // Generate the Dijkstra map for the grid and place the tile in a random position
-    const Position possible_tile{generate_dijkstra_map_position(grid, item_positions, within_min_distance)};
-    grid.set_value(possible_tile, target_tile);
-    item_positions.emplace(possible_tile);
-  }
-}
-
-auto place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType replaceable_tile,
-                 const TileType target_tile, const int count) -> std::unordered_set<Position> {
+auto place_random_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType replaceable_tile,
+                        const TileType target_tile, const int count) -> std::unordered_set<Position> {
   // Get all the positions that match the replaceable tile
   std::vector<Position> replaceable_tiles;
   for (int y = 0; y < grid.height; y++) {
@@ -68,6 +53,11 @@ auto place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
         replaceable_tiles.emplace_back(x, y);
       }
     }
+  }
+
+  // Check if there are enough replaceable tiles to place the target tile
+  if (static_cast<int>(replaceable_tiles.size()) < count) {
+    throw std::length_error("Not enough replaceable tiles to place the target tiles.");
   }
 
   // Create a collection to store the item positions then place each tile
@@ -82,6 +72,21 @@ auto place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
     item_positions.emplace(possible_tile);
   }
   return item_positions;
+}
+
+void place_dijkstra_tiles(const Grid &grid, std::mt19937 &random_generator,
+                          std::unordered_set<Position> &item_positions, const TileType target_tile, const int count) {
+  // Place each tile using the Dijkstra map
+  for (int _ = 0; _ < count; _++) {
+    // Determine if we should select a position within or outside the minimum distance
+    const bool within_min_distance{std::uniform_real_distribution<>{0, 1}(random_generator) <
+                                   WITHIN_MIN_DISTANCE_CHANCE};
+
+    // Generate the Dijkstra map for the grid and place the tile in a random position
+    const Position possible_tile{generate_item_position(grid, item_positions, within_min_distance)};
+    grid.set_value(possible_tile, target_tile);
+    item_positions.emplace(possible_tile);
+  }
 }
 
 auto create_complete_graph(const std::vector<Rect> &rooms) -> std::unordered_map<Rect, std::vector<Rect>> {
@@ -140,7 +145,7 @@ auto create_connections(const std::unordered_map<Rect, std::vector<Rect>> &compl
   return mst;
 }
 
-void create_hallways(Grid &grid, const std::unordered_set<Edge> &connections) {
+void create_hallways(const Grid &grid, const std::unordered_set<Edge> &connections) {
   // Use the A* algorithm to connect each pair of rooms avoiding the obstacles
   std::vector<std::vector<Position>> path_positions(connections.size());
   std::transform(std::execution::par, connections.begin(), connections.end(), path_positions.begin(),
@@ -156,8 +161,6 @@ void create_hallways(Grid &grid, const std::unordered_set<Edge> &connections) {
     }
   }
 }
-
-#include <iostream>
 
 auto create_map(const int level, std::optional<unsigned int> seed)
     -> std::pair<std::vector<TileType>, std::tuple<int, int, int>> {
@@ -180,21 +183,20 @@ auto create_map(const int level, std::optional<unsigned int> seed)
   Grid grid{grid_width, grid_height};
   Leaf bsp{{{0, 0}, {grid_width - 1, grid_height - 1}}};
 
-  // Split the bsp, create the rooms, and create the hallways between the rooms
+  // Split the bsp and create the rooms
   std::vector<Rect> rooms;
   split(bsp, random_generator);
   create_room(bsp, grid, random_generator, rooms);
 
   // Place random obstacles in the grid then create hallways between the rooms
-  place_tiles(grid, random_generator, TileType::Empty, TileType::Obstacle, generate_value(OBSTACLE_COUNT, level));
+  place_random_tiles(grid, random_generator, TileType::Empty, TileType::Obstacle,
+                     generate_value(OBSTACLE_COUNT, level));
   create_hallways(grid, create_connections(create_complete_graph(rooms)));
 
   // Place the player as well as the item tiles in the grid
-  auto item_positions{place_tiles(grid, random_generator, TileType::Floor, TileType::Player)};
-  place_tiles(grid, random_generator, item_positions, TileType::Potion, generate_value(ITEM_COUNT, level));
+  auto item_positions{place_random_tiles(grid, random_generator, TileType::Floor, TileType::Player)};
+  place_dijkstra_tiles(grid, random_generator, item_positions, TileType::Potion, generate_value(ITEM_COUNT, level));
 
   // Return the grid and a LevelConstants object
   return std::make_pair(*grid.grid, std::make_tuple(level, grid_width, grid_height));
 }
-
-// TODO: Optimise/simplify this whole file and maybe combine place_tiles with a boolean

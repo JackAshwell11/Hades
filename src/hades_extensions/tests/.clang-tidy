@@ -33,3 +33,6 @@ Checks: "
   -readability-magic-numbers,
 "
 WarningsAsErrors: "*"
+CheckOptions:
+  - key: readability-identifier-length.IgnoredLoopCounterNames
+    value: "^[ijkxy_]$"

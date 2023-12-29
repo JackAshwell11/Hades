@@ -26,10 +26,8 @@ TEST_F(BspFixture, TestBspSplitVertical) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  const Rect left_container{{0, 0}, {7, 10}};
-  const Rect right_container{{9, 0}, {15, 10}};
-  ASSERT_EQ(*leaf.left->container, left_container);
-  ASSERT_EQ(*leaf.right->container, right_container);
+  ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {7, 10}));
+  ASSERT_EQ(*leaf.right->container, Rect({9, 0}, {15, 10}));
 }
 
 /// Test that the split function correctly splits a leaf horizontally.
@@ -39,10 +37,8 @@ TEST_F(BspFixture, TestBspSplitHorizontal) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  const Rect left_container{{0, 0}, {10, 7}};
-  const Rect right_container{{0, 9}, {10, 15}};
-  ASSERT_EQ(*leaf.left->container, left_container);
-  ASSERT_EQ(*leaf.right->container, right_container);
+  ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {10, 7}));
+  ASSERT_EQ(*leaf.right->container, Rect({0, 9}, {10, 15}));
 }
 
 /// Test that the split function correctly splits a leaf in a random direction.
@@ -52,10 +48,8 @@ TEST_F(BspFixture, TestBspSplitRandom) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  const Rect left_container{{0, 0}, {7, 15}};
-  const Rect right_container{{9, 0}, {15, 15}};
-  ASSERT_EQ(*leaf.left->container, left_container);
-  ASSERT_EQ(*leaf.right->container, right_container);
+  ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {7, 15}));
+  ASSERT_EQ(*leaf.right->container, Rect({9, 0}, {15, 15}));
 }
 
 /// Test that the split function correctly splits a leaf multiple times.
@@ -65,18 +59,12 @@ TEST_F(BspFixture, TestBspSplitMultiple) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  const Rect left_container{{0, 0}, {10, 20}};
-  const Rect left_left_container{{0, 0}, {10, 11}};
-  const Rect left_right_container{{0, 13}, {10, 20}};
-  const Rect right_container{{12, 0}, {20, 20}};
-  const Rect right_left_container{{12, 0}, {20, 10}};
-  const Rect right_right_container{{12, 12}, {20, 20}};
-  ASSERT_EQ(*leaf.left->container, left_container);
-  ASSERT_EQ(*leaf.left->left->container, left_left_container);
-  ASSERT_EQ(*leaf.left->right->container, left_right_container);
-  ASSERT_EQ(*leaf.right->container, right_container);
-  ASSERT_EQ(*leaf.right->left->container, right_left_container);
-  ASSERT_EQ(*leaf.right->right->container, right_right_container);
+  ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {10, 20}));
+  ASSERT_EQ(*leaf.left->left->container, Rect({0, 0}, {10, 11}));
+  ASSERT_EQ(*leaf.left->right->container, Rect({0, 13}, {10, 20}));
+  ASSERT_EQ(*leaf.right->container, Rect({12, 0}, {20, 20}));
+  ASSERT_EQ(*leaf.right->left->container, Rect({12, 0}, {20, 10}));
+  ASSERT_EQ(*leaf.right->right->container, Rect({12, 12}, {20, 20}));
 }
 
 /// Test that the split function returns if the leaf is already split.
@@ -88,10 +76,8 @@ TEST_F(BspFixture, TestBspSplitExistingChildren) {
   split(leaf, random_generator);
 
   // Make sure the children haven't changed
-  const Rect left_container{{0, 0}, {0, 0}};
-  const Rect right_container{{0, 0}, {0, 0}};
-  ASSERT_EQ(*leaf.left->container, left_container);
-  ASSERT_EQ(*leaf.right->container, right_container);
+  ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {0, 0}));
+  ASSERT_EQ(*leaf.right->container, Rect({0, 0}, {0, 0}));
 }
 
 /// Test that the split function overwrites the children if only one child exists.
@@ -102,10 +88,8 @@ TEST_F(BspFixture, TestBspSplitSingleChild) {
   split(leaf, random_generator);
 
   // Make sure the children are correct
-  const Rect left_container{{0, 0}, {7, 15}};
-  const Rect right_container{{9, 0}, {15, 15}};
-  ASSERT_EQ(*leaf.left->container, left_container);
-  ASSERT_EQ(*leaf.right->container, right_container);
+  ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {7, 15}));
+  ASSERT_EQ(*leaf.right->container, Rect({9, 0}, {15, 15}));
 }
 
 /// Test that the split function returns if the leaf is too small to split.
@@ -124,8 +108,7 @@ TEST_F(BspFixture, TestBspCreateRoomSingleLeaf) {
   create_room(leaf, grid, random_generator, rooms);
 
   // Make sure the room is correct
-  const Rect room{{4, 4}, {13, 14}};
-  ASSERT_EQ(*leaf.room, room);
+  ASSERT_EQ(*leaf.room, Rect({4, 4}, {13, 14}));
   ASSERT_EQ(rooms.size(), 1);
 }
 
@@ -139,10 +122,8 @@ TEST_F(BspFixture, TestBspCreateRoomChildLeafs) {
   create_room(leaf, grid, random_generator, rooms);
 
   // Make sure the room is correct
-  const Rect left_room{{2, 0}, {6, 6}};
-  const Rect right_room{{9, 4}, {14, 10}};
-  ASSERT_EQ(*leaf.left->room, left_room);
-  ASSERT_EQ(*leaf.right->room, right_room);
+  ASSERT_EQ(*leaf.left->room, Rect({2, 0}, {6, 6}));
+  ASSERT_EQ(*leaf.right->room, Rect({9, 4}, {14, 10}));
   ASSERT_EQ(rooms.size(), 2);
 }
 
@@ -155,8 +136,7 @@ TEST_F(BspFixture, TestBspCreateRoomExistingRoom) {
   create_room(leaf, grid, random_generator, rooms);
 
   // Make sure the room is correct
-  const Rect room{{4, 4}, {13, 14}};
-  ASSERT_EQ(*leaf.room, room);
+  ASSERT_EQ(*leaf.room, Rect({4, 4}, {13, 14}));
   ASSERT_EQ(rooms.size(), 1);
 }
 
