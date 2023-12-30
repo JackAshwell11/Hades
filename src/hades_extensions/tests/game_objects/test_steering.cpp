@@ -195,7 +195,7 @@ TEST(Tests, TestFollowPathMultiplePositionsReached) {
 /// Test if an empty list raises the correct exception.
 TEST(Tests, TestFollowPathEmptyList) {
   std::vector<Vec2d> path_list;
-  ASSERT_THROW_MESSAGE(follow_path({100, 100}, path_list), std::length_error, "The path list is empty")
+  ASSERT_THROW_MESSAGE(follow_path({100, 100}, path_list), std::length_error, "The path list is empty.")
 }
 
 /// Test if no obstacles produce the correct obstacle avoidance force.

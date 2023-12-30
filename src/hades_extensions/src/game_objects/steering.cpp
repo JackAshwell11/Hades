@@ -39,7 +39,7 @@ auto flee(const Vec2d &current_position, const Vec2d &target_position) -> Vec2d 
 auto follow_path(const Vec2d &current_position, std::vector<Vec2d> &path_list) -> Vec2d {
   // Check if the path list is empty
   if (path_list.empty()) {
-    throw std::length_error("The path list is empty");
+    throw std::length_error("The path list is empty.");
   }
 
   // Check if the game object has reached the current path position. If so, move it to the end of the vector

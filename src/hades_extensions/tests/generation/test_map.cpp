@@ -20,12 +20,12 @@ class MapFixture : public testing::Test {  // NOLINT
   const Grid large_grid{8, 8};
 
   /// A very large 2D grid for use in testing.
-  const Grid very_large_grid{50, 50};
+  const Grid very_large_grid{25, 25};
 
   /// A rect that fits inside the grid for use in testing.
   const Rect rect_one{{0, 1}, {3, 4}};
 
-  /// A rect that fits inside the grid for use in testing.
+  /// An extra rect that fits inside the grid for use in testing.
   const Rect rect_two{{2, 1}, {4, 2}};
 
   /// A large rect that doesn't fit inside the grid for use in testing.
@@ -107,7 +107,7 @@ TEST_F(MapFixture, TestMapPlaceDijkstraTilesMultipleCount) {
 TEST_F(MapFixture, TestMapPlaceDijkstraTilesNoFloors) {
   std::unordered_set<Position> item_positions{};
   ASSERT_THROW_MESSAGE(place_dijkstra_tiles(very_large_grid, random_generator, item_positions, TileType::Obstacle, 1),
-                       std::out_of_range, "Position must be within range")
+                       std::out_of_range, "Position not within the grid.")
 }
 
 /// Test that placing a tile using the Dijkstra map with no items doesn't do anything.
@@ -115,7 +115,7 @@ TEST_F(MapFixture, TestMapPlaceDijkstraTilesNoItems) {
   std::unordered_set<Position> item_positions{};
   add_items_and_floors(item_positions);
   ASSERT_THROW_MESSAGE(place_dijkstra_tiles(very_large_grid, random_generator, item_positions, TileType::Obstacle, 1),
-                       std::out_of_range, "Position must be within range")
+                       std::out_of_range, "Position not within the grid.")
 }
 
 /// Test that placing a tile using the Dijkstra map in an empty grid throws an exception.

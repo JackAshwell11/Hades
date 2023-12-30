@@ -118,11 +118,11 @@ struct Grid {
   /// Convert a 2D grid position to a 1D grid position.
   ///
   /// @param position - The position to convert.
-  /// @throws std::out_of_range - If position is not within range.
+  /// @throws std::out_of_range - If the position is not within the 2D grid.
   /// @return The 1D grid position.
   [[nodiscard]] auto convert_position(const Position &position) const -> int {
     if (!is_position_within(position)) {
-      throw std::out_of_range("Position must be within range");
+      throw std::out_of_range("Position not within the grid.");
     }
     return width * position.y + position.x;
   }
@@ -130,7 +130,7 @@ struct Grid {
   /// Get a value in the 2D grid from a given position.
   ///
   /// @param position - The position to get the value for.
-  /// @throws std::out_of_range - If position is not within range.
+  /// @throws std::out_of_range - If the position is not within the 2D grid.
   /// @return The value at the given position.
   [[nodiscard]] auto get_value(const Position &position) const -> TileType {
     return grid->at(convert_position(position));
@@ -140,7 +140,7 @@ struct Grid {
   ///
   /// @param position - The position to set.
   /// @param target - The value to set at the given position.
-  /// @throws std::out_of_range - If position is not within range.
+  /// @throws std::out_of_range - If the position is not within the 2D grid.
   void set_value(const Position &position, const TileType target) const {
     grid->at(convert_position(position)) = target;
   }
