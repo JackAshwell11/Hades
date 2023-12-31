@@ -2,6 +2,7 @@
 #pragma once
 
 // Std headers
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <memory>
@@ -100,6 +101,16 @@ struct Grid {
   /// The vector which represents the 2D grid.
   std::unique_ptr<std::vector<TileType>> grid;
 
+  /// The offsets for the intercardinal directions.
+  static constexpr std::array INTERCARDINAL_OFFSETS{Position{-1, -1},  // North-west
+                                                    Position{0, -1},   // North
+                                                    Position{1, -1},   // North-east
+                                                    Position{-1, 0},   // West
+                                                    Position{1, 0},    // East
+                                                    Position{-1, 1},   // South-west
+                                                    Position{0, 1},    // South
+                                                    Position{1, 1}};   // South-east
+
   /// Initialise the object.
   ///
   /// @param width - The width of the 2D grid.
@@ -145,11 +156,32 @@ struct Grid {
     grid->at(convert_position(position)) = target;
   }
 
+  /// Get the neighbours of a given position.
+  ///
+  /// @param position - The position to get the neighbours for.
+  /// @return The neighbours of the given position.
+  [[nodiscard]] auto get_neighbours(const Position &position) const -> std::vector<Position> {
+    std::vector<Position> neighbours;
+    for (const Position &offset : INTERCARDINAL_OFFSETS) {
+      if (const Position neighbour{position + offset}; is_position_within(neighbour)) {
+        neighbours.emplace_back(neighbour);
+      }
+    }
+    return neighbours;
+  }
+
   /// Place a rect in the 2D grid.
   ///
   /// @details It is the responsibility of the caller to ensure that the rect fits in the grid.
   /// @param rect - The rect to place in the 2D grid.
-  void place_rect(const Rect &rect) const;
+  void place_rect(const Rect &rect) const {
+    // Place only the floors as the walls will be placed after the cellular automata
+    for (int y = std::max(rect.top_left.y, 0); y < std::min(rect.bottom_right.y + 1, height); y++) {
+      for (int x = std::max(rect.top_left.x, 0); x < std::min(rect.bottom_right.x + 1, width); x++) {
+        set_value({x, y}, TileType::Floor);
+      }
+    }
+  }
 };
 
 // ----- HASHES ------------------------------

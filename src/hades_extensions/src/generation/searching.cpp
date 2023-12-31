@@ -2,7 +2,6 @@
 #include "generation/searching.hpp"
 
 // Std headers
-#include <array>
 #include <queue>
 
 // ----- STRUCTURES ------------------------------
@@ -20,14 +19,6 @@ struct Neighbour {
 
 // ----- CONSTANTS ------------------------------
 constexpr int TILE_MIN_DISTANCE{5};
-constexpr std::array INTERCARDINAL_OFFSETS{Position{-1, -1},  // North-west
-                                           Position{0, -1},   // North
-                                           Position{1, -1},   // North-east
-                                           Position{-1, 0},   // West
-                                           Position{1, 0},    // East
-                                           Position{-1, 1},   // South-west
-                                           Position{0, 1},    // South
-                                           Position{1, 1}};   // South-east
 
 // ----- FUNCTIONS ------------------------------
 auto calculate_astar_path(const Grid &grid, const Position &start, const Position &end) -> std::vector<Position> {
@@ -63,13 +54,7 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
     //   f - The total cost of traversing the neighbour
     //   g - The distance between the start pair and the neighbour pair
     //   h - The estimated distance from the neighbour pair to the end pair (this uses the Chebyshev distance)
-    for (const Position &offset : INTERCARDINAL_OFFSETS) {
-      // Get the neighbour position then check if it is within the grid
-      const Position neighbour{current + offset};
-      if (!grid.is_position_within(neighbour)) {
-        continue;
-      }
-
+    for (const Position &neighbour : grid.get_neighbours(current)) {
       // Move around the neighbour if it is an obstacle as they have an infinite cost
       if (grid.get_value(neighbour) == TileType::Obstacle) {
         continue;
@@ -112,11 +97,9 @@ auto generate_item_position(const Grid &grid, const std::unordered_set<Position>
     queue.pop();
 
     // Add all the neighbours to the priority queue
-    for (const Position &offset : INTERCARDINAL_OFFSETS) {
-      // Get the neighbour position then check if it is within the grid and if it is already explored
-      const Position neighbour{current + offset};
-      if (!grid.is_position_within(neighbour) || within_positions.contains(neighbour) ||
-          outside_positions.contains(neighbour)) {
+    for (const Position &neighbour : grid.get_neighbours(current)) {
+      // Check if the neighbour neighbour position is already explored or not
+      if (within_positions.contains(neighbour) || outside_positions.contains(neighbour)) {
         continue;
       }
 

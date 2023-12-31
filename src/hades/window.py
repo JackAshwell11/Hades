@@ -61,3 +61,8 @@ def main() -> None:
 # Only make sure the game is run from this file
 if __name__ == "__main__":
     main()
+
+
+# TODO: Start thinking about how to refactor the game (maybe move to pygam or some other
+#  library or other methods). Could move events to c++ and/or move physics system to
+#  box2d or chipmunk among other stuff

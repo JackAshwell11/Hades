@@ -41,4 +41,4 @@ void split(Leaf &leaf, std::mt19937 &random_generator);
 /// @param grid - The 2D grid which represents the dungeon.
 /// @param random_generator - The random generator to use.
 /// @param rooms - The vector of rooms to add the new room to.
-void create_room(Leaf &leaf, Grid &grid, std::mt19937 &random_generator, std::vector<Rect> &rooms);
+void create_room(Leaf &leaf, const Grid &grid, std::mt19937 &random_generator, std::vector<Rect> &rooms);

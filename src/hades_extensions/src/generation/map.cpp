@@ -23,8 +23,10 @@ struct MapGenerationConstant {
 };
 
 // ----- CONSTANTS ------------------------------
-constexpr int HALLWAY_SIZE{5};
+constexpr int HALLWAY_SIZE{3};
 constexpr int HALF_HALLWAY_SIZE{HALLWAY_SIZE / 2};
+constexpr int CELLULAR_AUTOMATA_SIMULATIONS{3};
+constexpr int MIN_NEIGHBOUR_DISTANCE{4};
 constexpr double WITHIN_MIN_DISTANCE_CHANCE{0.3};
 constexpr MapGenerationConstant WIDTH{30, 1.2, 150};
 constexpr MapGenerationConstant HEIGHT{20, 1.2, 100};
@@ -162,6 +164,35 @@ void create_hallways(const Grid &grid, const std::unordered_set<Edge> &connectio
   }
 }
 
+void run_cellular_automata(Grid &grid) {
+  // Create a temporary grid to store the next generation then perform the cellular automata simulation
+  auto temp_grid = std::make_unique<std::vector<TileType>>(*grid.grid);
+  for (int i = 0; i < grid.width * grid.height; i++) {
+    // Get the number of alive neighbours and check if the tile should be alive or dead
+    const auto alive_neighbours{std::ranges::count_if(
+        grid.get_neighbours({i % grid.width, i / grid.width}),
+        [&grid](const Position &neighbour) { return grid.get_value(neighbour) == TileType::Floor; })};
+    temp_grid->at(i) = alive_neighbours >= MIN_NEIGHBOUR_DISTANCE ? TileType::Floor : TileType::Empty;
+  }
+  grid.grid = std::move(temp_grid);
+
+  // Place walls around the floor tiles
+  for (int y = 0; y < grid.height; y++) {
+    for (int x = 0; x < grid.width; x++) {
+      // Check if the tile is on the edge of the grid or if it has a floor neighbour (while not being a floor tile)
+      const Position position{x, y};
+      if (const auto floor_neighbours{std::ranges::count_if(
+              grid.get_neighbours(position),
+              [&grid](const Position &neighbour) { return grid.get_value(neighbour) == TileType::Floor; })};
+          (x == 0 || y == 0 || x == grid.width - 1 || y == grid.height - 1 ||
+           grid.get_value(position) != TileType::Floor) &&
+          floor_neighbours > 0) {
+        grid.set_value(position, TileType::Wall);
+      }
+    }
+  }
+}
+
 auto create_map(const int level, std::optional<unsigned int> seed)
     -> std::pair<std::vector<TileType>, std::tuple<int, int, int>> {
   // Check that the level number is valid
@@ -192,6 +223,11 @@ auto create_map(const int level, std::optional<unsigned int> seed)
   place_random_tiles(grid, random_generator, TileType::Empty, TileType::Obstacle,
                      generate_value(OBSTACLE_COUNT, level));
   create_hallways(grid, create_connections(create_complete_graph(rooms)));
+
+  // Run some cellular automata simulations on the grid then place the walls around the floor tiles
+  for (int _ = 0; _ < CELLULAR_AUTOMATA_SIMULATIONS; _++) {
+    run_cellular_automata(grid);
+  }
 
   // Place the player as well as the item tiles in the grid
   auto item_positions{place_random_tiles(grid, random_generator, TileType::Floor, TileType::Player)};

@@ -7,7 +7,7 @@
 class SearchingFixture : public testing::Test {
  protected:
   /// A 2D grid for use in testing.
-  Grid grid{6, 9};
+  const Grid grid{6, 9};
 
   /// A position in the middle of the grid for use in testing.
   const Position position_one{3, 7};

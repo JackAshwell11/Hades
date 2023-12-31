@@ -7,7 +7,7 @@
 class PrimitivesFixture : public testing::Test {
  protected:
   /// A 2D grid for use in testing.
-  Grid grid{5, 5};
+  const Grid grid{5, 5};
 
   /// A rect inside the grid for use in testing.
   const Rect rect_one{{0, 0}, {2, 3}};
@@ -124,14 +124,27 @@ TEST_F(PrimitivesFixture,
        TestGridSetValueLarger){ASSERT_THROW_MESSAGE((grid.set_value({10, 10}, TileType::Player)), std::out_of_range,
                                                     "Position not within the grid.")}
 
+/// Test that a zero size rect can be placed correctly in a valid grid.
+TEST_F(PrimitivesFixture, TestGridPlaceRectZeroSize) {
+  grid.place_rect({{0, 0}, {0, 0}});
+  const std::vector target_result{
+      TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+  };
+  ASSERT_EQ(*grid.grid, target_result);
+}
+
 /// Test that a rect can be placed correctly in a valid grid.
 TEST_F(PrimitivesFixture, TestGridPlaceRectValidGrid) {
   grid.place_rect(rect_one);
   const std::vector target_result{
-      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty,
-      TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty,
-      TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty, TileType::Empty,
-      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
   ASSERT_EQ(*grid.grid, target_result);
@@ -141,11 +154,18 @@ TEST_F(PrimitivesFixture, TestGridPlaceRectValidGrid) {
 TEST_F(PrimitivesFixture, TestGridPlaceRectOutsideGrid) {
   grid.place_rect({{0, 0}, {10, 10}});
   const std::vector target_result{
-      TileType::Wall, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
-      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
   };
   ASSERT_EQ(*grid.grid, target_result);
+}
+
+/// Test that placing a rect in a zero size grid doesn't do anything.
+TEST_F(PrimitivesFixture, TestGridPlaceRectZeroSizeGrid) {
+  const Grid empty_grid{0, 0};
+  empty_grid.place_rect(rect_one);
+  ASSERT_EQ(*empty_grid.grid, std::vector<TileType>{});
 }

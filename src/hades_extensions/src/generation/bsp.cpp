@@ -56,7 +56,7 @@ void split(Leaf &leaf, std::mt19937 &random_generator) {  // NOLINT(misc-no-recu
   split(*leaf.right, random_generator);
 }
 
-void create_room(Leaf &leaf, Grid &grid, std::mt19937 &random_generator,  // NOLINT(misc-no-recursion)
+void create_room(Leaf &leaf, const Grid &grid, std::mt19937 &random_generator,  // NOLINT(misc-no-recursion)
                  std::vector<Rect> &rooms) {
   // Check if this leaf is already split or not, if so, create rooms for the left and right leafs
   if (leaf.left && leaf.right) {

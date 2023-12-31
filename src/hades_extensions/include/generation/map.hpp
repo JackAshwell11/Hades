@@ -84,6 +84,11 @@ auto create_connections(const std::unordered_map<Rect, std::vector<Rect>> &compl
 /// @param connections - The connections to pathfind using the A* algorithm.
 void create_hallways(const Grid &grid, const std::unordered_set<Edge> &connections);
 
+/// Perform a cellular automata simulation on the grid.
+///
+/// @param grid - The 2D grid which represents the dungeon.
+void run_cellular_automata(Grid &grid);
+
 /// Generate the game map for a given game level.
 ///
 /// @param level - The game level to generate a map for.
@@ -92,5 +97,3 @@ void create_hallways(const Grid &grid, const std::unordered_set<Edge> &connectio
 /// @return A tuple containing the generated map and the level constants.
 auto create_map(int level, std::optional<unsigned int> seed = std::nullopt)
     -> std::pair<std::vector<TileType>, std::tuple<int, int, int>>;
-
-// TODO: Go over generation/ documentation for whole of generation/ to check for more @throws

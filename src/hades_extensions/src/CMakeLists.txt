@@ -24,7 +24,6 @@ add_library(${CPP_LIB} STATIC
         ${CMAKE_SOURCE_DIR}/src/game_objects/systems/upgrade.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/bsp.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/map.cpp
-        ${CMAKE_SOURCE_DIR}/src/generation/primitives.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/searching.cpp
 )
 target_include_directories(${CPP_LIB} PUBLIC ${CMAKE_SOURCE_DIR}/include)
