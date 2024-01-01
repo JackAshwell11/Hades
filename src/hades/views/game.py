@@ -24,19 +24,17 @@ from arcade import (
 
 # Custom
 from hades.constants import (
+    COLLECTIBLE_TYPES,
     DAMPING,
     ENEMY_GENERATE_INTERVAL,
     ENEMY_GENERATION_DISTANCE,
     ENEMY_RETRY_COUNT,
     MAX_VELOCITY,
     TOTAL_ENEMY_COUNT,
-)
-from hades.constructors import (
-    COLLECTIBLE_TYPES,
     USABLE_TYPES,
-    GameObjectConstructorManager,
     GameObjectType,
 )
+from hades.constructors import ENEMY, FLOOR, PLAYER, POTION, WALL, GameObjectConstructor
 from hades.sprite import AnimatedSprite, HadesSprite, grid_pos_to_pixel
 from hades_extensions.game_objects import SPRITE_SIZE, Registry, Vec2d
 from hades_extensions.game_objects.components import KeyboardMovement, SteeringMovement
@@ -72,6 +70,9 @@ class LevelConstants(NamedTuple):
     height: int
 
 
+# TODO: Add attacking
+
+
 class Game(View):
     """Manages the game and its actions.
 
@@ -92,20 +93,19 @@ class Game(View):
 
     def _create_sprite(
         self: Game,
-        game_object_type: GameObjectType,
+        constructor: GameObjectConstructor,
         position: tuple[int, int],
     ) -> HadesSprite:
         """Create a sprite.
 
         Args:
-            game_object_type: The type of game object to initialise.
+            constructor: The constructor for the game object.
             position: The position of the game object in the grid.
 
         Returns:
             The created sprite object.
         """
         # Get the constructor and create a game object
-        constructor = GameObjectConstructorManager.get_constructor(game_object_type)
         game_object_id = -1
         if constructor.components:
             game_object_id = self.registry.create_game_object(
@@ -118,11 +118,11 @@ class Game(View):
         # Create a sprite and add its ID to the dictionary
         sprite_class = AnimatedSprite if constructor.kinematic else HadesSprite
         sprite = sprite_class(
-            (game_object_id, game_object_type),
+            (game_object_id, constructor.game_object_type),
             position,
             constructor.textures,
         )
-        self.ids.setdefault(game_object_type, []).append(sprite)
+        self.ids.setdefault(constructor.game_object_type, []).append(sprite)
 
         # Add the game object to the physics engine if it is blocking or kinematic
         if constructor.blocking or constructor.kinematic:
@@ -137,7 +137,7 @@ class Game(View):
                     else self.physics_engine.DYNAMIC  # type: ignore[misc]
                 ),
                 max_velocity=MAX_VELOCITY,
-                collision_type=game_object_type.name,
+                collision_type=constructor.game_object_type.name,
             )
         return sprite
 
@@ -191,21 +191,21 @@ class Game(View):
             # Determine the type of the tile
             if tile == TileType.Wall:
                 self.tile_sprites.append(
-                    self._create_sprite(GameObjectType.WALL, position),
+                    self._create_sprite(WALL, position),
                 )
             else:
                 if tile == TileType.Player:
                     self.entity_sprites.append(
-                        self._create_sprite(GameObjectType.PLAYER, position),
+                        self._create_sprite(PLAYER, position),
                     )
                 elif tile == TileType.Potion:
                     self.item_sprites.append(
-                        self._create_sprite(GameObjectType.POTION, position),
+                        self._create_sprite(POTION, position),
                     )
 
                 # Make the game object's backdrop a floor
                 self.tile_sprites.append(
-                    self._create_sprite(GameObjectType.FLOOR, position),
+                    self._create_sprite(FLOOR, position),
                 )
                 self.possible_enemy_spawns.append(position)
 
@@ -406,7 +406,7 @@ class Game(View):
                 continue
 
             # Set the required data for the steering to correctly function
-            new_sprite = self._create_sprite(GameObjectType.ENEMY, position)
+            new_sprite = self._create_sprite(ENEMY, position)
             self.entity_sprites.append(new_sprite)
             steering_movement = self.registry.get_component(
                 new_sprite.game_object_id,

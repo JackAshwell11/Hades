@@ -19,18 +19,18 @@ arcade = "3.0.0.dev25"
 [tool.poetry.dev-dependencies]
 black = "23.12.1"
 mypy = "1.8.0"
-nuitka = "1.9.5"
+nuitka = "1.9.6"
 ordered-set = "4.1.0"
 pre-commit = "3.6.0"
 pylint = "3.0.3"
-pytest = "7.4.3"
+pytest = "7.4.4"
 pytest-cov = "4.1.0"
 pytest-icdiff = "0.9"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.15.0"
 pytest-sugar = "0.9.7"
 ruff = "0.1.9"
-ssort = "v0.11.6"
+ssort = "v0.12.0"
 tox = "4.11.4"
 
 [tool.black]
@@ -71,7 +71,6 @@ disallow_any_unimported = true
 exclude = [
     "build.py",  # Setuptools is untyped so we need to ignore it
     "src/hades/views/start_menu.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
-    "src/hades/views/inventory.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
 ]
 ignore_missing_imports = true
 pretty = true
@@ -129,19 +128,12 @@ enable = [
 ]
 include-naming-hint = true
 disable = [
-    "attribute-defined-outside-init",  # Allow attributes being defined outside __init__ (sometimes this needs to happen)
     "import-error",  # Sometimes pylint can't import a package correctly
     "magic-value-comparison",  # Stop Pylint complaining about the tests
-    "no-else-return",  # Allow else statement after a return
-    "no-member",  # Allow BaseView to set the window attribute
     "no-name-in-module",  # Pylint can't infer imports from the extensions
     "redefined-outer-name",  # Allow redefining outer names (this is used in pytest)
     "too-few-public-methods",  # Stop Pylint complaining about too few public methods
-    "too-many-arguments",  # Stop Pylint complaining about too many parameters
     "too-many-instance-attributes",  # Stop Pylint complaining about too many instance attributes
-    "too-many-locals",  # Stop Pylint complaining about too many local variables
-    "too-many-lines",  # Stop Pylint complaining about too many lines
-    "too-many-statements",  # Stop Pylint complaining about too many statements
     "unsubscriptable-object",  # Stop Pylint complaining about the generation result
 ]
 
@@ -151,9 +143,6 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.ruff]
-extend-exclude = [
-    "src/hades/views/inventory.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
-]
 extend-ignore = [
     "S311",  # Allow use of the random library
 ]

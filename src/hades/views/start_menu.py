@@ -42,12 +42,6 @@ def start_on_click_handler(_: UIOnClickEvent) -> None:
     window.show_view(new_game)
 
 
-def quit_on_click_handler(_: UIOnClickEvent) -> None:
-    """Exit the game when the button is clicked."""
-    logger.info("Exiting game")
-    arcade.exit()
-
-
 class StartMenu(arcade.View):
     """Creates a start menu useful for picking the game mode and options.
 
@@ -66,12 +60,8 @@ class StartMenu(arcade.View):
             UIFlatButton(text="Start Game", width=200),
             UIFlatButton(text="Quit Game", width=200),
         )
-        start_button.on_click, quit_button.on_click = (
-            start_on_click_handler,
-            quit_on_click_handler,
-        )
-        vertical_box.add(start_button)
-        vertical_box.add(quit_button)
+        start_button.on_click = start_on_click_handler
+        quit_button.on_click = lambda _: arcade.exit()
 
         # Add the vertical box layout to the UI
         anchor_layout = UIAnchorLayout(anchor_x="center_x", anchor_y="center_y")
@@ -83,10 +73,8 @@ class StartMenu(arcade.View):
         # Clear the screen
         self.clear()
 
-        # Draw the background colour
+        # Draw the background colour and the UI elements
         self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
-
-        # Draw the UI elements
         self.ui_manager.draw()
 
     def on_show_view(self: StartMenu) -> None:

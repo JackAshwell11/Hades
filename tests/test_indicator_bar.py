@@ -7,7 +7,7 @@ import pytest
 from arcade import SpriteList, SpriteSolidColor, color
 
 # Custom
-from hades.constructors import GameObjectType
+from hades.constants import GameObjectType
 from hades.indicator_bar import IndicatorBar, IndicatorBarError
 from hades.sprite import HadesSprite
 from hades_extensions.game_objects.components import Stat

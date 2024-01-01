@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # Builtin
 from datetime import datetime, timezone
+from enum import Enum, auto
 from pathlib import Path
 from typing import Final
 
@@ -14,12 +15,14 @@ __all__ = (
     "ATTACK_COOLDOWN",
     "ATTACK_RANGE",
     "BULLET_VELOCITY",
+    "COLLECTIBLE_TYPES",
     "DAMAGE",
     "DAMPING",
     "ENEMY_GENERATE_INTERVAL",
     "ENEMY_GENERATION_DISTANCE",
     "ENEMY_RETRY_COUNT",
     "GAME_LOGGER",
+    "GameObjectType",
     "INDICATOR_BAR_BORDER_SIZE",
     "INDICATOR_BAR_DISTANCE",
     "INDICATOR_BAR_HEIGHT",
@@ -28,7 +31,18 @@ __all__ = (
     "MAX_BULLET_RANGE",
     "MAX_VELOCITY",
     "TOTAL_ENEMY_COUNT",
+    "USABLE_TYPES",
 )
+
+
+class GameObjectType(Enum):
+    """Stores the different types of game objects that can exist in the game."""
+
+    ENEMY = auto()
+    FLOOR = auto()
+    PLAYER = auto()
+    POTION = auto()
+    WALL = auto()
 
 
 # Create the log directory making sure it exists. Then create the path for the current
@@ -103,3 +117,11 @@ INDICATOR_BAR_WIDTH: Final[int] = 50
 # Physics constants
 DAMPING: Final[float] = 0.0001
 MAX_VELOCITY: Final[int] = 200
+
+# Define some collections for game object types
+COLLECTIBLE_TYPES: Final[set[GameObjectType]] = {
+    GameObjectType.POTION,
+}
+USABLE_TYPES: Final[set[GameObjectType]] = {
+    GameObjectType.POTION,
+}

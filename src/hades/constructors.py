@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 # Builtin
-from enum import Enum, auto
 from typing import TYPE_CHECKING, Final, NamedTuple
 
 # Custom
+from hades.constants import GameObjectType
 from hades_extensions.game_objects import SteeringBehaviours, SteeringMovementState
 from hades_extensions.game_objects.components import (
     EffectApplier,
@@ -22,28 +22,14 @@ if TYPE_CHECKING:
 
     from hades_extensions.game_objects import ComponentBase
 
-__all__ = (
-    "GameObjectConstructorManager",
-    "GameObjectType",
-    "COLLECTIBLE_TYPES",
-    "USABLE_TYPES",
-)
-
-
-class GameObjectType(Enum):
-    """Stores the different types of game objects that can exist in the game."""
-
-    ENEMY = auto()
-    FLOOR = auto()
-    PLAYER = auto()
-    POTION = auto()
-    WALL = auto()
+__all__ = ("ENEMY", "FLOOR", "GameObjectConstructor", "PLAYER", "POTION", "WALL")
 
 
 class GameObjectConstructor(NamedTuple):
     """Represents a constructor for a game object.
 
     Args:
+        game_object_type: The game object's type.
         name: The game object's name.
         textures: The game object's texture paths.
         components: The game object's components.
@@ -51,6 +37,7 @@ class GameObjectConstructor(NamedTuple):
         kinematic: Whether the game object should have a kinematic object or not.
     """
 
+    game_object_type: GameObjectType
     name: str
     textures: list[str]
     components: ClassVar[list[ComponentBase]] = []
@@ -58,107 +45,58 @@ class GameObjectConstructor(NamedTuple):
     kinematic: bool = False
 
 
-class GameObjectConstructorManager:
-    """Holds the various templates for game objects and sprites."""
-
-    # Class variables
-    _constructors: ClassVar[dict[GameObjectType, GameObjectConstructor]] = {}
-
-    @classmethod
-    def add_constructor(
-        cls: type[GameObjectConstructorManager],
-        game_object_type: GameObjectType,
-        constructor: GameObjectConstructor,
-    ) -> None:
-        """Add a constructor to the manager.
-
-        Args:
-            game_object_type: The type of constructor.
-            constructor: The constructor to add.
-        """
-        cls._constructors[game_object_type] = constructor
-
-    @classmethod
-    def get_constructor(
-        cls: type[GameObjectConstructorManager],
-        game_object_type: GameObjectType,
-    ) -> GameObjectConstructor:
-        """Get a constructor from the manager.
-
-        Args:
-            game_object_type: The type of game object.
-
-        Returns:
-            The constructor.
-        """
-        return cls._constructors[game_object_type]
-
-
-# Add the static tiles
-GameObjectConstructorManager.add_constructor(
+# Static tiles
+WALL: Final[GameObjectConstructor] = GameObjectConstructor(
     GameObjectType.WALL,
-    GameObjectConstructor(
-        "Wall",
-        ["wall.png"],
-        blocking=True,
-    ),
+    "Wall",
+    ["wall.png"],
+    blocking=True,
 )
-GameObjectConstructorManager.add_constructor(
+FLOOR: Final[GameObjectConstructor] = GameObjectConstructor(
     GameObjectType.FLOOR,
-    GameObjectConstructor("Floor", ["floor.png"]),
+    "Floor",
+    ["floor.png"],
 )
 
-# Add the entities
-GameObjectConstructorManager.add_constructor(
+# Entities
+PLAYER: Final[GameObjectConstructor] = GameObjectConstructor(
     GameObjectType.PLAYER,
-    GameObjectConstructor(
-        "Player",
-        ["player_idle.png"],
-        [
-            Inventory(6, 5),
-            MovementForce(5000, 5),
-            KeyboardMovement(),
-            Footprints(),
-        ],
-        kinematic=True,
-    ),
+    "Player",
+    ["player_idle.png"],
+    [
+        Inventory(6, 5),
+        MovementForce(5000, 5),
+        KeyboardMovement(),
+        Footprints(),
+    ],
+    kinematic=True,
 )
-GameObjectConstructorManager.add_constructor(
+ENEMY: Final[GameObjectConstructor] = GameObjectConstructor(
     GameObjectType.ENEMY,
-    GameObjectConstructor(
-        "Enemy",
-        ["enemy_idle.png"],
-        [
-            MovementForce(1000, 5),
-            SteeringMovement(
-                {
-                    SteeringMovementState.Default: [
-                        SteeringBehaviours.ObstacleAvoidance,
-                        SteeringBehaviours.Wander,
-                    ],
-                    SteeringMovementState.Footprint: [SteeringBehaviours.FollowPath],
-                    SteeringMovementState.Target: [SteeringBehaviours.Pursue],
-                },
-            ),
-        ],
-        kinematic=True,
-    ),
+    "Enemy",
+    ["enemy_idle.png"],
+    [
+        MovementForce(1000, 5),
+        SteeringMovement(
+            {
+                SteeringMovementState.Default: [
+                    SteeringBehaviours.ObstacleAvoidance,
+                    SteeringBehaviours.Wander,
+                ],
+                SteeringMovementState.Footprint: [SteeringBehaviours.FollowPath],
+                SteeringMovementState.Target: [SteeringBehaviours.Pursue],
+            },
+        ),
+    ],
+    kinematic=True,
 )
 
-# Add the items
-GameObjectConstructorManager.add_constructor(
+# Items
+POTION: Final[GameObjectConstructor] = GameObjectConstructor(
     GameObjectType.POTION,
-    GameObjectConstructor(
-        "Health Potion",
-        ["health_potion.png"],
-        [EffectApplier({}, {})],
-    ),
+    "Health Potion",
+    ["health_potion.png"],
+    [EffectApplier({}, {})],
 )
 
-# Define some collections for game object types
-COLLECTIBLE_TYPES: Final[set[GameObjectType]] = {
-    GameObjectType.POTION,
-}
-USABLE_TYPES: Final[set[GameObjectType]] = {
-    GameObjectType.POTION,
-}
+# TODO: Plan out all the game objects

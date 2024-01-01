@@ -6,7 +6,7 @@ from __future__ import annotations
 import pytest
 
 # Custom
-from hades.constructors import GameObjectType
+from hades.constants import GameObjectType
 from hades.sprite import AnimatedSprite, BiggerThanError, HadesSprite, grid_pos_to_pixel
 
 __all__ = ()
