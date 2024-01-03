@@ -9,7 +9,12 @@ class TileType(Enum):
     Player = ...
     Potion = ...
 
+class LevelConstants:
+    level: int
+    width: int
+    height: int
+
 def create_map(
     level: int,
     seed: int | None = None,
-) -> tuple[list[TileType], tuple[int, int, int]]: ...
+) -> tuple[list[TileType], LevelConstants]: ...

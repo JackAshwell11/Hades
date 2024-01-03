@@ -29,6 +29,18 @@ struct Edge {
   Rect destination;
 };
 
+/// Holds the constants for a specific level.
+struct LevelConstants {
+  /// The level of this game.
+  int level;
+
+  /// The width of the dungeon.
+  int width;
+
+  /// The height of the dungeon.
+  int height;
+};
+
 // ----- HASHES ------------------------------
 template <>
 struct std::hash<Edge> {
@@ -96,4 +108,4 @@ void run_cellular_automata(Grid &grid);
 /// @throws std::invalid_argument - If the level is less than 0.
 /// @return A tuple containing the generated map and the level constants.
 auto create_map(int level, std::optional<unsigned int> seed = std::nullopt)
-    -> std::pair<std::vector<TileType>, std::tuple<int, int, int>>;
+    -> std::pair<std::vector<TileType>, LevelConstants>;

@@ -98,5 +98,3 @@ POTION: Final[GameObjectConstructor] = GameObjectConstructor(
     ["health_potion.png"],
     [EffectApplier({}, {})],
 )
-
-# TODO: Plan out all the game objects

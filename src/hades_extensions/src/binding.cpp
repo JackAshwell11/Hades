@@ -69,10 +69,10 @@ auto make_system_types()
 /// @throws std::runtime_error - If the component type is invalid.
 /// @return The type index for the component type.
 inline auto get_type_index(const pybind11::handle &component_type) -> std::type_index {
-  static const auto &component_types =
+  static const auto &component_types{
       make_component_types<Armour, ArmourRegen, Attacks, EffectApplier, Footprints, Health, Inventory, KeyboardMovement,
-                           Money, MovementForce, StatusEffectData, StatusEffects, SteeringMovement, Upgrades>();
-  const auto iter = component_types.find(component_type);
+                           Money, MovementForce, StatusEffectData, StatusEffects, SteeringMovement, Upgrades>()};
+  const auto iter{component_types.find(component_type)};
   if (iter == component_types.end()) {
     throw std::runtime_error("Invalid component type provided.");
   }
@@ -94,15 +94,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   module.doc() = "Manages the various C++ extension modules for the game.";
 
   // Create the generation module
-  pybind11::module generation =
-      module.def_submodule("generation", "Generates the dungeon and places game objects in it.");
-  generation.def("create_map", &create_map, pybind11::arg("level"), pybind11::arg("seed") = pybind11::none(),
-                 "Generate the game map for a given game level.\n\n"
-                 "Args:\n"
-                 "    level: The game level to generate a map for.\n"
-                 "    seed: The seed to initialise the random generator.\n\n"
-                 "Returns:\n"
-                 "    A tuple containing the generated map and the level constants.");
+  pybind11::module generation{
+      module.def_submodule("generation", "Generates the dungeon and places game objects in it.")};
   pybind11::enum_<TileType>(generation, "TileType")
       .value("Empty", TileType::Empty)
       .value("Floor", TileType::Floor)
@@ -110,6 +103,17 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Obstacle", TileType::Obstacle)
       .value("Player", TileType::Player)
       .value("Potion", TileType::Potion);
+  pybind11::class_<LevelConstants>(generation, "LevelConstants", "Holds the constants for a specific level.")
+      .def_readonly("level", &LevelConstants::level)
+      .def_readonly("width", &LevelConstants::width)
+      .def_readonly("height", &LevelConstants::height);
+  generation.def("create_map", &create_map, pybind11::arg("level"), pybind11::arg("seed") = pybind11::none(),
+                 "Generate the game map for a given game level.\n\n"
+                 "Args:\n"
+                 "    level: The game level to generate a map for.\n"
+                 "    seed: The seed to initialise the random generator.\n\n"
+                 "Returns:\n"
+                 "    A tuple containing the generated map and the level constants.");
 
   // Create the game objects, game_objects/systems, and game_objects/components modules
   pybind11::module game_objects = module.def_submodule(

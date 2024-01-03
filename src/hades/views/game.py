@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING
 
 # Pip
 from arcade import (
@@ -56,39 +56,29 @@ __all__ = ("Game",)
 logger = logging.getLogger(__name__)
 
 
-class LevelConstants(NamedTuple):
-    """Holds the constants for a specific level.
-
-    Args:
-        level: The level of this game.
-        width: The width of the dungeon.
-        height: The height of the dungeon.
-    """
-
-    level: int
-    width: int
-    height: int
-
-
-# TODO: Add attacking
+# TODO: Add player attacking enemy (so switching and attacking). Will require components
+#  and indicator bars too
+# TODO: Moving the physics engine to C++ would massively help, but needs a lot of work
 
 
 class Game(View):
     """Manages the game and its actions.
 
     Attributes:
-        level_constants: Holds the constants for the current level.
-        registry: The registry which manages the game objects.
-        ids: The dictionary which stores the IDs and sprites for each game object type.
+        game_camera: The camera used for moving the viewport around the screen.
+        gui_camera: The camera used for visualising the GUI elements.
+        physics_engine: The physics engine which processes wall collision.
         tile_sprites: The sprite list for the tile game objects.
         entity_sprites: The sprite list for the entity game objects.
         item_sprites: The sprite list for the item game objects.
-        physics_engine: The physics engine which processes wall collision.
-        game_camera: The camera used for moving the viewport around the screen.
-        gui_camera: The camera used for visualising the GUI elements.
-        possible_enemy_spawns: A list of possible positions that enemies can spawn in.
+        nearest_item: The nearest item to the player.
         player_status_text: The text object used for displaying the player's health and
             armour.
+        level_constants: Holds the constants for the current level.
+        registry: The registry which manages the game objects.
+        ids: The dictionary which stores the IDs and sprites for each game object type.
+        possible_enemy_spawns: A list of possible positions that enemies can spawn in.
+        indicator_bars: A list of indicator bars that are currently being displayed.
     """
 
     def _create_sprite(
@@ -148,9 +138,6 @@ class Game(View):
             level: The level to create a game for.
         """
         super().__init__()
-        # Generate a level
-        generation_result = create_map(level)
-
         # Arcade types
         self.game_camera: Camera = Camera()
         self.gui_camera: Camera = Camera()
@@ -167,7 +154,7 @@ class Game(View):
         )
 
         # Custom types
-        self.level_constants: LevelConstants = LevelConstants(*generation_result[1])
+        generation_result, self.level_constants = create_map(level)
         self.registry: Registry = Registry()
 
         # Custom collections
@@ -177,7 +164,7 @@ class Game(View):
 
         # Initialise all the systems then the game objects
         self.registry.add_systems()
-        for count, tile in enumerate(generation_result[0]):
+        for count, tile in enumerate(generation_result):
             # Skip all empty tiles
             if tile in {TileType.Empty, TileType.Obstacle}:
                 continue

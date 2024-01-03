@@ -193,8 +193,7 @@ void run_cellular_automata(Grid &grid) {
   }
 }
 
-auto create_map(const int level, std::optional<unsigned int> seed)
-    -> std::pair<std::vector<TileType>, std::tuple<int, int, int>> {
+auto create_map(const int level, std::optional<unsigned int> seed) -> std::pair<std::vector<TileType>, LevelConstants> {
   // Check that the level number is valid
   if (level < 0) {
     throw std::length_error("Level must be bigger than or equal to 0.");
@@ -234,5 +233,5 @@ auto create_map(const int level, std::optional<unsigned int> seed)
   place_dijkstra_tiles(grid, random_generator, item_positions, TileType::Potion, generate_value(ITEM_COUNT, level));
 
   // Return the grid and a LevelConstants object
-  return std::make_pair(*grid.grid, std::make_tuple(level, grid_width, grid_height));
+  return std::make_pair(*grid.grid, LevelConstants{level, grid_width, grid_height});
 }

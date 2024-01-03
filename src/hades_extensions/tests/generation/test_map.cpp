@@ -345,17 +345,20 @@ TEST_F(MapFixture, TestMapRunCellularAutomataEmptyGrid) {
 /// Test that creating a map with a valid level and seed works correctly.
 TEST_F(MapFixture, TestMapCreateMapValidLevelSeed) {
   const auto [create_map_valid_grid, create_map_valid_constants] = create_map(0, 5);
-  ASSERT_EQ(create_map_valid_constants, std::make_tuple(0, 30, 20));
+  ASSERT_EQ(create_map_valid_constants.level, 0);
+  ASSERT_EQ(create_map_valid_constants.width, 30);
+  ASSERT_EQ(create_map_valid_constants.height, 20);
   ASSERT_EQ(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Player), 1);
   ASSERT_EQ(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Potion), 5);
 }
-
-/// Test that creating a map with a negative level throws an exception.
-TEST_F(MapFixture, TestMapCreateMapNegativeLevel){
-    ASSERT_THROW_MESSAGE(create_map(-1, 5), std::length_error, "Level must be bigger than or equal to 0.")}
 
 /// Test that creating a map without a seed works correctly.
 TEST_F(MapFixture, TestMapCreateMapEmptySeed) {
   const auto [create_map_empty_seed_grid, _] = create_map(0);
   ASSERT_NE(create_map_empty_seed_grid, create_map(0).first);
+}
+
+/// Test that creating a map with a negative level throws an exception.
+TEST_F(MapFixture, TestMapCreateMapNegativeLevel) {
+  ASSERT_THROW_MESSAGE(create_map(-1, 5), std::length_error, "Level must be bigger than or equal to 0.")
 }
