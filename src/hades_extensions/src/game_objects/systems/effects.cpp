@@ -6,7 +6,7 @@
 
 // ----- FUNCTIONS ------------------------------
 void EffectSystem::update(const double delta_time) const {
-  for (auto &[game_object_id, component_tuple] : get_registry()->find_components<StatusEffects>()) {
+  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<StatusEffects>()) {
     // Create a vector to store the expired status effects
     auto &applied_effects{std::get<0>(component_tuple)->applied_effects};
     std::vector<StatusEffectType> expired_status_effects;

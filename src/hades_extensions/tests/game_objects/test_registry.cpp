@@ -79,8 +79,8 @@ TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
   ASSERT_THROW_MESSAGE(
       (registry.get_component(0, typeid(TestGameObjectComponentTwo))), RegistryError,
       "The game object `0` is not registered with the registry or does not have the required component.")
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), {});
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), {});
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 0);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 0);
   ASSERT_EQ(registry.get_walls().size(), 0);
   ASSERT_THROW_MESSAGE(registry.get_kinematic_object(0), RegistryError,
                        "The game object `0` is not registered with the registry or is not kinematic.")
@@ -97,11 +97,10 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
       {std::make_shared<TestGameObjectComponentOne>(), std::make_shared<TestGameObjectComponentTwo>(test_list)});
   ASSERT_NE(registry.get_component<TestGameObjectComponentOne>(0), nullptr);
   ASSERT_NE(registry.get_component(0, typeid(TestGameObjectComponentTwo)), nullptr);
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 1);
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), 1);
-  const auto multiple_result_one{
-      registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>().size()};
-  ASSERT_EQ(multiple_result_one, 1);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 1);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 1);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>()),
+            1);
 
   // Test that deleting the game object works correctly
   registry.delete_game_object(0);
@@ -111,11 +110,10 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
   ASSERT_THROW_MESSAGE(
       (registry.get_component(0, typeid(TestGameObjectComponentTwo))), RegistryError,
       "The game object `0` is not registered with the registry or does not have the required component.")
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 0);
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), 0);
-  const auto multiple_result_two{
-      registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>().size()};
-  ASSERT_EQ(multiple_result_two, 0);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 0);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 0);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>()),
+            0);
 }
 
 /// Test that a kinematic game object is added to the registry correctly.
@@ -141,19 +139,17 @@ TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
   ASSERT_EQ(registry.create_game_object({std::make_shared<TestGameObjectComponentOne>(),
                                          std::make_shared<TestGameObjectComponentTwo>(test_list)}),
             1);
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 2);
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), 1);
-  const auto multiple_result_one{
-      registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>().size()};
-  ASSERT_EQ(multiple_result_one, 1);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 2);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 1);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>()),
+            1);
 
   // Test that deleting the first game object works correctly
   registry.delete_game_object(0);
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentOne>().size(), 1);
-  ASSERT_EQ(registry.find_components<TestGameObjectComponentTwo>().size(), 1);
-  const auto multiple_result_two{
-      registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>().size()};
-  ASSERT_EQ(multiple_result_two, 1);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 1);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 1);
+  ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>()),
+            1);
 }
 
 /// Test that a game object with duplicate components is added to the registry correctly.

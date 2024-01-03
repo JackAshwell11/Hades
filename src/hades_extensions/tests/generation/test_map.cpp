@@ -228,7 +228,7 @@ TEST_F(MapFixture, TestMapCreateHallwaysNoConnections) {
 /// Test that running cellular automata on a grid with all empty tiles doesn't do anything.
 TEST_F(MapFixture, TestMapRunCellularAutomataAllEmpty) {
   run_cellular_automata(grid);
-  ASSERT_EQ(*grid.grid, std::vector(grid.width * grid.height, TileType::Empty));
+  ASSERT_EQ(*grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Empty));
 }
 
 /// Test that running cellular automata on a grid with all floor tiles sets the edges to walls.
@@ -257,7 +257,7 @@ TEST_F(MapFixture, TestMapRunCellularAutomataAllWalls) {
     }
   }
   run_cellular_automata(grid);
-  ASSERT_EQ(*grid.grid, std::vector(grid.width * grid.height, TileType::Empty));
+  ASSERT_EQ(*grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Empty));
 }
 
 /// Test that running cellular automata on a grid with mixed floor and wall tiles works correctly.

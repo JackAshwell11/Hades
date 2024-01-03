@@ -149,26 +149,21 @@ class Registry {
   /// Find all the game objects that have the required components.
   ///
   /// @tparam Ts - The types of components to find.
-  /// @return A vector of tuples containing the game object ID and the required components.
+  /// @return The game objects that have the required components.
   template <typename... Ts>
-  auto find_components() const -> std::vector<std::tuple<GameObjectID, std::tuple<std::shared_ptr<Ts>...>>> {
-    // Create a vector of tuples to store the components
-    std::vector<std::tuple<GameObjectID, std::tuple<std::shared_ptr<Ts>...>>> components;
-
-    // Iterate over all game objects
-    for (const auto &[game_object_id, game_object_components] : game_objects_) {
-      // Check if the game object has all the components using a fold expression
-      if (!(has_component(game_object_id, typeid(Ts)) && ...)) {
-        continue;
-      }
-
-      // Game object has all the components, so cast them to T and add them to the vector
-      auto components_result{std::make_tuple(std::static_pointer_cast<Ts>(game_object_components.at(typeid(Ts)))...)};
-      components.emplace_back(game_object_id, components_result);
-    }
-
-    // Return the components
-    return components;
+  auto find_components() const {
+    // Use ranges::filter to filter out the game objects that have all the components then use ranges::transform to get
+    // only the game object ID and the required components
+    return game_objects_ | std::views::filter([this](const auto &game_object) {
+             const auto &[game_object_id, game_object_components] = game_object;
+             return (has_component(game_object_id, typeid(Ts)) && ...);
+           }) |
+           std::views::transform([](const auto &game_object) {
+             const auto &[game_object_id, game_object_components] = game_object;
+             return std::make_tuple(
+                 game_object_id,
+                 std::make_tuple(std::static_pointer_cast<Ts>(game_object_components.at(typeid(Ts)))...));
+           });
   }
 
   /// Add a system to the registry.
