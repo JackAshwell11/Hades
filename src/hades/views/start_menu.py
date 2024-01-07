@@ -56,10 +56,8 @@ class StartMenu(arcade.View):
 
         # Create the buttons
         vertical_box = UIBoxLayout(space_between=20)
-        start_button, quit_button = (
-            UIFlatButton(text="Start Game", width=200),
-            UIFlatButton(text="Quit Game", width=200),
-        )
+        start_button = vertical_box.add(UIFlatButton(text="Start Game", width=200))
+        quit_button = vertical_box.add(UIFlatButton(text="Quit Game", width=200))
         start_button.on_click = start_on_click_handler
         quit_button.on_click = lambda _: arcade.exit()
 

@@ -24,11 +24,13 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           setup-python-dependencies: false
-      - name: Autobuild C++
+      - name: Set up CMake
         if: matrix.language == 'cpp'
-        uses: github/codeql-action/autobuild@v2.22.9
-        with:
-          working-directory: ${{ github.workspace }}/src/hades_extensions
+        uses: lukka/get-cmake@v3.27.7
+      - name: Build CMake
+        if: matrix.language == 'cpp'
+        working-directory: ${{ github.workspace }}/src/hades_extensions
+        run: cmake . --preset Debug && cmake --build build-debug
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v2.22.9
         with:

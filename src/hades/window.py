@@ -66,3 +66,5 @@ if __name__ == "__main__":
 # TODO: Start thinking about how to refactor the game (maybe move to pygam or some other
 #  library or other methods). Could move events to c++ and/or move physics system to
 #  box2d or chipmunk among other stuff
+# TODO: Moving the physics engine to C++ (chipmunk) would massively help, but needs a
+#  lot of work, e.g. the bullets, hitboxes, collisions, etc

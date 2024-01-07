@@ -58,7 +58,6 @@ logger = logging.getLogger(__name__)
 
 # TODO: Add player attacking enemy (so switching and attacking). Will require components
 #  and indicator bars too
-# TODO: Moving the physics engine to C++ would massively help, but needs a lot of work
 
 
 class Game(View):
