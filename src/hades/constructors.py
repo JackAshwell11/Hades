@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
     from hades_extensions.game_objects import ComponentBase
 
-__all__ = ("ENEMY", "FLOOR", "GameObjectConstructor", "PLAYER", "POTION", "WALL")
+__all__ = ("ENEMY", "FLOOR", "PLAYER", "POTION", "WALL", "GameObjectConstructor")
 
 
 class GameObjectConstructor(NamedTuple):
