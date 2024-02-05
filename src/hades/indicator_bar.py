@@ -43,11 +43,11 @@ class IndicatorBar:
     """
 
     __slots__ = (
-        "target_sprite",
-        "target_component",
-        "background_box",
         "actual_bar",
+        "background_box",
         "offset",
+        "target_component",
+        "target_sprite",
     )
 
     def __init__(
