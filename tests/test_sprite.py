@@ -69,8 +69,7 @@ def test_hades_sprite_init() -> None:
     sprite = HadesSprite((0, GameObjectType.PLAYER), (10, 20), ["floor.png"])
     assert sprite.position == (672.0, 1312.0)
     assert (
-        repr(sprite)
-        == "<HadesSprite (Game object ID=0) (Current texture=<Texture"
+        repr(sprite) == "<HadesSprite (Game object ID=0) (Current texture=<Texture"
         " cache_name=b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|("
         "0, 1, 2, 3)|SimpleHitBoxAlgorithm|>)>"
     )
@@ -104,8 +103,7 @@ def test_animated_sprite_init() -> None:
     assert len(sprite.sprite_textures) == 1
     assert len(sprite.sprite_textures[0]) == 2
     assert (
-        repr(sprite)
-        == "<AnimatedSprite (Game object ID=0) (Current texture=<Texture"
+        repr(sprite) == "<AnimatedSprite (Game object ID=0) (Current texture=<Texture"
         " cache_name=b3d8c789f0ab79a64f6ee6c8eac8fc329b53a3a56ed6c0ee262522cefef5dcf4|("
         "0, 1, 2, 3)|SimpleHitBoxAlgorithm|>)>"
     )
@@ -122,8 +120,7 @@ def test_animated_sprite_multiple_textures() -> None:
     assert len(sprite.sprite_textures) == 2
     assert len(sprite.sprite_textures[0]) == 2
     assert (
-        repr(sprite)
-        == "<AnimatedSprite (Game object ID=1) (Current texture=<Texture"
+        repr(sprite) == "<AnimatedSprite (Game object ID=1) (Current texture=<Texture"
         " cache_name=6c519a52622fb21c14df6fddfe3541a38344e258ade26b2f02505bb216f73b32|("
         "0, 1, 2, 3)|SimpleHitBoxAlgorithm|>)>"
     )
