@@ -12,6 +12,7 @@ from hades_extensions.game_objects import (
 class StatusEffectData:
     status_effect_type: StatusEffectType
     increase: ActionFunction
+
     def __init__(
         self: StatusEffectData,
         status_effect_type: StatusEffectType,
@@ -36,6 +37,7 @@ class ArmourRegen(Stat): ...
 class Attacks(ComponentBase):
     attack_algorithms: list[AttackAlgorithm]
     attack_state: int
+
     def __init__(self: Attacks, attack_algorithms: list[AttackAlgorithm]) -> None: ...
 
 class EffectApplier(ComponentBase):
@@ -47,6 +49,7 @@ class EffectApplier(ComponentBase):
 
 class Footprints(ComponentBase):
     footprints: list[int]
+
     def __init__(self: Footprints) -> None: ...
 
 class Health(Stat): ...
@@ -55,6 +58,7 @@ class Inventory(ComponentBase):
     width: int
     height: int
     items: list[int]
+
     def __init__(self: Inventory, width: int, height: int) -> None: ...
     def get_capacity(self: Inventory) -> int: ...
 
@@ -63,10 +67,12 @@ class KeyboardMovement(ComponentBase):
     moving_east: bool
     moving_south: bool
     moving_west: bool
+
     def __init__(self: KeyboardMovement) -> None: ...
 
 class Money(ComponentBase):
     money: int
+
     def __init__(self: Money, money: int) -> None: ...
 
 class MovementForce(Stat): ...
@@ -85,6 +91,7 @@ class SteeringMovement(ComponentBase):
     movement_state: SteeringMovementState
     target_id: int
     path_list: list[Vec2d]
+
     def __init__(
         self: SteeringMovement,
         behaviours: dict[SteeringMovementState, list[SteeringBehaviours]],
