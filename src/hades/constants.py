@@ -110,7 +110,7 @@ TOTAL_ENEMY_COUNT: Final[int] = 1
 
 # Indicator bar constants
 INDICATOR_BAR_BORDER_SIZE: Final[int] = 4
-INDICATOR_BAR_DISTANCE: Final[int] = 32
+INDICATOR_BAR_DISTANCE: Final[int] = 16
 INDICATOR_BAR_HEIGHT: Final[int] = 10
 INDICATOR_BAR_WIDTH: Final[int] = 50
 

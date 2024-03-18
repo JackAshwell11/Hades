@@ -126,8 +126,8 @@ def test_indicator_bar_on_update_no_position(
     """
     indicator_bar = IndicatorBar(sprite, stat, spritelist)
     indicator_bar.on_update(0)
-    assert indicator_bar.background_box.position == (32, 96)
-    assert indicator_bar.actual_bar.position == (32, 96)
+    assert indicator_bar.background_box.position == (32, 80)
+    assert indicator_bar.actual_bar.position == (32, 80)
 
 
 def test_indicator_bar_on_update_position(
@@ -146,8 +146,8 @@ def test_indicator_bar_on_update_position(
     sprite.center_x += 100
     sprite.center_y += 50
     indicator_bar.on_update(0)
-    assert indicator_bar.background_box.position == (132, 146)
-    assert indicator_bar.actual_bar.position == (132, 146)
+    assert indicator_bar.background_box.position == (132, 130)
+    assert indicator_bar.actual_bar.position == (132, 130)
 
 
 def test_indicator_bar_on_update_position_offset(
@@ -166,8 +166,8 @@ def test_indicator_bar_on_update_position_offset(
     sprite.center_x += 100
     sprite.center_y += 50
     indicator_bar.on_update(0)
-    assert indicator_bar.background_box.position == (132, 160)
-    assert indicator_bar.actual_bar.position == (132, 160)
+    assert indicator_bar.background_box.position == (132, 144)
+    assert indicator_bar.actual_bar.position == (132, 144)
 
 
 def test_indicator_bar_on_update_value_not_changed(

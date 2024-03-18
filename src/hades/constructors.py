@@ -7,10 +7,17 @@ from typing import TYPE_CHECKING, Final, NamedTuple
 
 # Custom
 from hades.constants import GameObjectType
-from hades_extensions.game_objects import SteeringBehaviours, SteeringMovementState
+from hades_extensions.game_objects import (
+    AttackAlgorithm,
+    SteeringBehaviours,
+    SteeringMovementState,
+)
 from hades_extensions.game_objects.components import (
+    Armour,
+    Attacks,
     EffectApplier,
     Footprints,
+    Health,
     Inventory,
     KeyboardMovement,
     MovementForce,
@@ -64,7 +71,14 @@ PLAYER: Final[GameObjectConstructor] = GameObjectConstructor(
     "Player",
     ["player_idle.png"],
     [
+        Health(200, 5),
+        Armour(100, 5),
         Inventory(6, 5),
+        Attacks([
+            AttackAlgorithm.Ranged,
+            AttackAlgorithm.Melee,
+            AttackAlgorithm.AreaOfEffect,
+        ]),
         MovementForce(5000, 5),
         KeyboardMovement(),
         Footprints(),
@@ -76,6 +90,8 @@ ENEMY: Final[GameObjectConstructor] = GameObjectConstructor(
     "Enemy",
     ["enemy_idle.png"],
     [
+        Health(100, 5),
+        Armour(50, 5),
         MovementForce(1000, 5),
         SteeringMovement(
             {

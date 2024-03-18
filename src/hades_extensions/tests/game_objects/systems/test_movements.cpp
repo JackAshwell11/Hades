@@ -95,6 +95,21 @@ void test_force_double(const Vec2d &actual, const double expected_x, const doubl
 }
 
 // ----- TESTS ----------------------------------
+/// Test that the required components return the correct value for has_indicator_bar.
+TEST(Tests, TestFootprintSystemComponentsHasIndicatorBar) { ASSERT_FALSE(Footprints{}.has_indicator_bar()); }
+
+/// Test that the required components return the correct value for has_indicator_bar.
+TEST(Tests, TestKeyboardMovementSystemComponentsHasIndicatorBar) {
+  ASSERT_FALSE(KeyboardMovement{}.has_indicator_bar());
+  ASSERT_FALSE(MovementForce(-1, -1).has_indicator_bar());
+}
+
+/// Test that the required components return the correct value for has_indicator_bar.
+TEST(Tests, TestSteeringMovementSystemComponentsHasIndicatorBar) {
+  ASSERT_FALSE(SteeringMovement{{}}.has_indicator_bar());
+  ASSERT_FALSE(MovementForce(-1, -1).has_indicator_bar());
+}
+
 /// Test that the footprint systems is updated with a small delta time.
 TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateSmallDeltaTime) {
   get_footprint_system()->update(0.1);
