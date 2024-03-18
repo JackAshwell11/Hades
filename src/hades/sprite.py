@@ -7,15 +7,29 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 # Pip
-from arcade import Sprite, Texture, load_texture, load_texture_pair
+from arcade import (
+    Sprite,
+    SpriteSolidColor,
+    Texture,
+    color,
+    load_texture,
+    load_texture_pair,
+)
 
 # Custom
 from hades_extensions.game_objects import SPRITE_SCALE, SPRITE_SIZE
 
 if TYPE_CHECKING:
-    from hades.constructors import GameObjectType
+    from hades.constants import GameObjectType
+    from hades_extensions.game_objects import Vec2d
 
-__all__ = ("AnimatedSprite", "BiggerThanError", "HadesSprite", "grid_pos_to_pixel")
+__all__ = (
+    "AnimatedSprite",
+    "BiggerThanError",
+    "Bullet",
+    "HadesSprite",
+    "grid_pos_to_pixel",
+)
 
 # Create the texture path
 texture_path = Path(__file__).resolve().parent / "resources" / "textures"
@@ -51,6 +65,23 @@ def grid_pos_to_pixel(x: int, y: int) -> tuple[float, float]:
         x * SPRITE_SIZE + SPRITE_SIZE / 2,
         y * SPRITE_SIZE + SPRITE_SIZE / 2,
     )
+
+
+class Bullet(SpriteSolidColor):
+    """Represents a bullet sprite object in the game."""
+
+    def __init__(self: Bullet, position: Vec2d) -> None:
+        """Initialise the object.
+
+        Args:
+            position: The position of the sprite object in the grid.
+        """
+        super().__init__(
+            SPRITE_SIZE,
+            SPRITE_SIZE,
+            color=color.RED,
+        )
+        self.center_x, self.center_y = grid_pos_to_pixel(*position)
 
 
 class HadesSprite(Sprite):

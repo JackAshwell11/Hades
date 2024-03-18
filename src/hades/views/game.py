@@ -6,7 +6,6 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import TYPE_CHECKING
 
 # Pip
 from arcade import (
@@ -14,6 +13,7 @@ from arcade import (
     Camera,
     PymunkPhysicsEngine,
     SpriteList,
+    SpriteSolidColor,
     Text,
     View,
     color,
@@ -35,7 +35,8 @@ from hades.constants import (
     GameObjectType,
 )
 from hades.constructors import ENEMY, FLOOR, PLAYER, POTION, WALL, GameObjectConstructor
-from hades.sprite import AnimatedSprite, HadesSprite, grid_pos_to_pixel
+from hades.indicator_bar import IndicatorBar
+from hades.sprite import AnimatedSprite, Bullet, HadesSprite, grid_pos_to_pixel
 from hades_extensions.game_objects import SPRITE_SIZE, Registry, Vec2d
 from hades_extensions.game_objects.components import KeyboardMovement, SteeringMovement
 from hades_extensions.game_objects.systems import (
@@ -46,9 +47,6 @@ from hades_extensions.game_objects.systems import (
     SteeringMovementSystem,
 )
 from hades_extensions.generation import TileType, create_map
-
-if TYPE_CHECKING:
-    from hades.indicator_bar import IndicatorBar
 
 __all__ = ("Game",)
 
@@ -128,6 +126,20 @@ class Game(View):
                 max_velocity=MAX_VELOCITY,
                 collision_type=constructor.game_object_type.name,
             )
+
+        # Add all the indicator bars to the game
+        indicator_bar_offset = 0
+        for component in constructor.components:
+            if component.has_indicator_bar():
+                self.indicator_bars.append(
+                    IndicatorBar(
+                        sprite,
+                        component,
+                        self.indicator_bar_sprites,
+                        indicator_bar_offset,
+                    ),
+                )
+                indicator_bar_offset += 1
         return sprite
 
     def __init__(self: Game, level: int) -> None:
@@ -144,6 +156,9 @@ class Game(View):
         self.tile_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.entity_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.item_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
+        self.indicator_bar_sprites: SpriteList[SpriteSolidColor] = SpriteList[
+            SpriteSolidColor
+        ]()
         self.nearest_item: list[HadesSprite] = []
         self.player_status_text: Text = Text(
             "Money: 0",
@@ -218,6 +233,7 @@ class Game(View):
         self.tile_sprites.draw(pixelated=True)  # type: ignore[no-untyped-call]
         self.item_sprites.draw(pixelated=True)  # type: ignore[no-untyped-call]
         self.entity_sprites.draw(pixelated=True)  # type: ignore[no-untyped-call]
+        self.indicator_bar_sprites.draw()  # type: ignore[no-untyped-call]
 
         # Draw the gui on the screen
         self.gui_camera.use()
@@ -300,26 +316,6 @@ class Game(View):
                 player_movement.moving_west = True
             case key.D:
                 player_movement.moving_east = True
-            case key.C:
-                if (
-                    self.nearest_item
-                    and self.nearest_item[0].game_object_type in COLLECTIBLE_TYPES
-                    and self.registry.get_system(InventorySystem).add_item_to_inventory(
-                        self.ids[GameObjectType.PLAYER][0].game_object_id,
-                        self.nearest_item[0].game_object_id,
-                    )
-                ):
-                    self.nearest_item[0].remove_from_sprite_lists()
-            case key.E:
-                if (
-                    self.nearest_item
-                    and self.nearest_item[0].game_object_type in USABLE_TYPES
-                    and self.registry.get_system(EffectSystem).apply_effects(
-                        self.nearest_item[0].game_object_id,
-                        self.ids[GameObjectType.PLAYER][0].game_object_id,
-                    )
-                ):
-                    self.nearest_item[0].remove_from_sprite_lists()
 
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.
@@ -347,6 +343,34 @@ class Game(View):
                 player_movement.moving_west = False
             case key.D:
                 player_movement.moving_east = False
+            case key.C:
+                if (
+                    self.nearest_item
+                    and self.nearest_item[0].game_object_type in COLLECTIBLE_TYPES
+                    and self.registry.get_system(InventorySystem).add_item_to_inventory(
+                        self.ids[GameObjectType.PLAYER][0].game_object_id,
+                        self.nearest_item[0].game_object_id,
+                    )
+                ):
+                    self.nearest_item[0].remove_from_sprite_lists()
+            case key.E:
+                if (
+                    self.nearest_item
+                    and self.nearest_item[0].game_object_type in USABLE_TYPES
+                    and self.registry.get_system(EffectSystem).apply_effects(
+                        self.nearest_item[0].game_object_id,
+                        self.ids[GameObjectType.PLAYER][0].game_object_id,
+                    )
+                ):
+                    self.nearest_item[0].remove_from_sprite_lists()
+            case key.Z:
+                self.registry.get_system(AttackSystem).previous_attack(
+                    self.ids[GameObjectType.PLAYER][0].game_object_id,
+                )
+            case key.X:
+                self.registry.get_system(AttackSystem).next_attack(
+                    self.ids[GameObjectType.PLAYER][0].game_object_id,
+                )
 
     def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
         """Process mouse button functionality.
@@ -366,13 +390,47 @@ class Game(View):
             modifiers,
         )
         if button is MOUSE_BUTTON_LEFT:
-            self.registry.get_system(AttackSystem).do_attack(
+            if bullet_details := self.registry.get_system(AttackSystem).do_attack(
                 self.ids[GameObjectType.PLAYER][0].game_object_id,
                 [
                     game_object.game_object_id
                     for game_object in self.ids[GameObjectType.ENEMY]
                 ],
-            )
+            ):
+                bullet = Bullet(bullet_details[0])
+                self.indicator_bar_sprites.append(bullet)
+                self.physics_engine.add_sprite(
+                    bullet,
+                    moment_of_inertia=self.physics_engine.MOMENT_INF,
+                    body_type=self.physics_engine.KINEMATIC,
+                    collision_type="bullet",
+                )
+                self.physics_engine.set_velocity(
+                    bullet,
+                    (bullet_details[1], bullet_details[2]),
+                )
+
+    def on_mouse_motion(self: Game, x: int, y: int, *_: tuple[int, int]) -> None:
+        """Process mouse motion functionality.
+
+        Args:
+            x: The x position of the mouse.
+            y: The y position of the mouse.
+        """
+        # Calculate the new angle in degrees
+        camera_x, camera_y = self.game_camera.position
+        kinematic_object = self.registry.get_kinematic_object(
+            self.ids[GameObjectType.PLAYER][0].game_object_id,
+        )
+        angle = math.degrees(
+            math.atan2(
+                x - kinematic_object.position.x + camera_x,
+                y - kinematic_object.position.y + camera_y,
+            ),
+        )
+        if angle < 0:
+            angle += 360
+        kinematic_object.rotation = angle
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""

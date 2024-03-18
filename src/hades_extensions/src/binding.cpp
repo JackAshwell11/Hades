@@ -126,8 +126,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   // Add the global constants and the base classes
   game_objects.attr("SPRITE_SCALE") = SPRITE_SCALE;
   game_objects.attr("SPRITE_SIZE") = SPRITE_SIZE;
-  const pybind11::class_<ComponentBase, std::shared_ptr<ComponentBase>> component_base(
-      game_objects, "ComponentBase", "The base class for all components.");
+  pybind11::class_<ComponentBase, std::shared_ptr<ComponentBase>> component_base(game_objects, "ComponentBase",
+                                                                                 "The base class for all components.");
+  component_base.def("has_indicator_bar", &ComponentBase::has_indicator_bar,
+                     "Checks if the component can have an indicator bar or not.\n\n"
+                     "Returns:\n"
+                     "    Whether the component can have an indicator bar or not.");
   pybind11::class_<SystemBase, std::shared_ptr<SystemBase>>(game_objects, "SystemBase",
                                                             "The base class for all systems.")
       .def(pybind11::init<Registry *>(), pybind11::arg("registry"),

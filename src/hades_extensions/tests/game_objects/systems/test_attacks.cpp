@@ -70,6 +70,15 @@ class DamageSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
+/// Test that the required components return the correct value for has_indicator_bar.
+TEST(Tests, TestAttackSystemComponentsHasIndicatorBar) { ASSERT_FALSE(Attacks{{}}.has_indicator_bar()); }
+
+/// Test that the required components return the correct value for has_indicator_bar.
+TEST(Tests, TestDamageSystemComponentsHasIndicatorBar) {
+  ASSERT_TRUE(Health(-1, -1).has_indicator_bar());
+  ASSERT_TRUE(Armour(-1, -1).has_indicator_bar());
+}
+
 /// Test that performing an area of effect attack works correctly.
 TEST_F(AttackSystemFixture, TestAttacksDoAreaOfEffectAttack) {
   create_attack_component({AttackAlgorithm::AreaOfEffect});

@@ -71,6 +71,14 @@ class EffectSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
+/// Test that the required components return the correct value for has_indicator_bar.
+TEST(Tests, TestEffectSystemComponentsHasIndicatorBar) {
+  ASSERT_FALSE(StatusEffects{}.has_indicator_bar());
+  ASSERT_FALSE(EffectApplier({}, {}).has_indicator_bar());
+  ASSERT_FALSE(TestStat(-1, -1).has_indicator_bar());
+  ASSERT_FALSE(TestStat2(-1, -1).has_indicator_bar());
+}
+
 /// Test that a status effect is updated correctly with a small delta time.
 TEST_F(EffectSystemFixture, TestEffectSystemUpdateSmallDeltaTime) {
   create_effect_applier(false, true);

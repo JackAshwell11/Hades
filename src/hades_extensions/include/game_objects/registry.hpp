@@ -39,6 +39,11 @@ struct ComponentBase {
 
   /// The move constructor.
   ComponentBase(ComponentBase &&) = default;
+
+  /// Checks if the component can have an indicator bar or not.
+  ///
+  /// @return Whether the component can have an indicator bar or not.
+  [[nodiscard]] virtual auto has_indicator_bar() const -> bool { return false; }
 };
 
 /// The base class for all systems.

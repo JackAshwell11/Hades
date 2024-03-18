@@ -34,6 +34,9 @@ void throw_inventory_space_error(const T val) {
 }
 
 // ----- TESTS ----------------------------------
+/// Test that the required components return the correct value for has_indicator_bar.
+TEST(Tests, TestInventorySystemComponentsHasIndicatorBar) { ASSERT_FALSE(Inventory(-1, -1).has_indicator_bar()); }
+
 /// Test that InventorySpaceError is thrown correctly when given a message.
 TEST(Tests, TestThrowInventorySpaceErrorMessage){
     ASSERT_THROW_MESSAGE(throw_inventory_space_error("Test message."), InventorySpaceError, "Test message.")}
