@@ -22,7 +22,6 @@ __all__ = (
     "ENEMY_GENERATION_DISTANCE",
     "ENEMY_RETRY_COUNT",
     "GAME_LOGGER",
-    "GameObjectType",
     "INDICATOR_BAR_BORDER_SIZE",
     "INDICATOR_BAR_DISTANCE",
     "INDICATOR_BAR_HEIGHT",
@@ -32,6 +31,7 @@ __all__ = (
     "MAX_VELOCITY",
     "TOTAL_ENEMY_COUNT",
     "USABLE_TYPES",
+    "GameObjectType",
 )
 
 

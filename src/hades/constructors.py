@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
     from hades_extensions.game_objects import ComponentBase
 
-__all__ = ("ENEMY", "FLOOR", "GameObjectConstructor", "PLAYER", "POTION", "WALL")
+__all__ = ("ENEMY", "FLOOR", "PLAYER", "POTION", "WALL", "GameObjectConstructor")
 
 
 class GameObjectConstructor(NamedTuple):
@@ -74,11 +74,13 @@ PLAYER: Final[GameObjectConstructor] = GameObjectConstructor(
         Health(200, 5),
         Armour(100, 5),
         Inventory(6, 5),
-        Attacks([
-            AttackAlgorithm.Ranged,
-            AttackAlgorithm.Melee,
-            AttackAlgorithm.AreaOfEffect,
-        ]),
+        Attacks(
+            [
+                AttackAlgorithm.Ranged,
+                AttackAlgorithm.Melee,
+                AttackAlgorithm.AreaOfEffect,
+            ]
+        ),
         MovementForce(5000, 5),
         KeyboardMovement(),
         Footprints(),
