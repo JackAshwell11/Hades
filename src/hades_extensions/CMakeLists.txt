@@ -1,10 +1,13 @@
-# Define some project-wide options
+# Define some CMake options
 cmake_minimum_required(VERSION 3.22.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+
+# Define custom options
 set(ENABLE_COVERAGE ON CACHE BOOL "Enable coverage reporting for GCC/Clang")
 set(DO_PYTHON ON CACHE BOOL "Enable Python bindings")
 set(DO_TESTS ON CACHE BOOL "Enable testing")
@@ -15,16 +18,20 @@ set(CPP_LIB hades_extensions_lib)
 set(TEST_MODULE hades_extensions_tests)
 project(${PY_MODULE} LANGUAGES CXX)
 
-# Set the warning level
+# Include the required modules
+include(CTest)
+
+# Find the required packages
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
+find_package(pybind11 CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+find_package(unofficial-chipmunk CONFIG REQUIRED)
+
+# Set the warning level for the project
 if (MSVC)
     add_compile_options(/W4 /WX)
 else ()
     add_compile_options(-Wall -Wextra -Werror -pedantic)
-endif ()
-
-# Check if the tests have been disabled
-if (NOT DO_TESTS)
-    message(STATUS "Tests disabled (DO_TESTS is not set)")
 endif ()
 
 # Enable coverage if supported by the compiler and enabled by the user
@@ -41,8 +48,9 @@ else ()
 endif ()
 
 # Add the subdirectories for the different parts of the project
-include(FetchContent)
 add_subdirectory(src)
 if (DO_TESTS)
     add_subdirectory(tests)
+else ()
+    message(STATUS "Tests disabled (DO_TESTS is not set)")
 endif ()

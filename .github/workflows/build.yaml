@@ -15,10 +15,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4.7.1
         with:
-          python-version: 3.11
+          submodules: recursive
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.12
       - name: Install Poetry
         uses: snok/install-poetry@v1.3.4
         with:
@@ -29,6 +31,6 @@ jobs:
       - name: Build the game
         run: python -m build --executable
       - name: Upload the release
-        uses: svenstaro/upload-release-action@2.7.0
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           file: hades.zip
