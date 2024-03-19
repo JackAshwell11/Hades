@@ -66,17 +66,11 @@ void Registry::add_wall(const cpVect &wall) {
   auto *const body{cpBodyNewStatic()};
   auto *const shape{cpBoxShapeNew(body, SPRITE_SIZE, SPRITE_SIZE, 0.0)};
   add_chipmunk_object(body, shape, wall);
-  cpShapeSetCollisionType(shape, static_cast<cpCollisionType>(PhysicsType::Wall));
 }
 
 void Registry::add_chipmunk_object(cpBody *body, cpShape *shape, const cpVect &position) const {
-  cpSpaceAddBody(*space_, body);
-  cpShapeSetBody(shape, body);
-  cpSpaceAddShape(*space_, shape);
   cpBodySetPosition(body, grid_pos_to_pixel(position));
+  cpShapeSetBody(shape, body);
+  cpSpaceAddBody(*space_, body);
+  cpSpaceAddShape(*space_, shape);
 }
-
-// TODO: Go over all includes to make sure they're sorted correctly and in correct sections with correct styling
-// TODO: Add grid_pos_to_pixel to global bindings (or just game_objects)
-// TODO: Try and reduce amount of comments
-// TODO: Try and use floats everywhere instead of doubles where possible

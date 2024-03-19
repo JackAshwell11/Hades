@@ -18,15 +18,7 @@ using ActionFunction = std::function<double(int)>;
 
 // ----- CONSTANTS ------------------------------
 // The percentage of velocity a game object will retain after a second.
-constexpr float DAMPING = 0.0001f;
-
-// ----- ENUMS ------------------------------
-/// Stores the different types of physics objects.
-enum class PhysicsType : std::int8_t {
-  Enemy,
-  Player,
-  Wall,
-};
+constexpr double DAMPING = 0.0001;
 
 // ----- BASE TYPES ------------------------------
 // Add a forward declaration for the registry class
@@ -102,7 +94,7 @@ class SystemBase {
 template <typename T, void (*Destructor)(T *)>
 class ChipmunkHandle {
   /// The Chipmunk2D object.
-  std::unique_ptr<T, void(*)(T*)> _obj;
+  std::unique_ptr<T, void (*)(T *)> _obj;
 
  public:
   /// Initialise the object.
@@ -161,7 +153,7 @@ struct RegistryError final : std::runtime_error {
 /// @return The screen position of the grid position.
 inline auto grid_pos_to_pixel(const cpVect &position) -> cpVect {
   if (position.x < 0 || position.y < 0) {
-    throw std::invalid_argument("The position cannot be negative");
+    throw std::invalid_argument("The position cannot be negative.");
   }
   return position * SPRITE_SIZE + SPRITE_SIZE / 2;
 }
@@ -171,19 +163,15 @@ inline auto grid_pos_to_pixel(const cpVect &position) -> cpVect {
 class Registry {
  public:
   /// Initialise the object.
-  Registry() {
-    // Initialise the Chipmunk2D space and add collision handlers
-    cpSpaceSetDamping(*space_, DAMPING);
-    cpCollisionHandler *handler = cpSpaceAddCollisionHandler(*space_, static_cast<cpCollisionType>(PhysicsType::Player), static_cast<cpCollisionType>(PhysicsType::Wall));
-    handler->beginFunc = [](cpArbiter */*arb*/, cpSpace */*space*/, void */*data*/) -> cpBool { return cpFalse; };
-  }
+  Registry() { cpSpaceSetDamping(*space_, DAMPING); }
 
   /// Create a new game object.
   ///
   /// @param position - The position of the game object.
   /// @param components - The components to add to the game object.
   /// @return The game object ID.
-  auto create_game_object(const cpVect& position, const std::vector<std::shared_ptr<ComponentBase>> &&components) -> GameObjectID;
+  auto create_game_object(const cpVect &position, const std::vector<std::shared_ptr<ComponentBase>> &&components)
+      -> GameObjectID;
 
   /// Delete a game object.
   ///

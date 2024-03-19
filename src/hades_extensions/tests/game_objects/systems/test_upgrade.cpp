@@ -18,7 +18,7 @@ struct TestStat final : Stat {
 class UpgradeSystemFixture : public testing::Test {
  protected:
   /// The registry that manages the game objects, components, and systems.
-  Registry registry{};
+  Registry registry;
 
   /// Set up the fixture for the tests.
   void SetUp() override { registry.add_system<UpgradeSystem>(); }
@@ -30,7 +30,8 @@ class UpgradeSystemFixture : public testing::Test {
   void create_game_object(const int value, const int max_level) {
     const std::unordered_map<std::type_index, ActionFunction> upgrades{
         {typeid(TestStat), [](const int level) { return 150 * (level + 1); }}};
-    registry.create_game_object({std::make_shared<TestStat>(value, max_level), std::make_shared<Upgrades>(upgrades)});
+    registry.create_game_object(cpvzero,
+                                {std::make_shared<TestStat>(value, max_level), std::make_shared<Upgrades>(upgrades)});
   }
 
   /// Create a game object that is upgradable multiple times.
@@ -95,9 +96,9 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeNonUpgradeable) {
   ASSERT_FALSE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)));
 }
 
-/// Test that a test stat is not upgraded if the target component is not initialised.
+/// Test that an exception is thrown if a game object does not have the target component.
 TEST_F(UpgradeSystemFixture, TestEffectSystemApplyStatusEffectNonexistentTargetComponent) {
-  registry.create_game_object({});
+  registry.create_game_object(cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_upgrade_system()->upgrade_component(0, typeid(TestStat)), RegistryError,
       "The game object `0` is not registered with the registry or does not have the required component.")

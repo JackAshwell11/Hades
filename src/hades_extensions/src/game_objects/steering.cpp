@@ -58,7 +58,9 @@ auto follow_path(const cpVect &current_position, std::vector<cpVect> &path_list)
   return seek(current_position, path_list[0]);
 }
 
-auto obstacle_avoidance(const cpVect &current_position, const cpVect &current_velocity, const std::unordered_set<cpVect> &walls) -> cpVect {
+// TODO: Make this use Chipmunk2D collision detection
+auto obstacle_avoidance(const cpVect &current_position, const cpVect &current_velocity,
+                        const std::unordered_set<cpVect> &walls) -> cpVect {
   // Create the lambda function to cast a ray from the game object's position in the direction of its velocity at a
   // given angle
   auto raycast{[&current_position, &current_velocity, &walls](const double angle = 0) -> cpVect {
@@ -73,7 +75,7 @@ auto obstacle_avoidance(const cpVect &current_position, const cpVect &current_ve
         return position;
       }
     }
-    return {-1, -1};
+    return cpvzero;
   }};
 
   // Check if the game object is going to collide with an obstacle
@@ -82,21 +84,21 @@ auto obstacle_avoidance(const cpVect &current_position, const cpVect &current_ve
   const cpVect right_ray{raycast(-OBSTACLE_AVOIDANCE_ANGLE)};
 
   // Check if there are any obstacles ahead
-  if (forward_ray != cpVect{-1, -1} && left_ray != cpVect{-1, -1} && right_ray != cpVect{-1, -1}) {
+  if (forward_ray != cpvzero && left_ray != cpvzero && right_ray != cpvzero) {
     // Turn around, there's a wall ahead
     return flee(current_position, forward_ray);
   }
-  if (left_ray != cpVect{-1, -1}) {
+  if (left_ray != cpvzero) {
     // Turn right, there's a wall left
     return flee(current_position, left_ray);
   }
-  if (right_ray != cpVect{-1, -1}) {
+  if (right_ray != cpvzero) {
     // Turn left, there's a wall right
     return flee(current_position, right_ray);
   }
 
   // No obstacles ahead, move forward
-  return {0, 0};
+  return cpvzero;
 }
 
 auto pursue(const cpVect &current_position, const cpVect &target_position, const cpVect &target_velocity) -> cpVect {
@@ -115,6 +117,6 @@ auto wander(const cpVect &current_velocity, const int displacement_angle) -> cpV
   const cpVect circle_center{cpvnormalize(current_velocity) * WANDER_CIRCLE_DISTANCE};
 
   // Add a displacement force to the centre of the circle to randomise the movement
-  const cpVect displacement{cpvrotate(cpVect{0, -1} * WANDER_CIRCLE_RADIUS, cpvforangle(displacement_angle * PI_RADIANS))};
+  const cpVect displacement{cpvrotate(cpv(0, -1) * WANDER_CIRCLE_RADIUS, cpvforangle(displacement_angle * PI_RADIANS))};
   return cpvnormalize(circle_center + displacement);
 }

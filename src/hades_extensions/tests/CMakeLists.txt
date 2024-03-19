@@ -7,6 +7,7 @@ add_executable(${TEST_MODULE}
         ${CMAKE_SOURCE_DIR}/tests/game_objects/systems/test_effects.cpp
         ${CMAKE_SOURCE_DIR}/tests/game_objects/systems/test_inventory.cpp
         ${CMAKE_SOURCE_DIR}/tests/game_objects/systems/test_movements.cpp
+        ${CMAKE_SOURCE_DIR}/tests/game_objects/systems/test_physics.cpp
         ${CMAKE_SOURCE_DIR}/tests/game_objects/systems/test_upgrade.cpp
         ${CMAKE_SOURCE_DIR}/tests/generation/test_bsp.cpp
         ${CMAKE_SOURCE_DIR}/tests/generation/test_map.cpp

@@ -21,7 +21,8 @@ void EffectSystem::update(const double delta_time) const {
       if (status_effect.time_counter >= status_effect.duration) {
         expired_status_effects.push_back(status_effect_type);
       } else if (status_effect.leftover_time >= status_effect.interval) {
-        const auto component{std::static_pointer_cast<Stat>(get_registry()->get_component(game_object_id, status_effect.target_component))};
+        const auto component{std::static_pointer_cast<Stat>(
+            get_registry()->get_component(game_object_id, status_effect.target_component))};
         component->set_value(component->get_value() + status_effect.value);
         status_effect.leftover_time -= status_effect.interval;
       }
