@@ -96,11 +96,10 @@ struct KeyboardMovementSystem final : SystemBase {
   /// @param registry - The registry that manages the game objects, components, and systems.
   explicit KeyboardMovementSystem(const Registry *registry) : SystemBase(registry) {}
 
-  /// Calculate the new keyboard force to apply to the game object.
+  /// Process update logic for a keyboard movement component.
   ///
-  /// @param game_object_id - The ID of the game object to calculate the keyboard force for.
-  /// @throws RegistryError - If the game object does not exist or does not have a keyboard movement component.
-  void calculate_force(GameObjectID game_object_id) const;
+  /// @param delta_time - The time interval since the last time the function was called.
+  void update(double delta_time) const override;
 };
 
 /// Provides facilities to manipulate steering movement components.
@@ -110,11 +109,10 @@ struct SteeringMovementSystem final : SystemBase {
   /// @param registry - The registry that manages the game objects, components, and systems.
   explicit SteeringMovementSystem(const Registry *registry) : SystemBase(registry) {}
 
-  /// Calculate the new steering force to apply to the game object.
+  /// Process update logic for a steering movement component.
   ///
-  /// @param game_object_id - The ID of the game object to calculate the steering force for.
-  /// @throws RegistryError - If the game object does not exist or does not have a steering movement component.
-  void calculate_force(GameObjectID game_object_id) const;
+  /// @param delta_time - The time interval since the last time the function was called.
+  void update(double delta_time) const override;
 
   /// Update the path lists for the game objects to follow.
   ///

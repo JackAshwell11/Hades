@@ -8,6 +8,7 @@
 // ----- FUNCTIONS ------------------------------
 /// Allows multiple hashes to be combined for a struct
 ///
+/// @tparam T - The type of the value to hash.
 /// @param seed - The seed for initialising the hasher.
 /// @param value - The value to hash.
 template <typename T>

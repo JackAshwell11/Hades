@@ -1,4 +1,5 @@
 // External headers
+#include <chipmunk/chipmunk_structs.h>
 #include <pybind11/stl.h>
 
 // Local headers
@@ -117,7 +118,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
                  "Returns:\n"
                  "    A tuple containing the generated map and the level constants.");
 
-  // Create the game objects, game_objects/systems, and game_objects/components modules
+  // Create the game_objects, game_objects/components, and game_objects/systems modules
   pybind11::module game_objects = module.def_submodule(
       "game_objects", "Contains the registry and the various components and systems that can be used with it.");
   const pybind11::module systems =
@@ -125,45 +126,60 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   const pybind11::module components =
       game_objects.def_submodule("components", "Contains the components which can be added to game objects.");
 
-  // Add the global constants and the base classes
+  // Add the global constants, functions, and base classes
   game_objects.attr("SPRITE_SCALE") = SPRITE_SCALE;
   game_objects.attr("SPRITE_SIZE") = SPRITE_SIZE;
+  game_objects.def(
+      "grid_pos_to_pixel",
+      [](const cpVect &position) {
+        auto [x, y] = grid_pos_to_pixel(position);
+        return pybind11::make_tuple(x, y);
+      },
+      "Calculate the screen position based on a grid position.\n\n"
+      "Args:\n"
+      "    position: The position in the grid.\n\n"
+      "Raises:\n"
+      "    ValueError: If the position is negative.\n\n"
+      "Returns:\n"
+      "    The pixel position.");
   pybind11::class_<ComponentBase, std::shared_ptr<ComponentBase>> component_base(game_objects, "ComponentBase",
                                                                                  "The base class for all components.");
   component_base.def("has_indicator_bar", &ComponentBase::has_indicator_bar,
                      "Checks if the component can have an indicator bar or not.\n\n"
                      "Returns:\n"
                      "    Whether the component can have an indicator bar or not.");
-  pybind11::class_<SystemBase, std::shared_ptr<SystemBase>>(game_objects, "SystemBase",
-                                                            "The base class for all systems.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
-      .def("get_registry", &SystemBase::get_registry,
-           "Get the registry that manages the game objects, components, and systems.\n\n"
-           "Returns:\n"
-           "    The registry.")
-      .def("update", &SystemBase::update, pybind11::arg("delta_time"),
-           "Process update logic for a system.\n\n"
-           "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.");
+  pybind11::class_<SystemBase, std::shared_ptr<SystemBase>> system_base(game_objects, "SystemBase",
+                                                                        "The base class for all systems.");
 
   // Add the cpVect class
-  pybind11::class_<cpVect>(game_objects, "cpVect", "Represents a 2D vector.")
+  pybind11::class_<cpVect>(game_objects, "Vec2d", "Represents a 2D vector.")
       .def(pybind11::init<float, float>(), pybind11::arg("x"), pybind11::arg("y"),
            "Initialise the object.\n\n"
            "Args:\n"
            "    x: The x value of the vector.\n"
            "    y: The y value of the vector.")
       .def_readwrite("x", &cpVect::x)
-      .def_readwrite("y", &cpVect::y);
+      .def_readwrite("y", &cpVect::y)
+      .def(
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+          "__iter__", [](const cpVect &vec) { return pybind11::make_iterator(&vec.x, &vec.y + 1); },
+          "Get an iterator to the vector.\n\n"
+          "Returns:\n"
+          "    An iterator to the vector.")
+      .def(
+          "__mul__", [](const cpVect &vec, const float scalar) { return cpvmult(vec, scalar); },
+          pybind11::arg("scalar"),
+          "Multiply the vector by a scalar.\n\n"
+          "Args:\n"
+          "    scalar: The scalar to multiply the vector by.\n\n"
+          "Returns:\n"
+          "    The vector multiplied by the scalar.");
 
   // Add the registry class
   register_exception<RegistryError>(game_objects, "RegistryError");
-  pybind11::class_<Registry> registry_class(game_objects, "Registry",
-                                            "Manages game objects, components, and systems that are registered.");
-  registry_class.def(pybind11::init<>(), "Initialise the object.")
+  pybind11::class_<Registry>(game_objects, "Registry",
+                             "Manages game objects, components, and systems that are registered.")
+      .def(pybind11::init<>(), "Initialise the object.")
       .def("create_game_object", &Registry::create_game_object, pybind11::arg("position"), pybind11::arg("components"),
            "Create a new game object.\n\n"
            "Args:\n"
@@ -214,11 +230,11 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             registry.add_system<AttackSystem>();
             registry.add_system<DamageSystem>();
             registry.add_system<EffectSystem>();
-            registry.add_system<InventorySystem>();
             registry.add_system<FootprintSystem>();
+            registry.add_system<InventorySystem>();
             registry.add_system<KeyboardMovementSystem>();
-            registry.add_system<SteeringMovementSystem>();
             registry.add_system<PhysicsSystem>();
+            registry.add_system<SteeringMovementSystem>();
             registry.add_system<UpgradeSystem>();
           },
           "Add all the systems into the registry.\n\n"
@@ -229,8 +245,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           [](const Registry &registry, const pybind11::object &system_type) {
             // Get all the system types and check if the given system type exists
             static const auto &system_types =
-                make_system_types<ArmourRegenSystem, AttackSystem, DamageSystem, EffectSystem, InventorySystem,
-                                  FootprintSystem, KeyboardMovementSystem, SteeringMovementSystem, PhysicsSystem,
+                make_system_types<ArmourRegenSystem, AttackSystem, DamageSystem, EffectSystem, FootprintSystem,
+                                  InventorySystem, KeyboardMovementSystem, PhysicsSystem, SteeringMovementSystem,
                                   UpgradeSystem>();
             const auto iter = system_types.find(system_type);
             if (iter == system_types.end()) {
@@ -324,103 +340,39 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    value: The initial and maximum value of the movement force stat.\n"
            "    maximum_level: The maximum level of the movement force stat.");
 
-  // Add the armour regen system as well as relevant structures/components
-  pybind11::class_<ArmourRegenSystem, SystemBase, std::shared_ptr<ArmourRegenSystem>>(
-      systems, "ArmourRegenSystem", "Provides facilities to manipulate armour regen components.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
-      .def("update", &ArmourRegenSystem::update, pybind11::arg("delta_time"),
-           "Process update logic for an armour regeneration component.\n\n"
-           "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.");
-
-  // Add the attack system and the damage system as well as relevant structures/components
+  // Add the enums
   pybind11::enum_<AttackAlgorithm>(game_objects, "AttackAlgorithm",
                                    "Stores the different types of attack algorithms available.")
       .value("AreaOfEffect", AttackAlgorithm::AreaOfEffect)
       .value("Melee", AttackAlgorithm::Melee)
       .value("Ranged", AttackAlgorithm::Ranged);
+  pybind11::enum_<StatusEffectType>(game_objects, "StatusEffectType",
+                                    "Stores the different types of status effects available.")
+      .value("TEMP", StatusEffectType::TEMP)
+      .value("TEMP2", StatusEffectType::TEMP2);
+  pybind11::enum_<SteeringBehaviours>(game_objects, "SteeringBehaviours",
+                                      "Stores the different types of steering behaviours available.")
+      .value("Arrive", SteeringBehaviours::Arrive)
+      .value("Evade", SteeringBehaviours::Evade)
+      .value("Flee", SteeringBehaviours::Flee)
+      .value("FollowPath", SteeringBehaviours::FollowPath)
+      .value("ObstacleAvoidance", SteeringBehaviours::ObstacleAvoidance)
+      .value("Pursue", SteeringBehaviours::Pursue)
+      .value("Seek", SteeringBehaviours::Seek)
+      .value("Wander", SteeringBehaviours::Wander);
+  pybind11::enum_<SteeringMovementState>(game_objects, "SteeringMovementState",
+                                         "Stores the different states the steering movement component can be in.")
+      .value("Default", SteeringMovementState::Default)
+      .value("Footprint", SteeringMovementState::Footprint)
+      .value("Target", SteeringMovementState::Target);
+
+  // Add the components
   pybind11::class_<Attacks, ComponentBase, std::shared_ptr<Attacks>>(
       components, "Attacks", "Allows a game object to attack other game objects.")
       .def(pybind11::init<std::vector<AttackAlgorithm>>(), pybind11::arg("attack_algorithms"),
            "Initialise the object.\n\n"
            "Args:\n"
-           "    attack_algorithms: The attack algorithms the game object can use.")
-      .def_readwrite("attack_algorithms", &Attacks::attack_algorithms)
-      .def_readwrite("attack_state", &Attacks::attack_state);
-  pybind11::class_<AttackSystem, SystemBase, std::shared_ptr<AttackSystem>>(
-      systems, "AttackSystem", "Provides facilities to manipulate attack components.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
-      .def("do_attack", &AttackSystem::do_attack, pybind11::arg("game_object_id"), pybind11::arg("targets"),
-           "Perform the currently selected attack algorithm.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to perform the attack for.\n"
-           "    targets: The targets to attack.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an attack component.\n\n"
-           "Returns:\n"
-           "    The result of the attack.")
-      .def("previous_attack", &AttackSystem::previous_attack, pybind11::arg("game_object_id"),
-           "Select the previous attack algorithm.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to select the previous attack algorithm for.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an attack component.")
-      .def("next_attack", &AttackSystem::next_attack, pybind11::arg("game_object_id"),
-           "Select the next attack algorithm.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to select the next attack algorithm for.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an attack component.");
-  pybind11::class_<DamageSystem, SystemBase, std::shared_ptr<DamageSystem>>(
-      systems, "DamageSystem", "Provides facilities to damage game objects.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
-      .def("deal_damage", &DamageSystem::deal_damage,
-           "Deal damage to a game object.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to deal damage to.\n"
-           "    damage: The amount of damage to deal.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have a health component.");
-
-  // Add the effect system as well as relevant structures/components
-  pybind11::enum_<StatusEffectType>(game_objects, "StatusEffectType",
-                                    "Stores the different types of status effects available.")
-      .value("TEMP", StatusEffectType::TEMP)
-      .value("TEMP2", StatusEffectType::TEMP2);
-  pybind11::class_<StatusEffect>(components, "StatusEffect",
-                                 "Represents a status effect that can be applied to a game object.")
-      .def_readwrite("value", &StatusEffect::value)
-      .def_readwrite("duration", &StatusEffect::duration)
-      .def_readwrite("interval", &StatusEffect::interval)
-      .def_readwrite("target_component", &StatusEffect::target_component);
-  pybind11::class_<StatusEffectData>(components, "StatusEffectData",
-                                     "Represents the data required to apply a status effect.")
-      .def(pybind11::init([](const StatusEffectType status_effect_type, const pybind11::function &increase,
-                             const pybind11::function &duration, const pybind11::function &interval) {
-             return StatusEffectData(status_effect_type, make_action_function(increase), make_action_function(duration),
-                                     make_action_function(interval));
-           }),
-           pybind11::arg("status_effect_type"), pybind11::arg("increase"), pybind11::arg("duration"),
-           pybind11::arg("interval"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    status_effect_type: The type of status effect.\n"
-           "    increase: The increase function to apply.\n"
-           "    duration: The duration function to apply.\n"
-           "    interval: The interval function to apply.")
-      .def_readwrite("status_effect_type", &StatusEffectData::status_effect_type)
-      .def_readwrite("increase", &StatusEffectData::increase)
-      .def_readwrite("duration", &StatusEffectData::duration)
-      .def_readwrite("interval", &StatusEffectData::interval);
+           "    attack_algorithms: The attack algorithms the game object can use.");
   pybind11::class_<EffectApplier, ComponentBase, std::shared_ptr<EffectApplier>>(
       components, "EffectApplier", "Allows a game object to provide instant or status effects.")
       .def(pybind11::init([](const pybind11::dict &instant_effects, const pybind11::dict &status_effects) {
@@ -453,19 +405,128 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Args:\n"
            "    instant_effects: The instant effects the game object provides.\n"
            "    status_effects: The status effects the game object provides.");
+  pybind11::class_<Footprints, ComponentBase, std::shared_ptr<Footprints>>(
+      components, "Footprints", "Allows a game object to periodically leave footprints around the game map.")
+      .def(pybind11::init<>(), "Initialise the object.");
+  pybind11::class_<Inventory, ComponentBase, std::shared_ptr<Inventory>>(
+      components, "Inventory", "Allows a game object to have a fixed size inventory.")
+      .def(pybind11::init<int, int>(), pybind11::arg("width"), pybind11::arg("height"),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    width: The width of the inventory.\n"
+           "    height: The height of the inventory.")
+      .def("get_capacity", &Inventory::get_capacity,
+           "Get the capacity of the inventory.\n\n"
+           "Returns:\n"
+           "    The capacity of the inventory.");
+  pybind11::class_<KeyboardMovement, ComponentBase, std::shared_ptr<KeyboardMovement>>(
+      components, "KeyboardMovement", "Allows a game object's movement to be controlled by the keyboard.")
+      .def(pybind11::init<>(), "Initialise the object.")
+      .def_readwrite("moving_north", &KeyboardMovement::moving_north)
+      .def_readwrite("moving_east", &KeyboardMovement::moving_east)
+      .def_readwrite("moving_south", &KeyboardMovement::moving_south)
+      .def_readwrite("moving_west", &KeyboardMovement::moving_west);
+  pybind11::class_<KinematicComponent, ComponentBase, std::shared_ptr<KinematicComponent>>(
+      components, "KinematicComponent", "Allows a game object to interact with the physics system.")
+      .def(pybind11::init<std::vector<cpVect>>(), pybind11::arg("vertices"),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    vertices: The vertices of the shape.")
+      .def(
+          "get_position",
+          [](const KinematicComponent &kinematic_component) {
+            return pybind11::make_tuple(kinematic_component.body->p.x, kinematic_component.body->p.y);
+          },
+          "Get the position of the game object.\n\n"
+          "Returns:\n"
+          "    The position of the game object.");
+  pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
+      components, "Money", "Allows a game object to record the amount of money it has.")
+      .def(pybind11::init<int>(), pybind11::arg("money"),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    money: The amount of money the game object has.")
+      .def_readwrite("money", &Money::money);
+  pybind11::class_<StatusEffectData>(components, "StatusEffectData",
+                                     "Represents the data required to apply a status effect.")
+      .def(pybind11::init([](const StatusEffectType status_effect_type, const pybind11::function &increase,
+                             const pybind11::function &duration, const pybind11::function &interval) {
+             return StatusEffectData(status_effect_type, make_action_function(increase), make_action_function(duration),
+                                     make_action_function(interval));
+           }),
+           pybind11::arg("status_effect_type"), pybind11::arg("increase"), pybind11::arg("duration"),
+           pybind11::arg("interval"),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    status_effect_type: The type of status effect.\n"
+           "    increase: The increase function to apply.\n"
+           "    duration: The duration function to apply.\n"
+           "    interval: The interval function to apply.");
   pybind11::class_<StatusEffects, ComponentBase, std::shared_ptr<StatusEffects>>(
       components, "StatusEffects", "Allows a game object to have status effects applied to it.")
       .def(pybind11::init<>(), "Initialise the object.");
-  pybind11::class_<EffectSystem, SystemBase, std::shared_ptr<EffectSystem>>(
-      systems, "EffectSystem", "Provides facilities to manipulate instant and status effects.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
+  pybind11::class_<SteeringMovement, ComponentBase, std::shared_ptr<SteeringMovement>>(
+      components, "SteeringMovement", "Allows a game object's movement to be controlled by steering behaviours.")
+      .def(pybind11::init<std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>>(),
+           pybind11::arg("behaviours"),
            "Initialise the object.\n\n"
            "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
-      .def("update", &EffectSystem::update, pybind11::arg("delta_time"),
-           "Process update logic for a status effect component.\n\n"
+           "    behaviours: The steering behaviours the game object can use.")
+      .def_readwrite("target_id", &SteeringMovement::target_id);
+  pybind11::class_<Upgrades, ComponentBase, std::shared_ptr<Upgrades>>(components, "Upgrades",
+                                                                       "Allows a game object to be upgraded.")
+      .def(pybind11::init([](const pybind11::dict &upgrades) {
+             // Create a mapping to hold the upgrades
+             std::unordered_map<std::type_index, ActionFunction> target_upgrades;
+
+             // Iterate through the upgrades and add them to the mapping
+             for (const auto &[type, func] : upgrades) {
+               target_upgrades.emplace(get_type_index(type), make_action_function(func.cast<pybind11::function>()));
+             }
+
+             // Initialise the object
+             return std::make_shared<Upgrades>(target_upgrades);
+           }),
+           pybind11::arg("upgrades"),
+           "Initialise the object.\n\n"
            "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.")
+           "    upgrades: The upgrades the game object has.");
+
+  // Add the systems
+  pybind11::class_<AttackSystem, SystemBase, std::shared_ptr<AttackSystem>>(
+      systems, "AttackSystem", "Provides facilities to manipulate attack components.")
+      .def("do_attack", &AttackSystem::do_attack, pybind11::arg("game_object_id"), pybind11::arg("targets"),
+           "Perform the currently selected attack algorithm.\n\n"
+           "Args:\n"
+           "    game_object_id: The ID of the game object to perform the attack for.\n"
+           "    targets: The targets to attack.\n\n"
+           "Raises:\n"
+           "    RegistryError: If the game object does not exist or does not have an attack component.\n\n"
+           "Returns:\n"
+           "    The result of the attack.")
+      .def("previous_attack", &AttackSystem::previous_attack, pybind11::arg("game_object_id"),
+           "Select the previous attack algorithm.\n\n"
+           "Args:\n"
+           "    game_object_id: The ID of the game object to select the previous attack algorithm for.\n\n"
+           "Raises:\n"
+           "    RegistryError: If the game object does not exist or does not have an attack component.")
+      .def("next_attack", &AttackSystem::next_attack, pybind11::arg("game_object_id"),
+           "Select the next attack algorithm.\n\n"
+           "Args:\n"
+           "    game_object_id: The ID of the game object to select the next attack algorithm for.\n\n"
+           "Raises:\n"
+           "    RegistryError: If the game object does not exist or does not have an attack component.");
+  pybind11::class_<DamageSystem, SystemBase, std::shared_ptr<DamageSystem>>(
+      systems, "DamageSystem", "Provides facilities to damage game objects.")
+      .def("deal_damage", &DamageSystem::deal_damage,
+           "Deal damage to a game object.\n\n"
+           "Args:\n"
+           "    game_object_id: The ID of the game object to deal damage to.\n"
+           "    damage: The amount of damage to deal.\n\n"
+           "Raises:\n"
+           "    RegistryError: If the game object does not exist or does not have a health component.");
+  pybind11::class_<EffectSystem, SystemBase, std::shared_ptr<EffectSystem>>(
+      systems, "EffectSystem", "Provides facilities to manipulate instant and status effects.")
       .def("apply_effects", &EffectSystem::apply_effects, pybind11::arg("game_object_id"),
            pybind11::arg("target_game_object_id"),
            "Apply effects to a game object..\n\n"
@@ -476,29 +537,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    RegistryError: If either game object does not exist or does not have the required components.\n\n"
            "Returns:\n"
            "    Whether the effects were applied or not.");
-
-  // Add the inventory system as well as relevant structures/components
-  register_exception<InventorySpaceError>(game_objects, "InventorySpaceError");
-  pybind11::class_<Inventory, ComponentBase, std::shared_ptr<Inventory>>(
-      components, "Inventory", "Allows a game object to have a fixed size inventory.")
-      .def(pybind11::init<int, int>(), pybind11::arg("width"), pybind11::arg("height"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    width: The width of the inventory.\n"
-           "    height: The height of the inventory.")
-      .def_readwrite("width", &Inventory::width)
-      .def_readwrite("height", &Inventory::height)
-      .def_readwrite("items", &Inventory::items)
-      .def("get_capacity", &Inventory::get_capacity,
-           "Get the capacity of the inventory.\n\n"
-           "Returns:\n"
-           "    The capacity of the inventory.");
   pybind11::class_<InventorySystem, SystemBase, std::shared_ptr<InventorySystem>>(
       systems, "InventorySystem", "Provides facilities to manipulate inventory components.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
       .def("add_item_to_inventory", &InventorySystem::add_item_to_inventory, pybind11::arg("game_object_id"),
            pybind11::arg("item"),
            "Add an item to the inventory of a game object.\n\n"
@@ -519,147 +559,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    InventorySpaceError: If the inventory is empty or if the index is out of bounds.\n\n"
            "Returns:\n"
            "    The item removed from the inventory.");
-
-  // Add the footprint system, the keyboard movement system, and the steering movement system as well as relevant
-  // structures/components
-  pybind11::enum_<SteeringBehaviours>(game_objects, "SteeringBehaviours",
-                                      "Stores the different types of steering behaviours available.")
-      .value("Arrive", SteeringBehaviours::Arrive)
-      .value("Evade", SteeringBehaviours::Evade)
-      .value("Flee", SteeringBehaviours::Flee)
-      .value("FollowPath", SteeringBehaviours::FollowPath)
-      .value("ObstacleAvoidance", SteeringBehaviours::ObstacleAvoidance)
-      .value("Pursue", SteeringBehaviours::Pursue)
-      .value("Seek", SteeringBehaviours::Seek)
-      .value("Wander", SteeringBehaviours::Wander);
-  pybind11::enum_<SteeringMovementState>(game_objects, "SteeringMovementState",
-                                         "Stores the different states the steering movement component can be in.")
-      .value("Default", SteeringMovementState::Default)
-      .value("Footprint", SteeringMovementState::Footprint)
-      .value("Target", SteeringMovementState::Target);
-  pybind11::class_<Footprints, ComponentBase, std::shared_ptr<Footprints>>(
-      components, "Footprints", "Allows a game object to periodically leave footprints around the game map.")
-      .def(pybind11::init<>(), "Initialise the object.")
-      .def_readwrite("footprints", &Footprints::footprints);
-  pybind11::class_<KeyboardMovement, ComponentBase, std::shared_ptr<KeyboardMovement>>(
-      components, "KeyboardMovement", "Allows a game object's movement to be controlled by the keyboard.")
-      .def(pybind11::init<>(), "Initialise the object.")
-      .def_readwrite("moving_north", &KeyboardMovement::moving_north)
-      .def_readwrite("moving_east", &KeyboardMovement::moving_east)
-      .def_readwrite("moving_south", &KeyboardMovement::moving_south)
-      .def_readwrite("moving_west", &KeyboardMovement::moving_west);
-  pybind11::class_<SteeringMovement, ComponentBase, std::shared_ptr<SteeringMovement>>(
-      components, "SteeringMovement", "Allows a game object's movement to be controlled by steering behaviours.")
-      .def(pybind11::init<std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>>(),
-           pybind11::arg("behaviours"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    behaviours: The steering behaviours the game object can use.")
-      .def_readwrite("behaviours", &SteeringMovement::behaviours)
-      .def_readwrite("movement_state", &SteeringMovement::movement_state)
-      .def_readwrite("target_id", &SteeringMovement::target_id)
-      .def_readwrite("path_list", &SteeringMovement::path_list);
-  pybind11::class_<FootprintSystem, SystemBase, std::shared_ptr<FootprintSystem>>(
-      systems, "FootprintSystem", "Provides facilities to manipulate footprint components.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
-      .def("update", &FootprintSystem::update, pybind11::arg("delta_time"),
-           "Process update logic for a footprint component.\n\n"
-           "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.");
-  pybind11::class_<KeyboardMovementSystem, SystemBase, std::shared_ptr<KeyboardMovementSystem>>(
-      systems, "KeyboardMovementSystem", "Provides facilities to manipulate keyboard movement components.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
-      .def("calculate_force", &KeyboardMovementSystem::calculate_force, pybind11::arg("game_object_id"),
-           "Calculate the new keyboard force to apply to the game object.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to calculate the keyboard force for.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have a keyboard movement "
-           "component.\n\n"
-           "Returns:\n"
-           "    The new force to apply to the game object.");
-  pybind11::class_<SteeringMovementSystem, SystemBase, std::shared_ptr<SteeringMovementSystem>>(
-      systems, "SteeringMovementSystem", "Provides facilities to manipulate steering movement components.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
-      .def("calculate_force", &SteeringMovementSystem::calculate_force, pybind11::arg("game_object_id"),
-           "Calculate the new steering force to apply to the game object.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to calculate the steering force for.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have a steering movement "
-           "component.\n\n"
-           "Returns:\n"
-           "    The new force to apply to the game object.")
-      .def("update_path_list", &SteeringMovementSystem::update_path_list, pybind11::arg("game_object_id"),
-           pybind11::arg("path_list"),
-           "Update the path lists for the game objects to follow.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to follow.\n"
-           "    path_list: The list of footprints to follow.");
-
-  // Add the physics system as well as relevant structures/components
-  pybind11::enum_<PhysicsType>(game_objects, "PhysicsType", "Stores the different types of physics objects.")
-    .value("Enemy", PhysicsType::Enemy)
-    .value("Player", PhysicsType::Player)
-    .value("Wall", PhysicsType::Wall);
-  pybind11::class_<KinematicComponent, ComponentBase, std::shared_ptr<KinematicComponent>>(
-      components, "KinematicComponent", "Allows a game object to interact with the physics system.")
-      .def(pybind11::init<std::vector<cpVect>, PhysicsType>(), pybind11::arg("vertices"), pybind11::arg("physics_type"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    vertices: The vertices of the shape.")
-      .def("get_position", [](const KinematicComponent &kinematic_component) { return cpBodyGetPosition(*kinematic_component.body); },
-           "Get the position of the game object.\n\n"
-           "Returns:\n"
-           "    The position of the game object.");
-  pybind11::class_<PhysicsSystem, SystemBase, std::shared_ptr<PhysicsSystem>>(
-      systems, "PhysicseSystem", "Provides facilities to manipulate game object's physics.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.");
-
-  // Add the upgrade system as well as relevant structures/components
-  pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
-      components, "Money", "Allows a game object to record the amount of money it has.")
-      .def(pybind11::init<int>(), pybind11::arg("money"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    money: The amount of money the game object has.")
-      .def_readwrite("money", &Money::money);
-  pybind11::class_<Upgrades, ComponentBase, std::shared_ptr<Upgrades>>(components, "Upgrades",
-                                                                       "Allows a game object to be upgraded.")
-      .def(pybind11::init([](const pybind11::dict &upgrades) {
-             // Create a mapping to hold the upgrades
-             std::unordered_map<std::type_index, ActionFunction> target_upgrades;
-
-             // Iterate through the upgrades and add them to the mapping
-             for (const auto &[type, func] : upgrades) {
-               target_upgrades.emplace(get_type_index(type), make_action_function(func.cast<pybind11::function>()));
-             }
-
-             // Initialise the object
-             return std::make_shared<Upgrades>(target_upgrades);
-           }),
-           pybind11::arg("upgrades"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    upgrades: The upgrades the game object has.");
   pybind11::class_<UpgradeSystem, SystemBase, std::shared_ptr<UpgradeSystem>>(
       systems, "UpgradeSystem", "Provides facilities to manipulate game object upgrades.")
-      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    registry: The registry that manages the game objects, components, and systems.")
       .def("upgrade_component", &UpgradeSystem::upgrade_component, pybind11::arg("game_object_id"),
            pybind11::arg("target_component"),
            "Upgrade a component to the next level if possible.\n\n"
@@ -671,6 +572,3 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Returns:\n"
            "    Whether the component upgrade was successful or not.");
 }
-
-// TODO: Look at maybe switching doubles for floats in places
-// TODO: Sort all templates stuff in alphabetical order

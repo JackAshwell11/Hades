@@ -5,13 +5,11 @@
 #include "game_objects/registry.hpp"
 #include "game_objects/stats.hpp"
 
-#include <iostream>
-
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to interact with the physics system.
 struct KinematicComponent final : ComponentBase {
   /// The Chipmunk2D body of the game object.
-  ChipmunkHandle<cpBody, cpBodyFree> body{cpBodyNew(1, INFINITY)};
+  ChipmunkHandle<cpBody, cpBodyFree> body{cpBodyNew(1, std::numeric_limits<cpFloat>::infinity())};
 
   /// The Chipmunk2D shape of the game object.
   ChipmunkHandle<cpShape, cpShapeFree> shape;
@@ -19,12 +17,8 @@ struct KinematicComponent final : ComponentBase {
   /// Initialise the object.
   ///
   /// @param vertices - The vertices of the shape.
-  /// @param physics_type - The type of physics object.
-  explicit KinematicComponent(const std::vector<cpVect> &&/*vertices*/, const PhysicsType physics_type)
-    //  : shape(cpPolyShapeNew(*body, static_cast<int>(vertices.size()), vertices.data(), cpTransformIdentity, 0.0)) {
-      : shape(cpBoxShapeNew(*body, SPRITE_SIZE, SPRITE_SIZE, 0.0)) {
-    cpShapeSetCollisionType(*shape, static_cast<cpCollisionType>(physics_type));
-  }
+  explicit KinematicComponent(const std::vector<cpVect> &&vertices)
+      : shape(cpPolyShapeNew(*body, static_cast<int>(vertices.size()), vertices.data(), cpTransformIdentity, 0.0)) {}
 };
 
 // ----- SYSTEMS ------------------------------
@@ -38,9 +32,7 @@ struct PhysicsSystem final : SystemBase {
   /// Process update logic for the physics system.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  void update(const double delta_time) const override {
-    cpSpaceStep(get_registry()->get_space(), delta_time);
-  }
+  void update(const double delta_time) const override { cpSpaceStep(get_registry()->get_space(), delta_time); }
 
   /// Add a force to a game object.
   ///

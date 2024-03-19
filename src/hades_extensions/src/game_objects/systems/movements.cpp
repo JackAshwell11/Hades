@@ -17,6 +17,48 @@ constexpr double TARGET_DISTANCE{3 * SPRITE_SIZE};
 constexpr int MAX_DEGREE{360};
 
 // ----- FUNCTIONS ------------------------------
+/// Calculate the new steering force to apply to the game object.
+///
+/// @param registry - The registry that manages the game objects, components, and systems.
+/// @param steering_movement - The steering movement component of the game object.
+/// @param kinematic_owner - The kinematic component of the game object.
+/// @param kinematic_target - The kinematic component of the target game object.
+auto calculate_steering_force(const Registry *registry, const std::shared_ptr<SteeringMovement> &steering_movement,
+                              const cpBody *kinematic_owner, const cpBody *kinematic_target) -> cpVect {
+  cpVect steering_force{cpvzero};
+  std::random_device random_device;
+  std::mt19937_64 number_generator{random_device()};
+  for (const auto &behaviour : steering_movement->behaviours[steering_movement->movement_state]) {
+    switch (behaviour) {
+      case SteeringBehaviours::Arrive:
+        steering_force += arrive(kinematic_owner->p, kinematic_target->p);
+        break;
+      case SteeringBehaviours::Evade:
+        steering_force += evade(kinematic_owner->p, kinematic_target->p, kinematic_target->v);
+        break;
+      case SteeringBehaviours::Flee:
+        steering_force += flee(kinematic_owner->p, kinematic_target->p);
+        break;
+      case SteeringBehaviours::FollowPath:
+        steering_force += follow_path(kinematic_owner->p, steering_movement->path_list);
+        break;
+      case SteeringBehaviours::ObstacleAvoidance:
+        steering_force += obstacle_avoidance(kinematic_owner->p, kinematic_owner->v, registry->get_walls());
+        break;
+      case SteeringBehaviours::Pursue:
+        steering_force += pursue(kinematic_owner->p, kinematic_target->p, kinematic_target->v);
+        break;
+      case SteeringBehaviours::Seek:
+        steering_force += seek(kinematic_owner->p, kinematic_target->p);
+        break;
+      case SteeringBehaviours::Wander:
+        steering_force += wander(kinematic_owner->v, std::uniform_int_distribution{0, MAX_DEGREE}(number_generator));
+        break;
+    }
+  }
+  return steering_force;
+}
+
 void FootprintSystem::update(const double delta_time) const {
   // Update the time since the last footprint then check if a new footprint should be created
   for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<Footprints>()) {
@@ -39,63 +81,41 @@ void FootprintSystem::update(const double delta_time) const {
   }
 }
 
-void KeyboardMovementSystem::calculate_force(const GameObjectID game_object_id) const {
-  const auto keyboard_movement{get_registry()->get_component<KeyboardMovement>(game_object_id)};
-  get_registry()->get_system<PhysicsSystem>()->add_force(
-      game_object_id, {static_cast<double>(static_cast<int>(keyboard_movement->moving_east) -
-                                           static_cast<int>(keyboard_movement->moving_west)),
-                       static_cast<double>(static_cast<int>(keyboard_movement->moving_north) -
-                                           static_cast<int>(keyboard_movement->moving_south))});
+void KeyboardMovementSystem::update(const double /*delta_time*/) const {
+  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<KeyboardMovement>()) {
+    const auto keyboard_movement{std::get<0>(component_tuple)};
+    get_registry()->get_system<PhysicsSystem>()->add_force(
+        game_object_id, {static_cast<double>(static_cast<int>(keyboard_movement->moving_east) -
+                                             static_cast<int>(keyboard_movement->moving_west)),
+                         static_cast<double>(static_cast<int>(keyboard_movement->moving_north) -
+                                             static_cast<int>(keyboard_movement->moving_south))});
+  }
 }
 
-void SteeringMovementSystem::calculate_force(const GameObjectID game_object_id) const {
-  // Determine if the movement state should change or not
-  const auto steering_movement{get_registry()->get_component<SteeringMovement>(game_object_id)};
-  const auto kinematic_owner{get_registry()->get_component<KinematicComponent>(game_object_id)};
-  const auto kinematic_target{get_registry()->get_component<KinematicComponent>(steering_movement->target_id)};
-  if (cpvdist(kinematic_owner->body->p, kinematic_target->body->p) <= TARGET_DISTANCE) {
-    steering_movement->movement_state = SteeringMovementState::Target;
-  } else if (!steering_movement->path_list.empty()) {
-    steering_movement->movement_state = SteeringMovementState::Footprint;
-  } else {
-    steering_movement->movement_state = SteeringMovementState::Default;
-  }
-
-  // Calculate the new force to apply to the game object
-  cpVect steering_force{0, 0};
-  std::random_device random_device;
-  std::mt19937_64 number_generator{random_device()};
-  for (const auto &behaviour : steering_movement->behaviours[steering_movement->movement_state]) {
-    switch (behaviour) {
-      case SteeringBehaviours::Arrive:
-        steering_force += arrive(kinematic_owner->body->p, kinematic_target->body->p);
-        break;
-      case SteeringBehaviours::Evade:
-        steering_force += evade(kinematic_owner->body->p, kinematic_target->body->p, kinematic_target->body->v);
-        break;
-      case SteeringBehaviours::Flee:
-        steering_force += flee(kinematic_owner->body->p, kinematic_target->body->p);
-        break;
-      case SteeringBehaviours::FollowPath:
-        steering_force += follow_path(kinematic_owner->body->p, steering_movement->path_list);
-        break;
-      case SteeringBehaviours::ObstacleAvoidance:
-        steering_force +=
-            obstacle_avoidance(kinematic_owner->body->p, kinematic_owner->body->v, get_registry()->get_walls());
-        break;
-      case SteeringBehaviours::Pursue:
-        steering_force += pursue(kinematic_owner->body->p, kinematic_target->body->p, kinematic_target->body->v);
-        break;
-      case SteeringBehaviours::Seek:
-        steering_force += seek(kinematic_owner->body->p, kinematic_target->body->p);
-        break;
-      case SteeringBehaviours::Wander:
-        steering_force +=
-            wander(kinematic_owner->body->v, std::uniform_int_distribution{0, MAX_DEGREE}(number_generator));
-        break;
+void SteeringMovementSystem::update(const double /*delta_time*/) const {
+  for (const auto &[game_object_id, component_tuple] :
+       get_registry()->find_components<SteeringMovement, KinematicComponent>()) {
+    // Unpack the components and check if the target game object exists
+    const auto [steering_movement, kinematic_owner] = component_tuple;
+    if (steering_movement->target_id == -1) {
+      continue;
     }
+    const auto kinematic_target{get_registry()->get_component<KinematicComponent>(steering_movement->target_id)};
+
+    // Determine if the movement state should change or not
+    if (cpvdist(kinematic_owner->body->p, kinematic_target->body->p) <= TARGET_DISTANCE) {
+      steering_movement->movement_state = SteeringMovementState::Target;
+    } else if (!steering_movement->path_list.empty()) {
+      steering_movement->movement_state = SteeringMovementState::Footprint;
+    } else {
+      steering_movement->movement_state = SteeringMovementState::Default;
+    }
+
+    // Calculate and apply the new steering force to the game object
+    get_registry()->get_system<PhysicsSystem>()->add_force(
+        game_object_id,
+        calculate_steering_force(get_registry(), steering_movement, *kinematic_owner->body, *kinematic_target->body));
   }
-  get_registry()->get_system<PhysicsSystem>()->add_force(game_object_id, steering_force);
 }
 
 void SteeringMovementSystem::update_path_list(const GameObjectID target_game_object_id,

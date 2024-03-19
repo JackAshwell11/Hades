@@ -10,11 +10,11 @@
 class ArmourRegenSystemFixture : public testing::Test {
  protected:
   /// The registry that manages the game objects, components, and systems.
-  Registry registry{};
+  Registry registry;
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object({std::make_shared<Armour>(50, -1), std::make_shared<ArmourRegen>(4, -1)});
+    registry.create_game_object(cpvzero, {std::make_shared<Armour>(50, -1), std::make_shared<ArmourRegen>(4, -1)});
     registry.add_system<ArmourRegenSystem>();
   }
 
@@ -68,4 +68,12 @@ TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateMultipleUpdates) {
   get_armour_regen_system()->update(2);
   ASSERT_EQ(armour->get_value(), 40);
   ASSERT_EQ(registry.get_component<ArmourRegen>(0)->time_since_armour_regen, 3);
+}
+
+/// Test that the armour regen component is not updated if the game object does not have the required components.
+TEST_F(ArmourRegenSystemFixture, TestSteeringMovementSystemUpdateIncompleteComponents) {
+  registry.create_game_object(cpvzero, {std::make_shared<Armour>(100, -1)});
+  registry.get_component<Armour>(1)->set_value(50);
+  get_armour_regen_system()->update(5);
+  ASSERT_EQ(registry.get_component<Armour>(1)->get_value(), 50);
 }
