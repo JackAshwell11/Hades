@@ -1,4 +1,4 @@
-// External includes
+// External headers
 #include <gtest/gtest.h>
 
 // Local headers
