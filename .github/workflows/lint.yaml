@@ -12,11 +12,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
+        with:
+          submodules: recursive
       - name: Set up CMake
-        uses: lukka/get-cmake@v3.27.7
+        uses: lukka/get-cmake@v3.28.3
       - name: Configure CMake
         working-directory: ${{ github.workspace }}/src/hades_extensions
-        run: cmake --preset Debug
+        run: cmake --preset LinuxDebug
       - name: Run clang-tidy
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: clang-tidy -p ./build-debug/compile_commands.json --extra-arg=-std=c++20 --quiet ./**/*.cpp ./**/*.hpp
@@ -35,8 +37,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
+        with:
+          submodules: recursive
       - name: Run clang-format
         uses: jidicula/clang-format-action@v4.11.0
         with:
           check-path: ${{ github.workspace }}/src/hades_extensions
-          exclude-regex: build-debug
+          exclude-regex: build-debug|vcpkg

@@ -50,7 +50,7 @@ class CMakeBuild(build_ext):
                 "-DDO_TESTS=OFF",
                 "--fresh",
                 "--preset",
-                "Release",
+                f"{'WinRelease' if platform.system() == 'Windows' else 'LinuxRelease'}",
             ],
             check=True,
         )
