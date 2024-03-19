@@ -72,7 +72,7 @@ struct Armour final : Stat {
   /// Checks if the component can have an indicator bar or not.
   ///
   /// @return Whether the component can have an indicator bar or not.
-  [[nodiscard]] bool has_indicator_bar() const override { return true; }
+  [[nodiscard]] auto has_indicator_bar() const -> bool override { return true; }
 };
 
 /// Allows a game object to regenerate armour.
@@ -98,7 +98,7 @@ struct Health final : Stat {
   /// Checks if the component can have an indicator bar or not.
   ///
   /// @return Whether the component can have an indicator bar or not.
-  [[nodiscard]] bool has_indicator_bar() const override { return true; }
+  [[nodiscard]] auto has_indicator_bar() const -> bool override { return true; }
 };
 
 /// Allows a game object to determine how fast it can move.

@@ -45,8 +45,7 @@ struct AttackSystem final : SystemBase {
   /// @param targets - The targets to attack.
   /// @throws RegistryError - If the game object does not exist or does not have an attack component.
   /// @return The result of the attack.
-  [[nodiscard]] auto do_attack(GameObjectID game_object_id, const std::vector<int> &targets) const
-      -> std::optional<std::tuple<Vec2d, double, double>>;
+  [[nodiscard]] auto do_attack(GameObjectID game_object_id, const std::vector<int> &targets) const -> std::optional<std::tuple<cpVect, double, double>>;
 
   /// Select the previous attack algorithm.
   ///
@@ -85,3 +84,5 @@ struct DamageSystem final : SystemBase {
   /// @throws RegistryError - If the game object does not exist or does not have health and armour components.
   void deal_damage(GameObjectID game_object_id, int damage) const;
 };
+
+// TODO: Change ranged attack to create a chipmunk object

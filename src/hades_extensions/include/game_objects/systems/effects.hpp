@@ -95,7 +95,7 @@ struct EffectApplier final : ComponentBase {
 /// Allows a game object to have status effects applied to it.
 struct StatusEffects final : ComponentBase {
   /// The status effects currently applied to the game object.
-  std::unordered_map<StatusEffectType, StatusEffect> applied_effects{};
+  std::unordered_map<StatusEffectType, StatusEffect> applied_effects;
 };
 
 // ----- SYSTEMS ------------------------------

@@ -17,15 +17,7 @@ constexpr int WANDER_CIRCLE_DISTANCE{50};
 constexpr int WANDER_CIRCLE_RADIUS{25};
 
 // ----- OPERATORS ------------------------------
-auto operator!=(const cpVect &lhs, const cpVect &rhs) -> bool { return lhs.x != rhs.x || lhs.y != rhs.y; }
-
-auto operator+=(cpVect &lhs, const cpVect &rhs) -> cpVect {
-  lhs.x += rhs.x;
-  lhs.y += rhs.y;
-  return lhs;
-}
-
-auto operator/(const cpVect &lhs, const double val) -> cpVect {
+inline auto operator/(const cpVect &lhs, const double val) -> cpVect {
   return {std::floor(lhs.x / val), std::floor(lhs.y / val)};
 }
 
@@ -66,8 +58,7 @@ auto follow_path(const cpVect &current_position, std::vector<cpVect> &path_list)
   return seek(current_position, path_list[0]);
 }
 
-auto obstacle_avoidance(const cpVect &current_position, const cpVect &current_velocity,
-                        const std::unordered_set<cpVect> &walls) -> cpVect {
+auto obstacle_avoidance(const cpVect &current_position, const cpVect &current_velocity, const std::unordered_set<cpVect> &walls) -> cpVect {
   // Create the lambda function to cast a ray from the game object's position in the direction of its velocity at a
   // given angle
   auto raycast{[&current_position, &current_velocity, &walls](const double angle = 0) -> cpVect {
@@ -76,7 +67,7 @@ auto obstacle_avoidance(const cpVect &current_position, const cpVect &current_ve
     constexpr int step_count{static_cast<int>(MAX_SEE_AHEAD / SPRITE_SIZE)};
 
     // Perform the raycast
-    for (int step = 1; step <= step_count; step++) {
+    for (int step{1}; step <= step_count; step++) {
       if (cpVect position{current_position + rotated_velocity * (step * SPRITE_SIZE / 100.0)};
           walls.contains(position / SPRITE_SIZE)) {
         return position;
@@ -125,5 +116,5 @@ auto wander(const cpVect &current_velocity, const int displacement_angle) -> cpV
 
   // Add a displacement force to the centre of the circle to randomise the movement
   const cpVect displacement{cpvrotate(cpVect{0, -1} * WANDER_CIRCLE_RADIUS, cpvforangle(displacement_angle * PI_RADIANS))};
-  return cpvnormalize(circle_center + displacement);  // TODO: Compact here? Should look at rest of file
+  return cpvnormalize(circle_center + displacement);
 }
