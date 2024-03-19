@@ -78,6 +78,8 @@ class DamageSystemFixture : public testing::Test {
   }
 };
 
+// TODO: Rename all tests docstrings for has_indicator_bar to has_indicator_bar()
+
 // ----- TESTS ----------------------------------
 /// Test that the required components return the correct value for has_indicator_bar.
 TEST(Tests, TestAttackSystemComponentsHasIndicatorBar) { ASSERT_FALSE(Attacks{{}}.has_indicator_bar()); }

@@ -17,21 +17,19 @@ __all__ = (
     "BULLET_VELOCITY",
     "COLLECTIBLE_TYPES",
     "DAMAGE",
-    "DAMPING",
     "ENEMY_GENERATE_INTERVAL",
     "ENEMY_GENERATION_DISTANCE",
     "ENEMY_RETRY_COUNT",
     "GAME_LOGGER",
-    "GameObjectType",
     "INDICATOR_BAR_BORDER_SIZE",
     "INDICATOR_BAR_DISTANCE",
     "INDICATOR_BAR_HEIGHT",
     "INDICATOR_BAR_WIDTH",
     "LOGGING_DICT_CONFIG",
     "MAX_BULLET_RANGE",
-    "MAX_VELOCITY",
     "TOTAL_ENEMY_COUNT",
     "USABLE_TYPES",
+    "GameObjectType",
 )
 
 
@@ -113,10 +111,6 @@ INDICATOR_BAR_BORDER_SIZE: Final[int] = 4
 INDICATOR_BAR_DISTANCE: Final[int] = 16
 INDICATOR_BAR_HEIGHT: Final[int] = 10
 INDICATOR_BAR_WIDTH: Final[int] = 50
-
-# Physics constants
-DAMPING: Final[float] = 0.0001
-MAX_VELOCITY: Final[int] = 200
 
 # Define some collections for game object types
 COLLECTIBLE_TYPES: Final[set[GameObjectType]] = {

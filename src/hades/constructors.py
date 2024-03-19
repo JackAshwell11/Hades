@@ -3,14 +3,20 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Final, NamedTuple
+from pathlib import Path
+from typing import TYPE_CHECKING, Final, NamedTuple, TypedDict
+
+# Pip
+from arcade import load_texture
 
 # Custom
 from hades.constants import GameObjectType
 from hades_extensions.game_objects import (
+    SPRITE_SCALE,
     AttackAlgorithm,
     SteeringBehaviours,
     SteeringMovementState,
+    Vec2d,
 )
 from hades_extensions.game_objects.components import (
     Armour,
@@ -20,6 +26,7 @@ from hades_extensions.game_objects.components import (
     Health,
     Inventory,
     KeyboardMovement,
+    KinematicComponent,
     MovementForce,
     SteeringMovement,
 )
@@ -27,9 +34,14 @@ from hades_extensions.game_objects.components import (
 if TYPE_CHECKING:
     from typing import ClassVar
 
+    from arcade import Texture
+
     from hades_extensions.game_objects import ComponentBase
 
-__all__ = ("ENEMY", "FLOOR", "GameObjectConstructor", "PLAYER", "POTION", "WALL")
+__all__ = ("ENEMY", "FLOOR", "PLAYER", "POTION", "WALL", "GameObjectConstructor")
+
+# Create the texture path
+texture_path = Path(__file__).resolve().parent / "resources" / "textures"
 
 
 class GameObjectConstructor(NamedTuple):
@@ -38,35 +50,94 @@ class GameObjectConstructor(NamedTuple):
     Args:
         game_object_type: The game object's type.
         name: The game object's name.
-        textures: The game object's texture paths.
+        textures: The game object's texture.
         components: The game object's components.
         blocking: Whether the game object blocks sprite movement or not.
-        kinematic: Whether the game object should have a kinematic object or not.
     """
 
     game_object_type: GameObjectType
     name: str
-    textures: list[str]
-    components: ClassVar[list[ComponentBase]] = []
-    blocking: bool = False
-    kinematic: bool = False
+    textures: list[Texture]
+    components: ClassVar[list[ComponentBase]]
+    blocking: bool
+
+
+class GameObjectConstructorOptions(TypedDict, total=False):
+    """Represents the options when creating a game object constructor.
+
+    Args:
+        kinematic: Whether the game object should have a kinematic component or not.
+        blocking: Whether the game object blocks sprite movement or not.
+    """
+
+    kinematic: bool
+    blocking: bool
+
+
+def create_constructor(
+    game_object_type: GameObjectType,
+    name: str,
+    texture_paths: list[str],
+    components: list[ComponentBase] | None = None,
+    options: GameObjectConstructorOptions | None = None,
+) -> GameObjectConstructor:
+    """Creates a constructor for a game object.
+
+    Args:
+        game_object_type: The game object's type.
+        name: The game object's name.
+        texture_paths: The game object's texture paths.
+        components: The game object's components.
+        options: The game object's options.
+    """
+    # Set the default values for the parameters
+    if components is None:
+        components = []
+    if options is None:
+        options = {}
+
+    # Load the textures and create the constructor
+    textures = [load_texture(texture_path.joinpath(path)) for path in texture_paths]
+    constructor = GameObjectConstructor(
+        game_object_type,
+        name,
+        textures,
+        components,
+        options.get("blocking", False),
+    )
+
+    # Add the kinematic component if needed using the first texture's hit box
+    # points
+    if options.get("kinematic", False):
+        constructor.components.append(
+            KinematicComponent(
+                [
+                    Vec2d(*hit_box_point) * SPRITE_SCALE
+                    for hit_box_point in textures[0].hit_box_points
+                ],
+            ),
+        )
+    return constructor
 
 
 # Static tiles
-WALL: Final[GameObjectConstructor] = GameObjectConstructor(
+WALL: Final[GameObjectConstructor] = create_constructor(
     GameObjectType.WALL,
     "Wall",
     ["wall.png"],
-    blocking=True,
+    options={
+        "blocking": True,
+    },
 )
-FLOOR: Final[GameObjectConstructor] = GameObjectConstructor(
+FLOOR: Final[GameObjectConstructor] = create_constructor(
     GameObjectType.FLOOR,
     "Floor",
     ["floor.png"],
 )
 
+
 # Entities
-PLAYER: Final[GameObjectConstructor] = GameObjectConstructor(
+PLAYER: Final[GameObjectConstructor] = create_constructor(
     GameObjectType.PLAYER,
     "Player",
     ["player_idle.png"],
@@ -74,18 +145,22 @@ PLAYER: Final[GameObjectConstructor] = GameObjectConstructor(
         Health(200, 5),
         Armour(100, 5),
         Inventory(6, 5),
-        Attacks([
-            AttackAlgorithm.Ranged,
-            AttackAlgorithm.Melee,
-            AttackAlgorithm.AreaOfEffect,
-        ]),
+        Attacks(
+            [
+                AttackAlgorithm.Ranged,
+                AttackAlgorithm.Melee,
+                AttackAlgorithm.AreaOfEffect,
+            ],
+        ),
         MovementForce(5000, 5),
         KeyboardMovement(),
         Footprints(),
     ],
-    kinematic=True,
+    {
+        "kinematic": True,
+    },
 )
-ENEMY: Final[GameObjectConstructor] = GameObjectConstructor(
+ENEMY: Final[GameObjectConstructor] = create_constructor(
     GameObjectType.ENEMY,
     "Enemy",
     ["enemy_idle.png"],
@@ -104,13 +179,17 @@ ENEMY: Final[GameObjectConstructor] = GameObjectConstructor(
             },
         ),
     ],
-    kinematic=True,
+    {
+        "kinematic": True,
+    },
 )
 
 # Items
-POTION: Final[GameObjectConstructor] = GameObjectConstructor(
+POTION: Final[GameObjectConstructor] = create_constructor(
     GameObjectType.POTION,
     "Health Potion",
     ["health_potion.png"],
     [EffectApplier({}, {})],
 )
+
+# TODO: Change this so the tests don't have to initialise the textures
