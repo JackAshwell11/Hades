@@ -8,18 +8,25 @@
 #include <string>
 #include <typeindex>
 
-// External headers
-#include <chipmunk/chipmunk.h>
-
 // Local headers
-#include <chipmunk/chipmunk_private.h>
-
 #include "steering.hpp"
 
 // ----- TYPEDEFS ------------------------------
 // Represents unique identifiers for game objects
 using GameObjectID = int;
 using ActionFunction = std::function<double(int)>;
+
+// ----- CONSTANTS ------------------------------
+// The percentage of velocity a game object will retain after a second.
+constexpr float DAMPING = 0.0001f;
+
+// ----- ENUMS ------------------------------
+/// Stores the different types of physics objects.
+enum class PhysicsType : std::int8_t {
+  Enemy,
+  Player,
+  Wall,
+};
 
 // ----- BASE TYPES ------------------------------
 // Add a forward declaration for the registry class
@@ -95,22 +102,16 @@ class SystemBase {
 template <typename T, void (*Destructor)(T *)>
 class ChipmunkHandle {
   /// The Chipmunk2D object.
-  T *_obj;
+  std::unique_ptr<T, void(*)(T*)> _obj;
 
  public:
   /// Initialise the object.
   ///
   /// @param obj - The Chipmunk2D object.
-  explicit ChipmunkHandle(T *obj) : _obj(obj) {}
+  explicit ChipmunkHandle(T *obj) : _obj(obj, Destructor) {}
 
   /// Destroy the object.
-  ~ChipmunkHandle() {
-    if (_obj) {
-      Destructor(_obj);
-    }
-  }
-
-  // TODO: Should we use smart pointers here and how about operator-> and operator*?
+  ~ChipmunkHandle() = default;
 
   /// The copy constructor.
   ChipmunkHandle(const ChipmunkHandle &) = delete;
@@ -125,7 +126,10 @@ class ChipmunkHandle {
   auto operator=(ChipmunkHandle &&) -> ChipmunkHandle & = delete;
 
   /// The dereference operator.
-  auto operator*() const -> T * { return _obj; }
+  auto operator*() const -> T * { return _obj.get(); }
+
+  /// The arrow operator.
+  auto operator->() const -> T * { return _obj.get(); }
 };
 
 // ----- EXCEPTIONS ------------------------------
@@ -149,15 +153,37 @@ struct RegistryError final : std::runtime_error {
                            "` is not registered with the registry" + extra + ".") {}
 };
 
+// ----- FUNCTIONS ------------------------------
+/// Calculate the screen position based on a grid position.
+///
+/// @param position - The position in the grid.
+/// @throws std::invalid_argument - If the position is negative.
+/// @return The screen position of the grid position.
+inline auto grid_pos_to_pixel(const cpVect &position) -> cpVect {
+  if (position.x < 0 || position.y < 0) {
+    throw std::invalid_argument("The position cannot be negative");
+  }
+  return position * SPRITE_SIZE + SPRITE_SIZE / 2;
+}
+
 // ----- CLASSES ------------------------------
 /// Manages game objects, components, and systems that are registered.
 class Registry {
  public:
+  /// Initialise the object.
+  Registry() {
+    // Initialise the Chipmunk2D space and add collision handlers
+    cpSpaceSetDamping(*space_, DAMPING);
+    cpCollisionHandler *handler = cpSpaceAddCollisionHandler(*space_, static_cast<cpCollisionType>(PhysicsType::Player), static_cast<cpCollisionType>(PhysicsType::Wall));
+    handler->beginFunc = [](cpArbiter */*arb*/, cpSpace */*space*/, void */*data*/) -> cpBool { return cpFalse; };
+  }
+
   /// Create a new game object.
   ///
+  /// @param position - The position of the game object.
   /// @param components - The components to add to the game object.
   /// @return The game object ID.
-  auto create_game_object(const std::vector<std::shared_ptr<ComponentBase>> &&components) -> GameObjectID;
+  auto create_game_object(const cpVect& position, const std::vector<std::shared_ptr<ComponentBase>> &&components) -> GameObjectID;
 
   /// Delete a game object.
   ///
@@ -265,18 +291,29 @@ class Registry {
 
   /// Add a wall to the registry.
   ///
-  /// @param wall - The center position of the wall.
-  void add_wall(const cpVect &wall) const;
+  /// @param wall - The wall to add to the registry.
+  void add_wall(const cpVect &wall);
+
+  /// Get the walls in the registry.
+  ///
+  /// @return The walls in the registry.
+  [[nodiscard]] auto get_walls() const -> const std::unordered_set<cpVect> & { return walls_; }
 
  private:
+  /// Add a Chipmunk2D object to the space.
+  void add_chipmunk_object(cpBody *body, cpShape *shape, const cpVect &position) const;
+
   /// The next game object ID to use.
   GameObjectID next_game_object_id_{0};
 
   /// The game objects and their components registered with the registry.
-  std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::shared_ptr<ComponentBase>>> game_objects_{};
+  std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::shared_ptr<ComponentBase>>> game_objects_;
 
   /// The systems registered with the registry.
-  std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_{};
+  std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_;
+
+  /// The walls registered with the registry.
+  std::unordered_set<cpVect> walls_;
 
   /// The Chipmunk2D space.
   ChipmunkHandle<cpSpace, cpSpaceFree> space_{cpSpaceNew()};

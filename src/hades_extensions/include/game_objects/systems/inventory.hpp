@@ -29,7 +29,7 @@ struct Inventory final : ComponentBase {
   int height;
 
   /// The game object's inventory.
-  std::vector<int> items{};
+  std::vector<int> items;
 
   /// Initialise the object.
   ///

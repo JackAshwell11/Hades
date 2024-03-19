@@ -14,13 +14,13 @@ struct Leaf {
   const std::unique_ptr<Rect> container;
 
   /// The left container of this leaf. If this is null, we have reached the end of the branch.
-  std::unique_ptr<Leaf> left{};
+  std::unique_ptr<Leaf> left;
 
   /// The right container of this leaf. If this is null, we have reached the end of the branch.
-  std::unique_ptr<Leaf> right{};
+  std::unique_ptr<Leaf> right;
 
   /// The rect object for representing the room inside this leaf.
-  std::unique_ptr<Rect> room{};
+  std::unique_ptr<Rect> room;
 
   /// Initialise the object.
   ///

@@ -49,8 +49,8 @@ auto place_random_tiles(const Grid &grid, std::mt19937 &random_generator, const 
                         const TileType target_tile, const int count) -> std::unordered_set<Position> {
   // Get all the positions that match the replaceable tile
   std::vector<Position> replaceable_tiles;
-  for (int y = 0; y < grid.height; y++) {
-    for (int x = 0; x < grid.width; x++) {
+  for (int y{0}; y < grid.height; y++) {
+    for (int x{0}; x < grid.width; x++) {
       if (grid.get_value({x, y}) == replaceable_tile) {
         replaceable_tiles.emplace_back(x, y);
       }
@@ -64,7 +64,7 @@ auto place_random_tiles(const Grid &grid, std::mt19937 &random_generator, const 
 
   // Create a collection to store the item positions then place each tile
   std::unordered_set<Position> item_positions;
-  for (int _ = 0; _ < count; _++) {
+  for (int _{0}; _ < count; _++) {
     const std::size_t tile_index{
         std::uniform_int_distribution<std::size_t>{0, replaceable_tiles.size() - 1}(random_generator)};
     const Position possible_tile{replaceable_tiles[tile_index]};
@@ -79,7 +79,7 @@ auto place_random_tiles(const Grid &grid, std::mt19937 &random_generator, const 
 void place_dijkstra_tiles(const Grid &grid, std::mt19937 &random_generator,
                           std::unordered_set<Position> &item_positions, const TileType target_tile, const int count) {
   // Place each tile using the Dijkstra map
-  for (int _ = 0; _ < count; _++) {
+  for (int _{0}; _ < count; _++) {
     // Determine if we should select a position within or outside the minimum distance
     const bool within_min_distance{std::uniform_real_distribution<>{0, 1}(random_generator) <
                                    WITHIN_MIN_DISTANCE_CHANCE};
@@ -166,8 +166,8 @@ void create_hallways(const Grid &grid, const std::unordered_set<Edge> &connectio
 
 void run_cellular_automata(Grid &grid) {
   // Create a temporary grid to store the next generation then perform the cellular automata simulation
-  auto temp_grid = std::make_unique<std::vector<TileType>>(*grid.grid);
-  for (int i = 0; i < grid.width * grid.height; i++) {
+  auto temp_grid{std::make_unique<std::vector<TileType>>(*grid.grid)};
+  for (int i{0}; i < grid.width * grid.height; i++) {
     // Get the number of alive neighbours and check if the tile should be alive or dead
     const auto alive_neighbours{std::ranges::count_if(
         grid.get_neighbours({i % grid.width, i / grid.width}),
@@ -177,8 +177,8 @@ void run_cellular_automata(Grid &grid) {
   grid.grid = std::move(temp_grid);
 
   // Place walls around the floor tiles
-  for (int y = 0; y < grid.height; y++) {
-    for (int x = 0; x < grid.width; x++) {
+  for (int y{0}; y < grid.height; y++) {
+    for (int x{0}; x < grid.width; x++) {
       // Check if the tile is on the edge of the grid or if it has a floor neighbour (while not being a floor tile)
       const Position position{x, y};
       if (const auto floor_neighbours{std::ranges::count_if(
@@ -224,7 +224,7 @@ auto create_map(const int level, std::optional<unsigned int> seed) -> std::pair<
   create_hallways(grid, create_connections(create_complete_graph(rooms)));
 
   // Run some cellular automata simulations on the grid then place the walls around the floor tiles
-  for (int _ = 0; _ < CELLULAR_AUTOMATA_SIMULATIONS; _++) {
+  for (int _{0}; _ < CELLULAR_AUTOMATA_SIMULATIONS; _++) {
     run_cellular_automata(grid);
   }
 

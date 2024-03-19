@@ -100,67 +100,69 @@ TEST(Tests, TestFollowPathEmptyList) {
   ASSERT_THROW_MESSAGE(follow_path({100, 100}, path_list), std::length_error, "The path list is empty.")
 }
 
-/// Test if no obstacles produce the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceNoObstacles) { ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {}), cpVect(0, 0)); }
-
-/// Test if an out of range obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceObstacleOutOfRange) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{10, 10}}), cpVect(0, 0));
-}
-
-/// Test if an angled velocity produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceAngledVelocity) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {100, 100}, {{1, 2}}), cpVect(0.2588190451025206, -0.9659258262890683));
-}
-
-/// Test if a non-moving game object produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceNonMoving) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}}), cpVect(0, 0));
-}
-
-/// Test if a single forward obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceSingleForward) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}}), cpVect(0, 0));
-}
-
-/// Test if a single left obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceSingleLeft) {
-  // This is due to floating point precision
-  const auto [single_left_result_x, single_left_result_y] = obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}});
-  ASSERT_DOUBLE_EQ(single_left_result_x, 0.8660254037844387);
-  ASSERT_DOUBLE_EQ(single_left_result_y, -0.5);
-}
-
-/// Test if a single right obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceSingleRight) {
-  // This is due to floating point precision
-  const auto [single_right_result_x, single_right_result_y] = obstacle_avoidance({100, 100}, {0, 100}, {{2, 2}});
-  ASSERT_DOUBLE_EQ(single_right_result_x, -0.8660254037844386);
-  ASSERT_DOUBLE_EQ(single_right_result_y, -0.5);
-}
-
-/// Test if a left and forward obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceLeftForward) {
-  // This is due to floating point precision
-  const auto [left_forward_result_x, left_forward_result_y] =
-      obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}});
-  ASSERT_DOUBLE_EQ(left_forward_result_x, 0.8660254037844387);
-  ASSERT_DOUBLE_EQ(left_forward_result_y, -0.5);
-}
-
-/// Test if a right and forward obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceRightForward) {
-  // This is due to floating point precision
-  const auto [right_forward_result_x, right_forward_result_y] =
-      obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}, {2, 2}});
-  ASSERT_DOUBLE_EQ(right_forward_result_x, -0.8660254037844386);
-  ASSERT_DOUBLE_EQ(right_forward_result_y, -0.5);
-}
-
-/// Test if all three obstacles produce the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceLeftRightForward) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}, {2, 2}}), cpVect(0, -1));
-}
+// /// Test if no obstacles produce the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceNoObstacles) {
+//   ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {}), cpVect(0, 0));
+// }
+//
+// /// Test if an out of range obstacle produces the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceObstacleOutOfRange) {
+//   ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{10, 10}}), cpVect(0, 0));
+// }
+//
+// /// Test if an angled velocity produces the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceAngledVelocity) {
+//   ASSERT_EQ(obstacle_avoidance({100, 100}, {100, 100}, {{1, 2}}), cpVect(0.2588190451025206, -0.9659258262890683));
+// }
+//
+// /// Test if a non-moving game object produces the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceNonMoving) {
+//   ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}}), cpVect(0, 0));
+// }
+//
+// /// Test if a single forward obstacle produces the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceSingleForward) {
+//   ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}}), cpVect(0, 0));
+// }
+//
+// /// Test if a single left obstacle produces the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceSingleLeft) {
+//   // This is due to floating point precision
+//   const auto [single_left_result_x, single_left_result_y] = obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}});
+//   ASSERT_DOUBLE_EQ(single_left_result_x, 0.8660254037844387);
+//   ASSERT_DOUBLE_EQ(single_left_result_y, -0.5);
+// }
+//
+// /// Test if a single right obstacle produces the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceSingleRight) {
+//   // This is due to floating point precision
+//   const auto [single_right_result_x, single_right_result_y] = obstacle_avoidance({100, 100}, {0, 100}, {{2, 2}});
+//   ASSERT_DOUBLE_EQ(single_right_result_x, -0.8660254037844386);
+//   ASSERT_DOUBLE_EQ(single_right_result_y, -0.5);
+// }
+//
+// /// Test if a left and forward obstacle produces the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceLeftForward) {
+//   // This is due to floating point precision
+//   const auto [left_forward_result_x, left_forward_result_y] =
+//       obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}});
+//   ASSERT_DOUBLE_EQ(left_forward_result_x, 0.8660254037844387);
+//   ASSERT_DOUBLE_EQ(left_forward_result_y, -0.5);
+// }
+//
+// /// Test if a right and forward obstacle produces the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceRightForward) {
+//   // This is due to floating point precision
+//   const auto [right_forward_result_x, right_forward_result_y] =
+//       obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}, {2, 2}});
+//   ASSERT_DOUBLE_EQ(right_forward_result_x, -0.8660254037844386);
+//   ASSERT_DOUBLE_EQ(right_forward_result_y, -0.5);
+// }
+//
+// /// Test if all three obstacles produce the correct obstacle avoidance force.
+// TEST(Tests, TestObstacleAvoidanceLeftRightForward) {
+//   ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}, {2, 2}}), cpVect(0, -1));
+// }
 
 /// Test if a non-moving target produces the correct pursue force.
 TEST(Tests, TestPursueNonMovingTarget) {

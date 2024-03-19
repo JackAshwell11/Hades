@@ -176,8 +176,8 @@ struct Grid {
   /// @param rect - The rect to place in the 2D grid.
   void place_rect(const Rect &rect) const {
     // Place only the floors as the walls will be placed after the cellular automata
-    for (int y = std::max(rect.top_left.y, 0); y < std::min(rect.bottom_right.y + 1, height); y++) {
-      for (int x = std::max(rect.top_left.x, 0); x < std::min(rect.bottom_right.x + 1, width); x++) {
+    for (int y{std::max(rect.top_left.y, 0)}; y < std::min(rect.bottom_right.y + 1, height); y++) {
+      for (int x{std::max(rect.top_left.x, 0)}; x < std::min(rect.bottom_right.x + 1, width); x++) {
         set_value({x, y}, TileType::Floor);
       }
     }

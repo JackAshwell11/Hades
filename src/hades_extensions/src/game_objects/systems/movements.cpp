@@ -4,8 +4,11 @@
 // Std headers
 #include <random>
 
+// External headers
+#include <chipmunk/chipmunk_structs.h>
+
 // Local headers
-#include "game_objects/stats.hpp"
+#include <game_objects/systems/physics.hpp>
 
 // ----- CONSTANTS ------------------------------
 constexpr double FOOTPRINT_INTERVAL{0.5};
@@ -24,7 +27,7 @@ void FootprintSystem::update(const double delta_time) const {
     }
 
     // Reset the counter and create a new footprint making sure to only keep FOOTPRINT_LIMIT footprints
-    const Vec2d current_position{get_registry()->get_kinematic_object(game_object_id)->position};
+    const cpVect current_position{get_registry()->get_component<KinematicComponent>(game_object_id)->body->p};
     footprints->time_since_last_footprint = 0;
     if (footprints->footprints.size() >= FOOTPRINT_LIMIT) {
       footprints->footprints.pop_front();
@@ -36,21 +39,21 @@ void FootprintSystem::update(const double delta_time) const {
   }
 }
 
-auto KeyboardMovementSystem::calculate_force(const GameObjectID game_object_id) const -> Vec2d {
+void KeyboardMovementSystem::calculate_force(const GameObjectID game_object_id) const {
   const auto keyboard_movement{get_registry()->get_component<KeyboardMovement>(game_object_id)};
-  return Vec2d{static_cast<double>(static_cast<int>(keyboard_movement->moving_east) -
-                                   static_cast<int>(keyboard_movement->moving_west)),
-               static_cast<double>(static_cast<int>(keyboard_movement->moving_north) -
-                                   static_cast<int>(keyboard_movement->moving_south))} *
-         get_registry()->get_component<MovementForce>(game_object_id)->get_value();
+  get_registry()->get_system<PhysicsSystem>()->add_force(
+      game_object_id, {static_cast<double>(static_cast<int>(keyboard_movement->moving_east) -
+                                           static_cast<int>(keyboard_movement->moving_west)),
+                       static_cast<double>(static_cast<int>(keyboard_movement->moving_north) -
+                                           static_cast<int>(keyboard_movement->moving_south))});
 }
 
-auto SteeringMovementSystem::calculate_force(const GameObjectID game_object_id) const -> Vec2d {
+void SteeringMovementSystem::calculate_force(const GameObjectID game_object_id) const {
   // Determine if the movement state should change or not
   const auto steering_movement{get_registry()->get_component<SteeringMovement>(game_object_id)};
-  const auto kinematic_owner{get_registry()->get_kinematic_object(game_object_id)};
-  const auto kinematic_target{get_registry()->get_kinematic_object(steering_movement->target_id)};
-  if (kinematic_owner->position.distance_to(kinematic_target->position) <= TARGET_DISTANCE) {
+  const auto kinematic_owner{get_registry()->get_component<KinematicComponent>(game_object_id)};
+  const auto kinematic_target{get_registry()->get_component<KinematicComponent>(steering_movement->target_id)};
+  if (cpvdist(kinematic_owner->body->p, kinematic_target->body->p) <= TARGET_DISTANCE) {
     steering_movement->movement_state = SteeringMovementState::Target;
   } else if (!steering_movement->path_list.empty()) {
     steering_movement->movement_state = SteeringMovementState::Footprint;
@@ -59,46 +62,44 @@ auto SteeringMovementSystem::calculate_force(const GameObjectID game_object_id) 
   }
 
   // Calculate the new force to apply to the game object
-  Vec2d steering_force{0, 0};
+  cpVect steering_force{0, 0};
   std::random_device random_device;
   std::mt19937_64 number_generator{random_device()};
   for (const auto &behaviour : steering_movement->behaviours[steering_movement->movement_state]) {
     switch (behaviour) {
       case SteeringBehaviours::Arrive:
-        steering_force += arrive(kinematic_owner->position, kinematic_target->position);
+        steering_force += arrive(kinematic_owner->body->p, kinematic_target->body->p);
         break;
       case SteeringBehaviours::Evade:
-        steering_force += evade(kinematic_owner->position, kinematic_target->position, kinematic_target->velocity);
+        steering_force += evade(kinematic_owner->body->p, kinematic_target->body->p, kinematic_target->body->v);
         break;
       case SteeringBehaviours::Flee:
-        steering_force += flee(kinematic_owner->position, kinematic_target->position);
+        steering_force += flee(kinematic_owner->body->p, kinematic_target->body->p);
         break;
       case SteeringBehaviours::FollowPath:
-        steering_force += follow_path(kinematic_owner->position, steering_movement->path_list);
+        steering_force += follow_path(kinematic_owner->body->p, steering_movement->path_list);
         break;
       case SteeringBehaviours::ObstacleAvoidance:
         steering_force +=
-            obstacle_avoidance(kinematic_owner->position, kinematic_owner->velocity, get_registry()->get_walls());
+            obstacle_avoidance(kinematic_owner->body->p, kinematic_owner->body->v, get_registry()->get_walls());
         break;
       case SteeringBehaviours::Pursue:
-        steering_force += pursue(kinematic_owner->position, kinematic_target->position, kinematic_target->velocity);
+        steering_force += pursue(kinematic_owner->body->p, kinematic_target->body->p, kinematic_target->body->v);
         break;
       case SteeringBehaviours::Seek:
-        steering_force += seek(kinematic_owner->position, kinematic_target->position);
+        steering_force += seek(kinematic_owner->body->p, kinematic_target->body->p);
         break;
       case SteeringBehaviours::Wander:
         steering_force +=
-            wander(kinematic_owner->velocity, std::uniform_int_distribution{0, MAX_DEGREE}(number_generator));
+            wander(kinematic_owner->body->v, std::uniform_int_distribution{0, MAX_DEGREE}(number_generator));
         break;
     }
   }
-
-  // Return the normalised steering force
-  return steering_force.normalised() * get_registry()->get_component<MovementForce>(game_object_id)->get_value();
+  get_registry()->get_system<PhysicsSystem>()->add_force(game_object_id, steering_force);
 }
 
 void SteeringMovementSystem::update_path_list(const GameObjectID target_game_object_id,
-                                              const std::deque<Vec2d> &footprints) const {
+                                              const std::deque<cpVect> &footprints) const {
   // Update the path list for all SteeringMovement components that have the correct target ID
   for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<SteeringMovement>()) {
     const auto steering_movement{std::get<0>(component_tuple)};
@@ -107,14 +108,14 @@ void SteeringMovementSystem::update_path_list(const GameObjectID target_game_obj
     }
 
     // Get the current position of the target and clear the path list
-    const Vec2d current_position{get_registry()->get_kinematic_object(game_object_id)->position};
+    const cpVect current_position{get_registry()->get_component<KinematicComponent>(game_object_id)->body->p};
     steering_movement->path_list.clear();
 
     // Get the closest footprint to the target that is still within range of the game object
     auto closest_footprint{footprints.end()};
     double closest_distance{TARGET_DISTANCE};
-    for (auto it = footprints.begin(); it != footprints.end(); ++it) {
-      if (const double distance{current_position.distance_to(*it)}; distance < closest_distance) {
+    for (auto it{footprints.begin()}; it != footprints.end(); ++it) {
+      if (const double distance{cpvdist(current_position, *it)}; distance < closest_distance) {
         closest_footprint = it;
         closest_distance = distance;
       }

@@ -8,6 +8,7 @@
 #include "game_objects/systems/effects.hpp"
 #include "game_objects/systems/inventory.hpp"
 #include "game_objects/systems/movements.hpp"
+#include "game_objects/systems/physics.hpp"
 #include "game_objects/systems/upgrade.hpp"
 #include "generation/map.hpp"
 
@@ -71,7 +72,8 @@ auto make_system_types()
 inline auto get_type_index(const pybind11::handle &component_type) -> std::type_index {
   static const auto &component_types{
       make_component_types<Armour, ArmourRegen, Attacks, EffectApplier, Footprints, Health, Inventory, KeyboardMovement,
-                           Money, MovementForce, StatusEffectData, StatusEffects, SteeringMovement, Upgrades>()};
+                           KinematicComponent, Money, MovementForce, StatusEffectData, StatusEffects, SteeringMovement,
+                           Upgrades>()};
   const auto iter{component_types.find(component_type)};
   if (iter == component_types.end()) {
     throw std::runtime_error("Invalid component type provided.");
@@ -147,106 +149,26 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Args:\n"
            "    delta_time: The time interval since the last time the function was called.");
 
-  // Add the steering structures
-  pybind11::class_<Vec2d>(game_objects, "Vec2d", "Represents a 2D vector.")
-      .def(pybind11::init<double, double>(), pybind11::arg("x"), pybind11::arg("y"),
+  // Add the cpVect class
+  pybind11::class_<cpVect>(game_objects, "cpVect", "Represents a 2D vector.")
+      .def(pybind11::init<float, float>(), pybind11::arg("x"), pybind11::arg("y"),
            "Initialise the object.\n\n"
            "Args:\n"
            "    x: The x value of the vector.\n"
            "    y: The y value of the vector.")
-      .def_readwrite("x", &Vec2d::x)
-      .def_readwrite("y", &Vec2d::y)
-      .def("__eq__", &Vec2d::operator==,
-           "Check if this vector is equal to another vector.\n\n"
-           "Args:\n"
-           "    other: The other vector to compare to.\n\n"
-           "Returns:\n"
-           "    Whether the vectors are equal or not.")
-      .def("__ne__", &Vec2d::operator!=,
-           "Check if this vector is not equal to another vector.\n\n"
-           "Args:\n"
-           "    other: The other vector to compare to.\n\n"
-           "Returns:\n"
-           "    Whether the vectors are not equal or not.")
-      .def("__add__", &Vec2d::operator+,
-           "Add another vector to this vector.\n\n"
-           "Args:\n"
-           "    other: The other vector to add.\n\n"
-           "Returns:\n"
-           "    The sum of the two vectors.")
-      .def("__iadd__", &Vec2d::operator+=,
-           "Add another vector to this vector.\n\n"
-           "Args:\n"
-           "    other: The other vector to add.\n\n"
-           "Returns:\n"
-           "    This vector.")
-      .def("__sub__", &Vec2d::operator-,
-           "Subtract another vector from this vector.\n\n"
-           "Args:\n"
-           "    other: The other vector to subtract.\n\n"
-           "Returns:\n"
-           "    The difference of the two vectors.")
-      .def("__mul__", &Vec2d::operator*,
-           "Multiply this vector by a scalar.\n\n"
-           "Args:\n"
-           "    scalar: The scalar to multiply by.\n\n"
-           "Returns:\n"
-           "    The product of the vector and the scalar.")
-      .def("__truediv__", &Vec2d::operator/,
-           "Divide this vector by a scalar.\n\n"
-           "Args:\n"
-           "    scalar: The scalar to divide by.\n\n"
-           "Returns:\n"
-           "    The quotient of the vector and the scalar.")
-      .def(
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          "__iter__", [](const Vec2d &vec) { return pybind11::make_iterator(&vec.x, &vec.y + 1); },
-          "Get an iterator to the vector.\n\n"
-          "Returns:\n"
-          "    An iterator to the vector.")
-      .def("magnitude", &Vec2d::magnitude,
-           "Calculate the magnitude of the vector.\n\n"
-           "Returns:\n"
-           "    The magnitude of the vector.")
-      .def("normalised", &Vec2d::normalised,
-           "Calculate the normalised vector.\n\n"
-           "Returns:\n"
-           "    The normalised vector.")
-      .def("rotated", &Vec2d::rotated, pybind11::arg("angle"),
-           "Rotate the vector by an angle.\n\n"
-           "Args:\n"
-           "    angle: The angle to rotate by.\n\n"
-           "Returns:\n"
-           "    The rotated vector.")
-      .def("angle_between", &Vec2d::angle_between, pybind11::arg("other"),
-           "Calculate the angle between this vector and another vector.\n\n"
-           "Args:\n"
-           "    other: The other vector to calculate the angle between.\n\n"
-           "Returns:\n"
-           "    The angle between the two vectors.")
-      .def("distance_to", &Vec2d::distance_to, pybind11::arg("other"),
-           "Calculate the distance between this vector and another vector.\n\n"
-           "Args:\n"
-           "    other: The other vector to calculate the distance between.\n\n"
-           "Returns:\n"
-           "    The distance between the two vectors.");
-  pybind11::class_<KinematicObject, std::shared_ptr<KinematicObject>>(
-      game_objects, "KinematicObject", "Stores various data about a game object for use in physics-related operations.")
-      .def_readwrite("position", &KinematicObject::position)
-      .def_readwrite("velocity", &KinematicObject::velocity)
-      .def_readwrite("rotation", &KinematicObject::rotation);
+      .def_readwrite("x", &cpVect::x)
+      .def_readwrite("y", &cpVect::y);
 
   // Add the registry class
   register_exception<RegistryError>(game_objects, "RegistryError");
   pybind11::class_<Registry> registry_class(game_objects, "Registry",
                                             "Manages game objects, components, and systems that are registered.");
   registry_class.def(pybind11::init<>(), "Initialise the object.")
-      .def("create_game_object", &Registry::create_game_object, pybind11::arg("components"),
-           pybind11::arg("kinematic") = false,
+      .def("create_game_object", &Registry::create_game_object, pybind11::arg("position"), pybind11::arg("components"),
            "Create a new game object.\n\n"
            "Args:\n"
-           "    components: The components to add to the game object.\n"
-           "    kinematic: Whether the game object should have a kinematic object or not.\n\n"
+           "    position: The position of the game object.\n"
+           "    components: The components to add to the game object.\n\n"
            "Returns:\n"
            "    The game object ID.")
       .def("delete_game_object", &Registry::delete_game_object, pybind11::arg("game_object_id"),
@@ -296,6 +218,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             registry.add_system<FootprintSystem>();
             registry.add_system<KeyboardMovementSystem>();
             registry.add_system<SteeringMovementSystem>();
+            registry.add_system<PhysicsSystem>();
             registry.add_system<UpgradeSystem>();
           },
           "Add all the systems into the registry.\n\n"
@@ -307,7 +230,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
             // Get all the system types and check if the given system type exists
             static const auto &system_types =
                 make_system_types<ArmourRegenSystem, AttackSystem, DamageSystem, EffectSystem, InventorySystem,
-                                  FootprintSystem, KeyboardMovementSystem, SteeringMovementSystem, UpgradeSystem>();
+                                  FootprintSystem, KeyboardMovementSystem, SteeringMovementSystem, PhysicsSystem,
+                                  UpgradeSystem>();
             const auto iter = system_types.find(system_type);
             if (iter == system_types.end()) {
               throw std::runtime_error("Invalid system type provided.");
@@ -329,15 +253,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Update all systems in the registry.\n\n"
            "Args:\n"
            "    delta_time: The time interval since the last time the function was called.")
-      .def("get_kinematic_object", &Registry::get_kinematic_object, pybind11::arg("game_object_id"),
-           "Get the kinematic object for a game object.\n\n"
-           "Args:\n"
-           "    game_object_id: The game object ID.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object is not registered or if the game object does not have a "
-           "kinematic object.\n\n"
-           "Returns:\n"
-           "    The kinematic object.")
       .def("add_wall", &Registry::add_wall, pybind11::arg("wall"),
            "Add a wall to the registry.\n\n"
            "Args:\n"
@@ -691,6 +606,28 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    game_object_id: The ID of the game object to follow.\n"
            "    path_list: The list of footprints to follow.");
 
+  // Add the physics system as well as relevant structures/components
+  pybind11::enum_<PhysicsType>(game_objects, "PhysicsType", "Stores the different types of physics objects.")
+    .value("Enemy", PhysicsType::Enemy)
+    .value("Player", PhysicsType::Player)
+    .value("Wall", PhysicsType::Wall);
+  pybind11::class_<KinematicComponent, ComponentBase, std::shared_ptr<KinematicComponent>>(
+      components, "KinematicComponent", "Allows a game object to interact with the physics system.")
+      .def(pybind11::init<std::vector<cpVect>, PhysicsType>(), pybind11::arg("vertices"), pybind11::arg("physics_type"),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    vertices: The vertices of the shape.")
+      .def("get_position", [](const KinematicComponent &kinematic_component) { return cpBodyGetPosition(*kinematic_component.body); },
+           "Get the position of the game object.\n\n"
+           "Returns:\n"
+           "    The position of the game object.");
+  pybind11::class_<PhysicsSystem, SystemBase, std::shared_ptr<PhysicsSystem>>(
+      systems, "PhysicseSystem", "Provides facilities to manipulate game object's physics.")
+      .def(pybind11::init<Registry *>(), pybind11::arg("registry"),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    registry: The registry that manages the game objects, components, and systems.");
+
   // Add the upgrade system as well as relevant structures/components
   pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
       components, "Money", "Allows a game object to record the amount of money it has.")
@@ -734,3 +671,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Returns:\n"
            "    Whether the component upgrade was successful or not.");
 }
+
+// TODO: Look at maybe switching doubles for floats in places
+// TODO: Sort all templates stuff in alphabetical order

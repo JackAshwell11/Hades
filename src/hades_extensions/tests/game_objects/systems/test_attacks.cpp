@@ -1,6 +1,10 @@
+// External headers
+#include <chipmunk/chipmunk_structs.h>
+
 // Local headers
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/attacks.hpp"
+#include "game_objects/systems/physics.hpp"
 #include "macros.hpp"
 
 // ----- FIXTURES ------------------------------
@@ -11,14 +15,14 @@ class AttackSystemFixture : public testing::Test {
   Registry registry{};
 
   /// A list of targets for use in testing.
-  std::vector<int> targets{};
+  std::vector<int> targets;
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    auto create_target{[&](const Vec2d position) {
-      const int target{
-          registry.create_game_object({std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1)}, true)};
-      registry.get_kinematic_object(target)->position = position;
+    auto create_target{[&](const cpVect position) {
+      const int target{registry.create_game_object({std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1),
+                                                    std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
+      registry.get_component<KinematicComponent>(target)->body->p = position;
       return target;
     }};
 
@@ -35,8 +39,9 @@ class AttackSystemFixture : public testing::Test {
   ///
   /// @param enabled_attacks - The attacks to include in the component.
   void create_attack_component(const std::vector<AttackAlgorithm> &&enabled_attacks) {
-    const int game_object_id{registry.create_game_object({std::make_shared<Attacks>(enabled_attacks)}, true)};
-    registry.get_kinematic_object(game_object_id)->rotation = 180;
+    const int game_object_id{registry.create_game_object(
+        {std::make_shared<Attacks>(enabled_attacks), std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
+    registry.get_component<KinematicComponent>(game_object_id)->body->a = 180;
   }
 
   /// Get the attacks system from the registry.
@@ -112,7 +117,7 @@ TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
   // This is due to floating point precision
   create_attack_component({AttackAlgorithm::Ranged});
   const std::tuple attack_result{get_attacks_system()->do_attack(8, targets).value()};
-  ASSERT_EQ(get<0>(attack_result), Vec2d(0, 0));
+  ASSERT_EQ(get<0>(attack_result), cpVect(0, 0));
   ASSERT_EQ(get<1>(attack_result), -300);
   ASSERT_NEAR(get<2>(attack_result), 0, 1e-13);
 }

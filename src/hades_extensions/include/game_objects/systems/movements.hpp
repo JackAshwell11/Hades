@@ -32,7 +32,7 @@ enum class SteeringMovementState : std::uint8_t {
 /// Allows a game object to periodically leave footprints around the game map.
 struct Footprints final : ComponentBase {
   /// The footprints the game object has left.
-  std::deque<Vec2d> footprints{};
+  std::deque<cpVect> footprints;
 
   /// The time since the game object last left a footprint.
   double time_since_last_footprint{0};
@@ -65,7 +65,7 @@ struct SteeringMovement final : ComponentBase {
   int target_id{-1};
 
   /// The list of positions the game object should follow.
-  std::vector<Vec2d> path_list{};
+  std::vector<cpVect> path_list;
 
   /// Initialise the object.
   ///
@@ -100,8 +100,7 @@ struct KeyboardMovementSystem final : SystemBase {
   ///
   /// @param game_object_id - The ID of the game object to calculate the keyboard force for.
   /// @throws RegistryError - If the game object does not exist or does not have a keyboard movement component.
-  /// @return The new force to apply to the game object.
-  [[nodiscard]] auto calculate_force(GameObjectID game_object_id) const -> Vec2d;
+  void calculate_force(GameObjectID game_object_id) const;
 };
 
 /// Provides facilities to manipulate steering movement components.
@@ -115,12 +114,11 @@ struct SteeringMovementSystem final : SystemBase {
   ///
   /// @param game_object_id - The ID of the game object to calculate the steering force for.
   /// @throws RegistryError - If the game object does not exist or does not have a steering movement component.
-  /// @return The new force to apply to the game object.
-  [[nodiscard]] auto calculate_force(GameObjectID game_object_id) const -> Vec2d;
+  void calculate_force(GameObjectID game_object_id) const;
 
   /// Update the path lists for the game objects to follow.
   ///
   /// @param target_game_object_id - The ID of the game object to follow.
   /// @param footprints - The list of footprints to follow.
-  void update_path_list(GameObjectID target_game_object_id, const std::deque<Vec2d> &footprints) const;
+  void update_path_list(GameObjectID target_game_object_id, const std::deque<cpVect> &footprints) const;
 };
