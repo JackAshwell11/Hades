@@ -9,17 +9,6 @@ from hades_extensions.game_objects import (
     Vec2d,
 )
 
-class StatusEffectData:
-    status_effect_type: StatusEffectType
-    increase: ActionFunction
-    def __init__(
-        self: StatusEffectData,
-        status_effect_type: StatusEffectType,
-        increase: ActionFunction,
-        duration: ActionFunction,
-        interval: ActionFunction,
-    ) -> None: ...
-
 class Stat(ComponentBase):
     def __init__(self: Stat, value: float, maximum_level: float) -> None: ...
     def get_value(self: Stat) -> float: ...
@@ -34,9 +23,16 @@ class Armour(Stat): ...
 class ArmourRegen(Stat): ...
 
 class Attacks(ComponentBase):
-    attack_algorithms: list[AttackAlgorithm]
-    attack_state: int
     def __init__(self: Attacks, attack_algorithms: list[AttackAlgorithm]) -> None: ...
+
+class StatusEffectData:
+    def __init__(
+        self: StatusEffectData,
+        status_effect_type: StatusEffectType,
+        increase: ActionFunction,
+        duration: ActionFunction,
+        interval: ActionFunction,
+    ) -> None: ...
 
 class EffectApplier(ComponentBase):
     def __init__(
@@ -46,15 +42,11 @@ class EffectApplier(ComponentBase):
     ) -> None: ...
 
 class Footprints(ComponentBase):
-    footprints: list[int]
     def __init__(self: Footprints) -> None: ...
 
 class Health(Stat): ...
 
 class Inventory(ComponentBase):
-    width: int
-    height: int
-    items: list[int]
     def __init__(self: Inventory, width: int, height: int) -> None: ...
     def get_capacity(self: Inventory) -> int: ...
 
@@ -65,26 +57,21 @@ class KeyboardMovement(ComponentBase):
     moving_west: bool
     def __init__(self: KeyboardMovement) -> None: ...
 
+class KinematicComponent(ComponentBase):
+    def __init__(self: KinematicComponent, vertices: list[Vec2d]) -> None: ...
+    def get_position(self: KinematicComponent) -> tuple[float, float]: ...
+
 class Money(ComponentBase):
     money: int
     def __init__(self: Money, money: int) -> None: ...
 
 class MovementForce(Stat): ...
 
-class StatusEffect:
-    value: float
-    duration: float
-    interval: float
-    target_component: type[ComponentBase]
-
 class StatusEffects(ComponentBase):
     def __init__(self: StatusEffects) -> None: ...
 
 class SteeringMovement(ComponentBase):
-    behaviours: dict[SteeringMovementState, list[SteeringBehaviours]]
-    movement_state: SteeringMovementState
     target_id: int
-    path_list: list[Vec2d]
     def __init__(
         self: SteeringMovement,
         behaviours: dict[SteeringMovementState, list[SteeringBehaviours]],

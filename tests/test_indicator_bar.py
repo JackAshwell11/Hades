@@ -2,17 +2,26 @@
 
 from __future__ import annotations
 
+# Builtin
+from pathlib import Path
+
 # Pip
 import pytest
-from arcade import SpriteList, SpriteSolidColor, color
+from arcade import SpriteList, SpriteSolidColor, color, load_texture
 
 # Custom
 from hades.constants import GameObjectType
 from hades.indicator_bar import IndicatorBar, IndicatorBarError
 from hades.sprite import HadesSprite
+from hades_extensions.game_objects import Vec2d
 from hades_extensions.game_objects.components import Stat
 
 __all__ = ()
+
+# Create the texture path
+texture_path = (
+    Path(__file__).resolve().parent.parent / "src" / "hades" / "resources" / "textures"
+)
 
 
 @pytest.fixture()
@@ -22,7 +31,11 @@ def sprite() -> HadesSprite:
     Returns:
         A sprite for testing.
     """
-    return HadesSprite((0, GameObjectType.PLAYER), (0, 0), ["floor.png"])
+    return HadesSprite(
+        (0, GameObjectType.PLAYER),
+        Vec2d(0, 0),
+        [load_texture(texture_path / "floor.png")],
+    )
 
 
 @pytest.fixture()
