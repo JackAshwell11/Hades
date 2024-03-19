@@ -8,7 +8,12 @@
 #include <string>
 #include <typeindex>
 
+// External headers
+#include <chipmunk/chipmunk.h>
+
 // Local headers
+#include <chipmunk/chipmunk_private.h>
+
 #include "steering.hpp"
 
 // ----- TYPEDEFS ------------------------------
@@ -82,6 +87,47 @@ class SystemBase {
   const Registry *registry;
 };
 
+// ----- RAII TYPES ------------------------------
+/// Allows for the RAII management of a Chipmunk2D object.
+///
+/// @tparam T - The type of Chipmunk2D object to manage.
+/// @tparam Destructor - The destructor function for the Chipmunk2D object.
+template <typename T, void (*Destructor)(T *)>
+class ChipmunkHandle {
+  /// The Chipmunk2D object.
+  T *_obj;
+
+ public:
+  /// Initialise the object.
+  ///
+  /// @param obj - The Chipmunk2D object.
+  explicit ChipmunkHandle(T *obj) : _obj(obj) {}
+
+  /// Destroy the object.
+  ~ChipmunkHandle() {
+    if (_obj) {
+      Destructor(_obj);
+    }
+  }
+
+  // TODO: Should we use smart pointers here and how about operator-> and operator*?
+
+  /// The copy constructor.
+  ChipmunkHandle(const ChipmunkHandle &) = delete;
+
+  /// The copy assignment operator.
+  auto operator=(const ChipmunkHandle &) -> ChipmunkHandle & = delete;
+
+  /// The move constructor.
+  ChipmunkHandle(ChipmunkHandle &&) = delete;
+
+  /// The move assignment operator.
+  auto operator=(ChipmunkHandle &&) -> ChipmunkHandle & = delete;
+
+  /// The dereference operator.
+  auto operator*() const -> T * { return _obj; }
+};
+
 // ----- EXCEPTIONS ------------------------------
 /// Raised when an error occurs with the registry.
 struct RegistryError final : std::runtime_error {
@@ -110,10 +156,8 @@ class Registry {
   /// Create a new game object.
   ///
   /// @param components - The components to add to the game object.
-  /// @param kinematic - Whether the game object should have a kinematic object or not.
   /// @return The game object ID.
-  auto create_game_object(const std::vector<std::shared_ptr<ComponentBase>> &&components, bool kinematic = false)
-      -> GameObjectID;
+  auto create_game_object(const std::vector<std::shared_ptr<ComponentBase>> &&components) -> GameObjectID;
 
   /// Delete a game object.
   ///
@@ -214,37 +258,26 @@ class Registry {
     }
   }
 
-  /// Get the kinematic object for a game object.
+  /// Get the Chipmunk2D space.
   ///
-  /// @param game_object_id - The game object ID.
-  /// @throws RegistryError - If the game object is not registered or if the game object does not have a kinematic
-  /// object.
-  /// @return The kinematic object.
-  [[nodiscard]] auto get_kinematic_object(GameObjectID game_object_id) const -> std::shared_ptr<KinematicObject>;
+  /// @return The Chipmunk2D space.
+  [[nodiscard]] auto get_space() const -> cpSpace * { return *space_; }
 
   /// Add a wall to the registry.
   ///
-  /// @param wall - The wall to add to the registry.
-  void add_wall(const Vec2d &wall) { walls_.emplace(wall); }
-
-  /// Get the walls in the registry.
-  ///
-  /// @return The walls in the registry.
-  [[nodiscard]] auto get_walls() const -> const std::unordered_set<Vec2d> & { return walls_; }
+  /// @param wall - The center position of the wall.
+  void add_wall(const cpVect &wall) const;
 
  private:
   /// The next game object ID to use.
   GameObjectID next_game_object_id_{0};
 
   /// The game objects and their components registered with the registry.
-  std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::shared_ptr<ComponentBase>>> game_objects_;
+  std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::shared_ptr<ComponentBase>>> game_objects_{};
 
   /// The systems registered with the registry.
-  std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_;
+  std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_{};
 
-  /// The kinematic objects registered with the registry.
-  std::unordered_map<GameObjectID, std::shared_ptr<KinematicObject>> kinematic_objects_;
-
-  /// The walls registered with the registry.
-  std::unordered_set<Vec2d> walls_;
+  /// The Chipmunk2D space.
+  ChipmunkHandle<cpSpace, cpSpaceFree> space_{cpSpaceNew()};
 };
