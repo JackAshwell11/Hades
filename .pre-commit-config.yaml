@@ -21,7 +21,7 @@ repos:
       - id: mypy
         additional_dependencies: ["arcade==3.0.0.dev24", "pytest==7.4.0"]
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-json
       - id: check-toml
