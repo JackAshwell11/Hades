@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.3
         with:
           submodules: recursive
       - name: Set up CMake
-        uses: lukka/get-cmake@v3.28.3
+        uses: lukka/get-cmake@v3.29.2
       - name: Configure CMake
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: cmake --preset LinuxDebug
@@ -26,7 +26,7 @@ jobs:
 #    runs-on: ubuntu-latest
 #    steps:
 #      - name: Checkout repository
-#        uses: actions/checkout@v4.1.1
+#        uses: actions/checkout@v4.1.3
 #      - name: Run cppcheck
 #        working-directory: ${{ github.workspace }}/src/hades_extensions
 #        run: |
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.3
         with:
           submodules: recursive
       - name: Run clang-format
