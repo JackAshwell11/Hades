@@ -1,0 +1,27 @@
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    groups:
+      github-dependencies:
+        patterns:
+          - "*"  # Update all dependencies
+    labels:
+      - "priority: medium"
+      - "type: dependency"
+      - "status: pending"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/"
+    groups:
+      pip-dependencies:
+        patterns:
+          - "*"  # Update all dependencies
+    labels:
+      - "priority: medium"
+      - "type: dependency"
+      - "status: pending"
+    schedule:
+      interval: "weekly"

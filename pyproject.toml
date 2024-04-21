@@ -14,24 +14,24 @@ repository = "https://github.com/Aspect1103/Hades"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-arcade = "3.0.0.dev25"
+arcade = "3.0.0.dev26"
 
 [tool.poetry.dev-dependencies]
-black = "24.3.0"
+black = "24.4.0"
 mypy = "1.9.0"
-nuitka = "2.1.2"
+nuitka = "2.1.6"
 ordered-set = "4.1.0"
-pre-commit = "3.6.2"
+pre-commit = "3.7.0"
 pylint = "3.1.0"
 pytest = "8.1.1"
-pytest-cov = "4.1.0"
+pytest-cov = "5.0.0"
 pytest-icdiff = "0.9"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.15.0"
 pytest-sugar = "1.0.0"
-ruff = "0.3.3"
-ssort = "v0.12.4"
-tox = "4.14.1"
+ruff = "0.4.1"
+ssort = "v0.13.0"
+tox = "4.14.2"
 
 [tool.black]
 preview = true
