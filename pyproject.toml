@@ -62,16 +62,12 @@ show_missing = true
 branch = true
 source = ["hades"]
 
-# Todo: Once Arcade is typed, review this
+# TODO: Once Arcade is typed, review this
 [tool.mypy]
 disallow_any_decorated = true
 disallow_any_explicit = true
 disallow_any_expr = true
 disallow_any_unimported = true
-exclude = [
-    "build.py",  # Setuptools is untyped so we need to ignore it
-    "src/hades/views/start_menu.py",  # TODO: ONCE VIEWS ARE REDONE, REMOVE THIS
-]
 ignore_missing_imports = true
 pretty = true
 python_version = "3.12"
@@ -128,13 +124,13 @@ enable = [
 ]
 include-naming-hint = true
 disable = [
+    "abstract-method",  # Allow abstract methods (they are used in Arcade)
+    "fixme",  # Allow using fixme/todo comments
     "import-error",  # Sometimes pylint can't import a package correctly
     "magic-value-comparison",  # Stop Pylint complaining about the tests
     "no-name-in-module",  # Pylint can't infer imports from the extensions
-    "redefined-outer-name",  # Allow redefining outer names (this is used in pytest)
     "too-few-public-methods",  # Stop Pylint complaining about too few public methods
     "too-many-instance-attributes",  # Stop Pylint complaining about too many instance attributes
-    "unsubscriptable-object",  # Stop Pylint complaining about the generation result
 ]
 
 [tool.pytest.ini_options]
@@ -151,8 +147,12 @@ src = ["src"]
 
 [tool.ruff.lint]
 extend-ignore = [
+    "CPY001",  # Allow not having copyright headers in every file
+    "FIX002",  # Allow not having a todo in every file
     "S311",  # Allow use of the random library
     "S404",  # Allow use of the subprocess library
+    "TD002",  # Allow not having an author for each todo
+    "TD003",  # Allow not having an issue link for each todo
 ]
 select = ["ALL"]
 

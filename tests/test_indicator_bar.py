@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name
 """Tests all classes and functions in indicator_bar.py."""
 
 from __future__ import annotations

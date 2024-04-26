@@ -9,7 +9,6 @@ import random
 
 # Pip
 from arcade import (
-    Camera,
     SpriteList,
     SpriteSolidColor,
     Text,
@@ -19,6 +18,7 @@ from arcade import (
     key,
     schedule,
 )
+from arcade.camera import Camera2D
 
 # Custom
 from hades.constants import (
@@ -42,6 +42,7 @@ from hades_extensions.game_objects import (
 from hades_extensions.game_objects.components import (
     KeyboardMovement,
     KinematicComponent,
+    Stat,
     SteeringMovement,
 )
 from hades_extensions.game_objects.systems import (
@@ -121,7 +122,7 @@ class Game(View):
         # Add all the indicator bars to the game
         indicator_bar_offset = 0
         for component in constructor.components:
-            if component.has_indicator_bar():
+            if component.has_indicator_bar() and isinstance(component, Stat):
                 self.indicator_bars.append(
                     IndicatorBar(
                         sprite,
@@ -141,8 +142,8 @@ class Game(View):
         """
         super().__init__()
         # Arcade types
-        self.game_camera: Camera = Camera()
-        self.gui_camera: Camera = Camera()
+        self.game_camera: Camera2D = Camera2D()
+        self.gui_camera: Camera2D = Camera2D()
         self.tile_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.entity_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.item_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
@@ -208,8 +209,6 @@ class Game(View):
             ENEMY_GENERATE_INTERVAL,
         )
 
-        # self.window.push_handlers(on_key_press)
-
     def on_draw(self: Game) -> None:
         """Render the screen."""
         # Clear the screen and set the background colour
@@ -220,10 +219,10 @@ class Game(View):
         self.game_camera.use()
 
         # Draw the various spritelists
-        self.tile_sprites.draw(pixelated=True)  # type: ignore[no-untyped-call]
-        self.item_sprites.draw(pixelated=True)  # type: ignore[no-untyped-call]
-        self.entity_sprites.draw(pixelated=True)  # type: ignore[no-untyped-call]
-        self.indicator_bar_sprites.draw()  # type: ignore[no-untyped-call]
+        self.tile_sprites.draw(pixelated=True)
+        self.item_sprites.draw(pixelated=True)
+        self.entity_sprites.draw(pixelated=True)
+        self.indicator_bar_sprites.draw()
 
         # Draw the gui on the screen
         self.gui_camera.use()
@@ -258,7 +257,7 @@ class Game(View):
             indicator_bar.on_update(delta_time)
 
         # Position the camera on the player
-        self.game_camera.center(self.ids[GameObjectType.PLAYER][0].position)
+        self.game_camera.position = self.ids[GameObjectType.PLAYER][0].position
 
     def on_key_press(self: Game, symbol: int, modifiers: int) -> None:
         """Process key press functionality.
@@ -341,66 +340,6 @@ class Game(View):
                 self.registry.get_system(AttackSystem).next_attack(
                     self.ids[GameObjectType.PLAYER][0].game_object_id,
                 )
-
-    # def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
-    #     """Process mouse button functionality.
-    #
-    #     Args:
-    #         x: The x position of the mouse.
-    #         y: The y position of the mouse.
-    #         button: Which button was hit.
-    #         modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
-    #         during this event.
-    #     """
-    #     logger.debug(
-    #         "%r mouse button was pressed at position (%f, %f) with modifiers %r",
-    #         button,
-    #         x,
-    #         y,
-    #         modifiers,
-    #     )
-    #     if button is MOUSE_BUTTON_LEFT:
-    #         if bullet_details := self.registry.get_system(AttackSystem).do_attack(
-    #             self.ids[GameObjectType.PLAYER][0].game_object_id,
-    #             [
-    #                 game_object.game_object_id
-    #                 for game_object in self.ids[GameObjectType.ENEMY]
-    #             ],
-    #         ):
-    #             bullet = Bullet(bullet_details[0])
-    #             self.indicator_bar_sprites.append(bullet)
-    #             self.physics_engine.add_sprite(
-    #                 bullet,
-    #                 moment_of_inertia=self.physics_engine.MOMENT_INF,
-    #                 body_type=self.physics_engine.KINEMATIC,
-    #                 collision_type="bullet",
-    #             )
-    #             self.physics_engine.set_velocity(
-    #                 bullet,
-    #                 (bullet_details[1], bullet_details[2]),
-    #             )
-    #
-    # def on_mouse_motion(self: Game, x: int, y: int, *_: tuple[int, int]) -> None:
-    #     """Process mouse motion functionality.
-    #
-    #     Args:
-    #         x: The x position of the mouse.
-    #         y: The y position of the mouse.
-    #     """
-    #     # Calculate the new angle in degrees
-    #     camera_x, camera_y = self.game_camera.position
-    #     kinematic_object = self.registry.get_kinematic_object(
-    #         self.ids[GameObjectType.PLAYER][0].game_object_id,
-    #     )
-    #     angle = math.degrees(
-    #         math.atan2(
-    #             x - kinematic_object.position.x + camera_x,
-    #             y - kinematic_object.position.y + camera_y,
-    #         ),
-    #     )
-    #     if angle < 0:
-    #         angle += 360
-    #     kinematic_object.rotation = angle
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
