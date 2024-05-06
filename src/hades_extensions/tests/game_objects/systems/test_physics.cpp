@@ -14,8 +14,9 @@ class PhysicsSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(cpvzero, {std::make_shared<KinematicComponent>(std::vector<cpVect>{}),
-                                          std::make_shared<MovementForce>(100, -1)});
+    registry.create_game_object(
+        GameObjectType::Player, cpvzero,
+        {std::make_shared<KinematicComponent>(std::vector<cpVect>{}), std::make_shared<MovementForce>(100, -1)});
     registry.add_system<PhysicsSystem>();
   }
 
@@ -28,7 +29,7 @@ class PhysicsSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar.
+/// Test that the required components return the correct value for has_indicator_bar().
 TEST(Tests, TestPhysicsSystemComponentsHasIndicatorBar) {
   ASSERT_FALSE(KinematicComponent(std::vector<cpVect>{}).has_indicator_bar());
 }
@@ -102,9 +103,20 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveForceValidForce) {
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(110, 0));
 }
 
+/// Test that adding a force to a static wall body doesn't change its position.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceStaticWall) {
+  // Walls should never have a MovementForce component, but if they do, their position should not change
+  const auto wall_id{registry.create_game_object(
+      GameObjectType::Wall, cpvzero,
+      {std::make_shared<KinematicComponent>(true), std::make_shared<MovementForce>(100, -1)})};
+  get_physics_system()->add_force(wall_id, {10, 0});
+  registry.get_system<PhysicsSystem>()->update(1);
+  ASSERT_EQ(registry.get_component<KinematicComponent>(wall_id)->body->p, cpv(32, 32));
+}
+
 /// Test that an exception is thrown if a game object does not have a kinematic component.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicComponent) {
-  registry.create_game_object(cpvzero, {std::make_shared<MovementForce>(100, -1)});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<MovementForce>(100, -1)});
   ASSERT_THROW_MESSAGE(
       get_physics_system()->add_force(1, {0, 0}), RegistryError,
       "The game object `1` is not registered with the registry or does not have the required component.");
@@ -112,7 +124,8 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicCompon
 
 /// Test that an exception is thrown if a game object does not have a movement force component.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentMovementForceComponent) {
-  registry.create_game_object(cpvzero, {std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
+  registry.create_game_object(GameObjectType::Player, cpvzero,
+                              {std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
   ASSERT_THROW_MESSAGE(
       get_physics_system()->add_force(1, {0, 0}), RegistryError,
       "The game object `1` is not registered with the registry or does not have the required component.");
@@ -123,4 +136,31 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceInvalidGameObjectId) {
   ASSERT_THROW_MESSAGE(
       get_physics_system()->add_force(-1, {0, 0}), RegistryError,
       "The game object `-1` is not registered with the registry or does not have the required component.");
+}
+
+/// Test that adding a bullet with a zero position and velocity works correctly.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletZero) {
+  const auto bullet_id = get_physics_system()->add_bullet({cpvzero, cpvzero});
+  ASSERT_EQ(bullet_id, 1);
+  const auto *body = *registry.get_component<KinematicComponent>(bullet_id)->body;
+  ASSERT_EQ(body->p, cpvzero);
+  ASSERT_EQ(body->f, cpvzero);
+}
+
+/// Test that adding a bullet with a non-zero position works correctly.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroPosition) {
+  const auto bullet_id = get_physics_system()->add_bullet({{100, 0}, cpvzero});
+  ASSERT_EQ(bullet_id, 1);
+  const auto *body = *registry.get_component<KinematicComponent>(bullet_id)->body;
+  ASSERT_EQ(body->p, cpv(100, 0));
+  ASSERT_EQ(body->f, cpvzero);
+}
+
+/// Test that adding a bullet with a non-zero velocity works correctly.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroVelocity) {
+  const auto bullet_id = get_physics_system()->add_bullet({cpvzero, {200, 150}});
+  ASSERT_EQ(bullet_id, 1);
+  const auto *body = *registry.get_component<KinematicComponent>(bullet_id)->body;
+  ASSERT_EQ(body->p, cpvzero);
+  ASSERT_EQ(body->v, cpv(200, 150));
 }

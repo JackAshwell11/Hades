@@ -19,6 +19,7 @@ Checks: "
   hicpp-*,
 
   misc-*,
+  -misc-include-cleaner,
   -misc-non-private-member-variables-in-classes,
 
   modernize-*,

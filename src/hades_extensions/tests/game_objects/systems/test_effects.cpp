@@ -45,8 +45,9 @@ class EffectSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     registry.add_system<EffectSystem>();
-    registry.create_game_object(cpvzero, {std::make_shared<TestStat>(200, -1), std::make_shared<TestStat2>(100, -1),
-                                          std::make_shared<StatusEffects>()});
+    registry.create_game_object(
+        GameObjectType::Player, cpvzero,
+        {std::make_shared<TestStat>(200, -1), std::make_shared<TestStat2>(100, -1), std::make_shared<StatusEffects>()});
   }
 
   /// Create a game object to hold the instant and status effects.
@@ -59,7 +60,7 @@ class EffectSystemFixture : public testing::Test {
     if (status) {
       effect_applier->status_effects.emplace(typeid(TestStat), status_effect_data);
     }
-    registry.create_game_object(cpvzero, {effect_applier});
+    registry.create_game_object(GameObjectType::Player, cpvzero, {effect_applier});
   }
 
   /// Get the effect system from the registry.
@@ -71,7 +72,7 @@ class EffectSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar.
+/// Test that the required components return the correct value for has_indicator_bar().
 TEST(Tests, TestEffectSystemComponentsHasIndicatorBar) {
   ASSERT_FALSE(StatusEffects{}.has_indicator_bar());
   ASSERT_FALSE(EffectApplier({}, {}).has_indicator_bar());
@@ -198,7 +199,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusMultipleStatusEffe
 /// Test that an exception is thrown if the game object does not have the target component.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsNonexistentTargetComponent) {
   create_effect_applier(false, false);
-  registry.create_game_object(cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_effect_system()->apply_effects(1, 2), RegistryError,
       "The game object `2` is not registered with the registry or does not have the required component.")
@@ -219,7 +220,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsInvalidTargetGameObjectI
 
 /// Test that an exception is thrown if the source game object does not have an effect applier component.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsNonexistentEffectApplier) {
-  registry.create_game_object(cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_effect_system()->apply_effects(1, 0), RegistryError,
       "The game object `1` is not registered with the registry or does not have the required component.")
@@ -228,7 +229,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsNonexistentEffectApplier
 /// Test that an exception is thrown if the source game object does not have a status effects component.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsNonexistentStatusEffects) {
   create_effect_applier(false, false);
-  registry.create_game_object(cpvzero, {std::make_shared<TestStat>(50, -1)});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<TestStat>(50, -1)});
   ASSERT_THROW_MESSAGE(
       get_effect_system()->apply_effects(1, 2), RegistryError,
       "The game object `2` is not registered with the registry or does not have the required component.")

@@ -30,7 +30,7 @@ class UpgradeSystemFixture : public testing::Test {
   void create_game_object(const int value, const int max_level) {
     const std::unordered_map<std::type_index, ActionFunction> upgrades{
         {typeid(TestStat), [](const int level) { return 150 * (level + 1); }}};
-    registry.create_game_object(cpvzero,
+    registry.create_game_object(GameObjectType::Player, cpvzero,
                                 {std::make_shared<TestStat>(value, max_level), std::make_shared<Upgrades>(upgrades)});
   }
 
@@ -46,7 +46,7 @@ class UpgradeSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar.
+/// Test that the required components return the correct value for has_indicator_bar().
 TEST(Tests, TestUpgradeSystemComponentsHasIndicatorBar) {
   ASSERT_FALSE(Upgrades{{}}.has_indicator_bar());
   ASSERT_FALSE(TestStat(-1, -1).has_indicator_bar());
@@ -98,7 +98,7 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeNonUpgradeable) {
 
 /// Test that an exception is thrown if a game object does not have the target component.
 TEST_F(UpgradeSystemFixture, TestEffectSystemApplyStatusEffectNonexistentTargetComponent) {
-  registry.create_game_object(cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_upgrade_system()->upgrade_component(0, typeid(TestStat)), RegistryError,
       "The game object `0` is not registered with the registry or does not have the required component.")

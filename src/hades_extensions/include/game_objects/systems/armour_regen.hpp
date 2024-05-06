@@ -10,7 +10,7 @@ struct ArmourRegenSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit ArmourRegenSystem(const Registry *registry) : SystemBase(registry) {}
+  explicit ArmourRegenSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Process update logic for an armour regeneration component.
   ///

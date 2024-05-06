@@ -2,49 +2,69 @@
 #include "game_objects/registry.hpp"
 
 // Custom headers
+#include "game_objects/systems/attacks.hpp"
 #include "game_objects/systems/physics.hpp"
 
 // ----- FUNCTIONS ------------------------------
-auto Registry::create_game_object(const cpVect &position,
+Registry::Registry() {
+  // Set the damping to ensure the game objects don't drift
+  cpSpaceSetDamping(*_space, DAMPING);
+
+  // Add the collision handlers for the bullets
+  createCollisionHandlerFunc(GameObjectType::Player, GameObjectType::Bullet);
+  createCollisionHandlerFunc(GameObjectType::Enemy, GameObjectType::Bullet);
+  createCollisionHandlerFunc(GameObjectType::Wall, GameObjectType::Bullet);
+}
+
+auto Registry::create_game_object(const GameObjectType game_object_type, const cpVect &position,
                                   const std::vector<std::shared_ptr<ComponentBase>> &&components) -> GameObjectID {
   // Add the components to the game object
-  game_objects_[next_game_object_id_] = {};
+  _game_objects[_next_game_object_id] = {};
   for (const auto &component : components) {
     // Check if the component already exists in the registry
-    [[maybe_unused]] const auto &obj{*component};
-    if (has_component(next_game_object_id_, typeid(obj))) {
+    const auto &obj{*component};
+    if (has_component(_next_game_object_id, typeid(obj))) {
       continue;
     }
 
     // Check if the component is a kinematic component. If so, add the body and shape to the space
     if (typeid(obj) == typeid(KinematicComponent)) {
-      add_chipmunk_object(*std::static_pointer_cast<KinematicComponent>(component)->body,
-                          *std::static_pointer_cast<KinematicComponent>(component)->shape, position);
+      const auto kinematic_component = std::static_pointer_cast<KinematicComponent>(component);
+      auto *const body = *kinematic_component->body;
+      auto *const shape = *kinematic_component->shape;
+      cpBodySetPosition(body, game_object_type == GameObjectType::Bullet ? position : grid_pos_to_pixel(position));
+      cpShapeSetCollisionType(shape, static_cast<cpCollisionType>(game_object_type));
+      cpShapeSetFilter(shape, {CP_NO_GROUP, static_cast<cpBitmask>(game_object_type), CP_ALL_CATEGORIES});
+      cpShapeSetBody(shape, body);
+      cpSpaceAddBody(*_space, body);
+      cpSpaceAddShape(*_space, shape);
+      _shapes[shape] = _next_game_object_id;
     }
 
     // Add the component to the registry
-    game_objects_[next_game_object_id_][typeid(obj)] = component;
+    _game_objects[_next_game_object_id][typeid(obj)] = component;
   }
 
   // Increment the game object ID and return the current game object ID
-  next_game_object_id_++;
-  return next_game_object_id_ - 1;
+  _next_game_object_id++;
+  return _next_game_object_id - 1;
 }
 
 void Registry::delete_game_object(const GameObjectID game_object_id) {
   // Check if the game object is registered or not
-  if (!game_objects_.contains(game_object_id)) {
+  if (!_game_objects.contains(game_object_id)) {
     throw RegistryError("game object", game_object_id);
   }
 
   // Remove the shape and body from the space if the game object has a kinematic component
   if (has_component(game_object_id, typeid(KinematicComponent))) {
-    cpSpaceRemoveShape(*space_, *get_component<KinematicComponent>(game_object_id)->shape);
-    cpSpaceRemoveBody(*space_, *get_component<KinematicComponent>(game_object_id)->body);
+    _shapes.erase(*get_component<KinematicComponent>(game_object_id)->shape);
+    cpSpaceRemoveShape(*_space, *get_component<KinematicComponent>(game_object_id)->shape);
+    cpSpaceRemoveBody(*_space, *get_component<KinematicComponent>(game_object_id)->body);
   }
 
   // Delete the game object from the system
-  game_objects_.erase(game_object_id);
+  _game_objects.erase(game_object_id);
 }
 
 auto Registry::get_component(const GameObjectID game_object_id, const std::type_index &component_type) const
@@ -55,22 +75,33 @@ auto Registry::get_component(const GameObjectID game_object_id, const std::type_
   }
 
   // Return the specified component
-  return game_objects_.at(game_object_id).at(component_type);
+  return _game_objects.at(game_object_id).at(component_type);
 }
 
-void Registry::add_wall(const cpVect &wall) {
-  // Add the wall to the set of walls
-  walls_.emplace(wall);
+void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameObjectType game_object_two) {
+  auto *func = cpSpaceAddCollisionHandler(get_space(), static_cast<cpCollisionType>(game_object_one),
+                                          static_cast<cpCollisionType>(game_object_two));
+  func->userData = this;
+  func->beginFunc = [](cpArbiter *arbiter, cpSpace * /*space*/, void *data) -> cpBool {
+    // Get the registry and the shapes that are colliding
+    auto *registry{static_cast<Registry *>(data)};
+    cpShape *shape1{nullptr};
+    cpShape *shape2{nullptr};
+    cpArbiterGetShapes(arbiter, &shape1, &shape2);
 
-  // Create a Chipmunk2D object for the wall
-  auto *const body{cpBodyNewStatic()};
-  auto *const shape{cpBoxShapeNew(body, SPRITE_SIZE, SPRITE_SIZE, 0.0)};
-  add_chipmunk_object(body, shape, wall);
-}
+    // Deal damage to the first shape if it is an entity
+    if (static_cast<GameObjectType>(cpShapeGetCollisionType(shape1)) != GameObjectType::Wall) {
+      registry->get_system<DamageSystem>()->deal_damage(registry->_shapes[shape1], DAMAGE);
+    }
 
-void Registry::add_chipmunk_object(cpBody *body, cpShape *shape, const cpVect &position) const {
-  cpBodySetPosition(body, grid_pos_to_pixel(position));
-  cpShapeSetBody(shape, body);
-  cpSpaceAddBody(*space_, body);
-  cpSpaceAddShape(*space_, shape);
+    // Register the post step callback to delete the bullet
+    cpSpaceAddPostStepCallback(
+        registry->get_space(),
+        [](cpSpace * /*space*/, void *key, void *bullet) {
+          auto *reg{static_cast<Registry *>(key)};
+          reg->delete_game_object(reg->_shapes[static_cast<cpShape *>(bullet)]);
+        },
+        registry, shape2);
+    return cpFalse;
+  };
 }

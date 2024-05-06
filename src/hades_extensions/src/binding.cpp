@@ -148,8 +148,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
                      "Checks if the component can have an indicator bar or not.\n\n"
                      "Returns:\n"
                      "    Whether the component can have an indicator bar or not.");
-  pybind11::class_<SystemBase, std::shared_ptr<SystemBase>> system_base(game_objects, "SystemBase",
-                                                                        "The base class for all systems.");
+  const pybind11::class_<SystemBase, std::shared_ptr<SystemBase>> system_base(game_objects, "SystemBase",
+                                                                              "The base class for all systems.");
 
   // Add the cpVect class
   pybind11::class_<cpVect>(game_objects, "Vec2d", "Represents a 2D vector.")
@@ -180,9 +180,11 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   pybind11::class_<Registry>(game_objects, "Registry",
                              "Manages game objects, components, and systems that are registered.")
       .def(pybind11::init<>(), "Initialise the object.")
-      .def("create_game_object", &Registry::create_game_object, pybind11::arg("position"), pybind11::arg("components"),
+      .def("create_game_object", &Registry::create_game_object, pybind11::arg("game_object_type"),
+           pybind11::arg("position"), pybind11::arg("components"),
            "Create a new game object.\n\n"
            "Args:\n"
+           "    game_object_type: The type of game object to create.\n"
            "    position: The position of the game object.\n"
            "    components: The components to add to the game object.\n\n"
            "Returns:\n"
@@ -269,14 +271,15 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Update all systems in the registry.\n\n"
            "Args:\n"
            "    delta_time: The time interval since the last time the function was called.")
-      .def("add_wall", &Registry::add_wall, pybind11::arg("wall"),
-           "Add a wall to the registry.\n\n"
-           "Args:\n"
-           "    wall: The wall to add to the registry.")
-      .def("get_walls", &Registry::get_walls,
-           "Get the walls from the registry.\n\n"
-           "Returns:\n"
-           "    The walls in the registry.");
+      .def(
+          "add_wall",
+          [](Registry &registry, const cpVect &wall) {
+            registry.create_game_object(GameObjectType::Wall, wall, {std::make_shared<KinematicComponent>(true)});
+          },
+          pybind11::arg("wall"),
+          "Add a wall to the registry.\n\n"
+          "Args:\n"
+          "    wall: The wall to add to the registry.");
 
   // Add the stat components
   pybind11::class_<Stat, ComponentBase, std::shared_ptr<Stat>>(
@@ -346,6 +349,14 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("AreaOfEffect", AttackAlgorithm::AreaOfEffect)
       .value("Melee", AttackAlgorithm::Melee)
       .value("Ranged", AttackAlgorithm::Ranged);
+  pybind11::enum_<GameObjectType>(game_objects, "GameObjectType",
+                                  "Stores the different types of game objects available.")
+      .value("Bullet", GameObjectType::Bullet)
+      .value("Enemy", GameObjectType::Enemy)
+      .value("Floor", GameObjectType::Floor)
+      .value("Player", GameObjectType::Player)
+      .value("Potion", GameObjectType::Potion)
+      .value("Wall", GameObjectType::Wall);
   pybind11::enum_<StatusEffectType>(game_objects, "StatusEffectType",
                                     "Stores the different types of status effects available.")
       .value("TEMP", StatusEffectType::TEMP)
@@ -432,6 +443,10 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Initialise the object.\n\n"
            "Args:\n"
            "    vertices: The vertices of the shape.")
+      .def(pybind11::init<bool>(), pybind11::arg("is_static"),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    is_static: Whether the game object is static or not.")
       .def(
           "get_position",
           [](const KinematicComponent &kinematic_component) {
@@ -439,7 +454,14 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           },
           "Get the position of the game object.\n\n"
           "Returns:\n"
-          "    The position of the game object.");
+          "    The position of the game object.")
+      .def(
+          "set_rotation",
+          [](KinematicComponent &kinematic_component, const double angle) { kinematic_component.rotation = angle; },
+          pybind11::arg("angle"),
+          "Set the rotation of the game object.\n\n"
+          "Args:\n"
+          "    angle: The angle to set the game object to.");
   pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
       components, "Money", "Allows a game object to record the amount of money it has.")
       .def(pybind11::init<int>(), pybind11::arg("money"),
@@ -493,6 +515,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    upgrades: The upgrades the game object has.");
 
   // Add the systems
+  const pybind11::class_<ArmourRegenSystem, SystemBase, std::shared_ptr<ArmourRegenSystem>> armour_regen_system(
+      systems, "ArmourRegenSystem", "Provides facilities to manipulate armour regen components.");
   pybind11::class_<AttackSystem, SystemBase, std::shared_ptr<AttackSystem>>(
       systems, "AttackSystem", "Provides facilities to manipulate attack components.")
       .def("do_attack", &AttackSystem::do_attack, pybind11::arg("game_object_id"), pybind11::arg("targets"),
@@ -501,7 +525,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    game_object_id: The ID of the game object to perform the attack for.\n"
            "    targets: The targets to attack.\n\n"
            "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an attack component.\n\n"
+           "    RegistryError: If the game object does not exist or does not have an attack or kinematic component.\n\n"
            "Returns:\n"
            "    The result of the attack.")
       .def("previous_attack", &AttackSystem::previous_attack, pybind11::arg("game_object_id"),
@@ -537,6 +561,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    RegistryError: If either game object does not exist or does not have the required components.\n\n"
            "Returns:\n"
            "    Whether the effects were applied or not.");
+  const pybind11::class_<FootprintSystem, SystemBase, std::shared_ptr<FootprintSystem>> footprint_system(
+      systems, "FootprintSystem", "Provides facilities to manipulate footprint components.");
   pybind11::class_<InventorySystem, SystemBase, std::shared_ptr<InventorySystem>>(
       systems, "InventorySystem", "Provides facilities to manipulate inventory components.")
       .def("add_item_to_inventory", &InventorySystem::add_item_to_inventory, pybind11::arg("game_object_id"),
@@ -559,6 +585,14 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    InventorySpaceError: If the inventory is empty or if the index is out of bounds.\n\n"
            "Returns:\n"
            "    The item removed from the inventory.");
+  const pybind11::class_<KeyboardMovementSystem, SystemBase, std::shared_ptr<KeyboardMovementSystem>>
+      keyboard_movement_system(systems, "KeyboardMovementSystem",
+                               "Provides facilities to manipulate keyboard movement components.");
+  const pybind11::class_<PhysicsSystem, SystemBase, std::shared_ptr<PhysicsSystem>> physics_system(
+      systems, "PhysicsSystem", "Provides facilities to manipulate a game object's physics.");
+  const pybind11::class_<SteeringMovementSystem, SystemBase, std::shared_ptr<SteeringMovementSystem>>
+      steering_movement_system(systems, "SteeringMovementSystem",
+                               "Provides facilities to manipulate steering movement components.");
   pybind11::class_<UpgradeSystem, SystemBase, std::shared_ptr<UpgradeSystem>>(
       systems, "UpgradeSystem", "Provides facilities to manipulate game object upgrades.")
       .def("upgrade_component", &UpgradeSystem::upgrade_component, pybind11::arg("game_object_id"),

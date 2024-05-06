@@ -20,9 +20,9 @@ class AttackSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     auto create_target{[&](const cpVect position) {
-      const int target{
-          registry.create_game_object(cpvzero, {std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1),
-                                                std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
+      const int target{registry.create_game_object(GameObjectType::Player, cpvzero,
+                                                   {std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1),
+                                                    std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
       registry.get_component<KinematicComponent>(target)->body->p = position;
       return target;
     }};
@@ -36,6 +36,7 @@ class AttackSystemFixture : public testing::Test {
     };
     registry.add_system<AttackSystem>();
     registry.add_system<DamageSystem>();
+    registry.add_system<PhysicsSystem>();
   }
 
   /// Create an attacks component for a game object.
@@ -43,9 +44,9 @@ class AttackSystemFixture : public testing::Test {
   /// @param enabled_attacks - The attacks to include in the component.
   void create_attack_component(const std::vector<AttackAlgorithm> &&enabled_attacks) {
     const int game_object_id{registry.create_game_object(
-        cpvzero,
+        GameObjectType::Player, cpvzero,
         {std::make_shared<Attacks>(enabled_attacks), std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
-    registry.get_component<KinematicComponent>(game_object_id)->body->a = 180;
+    registry.get_component<KinematicComponent>(game_object_id)->rotation = 180;
   }
 
   /// Get the attacks system from the registry.
@@ -67,7 +68,8 @@ class DamageSystemFixture : public testing::Test {
 
   /// Create health and armour attributes for use in testing.
   void create_health_and_armour_attributes() {
-    registry.create_game_object(cpvzero, {std::make_shared<Health>(300, -1), std::make_shared<Armour>(100, -1)});
+    registry.create_game_object(GameObjectType::Player, cpvzero,
+                                {std::make_shared<Health>(300, -1), std::make_shared<Armour>(100, -1)});
   }
 
   /// Get the damage system from the registry.
@@ -78,21 +80,20 @@ class DamageSystemFixture : public testing::Test {
   }
 };
 
-// TODO: Rename all tests docstrings for has_indicator_bar to has_indicator_bar()
-
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar.
+/// Test that the required components return the correct value for has_indicator_bar().
 TEST(Tests, TestAttackSystemComponentsHasIndicatorBar) { ASSERT_FALSE(Attacks{{}}.has_indicator_bar()); }
 
-/// Test that the required components return the correct value for has_indicator_bar.
+/// Test that the required components return the correct value for has_indicator_bar().
 TEST(Tests, TestDamageSystemComponentsHasIndicatorBar) {
   ASSERT_TRUE(Health(-1, -1).has_indicator_bar());
   ASSERT_TRUE(Armour(-1, -1).has_indicator_bar());
 }
 
 /// Test that performing an area of effect attack works correctly.
-TEST_F(AttackSystemFixture, TestAttacksDoAreaOfEffectAttack) {
+TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
   create_attack_component({AttackAlgorithm::AreaOfEffect});
+  get_attacks_system()->update(5);
   ASSERT_FALSE(get_attacks_system()->do_attack(8, targets).has_value());
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 40);
@@ -105,8 +106,9 @@ TEST_F(AttackSystemFixture, TestAttacksDoAreaOfEffectAttack) {
 }
 
 /// Test that performing a melee attack works correctly.
-TEST_F(AttackSystemFixture, TestAttacksDoMeleeAttack) {
+TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
   create_attack_component({AttackAlgorithm::Melee});
+  get_attacks_system()->update(5);
   ASSERT_FALSE(get_attacks_system()->do_attack(8, targets).has_value());
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 50);
@@ -119,17 +121,25 @@ TEST_F(AttackSystemFixture, TestAttacksDoMeleeAttack) {
 }
 
 /// Test that performing a ranged attack works correctly.
-TEST_F(AttackSystemFixture, TestAttacksDoRangedAttack) {
-  // This is due to floating point precision
+TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
   create_attack_component({AttackAlgorithm::Ranged});
-  const std::tuple attack_result{get_attacks_system()->do_attack(8, targets).value()};
-  ASSERT_EQ(get<0>(attack_result), cpv(32, 32));
-  ASSERT_EQ(get<1>(attack_result), -300);
-  ASSERT_NEAR(get<2>(attack_result), 0, 1e-13);
+  get_attacks_system()->update(5);
+  ASSERT_EQ(get_attacks_system()->do_attack(8, targets).value(), 9);
+  const auto *bullet = *registry.get_component<KinematicComponent>(9)->body;
+  ASSERT_EQ(bullet->p.x, -32);
+  ASSERT_NEAR(bullet->p.y, 32, 1e-13);
+  ASSERT_EQ(bullet->v.x, -500);
+  ASSERT_NEAR(bullet->v.y, 0, 1e-13);
+}
+
+/// Test that performing an attack before the cooldown is up doesn't work.
+TEST_F(AttackSystemFixture, TestAttackSystemDoAttackCooldown) {
+  create_attack_component({AttackAlgorithm::Ranged});
+  ASSERT_FALSE(get_attacks_system()->do_attack(8, targets).has_value());
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
-TEST_F(AttackSystemFixture, TestAttacksDoAttackInvalidGameObjectId) {
+TEST_F(AttackSystemFixture, TestAttackSystemDoAttackInvalidGameObjectId) {
   create_attack_component({AttackAlgorithm::Ranged});
   ASSERT_THROW_MESSAGE(
       (get_attacks_system()->do_attack(-1, targets)), RegistryError,
@@ -137,7 +147,7 @@ TEST_F(AttackSystemFixture, TestAttacksDoAttackInvalidGameObjectId) {
 }
 
 /// Test that switching between attacks once works correctly.
-TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackSingle) {
+TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextAttackSingle) {
   create_attack_component({AttackAlgorithm::AreaOfEffect, AttackAlgorithm::Melee, AttackAlgorithm::Ranged});
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
   get_attacks_system()->next_attack(8);
@@ -147,7 +157,7 @@ TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackSingle) {
 }
 
 /// Test that switching between attacks multiple times works correctly.
-TEST_F(AttackSystemFixture, TestAttacksPreviousAttackMultiple) {
+TEST_F(AttackSystemFixture, TestAttackSystemPreviousAttackMultiple) {
   create_attack_component({AttackAlgorithm::AreaOfEffect, AttackAlgorithm::Melee, AttackAlgorithm::Ranged});
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
   get_attacks_system()->next_attack(8);
@@ -165,7 +175,7 @@ TEST_F(AttackSystemFixture, TestAttacksPreviousAttackMultiple) {
 }
 
 /// Test that changing the attack state works correctly when there are no attacks.
-TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackEmptyAttacks) {
+TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextAttackEmptyAttacks) {
   create_attack_component({});
   ASSERT_EQ(registry.get_component<Attacks>(8)->attack_state, 0);
   get_attacks_system()->next_attack(8);
@@ -175,7 +185,7 @@ TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackEmptyAttacks) {
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
-TEST_F(AttackSystemFixture, TestAttacksPreviousNextAttackInvalidGameObjectId) {
+TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextAttackInvalidGameObjectId) {
   create_attack_component({});
   ASSERT_THROW_MESSAGE(
       get_attacks_system()->next_attack(-1), RegistryError,
@@ -231,7 +241,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
 
 /// Test that an exception is thrown if a game object does not have the required components.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageNonexistentComponents) {
-  registry.create_game_object(cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_damage_system()->deal_damage(0, 100), RegistryError,
       "The game object `0` is not registered with the registry or does not have the required component.")

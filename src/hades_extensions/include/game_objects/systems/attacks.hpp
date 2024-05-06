@@ -8,6 +8,9 @@
 // Local headers
 #include "game_objects/registry.hpp"
 
+// ----- CONSTANTS ------------------------------
+constexpr int DAMAGE{10};
+
 // ----- ENUMS ------------------------------
 /// Stores the different types of attack algorithms available.
 enum class AttackAlgorithm : std::uint8_t {
@@ -25,6 +28,9 @@ struct Attacks final : ComponentBase {
   /// The current state of the game object's attack.
   int attack_state{0};
 
+  /// The time since the game object last attacked.
+  double time_since_last_attack{0};
+
   /// Initialise the object.
   ///
   /// @param attack_algorithms - The attack algorithms the game object can use.
@@ -37,16 +43,21 @@ struct AttackSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit AttackSystem(const Registry *registry) : SystemBase(registry) {}
+  explicit AttackSystem(Registry *registry) : SystemBase(registry) {}
+
+  /// Process update logic for an attack component.
+  ///
+  /// @param delta_time - The time interval since the last time the function was called.
+  void update(double delta_time) const override;
 
   /// Perform the currently selected attack algorithm.
   ///
   /// @param game_object_id - The ID of the game object to perform the attack for.
   /// @param targets - The targets to attack.
-  /// @throws RegistryError - If the game object does not exist or does not have an attack component.
+  /// @throws RegistryError - If the game object does not exist or does not have an attack or kinematic component.
   /// @return The result of the attack.
   [[nodiscard]] auto do_attack(GameObjectID game_object_id, const std::vector<int> &targets) const
-      -> std::optional<std::tuple<cpVect, double, double>>;
+      -> std::optional<GameObjectID>;
 
   /// Select the previous attack algorithm.
   ///
@@ -76,7 +87,7 @@ struct DamageSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit DamageSystem(const Registry *registry) : SystemBase(registry) {}
+  explicit DamageSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Deal damage to a game object.
   ///
@@ -85,5 +96,3 @@ struct DamageSystem final : SystemBase {
   /// @throws RegistryError - If the game object does not exist or does not have health and armour components.
   void deal_damage(GameObjectID game_object_id, int damage) const;
 };
-
-// TODO: Change ranged attack to create a chipmunk object

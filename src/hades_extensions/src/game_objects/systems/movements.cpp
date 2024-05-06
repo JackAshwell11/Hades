@@ -8,7 +8,7 @@
 #include <chipmunk/chipmunk_structs.h>
 
 // Local headers
-#include <game_objects/systems/physics.hpp>
+#include "game_objects/systems/physics.hpp"
 
 // ----- CONSTANTS ------------------------------
 constexpr double FOOTPRINT_INTERVAL{0.5};
@@ -43,7 +43,7 @@ auto calculate_steering_force(const Registry *registry, const std::shared_ptr<St
         steering_force += follow_path(kinematic_owner->p, steering_movement->path_list);
         break;
       case SteeringBehaviours::ObstacleAvoidance:
-        steering_force += obstacle_avoidance(kinematic_owner->p, kinematic_owner->v, registry->get_walls());
+        steering_force += obstacle_avoidance(registry->get_space(), kinematic_owner->p, kinematic_owner->v);
         break;
       case SteeringBehaviours::Pursue:
         steering_force += pursue(kinematic_owner->p, kinematic_target->p, kinematic_target->v);

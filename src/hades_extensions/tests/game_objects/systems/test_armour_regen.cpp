@@ -14,7 +14,8 @@ class ArmourRegenSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(cpvzero, {std::make_shared<Armour>(50, -1), std::make_shared<ArmourRegen>(4, -1)});
+    registry.create_game_object(GameObjectType::Player, cpvzero,
+                                {std::make_shared<Armour>(50, -1), std::make_shared<ArmourRegen>(4, -1)});
     registry.add_system<ArmourRegenSystem>();
   }
 
@@ -27,7 +28,7 @@ class ArmourRegenSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar.
+/// Test that the required components return the correct value for has_indicator_bar().
 TEST(Tests, TestArmourRegenSystemComponentsHasIndicatorBar) {
   ASSERT_TRUE(Armour(-1, -1).has_indicator_bar());
   ASSERT_FALSE(ArmourRegen(-1, -1).has_indicator_bar());
@@ -72,7 +73,7 @@ TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateMultipleUpdates) {
 
 /// Test that the armour regen component is not updated if the game object does not have the required components.
 TEST_F(ArmourRegenSystemFixture, TestSteeringMovementSystemUpdateIncompleteComponents) {
-  registry.create_game_object(cpvzero, {std::make_shared<Armour>(100, -1)});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<Armour>(100, -1)});
   registry.get_component<Armour>(1)->set_value(50);
   get_armour_regen_system()->update(5);
   ASSERT_EQ(registry.get_component<Armour>(1)->get_value(), 50);
