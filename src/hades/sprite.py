@@ -2,27 +2,24 @@
 
 from __future__ import annotations
 
-# Builtin
-from typing import TYPE_CHECKING
-
 # Pip
 from arcade import (
-    Sprite,
-    SpriteSolidColor,
+    BasicSprite,
     Texture,
     color,
+    make_soft_square_texture,
 )
 
 # Custom
 from hades_extensions.game_objects import (
     SPRITE_SCALE,
-    SPRITE_SIZE,
+    GameObjectType,
+    Registry,
+    RegistryError,
     Vec2d,
     grid_pos_to_pixel,
 )
-
-if TYPE_CHECKING:
-    from hades.constants import GameObjectType
+from hades_extensions.game_objects.components import KinematicComponent
 
 __all__ = (
     "AnimatedSprite",
@@ -31,24 +28,7 @@ __all__ = (
 )
 
 
-class Bullet(SpriteSolidColor):
-    """Represents a bullet sprite object in the game."""
-
-    def __init__(self: Bullet, position: Vec2d) -> None:
-        """Initialise the object.
-
-        Args:
-            position: The position of the sprite object in the grid.
-        """
-        super().__init__(
-            SPRITE_SIZE,
-            SPRITE_SIZE,
-            color=color.RED,
-        )
-        self.center_x, self.center_y = grid_pos_to_pixel(position)
-
-
-class HadesSprite(Sprite):
+class HadesSprite(BasicSprite):
     """Represents a sprite object in the game.
 
     Attributes:
@@ -56,10 +36,11 @@ class HadesSprite(Sprite):
         game_object_type: The game object's type.
     """
 
-    __slots__ = ("game_object_id", "game_object_type")
+    __slots__ = ("game_object_id", "game_object_type", "registry")
 
     def __init__(
         self: HadesSprite,
+        registry: Registry,
         game_object: tuple[int, GameObjectType],
         position: Vec2d,
         sprite_textures: list[Texture],
@@ -67,6 +48,8 @@ class HadesSprite(Sprite):
         """Initialise the object.
 
         Args:
+            registry: The registry that manages the game objects, components, and
+            systems.
             game_object: The game object's ID and type.
             position: The position of the sprite object in the grid.
             sprite_textures: The sprites' texture paths.
@@ -77,6 +60,17 @@ class HadesSprite(Sprite):
             *grid_pos_to_pixel(position),
         )
         self.game_object_id, self.game_object_type = game_object
+        self.registry: Registry = registry
+
+    def update(self: HadesSprite) -> None:
+        """Update the sprite object."""
+        try:
+            self.position = self.registry.get_component(
+                self.game_object_id,
+                KinematicComponent,
+            ).get_position()
+        except RegistryError:
+            self.remove_from_sprite_lists()
 
     def __repr__(self: HadesSprite) -> str:
         """Return a human-readable representation of this object.
@@ -87,6 +81,25 @@ class HadesSprite(Sprite):
         return (
             f"<HadesSprite (Game object ID={self.game_object_id}) (Current"
             f" texture={self.texture})>"
+        )
+
+
+class Bullet(HadesSprite):
+    """Represents a bullet sprite object in the game."""
+
+    def __init__(self: Bullet, registry: Registry, game_object_id: int) -> None:
+        """Initialise the object.
+
+        Args:
+            registry: The registry that manages the game objects, components, and
+            systems.
+            game_object_id: The game object's ID.
+        """
+        super().__init__(
+            registry,
+            (game_object_id, GameObjectType.Bullet),
+            Vec2d(0, 0),
+            [make_soft_square_texture(64, color.RED)],
         )
 
 
@@ -101,6 +114,7 @@ class AnimatedSprite(HadesSprite):
 
     def __init__(
         self: AnimatedSprite,
+        registry: Registry,
         game_object: tuple[int, GameObjectType],
         position: Vec2d,
         textures: list[Texture],
@@ -108,11 +122,13 @@ class AnimatedSprite(HadesSprite):
         """Initialise the object.
 
         Args:
+            registry: The registry that manages the game objects, components, and
+            systems.
             game_object: The game object's ID and type.
             position: The position of the sprite object in the grid.
             textures: The sprite's texture paths.
         """
-        super().__init__(game_object, position, textures)
+        super().__init__(registry, game_object, position, textures)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
             (texture, texture.flip_left_right()) for texture in textures
         ]

@@ -122,7 +122,7 @@ def create_constructor(
 
 # Static tiles
 WALL: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.WALL,
+    GameObjectType.Wall,
     "Wall",
     ["wall.png"],
     options={
@@ -130,7 +130,7 @@ WALL: Final[GameObjectConstructor] = create_constructor(
     },
 )
 FLOOR: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.FLOOR,
+    GameObjectType.Floor,
     "Floor",
     ["floor.png"],
 )
@@ -138,7 +138,7 @@ FLOOR: Final[GameObjectConstructor] = create_constructor(
 
 # Entities
 PLAYER: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.PLAYER,
+    GameObjectType.Player,
     "Player",
     ["player_idle.png"],
     [
@@ -161,7 +161,7 @@ PLAYER: Final[GameObjectConstructor] = create_constructor(
     },
 )
 ENEMY: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.ENEMY,
+    GameObjectType.Enemy,
     "Enemy",
     ["enemy_idle.png"],
     [
@@ -186,7 +186,7 @@ ENEMY: Final[GameObjectConstructor] = create_constructor(
 
 # Items
 POTION: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.POTION,
+    GameObjectType.Potion,
     "Health Potion",
     ["health_potion.png"],
     [EffectApplier({}, {})],

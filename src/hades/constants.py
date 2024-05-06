@@ -4,12 +4,11 @@ from __future__ import annotations
 
 # Builtin
 from datetime import datetime, timezone
-from enum import Enum, auto
 from pathlib import Path
 from typing import Final
 
 # Custom
-from hades_extensions.game_objects import SPRITE_SIZE
+from hades_extensions.game_objects import SPRITE_SIZE, GameObjectType
 
 __all__ = (
     "ATTACK_COOLDOWN",
@@ -29,18 +28,7 @@ __all__ = (
     "MAX_BULLET_RANGE",
     "TOTAL_ENEMY_COUNT",
     "USABLE_TYPES",
-    "GameObjectType",
 )
-
-
-class GameObjectType(Enum):
-    """Stores the different types of game objects that can exist in the game."""
-
-    ENEMY = auto()
-    FLOOR = auto()
-    PLAYER = auto()
-    POTION = auto()
-    WALL = auto()
 
 
 # Create the log directory making sure it exists. Then create the path for the current
@@ -114,8 +102,8 @@ INDICATOR_BAR_WIDTH: Final[int] = 50
 
 # Define some collections for game object types
 COLLECTIBLE_TYPES: Final[set[GameObjectType]] = {
-    GameObjectType.POTION,
+    GameObjectType.Potion,
 }
 USABLE_TYPES: Final[set[GameObjectType]] = {
-    GameObjectType.POTION,
+    GameObjectType.Potion,
 }

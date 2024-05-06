@@ -9,6 +9,7 @@ import random
 
 # Pip
 from arcade import (
+    MOUSE_BUTTON_LEFT,
     SpriteList,
     SpriteSolidColor,
     Text,
@@ -28,13 +29,13 @@ from hades.constants import (
     ENEMY_RETRY_COUNT,
     TOTAL_ENEMY_COUNT,
     USABLE_TYPES,
-    GameObjectType,
 )
 from hades.constructors import ENEMY, FLOOR, PLAYER, POTION, WALL, GameObjectConstructor
 from hades.indicator_bar import IndicatorBar
-from hades.sprite import AnimatedSprite, HadesSprite
+from hades.sprite import AnimatedSprite, Bullet, HadesSprite
 from hades_extensions.game_objects import (
     SPRITE_SIZE,
+    GameObjectType,
     Registry,
     Vec2d,
     grid_pos_to_pixel,
@@ -58,12 +59,7 @@ __all__ = ("Game",)
 logger = logging.getLogger(__name__)
 
 
-# TODO: Add player attacking enemy (so switching and attacking). Will require components
-#  and indicator bars too. Points from PR:
-#  (DO) Add the Python code allowing for the player to switch between attacks and
-#  perform an attack.
-#  (DO) Add additional logic to kill an enemy and display indicator bars.
-#  (DO) Improve the look of the indicator bars including their sizing, positioning, and
+# TODO: Improve the look of the indicator bars including their sizing, positioning, and
 #  colouring.
 
 
@@ -80,7 +76,7 @@ class Game(View):
         player_status_text: The text object used for displaying the player's health and
             armour.
         level_constants: Holds the constants for the current level.
-        registry: The registry which manages the game objects.
+        registry: The registry that manages the game objects, components, and systems.
         ids: The dictionary which stores the IDs and sprites for each game object type.
         possible_enemy_spawns: A list of possible positions that enemies can spawn in.
         indicator_bars: A list of indicator bars that are currently being displayed.
@@ -104,6 +100,7 @@ class Game(View):
         game_object_id = -1
         if constructor.components:
             game_object_id = self.registry.create_game_object(
+                constructor.game_object_type,
                 position,
                 constructor.components,
             )
@@ -113,6 +110,7 @@ class Game(View):
         # Create a sprite and add its ID to the dictionary
         sprite_class = AnimatedSprite if len(constructor.textures) > 1 else HadesSprite
         sprite = sprite_class(
+            self.registry,
             (game_object_id, constructor.game_object_type),
             position,
             constructor.textures,
@@ -234,30 +232,21 @@ class Game(View):
         Args:
             delta_time: Time interval since the last time the function was called.
         """
-        # Update the systems
+        # Update the systems and entities
         self.registry.update(delta_time)
+        self.entity_sprites.update()
 
         # Find the nearest item to the player
-        self.nearest_item = self.ids[GameObjectType.PLAYER][0].collides_with_list(
+        self.nearest_item = self.ids[GameObjectType.Player][0].collides_with_list(
             self.item_sprites,
         )
-
-        # Update all entity's positions from the physics engine
-        for entity in self.ids.get(GameObjectType.PLAYER, []) + self.ids.get(
-            GameObjectType.ENEMY,
-            [],
-        ):
-            entity.position = self.registry.get_component(
-                entity.game_object_id,
-                KinematicComponent,
-            ).get_position()
 
         # Update the indicator bars
         for indicator_bar in self.indicator_bars:
             indicator_bar.on_update(delta_time)
 
         # Position the camera on the player
-        self.game_camera.position = self.ids[GameObjectType.PLAYER][0].position
+        self.game_camera.position = self.ids[GameObjectType.Player][0].position
 
     def on_key_press(self: Game, symbol: int, modifiers: int) -> None:
         """Process key press functionality.
@@ -268,7 +257,7 @@ class Game(View):
                 during this event.
         """
         player_movement = self.registry.get_component(
-            self.ids[GameObjectType.PLAYER][0].game_object_id,
+            self.ids[GameObjectType.Player][0].game_object_id,
             KeyboardMovement,
         )
         logger.debug(
@@ -295,7 +284,7 @@ class Game(View):
                 during this event.
         """
         player_movement = self.registry.get_component(
-            self.ids[GameObjectType.PLAYER][0].game_object_id,
+            self.ids[GameObjectType.Player][0].game_object_id,
             KeyboardMovement,
         )
         logger.debug(
@@ -317,7 +306,7 @@ class Game(View):
                     self.nearest_item
                     and self.nearest_item[0].game_object_type in COLLECTIBLE_TYPES
                     and self.registry.get_system(InventorySystem).add_item_to_inventory(
-                        self.ids[GameObjectType.PLAYER][0].game_object_id,
+                        self.ids[GameObjectType.Player][0].game_object_id,
                         self.nearest_item[0].game_object_id,
                     )
                 ):
@@ -328,28 +317,88 @@ class Game(View):
                     and self.nearest_item[0].game_object_type in USABLE_TYPES
                     and self.registry.get_system(EffectSystem).apply_effects(
                         self.nearest_item[0].game_object_id,
-                        self.ids[GameObjectType.PLAYER][0].game_object_id,
+                        self.ids[GameObjectType.Player][0].game_object_id,
                     )
                 ):
                     self.nearest_item[0].remove_from_sprite_lists()
             case key.Z:
                 self.registry.get_system(AttackSystem).previous_attack(
-                    self.ids[GameObjectType.PLAYER][0].game_object_id,
+                    self.ids[GameObjectType.Player][0].game_object_id,
                 )
             case key.X:
                 self.registry.get_system(AttackSystem).next_attack(
-                    self.ids[GameObjectType.PLAYER][0].game_object_id,
+                    self.ids[GameObjectType.Player][0].game_object_id,
                 )
+
+    def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
+        """Process mouse button functionality.
+
+        Args:
+            x: The x position of the mouse.
+            y: The y position of the mouse.
+            button: Which button was hit.
+            modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
+            during this event.
+        """
+        logger.debug(
+            "%r mouse button was pressed at position (%f, %f) with modifiers %r",
+            button,
+            x,
+            y,
+            modifiers,
+        )
+        if button is MOUSE_BUTTON_LEFT and (
+            attack_result := self.registry.get_system(AttackSystem).do_attack(
+                self.ids[GameObjectType.Player][0].game_object_id,
+                [
+                    game_object.game_object_id
+                    for game_object in self.ids.get(GameObjectType.Enemy, [])
+                ],
+            )
+        ):
+            bullet = Bullet(self.registry, attack_result)
+            self.ids.setdefault(bullet.game_object_type, []).append(bullet)
+            self.entity_sprites.append(bullet)
+
+    def on_mouse_motion(self: Game, x: int, y: int, *_: tuple[int, int]) -> None:
+        """Process mouse motion functionality.
+
+        Args:
+            x: The x position of the mouse.
+            y: The y position of the mouse.
+        """
+        # Get the player's position
+        kinematic_component = self.registry.get_component(
+            self.ids[GameObjectType.Player][0].game_object_id,
+            KinematicComponent,
+        )
+        player_x, player_y = kinematic_component.get_position()
+
+        # Transform mouse in window space to camera in world space and calculate the
+        # angle
+        angle = math.degrees(
+            math.atan2(
+                y + self.game_camera.position[1] - self.window.height / 2 - player_y,
+                x + self.game_camera.position[0] - self.window.width / 2 - player_x,
+            ),
+        )
+
+        # Convert angle range from -180 to 180 to 0 to 360
+        if angle < 0:
+            angle += 360
+
+        # Set the player's rotation
+        kinematic_component.set_rotation(angle)
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
-        if len(self.ids.get(GameObjectType.ENEMY, [])) >= TOTAL_ENEMY_COUNT:
+        if len(self.ids.get(GameObjectType.Enemy, [])) >= TOTAL_ENEMY_COUNT:
             return
 
         # Enemy limit is not reached so try to initialise a new enemy game object
         # ENEMY_RETRY_COUNT times
         random.shuffle(self.possible_enemy_spawns)
-        player_sprite = self.ids[GameObjectType.PLAYER][0]
+        player_sprite = self.ids[GameObjectType.Player][0]
         for position in self.possible_enemy_spawns[:ENEMY_RETRY_COUNT]:
             if (
                 get_sprites_at_point(grid_pos_to_pixel(position), self.entity_sprites)
@@ -365,7 +414,7 @@ class Game(View):
                 new_sprite.game_object_id,
                 SteeringMovement,
             )
-            steering_movement.target_id = self.ids[GameObjectType.PLAYER][
+            steering_movement.target_id = self.ids[GameObjectType.Player][
                 0
             ].game_object_id
             return

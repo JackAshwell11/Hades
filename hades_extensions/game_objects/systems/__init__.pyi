@@ -1,12 +1,14 @@
 # Custom
-from hades_extensions.game_objects import ComponentBase, SystemBase, Vec2d
+from hades_extensions.game_objects import ComponentBase, SystemBase
+
+class ArmourRegenSystem(SystemBase): ...
 
 class AttackSystem(SystemBase):
     def do_attack(
         self: AttackSystem,
         game_object_id: int,
         targets: list[int],
-    ) -> tuple[Vec2d, float, float] | None: ...
+    ) -> int | None: ...
     def previous_attack(self: AttackSystem, game_object_id: int) -> None: ...
     def next_attack(self: AttackSystem, game_object_id: int) -> None: ...
 
@@ -20,6 +22,8 @@ class EffectSystem(SystemBase):
         target_game_object_id: int,
     ) -> None: ...
 
+class FootprintSystem(SystemBase): ...
+
 class InventorySystem(SystemBase):
     def add_item_to_inventory(
         self: InventorySystem,
@@ -31,6 +35,10 @@ class InventorySystem(SystemBase):
         game_object_id: int,
         index: int,
     ) -> int: ...
+
+class KeyboardMovementSystem(SystemBase): ...
+class PhysicsSystem(SystemBase): ...
+class SteeringMovementSystem(SystemBase): ...
 
 class UpgradeSystem(SystemBase):
     def upgrade_component(
