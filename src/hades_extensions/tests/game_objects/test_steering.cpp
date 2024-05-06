@@ -1,6 +1,36 @@
 // Local headers
 #include "game_objects/steering.hpp"
+#include "game_objects/types.hpp"
 #include "macros.hpp"
+
+// ----- FIXTURES ------------------------------
+/// Implements the fixture for the obstacle_avoidance() tests.
+class ObstacleAvoidanceFixture : public testing::Test {
+ protected:
+  /// The Chipmunk2D bodies and shapes for the game objects.
+  std::vector<std::pair<ChipmunkHandle<cpBody, cpBodyFree>, ChipmunkHandle<cpShape, cpShapeFree>>> game_objects;
+
+  /// The Chipmunk2D space.
+  ChipmunkHandle<cpSpace, cpSpaceFree> space{cpSpaceNew()};
+
+  /// Add the game object to the space.
+  ///
+  /// @param positions - The list of game object positions.
+  /// @param entity - The type of game object to add.
+  void add_game_objects(const std::vector<cpVect> &&positions, const GameObjectType entity = GameObjectType::Wall) {
+    for (const auto &position : positions) {
+      auto body{ChipmunkHandle<cpBody, cpBodyFree>(cpBodyNewStatic())};
+      auto shape{ChipmunkHandle<cpShape, cpShapeFree>(cpBoxShapeNew(*body, SPRITE_SIZE, SPRITE_SIZE, 0))};
+      cpBodySetPosition(*body, position);
+      cpShapeSetCollisionType(*shape, static_cast<cpCollisionType>(entity));
+      cpShapeSetFilter(*shape, {CP_NO_GROUP, static_cast<cpBitmask>(entity), CP_ALL_CATEGORIES});
+      cpShapeSetBody(*shape, *body);
+      cpSpaceAddBody(*space, *body);
+      cpSpaceAddShape(*space, *shape);
+      game_objects.emplace_back(std::move(body), std::move(shape));
+    }
+  }
+};
 
 // ----- TESTS ------------------------------
 /// Test if a position outside the radius produces the correct arrive force.
@@ -101,63 +131,69 @@ TEST(Tests, TestFollowPathEmptyList) {
 }
 
 /// Test if no obstacles produce the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceNoObstacles) { ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {}), cpvzero); }
-
-/// Test if an out of range obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceObstacleOutOfRange) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{10, 10}}), cpvzero);
-}
-
-/// Test if an angled velocity produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceAngledVelocity) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {100, 100}, {{1, 2}}), cpv(0.2588190451025206, -0.9659258262890683));
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceNoObstacles) {
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 100}), cpvzero);
 }
 
 /// Test if a non-moving game object produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceNonMoving) { ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}}), cpvzero); }
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceNonMoving) {
+  add_game_objects({{0, 75}});
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 0}), cpvzero);
+}
 
 /// Test if a single forward obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceSingleForward) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}}), cpvzero);
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceSingleForward) {
+  add_game_objects({{0, 75}});
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 100}), cpv(0, -1));
 }
 
 /// Test if a single left obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceSingleLeft) {
-  // This is due to floating point precision
-  const auto [single_left_result_x, single_left_result_y] = obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}});
-  ASSERT_DOUBLE_EQ(single_left_result_x, 0.8660254037844387);
-  ASSERT_DOUBLE_EQ(single_left_result_y, -0.5);
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceSingleLeft) {
+  add_game_objects({{-64, 75}});
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 100}), cpv(0.73612033100878249, -0.67685069127210062));
 }
 
 /// Test if a single right obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceSingleRight) {
-  // This is due to floating point precision
-  const auto [single_right_result_x, single_right_result_y] = obstacle_avoidance({100, 100}, {0, 100}, {{2, 2}});
-  ASSERT_DOUBLE_EQ(single_right_result_x, -0.8660254037844386);
-  ASSERT_DOUBLE_EQ(single_right_result_y, -0.5);
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceSingleRight) {
+  add_game_objects({{64, 75}});
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 100}), cpv(-0.73612033100878249, -0.67685069127210062));
 }
 
 /// Test if a left and forward obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceLeftForward) {
-  // This is due to floating point precision
-  const auto [left_forward_result_x, left_forward_result_y] =
-      obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}});
-  ASSERT_DOUBLE_EQ(left_forward_result_x, 0.8660254037844387);
-  ASSERT_DOUBLE_EQ(left_forward_result_y, -0.5);
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceLeftForward) {
+  add_game_objects({{-64, 75}, {0, 75}});
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 100}), cpv(0.73612033100878249, -1.6768506912721006));
 }
 
 /// Test if a right and forward obstacle produces the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceRightForward) {
-  // This is due to floating point precision
-  const auto [right_forward_result_x, right_forward_result_y] =
-      obstacle_avoidance({100, 100}, {0, 100}, {{1, 2}, {2, 2}});
-  ASSERT_DOUBLE_EQ(right_forward_result_x, -0.8660254037844386);
-  ASSERT_DOUBLE_EQ(right_forward_result_y, -0.5);
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceRightForward) {
+  add_game_objects({{64, 75}, {0, 75}});
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 100}), cpv(-0.73612033100878249, -1.6768506912721006));
 }
 
 /// Test if all three obstacles produce the correct obstacle avoidance force.
-TEST(Tests, TestObstacleAvoidanceLeftRightForward) {
-  ASSERT_EQ(obstacle_avoidance({100, 100}, {0, 100}, {{0, 2}, {1, 2}, {2, 2}}), cpv(0, -1));
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceLeftRightForward) {
+  add_game_objects({{-64, 75}, {0, 75}, {64, 75}});
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 100}), cpv(0, -2.3537013825442012));
+}
+
+/// Test if an angled velocity produces the correct obstacle avoidance force.
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceAngledVelocity) {
+  add_game_objects({{64, 75}});
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {100, 100}), cpv(-0.59701076932020425, -0.80223322127402441));
+}
+
+/// Test if an out of range obstacle produces the correct obstacle avoidance force.
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidanceObstacleOutOfRange) {
+  add_game_objects({{0, 300}});
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 100}), cpvzero);
+}
+
+/// Test if having a player entity produces the correct obstacle avoidance force.
+TEST_F(ObstacleAvoidanceFixture, TestObstacleAvoidancePlayerEntity) {
+  add_game_objects({{0, 75}});
+  add_game_objects({{0, 0}}, GameObjectType::Player);
+  ASSERT_EQ(obstacle_avoidance(*space, {0, 0}, {0, 100}), cpv(0, -1));
 }
 
 /// Test if a non-moving target produces the correct pursue force.

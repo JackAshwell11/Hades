@@ -33,7 +33,7 @@ struct UpgradeSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit UpgradeSystem(const Registry *registry) : SystemBase(registry) {}
+  explicit UpgradeSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Upgrade a component to the next level if possible.
   ///

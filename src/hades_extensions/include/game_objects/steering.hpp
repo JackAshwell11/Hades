@@ -69,12 +69,11 @@ auto follow_path(const cpVect &current_position, std::vector<cpVect> &path_list)
 
 /// Allow a game object to avoid obstacles in its path.
 ///
+/// @param space - The Chipmunk2D space.
 /// @param current_position - The position of the game object.
 /// @param current_velocity - The velocity of the game object.
-/// @param walls - The set of walls in the game.
 /// @return The new steering force from this behaviour.
-auto obstacle_avoidance(const cpVect &current_position, const cpVect &current_velocity,
-                        const std::unordered_set<cpVect> &walls) -> cpVect;
+auto obstacle_avoidance(cpSpace *space, const cpVect &current_position, const cpVect &current_velocity) -> cpVect;
 
 /// Allow a game object to seek towards another game object's predicted position.
 ///

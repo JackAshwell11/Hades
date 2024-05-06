@@ -81,7 +81,7 @@ struct FootprintSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit FootprintSystem(const Registry *registry) : SystemBase(registry) {}
+  explicit FootprintSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Process update logic for a footprint component.
   ///
@@ -94,7 +94,7 @@ struct KeyboardMovementSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit KeyboardMovementSystem(const Registry *registry) : SystemBase(registry) {}
+  explicit KeyboardMovementSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Process update logic for a keyboard movement component.
   ///
@@ -107,7 +107,7 @@ struct SteeringMovementSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit SteeringMovementSystem(const Registry *registry) : SystemBase(registry) {}
+  explicit SteeringMovementSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Process update logic for a steering movement component.
   ///

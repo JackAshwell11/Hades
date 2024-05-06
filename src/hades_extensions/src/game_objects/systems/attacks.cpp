@@ -14,10 +14,10 @@
 // ----- CONSTANTS -------------------------------
 #define PI_RADIANS (std::numbers::pi / 180)
 constexpr double ATTACK_RANGE{3 * SPRITE_SIZE};
-constexpr int BULLET_VELOCITY{300};
-constexpr int DAMAGE{10};
+constexpr int BULLET_VELOCITY{500};
 constexpr double MELEE_ATTACK_OFFSET_LOWER{-45 * PI_RADIANS};
 constexpr double MELEE_ATTACK_OFFSET_UPPER{45 * PI_RADIANS};
+constexpr int ATTACK_COOLDOWN{5};
 
 // ----- FUNCTIONS ------------------------------
 /// Performs an area of effect attack around the game object.
@@ -72,29 +72,38 @@ void melee_attack(const Registry *registry, const cpVect &current_position, cons
 ///
 /// @param current_position - The current position of the game object.
 /// @param current_rotation - The current rotation of the game object in radians.
-/// @return The result of the attack.
-auto ranged_attack(const cpVect &current_position, const double current_rotation)
-    -> std::tuple<cpVect, double, double> {
-  return {current_position, BULLET_VELOCITY * std::cos(current_rotation), BULLET_VELOCITY * std::sin(current_rotation)};
+/// @return The bullet's position and velocity.
+auto ranged_attack(const cpVect &current_position, const double current_rotation) -> std::pair<cpVect, cpVect> {
+  const auto direction = cpvforangle(current_rotation);
+  return {current_position + direction * SPRITE_SIZE, direction * BULLET_VELOCITY};
+}
+
+void AttackSystem::update(const double delta_time) const {
+  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<Attacks>()) {
+    const auto [attacks] = component_tuple;
+    attacks->time_since_last_attack += delta_time;
+  }
 }
 
 auto AttackSystem::do_attack(const GameObjectID game_object_id, const std::vector<int> &targets) const
-    -> std::optional<std::tuple<cpVect, double, double>> {
-  // Perform the attack on the targets
-  const auto attacks{get_registry()->get_component<Attacks>(game_object_id)};
-  const auto *const body{*get_registry()->get_component<KinematicComponent>(game_object_id)->body};
-  switch (attacks->attack_algorithms[attacks->attack_state]) {
-    case AttackAlgorithm::AreaOfEffect:
-      area_of_effect_attack(get_registry(), body->p, targets);
-      break;
-    case AttackAlgorithm::Melee:
-      melee_attack(get_registry(), body->p, body->a * PI_RADIANS, targets);
-      break;
-    case AttackAlgorithm::Ranged:
-      return ranged_attack(body->p, body->a * PI_RADIANS);
+    -> std::optional<GameObjectID> {
+  // Check if the game object can attack or not. If so, perform the selected attack on the targets
+  if (const auto attacks{get_registry()->get_component<Attacks>(game_object_id)};
+      attacks->time_since_last_attack >= ATTACK_COOLDOWN) {
+    attacks->time_since_last_attack = 0;
+    const auto kinematic_component{get_registry()->get_component<KinematicComponent>(game_object_id)};
+    switch (attacks->attack_algorithms[attacks->attack_state]) {
+      case AttackAlgorithm::AreaOfEffect:
+        area_of_effect_attack(get_registry(), kinematic_component->body->p, targets);
+        break;
+      case AttackAlgorithm::Melee:
+        melee_attack(get_registry(), kinematic_component->body->p, kinematic_component->rotation * PI_RADIANS, targets);
+        break;
+      case AttackAlgorithm::Ranged:
+        return get_registry()->get_system<PhysicsSystem>()->add_bullet(
+            ranged_attack(kinematic_component->body->p, kinematic_component->rotation * PI_RADIANS));
+    }
   }
-
-  // Return an empty result as no ranged attack was performed
   return std::nullopt;
 }
 

@@ -11,7 +11,7 @@ class InventorySystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(cpvzero, {std::make_shared<Inventory>(3, 6)});
+    registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<Inventory>(3, 6)});
     registry.add_system<InventorySystem>();
   }
 
@@ -24,7 +24,7 @@ class InventorySystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar.
+/// Test that the required components return the correct value for has_indicator_bar().
 TEST(Tests, TestInventorySystemComponentsHasIndicatorBar) { ASSERT_FALSE(Inventory(-1, -1).has_indicator_bar()); }
 
 /// Test that a valid item is added to the inventory correctly.
@@ -42,7 +42,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryZeroSize) {
 
 /// Test that an exception is thrown if the game object does not have an inventory component.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryNonexistentComponent) {
-  registry.create_game_object(cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_inventory_system()->add_item_to_inventory(1, 0), RegistryError,
       "The game object `1` is not registered with the registry or does not have the required component.")
@@ -74,7 +74,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryLargeIn
 
 /// Test that an exception is thrown if the game object does not have an inventory component.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryNonexistentComponent) {
-  registry.create_game_object(cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       (get_inventory_system()->remove_item_from_inventory(1, 0)), RegistryError,
       "The game object `1` is not registered with the registry or does not have the required component.")

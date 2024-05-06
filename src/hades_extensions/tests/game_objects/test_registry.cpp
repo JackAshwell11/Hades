@@ -2,9 +2,9 @@
 #include <chipmunk/chipmunk_structs.h>
 
 // Local headers
-#include <game_objects/systems/physics.hpp>
-
 #include "game_objects/registry.hpp"
+#include "game_objects/systems/attacks.hpp"
+#include "game_objects/systems/physics.hpp"
 #include "macros.hpp"
 
 // ----- COMPONENTS ------------------------------
@@ -31,7 +31,7 @@ struct TestSystem final : SystemBase {
   /// Initialise the system.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit TestSystem(const Registry *registry) : SystemBase(registry) {}
+  explicit TestSystem(Registry *registry) : SystemBase(registry) {}
 
   /// Update the system.
   void update(double /*delta_time*/) const override { called = true; }
@@ -98,7 +98,7 @@ TEST(Tests, TestGridPosToPixelNegativeXYPosition){
 /// Test that a game object with no components is added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
   // Test that creating the game object works correctly
-  ASSERT_EQ(registry.create_game_object(cpvzero, {}), 0);
+  ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
   ASSERT_FALSE(registry.has_component(0, typeid(TestGameObjectComponentOne)));
   ASSERT_FALSE(registry.has_component(0, typeid(TestGameObjectComponentTwo)));
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 0);
@@ -113,8 +113,9 @@ TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
 /// Test that multiple components are added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
   // Test that creating the game object works correctly
-  registry.create_game_object(cpvzero, {std::make_shared<TestGameObjectComponentOne>(),
-                                        std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))});
+  registry.create_game_object(GameObjectType::Player, cpvzero,
+                              {std::make_shared<TestGameObjectComponentOne>(),
+                               std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))});
   ASSERT_NE(registry.get_component<TestGameObjectComponentOne>(0), nullptr);
   ASSERT_NE(registry.get_component(0, typeid(TestGameObjectComponentTwo)), nullptr);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 1);
@@ -139,9 +140,12 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
 /// Test that multiple game objects are added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
   // Test that creating two game objects works correctly
-  ASSERT_EQ(registry.create_game_object(cpvzero, {std::make_shared<TestGameObjectComponentOne>()}), 0);
-  ASSERT_EQ(registry.create_game_object(cpvzero, {std::make_shared<TestGameObjectComponentOne>(),
-                                                  std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))}),
+  ASSERT_EQ(
+      registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<TestGameObjectComponentOne>()}),
+      0);
+  ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero,
+                                        {std::make_shared<TestGameObjectComponentOne>(),
+                                         std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))}),
             1);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 2);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 1);
@@ -159,7 +163,8 @@ TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
 /// Test that a game object with a kinematic component is added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryGameObjectKinematicComponent) {
   // Test that creating the game object works correctly
-  registry.create_game_object(cpvzero, {std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
+  registry.create_game_object(GameObjectType::Player, cpvzero,
+                              {std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
   ASSERT_NE(registry.get_component<KinematicComponent>(0), nullptr);
   ASSERT_NE(registry.get_component(0, typeid(KinematicComponent)), nullptr);
   ASSERT_EQ(std::ranges::distance(registry.find_components<KinematicComponent>()), 1);
@@ -170,10 +175,16 @@ TEST_F(RegistryFixture, TestRegistryGameObjectKinematicComponent) {
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->shapeList,
             *registry.get_component<KinematicComponent>(0)->shape);
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->p, cpv(32, 32));
+  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->shape->type,
+            static_cast<cpCollisionType>(GameObjectType::Player));
+  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->shape->filter.group, CP_NO_GROUP);
+  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->shape->filter.categories,
+            static_cast<cpBitmask>(GameObjectType::Player));
+  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->shape->filter.mask, CP_ALL_CATEGORIES);
 
   // Test that deleting the game object works correctly
-  auto *const body = *registry.get_component<KinematicComponent>(0)->body;
-  auto *const shape = *registry.get_component<KinematicComponent>(0)->shape;
+  auto *body = *registry.get_component<KinematicComponent>(0)->body;
+  auto *shape = *registry.get_component<KinematicComponent>(0)->shape;
   registry.delete_game_object(0);
   ASSERT_EQ(std::ranges::distance(registry.find_components<KinematicComponent>()), 0);
   ASSERT_FALSE(cpSpaceContainsBody(registry.get_space(), body));
@@ -183,16 +194,17 @@ TEST_F(RegistryFixture, TestRegistryGameObjectKinematicComponent) {
 /// Test that a game object with duplicate components is added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryGameObjectDuplicateComponents) {
   // Test that creating a game object with two of the same components only adds the first one
-  registry.create_game_object(cpvzero, {std::make_shared<TestGameObjectComponentTwo>(std::vector({10})),
-                                        std::make_shared<TestGameObjectComponentTwo>(std::vector({20}))});
+  registry.create_game_object(GameObjectType::Player, cpvzero,
+                              {std::make_shared<TestGameObjectComponentTwo>(std::vector({10})),
+                               std::make_shared<TestGameObjectComponentTwo>(std::vector({20}))});
   ASSERT_EQ(registry.get_component<TestGameObjectComponentTwo>(0)->test_list[0], 10);
 }
 
 /// Test that passing the same component to multiple game objects works correctly.
 TEST_F(RegistryFixture, TestRegistryGameObjectSameComponent) {
   const auto component_one{std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))};
-  registry.create_game_object(cpvzero, {component_one});
-  registry.create_game_object(cpvzero, {component_one});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {component_one});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {component_one});
   registry.get_component<TestGameObjectComponentTwo>(0)->test_list[0] = 20;
   ASSERT_EQ(registry.get_component<TestGameObjectComponentTwo>(0)->test_list[0], 20);
   ASSERT_EQ(registry.get_component<TestGameObjectComponentTwo>(1)->test_list[0], 20);
@@ -206,7 +218,8 @@ TEST_F(RegistryFixture,
 /// Test that a system is updated correctly.
 TEST_F(RegistryFixture, TestRegistrySystemUpdate) {
   // Test that the system is added correctly
-  registry.create_game_object(cpvzero, {std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))});
+  registry.create_game_object(GameObjectType::Player, cpvzero,
+                              {std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))});
   registry.add_system<TestSystem>();
   ASSERT_THROW_MESSAGE(registry.add_system<TestSystem>(), RegistryError,
                        "The templated type is already registered with the registry.")
@@ -217,16 +230,84 @@ TEST_F(RegistryFixture, TestRegistrySystemUpdate) {
   ASSERT_TRUE(registry.get_system<TestSystem>()->called);
 }
 
-/// Test that a wall is added to the registry correctly.
-TEST_F(RegistryFixture, TestRegistryWall) {
-  // Add the wall and get the body
-  registry.add_wall({1, 1});
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  auto *wall = static_cast<cpBody *>(registry.get_space()->staticBodies->arr[0]);
+/// Test that an exception is thrown if you add the same system twice.
+TEST_F(RegistryFixture, TestRegistryDuplicateSystem) {
+  registry.add_system<TestSystem>();
+  ASSERT_THROW_MESSAGE(registry.add_system<TestSystem>(), RegistryError,
+                       "The templated type is already registered with the registry.")
+}
 
-  // Test that the body and shape are added to each other and the space correctly
-  ASSERT_TRUE(cpSpaceContainsBody(registry.get_space(), wall));
-  ASSERT_TRUE(cpSpaceContainsShape(registry.get_space(), wall->shapeList));
-  ASSERT_EQ(wall->shapeList->body, wall);
-  ASSERT_EQ(wall->p, cpv(96, 96));
+/// Test that an exception is thrown if you get a system that is not registered.
+TEST_F(RegistryFixture, TestRegistryGetSystemNotRegistered){
+    ASSERT_THROW_MESSAGE(registry.get_system<TestSystem>(), RegistryError,
+                         "The templated type is not registered with the registry.")}
+
+/// Test a collision between a player and a bullet.
+TEST_F(RegistryFixture, TestRegistryPlayerBulletCollision) {
+  // Add the required systems and the player and bullet to the registry
+  registry.add_system<PhysicsSystem>();
+  registry.add_system<DamageSystem>();
+  const auto player_id =
+      registry.create_game_object(GameObjectType::Player, cpvzero,
+                                  {std::make_shared<KinematicComponent>(std::vector<cpVect>{}),
+                                   std::make_shared<Health>(200, 0), std::make_shared<Armour>(0, 0)});
+  const auto bullet_id = registry.get_system<PhysicsSystem>()->add_bullet({{-32, 0}, {16, 0}});
+
+  // Test that the collision is handled correctly
+  ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 200);
+  ASSERT_EQ(registry.get_component<KinematicComponent>(bullet_id)->body->p, cpv(-32, 0));
+  registry.get_system<PhysicsSystem>()->update(1);
+  ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 200);
+  ASSERT_EQ(registry.get_component<KinematicComponent>(bullet_id)->body->p, cpv(-16, 0));
+  registry.get_system<PhysicsSystem>()->update(1);
+  ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 190);
+  ASSERT_THROW_MESSAGE(
+      registry.get_component<KinematicComponent>(bullet_id), RegistryError,
+      "The game object `1` is not registered with the registry or does not have the required component.")
+}
+
+/// Test a collision between an enemy and a bullet.
+TEST_F(RegistryFixture, TestRegistryEnemyBulletCollision) {
+  // Add the required systems and the enemy and bullet to the registry
+  registry.add_system<PhysicsSystem>();
+  registry.add_system<DamageSystem>();
+  const auto enemy_id =
+      registry.create_game_object(GameObjectType::Enemy, cpvzero,
+                                  {std::make_shared<KinematicComponent>(std::vector<cpVect>{}),
+                                   std::make_shared<Health>(100, 0), std::make_shared<Armour>(100, 0)});
+  const auto bullet_id = registry.get_system<PhysicsSystem>()->add_bullet({{-32, 0}, {16, 0}});
+
+  // Test that the collision is handled correctly
+  ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
+  ASSERT_EQ(registry.get_component<Armour>(enemy_id)->get_value(), 100);
+  ASSERT_EQ(registry.get_component<KinematicComponent>(bullet_id)->body->p, cpv(-32, 0));
+  registry.get_system<PhysicsSystem>()->update(1);
+  ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
+  ASSERT_EQ(registry.get_component<Armour>(enemy_id)->get_value(), 100);
+  ASSERT_EQ(registry.get_component<KinematicComponent>(bullet_id)->body->p, cpv(-16, 0));
+  registry.get_system<PhysicsSystem>()->update(1);
+  ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
+  ASSERT_EQ(registry.get_component<Armour>(enemy_id)->get_value(), 90);
+  ASSERT_THROW_MESSAGE(
+      registry.get_component<KinematicComponent>(bullet_id), RegistryError,
+      "The game object `1` is not registered with the registry or does not have the required component.")
+}
+
+/// Test a collision between a wall and a bullet.
+TEST_F(RegistryFixture, TestRegistryWallBulletCollision) {
+  // Add the required systems and the enemy and bullet to the registry
+  registry.add_system<PhysicsSystem>();
+  registry.add_system<DamageSystem>();
+  const auto wall_id =
+      registry.create_game_object(GameObjectType::Wall, cpvzero, {std::make_shared<KinematicComponent>(true)});
+  const auto bullet_id = registry.get_system<PhysicsSystem>()->add_bullet({{-32, 0}, {16, 0}});
+
+  // Test that the collision is handled correctly
+  ASSERT_EQ(registry.get_component<KinematicComponent>(wall_id)->body->p, cpv(32, 32));
+  ASSERT_EQ(registry.get_component<KinematicComponent>(bullet_id)->body->p, cpv(-32, 0));
+  registry.get_system<PhysicsSystem>()->update(1);
+  ASSERT_EQ(registry.get_component<KinematicComponent>(wall_id)->body->p, cpv(32, 32));
+  ASSERT_THROW_MESSAGE(
+      registry.get_component<KinematicComponent>(bullet_id), RegistryError,
+      "The game object `1` is not registered with the registry or does not have the required component.")
 }
