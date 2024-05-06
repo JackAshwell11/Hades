@@ -1,3 +1,6 @@
+# Built-in
+from typing import overload
+
 # Custom
 from hades_extensions.game_objects import (
     ActionFunction,
@@ -58,8 +61,12 @@ class KeyboardMovement(ComponentBase):
     def __init__(self: KeyboardMovement) -> None: ...
 
 class KinematicComponent(ComponentBase):
+    @overload
     def __init__(self: KinematicComponent, vertices: list[Vec2d]) -> None: ...
+    @overload
+    def __init__(self: KinematicComponent, *, is_static: bool = False) -> None: ...
     def get_position(self: KinematicComponent) -> tuple[float, float]: ...
+    def set_rotation(self: KinematicComponent, angle: float) -> None: ...
 
 class Money(ComponentBase):
     money: int

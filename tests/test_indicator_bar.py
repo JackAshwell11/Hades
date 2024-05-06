@@ -11,10 +11,9 @@ import pytest
 from arcade import SpriteList, SpriteSolidColor, color, load_texture
 
 # Custom
-from hades.constants import GameObjectType
 from hades.indicator_bar import IndicatorBar, IndicatorBarError
 from hades.sprite import HadesSprite
-from hades_extensions.game_objects import Vec2d
+from hades_extensions.game_objects import GameObjectType, Registry, Vec2d
 from hades_extensions.game_objects.components import Stat
 
 __all__ = ()
@@ -26,14 +25,18 @@ texture_path = (
 
 
 @pytest.fixture()
-def sprite() -> HadesSprite:
+def sprite(registry: Registry) -> HadesSprite:
     """Get a sprite for testing.
+
+    Args:
+        registry: The registry that manages the game objects, components, and systems.
 
     Returns:
         A sprite for testing.
     """
     return HadesSprite(
-        (0, GameObjectType.PLAYER),
+        registry,
+        (0, GameObjectType.Player),
         Vec2d(0, 0),
         [load_texture(texture_path / "floor.png")],
     )
