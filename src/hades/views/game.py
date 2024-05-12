@@ -30,7 +30,7 @@ from hades.constants import (
     TOTAL_ENEMY_COUNT,
     USABLE_TYPES,
 )
-from hades.constructors import ENEMY, FLOOR, PLAYER, POTION, WALL, GameObjectConstructor
+from hades.constructors import ENEMY, FLOOR, PLAYER, POTION, WALL, create_constructor
 from hades.indicator_bar import IndicatorBar
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
 from hades_extensions.game_objects import (
@@ -84,19 +84,20 @@ class Game(View):
 
     def _create_sprite(
         self: Game,
-        constructor: GameObjectConstructor,
+        game_object_json: str,
         position: Vec2d,
     ) -> HadesSprite:
         """Create a sprite.
 
         Args:
-            constructor: The constructor for the game object.
+            game_object_json: A JSON string that templates a game object.
             position: The position of the game object in the grid.
 
         Returns:
             The created sprite object.
         """
         # Create a game object if possible and add a wall if the game object is blocking
+        constructor = create_constructor(game_object_json)
         game_object_id = -1
         if constructor.components:
             game_object_id = self.registry.create_game_object(
@@ -104,8 +105,6 @@ class Game(View):
                 position,
                 constructor.components,
             )
-        if constructor.blocking:
-            self.registry.add_wall(position)
 
         # Create a sprite and add its ID to the dictionary
         sprite_class = AnimatedSprite if len(constructor.textures) > 1 else HadesSprite

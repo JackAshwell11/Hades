@@ -270,16 +270,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def("update", &Registry::update, pybind11::arg("delta_time"),
            "Update all systems in the registry.\n\n"
            "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.")
-      .def(
-          "add_wall",
-          [](Registry &registry, const cpVect &wall) {
-            registry.create_game_object(GameObjectType::Wall, wall, {std::make_shared<KinematicComponent>(true)});
-          },
-          pybind11::arg("wall"),
-          "Add a wall to the registry.\n\n"
-          "Args:\n"
-          "    wall: The wall to add to the registry.");
+           "    delta_time: The time interval since the last time the function was called.");
 
   // Add the stat components
   pybind11::class_<Stat, ComponentBase, std::shared_ptr<Stat>>(
