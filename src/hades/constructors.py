@@ -3,17 +3,18 @@
 from __future__ import annotations
 
 # Builtin
+import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Final, NamedTuple, TypedDict
+from typing import TYPE_CHECKING, Final, NamedTuple
 
 # Pip
 from arcade import load_texture
 
 # Custom
-from hades.constants import GameObjectType
 from hades_extensions.game_objects import (
     SPRITE_SCALE,
     AttackAlgorithm,
+    GameObjectType,
     SteeringBehaviours,
     SteeringMovementState,
     Vec2d,
@@ -32,13 +33,22 @@ from hades_extensions.game_objects.components import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from typing import ClassVar
 
     from arcade import Texture
 
     from hades_extensions.game_objects import ComponentBase
 
-__all__ = ("ENEMY", "FLOOR", "PLAYER", "POTION", "WALL", "GameObjectConstructor")
+__all__ = (
+    "ENEMY",
+    "FLOOR",
+    "PLAYER",
+    "POTION",
+    "WALL",
+    "GameObjectConstructor",
+    "create_constructor",
+)
 
 # Create the texture path
 texture_path = Path(__file__).resolve().parent / "resources" / "textures"
@@ -49,67 +59,123 @@ class GameObjectConstructor(NamedTuple):
 
     Args:
         game_object_type: The game object's type.
-        name: The game object's name.
         textures: The game object's texture.
         components: The game object's components.
-        blocking: Whether the game object blocks sprite movement or not.
     """
 
     game_object_type: GameObjectType
-    name: str
     textures: list[Texture]
     components: ClassVar[list[ComponentBase]]
-    blocking: bool
 
 
-class GameObjectConstructorOptions(TypedDict, total=False):
-    """Represents the options when creating a game object constructor.
-
-    Args:
-        kinematic: Whether the game object should have a kinematic component or not.
-        blocking: Whether the game object blocks sprite movement or not.
-    """
-
-    kinematic: bool
-    blocking: bool
-
-
-def create_constructor(
-    game_object_type: GameObjectType,
-    name: str,
-    texture_paths: list[str],
-    components: list[ComponentBase] | None = None,
-    options: GameObjectConstructorOptions | None = None,
-) -> GameObjectConstructor:
-    """Creates a constructor for a game object.
+def convert_attacks_args(attack_args: list[str]) -> Attacks:
+    """Convert the attack arguments to the correct format.
 
     Args:
-        game_object_type: The game object's type.
-        name: The game object's name.
-        texture_paths: The game object's texture paths.
-        components: The game object's components.
-        options: The game object's options.
-    """
-    # Set the default values for the parameters
-    if components is None:
-        components = []
-    if options is None:
-        options = {}
+        attack_args: A list of attack algorithms.
 
-    # Load the textures and create the constructor
-    textures = [load_texture(texture_path.joinpath(path)) for path in texture_paths]
-    constructor = GameObjectConstructor(
-        game_object_type,
-        name,
-        textures,
-        components,
-        options.get("blocking", False),
+    Raises:
+        KeyError: If an attack algorithm is not found.
+
+    Returns:
+        The constructed attacks component.
+    """
+    return Attacks(
+        [
+            AttackAlgorithm.__members__.get(attack_algorithm)
+            for attack_algorithm in attack_args
+        ],
     )
 
-    # Add the kinematic component if needed using the first texture's hit box
-    # points
-    if options.get("kinematic", False):
-        constructor.components.append(
+
+def convert_steering_movement_args(
+    component_args: dict[str, list[str]],
+) -> SteeringMovement:
+    """Convert the steering movement arguments to the correct format.
+
+    Args:
+        component_args: A dictionary of steering movement states and their behaviours.
+
+    Raises:
+        KeyError: If a steering movement state or behaviour is not found.
+
+    Returns:
+        The constructed steering movement component.
+    """
+    return SteeringMovement(
+        {
+            SteeringMovementState.__members__.get(movement_state): [
+                SteeringBehaviours.__members__.get(behaviour)
+                for behaviour in component_args[movement_state]
+            ]
+            for movement_state in component_args
+        },
+    )
+
+
+# Mapping of component names to classes
+COMPONENT_MAPPING: Final[dict[str, type[ComponentBase]]] = {
+    "Health": Health,
+    "Armour": Armour,
+    "Inventory": Inventory,
+    "MovementForce": MovementForce,
+    "KeyboardMovement": KeyboardMovement,
+    "Footprints": Footprints,
+    "EffectApplier": EffectApplier,
+}
+
+
+# Mapping of component names to their respective conversion classes
+CONVERSION_MAPPING: Final[
+    dict[str, Callable[[list[str] | dict[str, list[str]]], ComponentBase]],
+] = {
+    "Attacks": convert_attacks_args,
+    "SteeringMovement": convert_steering_movement_args,
+}
+
+
+def create_constructor(game_object_json: str) -> GameObjectConstructor:
+    """Create a constructor for a game object.
+
+    Args:
+        game_object_json: A JSON string that templates a game object.
+
+    Raises:
+        ValueError: If the game object type is invalid.
+        KeyError: If the game object type or texture paths are not provided.
+        TypeError: If the provided component data is invalid.
+
+    Returns:
+        The constructed game object constructor.
+    """
+    # Parse the JSON string and get the values
+    game_object_data = json.loads(game_object_json)
+    game_object_type = GameObjectType.__members__.get(
+        game_object_data["game_object_type"],
+    )
+    if game_object_type is None:
+        exception = "Invalid game object type"
+        raise ValueError(exception)
+    texture_paths = game_object_data["texture_paths"]
+    components_dict = game_object_data.get("components", {})
+    kinematic = game_object_data.get("kinematic", False)
+    static = game_object_data.get("static", False)
+
+    # Load the textures and create the components
+    textures = [load_texture(texture_path.joinpath(path)) for path in texture_paths]
+    components = [
+        (
+            CONVERSION_MAPPING[component_name](component_args)
+            if component_name in CONVERSION_MAPPING
+            else COMPONENT_MAPPING[component_name](*component_args)
+        )
+        for component_name, component_args in components_dict.items()
+    ]
+
+    # Add the kinematic component if needed using either the first texture's hit box
+    # points or a static component
+    if kinematic:
+        components.append(
             KinematicComponent(
                 [
                     Vec2d(*hit_box_point) * SPRITE_SCALE
@@ -117,79 +183,78 @@ def create_constructor(
                 ],
             ),
         )
-    return constructor
+    elif static:
+        components.append(KinematicComponent(is_static=True))
+    return GameObjectConstructor(game_object_type, textures, components)
 
 
 # Static tiles
-WALL: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.Wall,
-    "Wall",
-    ["wall.png"],
-    options={
-        "blocking": True,
+WALL: Final[str] = json.dumps(
+    {
+        "game_object_type": "Wall",
+        "texture_paths": ["wall.png"],
+        "static": True,
     },
 )
-FLOOR: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.Floor,
-    "Floor",
-    ["floor.png"],
+
+FLOOR: Final[str] = json.dumps(
+    {
+        "game_object_type": "Floor",
+        "texture_paths": ["floor.png"],
+    },
 )
 
-
 # Entities
-PLAYER: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.Player,
-    "Player",
-    ["player_idle.png"],
-    [
-        Health(200, 5),
-        Armour(100, 5),
-        Inventory(6, 5),
-        Attacks(
-            [
-                AttackAlgorithm.Ranged,
-                AttackAlgorithm.Melee,
-                AttackAlgorithm.AreaOfEffect,
-            ],
-        ),
-        MovementForce(5000, 5),
-        KeyboardMovement(),
-        Footprints(),
-    ],
+PLAYER: Final[str] = json.dumps(
     {
+        "game_object_type": "Player",
+        "texture_paths": ["player_idle.png"],
+        "components": {
+            "Health": [200, 5],
+            "Armour": [100, 5],
+            "Inventory": [6, 5],
+            "Attacks": ["Ranged", "Melee", "AreaOfEffect"],
+            "MovementForce": [5000, 5],
+            "KeyboardMovement": [],
+            "Footprints": [],
+            "SteeringMovement": {
+                "Default": ["ObstacleAvoidance", "Wander"],
+                "Footprint": ["FollowPath"],
+                "Target": ["Pursue"],
+            },
+        },
         "kinematic": True,
     },
 )
-ENEMY: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.Enemy,
-    "Enemy",
-    ["enemy_idle.png"],
-    [
-        Health(100, 5),
-        Armour(50, 5),
-        MovementForce(1000, 5),
-        SteeringMovement(
-            {
-                SteeringMovementState.Default: [
-                    SteeringBehaviours.ObstacleAvoidance,
-                    SteeringBehaviours.Wander,
-                ],
-                SteeringMovementState.Footprint: [SteeringBehaviours.FollowPath],
-                SteeringMovementState.Target: [SteeringBehaviours.Pursue],
-            },
-        ),
-    ],
+
+ENEMY: Final[str] = json.dumps(
     {
+        "game_object_type": "Enemy",
+        "texture_paths": ["enemy_idle.png"],
+        "components": {
+            "Health": [100, 5],
+            "Armour": [50, 5],
+            "MovementForce": [1000, 5],
+            "SteeringMovement": {
+                "Default": ["ObstacleAvoidance", "Wander"],
+                "Footprint": ["FollowPath"],
+                "Target": ["Pursue"],
+            },
+        },
         "kinematic": True,
     },
 )
 
 # Items
-POTION: Final[GameObjectConstructor] = create_constructor(
-    GameObjectType.Potion,
-    "Health Potion",
-    ["health_potion.png"],
-    [EffectApplier({}, {})],
+POTION: Final[str] = json.dumps(
+    {
+        "game_object_type": "Potion",
+        "name": "Health Potion",
+        "texture_paths": ["health_potion.png"],
+        "components": {
+            "EffectApplier": [{}, {}],
+        },
+    },
 )
 
-# TODO: Change this so the tests don't have to initialise the textures
+# TODO: Add error handling
