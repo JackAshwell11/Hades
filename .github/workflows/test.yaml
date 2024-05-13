@@ -17,7 +17,7 @@ jobs:
         python-version: ["3.11", "3.12"]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.4
+        uses: actions/checkout@v4.1.5
         with:
           submodules: recursive
       - name: Set up Python ${{ matrix.python-version }}
@@ -27,7 +27,7 @@ jobs:
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Set up CMake
-        uses: lukka/get-cmake@v3.29.2
+        uses: lukka/get-cmake@v3.29.3
       - name: Install EGL on Linux for headless Arcade
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install libegl1
@@ -36,7 +36,7 @@ jobs:
           pip install tox tox-gh-actions
           tox
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v2.2.3
+        uses: coverallsapp/github-action@v2.3.0
         with:
           file: coverage.lcov
           flag-name: run-python-${{ matrix.os }}-${{ matrix.python-version }}
@@ -53,13 +53,13 @@ jobs:
             cmake-preset: LinuxDebug
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.4
+        uses: actions/checkout@v4.1.5
         with:
           submodules: recursive
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Set up CMake
-        uses: lukka/get-cmake@v3.29.2
+        uses: lukka/get-cmake@v3.29.3
       - name: Build CMake and run CTest
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: |
@@ -73,7 +73,7 @@ jobs:
           gcovr -r ${{ github.workspace }} --exclude src/hades_extensions/build-debug --exclude src/hades_extensions/tests --exclude src/hades_extensions/src/binding.cpp --coveralls coverage.json
       - name: Upload coverage report
         if: matrix.os == 'ubuntu-latest'
-        uses: coverallsapp/github-action@v2.2.3
+        uses: coverallsapp/github-action@v2.3.0
         with:
           file: coverage.json
           flag-name: run-cpp-${{ matrix.os }}
@@ -83,6 +83,6 @@ jobs:
     needs: [python, cpp]
     steps:
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v2.2.3
+        uses: coverallsapp/github-action@v2.3.0
         with:
           parallel-finished: true
