@@ -6,7 +6,7 @@
 
 // ----- FUNCTIONS ------------------------------
 void EffectSystem::update(const double delta_time) const {
-  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<StatusEffects>()) {
+  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<StatusEffect>()) {
     // Create a vector to store the expired status effects
     auto &applied_effects{std::get<0>(component_tuple)->applied_effects};
     std::vector<StatusEffectType> expired_status_effects;
@@ -39,7 +39,7 @@ auto EffectSystem::apply_effects(const GameObjectID game_object_id, const GameOb
     -> bool {
   // Get the required components
   const auto effect_applier{get_registry()->get_component<EffectApplier>(game_object_id)};
-  const auto target_status_effects{get_registry()->get_component<StatusEffects>(target_game_object_id)};
+  const auto target_status_effects{get_registry()->get_component<StatusEffect>(target_game_object_id)};
 
   // Check if the instant effects can be applied
   for (const auto &instant_types : std::views::keys(effect_applier->instant_effects)) {
@@ -68,7 +68,7 @@ auto EffectSystem::apply_effects(const GameObjectID game_object_id, const GameOb
   for (const auto &[component_type, status_effect_data] : effect_applier->status_effects) {
     const auto target_component{
         std::static_pointer_cast<Stat>(get_registry()->get_component(target_game_object_id, component_type))};
-    const StatusEffect status_effect{status_effect_data.increase(1), status_effect_data.duration(1),
+    const Effect status_effect{status_effect_data.increase(1), status_effect_data.duration(1),
                                      status_effect_data.interval(1), component_type};
     target_status_effects->applied_effects.emplace(status_effect_data.status_effect_type, status_effect);
     target_component->set_value(target_component->get_value() + status_effect.value);

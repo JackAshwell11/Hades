@@ -79,20 +79,20 @@ auto ranged_attack(const cpVect &current_position, const double current_rotation
 }
 
 void AttackSystem::update(const double delta_time) const {
-  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<Attacks>()) {
-    const auto [attacks] = component_tuple;
-    attacks->time_since_last_attack += delta_time;
+  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<Attack>()) {
+    const auto [attack] = component_tuple;
+    attack->time_since_last_attack += delta_time;
   }
 }
 
 auto AttackSystem::do_attack(const GameObjectID game_object_id, const std::vector<int> &targets) const
     -> std::optional<GameObjectID> {
   // Check if the game object can attack or not. If so, perform the selected attack on the targets
-  if (const auto attacks{get_registry()->get_component<Attacks>(game_object_id)};
-      attacks->time_since_last_attack >= ATTACK_COOLDOWN) {
-    attacks->time_since_last_attack = 0;
+  if (const auto attack{get_registry()->get_component<Attack>(game_object_id)};
+      attack->time_since_last_attack >= ATTACK_COOLDOWN) {
+    attack->time_since_last_attack = 0;
     const auto kinematic_component{get_registry()->get_component<KinematicComponent>(game_object_id)};
-    switch (attacks->attack_algorithms[attacks->attack_state]) {
+    switch (attack->attack_algorithms[attack->attack_state]) {
       case AttackAlgorithm::AreaOfEffect:
         area_of_effect_attack(get_registry(), kinematic_component->body->p, targets);
         break;

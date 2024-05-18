@@ -47,7 +47,7 @@ class EffectSystemFixture : public testing::Test {
     registry.add_system<EffectSystem>();
     registry.create_game_object(
         GameObjectType::Player, cpvzero,
-        {std::make_shared<TestStat>(200, -1), std::make_shared<TestStat2>(100, -1), std::make_shared<StatusEffects>()});
+        {std::make_shared<TestStat>(200, -1), std::make_shared<TestStat2>(100, -1), std::make_shared<StatusEffect>()});
   }
 
   /// Create a game object to hold the instant and status effects.
@@ -74,7 +74,7 @@ class EffectSystemFixture : public testing::Test {
 // ----- TESTS ----------------------------------
 /// Test that the required components return the correct value for has_indicator_bar().
 TEST(Tests, TestEffectSystemComponentsHasIndicatorBar) {
-  ASSERT_FALSE(StatusEffects{}.has_indicator_bar());
+  ASSERT_FALSE(StatusEffect{}.has_indicator_bar());
   ASSERT_FALSE(EffectApplier({}, {}).has_indicator_bar());
   ASSERT_FALSE(TestStat(-1, -1).has_indicator_bar());
   ASSERT_FALSE(TestStat2(-1, -1).has_indicator_bar());
@@ -89,7 +89,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemUpdateSmallDeltaTime) {
   ASSERT_EQ(test_stat->get_value(), 106);
   get_effect_system()->update(5);
   ASSERT_EQ(test_stat->get_value(), 112);
-  ASSERT_EQ(registry.get_component<StatusEffects>(0)->applied_effects.at(StatusEffectType::TEMP).time_counter, 5);
+  ASSERT_EQ(registry.get_component<StatusEffect>(0)->applied_effects.at(StatusEffectType::TEMP).time_counter, 5);
 }
 
 /// Test that a status effect is updated correctly with a large delta time.
@@ -101,7 +101,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemUpdateLargeDeltaTime) {
   ASSERT_EQ(test_stat->get_value(), 106);
   get_effect_system()->update(20);
   ASSERT_EQ(test_stat->get_value(), 106);
-  ASSERT_FALSE(registry.get_component<StatusEffects>(0)->applied_effects.contains(StatusEffectType::TEMP));
+  ASSERT_FALSE(registry.get_component<StatusEffect>(0)->applied_effects.contains(StatusEffectType::TEMP));
 }
 
 /// Test that a status effect is updated correctly after multiple updates.
@@ -110,7 +110,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemUpdateMultipleDeltaTimes) {
   const auto test_stat{registry.get_component<TestStat>(0)};
   test_stat->set_value(100);
   ASSERT_TRUE(get_effect_system()->apply_effects(1, 0));
-  const auto &applied_effects{registry.get_component<StatusEffects>(0)->applied_effects};
+  const auto &applied_effects{registry.get_component<StatusEffect>(0)->applied_effects};
   get_effect_system()->update(1);
   ASSERT_EQ(test_stat->get_value(), 106);
   ASSERT_EQ(applied_effects.at(StatusEffectType::TEMP).time_counter, 1);
@@ -159,7 +159,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusNoAppliedEffect) {
   ASSERT_TRUE(get_effect_system()->apply_effects(1, 0));
   ASSERT_EQ(registry.get_component<TestStat>(0)->get_value(), 200);
   const auto applied_status_effect{
-      registry.get_component<StatusEffects>(0)->applied_effects.at(StatusEffectType::TEMP)};
+      registry.get_component<StatusEffect>(0)->applied_effects.at(StatusEffectType::TEMP)};
   ASSERT_EQ(applied_status_effect.value, 6);
   ASSERT_EQ(applied_status_effect.duration, 10);
   ASSERT_EQ(applied_status_effect.interval, 2);
@@ -179,7 +179,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusValueLowerMax) {
 TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusExistingStatusEffect) {
   create_effect_applier(false, true);
   ASSERT_TRUE(get_effect_system()->apply_effects(1, 0));
-  ASSERT_TRUE(registry.get_component<StatusEffects>(0)->applied_effects.contains(StatusEffectType::TEMP));
+  ASSERT_TRUE(registry.get_component<StatusEffect>(0)->applied_effects.contains(StatusEffectType::TEMP));
   ASSERT_FALSE(get_effect_system()->apply_effects(1, 0));
 }
 
@@ -191,7 +191,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusMultipleStatusEffe
       StatusEffectData{StatusEffectType::TEMP2, increase_function, duration_function, interval_function});
   ASSERT_TRUE(get_effect_system()->apply_effects(1, 0));
   ASSERT_FALSE(get_effect_system()->apply_effects(1, 0));
-  const auto status_effects{registry.get_component<StatusEffects>(0)->applied_effects};
+  const auto status_effects{registry.get_component<StatusEffect>(0)->applied_effects};
   ASSERT_TRUE(status_effects.contains(StatusEffectType::TEMP));
   ASSERT_TRUE(status_effects.contains(StatusEffectType::TEMP2));
 }

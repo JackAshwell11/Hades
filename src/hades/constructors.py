@@ -21,7 +21,7 @@ from hades_extensions.game_objects import (
 )
 from hades_extensions.game_objects.components import (
     Armour,
-    Attacks,
+    Attack,
     EffectApplier,
     Footprints,
     Health,
@@ -68,7 +68,7 @@ class GameObjectConstructor(NamedTuple):
     components: ClassVar[list[ComponentBase]]
 
 
-def convert_attacks_args(attack_args: dict[str, list[str]]) -> Attacks:
+def convert_attack_args(attack_args: dict[str, list[str]]) -> Attack:
     """Convert the attack arguments to the correct format.
 
     Args:
@@ -78,11 +78,11 @@ def convert_attacks_args(attack_args: dict[str, list[str]]) -> Attacks:
         KeyError: If an attack algorithm is not found.
 
     Returns:
-        The constructed attacks component.
+        The constructed attack component.
     """
-    # TODO: Attacks should be modified to accept multiple categories (e.g. ranged,
+    # TODO: Attack should be modified to accept multiple categories (e.g. ranged,
     #  close, special), so `Default` will change
-    return Attacks(
+    return Attack(
         [
             AttackAlgorithm.__members__[attack_algorithm]
             for attack_algorithm in attack_args.get("Default", [])
@@ -131,7 +131,7 @@ COMPONENT_MAPPING: Final[dict[str, type[ComponentBase]]] = {
 CONVERSION_MAPPING: Final[
     dict[str, Callable[[dict[str, list[str]]], ComponentBase]]
 ] = {
-    "Attacks": convert_attacks_args,
+    "Attack": convert_attack_args,
     "SteeringMovement": convert_steering_movement_args,
 }
 
@@ -215,7 +215,7 @@ PLAYER: Final[str] = json.dumps(
             "Health": [200, 5],
             "Armour": [100, 5],
             "Inventory": [6, 5],
-            "Attacks": {
+            "Attack": {
                 "Default": ["Ranged", "Melee", "AreaOfEffect"],
             },
             "MovementForce": [5000, 5],

@@ -14,7 +14,7 @@ from hades.constructors import create_constructor
 from hades_extensions.game_objects import GameObjectType
 from hades_extensions.game_objects.components import (
     Armour,
-    Attacks,
+    Attack,
     Health,
     SteeringMovement,
 )
@@ -148,95 +148,95 @@ def test_create_constructor_multiple_generic_components() -> None:
     assert armour_component.get_value() == 100
 
 
-def test_create_constructor_attacks_empty() -> None:
-    """Test create_constructor() with an attacks component that is empty."""
+def test_create_constructor_attack_empty() -> None:
+    """Test create_constructor() with an attack component that is empty."""
     constructor = create_constructor(
         json.dumps(
             {
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {"Attacks": {}},
+                "components": {"Attack": {}},
             },
         ),
     )
-    assert isinstance(constructor.components[0], Attacks)
+    assert isinstance(constructor.components[0], Attack)
 
 
-def test_create_constructor_attacks_single_state_empty() -> None:
-    """Test create_constructor() with an attacks component with a single attack."""
+def test_create_constructor_attack_single_state_empty() -> None:
+    """Test create_constructor() with an attack component with a single attack."""
     constructor = create_constructor(
         json.dumps(
             {
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {"Attacks": {"Default": []}},
+                "components": {"Attack": {"Default": []}},
             },
         ),
     )
-    assert isinstance(constructor.components[0], Attacks)
+    assert isinstance(constructor.components[0], Attack)
 
 
-def test_create_constructor_attacks_single_state_single() -> None:
-    """Test create_constructor() with an attacks component with a single attack."""
+def test_create_constructor_attack_single_state_single() -> None:
+    """Test create_constructor() with an attack component with a single attack."""
     constructor = create_constructor(
         json.dumps(
             {
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {"Attacks": {"Default": ["Ranged"]}},
+                "components": {"Attack": {"Default": ["Ranged"]}},
             },
         ),
     )
-    assert isinstance(constructor.components[0], Attacks)
+    assert isinstance(constructor.components[0], Attack)
 
 
-def test_create_constructor_attacks_single_state_multiple() -> None:
-    """Test create_constructor() with an attacks component with a single attack."""
+def test_create_constructor_attack_single_state_multiple() -> None:
+    """Test create_constructor() with an attack component with a single attack."""
     constructor = create_constructor(
         json.dumps(
             {
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {"Attacks": {"Default": ["Ranged", "Melee"]}},
+                "components": {"Attack": {"Default": ["Ranged", "Melee"]}},
             },
         ),
     )
-    assert isinstance(constructor.components[0], Attacks)
+    assert isinstance(constructor.components[0], Attack)
 
 
-def test_create_constructor_attacks_multiple() -> None:
-    """Test create_constructor() with an attacks component with multiple attacks."""
+def test_create_constructor_attack_multiple() -> None:
+    """Test create_constructor() with an attack component with multiple attack."""
     constructor = create_constructor(
         json.dumps(
             {
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
                 "components": {
-                    "Attacks": {"Default": ["Ranged"], "Special": ["Melee"]},
+                    "Attack": {"Default": ["Ranged"], "Special": ["Melee"]},
                 },
             },
         ),
     )
-    assert isinstance(constructor.components[0], Attacks)
+    assert isinstance(constructor.components[0], Attack)
 
 
-def test_create_constructor_attacks_extra_state() -> None:
-    """Test create_constructor() with an attacks component with an extra state."""
+def test_create_constructor_attack_extra_state() -> None:
+    """Test create_constructor() with an attack component with an extra state."""
     constructor = create_constructor(
         json.dumps(
             {
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {"Attacks": {"Test": []}},
+                "components": {"Attack": {"Test": []}},
             },
         ),
     )
 
-    assert isinstance(constructor.components[0], Attacks)
+    assert isinstance(constructor.components[0], Attack)
 
 
-def test_create_constructor_attacks_invalid_attack() -> None:
-    """Test create_constructor() with an attacks component with invalid data."""
+def test_create_constructor_attack_invalid_attack() -> None:
+    """Test create_constructor() with an attack component with invalid data."""
     with pytest.raises(
         expected_exception=KeyError,
         match="Test",
@@ -246,7 +246,7 @@ def test_create_constructor_attacks_invalid_attack() -> None:
                 {
                     "game_object_type": "Player",
                     "texture_paths": ["floor.png"],
-                    "components": {"Attacks": {"Default": ["Test"]}},
+                    "components": {"Attack": {"Default": ["Test"]}},
                 },
             ),
         )

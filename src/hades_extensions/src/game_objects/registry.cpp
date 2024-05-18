@@ -8,7 +8,7 @@
 // ----- FUNCTIONS ------------------------------
 Registry::Registry() {
   // Set the damping to ensure the game objects don't drift
-  cpSpaceSetDamping(*_space, DAMPING);
+  cpSpaceSetDamping(*space_, DAMPING);
 
   // Add the collision handlers for the bullets
   createCollisionHandlerFunc(GameObjectType::Player, GameObjectType::Bullet);
@@ -19,11 +19,11 @@ Registry::Registry() {
 auto Registry::create_game_object(const GameObjectType game_object_type, const cpVect &position,
                                   const std::vector<std::shared_ptr<ComponentBase>> &&components) -> GameObjectID {
   // Add the components to the game object
-  _game_objects[_next_game_object_id] = {};
+  game_objects_[next_game_object_id_] = {};
   for (const auto &component : components) {
     // Check if the component already exists in the registry
     const auto &obj{*component};
-    if (has_component(_next_game_object_id, typeid(obj))) {
+    if (has_component(next_game_object_id_, typeid(obj))) {
       continue;
     }
 
@@ -36,35 +36,35 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
       cpShapeSetCollisionType(shape, static_cast<cpCollisionType>(game_object_type));
       cpShapeSetFilter(shape, {CP_NO_GROUP, static_cast<cpBitmask>(game_object_type), CP_ALL_CATEGORIES});
       cpShapeSetBody(shape, body);
-      cpSpaceAddBody(*_space, body);
-      cpSpaceAddShape(*_space, shape);
-      _shapes[shape] = _next_game_object_id;
+      cpSpaceAddBody(*space_, body);
+      cpSpaceAddShape(*space_, shape);
+      shapes_[shape] = next_game_object_id_;
     }
 
     // Add the component to the registry
-    _game_objects[_next_game_object_id][typeid(obj)] = component;
+    game_objects_[next_game_object_id_][typeid(obj)] = component;
   }
 
   // Increment the game object ID and return the current game object ID
-  _next_game_object_id++;
-  return _next_game_object_id - 1;
+  next_game_object_id_++;
+  return next_game_object_id_ - 1;
 }
 
 void Registry::delete_game_object(const GameObjectID game_object_id) {
   // Check if the game object is registered or not
-  if (!_game_objects.contains(game_object_id)) {
+  if (!game_objects_.contains(game_object_id)) {
     throw RegistryError("game object", game_object_id);
   }
 
   // Remove the shape and body from the space if the game object has a kinematic component
   if (has_component(game_object_id, typeid(KinematicComponent))) {
-    _shapes.erase(*get_component<KinematicComponent>(game_object_id)->shape);
-    cpSpaceRemoveShape(*_space, *get_component<KinematicComponent>(game_object_id)->shape);
-    cpSpaceRemoveBody(*_space, *get_component<KinematicComponent>(game_object_id)->body);
+    shapes_.erase(*get_component<KinematicComponent>(game_object_id)->shape);
+    cpSpaceRemoveShape(*space_, *get_component<KinematicComponent>(game_object_id)->shape);
+    cpSpaceRemoveBody(*space_, *get_component<KinematicComponent>(game_object_id)->body);
   }
 
   // Delete the game object from the system
-  _game_objects.erase(game_object_id);
+  game_objects_.erase(game_object_id);
 }
 
 auto Registry::get_component(const GameObjectID game_object_id, const std::type_index &component_type) const
@@ -75,7 +75,7 @@ auto Registry::get_component(const GameObjectID game_object_id, const std::type_
   }
 
   // Return the specified component
-  return _game_objects.at(game_object_id).at(component_type);
+  return game_objects_.at(game_object_id).at(component_type);
 }
 
 void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameObjectType game_object_two) {
@@ -91,7 +91,7 @@ void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameOb
 
     // Deal damage to the first shape if it is an entity
     if (static_cast<GameObjectType>(cpShapeGetCollisionType(shape1)) != GameObjectType::Wall) {
-      registry->get_system<DamageSystem>()->deal_damage(registry->_shapes[shape1], DAMAGE);
+      registry->get_system<DamageSystem>()->deal_damage(registry->shapes_[shape1], DAMAGE);
     }
 
     // Register the post step callback to delete the bullet
@@ -99,7 +99,7 @@ void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameOb
         registry->get_space(),
         [](cpSpace * /*space*/, void *key, void *bullet) {
           auto *reg{static_cast<Registry *>(key)};
-          reg->delete_game_object(reg->_shapes[static_cast<cpShape *>(bullet)]);
+          reg->delete_game_object(reg->shapes_[static_cast<cpShape *>(bullet)]);
         },
         registry, shape2);
     return cpFalse;

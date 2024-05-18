@@ -83,7 +83,7 @@ class Registry {
   /// @return Whether the game object has the component or not.
   [[nodiscard]] auto has_component(const GameObjectID game_object_id, const std::type_index &component_type) const
       -> bool {
-    return _game_objects.contains(game_object_id) && _game_objects.at(game_object_id).contains(component_type);
+    return game_objects_.contains(game_object_id) && game_objects_.at(game_object_id).contains(component_type);
   }
 
   /// Get a component from the registry.
@@ -114,7 +114,7 @@ class Registry {
   auto find_components() const {
     // Use ranges::filter to filter out the game objects that have all the components then use ranges::transform to get
     // only the game object ID and the required components
-    return _game_objects | std::views::filter([this](const auto &game_object) {
+    return game_objects_ | std::views::filter([this](const auto &game_object) {
              const auto &[game_object_id, game_object_components] = game_object;
              return (has_component(game_object_id, typeid(Ts)) && ...);
            }) |
@@ -134,12 +134,12 @@ class Registry {
   void add_system() {
     // Check if the system is already registered
     const std::type_index system_type{typeid(T)};
-    if (_systems.contains(system_type)) {
+    if (systems_.contains(system_type)) {
       throw RegistryError("is already registered with the registry");
     }
 
     // Add the system to the registry
-    _systems[system_type] = std::make_shared<T>(this);
+    systems_[system_type] = std::make_shared<T>(this);
   }
 
   /// Get a system from the registry.
@@ -151,8 +151,8 @@ class Registry {
   auto get_system() const -> std::shared_ptr<T> {
     // Check if the system is registered
     const std::type_index system_type{typeid(T)};
-    const auto system_result{_systems.find(system_type)};
-    if (system_result == _systems.end()) {
+    const auto system_result{systems_.find(system_type)};
+    if (system_result == systems_.end()) {
       throw RegistryError();
     }
 
@@ -164,7 +164,7 @@ class Registry {
   ///
   /// @param delta_time - The time interval since the last time the function was called.
   void update(const double delta_time) const {
-    for (const auto &[_, system] : _systems) {
+    for (const auto &[_, system] : systems_) {
       system->update(delta_time);
     }
   }
@@ -172,7 +172,7 @@ class Registry {
   /// Get the Chipmunk2D space.
   ///
   /// @return The Chipmunk2D space.
-  [[nodiscard]] auto get_space() const -> cpSpace * { return *_space; }
+  [[nodiscard]] auto get_space() const -> cpSpace * { return *space_; }
 
  private:
   /// Create a Chipmunk2D collision handler to deal with bullet collisions.
@@ -182,17 +182,17 @@ class Registry {
   void createCollisionHandlerFunc(GameObjectType game_object_one, GameObjectType game_object_two);
 
   /// The next game object ID to use.
-  GameObjectID _next_game_object_id{0};
+  GameObjectID next_game_object_id_{0};
 
   /// The game objects and their components registered with the registry.
-  std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::shared_ptr<ComponentBase>>> _game_objects;
+  std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::shared_ptr<ComponentBase>>> game_objects_;
 
   /// The systems registered with the registry.
-  std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> _systems;
+  std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_;
 
   /// The Chipmunk2D shapes registered with the registry.
-  std::unordered_map<cpShape *, GameObjectID> _shapes;
+  std::unordered_map<cpShape *, GameObjectID> shapes_;
 
   /// The Chipmunk2D space.
-  ChipmunkHandle<cpSpace, cpSpaceFree> _space{cpSpaceNew()};
+  ChipmunkHandle<cpSpace, cpSpaceFree> space_{cpSpaceNew()};
 };

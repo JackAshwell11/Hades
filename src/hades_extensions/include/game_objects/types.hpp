@@ -57,7 +57,7 @@ class SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit SystemBase(Registry *registry) : _registry(registry) {}
+  explicit SystemBase(Registry *registry) : registry_(registry) {}
 
   /// The virtual destructor.
   virtual ~SystemBase() = default;
@@ -71,14 +71,14 @@ class SystemBase {
   /// Get the registry that manages the game objects, components, and systems.
   ///
   /// @return The registry that manages the game objects, components, and systems.
-  [[nodiscard]] auto get_registry() const -> Registry * { return _registry; }
+  [[nodiscard]] auto get_registry() const -> Registry * { return registry_; }
 
   /// Process update logic for a system.
   virtual void update(double /*delta_time*/) const {}
 
  private:
   /// The registry that manages the game objects, components, and systems.
-  Registry *_registry;
+  Registry *registry_;
 };
 
 // ----- RAII TYPES ------------------------------
@@ -92,7 +92,7 @@ class ChipmunkHandle {
   /// Initialise the object.
   ///
   /// @param obj - The Chipmunk2D object.
-  explicit ChipmunkHandle(T *obj) : _obj(obj, Destructor) {}
+  explicit ChipmunkHandle(T *obj) : obj_(obj, Destructor) {}
 
   /// Destroy the object.
   ~ChipmunkHandle() = default;
@@ -104,23 +104,23 @@ class ChipmunkHandle {
   auto operator=(const ChipmunkHandle &) -> ChipmunkHandle & = delete;
 
   /// The move constructor.
-  ChipmunkHandle(ChipmunkHandle &&other) noexcept : _obj(std::move(other._obj)) {}
+  ChipmunkHandle(ChipmunkHandle &&other) noexcept : obj_(std::move(other.obj_)) {}
 
   /// The move assignment operator.
   auto operator=(ChipmunkHandle &&other) noexcept -> ChipmunkHandle & {
     if (this != &other) {
-      _obj = std::move(other._obj);
+      obj_ = std::move(other.obj_);
     }
     return *this;
   }
 
   /// The dereference operator.
-  auto operator*() const -> T * { return _obj.get(); }
+  auto operator*() const -> T * { return obj_.get(); }
 
   /// The arrow operator.
-  auto operator->() const -> T * { return _obj.get(); }
+  auto operator->() const -> T * { return obj_.get(); }
 
  private:
   /// The Chipmunk2D object.
-  std::unique_ptr<T, void (*)(T *)> _obj;
+  std::unique_ptr<T, void (*)(T *)> obj_;
 };

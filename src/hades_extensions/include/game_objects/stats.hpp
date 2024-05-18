@@ -12,7 +12,7 @@ class Stat : public ComponentBase {
   ///
   /// @param value - The initial and maximum value of the stat.
   /// @param max_level - The maximum level of the stat.
-  Stat(const double value, const int max_level) : value_(value), max_value_(value), max_level(max_level) {}
+  Stat(const double value, const int max_level) : value_(value), max_value_(value), max_level_(max_level) {}
 
   /// Get the value of the stat.
   ///
@@ -37,15 +37,15 @@ class Stat : public ComponentBase {
   /// Get the current level of the stat.
   ///
   /// @return The current level of the stat.
-  [[nodiscard]] auto get_current_level() const -> int { return current_level; }
+  [[nodiscard]] auto get_current_level() const -> int { return current_level_; }
 
   /// Increment the current level of the stat.
-  void increment_current_level() { current_level++; }
+  void increment_current_level() { current_level_++; }
 
   /// Get the maximum level of the stat.
   ///
   /// @return The maximum level of the stat.
-  [[nodiscard]] auto get_max_level() const -> int { return max_level; }
+  [[nodiscard]] auto get_max_level() const -> int { return max_level_; }
 
  private:
   /// The current value of the variable.
@@ -55,10 +55,10 @@ class Stat : public ComponentBase {
   double max_value_;
 
   /// The current level of the stat.
-  int current_level{0};
+  int current_level_{0};
 
   /// The maximum level of the stat.
-  int max_level;
+  int max_level_;
 };
 
 /// Allows a game object to have an armour stat.

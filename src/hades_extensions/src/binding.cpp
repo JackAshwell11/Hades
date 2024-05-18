@@ -72,8 +72,8 @@ auto make_system_types()
 /// @return The type index for the component type.
 inline auto get_type_index(const pybind11::handle &component_type) -> std::type_index {
   static const auto &component_types{
-      make_component_types<Armour, ArmourRegen, Attacks, EffectApplier, Footprints, Health, Inventory, KeyboardMovement,
-                           KinematicComponent, Money, MovementForce, StatusEffectData, StatusEffects, SteeringMovement,
+      make_component_types<Armour, ArmourRegen, Attack, EffectApplier, Footprints, Health, Inventory, KeyboardMovement,
+                           KinematicComponent, Money, MovementForce, StatusEffectData, StatusEffect, SteeringMovement,
                            Upgrades>()};
   const auto iter{component_types.find(component_type)};
   if (iter == component_types.end()) {
@@ -369,8 +369,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Target", SteeringMovementState::Target);
 
   // Add the components
-  pybind11::class_<Attacks, ComponentBase, std::shared_ptr<Attacks>>(
-      components, "Attacks", "Allows a game object to attack other game objects.")
+  pybind11::class_<Attack, ComponentBase, std::shared_ptr<Attack>>(
+      components, "Attack", "Allows a game object to attack other game objects.")
       .def(pybind11::init<std::vector<AttackAlgorithm>>(), pybind11::arg("attack_algorithms"),
            "Initialise the object.\n\n"
            "Args:\n"
@@ -475,8 +475,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    increase: The increase function to apply.\n"
            "    duration: The duration function to apply.\n"
            "    interval: The interval function to apply.");
-  pybind11::class_<StatusEffects, ComponentBase, std::shared_ptr<StatusEffects>>(
-      components, "StatusEffects", "Allows a game object to have status effects applied to it.")
+  pybind11::class_<StatusEffect, ComponentBase, std::shared_ptr<StatusEffect>>(
+      components, "StatusEffect", "Allows a game object to have status effects applied to it.")
       .def(pybind11::init<>(), "Initialise the object.");
   pybind11::class_<SteeringMovement, ComponentBase, std::shared_ptr<SteeringMovement>>(
       components, "SteeringMovement", "Allows a game object's movement to be controlled by steering behaviours.")
