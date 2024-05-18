@@ -16,7 +16,7 @@ enum class StatusEffectType : std::uint8_t {
 
 // ----- STRUCTURES ------------------------------
 /// Represents a status effect that can be applied to a game object.
-struct StatusEffect {
+struct Effect {
   /// The value that should be applied to the game object temporarily.
   double value;
 
@@ -41,7 +41,7 @@ struct StatusEffect {
   /// @param duration - The duration the status effect should be applied for.
   /// @param interval - The interval the status effect should be applied at.
   /// @param target_component - The component the status effect should be applied to.
-  StatusEffect(const double value, const double duration, const double interval,
+  Effect(const double value, const double duration, const double interval,
                const std::type_index &target_component)
       : value(value), duration(duration), interval(interval), target_component(target_component) {}
 };
@@ -93,9 +93,9 @@ struct EffectApplier final : ComponentBase {
 };
 
 /// Allows a game object to have status effects applied to it.
-struct StatusEffects final : ComponentBase {
+struct StatusEffect final : ComponentBase {
   /// The status effects currently applied to the game object.
-  std::unordered_map<StatusEffectType, StatusEffect> applied_effects;
+  std::unordered_map<StatusEffectType, Effect> applied_effects;
 };
 
 // ----- SYSTEMS ------------------------------

@@ -21,7 +21,7 @@ enum class AttackAlgorithm : std::uint8_t {
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to attack other game objects.
-struct Attacks final : ComponentBase {
+struct Attack final : ComponentBase {
   /// The attack algorithms the game object can use.
   std::vector<AttackAlgorithm> attack_algorithms;
 
@@ -34,7 +34,7 @@ struct Attacks final : ComponentBase {
   /// Initialise the object.
   ///
   /// @param attack_algorithms - The attack algorithms the game object can use.
-  explicit Attacks(const std::vector<AttackAlgorithm> &attack_algorithms) : attack_algorithms(attack_algorithms) {}
+  explicit Attack(const std::vector<AttackAlgorithm> &attack_algorithms) : attack_algorithms(attack_algorithms) {}
 };
 
 // ----- SYSTEMS ------------------------------
@@ -64,8 +64,8 @@ struct AttackSystem final : SystemBase {
   /// @param game_object_id - The ID of the game object to select the previous attack for.
   /// @throws RegistryError - If the game object does not exist or does not have an attack component.
   void previous_attack(const GameObjectID game_object_id) const {
-    if (const auto attacks{get_registry()->get_component<Attacks>(game_object_id)}; attacks->attack_state > 0) {
-      attacks->attack_state--;
+    if (const auto attack{get_registry()->get_component<Attack>(game_object_id)}; attack->attack_state > 0) {
+      attack->attack_state--;
     }
   }
 
@@ -74,10 +74,10 @@ struct AttackSystem final : SystemBase {
   /// @param game_object_id - The ID of the game object to select the previous attack for.
   /// @throws RegistryError - If the game object does not exist or does not have an attack component.
   void next_attack(const GameObjectID game_object_id) const {
-    if (const auto attacks{get_registry()->get_component<Attacks>(game_object_id)};
-        !attacks->attack_algorithms.empty() &&
-        attacks->attack_state < static_cast<int>(attacks->attack_algorithms.size() - 1)) {
-      attacks->attack_state++;
+    if (const auto attack{get_registry()->get_component<Attack>(game_object_id)};
+        !attack->attack_algorithms.empty() &&
+        attack->attack_state < static_cast<int>(attack->attack_algorithms.size() - 1)) {
+      attack->attack_state++;
     }
   }
 };
