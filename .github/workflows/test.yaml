@@ -11,9 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest]
-        # TODO: Figure out why EGL isn't working on ubuntu
-        # os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
         python-version: ["3.11", "3.12"]
     steps:
       - name: Checkout repository

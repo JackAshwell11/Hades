@@ -20,7 +20,7 @@ class EffectSystem(SystemBase):
         self: EffectSystem,
         game_object_id: int,
         target_game_object_id: int,
-    ) -> None: ...
+    ) -> bool: ...
 
 class FootprintSystem(SystemBase): ...
 
@@ -29,7 +29,7 @@ class InventorySystem(SystemBase):
         self: InventorySystem,
         game_object_id: int,
         item: int,
-    ) -> None: ...
+    ) -> bool: ...
     def remove_item_from_inventory(
         self: InventorySystem,
         game_object_id: int,

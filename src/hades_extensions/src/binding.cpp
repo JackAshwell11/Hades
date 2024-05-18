@@ -301,7 +301,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Returns:\n"
            "    The current level of the stat.")
       .def("increment_current_level", &Stat::increment_current_level, "Increment the current level of the stat.")
-      .def("get_maximum_level", &Stat::get_maximum_level,
+      .def("get_max_level", &Stat::get_max_level,
            "Get the maximum level of the stat.\n\n"
            "Returns:\n"
            "    The maximum level of the stat.");
