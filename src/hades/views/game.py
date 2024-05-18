@@ -19,7 +19,7 @@ from arcade import (
     key,
     schedule,
 )
-from arcade.camera import Camera2D
+from arcade.camera.camera_2d import Camera2D
 
 # Custom
 from hades.constants import (
@@ -359,7 +359,7 @@ class Game(View):
             self.ids.setdefault(bullet.game_object_type, []).append(bullet)
             self.entity_sprites.append(bullet)
 
-    def on_mouse_motion(self: Game, x: int, y: int, *_: tuple[int, int]) -> None:
+    def on_mouse_motion(self: Game, x: int, y: int, _: int, __: int) -> None:
         """Process mouse motion functionality.
 
         Args:

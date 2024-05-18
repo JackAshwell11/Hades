@@ -28,18 +28,39 @@ __all__ = ("StartMenu",)
 logger = logging.getLogger(__name__)
 
 
-def start_on_click_handler(_: UIOnClickEvent) -> None:
-    """Create a game instance when the button is clicked."""
-    # Get the current window and view
-    window: Window = arcade.get_window()
+class StartButton(UIFlatButton):
+    """Represents a button that starts the game when clicked."""
 
-    # Set up the new game
-    new_game = Game(0)
-    window.views["Game"] = new_game
-    logger.info("Initialised game view at level %d", 0)
+    def __init__(self: StartButton) -> None:
+        """Initialise the object."""
+        super().__init__(text="Start Game", width=200)
 
-    # Show the new game
-    window.show_view(new_game)
+    # pylint: disable=no-self-use
+    def on_click(self: StartButton, _: UIOnClickEvent) -> None:
+        """Create a game instance when the button is clicked."""
+        # Get the current window and view
+        window: Window = arcade.get_window()
+
+        # Set up the new game
+        new_game = Game(0)
+        window.views["Game"] = new_game
+        logger.info("Initialised game view at level %d", 0)
+
+        # Show the new game
+        window.show_view(new_game)
+
+
+class QuitButton(UIFlatButton):
+    """Represents a button that quits the game when clicked."""
+
+    def __init__(self: QuitButton) -> None:
+        """Initialise the object."""
+        super().__init__(text="Quit Game", width=200)
+
+    # pylint: disable=no-self-use
+    def on_click(self: QuitButton, _: UIOnClickEvent) -> None:
+        """Quit the game when the button is clicked."""
+        arcade.exit()
 
 
 class StartMenu(arcade.View):
@@ -56,10 +77,8 @@ class StartMenu(arcade.View):
 
         # Create the buttons
         vertical_box = UIBoxLayout(space_between=20)
-        start_button = vertical_box.add(UIFlatButton(text="Start Game", width=200))
-        quit_button = vertical_box.add(UIFlatButton(text="Quit Game", width=200))
-        start_button.on_click = start_on_click_handler
-        quit_button.on_click = lambda _: arcade.exit()
+        vertical_box.add(StartButton())
+        vertical_box.add(QuitButton())
 
         # Add the vertical box layout to the UI
         anchor_layout = UIAnchorLayout(anchor_x="center_x", anchor_y="center_y")

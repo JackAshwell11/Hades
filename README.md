@@ -1,9 +1,9 @@
 # Hades
 
-[![Run tests](https://github.com/Aspect1103/Hades/actions/workflows/test.yaml/badge.svg)](https://github.com/Aspect1103/Hades/actions/workflows/test.yaml)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Aspect1103/Hades/main.svg)](https://results.pre-commit.ci/latest/github/Aspect1103/Hades/main)
-[![Coverage Status](https://coveralls.io/repos/github/Aspect1103/Hades/badge.svg?branch=main)](https://coveralls.io/github/Aspect1103/Hades?branch=main)
-[![GitHub](https://img.shields.io/github/license/Aspect1103/Hades)](LICENSE)
+[![Run tests](https://github.com/JackAshwell11/Hades/actions/workflows/test.yaml/badge.svg)](https://github.com/JackAshwell11/Hades/actions/workflows/test.yaml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/JackAshwell11/Hades/main.svg)](https://results.pre-commit.ci/latest/github/JackAshwell11/Hades/main)
+[![Coverage Status](https://coveralls.io/repos/github/JackAshwell11/Hades/badge.svg?branch=main)](https://coveralls.io/github/JackAshwell11/Hades?branch=main)
+[![GitHub](https://img.shields.io/github/license/JackAshwell11/Hades)](LICENSE)
 
 A procedurally generated bullet-hell dungeon crawler made in Python using
 Arcade.
@@ -15,7 +15,7 @@ Arcade.
 The preferred and easiest way to play Hades is by using the pre-compiled
 releases on GitHub. To play the game this way, follow these steps:
 
-1. Download and extract the latest release from [here](https://github.com/Aspect1103/Hades/releases).
+1. Download and extract the latest release from [here](https://github.com/JackAshwell11/Hades/releases).
 2. Run the `window.exe` file to play the game.
 
 ### Locally
@@ -24,7 +24,7 @@ Another way to play Hades is by cloning the repository and running it locally.
 To play the game this way, follow these steps:
 
 1. Clone the repository using `git clone
-   https://github.com/Aspect1103/Hades.git`.
+   https://github.com/JackAshwell11/Hades.git`.
 2. Ensure [Poetry](https://python-poetry.org/) is installed and virtual
    environments are created in the project directory using `poetry config
    virtualenvs.in-project true --local`.
@@ -43,7 +43,7 @@ You can also compile the game locally if you choose. To do so, follow these
 steps:
 
 1. Clone the repository using `git clone
-   https://github.com/Aspect1103/Hades.git`.
+   https://github.com/JackAshwell11/Hades.git`.
 2. Ensure [Poetry](https://python-poetry.org/) is installed and virtual
    environments are created in the project directory using `poetry config
    virtualenvs.in-project true --local`.

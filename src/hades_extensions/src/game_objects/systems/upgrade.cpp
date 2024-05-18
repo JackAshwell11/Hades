@@ -13,7 +13,7 @@ auto UpgradeSystem::upgrade_component(const GameObjectID game_object_id, const s
 
   // Check if the component can be upgraded
   if (upgrades_component == nullptr || !upgrades_component->upgrades.contains(target_component) ||
-      component->get_current_level() >= component->get_maximum_level()) {
+      component->get_current_level() >= component->get_max_level()) {
     return false;
   }
 

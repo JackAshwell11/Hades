@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # Builtin
 import json
+from typing import cast
 
 # Pip
 import pytest
@@ -11,12 +12,17 @@ import pytest
 # Custom
 from hades.constructors import create_constructor
 from hades_extensions.game_objects import GameObjectType
-from hades_extensions.game_objects.components import Attacks, SteeringMovement
+from hades_extensions.game_objects.components import (
+    Armour,
+    Attacks,
+    Health,
+    SteeringMovement,
+)
 
 
 def test_create_constructor_empty() -> None:
     """Test create_constructor() with no data."""
-    with pytest.raises(expected_exception=KeyError, match="'game_object_type'"):
+    with pytest.raises(expected_exception=KeyError, match="game_object_type"):
         create_constructor(json.dumps({}))
 
 
@@ -36,7 +42,7 @@ def test_create_constructor_valid_game_object_type() -> None:
 
 def test_create_constructor_no_textures() -> None:
     """Test create_constructor() with no textures."""
-    with pytest.raises(expected_exception=KeyError, match="'texture_paths'"):
+    with pytest.raises(expected_exception=KeyError, match="texture_paths"):
         create_constructor(json.dumps({"game_object_type": "Player"}))
 
 
@@ -115,8 +121,10 @@ def test_create_constructor_single_generic_component_args() -> None:
             },
         ),
     )
-    assert constructor.components[0].get_value() == 200
-    assert constructor.components[0].get_maximum_level() == 5
+    health_component = cast(Health, constructor.components[0])
+    health_component.get_max_level()
+    assert health_component.get_value() == 200
+    assert health_component.get_max_level() == 5
 
 
 def test_create_constructor_multiple_generic_components() -> None:
@@ -133,10 +141,11 @@ def test_create_constructor_multiple_generic_components() -> None:
             },
         ),
     )
-    assert constructor.components[0].get_value() == 200
-    assert constructor.components[0].get_maximum_level() == 5
-    assert constructor.components[1].get_value() == 100
-    assert constructor.components[1].get_maximum_level() == 10
+    health_component = cast(Health, constructor.components[0])
+    armour_component = cast(Armour, constructor.components[1])
+    assert health_component.get_value() == 200
+    assert health_component.get_max_level() == 5
+    assert armour_component.get_value() == 100
 
 
 def test_create_constructor_attacks_empty() -> None:
@@ -146,21 +155,49 @@ def test_create_constructor_attacks_empty() -> None:
             {
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {"Attacks": []},
+                "components": {"Attacks": {}},
             },
         ),
     )
     assert isinstance(constructor.components[0], Attacks)
 
 
-def test_create_constructor_attacks_single() -> None:
+def test_create_constructor_attacks_single_state_empty() -> None:
     """Test create_constructor() with an attacks component with a single attack."""
     constructor = create_constructor(
         json.dumps(
             {
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {"Attacks": ["Ranged"]},
+                "components": {"Attacks": {"Default": []}},
+            },
+        ),
+    )
+    assert isinstance(constructor.components[0], Attacks)
+
+
+def test_create_constructor_attacks_single_state_single() -> None:
+    """Test create_constructor() with an attacks component with a single attack."""
+    constructor = create_constructor(
+        json.dumps(
+            {
+                "game_object_type": "Player",
+                "texture_paths": ["floor.png"],
+                "components": {"Attacks": {"Default": ["Ranged"]}},
+            },
+        ),
+    )
+    assert isinstance(constructor.components[0], Attacks)
+
+
+def test_create_constructor_attacks_single_state_multiple() -> None:
+    """Test create_constructor() with an attacks component with a single attack."""
+    constructor = create_constructor(
+        json.dumps(
+            {
+                "game_object_type": "Player",
+                "texture_paths": ["floor.png"],
+                "components": {"Attacks": {"Default": ["Ranged", "Melee"]}},
             },
         ),
     )
@@ -175,7 +212,7 @@ def test_create_constructor_attacks_multiple() -> None:
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
                 "components": {
-                    "Attacks": ["Ranged", "Melee"],
+                    "Attacks": {"Default": ["Ranged"], "Special": ["Melee"]},
                 },
             },
         ),
@@ -183,18 +220,33 @@ def test_create_constructor_attacks_multiple() -> None:
     assert isinstance(constructor.components[0], Attacks)
 
 
-def test_create_constructor_attacks_invalid() -> None:
+def test_create_constructor_attacks_extra_state() -> None:
+    """Test create_constructor() with an attacks component with an extra state."""
+    constructor = create_constructor(
+        json.dumps(
+            {
+                "game_object_type": "Player",
+                "texture_paths": ["floor.png"],
+                "components": {"Attacks": {"Test": []}},
+            },
+        ),
+    )
+
+    assert isinstance(constructor.components[0], Attacks)
+
+
+def test_create_constructor_attacks_invalid_attack() -> None:
     """Test create_constructor() with an attacks component with invalid data."""
     with pytest.raises(
-        expected_exception=TypeError,
-        match=".*incompatible constructor arguments.*",
+        expected_exception=KeyError,
+        match="Test",
     ):
         create_constructor(
             json.dumps(
                 {
                     "game_object_type": "Player",
                     "texture_paths": ["floor.png"],
-                    "components": {"Attacks": ["Test"]},
+                    "components": {"Attacks": {"Default": ["Test"]}},
                 },
             ),
         )
@@ -280,8 +332,8 @@ def test_create_constructor_steering_movement_multiple_states() -> None:
 def test_create_constructor_steering_movement_invalid_state() -> None:
     """Test create_constructor() with an invalid steering movement state."""
     with pytest.raises(
-        expected_exception=TypeError,
-        match=".*incompatible constructor arguments.*",
+        expected_exception=KeyError,
+        match="Test",
     ):
         create_constructor(
             json.dumps(
@@ -301,8 +353,8 @@ def test_create_constructor_steering_movement_invalid_state() -> None:
 def test_create_constructor_steering_movement_invalid_behaviour() -> None:
     """Test create_constructor() with an invalid steering movement behaviour."""
     with pytest.raises(
-        expected_exception=TypeError,
-        match=".*incompatible constructor arguments.*",
+        expected_exception=KeyError,
+        match="Test",
     ):
         create_constructor(
             json.dumps(
@@ -321,7 +373,7 @@ def test_create_constructor_steering_movement_invalid_behaviour() -> None:
 
 def test_create_constructor_invalid_component() -> None:
     """Test create_constructor() with an invalid component."""
-    with pytest.raises(expected_exception=KeyError, match="'Test'"):
+    with pytest.raises(expected_exception=KeyError, match="Test"):
         create_constructor(
             json.dumps(
                 {

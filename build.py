@@ -26,7 +26,7 @@ class BuildNamespace(argparse.Namespace):
     cpp: bool
 
 
-class CMakeBuild(build_ext):
+class CMakeBuild(build_ext):  # type: ignore[misc]
     """A custom build_ext command which allows CMake projects to be built."""
 
     def build_extension(self: CMakeBuild, ext: Extension) -> None:

@@ -68,7 +68,7 @@ class GameObjectConstructor(NamedTuple):
     components: ClassVar[list[ComponentBase]]
 
 
-def convert_attacks_args(attack_args: list[str]) -> Attacks:
+def convert_attacks_args(attack_args: dict[str, list[str]]) -> Attacks:
     """Convert the attack arguments to the correct format.
 
     Args:
@@ -80,10 +80,12 @@ def convert_attacks_args(attack_args: list[str]) -> Attacks:
     Returns:
         The constructed attacks component.
     """
+    # TODO: Attacks should be modified to accept multiple categories (e.g. ranged,
+    #  close, special), so `Default` will change
     return Attacks(
         [
-            AttackAlgorithm.__members__.get(attack_algorithm)
-            for attack_algorithm in attack_args
+            AttackAlgorithm.__members__[attack_algorithm]
+            for attack_algorithm in attack_args.get("Default", [])
         ],
     )
 
@@ -104,8 +106,8 @@ def convert_steering_movement_args(
     """
     return SteeringMovement(
         {
-            SteeringMovementState.__members__.get(movement_state): [
-                SteeringBehaviours.__members__.get(behaviour)
+            SteeringMovementState.__members__[movement_state]: [
+                SteeringBehaviours.__members__[behaviour]
                 for behaviour in component_args[movement_state]
             ]
             for movement_state in component_args
@@ -127,7 +129,7 @@ COMPONENT_MAPPING: Final[dict[str, type[ComponentBase]]] = {
 
 # Mapping of component names to their respective conversion classes
 CONVERSION_MAPPING: Final[
-    dict[str, Callable[[list[str] | dict[str, list[str]]], ComponentBase]],
+    dict[str, Callable[[dict[str, list[str]]], ComponentBase]]
 ] = {
     "Attacks": convert_attacks_args,
     "SteeringMovement": convert_steering_movement_args,
@@ -142,8 +144,8 @@ def create_constructor(game_object_json: str) -> GameObjectConstructor:
 
     Raises:
         ValueError: If the game object type is invalid.
-        KeyError: If the game object type or texture paths are not provided.
-        TypeError: If the provided component data is invalid.
+        KeyError: If the game object type or texture paths are not provided or the
+        provided component data is invalid.
 
     Returns:
         The constructed game object constructor.
@@ -213,7 +215,9 @@ PLAYER: Final[str] = json.dumps(
             "Health": [200, 5],
             "Armour": [100, 5],
             "Inventory": [6, 5],
-            "Attacks": ["Ranged", "Melee", "AreaOfEffect"],
+            "Attacks": {
+                "Default": ["Ranged", "Melee", "AreaOfEffect"],
+            },
             "MovementForce": [5000, 5],
             "KeyboardMovement": [],
             "Footprints": [],
