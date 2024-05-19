@@ -373,21 +373,16 @@ class Game(View):
         )
         player_x, player_y = kinematic_component.get_position()
 
-        # Transform mouse in window space to camera in world space and calculate the
-        # angle
-        angle = math.degrees(
+        # TODO: This doesn't seem to be correct for the melee attack. Atan2 is returning
+        #  a mirrored result
+        # Transform the mouse from window space to world space using the camera position
+        # then set the player's rotation
+        kinematic_component.set_rotation(
             math.atan2(
                 y + self.game_camera.position[1] - self.window.height / 2 - player_y,
                 x + self.game_camera.position[0] - self.window.width / 2 - player_x,
             ),
         )
-
-        # Convert angle range from -180 to 180 to 0 to 360
-        if angle < 0:
-            angle += 360
-
-        # Set the player's rotation
-        kinematic_component.set_rotation(angle)
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""

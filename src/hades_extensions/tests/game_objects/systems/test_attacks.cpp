@@ -2,6 +2,8 @@
 #include <chipmunk/chipmunk_structs.h>
 
 // Local headers
+#include <numbers>
+
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/attacks.hpp"
 #include "game_objects/systems/physics.hpp"
@@ -20,7 +22,7 @@ class AttackSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     auto create_target{[&](const cpVect position) {
-      const int target{registry.create_game_object(GameObjectType::Player, cpvzero,
+      const int target{registry.create_game_object(GameObjectType::Enemy, cpvzero,
                                                    {std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1),
                                                     std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
       registry.get_component<KinematicComponent>(target)->body->p = position;
@@ -28,11 +30,11 @@ class AttackSystemFixture : public testing::Test {
     }};
 
     // Create the targets and add the attack system offseting the positions
-    // need to be offset by (32, 32) since grid_pos_to_pixel converts the grid
-    // position to the centre of the tile
+    // by (32, 32) since grid_pos_to_pixel() converts the target position to
+    //(32, 32)
     targets = {
         create_target({12, -68}),  create_target({52, 92}),   create_target({-168, 132}), create_target({132, -68}),
-        create_target({-68, -67}), create_target({32, -168}), create_target({32, -160}),  create_target({32, 32}),
+        create_target({-68, -68}), create_target({32, -168}), create_target({32, -160}),  create_target({32, 32}),
     };
     registry.add_system<AttackSystem>();
     registry.add_system<DamageSystem>();
@@ -46,7 +48,7 @@ class AttackSystemFixture : public testing::Test {
     const int game_object_id{registry.create_game_object(
         GameObjectType::Player, cpvzero,
         {std::make_shared<Attack>(enabled_attacks), std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
-    registry.get_component<KinematicComponent>(game_object_id)->rotation = 180;
+    registry.get_component<KinematicComponent>(game_object_id)->rotation = std::numbers::pi;
   }
 
   /// Get the attack system from the registry.
@@ -114,7 +116,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 50);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
   ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 50);
   ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 40);

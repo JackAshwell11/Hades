@@ -1,6 +1,9 @@
 // External headers
 #include <chipmunk/chipmunk_structs.h>
 
+// Std headers
+#include <numbers>
+
 // Local headers
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/movements.hpp"
@@ -300,6 +303,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateNoBehaviou
   create_steering_movement_component({});
   get_steering_movement_system()->update(0);
   ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->f, cpvzero);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0);
 }
 
 /// Test that the correct force is calculated for the arrive behaviour.
@@ -309,6 +313,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateArrive) {
   registry.get_component<KinematicComponent>(1)->body->p = {100, 100};
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -70.71067811865476, -70.71067811865476);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
 /// Test that the correct force is calculated for the evade behaviour.
@@ -318,6 +323,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateEvade) {
   registry.get_component<KinematicComponent>(0)->body->v = {-50, 0};
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -54.28888213891886, -83.98045770360257);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.1446695001689107);
 }
 
 /// Test that the correct force is calculated for the flee behaviour.
@@ -328,6 +334,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateFlee) {
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 70.71067811865475, 70.7106781186547);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 70.71067811865476, 70.71067811865476);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.7853981633974483);
 }
 
 /// Test that the correct force is calculated for the follow path behaviour.
@@ -337,6 +344,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateFollowPath
   registry.get_component<SteeringMovement>(1)->path_list = {{350, 350}, {500, 500}};
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 70.71067811865475, 70.71067811865475);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.7853981633974483);
 }
 
 /// Test that the correct force is calculated for the obstacle avoidance behaviour.
@@ -347,6 +355,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateObstacleAv
   registry.create_game_object(GameObjectType::Wall, {1, 2}, {std::make_shared<KinematicComponent>(true)});
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -70.710678118654755, -70.710678118654755);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
 /// Test that the correct force is calculated for the pursue behaviour.
@@ -356,6 +365,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePursue) {
   registry.get_component<KinematicComponent>(0)->body->v = {-50, 0};
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 54.28888213891886, 83.98045770360257);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.99692315342088256);
 }
 
 /// Test that the correct force is calculated for the seek behaviour.
@@ -365,6 +375,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateSeek) {
   registry.get_component<KinematicComponent>(1)->body->p = {100, 100};
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -70.71067811865475, -70.7106781186547);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
 /// Test that the correct force is calculated for the wander behaviour.
@@ -376,6 +387,8 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateWander) {
   const auto after_force{registry.get_component<KinematicComponent>(1)->body->f};
   ASSERT_EQ(round(cpvlength(after_force)), 100);
   ASSERT_NE(before_force, after_force);
+  ASSERT_GE(registry.get_component<KinematicComponent>(1)->rotation, -std::numbers::pi);
+  ASSERT_LE(registry.get_component<KinematicComponent>(1)->rotation, std::numbers::pi);
 }
 
 /// Test that the correct force is calculated when multiple behaviours are selected.
@@ -386,6 +399,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleBe
   registry.get_component<SteeringMovement>(1)->path_list = {{100, 200}, {-100, 0}};
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -81.12421851755609, -58.47102846637651);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.5170697673906659);
 }
 
 /// Test that the correct force is calculated when multiple states are initialised.
@@ -399,12 +413,14 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleSt
   registry.get_component<KinematicComponent>(1)->body->p = {100, 100};
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -97.73793955511094, -21.14935392681019);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.9284898398506929);
 
   // Test the default state making sure to clear the force
   registry.get_component<KinematicComponent>(1)->body->f = cpvzero;
   registry.get_component<KinematicComponent>(1)->body->p = {300, 300};
   get_steering_movement_system()->update(0);
   test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -70.71067811865476, -70.71067811865476);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
 /// Test that the correct force is not applied if the game object does not have the required components.
@@ -454,7 +470,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePathListEm
 }
 
 /// Test if the path list is not updated if the target ID doesn't match.
-TEST_F(SteeringMovementSystemFixture, TestSteeringMovementUpdatePathListDifferentTargetId) {
+TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePathListDifferentTargetId) {
   create_steering_movement_component({});
   registry.get_component<SteeringMovement>(1)->target_id = -1;
   get_steering_movement_system()->update_path_list(0, {{100, 100}});

@@ -14,7 +14,7 @@ struct KinematicComponent final : ComponentBase {
   /// The Chipmunk2D shape of the game object.
   ChipmunkHandle<cpShape, cpShapeFree> shape;
 
-  /// The rotation angle of the game object in degrees.
+  /// The rotation angle of the game object in radians.
   double rotation{0};
 
   /// Initialise the object.
