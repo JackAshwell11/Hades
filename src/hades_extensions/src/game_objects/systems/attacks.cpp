@@ -2,6 +2,7 @@
 #include "game_objects/systems/attacks.hpp"
 
 // Std headers
+#include <cmath>
 #include <numbers>
 
 // External headers
@@ -9,15 +10,15 @@
 
 // Local headers
 #include "game_objects/stats.hpp"
+#include "game_objects/systems/movements.hpp"
 #include "game_objects/systems/physics.hpp"
 
 // ----- CONSTANTS -------------------------------
-#define PI_RADIANS (std::numbers::pi / 180)
 constexpr double ATTACK_RANGE{3 * SPRITE_SIZE};
 constexpr int BULLET_VELOCITY{500};
-constexpr double MELEE_ATTACK_OFFSET_LOWER{-45 * PI_RADIANS};
-constexpr double MELEE_ATTACK_OFFSET_UPPER{45 * PI_RADIANS};
-constexpr int ATTACK_COOLDOWN{5};
+constexpr double MELEE_ATTACK_OFFSET_LOWER{-std::numbers::pi / 4};
+constexpr double MELEE_ATTACK_OFFSET_UPPER{std::numbers::pi / 4};
+constexpr int ATTACK_COOLDOWN{1};
 
 // ----- FUNCTIONS ------------------------------
 /// Performs an area of effect attack around the game object.
@@ -53,7 +54,8 @@ void area_of_effect_attack(const Registry *registry, const cpVect &current_posit
 void melee_attack(const Registry *registry, const cpVect &current_position, const double current_rotation,
                   const std::vector<int> &targets) {
   // Calculate a vector that is perpendicular to the current rotation of the game object
-  const cpVect rotation{std::sin(current_rotation), std::cos(current_rotation)};
+  const cpVect rotation{std::round(std::sin(current_rotation) * 1e12) / 1e12,
+                        std::round(std::cos(current_rotation) * 1e12) / 1e12};
 
   // Find all targets that can be attacked
   for (const auto target : targets) {
@@ -80,8 +82,18 @@ auto ranged_attack(const cpVect &current_position, const double current_rotation
 
 void AttackSystem::update(const double delta_time) const {
   for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<Attack>()) {
+    // Update the time since the last attack
     const auto [attack] = component_tuple;
     attack->time_since_last_attack += delta_time;
+
+    // If the game object has a steering movement component, they are in the target state, and their cooldown is up,
+    // then attack
+    if (get_registry()->has_component(game_object_id, typeid(SteeringMovement))) {
+      if (const auto steering_movement{get_registry()->get_component<SteeringMovement>(game_object_id)};
+          steering_movement->movement_state == SteeringMovementState::Target) {
+        [[maybe_unused]] const auto bullet_id{do_attack(game_object_id, {steering_movement->target_id})};
+      }
+    }
   }
 }
 
@@ -97,11 +109,11 @@ auto AttackSystem::do_attack(const GameObjectID game_object_id, const std::vecto
         area_of_effect_attack(get_registry(), kinematic_component->body->p, targets);
         break;
       case AttackAlgorithm::Melee:
-        melee_attack(get_registry(), kinematic_component->body->p, kinematic_component->rotation * PI_RADIANS, targets);
+        melee_attack(get_registry(), kinematic_component->body->p, kinematic_component->rotation, targets);
         break;
       case AttackAlgorithm::Ranged:
         return get_registry()->get_system<PhysicsSystem>()->add_bullet(
-            ranged_attack(kinematic_component->body->p, kinematic_component->rotation * PI_RADIANS));
+            ranged_attack(kinematic_component->body->p, kinematic_component->rotation));
     }
   }
   return std::nullopt;

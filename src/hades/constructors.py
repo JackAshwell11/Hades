@@ -238,6 +238,9 @@ ENEMY: Final[str] = json.dumps(
         "components": {
             "Health": [100, 5],
             "Armour": [50, 5],
+            "Attack": {
+                "Default": ["Ranged"],
+            },
             "MovementForce": [1000, 5],
             "SteeringMovement": {
                 "Default": ["ObstacleAvoidance", "Wander"],
