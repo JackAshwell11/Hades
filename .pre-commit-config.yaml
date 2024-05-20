@@ -3,7 +3,7 @@ default_language_version:
 
 repos:
   - repo: "https://github.com/PyCQA/pylint"
-    rev: v3.1.0
+    rev: v3.2.2
     hooks:
       - id: pylint
   - repo: "https://github.com/bwhmather/ssort"
