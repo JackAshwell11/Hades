@@ -69,7 +69,7 @@ auto EffectSystem::apply_effects(const GameObjectID game_object_id, const GameOb
     const auto target_component{
         std::static_pointer_cast<Stat>(get_registry()->get_component(target_game_object_id, component_type))};
     const Effect status_effect{status_effect_data.increase(1), status_effect_data.duration(1),
-                                     status_effect_data.interval(1), component_type};
+                               status_effect_data.interval(1), component_type};
     target_status_effects->applied_effects.emplace(status_effect_data.status_effect_type, status_effect);
     target_component->set_value(target_component->get_value() + status_effect.value);
   }

@@ -311,3 +311,26 @@ TEST_F(RegistryFixture, TestRegistryWallBulletCollision) {
       registry.get_component<KinematicComponent>(bullet_id), RegistryError,
       "The game object `1` is not registered with the registry or does not have the required component.")
 }
+
+/// Test that an event is not notified if there are no observers added to the registry.
+TEST_F(RegistryFixture, TestRegistryNotifyObserversNoObserversAdded) {
+  constexpr bool called{false};
+  registry.notify_observers(EventType::GameObjectDeath, 0);
+  ASSERT_FALSE(called);
+}
+
+/// Test that an event is not notified if there are no observers listening for that event.
+TEST_F(RegistryFixture, TestRegistryNotifyObserversNoObserversListening) {
+  bool called{false};
+  registry.add_observer(EventType::BulletCreation, [&called](const auto /*event*/) { called = true; });
+  registry.notify_observers(EventType::GameObjectDeath, 0);
+  ASSERT_FALSE(called);
+}
+
+/// Test that an event is notified correctly if there is an observer listening for that event.
+TEST_F(RegistryFixture, TestRegistryNotifyObserversListeningObserver) {
+  bool called{false};
+  registry.add_observer(EventType::GameObjectDeath, [&called](const auto /*event*/) { called = true; });
+  registry.notify_observers(EventType::GameObjectDeath, 0);
+  ASSERT_TRUE(called);
+}

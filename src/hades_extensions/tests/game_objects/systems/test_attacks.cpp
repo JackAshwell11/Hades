@@ -96,7 +96,7 @@ TEST(Tests, TestDamageSystemComponentsHasIndicatorBar) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
   create_attack_component({AttackAlgorithm::AreaOfEffect});
   get_attack_system()->update(5);
-  ASSERT_FALSE(get_attack_system()->do_attack(8, targets).has_value());
+  get_attack_system()->do_attack(8, targets);
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
@@ -111,7 +111,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
   create_attack_component({AttackAlgorithm::Melee});
   get_attack_system()->update(5);
-  ASSERT_FALSE(get_attack_system()->do_attack(8, targets).has_value());
+  get_attack_system()->do_attack(8, targets);
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 50);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
@@ -124,20 +124,26 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
 
 /// Test that performing a ranged attack works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
+  bool bullet_created{false};
+  auto bullet_creation_observer{[&](const GameObjectID game_object_id) {
+    const auto *bullet{*registry.get_component<KinematicComponent>(game_object_id)->body};
+    ASSERT_EQ(bullet->p.x, -32);
+    ASSERT_NEAR(bullet->p.y, 32, 1e-13);
+    ASSERT_EQ(bullet->v.x, -500);
+    ASSERT_NEAR(bullet->v.y, 0, 1e-13);
+    bullet_created = true;
+  }};
+  registry.add_observer(EventType::BulletCreation, bullet_creation_observer);
   create_attack_component({AttackAlgorithm::Ranged});
   get_attack_system()->update(5);
-  ASSERT_EQ(get_attack_system()->do_attack(8, targets).value(), 9);
-  const auto *bullet = *registry.get_component<KinematicComponent>(9)->body;
-  ASSERT_EQ(bullet->p.x, -32);
-  ASSERT_NEAR(bullet->p.y, 32, 1e-13);
-  ASSERT_EQ(bullet->v.x, -500);
-  ASSERT_NEAR(bullet->v.y, 0, 1e-13);
+  get_attack_system()->do_attack(8, targets);
+  ASSERT_TRUE(bullet_created);
 }
 
 /// Test that performing an attack before the cooldown is up doesn't work.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackCooldown) {
   create_attack_component({AttackAlgorithm::Ranged});
-  ASSERT_FALSE(get_attack_system()->do_attack(8, targets).has_value());
+  get_attack_system()->do_attack(8, targets);
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.

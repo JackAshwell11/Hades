@@ -1,5 +1,6 @@
 // External headers
 #include <chipmunk/chipmunk_structs.h>
+#include <pybind11/functional.h>
 #include <pybind11/stl.h>
 
 // Local headers
@@ -175,6 +176,43 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "Returns:\n"
           "    The vector multiplied by the scalar.");
 
+  // Add the enums
+  pybind11::enum_<AttackAlgorithm>(game_objects, "AttackAlgorithm",
+                                   "Stores the different types of attack algorithms available.")
+      .value("AreaOfEffect", AttackAlgorithm::AreaOfEffect)
+      .value("Melee", AttackAlgorithm::Melee)
+      .value("Ranged", AttackAlgorithm::Ranged);
+  pybind11::enum_<GameObjectType>(game_objects, "GameObjectType",
+                                  "Stores the different types of game objects available.")
+      .value("Bullet", GameObjectType::Bullet)
+      .value("Enemy", GameObjectType::Enemy)
+      .value("Floor", GameObjectType::Floor)
+      .value("Player", GameObjectType::Player)
+      .value("Potion", GameObjectType::Potion)
+      .value("Wall", GameObjectType::Wall);
+  pybind11::enum_<StatusEffectType>(game_objects, "StatusEffectType",
+                                    "Stores the different types of status effects available.")
+      .value("TEMP", StatusEffectType::TEMP)
+      .value("TEMP2", StatusEffectType::TEMP2);
+  pybind11::enum_<SteeringBehaviours>(game_objects, "SteeringBehaviours",
+                                      "Stores the different types of steering behaviours available.")
+      .value("Arrive", SteeringBehaviours::Arrive)
+      .value("Evade", SteeringBehaviours::Evade)
+      .value("Flee", SteeringBehaviours::Flee)
+      .value("FollowPath", SteeringBehaviours::FollowPath)
+      .value("ObstacleAvoidance", SteeringBehaviours::ObstacleAvoidance)
+      .value("Pursue", SteeringBehaviours::Pursue)
+      .value("Seek", SteeringBehaviours::Seek)
+      .value("Wander", SteeringBehaviours::Wander);
+  pybind11::enum_<SteeringMovementState>(game_objects, "SteeringMovementState",
+                                         "Stores the different states the steering movement component can be in.")
+      .value("Default", SteeringMovementState::Default)
+      .value("Footprint", SteeringMovementState::Footprint)
+      .value("Target", SteeringMovementState::Target);
+  pybind11::enum_<EventType>(game_objects, "EventType", "Stores the different types of events that can occur.")
+      .value("BulletCreation", EventType::BulletCreation)
+      .value("GameObjectDeath", EventType::GameObjectDeath);
+
   // Add the registry class
   register_exception<RegistryError>(game_objects, "RegistryError");
   pybind11::class_<Registry>(game_objects, "Registry",
@@ -270,7 +308,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def("update", &Registry::update, pybind11::arg("delta_time"),
            "Update all systems in the registry.\n\n"
            "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.");
+           "    delta_time: The time interval since the last time the function was called.")
+      .def("add_observer", &Registry::add_observer, pybind11::arg("event_type"), pybind11::arg("observer"),
+           "Add an observer to the registry to listen for events.\n\n"
+           "Args:\n"
+           "    event_type: The type of event to listen for.\n"
+           "    observer: The observer to add.");
 
   // Add the stat components
   pybind11::class_<Stat, ComponentBase, std::shared_ptr<Stat>>(
@@ -334,43 +377,9 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    value: The initial and maximum value of the movement force stat.\n"
            "    maximum_level: The maximum level of the movement force stat.");
 
-  // Add the enums
-  pybind11::enum_<AttackAlgorithm>(game_objects, "AttackAlgorithm",
-                                   "Stores the different types of attack algorithms available.")
-      .value("AreaOfEffect", AttackAlgorithm::AreaOfEffect)
-      .value("Melee", AttackAlgorithm::Melee)
-      .value("Ranged", AttackAlgorithm::Ranged);
-  pybind11::enum_<GameObjectType>(game_objects, "GameObjectType",
-                                  "Stores the different types of game objects available.")
-      .value("Bullet", GameObjectType::Bullet)
-      .value("Enemy", GameObjectType::Enemy)
-      .value("Floor", GameObjectType::Floor)
-      .value("Player", GameObjectType::Player)
-      .value("Potion", GameObjectType::Potion)
-      .value("Wall", GameObjectType::Wall);
-  pybind11::enum_<StatusEffectType>(game_objects, "StatusEffectType",
-                                    "Stores the different types of status effects available.")
-      .value("TEMP", StatusEffectType::TEMP)
-      .value("TEMP2", StatusEffectType::TEMP2);
-  pybind11::enum_<SteeringBehaviours>(game_objects, "SteeringBehaviours",
-                                      "Stores the different types of steering behaviours available.")
-      .value("Arrive", SteeringBehaviours::Arrive)
-      .value("Evade", SteeringBehaviours::Evade)
-      .value("Flee", SteeringBehaviours::Flee)
-      .value("FollowPath", SteeringBehaviours::FollowPath)
-      .value("ObstacleAvoidance", SteeringBehaviours::ObstacleAvoidance)
-      .value("Pursue", SteeringBehaviours::Pursue)
-      .value("Seek", SteeringBehaviours::Seek)
-      .value("Wander", SteeringBehaviours::Wander);
-  pybind11::enum_<SteeringMovementState>(game_objects, "SteeringMovementState",
-                                         "Stores the different states the steering movement component can be in.")
-      .value("Default", SteeringMovementState::Default)
-      .value("Footprint", SteeringMovementState::Footprint)
-      .value("Target", SteeringMovementState::Target);
-
   // Add the components
-  pybind11::class_<Attack, ComponentBase, std::shared_ptr<Attack>>(
-      components, "Attack", "Allows a game object to attack other game objects.")
+  pybind11::class_<Attack, ComponentBase, std::shared_ptr<Attack>>(components, "Attack",
+                                                                   "Allows a game object to attack other game objects.")
       .def(pybind11::init<std::vector<AttackAlgorithm>>(), pybind11::arg("attack_algorithms"),
            "Initialise the object.\n\n"
            "Args:\n"
@@ -516,9 +525,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    game_object_id: The ID of the game object to perform the attack for.\n"
            "    targets: The targets to attack.\n\n"
            "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an attack or kinematic component.\n\n"
-           "Returns:\n"
-           "    The result of the attack.")
+           "    RegistryError: If the game object does not exist or does not have an attack or kinematic component.")
       .def("previous_attack", &AttackSystem::previous_attack, pybind11::arg("game_object_id"),
            "Select the previous attack algorithm.\n\n"
            "Args:\n"
