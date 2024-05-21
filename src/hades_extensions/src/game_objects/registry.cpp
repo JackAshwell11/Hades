@@ -63,8 +63,9 @@ void Registry::delete_game_object(const GameObjectID game_object_id) {
     cpSpaceRemoveBody(*space_, *get_component<KinematicComponent>(game_object_id)->body);
   }
 
-  // Delete the game object from the system
+  // Delete the game object from the system and notify the observers
   game_objects_.erase(game_object_id);
+  notify_observers(EventType::GameObjectDeath, game_object_id);
 }
 
 auto Registry::get_component(const GameObjectID game_object_id, const std::type_index &component_type) const

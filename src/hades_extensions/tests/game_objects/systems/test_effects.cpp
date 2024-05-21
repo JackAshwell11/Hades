@@ -158,8 +158,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusNoAppliedEffect) {
   create_effect_applier(false, true);
   ASSERT_TRUE(get_effect_system()->apply_effects(1, 0));
   ASSERT_EQ(registry.get_component<TestStat>(0)->get_value(), 200);
-  const auto applied_status_effect{
-      registry.get_component<StatusEffect>(0)->applied_effects.at(StatusEffectType::TEMP)};
+  const auto applied_status_effect{registry.get_component<StatusEffect>(0)->applied_effects.at(StatusEffectType::TEMP)};
   ASSERT_EQ(applied_status_effect.value, 6);
   ASSERT_EQ(applied_status_effect.duration, 10);
   ASSERT_EQ(applied_status_effect.interval, 2);

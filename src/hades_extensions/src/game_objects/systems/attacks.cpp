@@ -91,32 +91,34 @@ void AttackSystem::update(const double delta_time) const {
     if (get_registry()->has_component(game_object_id, typeid(SteeringMovement))) {
       if (const auto steering_movement{get_registry()->get_component<SteeringMovement>(game_object_id)};
           steering_movement->movement_state == SteeringMovementState::Target) {
-        [[maybe_unused]] const auto bullet_id{do_attack(game_object_id, {steering_movement->target_id})};
+        do_attack(game_object_id, {steering_movement->target_id});
       }
     }
   }
 }
 
-auto AttackSystem::do_attack(const GameObjectID game_object_id, const std::vector<int> &targets) const
-    -> std::optional<GameObjectID> {
-  // Check if the game object can attack or not. If so, perform the selected attack on the targets
-  if (const auto attack{get_registry()->get_component<Attack>(game_object_id)};
-      attack->time_since_last_attack >= ATTACK_COOLDOWN) {
-    attack->time_since_last_attack = 0;
-    const auto kinematic_component{get_registry()->get_component<KinematicComponent>(game_object_id)};
-    switch (attack->attack_algorithms[attack->attack_state]) {
-      case AttackAlgorithm::AreaOfEffect:
-        area_of_effect_attack(get_registry(), kinematic_component->body->p, targets);
-        break;
-      case AttackAlgorithm::Melee:
-        melee_attack(get_registry(), kinematic_component->body->p, kinematic_component->rotation, targets);
-        break;
-      case AttackAlgorithm::Ranged:
-        return get_registry()->get_system<PhysicsSystem>()->add_bullet(
-            ranged_attack(kinematic_component->body->p, kinematic_component->rotation));
-    }
+void AttackSystem::do_attack(const GameObjectID game_object_id, const std::vector<int> &targets) const {
+  // Check if the game object can attack or not
+  const auto attack{get_registry()->get_component<Attack>(game_object_id)};
+  if (attack->time_since_last_attack < ATTACK_COOLDOWN) {
+    return;
   }
-  return std::nullopt;
+
+  // Perform the selected attack on the targets
+  attack->time_since_last_attack = 0;
+  const auto kinematic_component{get_registry()->get_component<KinematicComponent>(game_object_id)};
+  switch (attack->attack_algorithms[attack->attack_state]) {
+    case AttackAlgorithm::AreaOfEffect:
+      area_of_effect_attack(get_registry(), kinematic_component->body->p, targets);
+      break;
+    case AttackAlgorithm::Melee:
+      melee_attack(get_registry(), kinematic_component->body->p, kinematic_component->rotation, targets);
+      break;
+    case AttackAlgorithm::Ranged:
+      get_registry()->notify_observers(EventType::BulletCreation,
+                                       get_registry()->get_system<PhysicsSystem>()->add_bullet(
+                                           ranged_attack(kinematic_component->body->p, kinematic_component->rotation)));
+  }
 }
 
 void DamageSystem::deal_damage(const GameObjectID game_object_id, const int damage) const {

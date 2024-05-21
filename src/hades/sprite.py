@@ -15,7 +15,6 @@ from hades_extensions.game_objects import (
     SPRITE_SCALE,
     GameObjectType,
     Registry,
-    RegistryError,
     Vec2d,
     grid_pos_to_pixel,
 )
@@ -64,13 +63,10 @@ class HadesSprite(BasicSprite):
 
     def update(self: HadesSprite) -> None:
         """Update the sprite object."""
-        try:
-            self.position = self.registry.get_component(
-                self.game_object_id,
-                KinematicComponent,
-            ).get_position()
-        except RegistryError:
-            self.remove_from_sprite_lists()
+        self.position = self.registry.get_component(
+            self.game_object_id,
+            KinematicComponent,
+        ).get_position()
 
     def __repr__(self: HadesSprite) -> str:
         """Return a human-readable representation of this object.

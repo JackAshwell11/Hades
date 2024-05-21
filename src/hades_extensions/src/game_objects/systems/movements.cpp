@@ -112,7 +112,8 @@ void SteeringMovementSystem::update(const double /*delta_time*/) const {
     }
 
     // Calculate and apply the new steering force to the game object
-    const auto steering_force = calculate_steering_force(get_registry(), steering_movement, *kinematic_owner->body, *kinematic_target->body);
+    const auto steering_force =
+        calculate_steering_force(get_registry(), steering_movement, *kinematic_owner->body, *kinematic_target->body);
     get_registry()->get_system<PhysicsSystem>()->add_force(game_object_id, steering_force);
     kinematic_owner->rotation = cpvtoangle(steering_force);
   }

@@ -15,6 +15,12 @@ enum class GameObjectType : std::uint8_t {
   Wall = 1U << 5U,    // 32
 };
 
+/// Stores the different types of events that can occur.
+enum class EventType : std::uint8_t {
+  BulletCreation,
+  GameObjectDeath,
+};
+
 // ----- BASE TYPES ------------------------------
 // Add a forward declaration for the registry class
 class Registry;

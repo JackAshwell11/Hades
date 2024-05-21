@@ -174,6 +174,24 @@ class Registry {
   /// @return The Chipmunk2D space.
   [[nodiscard]] auto get_space() const -> cpSpace * { return *space_; }
 
+  /// Add an observer to the registry to listen for events.
+  ///
+  /// @param event_type - The type of event to listen for.
+  /// @param observer - The observer to add.
+  void add_observer(const EventType event_type, const std::function<void(GameObjectID)> &observer) {
+    observers_[event_type] = observer;
+  }
+
+  /// Notify all observers of an event.
+  ///
+  /// @param event_type - The type of event to notify observers of.
+  /// @param game_object_id - The game object ID to pass to the observers.
+  void notify_observers(const EventType event_type, const GameObjectID game_object_id) {
+    if (observers_.contains(event_type)) {
+      observers_[event_type](game_object_id);
+    }
+  }
+
  private:
   /// Create a Chipmunk2D collision handler to deal with bullet collisions.
   ///
@@ -190,9 +208,12 @@ class Registry {
   /// The systems registered with the registry.
   std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_;
 
+  /// The Chipmunk2D space.
+  ChipmunkHandle<cpSpace, cpSpaceFree> space_{cpSpaceNew()};
+
   /// The Chipmunk2D shapes registered with the registry.
   std::unordered_map<cpShape *, GameObjectID> shapes_;
 
-  /// The Chipmunk2D space.
-  ChipmunkHandle<cpSpace, cpSpaceFree> space_{cpSpaceNew()};
+  /// The observers registered with the registry to listen for events.
+  std::unordered_map<EventType, std::function<void(GameObjectID)>> observers_;
 };

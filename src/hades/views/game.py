@@ -35,12 +35,14 @@ from hades.indicator_bar import IndicatorBar
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
 from hades_extensions.game_objects import (
     SPRITE_SIZE,
+    EventType,
     GameObjectType,
     Registry,
     Vec2d,
     grid_pos_to_pixel,
 )
 from hades_extensions.game_objects.components import (
+    Health,
     KeyboardMovement,
     KinematicComponent,
     Stat,
@@ -119,6 +121,7 @@ class Game(View):
         # Add all the indicator bars to the game
         indicator_bar_offset = 0
         for component in constructor.components:
+            # TODO: Is this isinstance check necessary?
             if component.has_indicator_bar() and isinstance(component, Stat):
                 self.indicator_bars.append(
                     IndicatorBar(
@@ -198,6 +201,10 @@ class Game(View):
                 )
                 self.possible_enemy_spawns.append(position)
 
+        # Add the observers to the registry
+        self.registry.add_observer(EventType.BulletCreation, self.on_bullet_creation)
+        self.registry.add_observer(EventType.GameObjectDeath, self.on_game_object_death)
+
         # Generate half of the total enemies allowed to then schedule their generation
         for _ in range(TOTAL_ENEMY_COUNT // 2):
             self.generate_enemy()
@@ -231,6 +238,14 @@ class Game(View):
         Args:
             delta_time: Time interval since the last time the function was called.
         """
+        # TODO: Refactor this
+        # Check if any enemies should die
+        for enemy in self.ids.get(GameObjectType.Enemy, []):
+            if self.registry.has_component(enemy.game_object_id, Health):
+                health = self.registry.get_component(enemy.game_object_id, Health)
+                if health.get_value() <= 0:
+                    self.registry.delete_game_object(enemy.game_object_id)
+
         # Update the systems and entities
         self.registry.update(delta_time)
         self.entity_sprites.update()
@@ -346,18 +361,14 @@ class Game(View):
             y,
             modifiers,
         )
-        if button is MOUSE_BUTTON_LEFT and (
-            attack_result := self.registry.get_system(AttackSystem).do_attack(
+        if button is MOUSE_BUTTON_LEFT:
+            self.registry.get_system(AttackSystem).do_attack(
                 self.ids[GameObjectType.Player][0].game_object_id,
                 [
                     game_object.game_object_id
                     for game_object in self.ids.get(GameObjectType.Enemy, [])
                 ],
             )
-        ):
-            bullet = Bullet(self.registry, attack_result)
-            self.ids.setdefault(bullet.game_object_type, []).append(bullet)
-            self.entity_sprites.append(bullet)
 
     def on_mouse_motion(self: Game, x: int, y: int, _: int, __: int) -> None:
         """Process mouse motion functionality.
@@ -383,6 +394,37 @@ class Game(View):
                 x + self.game_camera.position[0] - self.window.width / 2 - player_x,
             ),
         )
+
+    def on_bullet_creation(self: Game, game_object_id: int) -> None:
+        """Create a bullet game object.
+
+        Args:
+            game_object_id: The ID of the created bullet game object.
+        """
+        bullet = Bullet(self.registry, game_object_id)
+        self.ids.setdefault(bullet.game_object_type, []).append(bullet)
+        self.entity_sprites.append(bullet)
+
+    def on_game_object_death(self: Game, game_object_id: int) -> None:
+        """Remove a game object from the game.
+
+        Args:
+            game_object_id: The ID of the game object to remove.
+        """
+        # TODO: Refactor this (I'd like to get rid of ids)
+        for game_objects in self.ids.values():
+            for game_object in game_objects:
+                if game_object.game_object_id == game_object_id:
+                    indicator_bars_to_remove = []
+                    for indicator_bar in self.indicator_bars:
+                        if indicator_bar.target_sprite.game_object_id == game_object_id:
+                            indicator_bar.actual_bar.remove_from_sprite_lists()
+                            indicator_bar.background_box.remove_from_sprite_lists()
+                            indicator_bars_to_remove.append(indicator_bar)
+                    for indicator_bar in indicator_bars_to_remove:
+                        self.indicator_bars.remove(indicator_bar)
+                    game_object.remove_from_sprite_lists()
+                    break
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
