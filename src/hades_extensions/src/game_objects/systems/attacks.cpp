@@ -2,14 +2,12 @@
 #include "game_objects/systems/attacks.hpp"
 
 // Std headers
-#include <cmath>
 #include <numbers>
 
 // External headers
 #include <chipmunk/chipmunk_structs.h>
 
 // Local headers
-#include "game_objects/stats.hpp"
 #include "game_objects/systems/movements.hpp"
 #include "game_objects/systems/physics.hpp"
 

@@ -3,9 +3,11 @@
 
 // Std headers
 #include <unordered_set>
+#include <vector>
 
-// Local headers
-#include "primitives.hpp"
+// ----- FORWARD DECLARATIONS ------------------------------
+struct Grid;
+struct Position;
 
 // ----- FUNCTIONS ------------------------------
 /// Calculate the shortest path in a grid from one pair to another using the A*

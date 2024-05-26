@@ -1,6 +1,9 @@
 // Related header
 #include "game_objects/systems/inventory.hpp"
 
+// Local headers
+#include "game_objects/registry.hpp"
+
 // ----- FUNCTIONS ------------------------------
 auto InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, const GameObjectID item) const -> bool {
   const auto inventory{get_registry()->get_component<Inventory>(game_object_id)};

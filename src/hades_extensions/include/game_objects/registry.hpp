@@ -11,11 +11,6 @@
 #include "steering.hpp"
 #include "types.hpp"
 
-// ----- TYPEDEFS ------------------------------
-// Represents unique identifiers for game objects
-using GameObjectID = int;
-using ActionFunction = std::function<double(int)>;
-
 // ----- CONSTANTS ------------------------------
 // The percentage of velocity a game object will retain after a second.
 constexpr double DAMPING = 0.0001;

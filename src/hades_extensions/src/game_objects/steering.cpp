@@ -2,6 +2,7 @@
 #include "game_objects/steering.hpp"
 
 // Std headers
+#include <cmath>
 #include <numbers>
 #include <stdexcept>
 

@@ -4,12 +4,9 @@
 // Std headers
 #include <array>
 #include <cmath>
-#include <cstdint>
 #include <memory>
 #include <stdexcept>
-
-// Local headers
-#include "hash_combine.hpp"
+#include <vector>
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of tiles in the game map.
@@ -183,6 +180,18 @@ struct Grid {
     }
   }
 };
+
+// ----- FUNCTIONS ------------------------------
+/// Allows multiple hashes to be combined for a struct
+///
+/// @tparam T - The type of the value to hash.
+/// @param seed - The seed for initialising the hasher.
+/// @param value - The value to hash.
+template <typename T>
+void hash_combine(std::size_t &seed, const T &value) {
+  std::hash<T> hasher;
+  seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);  // NOLINT
+}
 
 // ----- HASHES ------------------------------
 template <>

@@ -5,6 +5,10 @@
 #include <execution>
 #include <queue>
 
+// Local headers
+#include "generation/bsp.hpp"
+#include "generation/searching.hpp"
+
 // ----- STRUCTURES ------------------------------
 /// Stores a map generation constant which can be calculated.
 ///

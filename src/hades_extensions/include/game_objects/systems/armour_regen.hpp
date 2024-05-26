@@ -2,7 +2,7 @@
 #pragma once
 
 // Local headers
-#include "game_objects/registry.hpp"
+#include "game_objects/types.hpp"
 
 // ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate armour regen components.

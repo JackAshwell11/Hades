@@ -1,10 +1,10 @@
 // External headers
 #include <chipmunk/chipmunk_structs.h>
 
-// Local headers
+// Std headers
 #include <numbers>
 
-#include "game_objects/stats.hpp"
+// Local headers
 #include "game_objects/systems/attacks.hpp"
 #include "game_objects/systems/physics.hpp"
 #include "macros.hpp"

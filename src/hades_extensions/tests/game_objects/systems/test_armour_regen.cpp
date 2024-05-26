@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 // Local headers
+#include "game_objects/registry.hpp"
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/armour_regen.hpp"
 
