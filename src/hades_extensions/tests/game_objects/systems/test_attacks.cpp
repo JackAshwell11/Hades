@@ -48,7 +48,7 @@ class AttackSystemFixture : public testing::Test {
     const int game_object_id{registry.create_game_object(
         GameObjectType::Player, cpvzero,
         {std::make_shared<Attack>(enabled_attacks), std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
-    registry.get_component<KinematicComponent>(game_object_id)->rotation = std::numbers::pi;
+    registry.get_component<KinematicComponent>(game_object_id)->rotation = -std::numbers::pi / 2;
   }
 
   /// Get the attack system from the registry.
@@ -118,10 +118,10 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
   bool bullet_created{false};
   auto bullet_creation_observer{[&](const GameObjectID game_object_id) {
     const auto *bullet{*registry.get_component<KinematicComponent>(game_object_id)->body};
-    ASSERT_EQ(bullet->p.x, -32);
-    ASSERT_NEAR(bullet->p.y, 32, 1e-13);
-    ASSERT_EQ(bullet->v.x, -500);
-    ASSERT_NEAR(bullet->v.y, 0, 1e-13);
+    ASSERT_NEAR(bullet->p.x, 32, 1e-13);
+    ASSERT_NEAR(bullet->p.y, -32, 1e-13);
+    ASSERT_NEAR(bullet->v.x, 0, 1e-13);
+    ASSERT_NEAR(bullet->v.y, -500, 1e-13);
     bullet_created = true;
   }};
   registry.add_observer(EventType::BulletCreation, bullet_creation_observer);

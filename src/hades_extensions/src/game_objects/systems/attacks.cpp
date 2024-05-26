@@ -35,16 +35,6 @@ void area_of_effect_attack(const Registry *registry, const cpVect &current_posit
   }
 }
 
-/// Get the angle between two vectors.
-///
-/// @details This will always be between 0 and 2π.
-/// @param lhs - The first vector to get the angle between.
-/// @param rhs - The other vector to get the angle between.
-/// @return The angle between the two vectors.
-[[nodiscard]] inline auto angle_between(const cpVect &lhs, const cpVect &rhs) -> double {
-  return std::atan2(cpvcross(lhs, rhs), cpvdot(lhs, rhs));
-}
-
 /// Performs a melee attack in the direction the game object is facing.
 ///
 /// @param registry - The registry that manages the game objects, components, and systems.
@@ -53,19 +43,21 @@ void area_of_effect_attack(const Registry *registry, const cpVect &current_posit
 /// @param targets - The targets to attack.
 void melee_attack(const Registry *registry, const cpVect &current_position, const double current_rotation,
                   const std::vector<int> &targets) {
-  // Calculate a vector that is perpendicular to the current rotation of the game object
-  const cpVect rotation{std::round(std::sin(current_rotation) * 1e12) / 1e12,
-                        std::round(std::cos(current_rotation) * 1e12) / 1e12};
+  // Convert the rotation into a direction vector
+  const auto direction = cpvforangle(current_rotation);
 
   // Find all targets that can be attacked
   for (const auto target : targets) {
-    // Calculate the angle between the current rotation of the game object and the direction the target is in then test
-    // if the target is within range and within the circle's sector
-    const cpVect target_position{registry->get_component<KinematicComponent>(target)->body->p};
-    if (const double theta{angle_between(target_position - current_position, rotation)};
-        cpvdist(current_position, target_position) <= ATTACK_RANGE && theta >= MELEE_ATTACK_OFFSET_LOWER &&
-        theta <= MELEE_ATTACK_OFFSET_UPPER) {
-      registry->get_system<DamageSystem>()->deal_damage(target, DAMAGE);
+    // Calculate the target direction and distance
+    const auto target_position{registry->get_component<KinematicComponent>(target)->body->p};
+    const auto target_direction{cpvsub(target_position, current_position)};
+
+    // Check if the target is within the attack range and circle sector
+    if (const auto distance{cpvdist(current_position, target_position)}; distance <= ATTACK_RANGE) {
+      if (const auto theta{std::atan2(cpvcross(direction, target_direction), cpvdot(direction, target_direction))};
+          theta >= MELEE_ATTACK_OFFSET_LOWER && theta <= MELEE_ATTACK_OFFSET_UPPER) {
+        registry->get_system<DamageSystem>()->deal_damage(target, DAMAGE);
+      }
     }
   }
 }

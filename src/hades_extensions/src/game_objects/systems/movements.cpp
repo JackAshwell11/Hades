@@ -97,7 +97,7 @@ void SteeringMovementSystem::update(const double /*delta_time*/) const {
        get_registry()->find_components<SteeringMovement, KinematicComponent>()) {
     // Unpack the components and check if the target game object exists
     const auto [steering_movement, kinematic_owner] = component_tuple;
-    if (steering_movement->target_id == -1) {
+    if (!get_registry()->has_component(steering_movement->target_id, typeid(KinematicComponent))) {
       continue;
     }
     const auto kinematic_target{get_registry()->get_component<KinematicComponent>(steering_movement->target_id)};
