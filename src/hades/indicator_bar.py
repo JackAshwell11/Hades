@@ -3,26 +3,29 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 # Pip
 from arcade import SpriteSolidColor, color
 
 # Custom
-from hades.constants import (
-    INDICATOR_BAR_BORDER_SIZE,
-    INDICATOR_BAR_DISTANCE,
-    INDICATOR_BAR_HEIGHT,
-    INDICATOR_BAR_WIDTH,
-)
+from hades_extensions.game_objects.components import Armour, Health
 
 if TYPE_CHECKING:
     from arcade import SpriteList
 
     from hades.sprite import HadesSprite
+    from hades_extensions.game_objects import ComponentBase
     from hades_extensions.game_objects.components import Stat
 
-__all__ = ("IndicatorBar", "IndicatorBarError")
+__all__ = ("INDICATOR_BAR_COMPONENTS", "IndicatorBar", "IndicatorBarError")
+
+# Constants
+INDICATOR_BAR_COMPONENTS: Final[set[type[ComponentBase]]] = {Armour, Health}
+INDICATOR_BAR_BORDER_SIZE: Final[int] = 4
+INDICATOR_BAR_DISTANCE: Final[int] = 16
+INDICATOR_BAR_HEIGHT: Final[int] = 10
+INDICATOR_BAR_WIDTH: Final[int] = 50
 
 
 class IndicatorBarError(Exception):

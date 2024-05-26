@@ -221,11 +221,6 @@ PLAYER: Final[str] = json.dumps(
             "MovementForce": [5000, 5],
             "KeyboardMovement": [],
             "Footprints": [],
-            "SteeringMovement": {
-                "Default": ["ObstacleAvoidance", "Wander"],
-                "Footprint": ["FollowPath"],
-                "Target": ["Pursue"],
-            },
         },
         "kinematic": True,
     },

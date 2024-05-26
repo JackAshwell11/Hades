@@ -24,9 +24,6 @@ class InventorySystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar().
-TEST(Tests, TestInventorySystemComponentsHasIndicatorBar) { ASSERT_FALSE(Inventory(-1, -1).has_indicator_bar()); }
-
 /// Test that a valid item is added to the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 50));

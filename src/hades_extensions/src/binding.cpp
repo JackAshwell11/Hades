@@ -143,12 +143,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       "    ValueError: If the position is negative.\n\n"
       "Returns:\n"
       "    The pixel position.");
-  pybind11::class_<ComponentBase, std::shared_ptr<ComponentBase>> component_base(game_objects, "ComponentBase",
-                                                                                 "The base class for all components.");
-  component_base.def("has_indicator_bar", &ComponentBase::has_indicator_bar,
-                     "Checks if the component can have an indicator bar or not.\n\n"
-                     "Returns:\n"
-                     "    Whether the component can have an indicator bar or not.");
+  const pybind11::class_<ComponentBase, std::shared_ptr<ComponentBase>> component_base(
+      game_objects, "ComponentBase", "The base class for all components.");
   const pybind11::class_<SystemBase, std::shared_ptr<SystemBase>> system_base(game_objects, "SystemBase",
                                                                               "The base class for all systems.");
 

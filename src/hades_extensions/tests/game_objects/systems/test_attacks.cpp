@@ -83,15 +83,6 @@ class DamageSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar().
-TEST(Tests, TestAttackSystemComponentsHasIndicatorBar) { ASSERT_FALSE(Attack{{}}.has_indicator_bar()); }
-
-/// Test that the required components return the correct value for has_indicator_bar().
-TEST(Tests, TestDamageSystemComponentsHasIndicatorBar) {
-  ASSERT_TRUE(Health(-1, -1).has_indicator_bar());
-  ASSERT_TRUE(Armour(-1, -1).has_indicator_bar());
-}
-
 /// Test that performing an area of effect attack works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
   create_attack_component({AttackAlgorithm::AreaOfEffect});
@@ -237,14 +228,21 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroArmour) {
   ASSERT_EQ(armour->get_value(), 0);
 }
 
-/// Test that damage is dealt when health is zero.
+/// Test that a game object is deleted if the damage drops the health to 0.
+TEST_F(DamageSystemFixture, TestDamageSystemDealDamageDeleteGameObject) {
+  create_health_and_armour_attributes();
+  get_damage_system()->deal_damage(0, 500);
+  ASSERT_FALSE(registry.has_component(0, typeid(Health)));
+  ASSERT_FALSE(registry.has_component(0, typeid(Armour)));
+}
+
+/// Test that a game object is deleted if the health is already 0.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
   create_health_and_armour_attributes();
-  const auto health{registry.get_component<Health>(0)};
-  health->set_value(0);
-  get_damage_system()->deal_damage(0, 50);
-  ASSERT_EQ(health->get_value(), 0);
-  ASSERT_EQ(registry.get_component<Armour>(0)->get_value(), 50);
+  registry.get_component<Health>(0)->set_value(0);
+  get_damage_system()->deal_damage(0, 0);
+  ASSERT_FALSE(registry.has_component(0, typeid(Health)));
+  ASSERT_FALSE(registry.has_component(0, typeid(Armour)));
 }
 
 /// Test that an exception is thrown if a game object does not have the required components.

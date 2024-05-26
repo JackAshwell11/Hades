@@ -46,12 +46,6 @@ class UpgradeSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar().
-TEST(Tests, TestUpgradeSystemComponentsHasIndicatorBar) {
-  ASSERT_FALSE(Upgrades{{}}.has_indicator_bar());
-  ASSERT_FALSE(TestStat(-1, -1).has_indicator_bar());
-}
-
 /// Test that a test stat is upgraded correctly if the value equals the maximum.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeValueEqualMax) {
   create_upgradeable_game_object();

@@ -127,4 +127,9 @@ void DamageSystem::deal_damage(const GameObjectID game_object_id, const int dama
   const auto armour{get_registry()->get_component<Armour>(game_object_id)};
   health->set_value(health->get_value() - std::max(damage - armour->get_value(), 0.0));
   armour->set_value(armour->get_value() - damage);
+
+  // If the health is now 0, delete the game object
+  if (health->get_value() <= 0) {
+    get_registry()->delete_game_object(game_object_id);
+  }
 }
