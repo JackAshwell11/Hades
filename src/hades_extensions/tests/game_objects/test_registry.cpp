@@ -97,6 +97,10 @@ TEST(Tests, TestGridPosToPixelNegativeXYPosition){
 
 /// Test that a game object with no components is added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
+  // Create the observer for the game object death event
+  bool called{false};
+  registry.add_observer(EventType::GameObjectDeath, [&called](const auto /*event*/) { called = true; });
+
   // Test that creating the game object works correctly
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
   ASSERT_FALSE(registry.has_component(0, typeid(TestGameObjectComponentOne)));
@@ -106,6 +110,7 @@ TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
 
   // Test that deleting the game object works correctly
   registry.delete_game_object(0);
+  ASSERT_TRUE(called);
   ASSERT_THROW_MESSAGE(registry.delete_game_object(0), RegistryError,
                        "The game object `0` is not registered with the registry.")
 }

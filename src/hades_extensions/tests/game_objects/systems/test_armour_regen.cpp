@@ -28,12 +28,6 @@ class ArmourRegenSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar().
-TEST(Tests, TestArmourRegenSystemComponentsHasIndicatorBar) {
-  ASSERT_TRUE(Armour(-1, -1).has_indicator_bar());
-  ASSERT_FALSE(ArmourRegen(-1, -1).has_indicator_bar());
-}
-
 /// Test that the armour regen component is updated correctly when armour is full.
 TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateFullArmour) {
   get_armour_regen_system()->update(5);

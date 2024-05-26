@@ -29,11 +29,6 @@ class PhysicsSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
-/// Test that the required components return the correct value for has_indicator_bar().
-TEST(Tests, TestPhysicsSystemComponentsHasIndicatorBar) {
-  ASSERT_FALSE(KinematicComponent(std::vector<cpVect>{}).has_indicator_bar());
-}
-
 /// Test updating the physics system with a game object that has no velocity and no force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityNoForce) {
   get_physics_system()->update(1.0);

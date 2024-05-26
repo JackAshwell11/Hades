@@ -92,17 +92,23 @@ void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameOb
 
     // Deal damage to the first shape if it is an entity
     if (static_cast<GameObjectType>(cpShapeGetCollisionType(shape1)) != GameObjectType::Wall) {
-      registry->get_system<DamageSystem>()->deal_damage(registry->shapes_[shape1], DAMAGE);
+      cpSpaceAddPostStepCallback(
+          registry->get_space(),
+          [](cpSpace * /*space*/, void *shape, void *registry_ptr) {
+            auto *reg{static_cast<Registry *>(registry_ptr)};
+            reg->get_system<DamageSystem>()->deal_damage(reg->shapes_[static_cast<cpShape *>(shape)], DAMAGE);
+          },
+          shape1, registry);
     }
 
     // Register the post step callback to delete the bullet
     cpSpaceAddPostStepCallback(
         registry->get_space(),
-        [](cpSpace * /*space*/, void *key, void *bullet) {
-          auto *reg{static_cast<Registry *>(key)};
+        [](cpSpace * /*space*/, void *bullet, void *registry_ptr) {
+          auto *reg{static_cast<Registry *>(registry_ptr)};
           reg->delete_game_object(reg->shapes_[static_cast<cpShape *>(bullet)]);
         },
-        registry, shape2);
+        shape2, registry);
     return cpFalse;
   };
 }

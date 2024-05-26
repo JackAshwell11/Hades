@@ -4,18 +4,71 @@ from __future__ import annotations
 
 # Builtin
 import logging.config
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Final
 
 # Pip
 import arcade
 
 # Custom
-from hades.constants import GAME_LOGGER, LOGGING_DICT_CONFIG
 from hades.views.start_menu import StartMenu
 
 __all__ = ("Window",)
 
+# Constants
+GAME_LOGGER: Final[str] = "hades"
+
+# Create the log directory making sure it exists. Then create the path for the current
+# log file
+log_dir = Path(__file__).resolve().parent.parent / "logs"
+log_dir.mkdir(parents=True, exist_ok=True)
+
 # Initialise logging and get the game logger
-logging.config.dictConfig(LOGGING_DICT_CONFIG)
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "format": (
+                    "[%(asctime)s %(levelname)s] [%(filename)s:%(funcName)s():%(lineno)"
+                    "d] - %(message)s"
+                ),
+            },
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "DEBUG",
+                "formatter": "default",
+                "stream": "ext://sys.stdout",
+            },
+            "file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "level": "DEBUG",
+                "formatter": "default",
+                "filename": log_dir.joinpath(
+                    f"{datetime.now(tz=timezone.utc).strftime('%Y-%m-%d')}.log",
+                ),
+                "maxBytes": 5242880,  # 5MB
+                "backupCount": 5,
+            },
+        },
+        "loggers": {
+            "": {
+                "level": "WARNING",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            GAME_LOGGER: {
+                "level": "DEBUG",
+                "handlers": ["file"],
+                "propagate": False,
+            },
+        },
+    },
+)
 logger = logging.getLogger(GAME_LOGGER)
 
 
