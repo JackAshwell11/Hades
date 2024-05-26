@@ -4,7 +4,6 @@
 #include <pybind11/stl.h>
 
 // Local headers
-#include "game_objects/stats.hpp"
 #include "game_objects/systems/armour_regen.hpp"
 #include "game_objects/systems/attacks.hpp"
 #include "game_objects/systems/effects.hpp"

@@ -2,7 +2,7 @@
 #pragma once
 
 // Local headers
-#include "game_objects/registry.hpp"
+#include "game_objects/types.hpp"
 
 // ----- COMPONENTS ------------------------------
 /// Represents a component that has a variable value and maximum value.

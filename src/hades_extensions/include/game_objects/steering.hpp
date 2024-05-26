@@ -2,13 +2,10 @@
 #pragma once
 
 // Std headers
-#include <unordered_set>
+#include <vector>
 
 // External headers
 #include <chipmunk/chipmunk.h>
-
-// Local headers
-#include "hash_combine.hpp"
 
 // ----- CONSTANTS ------------------------------
 constexpr double SPRITE_SCALE{0.5};
@@ -24,17 +21,6 @@ inline auto operator+=(cpVect &lhs, const cpVect &rhs) -> cpVect {
   lhs.y += rhs.y;
   return lhs;
 }
-
-// ----- HASHES ------------------------------
-template <>
-struct std::hash<cpVect> {
-  auto operator()(const cpVect &vec) const noexcept -> size_t {
-    size_t res{0};
-    hash_combine(res, vec.x);
-    hash_combine(res, vec.y);
-    return res;
-  }
-};
 
 // ----- FUNCTIONS ------------------------------
 /// Allow a game object to move towards another game object and stand still.

@@ -2,10 +2,10 @@
 #pragma once
 
 // Std headers
-#include <cstdint>
+#include <typeindex>
 
 // Local headers
-#include "game_objects/registry.hpp"
+#include "game_objects/types.hpp"
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of status effects available.
@@ -30,10 +30,10 @@ struct Effect {
   std::type_index target_component;
 
   /// Tracks the time the status effect has been applied for.
-  double time_counter{0};
+  double time_counter{0.0};
 
   /// Tracks the time left over from the last interval.
-  double leftover_time{0};
+  double leftover_time{0.0};
 
   /// Initialise the object.
   ///

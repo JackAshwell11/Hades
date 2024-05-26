@@ -3,6 +3,10 @@
 
 // Std headers
 #include <queue>
+#include <unordered_map>
+
+// Local headers
+#include "generation/primitives.hpp"
 
 // ----- STRUCTURES ------------------------------
 /// Represents a grid position and its distance from the start position.

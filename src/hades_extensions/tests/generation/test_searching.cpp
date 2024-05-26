@@ -1,4 +1,5 @@
 // Local headers
+#include "generation/primitives.hpp"
 #include "generation/searching.hpp"
 #include "macros.hpp"
 

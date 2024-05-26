@@ -1,8 +1,11 @@
 // Ensure this file is only included once
 #pragma once
 
+// Std headers
+#include <typeindex>
+
 // Local headers
-#include "game_objects/registry.hpp"
+#include "game_objects/types.hpp"
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to record the amount of money it has.

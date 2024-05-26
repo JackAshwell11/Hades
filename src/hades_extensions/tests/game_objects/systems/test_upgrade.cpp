@@ -1,4 +1,5 @@
 // Local headers
+#include "game_objects/registry.hpp"
 #include "game_objects/stats.hpp"
 #include "game_objects/systems/upgrade.hpp"
 #include "macros.hpp"

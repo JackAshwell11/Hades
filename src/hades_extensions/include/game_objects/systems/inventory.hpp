@@ -2,7 +2,7 @@
 #pragma once
 
 // Local headers
-#include "game_objects/registry.hpp"
+#include "game_objects/types.hpp"
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to have a fixed size inventory.

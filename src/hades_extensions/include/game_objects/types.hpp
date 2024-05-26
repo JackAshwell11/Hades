@@ -2,7 +2,16 @@
 #pragma once
 
 // Std headers
+#include <functional>
 #include <memory>
+
+// ----- FORWARD DECLARATIONS ------------------------------
+class Registry;
+
+// ----- TYPEDEFS ------------------------------
+// Represents unique identifiers for game objects
+using GameObjectID = int;
+using ActionFunction = std::function<double(int)>;
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of game objects available.
@@ -22,9 +31,6 @@ enum class EventType : std::uint8_t {
 };
 
 // ----- BASE TYPES ------------------------------
-// Add a forward declaration for the registry class
-class Registry;
-
 /// The base class for all components.
 struct ComponentBase {
   /// The copy assignment operator.

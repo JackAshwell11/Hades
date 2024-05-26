@@ -2,6 +2,7 @@
 #include "game_objects/systems/upgrade.hpp"
 
 // Local headers
+#include "game_objects/registry.hpp"
 #include "game_objects/stats.hpp"
 
 // ----- FUNCTIONS ------------------------------

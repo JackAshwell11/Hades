@@ -2,11 +2,13 @@
 #pragma once
 
 // Std headers
-#include <cstdint>
 #include <deque>
 
+// External headers
+#include <chipmunk/chipmunk.h>
+
 // Local headers
-#include "game_objects/registry.hpp"
+#include "game_objects/types.hpp"
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of steering behaviours available.

@@ -1,10 +1,6 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std headers
-#include <cstdint>
-#include <optional>
-
 // Local headers
 #include "game_objects/registry.hpp"
 
