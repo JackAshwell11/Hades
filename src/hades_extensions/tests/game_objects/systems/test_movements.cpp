@@ -250,8 +250,8 @@ TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateIncomplete
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
 }
 
-/// Test that a game object is not updated if the target ID is not set
-TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateNoTargetId) {
+/// Test that a game object is not updated if the target ID is invalid.
+TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateInvalidTargetId) {
   create_steering_movement_component({});
   registry.get_component<SteeringMovement>(1)->target_id = -1;
   get_steering_movement_system()->update(0);

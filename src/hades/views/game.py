@@ -109,7 +109,6 @@ class Game(arcade.View):
 
         # Add all the indicator bars to the game
         indicator_bar_offset = 0
-        # TODO: Can we move indicator bar initialisation to HadesSprite?
         for component in constructor.components:
             if type(component) in INDICATOR_BAR_COMPONENTS and isinstance(
                 component,
@@ -368,8 +367,6 @@ class Game(arcade.View):
         )
         player_x, player_y = kinematic_component.get_position()
 
-        # TODO: This doesn't seem to be correct for the melee attack. Atan2 is returning
-        #  a mirrored result
         # Transform the mouse from window space to world space using the camera position
         # then set the player's rotation
         kinematic_component.set_rotation(
