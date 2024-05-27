@@ -8,7 +8,6 @@ updates:
         patterns:
           - "*"  # Update all dependencies
     labels:
-      - "priority: medium"
       - "type: dependency"
       - "status: pending"
     schedule:
@@ -20,7 +19,6 @@ updates:
         patterns:
           - "*"  # Update all dependencies
     labels:
-      - "priority: medium"
       - "type: dependency"
       - "status: pending"
     schedule:

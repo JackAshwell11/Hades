@@ -50,6 +50,7 @@ endif ()
 # Add the subdirectories for the different parts of the project
 add_subdirectory(src)
 if (DO_TESTS)
+    message(STATUS "Tests enabled (DO_TESTS is set)")
     add_subdirectory(tests)
 else ()
     message(STATUS "Tests disabled (DO_TESTS is not set)")

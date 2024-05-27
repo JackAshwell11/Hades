@@ -19,6 +19,7 @@ target_link_libraries(${CPP_LIB} PUBLIC unofficial::chipmunk::chipmunk)
 
 # Create the Python module
 if (DO_PYTHON)
+    message(STATUS "Python bindings enabled (DO_PYTHON is set)")
     pybind11_add_module(${PY_MODULE} ${CMAKE_SOURCE_DIR}/src/binding.cpp)
     target_link_libraries(${PY_MODULE} PRIVATE ${CPP_LIB})
 else ()
