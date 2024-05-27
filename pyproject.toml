@@ -14,7 +14,7 @@ repository = "https://github.com/Aspect1103/Hades"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-arcade = "3.0.0.dev27"
+arcade = "3.0.0.dev28"
 
 [tool.poetry.dev-dependencies]
 black = "24.4.2"
@@ -29,7 +29,7 @@ pytest-icdiff = "0.9"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.15.0"
 pytest-sugar = "1.0.0"
-ruff = "0.4.4"
+ruff = "0.4.5"
 ssort = "v0.13.0"
 tox = "4.15.0"
 
