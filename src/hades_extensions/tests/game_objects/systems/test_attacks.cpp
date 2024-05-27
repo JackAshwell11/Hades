@@ -6,6 +6,7 @@
 
 // Local headers
 #include "game_objects/systems/attacks.hpp"
+#include "game_objects/systems/movements.hpp"
 #include "game_objects/systems/physics.hpp"
 #include "macros.hpp"
 
@@ -44,10 +45,16 @@ class AttackSystemFixture : public testing::Test {
   /// Create an attack component for a game object.
   ///
   /// @param enabled_attacks - The attacks to include in the component.
-  void create_attack_component(const std::vector<AttackAlgorithm> &&enabled_attacks) {
-    const int game_object_id{registry.create_game_object(
-        GameObjectType::Player, cpvzero,
-        {std::make_shared<Attack>(enabled_attacks), std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
+  /// @param steering_movement - Whether the game object has a steering movement component or not.
+  void create_attack_component(const std::vector<AttackAlgorithm> &&enabled_attacks,
+                               const bool steering_movement = false) {
+    std::vector<std::shared_ptr<ComponentBase>> components{std::make_shared<Attack>(enabled_attacks),
+                                                           std::make_shared<KinematicComponent>(std::vector<cpVect>{})};
+    if (steering_movement) {
+      components.push_back(std::make_shared<SteeringMovement>(
+          std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{}));
+    }
+    const int game_object_id{registry.create_game_object(GameObjectType::Player, cpvzero, std::move(components))};
     registry.get_component<KinematicComponent>(game_object_id)->rotation = -std::numbers::pi / 2;
   }
 
@@ -83,6 +90,51 @@ class DamageSystemFixture : public testing::Test {
 };
 
 // ----- TESTS ----------------------------------
+/// Test that the attack component is updated correctly with a zero deltatime.
+TEST_F(AttackSystemFixture, TestAttackSystemUpdateZeroDeltaTime) {
+  create_attack_component({AttackAlgorithm::Ranged});
+  get_attack_system()->update(0);
+  ASSERT_EQ(registry.get_component<Attack>(8)->time_since_last_attack, 0);
+}
+
+/// Test that the attack component is updated correctly with a non-zero deltatime.
+TEST_F(AttackSystemFixture, TestAttackSystemUpdateNonZeroDeltaTime) {
+  create_attack_component({AttackAlgorithm::Ranged});
+  get_attack_system()->update(5);
+  ASSERT_EQ(registry.get_component<Attack>(8)->time_since_last_attack, 5);
+}
+
+/// Test that the attack system does not do an automated attack if the cooldown is not up.
+TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementZeroDeltaTime) {
+  bool bullet_created{false};
+  auto bullet_creation_observer{[&](const GameObjectID /*game_object_id*/) { bullet_created = true; }};
+  registry.add_observer(EventType::BulletCreation, bullet_creation_observer);
+  create_attack_component({AttackAlgorithm::Ranged}, true);
+  get_attack_system()->update(0);
+  ASSERT_FALSE(bullet_created);
+}
+
+/// Test that the attack system does not do an automated attack if the steering movement is not in the target state.
+TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementNotTarget) {
+  bool bullet_created{false};
+  auto bullet_creation_observer{[&](const GameObjectID /*game_object_id*/) { bullet_created = true; }};
+  registry.add_observer(EventType::BulletCreation, bullet_creation_observer);
+  create_attack_component({AttackAlgorithm::Ranged}, true);
+  get_attack_system()->update(5);
+  ASSERT_FALSE(bullet_created);
+}
+
+/// Test that the attack system does an automated attack correctly.
+TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
+  bool bullet_created{false};
+  auto bullet_creation_observer{[&](const GameObjectID /*game_object_id*/) { bullet_created = true; }};
+  registry.add_observer(EventType::BulletCreation, bullet_creation_observer);
+  create_attack_component({AttackAlgorithm::Ranged}, true);
+  registry.get_component<SteeringMovement>(8)->movement_state = SteeringMovementState::Target;
+  get_attack_system()->update(5);
+  ASSERT_TRUE(bullet_created);
+}
+
 /// Test that performing an area of effect attack works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
   create_attack_component({AttackAlgorithm::AreaOfEffect});
