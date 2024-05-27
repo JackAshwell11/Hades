@@ -67,7 +67,7 @@ TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateMultipleUpdates) {
 }
 
 /// Test that the armour regen component is not updated if the game object does not have the required components.
-TEST_F(ArmourRegenSystemFixture, TestSteeringMovementSystemUpdateIncompleteComponents) {
+TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateNoArmourRegen) {
   registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<Armour>(100, -1)});
   registry.get_component<Armour>(1)->set_value(50);
   get_armour_regen_system()->update(5);
