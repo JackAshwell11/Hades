@@ -13,12 +13,13 @@ homepage = "https://github.com/Aspect1103/Hades"
 repository = "https://github.com/Aspect1103/Hades"
 
 [tool.poetry.dependencies]
-python = "^3.11"
 arcade = "3.0.0.dev28"
+python = "^3.11"
 
 [tool.poetry.dev-dependencies]
 black = "24.4.2"
 mypy = "1.10.0"
+nox = "2024.4.15"
 nuitka = "2.2.3"
 ordered-set = "4.1.0"
 pre-commit = "3.7.1"
@@ -31,7 +32,6 @@ pytest-randomly = "3.15.0"
 pytest-sugar = "1.0.0"
 ruff = "0.4.5"
 ssort = "v0.13.0"
-tox = "4.15.0"
 
 [tool.black]
 preview = true
@@ -40,8 +40,8 @@ target_version = ["py312"]
 [tool.coverage.paths]
 source = [
     "src",  # Run coverage on the entire project
-    ".tox/*/Lib/site-packages",  # Make sure the project is being covered on Windows
-    ".tox/*/lib/*/site-packages",  # Make sure the project is being covered on Linux
+    ".nox/*/Lib/site-packages",  # Make sure the project is being covered on Windows
+    ".nox/*/lib/*/site-packages",  # Make sure the project is being covered on Linux
 ]
 
 [tool.coverage.report]
@@ -181,32 +181,3 @@ select = ["ALL"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist = clean, py311, py312, report
-
-[gh-actions]
-python =
-    3.11: clean, py311, report
-    3.12: clean, py312, report
-
-[testenv]
-commands =
-    python -m build --cpp
-    pytest --cov-append
-deps =
-    pytest-cov
-    setuptools
-    wheel
-passenv = *
-
-[testenv:clean]
-commands = coverage erase
-deps = pytest-cov
-
-[testenv:report]
-commands = coverage lcov
-deps = pytest-cov
-"""
