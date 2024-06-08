@@ -16,6 +16,7 @@ from arcade.camera.camera_2d import Camera2D
 from hades.constructors import ENEMY, FLOOR, PLAYER, POTION, WALL, create_constructor
 from hades.indicator_bar import INDICATOR_BAR_COMPONENTS, IndicatorBar
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
+from hades.views.player import PlayerView
 from hades_extensions.game_objects import (
     SPRITE_SIZE,
     EventType,
@@ -196,9 +197,21 @@ class Game(arcade.View):
                 )
                 self.possible_enemy_spawns.append(position)
 
+        # Create the required views for the game
+        inventory_view = PlayerView(
+            self.registry,
+            self.player.game_object_id,
+            self.item_sprites,
+        )
+        self.window.views["InventoryView"] = inventory_view
+
         # Add the observers to the registry
         self.registry.add_observer(EventType.BulletCreation, self.on_bullet_creation)
         self.registry.add_observer(EventType.GameObjectDeath, self.on_game_object_death)
+        self.registry.add_observer(
+            EventType.InventoryUpdate,
+            inventory_view.on_update_inventory,
+        )
 
         # Generate half of the total enemies allowed to then schedule their generation
         for _ in range(TOTAL_ENEMY_COUNT // 2):
@@ -325,6 +338,8 @@ class Game(arcade.View):
                 self.registry.get_system(AttackSystem).next_attack(
                     self.player.game_object_id,
                 )
+            case arcade.key.I:
+                self.window.show_view(self.window.views["InventoryView"])
 
     def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
         """Process mouse button functionality.

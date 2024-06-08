@@ -11,6 +11,7 @@ auto InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, c
     throw std::runtime_error("The inventory is full.");
   }
   inventory->items.push_back(item);
+  get_registry()->notify_observers(EventType::InventoryUpdate, game_object_id);
   return true;
 }
 
@@ -21,5 +22,6 @@ auto InventorySystem::remove_item_from_inventory(const GameObjectID game_object_
   }
   const int item{inventory->items[index]};
   inventory->items.erase(inventory->items.begin() + index);
+  get_registry()->notify_observers(EventType::InventoryUpdate, game_object_id);
   return item;
 }

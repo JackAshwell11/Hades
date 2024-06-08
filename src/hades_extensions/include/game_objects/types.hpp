@@ -28,6 +28,7 @@ enum class GameObjectType : std::uint8_t {
 enum class EventType : std::uint8_t {
   BulletCreation,
   GameObjectDeath,
+  InventoryUpdate,
 };
 
 // ----- BASE TYPES ------------------------------
