@@ -206,7 +206,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Target", SteeringMovementState::Target);
   pybind11::enum_<EventType>(game_objects, "EventType", "Stores the different types of events that can occur.")
       .value("BulletCreation", EventType::BulletCreation)
-      .value("GameObjectDeath", EventType::GameObjectDeath);
+      .value("GameObjectDeath", EventType::GameObjectDeath)
+      .value("InventoryUpdate", EventType::InventoryUpdate);
 
   // Add the registry class
   register_exception<RegistryError>(game_objects, "RegistryError");
