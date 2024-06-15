@@ -101,12 +101,7 @@ class Game(arcade.View):
 
         # Create a sprite and add its ID to the dictionary
         sprite_class = AnimatedSprite if len(constructor.textures) > 1 else HadesSprite
-        sprite = sprite_class(
-            self.registry,
-            (game_object_id, constructor.game_object_type),
-            position,
-            constructor.textures,
-        )
+        sprite = sprite_class(self.registry, game_object_id, position, constructor)
 
         # Add all the indicator bars to the game
         indicator_bar_offset = 0

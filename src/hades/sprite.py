@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
+# Builtin
+from typing import TYPE_CHECKING
+
 # Pip
 from arcade import (
     BasicSprite,
     Texture,
-    color,
-    make_soft_square_texture,
 )
 
 # Custom
+from hades.constructors import BULLET, create_constructor
 from hades_extensions.game_objects import (
     SPRITE_SCALE,
     GameObjectType,
@@ -20,6 +22,9 @@ from hades_extensions.game_objects import (
 )
 from hades_extensions.game_objects.components import KinematicComponent
 
+if TYPE_CHECKING:
+    from hades.constructors import GameObjectConstructor
+
 __all__ = (
     "AnimatedSprite",
     "Bullet",
@@ -28,38 +33,61 @@ __all__ = (
 
 
 class HadesSprite(BasicSprite):
-    """Represents a sprite object in the game.
+    """Represents a sprite object in the game."""
 
-    Attributes:
-        game_object_id: The game object's ID.
-        game_object_type: The game object's type.
-    """
-
-    __slots__ = ("game_object_id", "game_object_type", "registry")
+    __slots__ = ("constructor", "game_object_id", "registry")
 
     def __init__(
         self: HadesSprite,
         registry: Registry,
-        game_object: tuple[int, GameObjectType],
+        game_object_id: int,
         position: Vec2d,
-        sprite_textures: list[Texture],
+        constructor: GameObjectConstructor,
     ) -> None:
         """Initialise the object.
 
         Args:
             registry: The registry that manages the game objects, components, and
-            systems.
-            game_object: The game object's ID and type.
+                systems.
+            game_object_id: The game object's ID.
             position: The position of the sprite object in the grid.
-            sprite_textures: The sprites' texture paths.
+            constructor: The game object's constructor.
         """
         super().__init__(
-            sprite_textures[0],
+            constructor.textures[0],
             SPRITE_SCALE,
             *grid_pos_to_pixel(position),
         )
-        self.game_object_id, self.game_object_type = game_object
         self.registry: Registry = registry
+        self.game_object_id: int = game_object_id
+        self.constructor: GameObjectConstructor = constructor
+
+    @property
+    def game_object_type(self: HadesSprite) -> GameObjectType:
+        """Return the game object's type.
+
+        Returns:
+            The game object's type.
+        """
+        return self.constructor.game_object_type
+
+    @property
+    def name(self: HadesSprite) -> str:
+        """Return the game object's name.
+
+        Returns:
+            The game object's name.
+        """
+        return self.constructor.name
+
+    @property
+    def description(self: HadesSprite) -> str:
+        """Return the game object's description.
+
+        Returns:
+            The game object's description.
+        """
+        return self.constructor.description
 
     def update(self: HadesSprite) -> None:
         """Update the sprite object."""
@@ -88,14 +116,14 @@ class Bullet(HadesSprite):
 
         Args:
             registry: The registry that manages the game objects, components, and
-            systems.
+                systems.
             game_object_id: The game object's ID.
         """
         super().__init__(
             registry,
-            (game_object_id, GameObjectType.Bullet),
+            game_object_id,
             Vec2d(0, 0),
-            [make_soft_square_texture(64, color.RED)],
+            create_constructor(BULLET),
         )
 
     def __repr__(self: Bullet) -> str:  # pragma: no cover
@@ -122,22 +150,22 @@ class AnimatedSprite(HadesSprite):
     def __init__(
         self: AnimatedSprite,
         registry: Registry,
-        game_object: tuple[int, GameObjectType],
+        game_object_id: int,
         position: Vec2d,
-        textures: list[Texture],
+        constructor: GameObjectConstructor,
     ) -> None:
         """Initialise the object.
 
         Args:
             registry: The registry that manages the game objects, components, and
-            systems.
-            game_object: The game object's ID and type.
+                systems.
+            game_object_id: The game object's ID.
             position: The position of the sprite object in the grid.
-            textures: The sprite's texture paths.
+            constructor: The game object's constructor.
         """
-        super().__init__(registry, game_object, position, textures)
+        super().__init__(registry, game_object_id, position, constructor)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
-            (texture, texture.flip_left_right()) for texture in textures
+            (texture, texture.flip_left_right()) for texture in constructor.textures
         ]
 
     def __repr__(self: AnimatedSprite) -> str:  # pragma: no cover

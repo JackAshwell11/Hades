@@ -183,6 +183,21 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
   ASSERT_TRUE(bullet_created);
 }
 
+/// Test that performing an attack with no attack algorithms doesn't work.
+TEST_F(AttackSystemFixture, TestAttackSystemDoAttackEmptyAttacks) {
+  create_attack_component({});
+  get_attack_system()->update(5);
+  get_attack_system()->do_attack(8, targets);
+  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 50);
+}
+
 /// Test that performing an attack before the cooldown is up doesn't work.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackCooldown) {
   create_attack_component({AttackAlgorithm::Ranged});

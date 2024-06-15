@@ -94,6 +94,11 @@ void AttackSystem::do_attack(const GameObjectID game_object_id, const std::vecto
     return;
   }
 
+  // Check if the game object has any attacks to perform
+  if (attack->attack_state >= static_cast<int>(attack->attack_algorithms.size())) {
+    return;
+  }
+
   // Perform the selected attack on the targets
   attack->time_since_last_attack = 0;
   const auto kinematic_component{get_registry()->get_component<KinematicComponent>(game_object_id)};
