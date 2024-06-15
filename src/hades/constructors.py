@@ -4,7 +4,6 @@ from __future__ import annotations
 
 # Builtin
 import json
-from pathlib import Path
 from typing import TYPE_CHECKING, Final, NamedTuple
 
 # Pip
@@ -41,6 +40,7 @@ if TYPE_CHECKING:
     from hades_extensions.game_objects import ComponentBase
 
 __all__ = (
+    "BULLET",
     "ENEMY",
     "FLOOR",
     "PLAYER",
@@ -50,19 +50,20 @@ __all__ = (
     "create_constructor",
 )
 
-# Create the texture path
-texture_path = Path(__file__).resolve().parent / "resources" / "textures"
-
 
 class GameObjectConstructor(NamedTuple):
     """Represents a constructor for a game object.
 
     Args:
+        name: The game object's name.
+        description: The game object's description.
         game_object_type: The game object's type.
         textures: The game object's texture.
         components: The game object's components.
     """
 
+    name: str
+    description: str
     game_object_type: GameObjectType
     textures: list[Texture]
     components: ClassVar[list[ComponentBase]]
@@ -164,7 +165,7 @@ def create_constructor(game_object_json: str) -> GameObjectConstructor:
     static = game_object_data.get("static", False)
 
     # Load the textures and create the components
-    textures = [load_texture(texture_path.joinpath(path)) for path in texture_paths]
+    textures = [load_texture(f":resources:{path}") for path in texture_paths]
     components = [
         (
             CONVERSION_MAPPING[component_name](component_args)
@@ -187,12 +188,20 @@ def create_constructor(game_object_json: str) -> GameObjectConstructor:
         )
     elif static:
         components.append(KinematicComponent(is_static=True))
-    return GameObjectConstructor(game_object_type, textures, components)
+    return GameObjectConstructor(
+        game_object_data["name"],
+        game_object_data["description"],
+        game_object_type,
+        textures,
+        components,
+    )
 
 
 # Static tiles
 WALL: Final[str] = json.dumps(
     {
+        "name": "Wall",
+        "description": "A wall that blocks movement.",
         "game_object_type": "Wall",
         "texture_paths": ["wall.png"],
         "static": True,
@@ -201,6 +210,8 @@ WALL: Final[str] = json.dumps(
 
 FLOOR: Final[str] = json.dumps(
     {
+        "name": "Floor",
+        "description": "A floor that allows movement.",
         "game_object_type": "Floor",
         "texture_paths": ["floor.png"],
     },
@@ -209,6 +220,8 @@ FLOOR: Final[str] = json.dumps(
 # Entities
 PLAYER: Final[str] = json.dumps(
     {
+        "name": "Player",
+        "description": "The player character.",
         "game_object_type": "Player",
         "texture_paths": ["player_idle.png"],
         "components": {
@@ -228,6 +241,8 @@ PLAYER: Final[str] = json.dumps(
 
 ENEMY: Final[str] = json.dumps(
     {
+        "name": "Enemy",
+        "description": "An enemy character.",
         "game_object_type": "Enemy",
         "texture_paths": ["enemy_idle.png"],
         "components": {
@@ -250,12 +265,24 @@ ENEMY: Final[str] = json.dumps(
 # Items
 POTION: Final[str] = json.dumps(
     {
-        "game_object_type": "Potion",
         "name": "Health Potion",
+        "description": "A potion that restores health.",
+        "game_object_type": "Potion",
         "texture_paths": ["health_potion.png"],
         "components": {
             "EffectApplier": [{}, {}],
         },
+    },
+)
+
+# Other
+BULLET: Final[str] = json.dumps(
+    {
+        "name": "Bullet",
+        "description": "A bullet.",
+        "game_object_type": "Bullet",
+        "texture_paths": ["bullet.png"],
+        "components": {},
     },
 )
 

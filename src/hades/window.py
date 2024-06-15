@@ -18,6 +18,7 @@ __all__ = ("Window",)
 
 # Constants
 GAME_LOGGER: Final[str] = "hades"
+TEXTURE_PATH: Final[Path] = Path(__file__).resolve().parent / "resources" / "textures"
 
 # Create the log directory making sure it exists. Then create the path for the current
 # log file
@@ -83,6 +84,7 @@ class Window(arcade.Window):
         """Initialise the object."""
         super().__init__()
         self.views: dict[str, arcade.View] = {}
+        arcade.resources.add_resource_handle("resources", TEXTURE_PATH)
 
     def __repr__(self: Window) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.

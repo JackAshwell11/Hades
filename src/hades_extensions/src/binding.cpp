@@ -154,8 +154,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Args:\n"
            "    x: The x value of the vector.\n"
            "    y: The y value of the vector.")
-      .def_readwrite("x", &cpVect::x)
-      .def_readwrite("y", &cpVect::y)
+      .def_readonly("x", &cpVect::x)
+      .def_readonly("y", &cpVect::y)
       .def(
           // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           "__iter__", [](const cpVect &vec) { return pybind11::make_iterator(&vec.x, &vec.y + 1); },
@@ -425,7 +425,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def("get_capacity", &Inventory::get_capacity,
            "Get the capacity of the inventory.\n\n"
            "Returns:\n"
-           "    The capacity of the inventory.");
+           "    The capacity of the inventory.")
+      .def_readonly("items", &Inventory::items);
   pybind11::class_<KeyboardMovement, ComponentBase, std::shared_ptr<KeyboardMovement>>(
       components, "KeyboardMovement", "Allows a game object's movement to be controlled by the keyboard.")
       .def(pybind11::init<>(), "Initialise the object.")
@@ -464,7 +465,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Initialise the object.\n\n"
            "Args:\n"
            "    money: The amount of money the game object has.")
-      .def_readwrite("money", &Money::money);
+      .def_readonly("money", &Money::money);
   pybind11::class_<StatusEffectData>(components, "StatusEffectData",
                                      "Represents the data required to apply a status effect.")
       .def(pybind11::init([](const StatusEffectType status_effect_type, const pybind11::function &increase,
