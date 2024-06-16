@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from arcade import (
     BasicSprite,
     Texture,
+    load_texture,
 )
 
 # Custom
@@ -54,7 +55,7 @@ class HadesSprite(BasicSprite):
             constructor: The game object's constructor.
         """
         super().__init__(
-            constructor.textures[0],
+            load_texture(constructor.texture_paths[0]),
             SPRITE_SCALE,
             *grid_pos_to_pixel(position),
         )
@@ -165,7 +166,8 @@ class AnimatedSprite(HadesSprite):
         """
         super().__init__(registry, game_object_id, position, constructor)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
-            (texture, texture.flip_left_right()) for texture in constructor.textures
+            (load_texture(texture), load_texture(texture).flip_left_right())
+            for texture in constructor.texture_paths
         ]
 
     def __repr__(self: AnimatedSprite) -> str:  # pragma: no cover
