@@ -8,9 +8,10 @@ from pathlib import Path
 
 # Pip
 import pytest
-from arcade import SpriteList, SpriteSolidColor, color, load_texture
+from arcade import SpriteList, SpriteSolidColor, color
 
 # Custom
+from hades.constructors import GameObjectConstructor
 from hades.indicator_bar import IndicatorBar, IndicatorBarError
 from hades.sprite import HadesSprite
 from hades_extensions.game_objects import GameObjectType, Registry, Vec2d
@@ -36,9 +37,15 @@ def sprite(registry: Registry) -> HadesSprite:
     """
     return HadesSprite(
         registry,
-        (0, GameObjectType.Player),
+        0,
         Vec2d(0, 0),
-        [load_texture(texture_path / "floor.png")],
+        GameObjectConstructor(
+            "Test",
+            "Test description",
+            GameObjectType.Player,
+            [str(texture_path / "floor.png")],
+            [],
+        ),
     )
 
 

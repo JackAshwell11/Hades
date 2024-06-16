@@ -4,7 +4,7 @@ from __future__ import annotations
 
 # Builtin
 import json
-from typing import cast
+from pathlib import Path
 
 # Pip
 import pytest
@@ -12,417 +12,279 @@ import pytest
 # Custom
 from hades.constructors import create_constructor
 from hades_extensions.game_objects import GameObjectType
-from hades_extensions.game_objects.components import (
-    Armour,
-    Attack,
-    Health,
-    SteeringMovement,
-)
-
-
-def test_create_constructor_empty() -> None:
-    """Test create_constructor() with no data."""
-    with pytest.raises(expected_exception=KeyError, match="game_object_type"):
-        create_constructor(json.dumps({}))
-
-
-def test_create_constructor_invalid_game_object_type() -> None:
-    """Test create_constructor() with an invalid game object type."""
-    with pytest.raises(expected_exception=ValueError, match="Invalid game object type"):
-        create_constructor(json.dumps({"game_object_type": "Test"}))
+from hades_extensions.game_objects.components import Attack, Stat, SteeringMovement
 
 
 def test_create_constructor_valid_game_object_type() -> None:
     """Test create_constructor() with a valid game object type."""
     constructor = create_constructor(
-        json.dumps({"game_object_type": "Player", "texture_paths": []}),
+        json.dumps(
+            {
+                "name": "Player",
+                "description": "The player",
+                "game_object_type": "Player",
+                "texture_paths": [],
+            },
+        ),
     )
     assert constructor.game_object_type == GameObjectType.Player
 
 
-def test_create_constructor_no_textures() -> None:
-    """Test create_constructor() with no textures."""
-    with pytest.raises(expected_exception=KeyError, match="texture_paths"):
-        create_constructor(json.dumps({"game_object_type": "Player"}))
-
-
-def test_create_constructor_empty_textures() -> None:
-    """Test create_constructor() with empty textures."""
-    constructor = create_constructor(
-        json.dumps({"game_object_type": "Player", "texture_paths": []}),
-    )
-    assert constructor.textures == []
-
-
-def test_create_constructor_single_texture() -> None:
-    """Test create_constructor() with a single texture."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-            },
-        ),
-    )
-    assert len(constructor.textures) == 1
-
-
-def test_create_constructor_multiple_textures() -> None:
-    """Test create_constructor() with multiple textures."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png", "wall.png"],
-            },
-        ),
-    )
-    assert len(constructor.textures) == 2
-
-
-def test_create_constructor_no_components() -> None:
-    """Test create_constructor() with no components."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-            },
-        ),
-    )
-    assert constructor.components == []
-
-
-def test_create_constructor_single_generic_component_no_args() -> None:
-    """Test create_constructor() with a single component."""
-    with pytest.raises(
-        expected_exception=TypeError,
-        match=".*incompatible constructor arguments.*",
-    ):
+def test_create_constructor_invalid_game_object_type() -> None:
+    """Test create_constructor() with an invalid game object type."""
+    with pytest.raises(expected_exception=ValueError, match="Invalid game object type"):
         create_constructor(
             json.dumps(
                 {
-                    "game_object_type": "Player",
-                    "texture_paths": ["floor.png"],
-                    "components": {"Health": []},
+                    "name": "Player",
+                    "description": "The player",
+                    "game_object_type": "Test",
                 },
             ),
         )
 
 
-def test_create_constructor_single_generic_component_args() -> None:
-    """Test create_constructor() with a single component and args."""
+@pytest.mark.parametrize(
+    ("texture_paths", "expected_length"),
+    [
+        ([], 0),
+        (["floor.png"], 1),
+        (["floor.png", "wall.png"], 2),
+    ],
+)
+def test_create_constructor_texture_paths(
+    texture_paths: list[str],
+    expected_length: int,
+) -> None:
+    """Test create_constructor() with various texture paths.
+
+    Args:
+        texture_paths: The texture paths to test with.
+        expected_length: The expected length of the texture paths.
+    """
     constructor = create_constructor(
         json.dumps(
             {
+                "name": "Player",
+                "description": "The player",
                 "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {"Health": [200, 5]},
+                "texture_paths": texture_paths,
             },
         ),
     )
-    health_component = cast(Health, constructor.components[0])
-    health_component.get_max_level()
-    assert health_component.get_value() == 200
-    assert health_component.get_max_level() == 5
+    assert len(constructor.texture_paths) == expected_length
 
 
-def test_create_constructor_multiple_generic_components() -> None:
-    """Test create_constructor() with multiple components."""
+@pytest.mark.parametrize(
+    ("generic_components", "args"),
+    [
+        ([], []),
+        (["Health"], [[200, 5]]),
+        (["Health", "Armour"], [[200, 5], [100, 10]]),
+    ],
+)
+def test_create_constructor_generic_components(
+    generic_components: list[str],
+    args: list[list[int]],
+) -> None:
+    """Test create_constructor() with generic components.
+
+    Args:
+        generic_components: The generic components to test with.
+        args: The arguments for each generic component.
+    """
     constructor = create_constructor(
         json.dumps(
             {
+                "name": "Player",
+                "description": "The player",
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {
-                    "Health": [200, 5],
-                    "Armour": [100, 10],
-                },
+                "components": dict(zip(generic_components, args)),
             },
         ),
     )
-    health_component = cast(Health, constructor.components[0])
-    armour_component = cast(Armour, constructor.components[1])
-    assert health_component.get_value() == 200
-    assert health_component.get_max_level() == 5
-    assert armour_component.get_value() == 100
+    assert len(constructor.components) == len(generic_components)
+    for index, component in enumerate(constructor.components):
+        assert isinstance(component, Stat)
+        assert component.get_value() == args[index][0]
+        assert component.get_max_level() == args[index][1]
 
 
-def test_create_constructor_attack_empty() -> None:
-    """Test create_constructor() with an attack component that is empty."""
+@pytest.mark.parametrize(
+    "attack_args",
+    [
+        ({}),
+        ({"Default": []}),
+        ({"Default": ["Ranged"]}),
+        ({"Default": ["Ranged", "Melee"]}),
+        ({"Default": ["Ranged"], "Special": ["Melee"]}),
+        ({"Test": []}),
+    ],
+)
+def test_create_constructor_attack(attack_args: dict[str, list[str]]) -> None:
+    """Test create_constructor() with various attack components.
+
+    Args:
+        attack_args: The arguments for the attack component.
+    """
     constructor = create_constructor(
         json.dumps(
             {
+                "name": "Player",
+                "description": "The player",
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {"Attack": {}},
-            },
-        ),
-    )
-    assert isinstance(constructor.components[0], Attack)
-
-
-def test_create_constructor_attack_single_state_empty() -> None:
-    """Test create_constructor() with an attack component with a single attack."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {"Attack": {"Default": []}},
-            },
-        ),
-    )
-    assert isinstance(constructor.components[0], Attack)
-
-
-def test_create_constructor_attack_single_state_single() -> None:
-    """Test create_constructor() with an attack component with a single attack."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {"Attack": {"Default": ["Ranged"]}},
-            },
-        ),
-    )
-    assert isinstance(constructor.components[0], Attack)
-
-
-def test_create_constructor_attack_single_state_multiple() -> None:
-    """Test create_constructor() with an attack component with a single attack."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {"Attack": {"Default": ["Ranged", "Melee"]}},
-            },
-        ),
-    )
-    assert isinstance(constructor.components[0], Attack)
-
-
-def test_create_constructor_attack_multiple() -> None:
-    """Test create_constructor() with an attack component with multiple attack."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {
-                    "Attack": {"Default": ["Ranged"], "Special": ["Melee"]},
-                },
+                "components": {"Attack": attack_args},
             },
         ),
     )
     assert isinstance(constructor.components[0], Attack)
 
 
-def test_create_constructor_attack_extra_state() -> None:
-    """Test create_constructor() with an attack component with an extra state."""
+@pytest.mark.parametrize(
+    "steering_movement_args",
+    [
+        ({}),
+        ({"Default": []}),
+        ({"Default": ["Wander"]}),
+        ({"Default": ["ObstacleAvoidance", "Wander"]}),
+        ({"Default": ["Wander"], "Target": ["Pursue"]}),
+    ],
+)
+def test_create_constructor_steering_movement(
+    steering_movement_args: dict[str, list[str]],
+) -> None:
+    """Test create_constructor() with various steering movement components.
+
+    Args:
+        steering_movement_args: The arguments for the steering movement component.
+    """
     constructor = create_constructor(
         json.dumps(
             {
+                "name": "Player",
+                "description": "The player",
                 "game_object_type": "Player",
                 "texture_paths": ["floor.png"],
-                "components": {"Attack": {"Test": []}},
-            },
-        ),
-    )
-
-    assert isinstance(constructor.components[0], Attack)
-
-
-def test_create_constructor_attack_invalid_attack() -> None:
-    """Test create_constructor() with an attack component with invalid data."""
-    with pytest.raises(
-        expected_exception=KeyError,
-        match="Test",
-    ):
-        create_constructor(
-            json.dumps(
-                {
-                    "game_object_type": "Player",
-                    "texture_paths": ["floor.png"],
-                    "components": {"Attack": {"Default": ["Test"]}},
-                },
-            ),
-        )
-
-
-def test_create_constructor_steering_movement_empty() -> None:
-    """Test create_constructor() with a steering movement component that is empty."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {"SteeringMovement": {}},
+                "components": {"SteeringMovement": steering_movement_args},
             },
         ),
     )
     assert isinstance(constructor.components[0], SteeringMovement)
 
 
-def test_create_constructor_steering_movement_single_state_empty() -> None:
-    """Test create_constructor() with a single state steering movement component."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {"SteeringMovement": {"Default": []}},
-            },
-        ),
-    )
-    assert isinstance(constructor.components[0], SteeringMovement)
+@pytest.mark.parametrize(
+    ("kinematic", "static"),
+    [
+        (True, False),
+        (False, True),
+        (True, True),
+    ],
+)
+def test_create_constructor_kinematic_static(*, kinematic: bool, static: bool) -> None:
+    """Test create_constructor() with various kinematic and static properties.
 
-
-def test_create_constructor_steering_movement_single_state_single() -> None:
-    """Test create_constructor() with a single state steering movement component."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {"SteeringMovement": {"Default": ["Wander"]}},
-            },
-        ),
-    )
-    assert isinstance(constructor.components[0], SteeringMovement)
-
-
-def test_create_constructor_steering_movement_single_state_multiple() -> None:
-    """Test create_constructor() with a single state steering movement component."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {
-                    "SteeringMovement": {"Default": ["ObstacleAvoidance", "Wander"]},
-                },
-            },
-        ),
-    )
-    assert isinstance(constructor.components[0], SteeringMovement)
-
-
-def test_create_constructor_steering_movement_multiple_states() -> None:
-    """Test create_constructor() with a multiple state steering movement component."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "components": {
-                    "SteeringMovement": {
-                        "Default": ["Wander"],
-                        "Target": ["Pursue"],
-                    },
-                },
-            },
-        ),
-    )
-    assert isinstance(constructor.components[0], SteeringMovement)
-
-
-def test_create_constructor_steering_movement_invalid_state() -> None:
-    """Test create_constructor() with an invalid steering movement state."""
-    with pytest.raises(
-        expected_exception=KeyError,
-        match="Test",
-    ):
-        create_constructor(
-            json.dumps(
-                {
-                    "game_object_type": "Player",
-                    "texture_paths": ["floor.png"],
-                    "components": {
-                        "SteeringMovement": {
-                            "Test": [],
-                        },
-                    },
-                },
+    Args:
+        kinematic: The kinematic property of the game object.
+        static: The static property of the game object.
+    """
+    game_object_data = {
+        "name": "Player",
+        "description": "The player",
+        "game_object_type": "Player",
+        "texture_paths": [
+            str(
+                Path(__file__).resolve().parent.parent
+                / "src"
+                / "hades"
+                / "resources"
+                / "textures"
+                / "floor.png",
             ),
-        )
-
-
-def test_create_constructor_steering_movement_invalid_behaviour() -> None:
-    """Test create_constructor() with an invalid steering movement behaviour."""
-    with pytest.raises(
-        expected_exception=KeyError,
-        match="Test",
-    ):
-        create_constructor(
-            json.dumps(
-                {
-                    "game_object_type": "Player",
-                    "texture_paths": ["floor.png"],
-                    "components": {
-                        "SteeringMovement": {
-                            "Default": ["Test"],
-                        },
-                    },
-                },
-            ),
-        )
-
-
-def test_create_constructor_invalid_component() -> None:
-    """Test create_constructor() with an invalid component."""
-    with pytest.raises(expected_exception=KeyError, match="Test"):
-        create_constructor(
-            json.dumps(
-                {
-                    "game_object_type": "Player",
-                    "texture_paths": ["floor.png"],
-                    "components": {"Test": []},
-                },
-            ),
-        )
-
-
-def test_create_constructor_kinematic() -> None:
-    """Test create_constructor() with a kinematic game object."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "kinematic": True,
-            },
-        ),
-    )
+        ],
+        "kinematic": kinematic,
+        "static": static,
+    }
+    constructor = create_constructor(json.dumps(game_object_data))
     assert constructor.components[0]
 
 
-def test_create_constructor_static() -> None:
-    """Test create_constructor() with a static game object."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "static": True,
-            },
-        ),
-    )
-    assert constructor.components[0]
+@pytest.mark.parametrize(
+    ("component_args", "expected_exception", "expected_message"),
+    [
+        ({"Test": []}, KeyError, "Test"),
+        ({"Health": []}, TypeError, ".*incompatible constructor arguments.*"),
+        ({"Attack": {"Default": ["Test"]}}, KeyError, "Test"),
+        ({"SteeringMovement": {"Test": []}}, KeyError, "Test"),
+        ({"SteeringMovement": {"Default": ["Test"]}}, KeyError, "Test"),
+    ],
+)
+def test_create_constructor_invalid_component_args(
+    component_args: dict[str, list[int] | dict[str, list[str]]],
+    expected_exception: type[Exception],
+    expected_message: str,
+) -> None:
+    """Test create_constructor() with invalid component arguments.
+
+    Args:
+        component_args: The arguments for the component.
+        expected_exception: The expected exception.
+        expected_message: The expected exception message.
+    """
+    with pytest.raises(expected_exception, match=expected_message):
+        create_constructor(
+            json.dumps(
+                {
+                    "name": "Player",
+                    "description": "The player",
+                    "game_object_type": "Player",
+                    "texture_paths": ["floor.png"],
+                    "components": component_args,
+                },
+            ),
+        )
 
 
-def test_create_constructor_kinematic_and_static() -> None:
-    """Test create_constructor() with a kinematic and static game object."""
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "game_object_type": "Player",
-                "texture_paths": ["floor.png"],
-                "kinematic": True,
-                "static": True,
-            },
+@pytest.mark.parametrize(
+    ("keys_to_remove", "expected_exception", "expected_message"),
+    [
+        (["game_object_type"], KeyError, "game_object_type"),
+        (["name"], KeyError, "name"),
+        (["description"], KeyError, "description"),
+        (["texture_paths"], KeyError, "texture_paths"),
+        (
+            ["game_object_type", "name", "description", "texture_paths"],
+            KeyError,
+            "game_object_type",
         ),
-    )
-    assert constructor.components[0]
+    ],
+)
+def test_create_constructor_missing_keys(
+    keys_to_remove: list[str],
+    expected_exception: type[Exception],
+    expected_message: str,
+) -> None:
+    """Test create_constructor() with missing keys.
+
+    Args:
+        keys_to_remove: The keys to remove from the data.
+        expected_exception: The expected exception.
+        expected_message: The expected exception message.
+    """
+    data = {
+        "name": "Player",
+        "description": "The player",
+        "game_object_type": "Player",
+        "texture_paths": [],
+    }
+    with pytest.raises(expected_exception, match=expected_message):
+        create_constructor(
+            json.dumps(
+                {
+                    key: value
+                    for key, value in data.items()
+                    if key not in keys_to_remove
+                },
+            ),
+        )
