@@ -169,6 +169,10 @@ select = ["ALL"]
     "S607",  # Ignore flake8-bandit start process with a partial path rule
     "T201",  # Ignore flake8-print print rule
 ]
+"game.py" = [
+    # TODO: Remove this once event handling has been moved to C++
+    "C901",  # Ignore pylint-complexity rule for the game class
+]
 "start_menu.py" = [
     "PLR6301",  # Ignore pylint no-self-use rule for the start menu event handlers
 ]
