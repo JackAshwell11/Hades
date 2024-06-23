@@ -84,7 +84,7 @@ class Window(arcade.Window):
         super().__init__()
         self.views: dict[str, arcade.View] = {}
 
-    def __repr__(self: Window) -> str:
+    def __repr__(self: Window) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
 
         Returns:

@@ -434,7 +434,7 @@ class Game(arcade.View):
             steering_movement.target_id = self.player.game_object_id
             return
 
-    def __repr__(self: Game) -> str:
+    def __repr__(self: Game) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
 
         Returns:

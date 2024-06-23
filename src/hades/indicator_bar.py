@@ -104,3 +104,14 @@ class IndicatorBar:
             self.target_sprite.top + INDICATOR_BAR_DISTANCE + self.offset,
         )
         self.actual_bar.left = self.actual_bar.center_x - (INDICATOR_BAR_WIDTH / 2)
+
+    def __repr__(self: IndicatorBar) -> str:  # pragma: no cover
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return (
+            f"<IndicatorBar (Target sprite={self.target_sprite}) (Target"
+            f"component={self.target_component}) (Offset={self.offset})>"
+        )

@@ -68,7 +68,7 @@ class HadesSprite(BasicSprite):
             KinematicComponent,
         ).get_position()
 
-    def __repr__(self: HadesSprite) -> str:
+    def __repr__(self: HadesSprite) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
 
         Returns:
@@ -96,6 +96,17 @@ class Bullet(HadesSprite):
             (game_object_id, GameObjectType.Bullet),
             Vec2d(0, 0),
             [make_soft_square_texture(64, color.RED)],
+        )
+
+    def __repr__(self: Bullet) -> str:  # pragma: no cover
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return (
+            f"<Bullet (Game object ID={self.game_object_id}) (Current"
+            f" texture={self.texture})>"
         )
 
 
@@ -129,7 +140,7 @@ class AnimatedSprite(HadesSprite):
             (texture, texture.flip_left_right()) for texture in textures
         ]
 
-    def __repr__(self: AnimatedSprite) -> str:
+    def __repr__(self: AnimatedSprite) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
 
         Returns:
