@@ -28,7 +28,7 @@ jobs:
           setup-python-dependencies: false
       - name: Set up CMake
         if: matrix.language == 'cpp'
-        uses: lukka/get-cmake@v3.29.5
+        uses: lukka/get-cmake@v3.29.6
       - name: Build CMake
         if: matrix.language == 'cpp'
         working-directory: ${{ github.workspace }}/src/hades_extensions
