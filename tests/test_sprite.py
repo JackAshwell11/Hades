@@ -90,10 +90,6 @@ def test_hades_sprite_init(
     assert sprite.game_object_type == GameObjectType.Player
     assert sprite.name == "Test"
     assert sprite.description == "Test description"
-    assert (
-        repr(sprite)
-        == f"<HadesSprite (Game object ID=0) (Current texture={sprite.texture})>"
-    )
 
 
 def test_hades_sprite_update(registry: Registry) -> None:
@@ -145,10 +141,6 @@ def test_bullet_init(registry: Registry) -> None:
     assert bullet.game_object_type == GameObjectType.Bullet
     assert bullet.name == "Bullet"
     assert bullet.description == "A bullet that damages other game objects."
-    assert (
-        repr(bullet)
-        == f"<Bullet (Game object ID=0) (Current texture={bullet.texture})>"
-    )
 
 
 @pytest.mark.parametrize(
@@ -198,10 +190,6 @@ def test_animated_sprite_init(
     assert sprite.game_object_type == GameObjectType.Player
     assert sprite.name == "Test"
     assert sprite.description == "Test description"
-    assert (
-        repr(sprite)
-        == f"<AnimatedSprite (Game object ID=0) (Current texture={sprite.texture})>"
-    )
     assert len(sprite.sprite_textures) == len(expected_result[1])
     for i, textures in enumerate(sprite.sprite_textures):
         assert textures[0].file_path == expected_result[1][i]

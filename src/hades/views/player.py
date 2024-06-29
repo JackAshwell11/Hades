@@ -43,7 +43,12 @@ if TYPE_CHECKING:
     from hades.sprite import HadesSprite
     from hades_extensions.game_objects import Registry
 
-__all__ = ("PlayerView",)
+__all__ = (
+    "InventoryItemButton",
+    "PaginatedGridLayout",
+    "PlayerView",
+    "create_divider_line",
+)
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -55,7 +60,7 @@ BUTTON_BACKGROUND_COLOUR: Final[Color] = Color(68, 68, 68)
 TAB_SEPARATOR_COLOUR: Final[Color] = Color(128, 128, 128)
 
 
-def create_divider_line(*, vertical: bool = False) -> UIWidget:
+def create_divider_line(*, vertical: bool = False) -> UISpace:
     """Create a divider line.
 
     Args:
@@ -83,19 +88,13 @@ class InventoryItemButton(UIBoxLayout):
         "texture_button",
     )
 
-    def __init__(
-        self,
-        callback: Callable[[UIOnClickEvent], None],
-        sprite_object: HadesSprite | None = None,
-    ) -> None:
+    def __init__(self, callback: Callable[[UIOnClickEvent], None]) -> None:
         """Initialise the object.
 
         Args:
             callback: The callback to call when the button is clicked.
-            sprite_object: The sprite object to display.
         """
-        # Store the sprite object if it exists
-        self._sprite_object: HadesSprite | None = sprite_object
+        self._sprite_object: HadesSprite | None = None
 
         # The default layout which just has a black border
         self.default_layout: UISpace = UISpace(
@@ -149,6 +148,14 @@ class InventoryItemButton(UIBoxLayout):
             self._sprite_object = None
             self.remove(self.sprite_layout)
             self.add(self.default_layout)
+
+    def __repr__(self: InventoryItemButton) -> str:  # pragma: no cover
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return f"<InventoryItemButton (Sprite object={self._sprite_object})>"
 
 
 class PaginatedGridLayout(UIBoxLayout):
@@ -247,6 +254,17 @@ class PaginatedGridLayout(UIBoxLayout):
             self.current_row = new_row
             self._update_grid()
 
+    def __repr__(self: PaginatedGridLayout) -> str:  # pragma: no cover
+        """Return a human-readable representation of this object.
+
+        Returns:
+            The human-readable representation of this object.
+        """
+        return (
+            f"<PaginatedGridLayout (Total count={self.total_count}) (Current"
+            f" row={self.current_row})>"
+        )
+
 
 class PlayerView(View):
     """Creates a player view useful for managing the player and its attributes.
@@ -267,6 +285,56 @@ class PlayerView(View):
         "stats_layout",
         "ui_manager",
     )
+
+    def _make_player_attributes(self: PlayerView, root_layout: UIBoxLayout) -> None:
+        """Make the player attributes UI.
+
+        Args:
+            root_layout: The layout to add the player attributes to.
+        """
+        # Create the required layouts for this section
+        base_layout = UIBoxLayout(
+            width=get_window().width * 0.8,
+            height=get_window().height * 0.5,
+            space_between=WIDGET_SPACING,
+        )
+        upgrades_layout = UIBoxLayout(space_between=WIDGET_SPACING)
+
+        # The event handler for the button rows
+        def on_action(event: UIOnActionEvent) -> None:
+            """Handle the button row actions.
+
+            Args:
+                event: The event that occurred.
+            """
+            if event.action == "Inventory" and upgrades_layout in base_layout.children:
+                base_layout.remove(upgrades_layout)
+                base_layout.add(self.inventory_layout)
+            elif (
+                event.action == "Upgrades"
+                and self.inventory_layout in base_layout.children
+            ):
+                base_layout.remove(self.inventory_layout)
+                base_layout.add(upgrades_layout)
+
+        # Add the tab menu
+        tab_menu = UIButtonRow(space_between=WIDGET_SPACING)
+        tab_menu.on_action = on_action  # type: ignore[method-assign]
+        tab_menu.add_button("Inventory")
+        tab_menu.add_button("Upgrades")
+
+        # Add all the widgets to their respective layouts
+        upgrades_layout.add(UILabel(text="Test upgrades"))
+        base_layout.add(tab_menu)
+        base_layout.add(create_divider_line())
+        base_layout.add(self.inventory_layout)
+        root_layout.add(
+            base_layout.with_background(
+                color=PLAYER_VIEW_BACKGROUND_COLOUR,
+            ).with_padding(
+                all=WIDGET_SPACING,
+            ),
+        )
 
     def __init__(
         self: PlayerView,
@@ -320,7 +388,7 @@ class PlayerView(View):
                 color=PLAYER_VIEW_BACKGROUND_COLOUR,
             ).with_padding(all=WIDGET_SPACING),
         )
-        self.make_player_attributes(root_layout)
+        self._make_player_attributes(root_layout)
         back_button = UIFlatButton(text="Back")
         back_button.on_click = (  # type: ignore[method-assign]
             lambda _: self.window.show_view(  # type: ignore[assignment]
@@ -339,14 +407,13 @@ class PlayerView(View):
         self.clear()
 
         # Draw the background colour and the UI elements
-        if self.background_image:
-            draw_texture_rectangle(
-                self.window.width // 2,
-                self.window.height // 2,
-                self.window.width,
-                self.window.height,
-                self.background_image,
-            )
+        draw_texture_rectangle(
+            self.window.width // 2,
+            self.window.height // 2,
+            self.window.width,
+            self.window.height,
+            self.background_image,
+        )
         self.ui_manager.draw()
 
     def on_show_view(self: PlayerView) -> None:
@@ -366,56 +433,6 @@ class PlayerView(View):
                 if item_sprite.game_object_id == item:
                     inventory_item.sprite_object = item_sprite
                     break
-
-    def make_player_attributes(self: PlayerView, root_layout: UIBoxLayout) -> None:
-        """Make the player attributes UI.
-
-        Args:
-            root_layout: The layout to add the player attributes to.
-        """
-        # Create the required layouts for this section
-        base_layout = UIBoxLayout(
-            width=get_window().width * 0.8,
-            height=get_window().height * 0.5,
-            space_between=WIDGET_SPACING,
-        )
-        upgrades_layout = UIBoxLayout(space_between=WIDGET_SPACING)
-
-        # The event handler for the button rows
-        def on_action(event: UIOnActionEvent) -> None:
-            """Handle the button row actions.
-
-            Args:
-                event: The event that occurred.
-            """
-            if event.action == "Inventory" and upgrades_layout in base_layout.children:
-                base_layout.remove(upgrades_layout)
-                base_layout.add(self.inventory_layout)
-            elif (
-                event.action == "Upgrades"
-                and self.inventory_layout in base_layout.children
-            ):
-                base_layout.remove(self.inventory_layout)
-                base_layout.add(upgrades_layout)
-
-        # Add the tab menu
-        tab_menu = UIButtonRow(space_between=WIDGET_SPACING)
-        tab_menu.on_action = on_action  # type: ignore[method-assign]
-        tab_menu.add_button("Inventory")
-        tab_menu.add_button("Upgrades")
-
-        # Add all the widgets to their respective layouts
-        upgrades_layout.add(UILabel(text="Test upgrades"))
-        base_layout.add(tab_menu)
-        base_layout.add(create_divider_line())
-        base_layout.add(self.inventory_layout)
-        root_layout.add(
-            base_layout.with_background(
-                color=PLAYER_VIEW_BACKGROUND_COLOUR,
-            ).with_padding(
-                all=WIDGET_SPACING,
-            ),
-        )
 
     def update_info_view(self: PlayerView, event: UIOnClickEvent) -> None:
         """Update the info view.
@@ -439,7 +456,7 @@ class PlayerView(View):
             texture=inventory_item.sprite_object.texture,
         )
 
-    def __repr__(self: PlayerView) -> str:
+    def __repr__(self: PlayerView) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
 
         Returns:
