@@ -4,8 +4,10 @@ from __future__ import annotations
 
 # Builtin
 import os
+from pathlib import Path
 
 # Pip
+import arcade
 import pyglet
 
 __author__ = "Aspect1103"
@@ -17,3 +19,10 @@ if (
     os.getenv("GITHUB_ACTIONS") == "true" and os.getenv("RUNNER_OS") == "Linux"
 ):  # pragma: no cover
     pyglet.options["headless"] = True
+
+
+# Add the resources directory to the resource loader
+arcade.resources.add_resource_handle(
+    "resources",
+    Path(__file__).resolve().parent / "resources" / "textures",
+)
