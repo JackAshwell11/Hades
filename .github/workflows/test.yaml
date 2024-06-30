@@ -38,7 +38,7 @@ jobs:
             sudo apt-get update && sudo apt-get install libegl1
             export ARCADE_HEADLESS=1
           fi
-          pipx run nox --error-on-missing-interpreters -s tests-${{ matrix.python-version }}
+          pipx run nox --error-on-missing-interpreters --stop-on-first-error -s tests-${{ matrix.python-version }}
       - name: Upload coverage report
         uses: coverallsapp/github-action@v2.3.0
         with:
