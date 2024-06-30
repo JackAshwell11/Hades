@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry-core>=1.8.1", "setuptools>=69.0.2", "wheel>=0.42.0"]
+requires = ["poetry-core>=1.8.1"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
@@ -52,7 +52,7 @@ exclude_lines = [
     "if __name__ == .__main__.:",  # Exclude script definitions
 ]
 omit = [
-    "build.py",  # Build.py is only used for building the project
+    "noxfile.py",  # Noxfile.py is only used for running the tests and building the project
     "*/__main__.py",  # This is only used for running the game via the CLI
 ]
 precision = 2
@@ -160,27 +160,27 @@ extend-ignore = [
 select = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
-"*test_*" = [
-    "PLR2004",  # Ignore pylint-refactor magic number rule for the tests
-    "S101",  # Ignore flake8-bandit assert rule for the tests
-]
-"build.py" = [
+"noxfile.py" = [
     "S603",  # Ignore flake8-bandit subprocess with shell=True rule
     "S607",  # Ignore flake8-bandit start process with a partial path rule
     "T201",  # Ignore flake8-print print rule
 ]
-"game.py" = [
-    # TODO: Remove this once event handling has been moved to C++
-    "C901",  # Ignore pylint-complexity rule for the game class
-]
-"start_menu.py" = [
-    "PLR6301",  # Ignore pylint no-self-use rule for the start menu event handlers
+"*test_*" = [
+    "PLR2004",  # Ignore pylint-refactor magic number rule for the tests
+    "S101",  # Ignore flake8-bandit assert rule for the tests
 ]
 "hades_extensions/*.pyi" = [
     "D100",  # Ignore pydocstyle module docstring rule
     "D101",  # Ignore pydocstyle class docstring rule
     "D103",  # Ignore pydocstyle method docstring rule
     "PIE796",  # Ignore flake8-pie duplicate enum values rule
+]
+"src/hades/views/game.py" = [
+    # TODO: Remove this once event handling has been moved to C++
+    "C901",  # Ignore pylint-complexity rule for the game class
+]
+"src/hades/views/start_menu.py" = [
+    "PLR6301",  # Ignore pylint no-self-use rule for the start menu event handlers
 ]
 
 [tool.ruff.lint.pydocstyle]
