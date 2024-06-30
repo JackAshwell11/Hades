@@ -9,6 +9,9 @@ on:
 jobs:
   python:
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -26,11 +29,16 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Set up CMake
         uses: lukka/get-cmake@v3.29.6
-      - name: Install EGL on Linux for headless Arcade
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install libegl1
+      - name: Install Mesa on Windows for headless Arcade
+        if: matrix.os == 'windows-latest'
+        uses: ssciwr/setup-mesa-dist-win@v2
       - name: Run Nox
-        run: pipx run nox --error-on-missing-interpreters -s tests-${{ matrix.python-version }}
+        run: |
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            sudo apt-get update && sudo apt-get install libegl1
+            export ARCADE_HEADLESS=1
+          fi
+          pipx run nox --error-on-missing-interpreters -s tests-${{ matrix.python-version }}
       - name: Upload coverage report
         uses: coverallsapp/github-action@v2.3.0
         with:
