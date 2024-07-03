@@ -48,9 +48,8 @@ logging.config.dictConfig(
                 "class": "logging.handlers.RotatingFileHandler",
                 "level": "DEBUG",
                 "formatter": "default",
-                "filename": log_dir.joinpath(
-                    f"{datetime.now(tz=timezone.utc).strftime('%Y-%m-%d')}.log",
-                ),
+                "filename": log_dir
+                / f"{datetime.now(tz=timezone.utc).strftime('%Y-%m-%d')}.log",
                 "maxBytes": 5242880,  # 5MB
                 "backupCount": 5,
             },

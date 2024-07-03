@@ -29,7 +29,7 @@ def build_cpp_extensions(
         python_version: The version of Python to install the C++ extensions into.
     """
     # Make sure the build directory is empty
-    build_dir = Path(__file__).parent.joinpath("dist")
+    build_dir = Path(__file__).parent / "dist"
     if build_dir.exists():
         shutil.rmtree(build_dir)
 
@@ -38,7 +38,7 @@ def build_cpp_extensions(
     subprocess.run(
         [
             "cmake",
-            str(Path(__file__).parent.joinpath("src/hades_extensions")),
+            str(Path(__file__).parent / "src" / "hades_extensions"),
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE={build_dir}",
             "-DDO_TESTS=OFF",
             "--fresh",
@@ -53,12 +53,10 @@ def build_cpp_extensions(
     )
 
     # Move the compiled files to the site-packages directory
-    site_packages_dir = Path(python_path).joinpath(
-        (
-            "Lib/site-packages"
-            if os_type == "Windows"
-            else f"lib/python{python_version}/site-packages"
-        ),
+    site_packages_dir = Path(python_path) / (
+        "Lib/site-packages"
+        if os_type == "Windows"
+        else f"lib/python{python_version}/site-packages"
     )
     for file in build_dir.glob("*"):
         with suppress(shutil.Error):
@@ -89,9 +87,9 @@ def executable(executable_session: Session) -> None:
 
     # Initialise some paths
     current_dir = Path(__file__).parent
-    source_dir = current_dir.joinpath("src").joinpath("hades").joinpath("window.py")
-    output_dir = current_dir.joinpath("build")
-    dist_dir = output_dir.joinpath("window.dist")
+    source_dir = current_dir / "src" / "hades" / "window.py"
+    output_dir = current_dir / "build"
+    dist_dir = output_dir / "window.dist"
 
     # Execute the build command
     build_cpp_extensions(

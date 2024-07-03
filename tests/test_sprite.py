@@ -6,15 +6,19 @@ from __future__ import annotations
 # Builtin
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
+from unittest.mock import Mock
 
 # Pip
 import pytest
-from arcade.resources import add_resource_handle
 
 # Custom
 from hades.constructors import GameObjectConstructor, create_constructor
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
-from hades_extensions.game_objects import GameObjectType, Registry, Vec2d
+from hades_extensions.game_objects import GameObjectType, Vec2d
+
+if TYPE_CHECKING:
+    from hades_extensions.game_objects import Registry
 
 __all__ = ()
 
@@ -25,26 +29,25 @@ texture_path = (
 
 
 @pytest.fixture()
-def constructor(request: pytest.FixtureRequest) -> GameObjectConstructor:
-    """Create a game object constructor for testing.
+def mock_constructor(request: pytest.FixtureRequest) -> Mock:
+    """Create a mocked game object constructor for testing.
 
     Args:
         request: The fixture request object.
 
     Returns:
-        The game object constructor.
+        The mocked game object constructor.
     """
-    return GameObjectConstructor(
-        "Test",
-        "Test description",
-        GameObjectType.Player,
-        [texture_path / path for path in request.param],
-        [],
-    )
+    mock_constructor = Mock(spec=GameObjectConstructor)
+    mock_constructor.name = "Test"
+    mock_constructor.description = "Test description"
+    mock_constructor.game_object_type = GameObjectType.Player
+    mock_constructor.texture_paths = [f":resources:{param}" for param in request.param]
+    return mock_constructor
 
 
 @pytest.mark.parametrize(
-    ("constructor", "position", "expected_result"),
+    ("mock_constructor", "position", "expected_result"),
     [
         (
             ["floor.png"],
@@ -62,27 +65,25 @@ def constructor(request: pytest.FixtureRequest) -> GameObjectConstructor:
             [(32.0, 32.0), texture_path / "floor.png"],
         ),
     ],
-    indirect=["constructor"],
+    indirect=["mock_constructor"],
 )
 def test_hades_sprite_init(
-    registry: Registry,
-    constructor: GameObjectConstructor,
+    mock_constructor: Mock,
     position: Vec2d,
     expected_result: tuple[tuple[float, float], Path],
 ) -> None:
     """Test that a HadesSprite object is initialised correctly.
 
     Args:
-        registry: The registry that manages the game objects, components, and systems.
-        constructor: The game object constructor for testing.
+        mock_constructor: The mocked game object constructor for testing.
         position: The position of the sprite object.
         expected_result: The expected result of the test.
     """
     sprite = HadesSprite(
-        registry,
+        Mock(),
         0,
         position,
-        constructor,
+        mock_constructor,
     )
     assert sprite.position == expected_result[0]
     assert sprite.texture.file_path == expected_result[1]
@@ -105,7 +106,7 @@ def test_hades_sprite_update(registry: Registry) -> None:
                 "name": "Test",
                 "description": "Test description",
                 "game_object_type": "Player",
-                "texture_paths": [str(texture_path / "floor.png")],
+                "texture_paths": [":resources:floor.png"],
                 "kinematic": True,
             },
         ),
@@ -128,15 +129,9 @@ def test_hades_sprite_update(registry: Registry) -> None:
     assert sprite.position == (32.0, 32.0)
 
 
-def test_bullet_init(registry: Registry) -> None:
-    """Test that a Bullet object is initialised correctly.
-
-    Args:
-        registry: The registry that manages the game objects, components, and systems.
-    """
-    # The BULLET constructor relies on the resources handle, so we have to add it first
-    add_resource_handle("resources", texture_path)
-    bullet = Bullet(registry, 0)
+def test_bullet_init() -> None:
+    """Test that a Bullet object is initialised correctly."""
+    bullet = Bullet(Mock(), 0)
     assert bullet.game_object_id == 0
     assert bullet.game_object_type == GameObjectType.Bullet
     assert bullet.name == "Bullet"
@@ -144,7 +139,7 @@ def test_bullet_init(registry: Registry) -> None:
 
 
 @pytest.mark.parametrize(
-    ("constructor", "position", "expected_result"),
+    ("mock_constructor", "position", "expected_result"),
     [
         (
             ["floor.png"],
@@ -162,27 +157,25 @@ def test_bullet_init(registry: Registry) -> None:
             [(32.0, 32.0), [texture_path / "floor.png", texture_path / "wall.png"]],
         ),
     ],
-    indirect=["constructor"],
+    indirect=["mock_constructor"],
 )
 def test_animated_sprite_init(
-    registry: Registry,
-    constructor: GameObjectConstructor,
+    mock_constructor: Mock,
     position: Vec2d,
     expected_result: tuple[tuple[float, float], list[Path]],
 ) -> None:
     """Test that an AnimatedSprite object is initialised correctly.
 
     Args:
-        registry: The registry that manages the game objects, components, and systems.
-        constructor: The game object constructor for testing.
+        mock_constructor: The mocked game object constructor for testing.
         position: The position of the sprite object.
         expected_result: The expected result of the test.
     """
     sprite = AnimatedSprite(
-        registry,
+        Mock(),
         0,
         position,
-        constructor,
+        mock_constructor,
     )
     assert sprite.position == expected_result[0]
     assert sprite.texture.file_path == expected_result[1][0]
@@ -197,7 +190,7 @@ def test_animated_sprite_init(
 
 
 @pytest.mark.parametrize(
-    ("constructor", "position", "expected_result"),
+    ("mock_constructor", "position", "expected_result"),
     [
         (
             [],
@@ -215,19 +208,17 @@ def test_animated_sprite_init(
             [ValueError, "The position cannot be negative."],
         ),
     ],
-    indirect=["constructor"],
+    indirect=["mock_constructor"],
 )
 def test_hades_sprite_errors(
-    registry: Registry,
-    constructor: GameObjectConstructor,
+    mock_constructor: Mock,
     position: Vec2d,
     expected_result: tuple[type[Exception], str],
 ) -> None:
     """Test that a HadesSprite object raises the correct errors.
 
     Args:
-        registry: The registry that manages the game objects, components, and systems.
-        constructor: The game object constructor for testing.
+        mock_constructor: The mocked game object constructor for testing.
         position: The position of the sprite object.
         expected_result: The expected result of the test.
     """
@@ -235,4 +226,4 @@ def test_hades_sprite_errors(
         expected_exception=expected_result[0],
         match=expected_result[1],
     ):
-        HadesSprite(registry, 0, position, constructor)
+        HadesSprite(Mock(), 0, position, mock_constructor)

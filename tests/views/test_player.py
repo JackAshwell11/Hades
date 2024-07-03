@@ -12,20 +12,20 @@ import pytest
 from arcade.gui import UIOnActionEvent, UIOnClickEvent, UIWidget
 
 # Custom
+from hades.sprite import HadesSprite
 from hades.views.player import (
     InventoryItemButton,
     PaginatedGridLayout,
     PlayerView,
     create_divider_line,
 )
-from hades_extensions.game_objects import GameObjectType, RegistryError, Vec2d
+from hades_extensions.game_objects import GameObjectType, Registry, RegistryError, Vec2d
+from hades_extensions.game_objects.components import Inventory
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from _pytest.monkeypatch import MonkeyPatch
-
-    from hades_extensions.game_objects import Registry
 
 
 @pytest.fixture()
@@ -68,10 +68,10 @@ def player_view() -> PlayerView:
         The PlayerView object for testing.
     """
     # Make sure to set up the required mocks so the initialisation doesn't fail
-    mock_inventory = Mock()
+    mock_inventory = Mock(spec=Inventory)
     mock_inventory.get_capacity.return_value = 10
     mock_inventory.items = []
-    mock_registry = Mock()
+    mock_registry = Mock(spec=Registry)
     mock_registry.get_component.return_value = mock_inventory
     return PlayerView(mock_registry, 0, [])  # type: ignore[arg-type]
 
@@ -131,7 +131,7 @@ def test_inventory_item_button_set_sprite(
         mock_callback: The mock callback function to use for testing.
     """
     # Create a mock sprite object
-    mock_sprite_object = Mock()
+    mock_sprite_object = Mock(spec=HadesSprite)
     mock_sprite_object.texture = "test"
 
     # Test setting the sprite object changes to the sprite layout
@@ -420,7 +420,7 @@ def test_player_view_on_update_inventory(
     for item in inventory_items:
         player_view.inventory.items.append(item)
     for sprite in item_sprites:
-        mock_item_sprite = Mock()
+        mock_item_sprite = Mock(spec=HadesSprite)
         mock_item_sprite.game_object_id = sprite
         player_view.item_sprites.append(mock_item_sprite)
 
@@ -450,7 +450,7 @@ def test_player_view_update_info_view(
         player_view: The PlayerView object for testing.
     """
     # Create a mock sprite object
-    mock_sprite_object = Mock()
+    mock_sprite_object = Mock(spec=HadesSprite)
     mock_sprite_object.name = "Test Item"
     mock_sprite_object.description = "Test Description"
     mock_sprite_object.texture = "Test Texture"
@@ -458,7 +458,7 @@ def test_player_view_update_info_view(
     monkeypatch.setattr(UIWidget, "with_background", mock_with_background)
 
     # Create a mock InventoryItemButton
-    mock_inventory_item_button = Mock()
+    mock_inventory_item_button = Mock(spec=InventoryItemButton)
     mock_inventory_item_button.sprite_object = mock_sprite_object
 
     # Create a mock UIOnClickEvent
@@ -482,7 +482,7 @@ def test_player_view_update_info_view_no_inventory_item(
         player_view: The PlayerView object for testing.
     """
     # Create a mock UIOnClickEvent
-    mock_inventory_item = Mock()
+    mock_inventory_item = Mock(spec=InventoryItemButton)
     mock_inventory_item.sprite_object = None
     mock_event = Mock()
     mock_event.source.parent.parent = mock_inventory_item
