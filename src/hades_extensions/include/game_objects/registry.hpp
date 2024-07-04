@@ -169,21 +169,21 @@ class Registry {
   /// @return The Chipmunk2D space.
   [[nodiscard]] auto get_space() const -> cpSpace * { return *space_; }
 
-  /// Add an observer to the registry to listen for events.
+  /// Add a callback to the registry to listen for events.
   ///
   /// @param event_type - The type of event to listen for.
-  /// @param observer - The observer to add.
-  void add_observer(const EventType event_type, const std::function<void(GameObjectID)> &observer) {
-    observers_[event_type] = observer;
+  /// @param callback - The callback to add.
+  void add_callback(const EventType event_type, const std::function<void(GameObjectID)> &callback) {
+    callbacks_[event_type] = callback;
   }
 
-  /// Notify all observers of an event.
+  /// Notify all callbacks of an event.
   ///
-  /// @param event_type - The type of event to notify observers of.
-  /// @param game_object_id - The game object ID to pass to the observers.
-  void notify_observers(const EventType event_type, const GameObjectID game_object_id) {
-    if (observers_.contains(event_type)) {
-      observers_[event_type](game_object_id);
+  /// @param event_type - The type of event to notify callbacks of.
+  /// @param game_object_id - The game object ID to pass to the callbacks.
+  void notify_callbacks(const EventType event_type, const GameObjectID game_object_id) {
+    if (callbacks_.contains(event_type)) {
+      callbacks_[event_type](game_object_id);
     }
   }
 
@@ -209,6 +209,6 @@ class Registry {
   /// The Chipmunk2D shapes registered with the registry.
   std::unordered_map<cpShape *, GameObjectID> shapes_;
 
-  /// The observers registered with the registry to listen for events.
-  std::unordered_map<EventType, std::function<void(GameObjectID)>> observers_;
+  /// The callbacks registered with the registry to listen for events.
+  std::unordered_map<EventType, std::function<void(GameObjectID)>> callbacks_;
 };

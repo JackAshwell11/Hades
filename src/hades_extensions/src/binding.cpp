@@ -305,11 +305,11 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Update all systems in the registry.\n\n"
            "Args:\n"
            "    delta_time: The time interval since the last time the function was called.")
-      .def("add_observer", &Registry::add_observer, pybind11::arg("event_type"), pybind11::arg("observer"),
-           "Add an observer to the registry to listen for events.\n\n"
+      .def("add_callback", &Registry::add_callback, pybind11::arg("event_type"), pybind11::arg("callback"),
+           "Add a callback to the registry to listen for events.\n\n"
            "Args:\n"
            "    event_type: The type of event to listen for.\n"
-           "    observer: The observer to add.");
+           "    callback: The callback to add.");
 
   // Add the stat components
   pybind11::class_<Stat, ComponentBase, std::shared_ptr<Stat>>(

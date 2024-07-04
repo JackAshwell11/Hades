@@ -27,8 +27,12 @@ class InventorySystemFixture : public testing::Test {
 // ----- TESTS ----------------------------------
 /// Test that a valid item is added to the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
+  bool inventory_update{false};
+  auto inventory_update_callback{[&](const GameObjectID /*game_object_id*/) { inventory_update = true; }};
+  registry.add_callback(EventType::InventoryUpdate, inventory_update_callback);
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 50));
   ASSERT_EQ(registry.get_component<Inventory>(0)->items, std::vector{50});
+  ASSERT_TRUE(inventory_update);
 }
 
 /// Test that a valid item is not added to a zero size inventory.
@@ -53,12 +57,16 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryInvalidGameO
 
 /// Test that a valid item is removed from the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
+  auto inventory_update{false};
+  auto inventory_update_callback{[&](const GameObjectID /*game_object_id*/) { inventory_update = true; }};
+  registry.add_callback(EventType::InventoryUpdate, inventory_update_callback);
   const std::vector result{1, 4};
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 1));
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 7));
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 4));
   ASSERT_EQ(get_inventory_system()->remove_item_from_inventory(0, 1), 7);
   ASSERT_EQ(registry.get_component<Inventory>(0)->items, result);
+  ASSERT_TRUE(inventory_update);
 }
 
 /// Test that an exception is thrown if a larger index is provided.

@@ -202,10 +202,10 @@ class Game(arcade.View):
         )
         self.window.views["InventoryView"] = inventory_view
 
-        # Add the observers to the registry
-        self.registry.add_observer(EventType.BulletCreation, self.on_bullet_creation)
-        self.registry.add_observer(EventType.GameObjectDeath, self.on_game_object_death)
-        self.registry.add_observer(
+        # Add the callbacks to the registry
+        self.registry.add_callback(EventType.BulletCreation, self.on_bullet_creation)
+        self.registry.add_callback(EventType.GameObjectDeath, self.on_game_object_death)
+        self.registry.add_callback(
             EventType.InventoryUpdate,
             inventory_view.on_update_inventory,
         )

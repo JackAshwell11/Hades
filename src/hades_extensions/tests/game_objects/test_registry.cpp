@@ -97,9 +97,9 @@ TEST(Tests, TestGridPosToPixelNegativeXYPosition){
 
 /// Test that a game object with no components is added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
-  // Create the observer for the game object death event
+  // Create the callback for the game object death event
   bool called{false};
-  registry.add_observer(EventType::GameObjectDeath, [&called](const auto /*event*/) { called = true; });
+  registry.add_callback(EventType::GameObjectDeath, [&called](const auto /*event*/) { called = true; });
 
   // Test that creating the game object works correctly
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
@@ -317,25 +317,25 @@ TEST_F(RegistryFixture, TestRegistryWallBulletCollision) {
       "The game object `1` is not registered with the registry or does not have the required component.")
 }
 
-/// Test that an event is not notified if there are no observers added to the registry.
-TEST_F(RegistryFixture, TestRegistryNotifyObserversNoObserversAdded) {
+/// Test that an event is not notified if there are no callbacks added to the registry.
+TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksAdded) {
   constexpr bool called{false};
-  registry.notify_observers(EventType::GameObjectDeath, 0);
+  registry.notify_callbacks(EventType::GameObjectDeath, 0);
   ASSERT_FALSE(called);
 }
 
-/// Test that an event is not notified if there are no observers listening for that event.
-TEST_F(RegistryFixture, TestRegistryNotifyObserversNoObserversListening) {
+/// Test that an event is not notified if there are no callbacks listening for that event.
+TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksListening) {
   bool called{false};
-  registry.add_observer(EventType::BulletCreation, [&called](const auto /*event*/) { called = true; });
-  registry.notify_observers(EventType::GameObjectDeath, 0);
+  registry.add_callback(EventType::BulletCreation, [&called](const auto /*event*/) { called = true; });
+  registry.notify_callbacks(EventType::GameObjectDeath, 0);
   ASSERT_FALSE(called);
 }
 
-/// Test that an event is notified correctly if there is an observer listening for that event.
-TEST_F(RegistryFixture, TestRegistryNotifyObserversListeningObserver) {
+/// Test that an event is notified correctly if there is an callback listening for that event.
+TEST_F(RegistryFixture, TestRegistryNotifyCallbacksListeningCallback) {
   bool called{false};
-  registry.add_observer(EventType::GameObjectDeath, [&called](const auto /*event*/) { called = true; });
-  registry.notify_observers(EventType::GameObjectDeath, 0);
+  registry.add_callback(EventType::GameObjectDeath, [&called](const auto /*event*/) { called = true; });
+  registry.notify_callbacks(EventType::GameObjectDeath, 0);
   ASSERT_TRUE(called);
 }

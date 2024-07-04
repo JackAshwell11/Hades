@@ -110,7 +110,7 @@ void AttackSystem::do_attack(const GameObjectID game_object_id, const std::vecto
       melee_attack(get_registry(), kinematic_component->body->p, kinematic_component->rotation, targets);
       break;
     case AttackAlgorithm::Ranged:
-      get_registry()->notify_observers(EventType::BulletCreation,
+      get_registry()->notify_callbacks(EventType::BulletCreation,
                                        get_registry()->get_system<PhysicsSystem>()->add_bullet(
                                            ranged_attack(kinematic_component->body->p, kinematic_component->rotation)));
   }
