@@ -1,7 +1,14 @@
 // External headers
 #include <chipmunk/chipmunk_structs.h>
+#ifdef Py_DEBUG
+#undef Py_DEBUG
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
+#define Py_DEBUG
+#else
+#include <pybind11/functional.h>
+#include <pybind11/stl.h>
+#endif
 
 // Local headers
 #include "game_objects/stats.hpp"
