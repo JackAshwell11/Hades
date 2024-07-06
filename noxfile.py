@@ -60,7 +60,7 @@ def build_cpp_extensions(
     )
     for file in build_dir.glob("*"):
         with suppress(shutil.Error):
-            shutil.move(file, site_packages_dir)
+            shutil.move(file, site_packages_dir / file.name)
 
 
 @session()  # type: ignore[misc]

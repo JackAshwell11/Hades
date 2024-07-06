@@ -4,12 +4,14 @@
 #include <pybind11/stl.h>
 
 // Local headers
+#include "game_objects/stats.hpp"
 #include "game_objects/systems/armour_regen.hpp"
 #include "game_objects/systems/attacks.hpp"
 #include "game_objects/systems/effects.hpp"
 #include "game_objects/systems/inventory.hpp"
 #include "game_objects/systems/movements.hpp"
 #include "game_objects/systems/physics.hpp"
+#include "game_objects/systems/sprite.hpp"
 #include "game_objects/systems/upgrade.hpp"
 #include "generation/map.hpp"
 
@@ -73,8 +75,8 @@ auto make_system_types()
 inline auto get_type_index(const pybind11::handle &component_type) -> std::type_index {
   static const auto &component_types{
       make_component_types<Armour, ArmourRegen, Attack, EffectApplier, Footprints, Health, Inventory, KeyboardMovement,
-                           KinematicComponent, Money, MovementForce, StatusEffectData, StatusEffect, SteeringMovement,
-                           Upgrades>()};
+                           KinematicComponent, Money, MovementForce, PythonSprite, StatusEffectData, StatusEffect,
+                           SteeringMovement, Upgrades>()};
   const auto iter{component_types.find(component_type)};
   if (iter == component_types.end()) {
     throw std::runtime_error("Invalid component type provided.");
@@ -481,6 +483,17 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    increase: The increase function to apply.\n"
            "    duration: The duration function to apply.\n"
            "    interval: The interval function to apply.");
+  pybind11::class_<PythonSprite, ComponentBase, std::shared_ptr<PythonSprite>>(
+      components, "PythonSprite", "Allows a game object to hold a reference to the Python sprite object.")
+      .def(pybind11::init<>(),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    sprite: The reference to the Python sprite object.")
+      .def("set_sprite", &PythonSprite::set_sprite, pybind11::arg("py_sprite"),
+           "Set the sprite object.\n\n"
+           "Args:\n"
+           "    py_sprite: The sprite object to set.")
+      .def_readonly("sprite", &PythonSprite::sprite);
   pybind11::class_<StatusEffect, ComponentBase, std::shared_ptr<StatusEffect>>(
       components, "StatusEffect", "Allows a game object to have status effects applied to it.")
       .def(pybind11::init<>(), "Initialise the object.");

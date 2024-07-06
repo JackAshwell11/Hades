@@ -3,7 +3,6 @@
 
 // Local headers
 #include "game_objects/registry.hpp"
-#include "game_objects/stats.hpp"
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to interact with the physics system.
@@ -50,20 +49,11 @@ struct PhysicsSystem final : SystemBase {
   /// @param game_object_id - The ID of the game object.
   /// @param force - The force to add.
   /// @throws RegistryError if the game object does not exist or does not have a kinematic component.
-  void add_force(const GameObjectID game_object_id, const cpVect &force) const {
-    cpBodyApplyForceAtLocalPoint(
-        *get_registry()->get_component<KinematicComponent>(game_object_id)->body,
-        cpvnormalize(force) * get_registry()->get_component<MovementForce>(game_object_id)->get_value(), cpvzero);
-  }
+  void add_force(GameObjectID game_object_id, const cpVect &force) const;
 
   /// Add a bullet to the physics engine.
   ///
   /// @param bullet - The bullet's position and velocity.
   /// @return The game object ID for the bullet.
-  [[nodiscard]] auto add_bullet(const std::pair<cpVect, cpVect> &bullet) const -> GameObjectID {
-    const auto bullet_id = get_registry()->create_game_object(GameObjectType::Bullet, get<0>(bullet),
-                                                              {std::make_shared<KinematicComponent>()});
-    cpBodySetVelocity(*get_registry()->get_component<KinematicComponent>(bullet_id)->body, get<1>(bullet));
-    return bullet_id;
-  }
+  [[nodiscard]] auto add_bullet(const std::pair<cpVect, cpVect> &bullet) const -> GameObjectID;
 };

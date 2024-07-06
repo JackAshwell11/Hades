@@ -2,6 +2,7 @@
 from typing import overload
 
 # Custom
+from hades.sprite import HadesSprite
 from hades_extensions.game_objects import (
     ActionFunction,
     AttackAlgorithm,
@@ -75,6 +76,11 @@ class Money(ComponentBase):
     def __init__(self: Money, money: int) -> None: ...
 
 class MovementForce(Stat): ...
+
+class PythonSprite(ComponentBase):
+    sprite: HadesSprite
+    def __init__(self: PythonSprite) -> None: ...
+    def set_sprite(self: PythonSprite, py_sprite: HadesSprite) -> None: ...
 
 class StatusEffect(ComponentBase):
     def __init__(self: StatusEffect) -> None: ...
