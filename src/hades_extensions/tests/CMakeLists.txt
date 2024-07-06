@@ -14,11 +14,10 @@ add_executable(${TEST_MODULE}
         ${CMAKE_SOURCE_DIR}/tests/generation/test_primitives.cpp
         ${CMAKE_SOURCE_DIR}/tests/generation/test_searching.cpp
 )
-target_include_directories(${TEST_MODULE} PUBLIC ${CMAKE_SOURCE_DIR}/tests)
-target_link_libraries(
-        ${TEST_MODULE}
-        GTest::gtest_main
-        ${CPP_LIB}
+target_include_directories(${TEST_MODULE} PRIVATE ${CMAKE_SOURCE_DIR}/tests)
+target_link_libraries(${TEST_MODULE}
+        PRIVATE GTest::gtest_main
+        PRIVATE ${CPP_LIB}
 )
 
 # Add the executable as a test to CTest

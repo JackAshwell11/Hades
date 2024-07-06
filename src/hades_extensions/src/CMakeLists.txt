@@ -14,9 +14,14 @@ add_library(${CPP_LIB} STATIC
         ${CMAKE_SOURCE_DIR}/src/generation/map.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/searching.cpp
 )
-target_include_directories(${CPP_LIB} PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(${CPP_LIB} PUBLIC ${chipmunk_SOURCE_DIR}/include)
-target_link_libraries(${CPP_LIB} PUBLIC unofficial::chipmunk::chipmunk pybind11::module)
+target_include_directories(${CPP_LIB}
+        PUBLIC ${CMAKE_SOURCE_DIR}/include
+        PRIVATE ${chipmunk_SOURCE_DIR}/include
+)
+target_link_libraries(${CPP_LIB}
+        PRIVATE unofficial::chipmunk::chipmunk
+        PRIVATE pybind11::module
+)
 
 # Create the Python module
 if (DO_PYTHON)
