@@ -5,6 +5,7 @@
 #include <numbers>
 
 // Local headers
+#include "game_objects/stats.hpp"
 #include "game_objects/systems/movements.hpp"
 #include "game_objects/systems/physics.hpp"
 #include "macros.hpp"

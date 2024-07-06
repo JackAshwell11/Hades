@@ -28,6 +28,7 @@ from hades_extensions.game_objects import (
 from hades_extensions.game_objects.components import (
     KeyboardMovement,
     KinematicComponent,
+    PythonSprite,
     Stat,
     SteeringMovement,
 )
@@ -89,21 +90,28 @@ class Game(arcade.View):
         Returns:
             The created sprite object.
         """
-        # Create a game object if possible and add a wall if the game object is blocking
+        # Initialise the game object's constructor and a few other variables
         constructor = create_constructor(game_object_json)
+        python_sprite = None
         game_object_id = -1
-        if constructor.components:
-            game_object_id = self.registry.create_game_object(
-                constructor.game_object_type,
-                position,
-                constructor.components,
-            )
-
-        # Create a sprite and add its ID to the dictionary
         sprite_class = (
             AnimatedSprite if len(constructor.texture_paths) > 1 else HadesSprite
         )
+
+        # Create a game object if possible, adding a PythonSprite component if the game
+        # object has other components
+        if constructor.components:
+            python_sprite = PythonSprite()
+            game_object_id = self.registry.create_game_object(
+                constructor.game_object_type,
+                position,
+                [*constructor.components, python_sprite],
+            )
+
+        # Create a sprite and add its ID to the dictionary
         sprite = sprite_class(self.registry, game_object_id, position, constructor)
+        if python_sprite:
+            python_sprite.set_sprite(sprite)
 
         # Add all the indicator bars to the game
         indicator_bar_offset = 0
@@ -394,7 +402,9 @@ class Game(arcade.View):
         Args:
             game_object_id: The ID of the created bullet game object.
         """
-        self.entity_sprites.append(Bullet(self.registry, game_object_id))
+        bullet = Bullet(self.registry, game_object_id)
+        self.registry.get_component(game_object_id, PythonSprite).set_sprite(bullet)
+        self.entity_sprites.append(bullet)
 
     def on_game_object_death(self: Game, game_object_id: int) -> None:
         """Remove a game object from the game.
@@ -402,20 +412,21 @@ class Game(arcade.View):
         Args:
             game_object_id: The ID of the game object to remove.
         """
-        # TODO: Refactor this
-        for game_object in self.entity_sprites:
-            if game_object.game_object_id == game_object_id:
-                indicator_bars_to_remove = []
-                for indicator_bar in self.indicator_bars:
-                    if indicator_bar.target_sprite.game_object_id == game_object_id:
-                        indicator_bar.actual_bar.remove_from_sprite_lists()
-                        indicator_bar.background_box.remove_from_sprite_lists()
-                        indicator_bars_to_remove.append(indicator_bar)
-                for indicator_bar in indicator_bars_to_remove:
-                    self.indicator_bars.remove(indicator_bar)
-                game_object.remove_from_sprite_lists()
-                if game_object.game_object_type == GameObjectType.Player:
-                    arcade.exit()
+        # Delete all the indicator bars for the game object
+        indicator_bars_to_remove = []
+        for indicator_bar in self.indicator_bars:
+            if indicator_bar.target_sprite.game_object_id == game_object_id:
+                indicator_bar.actual_bar.remove_from_sprite_lists()
+                indicator_bar.background_box.remove_from_sprite_lists()
+                indicator_bars_to_remove.append(indicator_bar)
+        for indicator_bar in indicator_bars_to_remove:
+            self.indicator_bars.remove(indicator_bar)
+
+        # Remove the sprite from the game
+        game_object = self.registry.get_component(game_object_id, PythonSprite).sprite
+        game_object.remove_from_sprite_lists()
+        if game_object.game_object_type == GameObjectType.Player:
+            arcade.exit()
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""

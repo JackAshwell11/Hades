@@ -3,6 +3,7 @@
 
 // Local headers
 #include "game_objects/registry.hpp"
+#include "game_objects/stats.hpp"
 #include "game_objects/systems/attacks.hpp"
 #include "game_objects/systems/physics.hpp"
 #include "macros.hpp"
