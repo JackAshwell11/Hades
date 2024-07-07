@@ -35,7 +35,7 @@ from PIL.ImageFilter import GaussianBlur
 
 # Custom
 from hades_extensions.game_objects import SPRITE_SIZE
-from hades_extensions.game_objects.components import Inventory
+from hades_extensions.game_objects.components import Inventory, PythonSprite
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -137,16 +137,14 @@ class InventoryItemButton(UIBoxLayout):
         Args:
             value: The sprite object.
         """
+        self.clear()
+        self._sprite_object = value
         if value:
-            self._sprite_object = value
             self.texture_button.texture = value.texture
             self.texture_button.texture_hovered = value.texture
             self.texture_button.texture_pressed = value.texture
-            self.remove(self.default_layout)
             self.add(self.sprite_layout)
         else:
-            self._sprite_object = None
-            self.remove(self.sprite_layout)
             self.add(self.default_layout)
 
     def __repr__(self: InventoryItemButton) -> str:  # pragma: no cover
@@ -428,11 +426,10 @@ class PlayerView(View):
     def on_update_inventory(self: PlayerView, _: int) -> None:
         """Update the inventory view."""
         for i, item in enumerate(self.inventory.items):
-            inventory_item = self.inventory_layout.items[i]
-            for item_sprite in self.item_sprites:
-                if item_sprite.game_object_id == item:
-                    inventory_item.sprite_object = item_sprite
-                    break
+            self.inventory_layout.items[i].sprite_object = self.registry.get_component(
+                item,
+                PythonSprite,
+            ).sprite
 
     def update_info_view(self: PlayerView, event: UIOnClickEvent) -> None:
         """Update the info view.
