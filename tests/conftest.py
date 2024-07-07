@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name
 """Holds common fixtures for the tests."""
 
 from __future__ import annotations
@@ -31,7 +32,9 @@ def registry() -> Registry:
     Returns:
         Registry: The registry for testing.
     """
-    return Registry()
+    registry = Registry()
+    registry.add_systems()
+    return registry
 
 
 @pytest.fixture()

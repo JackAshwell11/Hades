@@ -20,7 +20,8 @@ from hades.views.player import (
     create_divider_line,
 )
 from hades_extensions.game_objects import GameObjectType, Registry, RegistryError, Vec2d
-from hades_extensions.game_objects.components import Inventory
+from hades_extensions.game_objects.components import Inventory, PythonSprite
+from hades_extensions.game_objects.systems import InventorySystem
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -46,6 +47,21 @@ def mock_callback() -> Callable[[UIOnClickEvent], None]:
 
 
 @pytest.fixture()
+def mock_sprite() -> HadesSprite:
+    """Create a mock HadesSprite object for testing.
+
+    Returns:
+        The mock HadesSprite object for testing.
+    """
+    mock_sprite = Mock(spec=HadesSprite)
+    mock_sprite.game_object_id = 0
+    mock_sprite.name = "Test Item"
+    mock_sprite.description = "Test Description"
+    mock_sprite.texture = "Test Texture"
+    return mock_sprite
+
+
+@pytest.fixture()
 def paginated_grid_layout(
     mock_callback: Callable[[UIOnClickEvent], None],
 ) -> PaginatedGridLayout:
@@ -61,19 +77,27 @@ def paginated_grid_layout(
 
 
 @pytest.fixture()
-def player_view() -> PlayerView:
+def player_view(registry: Registry, mock_sprite: HadesSprite) -> PlayerView:
     """Create a PlayerView for testing.
+
+    Args:
+        registry: The registry for testing.
+        mock_sprite: The mock HadesSprite object for testing.
 
     Returns:
         The PlayerView object for testing.
     """
-    # Make sure to set up the required mocks so the initialisation doesn't fail
-    mock_inventory = Mock(spec=Inventory)
-    mock_inventory.get_capacity.return_value = 10
-    mock_inventory.items = []
-    mock_registry = Mock(spec=Registry)
-    mock_registry.get_component.return_value = mock_inventory
-    return PlayerView(mock_registry, 0, [])  # type: ignore[arg-type]
+    python_sprite = PythonSprite()
+    game_object_id = registry.create_game_object(
+        GameObjectType.Player,
+        Vec2d(0, 0),
+        [
+            Inventory(5, 2),
+            python_sprite,
+        ],
+    )
+    python_sprite.set_sprite(mock_sprite)
+    return PlayerView(registry, game_object_id, [])  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -124,29 +148,29 @@ def test_inventory_item_button_init(
 @pytest.mark.usefixtures("window")
 def test_inventory_item_button_set_sprite(
     mock_callback: Callable[[UIOnClickEvent], None],
+    mock_sprite: HadesSprite,
 ) -> None:
     """Test that the InventoryItemButton correctly sets the sprite object.
 
     Args:
         mock_callback: The mock callback function to use for testing.
+        mock_sprite: The mock HadesSprite object for testing.
     """
-    # Create a mock sprite object
-    mock_sprite_object = Mock(spec=HadesSprite)
-    mock_sprite_object.texture = "test"
-
     # Test setting the sprite object changes to the sprite layout
     inventory_item = InventoryItemButton(mock_callback)
-    inventory_item.sprite_object = mock_sprite_object
-    assert inventory_item.sprite_object == mock_sprite_object
-    assert inventory_item.texture_button.texture == "test"
-    assert inventory_item.texture_button.texture_hovered == "test"
-    assert inventory_item.texture_button.texture_pressed == "test"
-    assert inventory_item.children == [inventory_item.sprite_layout]
+    for _ in range(2):
+        inventory_item.sprite_object = mock_sprite
+        assert inventory_item.sprite_object == mock_sprite
+        assert inventory_item.texture_button.texture == "Test Texture"
+        assert inventory_item.texture_button.texture_hovered == "Test Texture"
+        assert inventory_item.texture_button.texture_pressed == "Test Texture"
+        assert inventory_item.children == [inventory_item.sprite_layout]
 
     # Test setting the sprite object to None changes back to the default layout
-    inventory_item.sprite_object = None
-    assert inventory_item.sprite_object is None
-    assert inventory_item.children == [inventory_item.default_layout]
+    for _ in range(2):
+        inventory_item.sprite_object = None
+        assert inventory_item.sprite_object is None
+        assert inventory_item.children == [inventory_item.default_layout]
 
 
 @pytest.mark.usefixtures("window")
@@ -389,77 +413,73 @@ def test_player_view_on_hide_view(
 
 @pytest.mark.usefixtures("window")
 @pytest.mark.parametrize(
-    ("inventory_items", "item_sprites"),
+    "items",
     [
-        ([], []),
-        ([1], [1]),
-        ([1, 2], [1, 2, 3]),  # This should never happen
-        ([1, 2, 3], [1, 2]),  # This should never happen
-        ([1, 2, 3], [1, 2, 3]),
+        [],
+        [1],
+        [1, 2],
+        [1, 2, 3],
     ],
 )
 def test_player_view_on_update_inventory(
     player_view: PlayerView,
-    inventory_items: list[int],
-    item_sprites: list[int],
+    items: list[int],
 ) -> None:
     """Test that the PlayerView correctly updates the inventory.
 
     Args:
         player_view: The PlayerView object for testing.
-        inventory_items: The inventory items to add to the inventory.
-        item_sprites: The item sprites to add to the inventory.
+        items: The items to add to the inventory.
     """
-    # Make sure all inventory items are empty beforehand
-    assert all(
-        inventory_item.sprite_object is None
-        for inventory_item in player_view.inventory_layout.children[0]
-    )
-
-    # Add an item and sprite to the inventory
-    for item in inventory_items:
-        player_view.inventory.items.append(item)
-    for sprite in item_sprites:
+    # Add an item to the inventory
+    for item in items:
+        player_view.registry.get_system(InventorySystem).add_item_to_inventory(
+            0,
+            item,
+        )
+        python_sprite = PythonSprite()
+        player_view.registry.create_game_object(
+            GameObjectType.Player,
+            Vec2d(0, 0),
+            [python_sprite],
+        )
         mock_item_sprite = Mock(spec=HadesSprite)
-        mock_item_sprite.game_object_id = sprite
+        mock_item_sprite.game_object_id = item
+        python_sprite.set_sprite(mock_item_sprite)
         player_view.item_sprites.append(mock_item_sprite)
 
     # Make sure the inventory item buttons are updated correctly
     player_view.on_update_inventory(0)
-    grid_layout = player_view.inventory_layout.children[0]
-    for i, inventory_item in enumerate(
-        grid_layout.children[: min(len(inventory_items), len(item_sprites))],
+    for index, inventory_item in enumerate(
+        player_view.inventory_layout.children[0].children,
     ):
-        assert inventory_item.sprite_object is not None
-        assert inventory_item.sprite_object.game_object_id == item_sprites[i]
-    assert all(
-        inventory_item.sprite_object is None
-        for inventory_item in grid_layout.children[len(inventory_items) :]
-    )
+        if index < len(items):
+            assert inventory_item.sprite_object is not None
+            assert inventory_item.sprite_object.game_object_id == items[index]
+        else:
+            assert inventory_item.sprite_object is None
 
 
 @pytest.mark.usefixtures("window")
 def test_player_view_update_info_view(
     monkeypatch: MonkeyPatch,
+    mock_sprite: HadesSprite,
     player_view: PlayerView,
 ) -> None:
     """Test that the PlayerView correctly updates the info view.
 
     Args:
         monkeypatch: The monkeypatch fixture for mocking.
+        mock_sprite: The mock HadesSprite object for testing.
         player_view: The PlayerView object for testing.
     """
-    # Create a mock sprite object
-    mock_sprite_object = Mock(spec=HadesSprite)
-    mock_sprite_object.name = "Test Item"
-    mock_sprite_object.description = "Test Description"
-    mock_sprite_object.texture = "Test Texture"
+    # Create a mock UIWidget
     mock_with_background = Mock()
     monkeypatch.setattr(UIWidget, "with_background", mock_with_background)
 
     # Create a mock InventoryItemButton
     mock_inventory_item_button = Mock(spec=InventoryItemButton)
-    mock_inventory_item_button.sprite_object = mock_sprite_object
+    mock_inventory_item_button.sprite_object = mock_sprite
 
     # Create a mock UIOnClickEvent
     mock_event = Mock()
