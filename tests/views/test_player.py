@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_callback() -> Callable[[UIOnClickEvent], None]:
     """Mock the callback function for testing.
 
@@ -46,7 +46,7 @@ def mock_callback() -> Callable[[UIOnClickEvent], None]:
     return callback
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_sprite() -> HadesSprite:
     """Create a mock HadesSprite object for testing.
 
@@ -61,7 +61,7 @@ def mock_sprite() -> HadesSprite:
     return mock_sprite
 
 
-@pytest.fixture()
+@pytest.fixture
 def paginated_grid_layout(
     mock_callback: Callable[[UIOnClickEvent], None],
 ) -> PaginatedGridLayout:
@@ -76,7 +76,7 @@ def paginated_grid_layout(
     return PaginatedGridLayout(3, 2, 8, mock_callback)
 
 
-@pytest.fixture()
+@pytest.fixture
 def player_view(registry: Registry, mock_sprite: HadesSprite) -> PlayerView:
     """Create a PlayerView for testing.
 
