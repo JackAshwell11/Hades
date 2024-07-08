@@ -25,7 +25,7 @@ __all__ = ()
 WINDOW: Final[Window] = Window()
 
 
-@pytest.fixture()
+@pytest.fixture
 def registry() -> Registry:
     """Get the registry for testing.
 
@@ -37,7 +37,7 @@ def registry() -> Registry:
     return registry
 
 
-@pytest.fixture()
+@pytest.fixture
 def window() -> Window:
     """Create a window for testing.
 
