@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 __all__ = ()
 
 
-@pytest.fixture()
+@pytest.fixture
 def sprite() -> HadesSprite:
     """Get a sprite for testing.
 
@@ -46,7 +46,7 @@ def sprite() -> HadesSprite:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def stat() -> Stat:
     """Get a stat for testing.
 

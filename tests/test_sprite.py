@@ -28,7 +28,7 @@ texture_path = (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_constructor(request: pytest.FixtureRequest) -> Mock:
     """Create a mocked game object constructor for testing.
 

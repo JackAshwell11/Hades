@@ -15,7 +15,7 @@ jobs:
         with:
           submodules: recursive
       - name: Set up CMake
-        uses: lukka/get-cmake@v3.29.6
+        uses: lukka/get-cmake@v3.30.0
       - name: Configure CMake
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: cmake --preset LinuxDebug
