@@ -194,20 +194,20 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsNonexistentTargetCompone
   registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_effect_system()->apply_effects(1, 2), RegistryError,
-      "The game object `2` is not registered with the registry or does not have the required component.")
+      "The component `StatusEffect` for the game object ID `2` is not registered with the registry.")
 }
 
 /// Test that an exception is thrown if an invalid source game object ID is provided.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsInvalidSourceGameObjectId){ASSERT_THROW_MESSAGE(
     get_effect_system()->apply_effects(-1, 0), RegistryError,
-    "The game object `-1` is not registered with the registry or does not have the required component.")}
+    "The component `EffectApplier` for the game object ID `-1` is not registered with the registry.")}
 
 /// Test that an exception is thrown if an invalid target game object ID is provided.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsInvalidTargetGameObjectId) {
   create_effect_applier(false, false);
   ASSERT_THROW_MESSAGE(
       get_effect_system()->apply_effects(1, -1), RegistryError,
-      "The game object `-1` is not registered with the registry or does not have the required component.")
+      "The component `StatusEffect` for the game object ID `-1` is not registered with the registry.")
 }
 
 /// Test that an exception is thrown if the source game object does not have an effect applier component.
@@ -215,7 +215,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsNonexistentEffectApplier
   registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_effect_system()->apply_effects(1, 0), RegistryError,
-      "The game object `1` is not registered with the registry or does not have the required component.")
+      "The component `EffectApplier` for the game object ID `1` is not registered with the registry.")
 }
 
 /// Test that an exception is thrown if the source game object does not have a status effects component.
@@ -224,5 +224,5 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsNonexistentStatusEffects
   registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<TestStat>(50, -1)});
   ASSERT_THROW_MESSAGE(
       get_effect_system()->apply_effects(1, 2), RegistryError,
-      "The game object `2` is not registered with the registry or does not have the required component.")
+      "The component `StatusEffect` for the game object ID `2` is not registered with the registry.")
 }

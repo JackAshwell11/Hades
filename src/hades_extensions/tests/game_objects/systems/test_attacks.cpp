@@ -210,7 +210,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackInvalidGameObjectId) {
   create_attack_component({AttackAlgorithm::Ranged});
   ASSERT_THROW_MESSAGE(
       (get_attack_system()->do_attack(-1, targets)), RegistryError,
-      "The game object `-1` is not registered with the registry or does not have the required component.")
+      "The component `Attack` for the game object ID `-1` is not registered with the registry.")
 }
 
 /// Test that switching between attacks once works correctly.
@@ -256,10 +256,10 @@ TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextAttackInvalidGameObjectI
   create_attack_component({});
   ASSERT_THROW_MESSAGE(
       get_attack_system()->next_attack(-1), RegistryError,
-      "The game object `-1` is not registered with the registry or does not have the required component.")
+      "The component `Attack` for the game object ID `-1` is not registered with the registry.")
   ASSERT_THROW_MESSAGE(
       get_attack_system()->previous_attack(-1), RegistryError,
-      "The game object `-1` is not registered with the registry or does not have the required component.")
+      "The component `Attack` for the game object ID `-1` is not registered with the registry.")
 }
 
 /// Test that damage is dealt when health and armour are lower than damage.
@@ -318,12 +318,12 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageNonexistentComponents) {
   registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_damage_system()->deal_damage(0, 100), RegistryError,
-      "The game object `0` is not registered with the registry or does not have the required component.")
+      "The component `Health` for the game object ID `0` is not registered with the registry.")
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageInvalidGameObjectId) {
   ASSERT_THROW_MESSAGE(
       get_damage_system()->deal_damage(-1, 100), RegistryError,
-      "The game object `-1` is not registered with the registry or does not have the required component.")
+      "The component `Health` for the game object ID `-1` is not registered with the registry.")
 }

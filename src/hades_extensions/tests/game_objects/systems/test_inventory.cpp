@@ -47,13 +47,13 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryNonexistentC
   registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       get_inventory_system()->add_item_to_inventory(1, 0), RegistryError,
-      "The game object `1` is not registered with the registry or does not have the required component.")
+      "The component `Inventory` for the game object ID `1` is not registered with the registry.")
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryInvalidGameObjectID){ASSERT_THROW_MESSAGE(
     get_inventory_system()->add_item_to_inventory(-1, 50), RegistryError,
-    "The game object `-1` is not registered with the registry or does not have the required component.")}
+    "The component `Inventory` for the game object ID `-1` is not registered with the registry.")}
 
 /// Test that a valid item is removed from the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
@@ -83,12 +83,12 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryNonexis
   registry.create_game_object(GameObjectType::Player, cpvzero, {});
   ASSERT_THROW_MESSAGE(
       (get_inventory_system()->remove_item_from_inventory(1, 0)), RegistryError,
-      "The game object `1` is not registered with the registry or does not have the required component.")
+      "The component `Inventory` for the game object ID `1` is not registered with the registry.")
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryInvalidGameObjectID) {
   ASSERT_THROW_MESSAGE(
       (get_inventory_system()->remove_item_from_inventory(-1, 0)), RegistryError,
-      "The game object `-1` is not registered with the registry or does not have the required component.")
+      "The component `Inventory` for the game object ID `-1` is not registered with the registry.")
 }

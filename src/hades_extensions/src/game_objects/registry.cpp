@@ -72,7 +72,7 @@ auto Registry::get_component(const GameObjectID game_object_id, const std::type_
     -> std::shared_ptr<ComponentBase> {
   // Check if the game object has the component or not
   if (!has_component(game_object_id, component_type)) {
-    throw RegistryError("game object", game_object_id, " or does not have the required component");
+    throw RegistryError(game_object_id, component_type);
   }
 
   // Return the specified component

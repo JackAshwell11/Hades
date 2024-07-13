@@ -60,21 +60,23 @@ void throw_registry_error(const Ts... vals) {
 // ----- TESTS ------------------------------
 /// Test that RegistryError is thrown correctly when given a message.
 TEST(Tests, TestThrowRegistryErrorNonEmptyMessage){
-    ASSERT_THROW_MESSAGE(throw_registry_error("test"), RegistryError, "The templated type test.")}
+    ASSERT_THROW_MESSAGE(throw_registry_error("test", std::type_index(typeid(TestSystem))), RegistryError,
+                         "The test `TestSystem` is not registered with the registry.")}
 
-/// Test that RegistryError is thrown correctly when given an empty message.
-TEST(Tests, TestThrowRegistryErrorEmptyMessage){
-    ASSERT_THROW_MESSAGE(throw_registry_error(), RegistryError,
-                         "The templated type is not registered with the registry.")}
-
-/// Test that RegistryError is thrown correctly when given multiple values.
+/// Test that RegistryError is thrown correctly when given an extra message.
 TEST(Tests, TestThrowRegistryErrorNonEmptyValues){
-    ASSERT_THROW_MESSAGE(throw_registry_error("test", 1, " test"), RegistryError,
-                         "The test `1` is not registered with the registry test.")}
+    ASSERT_THROW_MESSAGE(throw_registry_error("test", std::type_index(typeid(TestSystem)), "test"), RegistryError,
+                         "The test `TestSystem` test.")}
 
 /// Test that RegistryError is thrown correctly when given multiple empty values.
 TEST(Tests, TestThrowRegistryErrorEmptyValues){
-    ASSERT_THROW_MESSAGE(throw_registry_error("", 1), RegistryError, "The  `1` is not registered with the registry.")}
+    ASSERT_THROW_MESSAGE(throw_registry_error("", std::type_index(typeid(TestSystem)), ""), RegistryError,
+                         "The  `TestSystem` .")}
+
+/// Test that RegistryError is thrown correctly when given a game object ID and a type_index.
+TEST(Tests, TestThrowRegistryErrorGameObjectIDTypeIndex){
+    ASSERT_THROW_MESSAGE(throw_registry_error(0, std::type_index(typeid(TestSystem))), RegistryError,
+                         "The component `TestSystem` for the game object ID `0` is not registered with the registry.")}
 
 /// Test that a valid position is converted correctly.
 TEST(Tests, TestGridPosToPixelPositivePosition) {
@@ -133,10 +135,10 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
   registry.delete_game_object(0);
   ASSERT_THROW_MESSAGE(
       registry.get_component<TestGameObjectComponentOne>(0), RegistryError,
-      "The game object `0` is not registered with the registry or does not have the required component.")
+      "The component `TestGameObjectComponentOne` for the game object ID `0` is not registered with the registry.")
   ASSERT_THROW_MESSAGE(
       (registry.get_component(0, typeid(TestGameObjectComponentTwo))), RegistryError,
-      "The game object `0` is not registered with the registry or does not have the required component.")
+      "The component `TestGameObjectComponentTwo` for the game object ID `0` is not registered with the registry.")
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 0);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 0);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>()),
@@ -219,7 +221,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectSameComponent) {
 /// Test that an exception is thrown if a system is not registered.
 TEST_F(RegistryFixture,
        TestRegistryZeroSystems){ASSERT_THROW_MESSAGE(registry.get_system<TestSystem>(), RegistryError,
-                                                     "The templated type is not registered with the registry.")}
+                                                     "The system `TestSystem` is not registered with the registry.")}
 
 /// Test that a system is updated correctly.
 TEST_F(RegistryFixture, TestRegistrySystemUpdate) {
@@ -228,7 +230,7 @@ TEST_F(RegistryFixture, TestRegistrySystemUpdate) {
                               {std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))});
   registry.add_system<TestSystem>();
   ASSERT_THROW_MESSAGE(registry.add_system<TestSystem>(), RegistryError,
-                       "The templated type is already registered with the registry.")
+                       "The system `TestSystem` is already registered with the registry.")
   ASSERT_NE(registry.get_system<TestSystem>(), nullptr);
 
   // Test that the system is updated correctly
@@ -240,13 +242,13 @@ TEST_F(RegistryFixture, TestRegistrySystemUpdate) {
 TEST_F(RegistryFixture, TestRegistryDuplicateSystem) {
   registry.add_system<TestSystem>();
   ASSERT_THROW_MESSAGE(registry.add_system<TestSystem>(), RegistryError,
-                       "The templated type is already registered with the registry.")
+                       "The system `TestSystem` is already registered with the registry.")
 }
 
 /// Test that an exception is thrown if you get a system that is not registered.
 TEST_F(RegistryFixture, TestRegistryGetSystemNotRegistered){
     ASSERT_THROW_MESSAGE(registry.get_system<TestSystem>(), RegistryError,
-                         "The templated type is not registered with the registry.")}
+                         "The system `TestSystem` is not registered with the registry.")}
 
 /// Test a collision between a player and a bullet.
 TEST_F(RegistryFixture, TestRegistryPlayerBulletCollision) {
@@ -269,7 +271,7 @@ TEST_F(RegistryFixture, TestRegistryPlayerBulletCollision) {
   ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 190);
   ASSERT_THROW_MESSAGE(
       registry.get_component<KinematicComponent>(bullet_id), RegistryError,
-      "The game object `1` is not registered with the registry or does not have the required component.")
+      "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.")
 }
 
 /// Test a collision between an enemy and a bullet.
@@ -296,7 +298,7 @@ TEST_F(RegistryFixture, TestRegistryEnemyBulletCollision) {
   ASSERT_EQ(registry.get_component<Armour>(enemy_id)->get_value(), 90);
   ASSERT_THROW_MESSAGE(
       registry.get_component<KinematicComponent>(bullet_id), RegistryError,
-      "The game object `1` is not registered with the registry or does not have the required component.")
+      "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.")
 }
 
 /// Test a collision between a wall and a bullet.
@@ -315,7 +317,7 @@ TEST_F(RegistryFixture, TestRegistryWallBulletCollision) {
   ASSERT_EQ(registry.get_component<KinematicComponent>(wall_id)->body->p, cpv(32, 32));
   ASSERT_THROW_MESSAGE(
       registry.get_component<KinematicComponent>(bullet_id), RegistryError,
-      "The game object `1` is not registered with the registry or does not have the required component.")
+      "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.")
 }
 
 /// Test that an event is not notified if there are no callbacks added to the registry.

@@ -2,6 +2,9 @@
 #pragma once
 
 // Std headers
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif
 #include <ranges>
 #include <stdexcept>
 #include <string>
@@ -15,27 +18,6 @@
 // The percentage of velocity a game object will retain after a second.
 constexpr double DAMPING = 0.0001;
 
-// ----- EXCEPTIONS ------------------------------
-/// Raised when an error occurs with the registry.
-struct RegistryError final : std::runtime_error {
-  /// Initialise the object
-  ///
-  /// @param error - The error message.
-  explicit RegistryError(const std::string &error = "is not registered with the registry")
-      : std::runtime_error("The templated type " + error + "."){};
-
-  /// Initialise the object.
-  ///
-  /// @tparam T - The type of item that is not registered.
-  /// @param not_registered_type - The type of item that is not registered.
-  /// @param value - The value that is not registered.
-  /// @param extra - Any extra information to add to the error message.
-  template <typename T>
-  RegistryError(const std::string &not_registered_type, const T &value, const std::string &extra = "")
-      : std::runtime_error("The " + not_registered_type + " `" + std::to_string(value) +
-                           "` is not registered with the registry" + extra + ".") {}
-};
-
 // ----- FUNCTIONS ------------------------------
 /// Calculate the screen position based on a grid position.
 ///
@@ -48,6 +30,61 @@ inline auto grid_pos_to_pixel(const cpVect &position) -> cpVect {
   }
   return position * SPRITE_SIZE + SPRITE_SIZE / 2;
 }
+
+#ifdef __GNUC__
+/// Demangle the type name.
+///
+/// @param type - The type to demangle.
+/// @return The demangled type name.
+static auto demangle(const std::type_index &type) -> std::string {
+  int status;
+  const std::unique_ptr<char, void (*)(void *)> res{abi::__cxa_demangle(type.name(), nullptr, nullptr, &status),
+                                                    std::free};
+  return (status == 0) ? res.get() : type.name();
+}
+#else
+/// Demangle the type name.
+///
+/// @param type - The type to demangle.
+/// @return The demangled type name.
+static auto demangle(const std::type_index &type) -> std::string { return std::string(type.name()).substr(7); }
+#endif
+
+// ----- EXCEPTIONS ------------------------------
+/// Raised when an error occurs with the registry.
+class RegistryError final : public std::runtime_error {
+ public:
+  /// Initialise the object.
+  ///
+  /// @param not_registered_type - The type of item that is not registered.
+  /// @param value - The value that is not registered.
+  /// @param extra - Any extra information to add to the error message.
+  template <typename T>
+  explicit RegistryError(const std::string &not_registered_type, const T &value,
+                         const std::string &extra = "is not registered with the registry")
+      : std::runtime_error("The " + not_registered_type + " `" + to_string(value) + "` " + extra + ".") {}
+
+  /// Initialise the object.
+  ///
+  /// @param game_object_id - The game object ID that threw the error.
+  /// @param type - The type of item that is not registered.
+  explicit RegistryError(const GameObjectID game_object_id, const std::type_index &type)
+      : std::runtime_error("The component `" + to_string(type) + "` for the game object ID `" +
+                           to_string(game_object_id) + "` is not registered with the registry.") {}
+
+ private:
+  /// Convert a value to a string.
+  ///
+  /// @param value - The value to convert to a string.
+  /// @return The value as a string.
+  static auto to_string(const std::type_index &value) -> std::string { return demangle(value); }
+
+  /// Convert a value to a string.
+  ///
+  /// @param value - The value to convert to a string.
+  /// @return The value as a string.
+  static auto to_string(const GameObjectID value) -> std::string { return std::to_string(value); }
+};
 
 // ----- CLASSES ------------------------------
 /// Manages game objects, components, and systems that are registered.
@@ -130,7 +167,7 @@ class Registry {
     // Check if the system is already registered
     const std::type_index system_type{typeid(T)};
     if (systems_.contains(system_type)) {
-      throw RegistryError("is already registered with the registry");
+      throw RegistryError("system", system_type, "is already registered with the registry");
     }
 
     // Add the system to the registry
@@ -148,7 +185,7 @@ class Registry {
     const std::type_index system_type{typeid(T)};
     const auto system_result{systems_.find(system_type)};
     if (system_result == systems_.end()) {
-      throw RegistryError();
+      throw RegistryError("system", system_type);
     }
 
     // Return the system

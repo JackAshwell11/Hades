@@ -115,7 +115,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicCompon
   registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<MovementForce>(100, -1)});
   ASSERT_THROW_MESSAGE(
       get_physics_system()->add_force(1, {0, 0}), RegistryError,
-      "The game object `1` is not registered with the registry or does not have the required component.");
+      "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.");
 }
 
 /// Test that an exception is thrown if a game object does not have a movement force component.
@@ -124,14 +124,14 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentMovementForceCo
                               {std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
   ASSERT_THROW_MESSAGE(
       get_physics_system()->add_force(1, {0, 0}), RegistryError,
-      "The game object `1` is not registered with the registry or does not have the required component.");
+      "The component `MovementForce` for the game object ID `1` is not registered with the registry.");
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceInvalidGameObjectId) {
   ASSERT_THROW_MESSAGE(
       get_physics_system()->add_force(-1, {0, 0}), RegistryError,
-      "The game object `-1` is not registered with the registry or does not have the required component.");
+      "The component `MovementForce` for the game object ID `-1` is not registered with the registry.");
 }
 
 /// Test that adding a bullet with a zero position and velocity works correctly.

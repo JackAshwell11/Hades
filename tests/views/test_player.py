@@ -323,8 +323,8 @@ def test_player_view_init_no_inventory(registry: Registry) -> None:
     """
     with pytest.raises(
         expected_exception=RegistryError,
-        match="The game object `0` is not registered with the registry or does not have"
-        " the required component.",
+        match="The component `Inventory` for the game object ID `0` is not registered"
+        " with the registry.",
     ):
         PlayerView(
             registry,
@@ -342,8 +342,8 @@ def test_player_view_init_invalid_game_object(registry: Registry) -> None:
     """
     with pytest.raises(
         expected_exception=RegistryError,
-        match="The game object `0` is not registered with the registry or does not have"
-        " the required component.",
+        match="The component `Inventory` for the game object ID `0` is not registered"
+        " with the registry.",
     ):
         PlayerView(registry, 0, Mock())
 
