@@ -8,10 +8,11 @@ from typing import TYPE_CHECKING, Final, cast
 
 # Pip
 from arcade import (
+    XYWH,
     SpriteList,
     Texture,
     View,
-    draw_texture_rectangle,
+    draw_texture_rect,
     get_default_texture,
     get_image,
     get_window,
@@ -370,7 +371,7 @@ class PlayerView(View):
             width=get_window().width * 0.3,
             height=get_window().height * 0.4,
             children=(
-                UILabel("Test", text_color=(0, 0, 0)),  # type: ignore[arg-type]
+                UILabel("Test", text_color=(0, 0, 0)),
                 create_divider_line(),
                 UIWidget().with_background(texture=get_default_texture()),
                 create_divider_line(),
@@ -405,12 +406,14 @@ class PlayerView(View):
         self.clear()
 
         # Draw the background colour and the UI elements
-        draw_texture_rectangle(
-            self.window.width // 2,
-            self.window.height // 2,
-            self.window.width,
-            self.window.height,
+        draw_texture_rect(
             self.background_image,
+            XYWH(
+                self.window.width // 2,
+                self.window.height // 2,
+                self.window.width,
+                self.window.height,
+            ),
         )
         self.ui_manager.draw()
 
