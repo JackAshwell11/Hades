@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 # Pip
 import pytest
 from arcade import Window
-from arcade.texture import cleanup_texture_cache
+from arcade.texture import default_texture_cache
 
 # Custom
 from hades_extensions.game_objects import Registry
@@ -45,7 +45,7 @@ def window() -> Window:
         The window for testing.
     """
     # Reset the window before running the test
-    cleanup_texture_cache()
+    default_texture_cache.flush()
     WINDOW.switch_to()
     WINDOW.hide_view()
     WINDOW.dispatch_pending_events()
