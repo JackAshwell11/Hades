@@ -9,7 +9,7 @@ from unittest.mock import Mock
 
 # Pip
 import pytest
-from arcade.gui import UIOnActionEvent, UIOnClickEvent, UIWidget
+from arcade.gui import UIOnActionEvent, UIOnClickEvent, UITextureButton, UIWidget
 
 # Custom
 from hades.sprite import HadesSprite
@@ -20,7 +20,13 @@ from hades.views.player import (
     create_divider_line,
 )
 from hades_extensions.game_objects import GameObjectType, Registry, RegistryError, Vec2d
-from hades_extensions.game_objects.components import Inventory, PythonSprite
+from hades_extensions.game_objects.components import (
+    EffectApplier,
+    Health,
+    Inventory,
+    PythonSprite,
+    StatusEffect,
+)
 from hades_extensions.game_objects.systems import InventorySystem
 
 if TYPE_CHECKING:
@@ -93,10 +99,12 @@ def player_view(registry: Registry, mock_sprite: HadesSprite) -> PlayerView:
         Vec2d(0, 0),
         [
             Inventory(5, 2),
+            Health(100, -1),
+            StatusEffect(),
             python_sprite,
         ],
     )
-    python_sprite.set_sprite(mock_sprite)
+    python_sprite.sprite = mock_sprite
     return PlayerView(registry, game_object_id, [])  # type: ignore[arg-type]
 
 
@@ -445,7 +453,7 @@ def test_player_view_on_update_inventory(
         )
         mock_item_sprite = Mock(spec=HadesSprite)
         mock_item_sprite.game_object_id = item
-        python_sprite.set_sprite(mock_item_sprite)
+        python_sprite.sprite = mock_item_sprite
         player_view.item_sprites.append(mock_item_sprite)
 
     # Make sure the inventory item buttons are updated correctly
@@ -459,9 +467,20 @@ def test_player_view_on_update_inventory(
         else:
             assert inventory_item.sprite_object is None
 
+    # Remove an item from the inventory
+    player_view.registry.get_system(InventorySystem).remove_item_from_inventory(0, 1)
+    player_view.on_update_inventory(0)
+    for index, inventory_item in enumerate(
+        player_view.inventory_layout.children[0].children,
+    ):
+        if index < len(items) - 1:
+            assert inventory_item.sprite_object is not None
+        else:
+            assert inventory_item.sprite_object is None
+
 
 @pytest.mark.usefixtures("window")
-def test_player_view_update_info_view(
+def test_player_view_update_info_view_texture_callback(
     monkeypatch: MonkeyPatch,
     mock_sprite: HadesSprite,
     player_view: PlayerView,
@@ -481,15 +500,69 @@ def test_player_view_update_info_view(
     mock_inventory_item_button = Mock(spec=InventoryItemButton)
     mock_inventory_item_button.sprite_object = mock_sprite
 
+    # Create a UITextureButton
+    parent_widget = UIWidget()
+    parent_widget.parent = mock_inventory_item_button
+    texture_button = UITextureButton(width=100, height=100)
+    texture_button.parent = parent_widget
+
     # Create a mock UIOnClickEvent
     mock_event = Mock()
-    mock_event.source.parent.parent = mock_inventory_item_button
+    mock_event.source = texture_button
 
     # Check if the info view is updated correctly
     player_view.update_info_view(mock_event)
     assert player_view.stats_layout.children[0].text == "Test Item"
     assert player_view.stats_layout.children[4].text == "Test Description"
     mock_with_background.assert_called_once_with(texture="Test Texture")
+
+
+@pytest.mark.usefixtures("window")
+def test_player_view_update_info_view_use_callback(
+    mock_sprite: HadesSprite,
+    player_view: PlayerView,
+) -> None:
+    """Test that the PlayerView correctly uses an item when the use button is clicked.
+
+    Args:
+        mock_sprite: The mock HadesSprite object for testing.
+        player_view: The PlayerView object for testing.
+    """
+    # Create a mock InventoryItemButton
+    mock_inventory_item_button = Mock(spec=InventoryItemButton)
+    mock_inventory_item_button.sprite_object = mock_sprite
+
+    # Create an item game object with a health instant effect
+    item_id = player_view.registry.create_game_object(
+        GameObjectType.Player,
+        Vec2d(0, 0),
+        [
+            EffectApplier(
+                {
+                    Health: lambda level: level**3 + 5,
+                },
+                {},
+            ),
+        ],
+    )
+    mock_inventory_item_button.sprite_object.game_object_id = item_id
+    player_view.registry.get_system(InventorySystem).add_item_to_inventory(0, item_id)
+
+    # Create a mock UIOnClickEvent
+    mock_event = Mock()
+    mock_event.source.parent.parent = mock_inventory_item_button
+
+    # Damage the player
+    health = player_view.registry.get_component(0, Health)
+    health.set_value(50)
+
+    # Check if the item is used correctly
+    inventory = player_view.registry.get_component(0, Inventory)
+    assert len(inventory.items) == 1
+    assert health.get_value() == 50
+    player_view.update_info_view(mock_event)
+    assert health.get_value() == 56
+    assert len(inventory.items) == 0
 
 
 @pytest.mark.usefixtures("window")

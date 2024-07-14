@@ -37,6 +37,7 @@ from PIL.ImageFilter import GaussianBlur
 # Custom
 from hades_extensions.game_objects import SPRITE_SIZE
 from hades_extensions.game_objects.components import Inventory, PythonSprite
+from hades_extensions.game_objects.systems import InventorySystem
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -93,7 +94,7 @@ class InventoryItemButton(UIBoxLayout):
         """Initialise the object.
 
         Args:
-            callback: The callback to call when the button is clicked.
+            callback: The callback to call when an item is clicked or used.
         """
         self._sprite_object: HadesSprite | None = None
 
@@ -201,7 +202,7 @@ class PaginatedGridLayout(UIBoxLayout):
             column_count: The number of columns to display.
             row_count: The number of rows to display.
             total_count: The total number of items to display.
-            callback: The callback to call when an item is clicked.
+            callback: The callback to call when an item is clicked or used.
         """
         super().__init__(
             vertical=False,
@@ -428,11 +429,14 @@ class PlayerView(View):
 
     def on_update_inventory(self: PlayerView, _: int) -> None:
         """Update the inventory view."""
-        for i, item in enumerate(self.inventory.items):
-            self.inventory_layout.items[i].sprite_object = self.registry.get_component(
-                item,
-                PythonSprite,
-            ).sprite
+        for index, button in enumerate(self.inventory_layout.items):
+            if index < len(self.inventory.items):
+                button.sprite_object = self.registry.get_component(
+                    self.inventory.items[index],
+                    PythonSprite,
+                ).sprite
+            else:
+                button.sprite_object = None
 
     def update_info_view(self: PlayerView, event: UIOnClickEvent) -> None:
         """Update the info view.
@@ -446,15 +450,21 @@ class PlayerView(View):
             return
 
         # Update the stats layout with the inventory item's information
-        title = cast(UILabel, self.stats_layout.children[0])
-        title.text = inventory_item.sprite_object.name
-        title.fit_content()
-        description = cast(UILabel, self.stats_layout.children[4])
-        description.text = inventory_item.sprite_object.description
-        description.fit_content()
-        self.stats_layout.children[2].with_background(
-            texture=inventory_item.sprite_object.texture,
-        )
+        if isinstance(event.source, UITextureButton):
+            title = cast(UILabel, self.stats_layout.children[0])
+            title.text = inventory_item.sprite_object.name
+            title.fit_content()
+            description = cast(UILabel, self.stats_layout.children[4])
+            description.text = inventory_item.sprite_object.description
+            description.fit_content()
+            self.stats_layout.children[2].with_background(
+                texture=inventory_item.sprite_object.texture,
+            )
+        else:
+            self.registry.get_system(InventorySystem).use_item(
+                self.game_object_id,
+                inventory_item.sprite_object.game_object_id,
+            )
 
     def __repr__(self: PlayerView) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.

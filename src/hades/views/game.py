@@ -32,11 +32,7 @@ from hades_extensions.game_objects.components import (
     Stat,
     SteeringMovement,
 )
-from hades_extensions.game_objects.systems import (
-    AttackSystem,
-    EffectSystem,
-    InventorySystem,
-)
+from hades_extensions.game_objects.systems import AttackSystem, InventorySystem
 from hades_extensions.generation import TileType, create_map
 
 __all__ = ("Game",)
@@ -47,7 +43,6 @@ ENEMY_GENERATE_INTERVAL: Final[int] = 1
 ENEMY_GENERATION_DISTANCE: Final[int] = 5
 ENEMY_RETRY_COUNT: Final[int] = 3
 TOTAL_ENEMY_COUNT: Final[int] = 1
-USABLE_TYPES: Final[set[GameObjectType]] = {GameObjectType.Potion}
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -111,7 +106,7 @@ class Game(arcade.View):
         # Create a sprite and add its ID to the dictionary
         sprite = sprite_class(self.registry, game_object_id, position, constructor)
         if python_sprite:
-            python_sprite.set_sprite(sprite)
+            python_sprite.sprite = sprite
 
         # Add all the indicator bars to the game
         indicator_bar_offset = 0
@@ -326,13 +321,11 @@ class Game(arcade.View):
                 ):
                     self.nearest_item[0].remove_from_sprite_lists()
             case arcade.key.E:
-                if (
-                    self.nearest_item
-                    and self.nearest_item[0].game_object_type in USABLE_TYPES
-                    and self.registry.get_system(EffectSystem).apply_effects(
-                        self.nearest_item[0].game_object_id,
-                        self.player.game_object_id,
-                    )
+                if self.nearest_item and self.registry.get_system(
+                    InventorySystem,
+                ).use_item(
+                    self.player.game_object_id,
+                    self.nearest_item[0].game_object_id,
                 ):
                     self.nearest_item[0].remove_from_sprite_lists()
             case arcade.key.Z:
@@ -403,7 +396,7 @@ class Game(arcade.View):
             game_object_id: The ID of the created bullet game object.
         """
         bullet = Bullet(self.registry, game_object_id)
-        self.registry.get_component(game_object_id, PythonSprite).set_sprite(bullet)
+        self.registry.get_component(game_object_id, PythonSprite).sprite = bullet
         self.entity_sprites.append(bullet)
 
     def on_game_object_death(self: Game, game_object_id: int) -> None:

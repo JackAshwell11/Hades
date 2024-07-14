@@ -28,6 +28,7 @@ from hades_extensions.game_objects.components import (
     KeyboardMovement,
     KinematicComponent,
     MovementForce,
+    StatusEffect,
     SteeringMovement,
 )
 
@@ -123,6 +124,7 @@ COMPONENT_MAPPING: Final[dict[str, type[ComponentBase]]] = {
     "KeyboardMovement": KeyboardMovement,
     "Footprints": Footprints,
     "EffectApplier": EffectApplier,
+    "StatusEffect": StatusEffect,
 }
 
 
@@ -229,6 +231,7 @@ PLAYER: Final[str] = json.dumps(
             "MovementForce": [5000, 5],
             "KeyboardMovement": [],
             "Footprints": [],
+            "StatusEffect": [],
         },
         "kinematic": True,
     },

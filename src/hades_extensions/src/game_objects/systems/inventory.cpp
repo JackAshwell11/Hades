@@ -3,6 +3,7 @@
 
 // Local headers
 #include "game_objects/registry.hpp"
+#include "game_objects/systems/effects.hpp"
 
 // ----- FUNCTIONS ------------------------------
 auto InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, const GameObjectID item) const -> bool {
@@ -15,13 +16,27 @@ auto InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, c
   return true;
 }
 
-auto InventorySystem::remove_item_from_inventory(const GameObjectID game_object_id, const int index) const -> int {
+auto InventorySystem::remove_item_from_inventory(const GameObjectID game_object_id, const GameObjectID item_id) const
+    -> bool {
   const auto inventory{get_registry()->get_component<Inventory>(game_object_id)};
+  const auto index{std::ranges::find(inventory->items.begin(), inventory->items.end(), item_id) -
+                   inventory->items.begin()};
   if (index < 0 || index >= static_cast<int>(inventory->items.size())) {
-    throw std::runtime_error("The index is out of range.");
+    return false;
   }
-  const int item{inventory->items[index]};
   inventory->items.erase(inventory->items.begin() + index);
+  get_registry()->delete_game_object(item_id);
   get_registry()->notify_callbacks(EventType::InventoryUpdate, game_object_id);
-  return item;
+  return true;
+}
+
+auto InventorySystem::use_item(const GameObjectID target_id, const GameObjectID item_id) const -> bool {
+  bool used{false};
+  if (auto *const registry{get_registry()}; registry->has_component(item_id, typeid(EffectApplier))) {
+    used = registry->get_system<EffectSystem>()->apply_effects(item_id, target_id);
+  }
+  if (used) {
+    [[maybe_unused]] const auto item{remove_item_from_inventory(target_id, item_id)};
+  }
+  return used;
 }

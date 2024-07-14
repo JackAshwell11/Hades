@@ -94,14 +94,12 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeNonUpgradeable) {
 /// Test that an exception is thrown if a game object does not have the target component.
 TEST_F(UpgradeSystemFixture, TestEffectSystemApplyStatusEffectNonexistentTargetComponent) {
   registry.create_game_object(GameObjectType::Player, cpvzero, {});
-  ASSERT_THROW_MESSAGE(
-      get_upgrade_system()->upgrade_component(0, typeid(TestStat)), RegistryError,
-      "The component `TestStat` for the game object ID `0` is not registered with the registry.")
+  ASSERT_THROW_MESSAGE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)), RegistryError,
+                       "The component `TestStat` for the game object ID `0` is not registered with the registry.")
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE(
-      (get_upgrade_system()->upgrade_component(-1, typeid(TestStat))), RegistryError,
-      "The component `TestStat` for the game object ID `-1` is not registered with the registry.")
+  ASSERT_THROW_MESSAGE((get_upgrade_system()->upgrade_component(-1, typeid(TestStat))), RegistryError,
+                       "The component `TestStat` for the game object ID `-1` is not registered with the registry.")
 }
