@@ -496,11 +496,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Initialise the object.\n\n"
            "Args:\n"
            "    sprite: The reference to the Python sprite object.")
-      .def("set_sprite", &PythonSprite::set_sprite, pybind11::arg("py_sprite"),
-           "Set the sprite object.\n\n"
-           "Args:\n"
-           "    py_sprite: The sprite object to set.")
-      .def_readonly("sprite", &PythonSprite::sprite);
+      .def_readwrite("sprite", &PythonSprite::sprite);
   pybind11::class_<StatusEffect, ComponentBase, std::shared_ptr<StatusEffect>>(
       components, "StatusEffect", "Allows a game object to have status effects applied to it.")
       .def(pybind11::init<>(), "Initialise the object.");
@@ -588,18 +584,28 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    item: The item to add to the inventory.\n\n"
            "Raises:\n"
            "    RegistryError: If the game object does not exist or does not have an inventory component.\n"
-           "    InventorySpaceError: If the inventory is full.")
+           "    RuntimeError: If the inventory is full.\n\n"
+           "Returns:\n"
+           "    Whether the item was added or not.")
       .def("remove_item_from_inventory", &InventorySystem::remove_item_from_inventory, pybind11::arg("game_object_id"),
-           pybind11::arg("index"),
+           pybind11::arg("item_id"),
            "Remove an item from the inventory of a game object.\n\n"
            "Args:\n"
            "    game_object_id: The ID of the game object to remove the item from.\n"
-           "    index: The index of the item to remove from the inventory.\n\n"
+           "    item_id: The ID of the item to remove from the inventory.\n\n"
            "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an inventory component.\n"
-           "    InventorySpaceError: If the inventory is empty or if the index is out of bounds.\n\n"
+           "    RegistryError: If the game object does not exist or does not have an inventory component.\n\n"
            "Returns:\n"
-           "    The item removed from the inventory.");
+           "    Whether the item was removed or not.")
+      .def("use_item", &InventorySystem::use_item, pybind11::arg("target_id"), pybind11::arg("item_id"),
+           "Use an item from the inventory.\n\n"
+           "Args:\n"
+           "    target_id: The game object ID of the game object to use the item on.\n"
+           "    item_id: The game object ID of the item to use.\n\n"
+           "Raises:\n"
+           "    RegistryError: If the game object does not exist or if the required systems is not registered.\n\n"
+           "Returns:\n"
+           "    Whether the item was used or not.");
   const pybind11::class_<KeyboardMovementSystem, SystemBase, std::shared_ptr<KeyboardMovementSystem>>
       keyboard_movement_system(systems, "KeyboardMovementSystem",
                                "Provides facilities to manipulate keyboard movement components.");

@@ -122,9 +122,8 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicCompon
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentMovementForceComponent) {
   registry.create_game_object(GameObjectType::Player, cpvzero,
                               {std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
-  ASSERT_THROW_MESSAGE(
-      get_physics_system()->add_force(1, {0, 0}), RegistryError,
-      "The component `MovementForce` for the game object ID `1` is not registered with the registry.");
+  ASSERT_THROW_MESSAGE(get_physics_system()->add_force(1, {0, 0}), RegistryError,
+                       "The component `MovementForce` for the game object ID `1` is not registered with the registry.");
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
