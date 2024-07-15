@@ -13,7 +13,10 @@ import arcade
 from arcade.camera.camera_2d import Camera2D
 
 # Custom
-from hades.constructors import ENEMY, FLOOR, PLAYER, POTION, WALL, create_constructor
+from hades.constructors import (
+    GameObjectConstructor,
+    game_object_constructors,
+)
 from hades.indicator_bar import INDICATOR_BAR_COMPONENTS, IndicatorBar
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
 from hades.views.player import PlayerView
@@ -73,20 +76,19 @@ class Game(arcade.View):
 
     def _create_sprite(
         self: Game,
-        game_object_json: str,
+        constructor: GameObjectConstructor,
         position: Vec2d,
     ) -> HadesSprite:
         """Create a sprite.
 
         Args:
-            game_object_json: A JSON string that templates a game object.
+            constructor: The constructor for the game object.
             position: The position of the game object in the grid.
 
         Returns:
             The created sprite object.
         """
         # Initialise the game object's constructor and a few other variables
-        constructor = create_constructor(game_object_json)
         python_sprite = None
         game_object_id = -1
         sprite_class = (
@@ -180,20 +182,32 @@ class Game(arcade.View):
             # Determine the type of the tile
             if tile == TileType.Wall:
                 self.tile_sprites.append(
-                    self._create_sprite(WALL, position),
+                    self._create_sprite(
+                        game_object_constructors[GameObjectType.Wall](),
+                        position,
+                    ),
                 )
             else:
                 if tile == TileType.Player:
-                    self.player = self._create_sprite(PLAYER, position)
+                    self.player = self._create_sprite(
+                        game_object_constructors[GameObjectType.Player](),
+                        position,
+                    )
                     self.entity_sprites.append(self.player)
                 elif tile == TileType.Potion:
                     self.item_sprites.append(
-                        self._create_sprite(POTION, position),
+                        self._create_sprite(
+                            game_object_constructors[GameObjectType.Potion](),
+                            position,
+                        ),
                     )
 
                 # Make the game object's backdrop a floor
                 self.tile_sprites.append(
-                    self._create_sprite(FLOOR, position),
+                    self._create_sprite(
+                        game_object_constructors[GameObjectType.Floor](),
+                        position,
+                    ),
                 )
                 self.possible_enemy_spawns.append(position)
 
@@ -441,7 +455,10 @@ class Game(arcade.View):
                 continue
 
             # Set the required data for the steering to correctly function
-            new_sprite = self._create_sprite(ENEMY, position)
+            new_sprite = self._create_sprite(
+                game_object_constructors[GameObjectType.Enemy](),
+                position,
+            )
             self.entity_sprites.append(new_sprite)
             steering_movement = self.registry.get_component(
                 new_sprite.game_object_id,
