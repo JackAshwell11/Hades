@@ -13,7 +13,7 @@ from arcade import (
 )
 
 # Custom
-from hades.constructors import BULLET, create_constructor
+from hades.constructors import game_object_constructors
 from hades_extensions.game_objects import (
     SPRITE_SCALE,
     GameObjectType,
@@ -124,7 +124,7 @@ class Bullet(HadesSprite):
             registry,
             game_object_id,
             Vec2d(0, 0),
-            create_constructor(BULLET),
+            game_object_constructors[GameObjectType.Bullet](),
         )
 
     def __repr__(self: Bullet) -> str:  # pragma: no cover

@@ -41,7 +41,6 @@ def sprite() -> HadesSprite:
             "Test description",
             GameObjectType.Player,
             [":resources:floor.png"],
-            [],
         ),
     )
 

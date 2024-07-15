@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 # Builtin
-import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import Mock
@@ -13,7 +12,7 @@ from unittest.mock import Mock
 import pytest
 
 # Custom
-from hades.constructors import GameObjectConstructor, create_constructor
+from hades.constructors import GameObjectConstructor
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
 from hades_extensions.game_objects import GameObjectType, Vec2d
 
@@ -100,16 +99,12 @@ def test_hades_sprite_update(registry: Registry) -> None:
         registry: The registry that manages the game objects, components, and systems.
     """
     # Create the sprite object and check that the position is correct
-    constructor = create_constructor(
-        json.dumps(
-            {
-                "name": "Test",
-                "description": "Test description",
-                "game_object_type": "Player",
-                "texture_paths": [":resources:floor.png"],
-                "kinematic": True,
-            },
-        ),
+    constructor = GameObjectConstructor(
+        "Test",
+        "Test description",
+        GameObjectType.Player,
+        [":resources:floor.png"],
+        kinematic=True,
     )
     sprite = HadesSprite(
         registry,
