@@ -3,7 +3,6 @@
 
 // Local headers
 #include "game_objects/registry.hpp"
-#include "game_objects/stats.hpp"
 
 // ----- CONSTANTS -------------------------------
 constexpr int ARMOUR_REGEN_AMOUNT{1};

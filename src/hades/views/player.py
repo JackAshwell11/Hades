@@ -36,7 +36,11 @@ from PIL.ImageFilter import GaussianBlur
 
 # Custom
 from hades_extensions.game_objects import SPRITE_SIZE
-from hades_extensions.game_objects.components import Inventory, PythonSprite
+from hades_extensions.game_objects.components import (
+    Inventory,
+    InventorySize,
+    PythonSprite,
+)
 from hades_extensions.game_objects.systems import InventorySystem
 
 if TYPE_CHECKING:
@@ -365,7 +369,7 @@ class PlayerView(View):
         self.inventory_layout: PaginatedGridLayout = PaginatedGridLayout(
             7,
             2,
-            self.inventory.get_capacity(),
+            int(self.registry.get_component(game_object_id, InventorySize).get_value()),
             self.update_info_view,
         )
         self.stats_layout: UIBoxLayout = UIBoxLayout(

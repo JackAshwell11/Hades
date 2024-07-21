@@ -14,9 +14,9 @@ class InventorySystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(
-        GameObjectType::Player, cpvzero,
-        {std::make_shared<Inventory>(3, 6), std::make_shared<Health>(100, -1), std::make_shared<StatusEffect>()});
+    registry.create_game_object(GameObjectType::Player, cpvzero,
+                                {std::make_shared<Health>(200, -1), std::make_shared<Inventory>(),
+                                 std::make_shared<InventorySize>(8, -1), std::make_shared<StatusEffect>()});
     registry.add_system<InventorySystem>();
     registry.add_system<EffectSystem>();
   }
@@ -34,9 +34,10 @@ class InventorySystemFixture : public testing::Test {
   [[nodiscard]] auto create_status_effect_item() -> GameObjectID {
     return registry.create_game_object(GameObjectType::Player, cpvzero,
                                        {std::make_shared<EffectApplier>(
-                                           std::unordered_map<std::type_index, ActionFunction>{
-                                               {typeid(Health), [](const int level) { return level * 2 + 10; }}},
-                                           std::unordered_map<std::type_index, StatusEffectData>{})});
+                                            std::unordered_map<std::type_index, ActionFunction>{
+                                                {typeid(Health), [](const int level) { return level * 3 + 5; }}},
+                                            std::unordered_map<std::type_index, StatusEffectData>{}),
+                                        std::make_shared<EffectLevel>(1, -1)});
   }
 };
 
@@ -53,7 +54,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
 
 /// Test that a valid item is not added to a zero size inventory.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryZeroSize) {
-  registry.get_component<Inventory>(0)->width = 0;
+  registry.get_component<InventorySize>(0)->set_value(0);
   ASSERT_THROW_MESSAGE(get_inventory_system()->add_item_to_inventory(0, 50), std::runtime_error,
                        "The inventory is full.")
 }
@@ -111,7 +112,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemUseItemStatusEffectValid) {
   registry.get_component<Health>(0)->set_value(50);
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, item_id));
   ASSERT_TRUE(get_inventory_system()->use_item(0, item_id));
-  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 62);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 58);
   ASSERT_EQ(registry.get_component<Inventory>(0)->items.size(), 0);
 }
 
@@ -119,7 +120,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemUseItemStatusEffectValid) {
 TEST_F(InventorySystemFixture, TestInventorySystemUseItemStatusEffectInvalid) {
   const auto item_id{create_status_effect_item()};
   ASSERT_FALSE(get_inventory_system()->use_item(0, item_id));
-  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 100);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 200);
 }
 
 /// Test that an item is not used if it doesn't match any of the strategies.

@@ -24,9 +24,10 @@ class AttackSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     auto create_target{[&](const cpVect position) {
-      const int target{registry.create_game_object(GameObjectType::Enemy, cpvzero,
-                                                   {std::make_shared<Health>(50, -1), std::make_shared<Armour>(0, -1),
-                                                    std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
+      const int target{registry.create_game_object(
+          GameObjectType::Enemy, cpvzero,
+          {std::make_shared<Armour>(0, -1), std::make_shared<AttackRange>(-1, -1), std::make_shared<Health>(80, -1),
+           std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
       registry.get_component<KinematicComponent>(target)->body->p = position;
       return target;
     }};
@@ -50,7 +51,11 @@ class AttackSystemFixture : public testing::Test {
   void create_attack_component(const std::vector<AttackAlgorithm> &&enabled_attacks,
                                const bool steering_movement = false) {
     std::vector<std::shared_ptr<ComponentBase>> components{std::make_shared<Attack>(enabled_attacks),
-                                                           std::make_shared<KinematicComponent>(std::vector<cpVect>{})};
+                                                           std::make_shared<AttackCooldown>(2, -1),
+                                                           std::make_shared<AttackRange>(3 * SPRITE_SIZE, -1),
+                                                           std::make_shared<Damage>(20, -1),
+                                                           std::make_shared<KinematicComponent>(std::vector<cpVect>{}),
+                                                           std::make_shared<MeleeAttackSize>(std::numbers::pi / 4, -1)};
     if (steering_movement) {
       components.push_back(std::make_shared<SteeringMovement>(
           std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{}));
@@ -79,7 +84,15 @@ class DamageSystemFixture : public testing::Test {
   /// Create health and armour attributes for use in testing.
   void create_health_and_armour_attributes() {
     registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<Health>(300, -1), std::make_shared<Armour>(100, -1)});
+                                {std::make_shared<Armour>(100, -1), std::make_shared<Health>(300, -1)});
+  }
+
+  /// Create an attacker game object with a given damage.
+  ///
+  /// @param damage - The damage to give the attacker.
+  /// @return The game object ID of the attacker.
+  [[nodiscard]] auto create_attacker(const int damage) -> int {
+    return registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<Damage>(damage, -1)});
   }
 
   /// Get the damage system from the registry.
@@ -141,14 +154,14 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
   create_attack_component({AttackAlgorithm::AreaOfEffect});
   get_attack_system()->update(5);
   get_attack_system()->do_attack(8, targets);
-  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
+  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 60);
+  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 60);
+  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 60);
+  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 60);
+  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 60);
 }
 
 /// Test that performing a melee attack works correctly.
@@ -156,14 +169,14 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
   create_attack_component({AttackAlgorithm::Melee});
   get_attack_system()->update(5);
   get_attack_system()->do_attack(8, targets);
-  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 40);
-  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 40);
+  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
+  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 60);
+  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 60);
+  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 60);
+  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 60);
 }
 
 /// Test that performing a ranged attack works correctly.
@@ -189,14 +202,14 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackEmptyAttacks) {
   create_attack_component({});
   get_attack_system()->update(5);
   get_attack_system()->do_attack(8, targets);
-  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 50);
-  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 80);
+  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 80);
 }
 
 /// Test that performing an attack before the cooldown is up doesn't work.
@@ -262,23 +275,23 @@ TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextAttackInvalidGameObjectI
 /// Test that damage is dealt when health and armour are lower than damage.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageLowHealthArmour) {
   create_health_and_armour_attributes();
-  get_damage_system()->deal_damage(0, 350);
-  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 50);
+  get_damage_system()->deal_damage(0, create_attacker(380));
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 20);
   ASSERT_EQ(registry.get_component<Armour>(0)->get_value(), 0);
 }
 
 /// Test that no damage is dealt when armour is larger than damage.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageLargeArmour) {
   create_health_and_armour_attributes();
-  get_damage_system()->deal_damage(0, 50);
+  get_damage_system()->deal_damage(0, create_attacker(80));
   ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 300);
-  ASSERT_EQ(registry.get_component<Armour>(0)->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Armour>(0)->get_value(), 20);
 }
 
 /// Test that no damage is dealt when damage is zero.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroDamage) {
   create_health_and_armour_attributes();
-  get_damage_system()->deal_damage(0, 0);
+  get_damage_system()->deal_damage(0, create_attacker(0));
   ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 300);
   ASSERT_EQ(registry.get_component<Armour>(0)->get_value(), 100);
 }
@@ -288,7 +301,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroArmour) {
   create_health_and_armour_attributes();
   const auto armour{registry.get_component<Armour>(0)};
   armour->set_value(0);
-  get_damage_system()->deal_damage(0, 100);
+  get_damage_system()->deal_damage(0, create_attacker(100));
   ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 200);
   ASSERT_EQ(armour->get_value(), 0);
 }
@@ -296,7 +309,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroArmour) {
 /// Test that a game object is deleted if the damage drops the health to 0.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageDeleteGameObject) {
   create_health_and_armour_attributes();
-  get_damage_system()->deal_damage(0, 500);
+  get_damage_system()->deal_damage(0, create_attacker(500));
   ASSERT_FALSE(registry.has_component(0, typeid(Health)));
   ASSERT_FALSE(registry.has_component(0, typeid(Armour)));
 }
@@ -305,7 +318,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageDeleteGameObject) {
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
   create_health_and_armour_attributes();
   registry.get_component<Health>(0)->set_value(0);
-  get_damage_system()->deal_damage(0, 0);
+  get_damage_system()->deal_damage(0, create_attacker(0));
   ASSERT_FALSE(registry.has_component(0, typeid(Health)));
   ASSERT_FALSE(registry.has_component(0, typeid(Armour)));
 }
@@ -313,12 +326,12 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
 /// Test that an exception is thrown if a game object does not have the required components.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageNonexistentComponents) {
   registry.create_game_object(GameObjectType::Player, cpvzero, {});
-  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(0, 100), RegistryError,
+  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(0, create_attacker(100)), RegistryError,
                        "The component `Health` for the game object ID `0` is not registered with the registry.")
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(-1, 100), RegistryError,
+  ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(-1, create_attacker(100)), RegistryError,
                        "The component `Health` for the game object ID `-1` is not registered with the registry.")
 }

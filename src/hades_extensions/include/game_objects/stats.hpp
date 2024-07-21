@@ -70,18 +70,6 @@ struct Armour final : Stat {
   Armour(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
-/// Allows a game object to regenerate armour.
-struct ArmourRegen final : Stat {
-  /// The time since the game object last regenerated armour.
-  double time_since_armour_regen{0};
-
-  /// Initialise the object.
-  ///
-  /// @param value - The initial and maximum value of the armour regen stat.
-  /// @param maximum_level - The maximum level of the armour regen stat.
-  ArmourRegen(const double value, const int maximum_level) : Stat(value, maximum_level) {}
-};
-
 /// Allows a game object to have a health stat.
 struct Health final : Stat {
   /// Initialise the object.
@@ -89,13 +77,4 @@ struct Health final : Stat {
   /// @param value - The initial and maximum value of the health stat.
   /// @param maximum_level - The maximum level of the health stat.
   Health(const double value, const int maximum_level) : Stat(value, maximum_level) {}
-};
-
-/// Allows a game object to determine how fast it can move.
-struct MovementForce final : Stat {
-  /// Initialise the object.
-  ///
-  /// @param value - The initial and maximum value of the movement force stat.
-  /// @param maximum_level - The maximum level of the movement force stat.
-  MovementForce(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };

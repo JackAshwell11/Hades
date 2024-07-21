@@ -79,6 +79,6 @@ auto seek(const cpVect &current_position, const cpVect &target_position) -> cpVe
 /// Allow a game object to move in a random direction for a short period of time.
 ///
 /// @param current_velocity - The velocity of the game object.
-/// @param displacement_angle - The angle of the displacement force in degrees.
+/// @param displacement_angle - The angle of the displacement force in radians.
 /// @return The new steering force from this behaviour.
-auto wander(const cpVect &current_velocity, int displacement_angle) -> cpVect;
+auto wander(const cpVect &current_velocity, double displacement_angle) -> cpVect;

@@ -3,9 +3,7 @@
 
 // Local headers
 #include "game_objects/registry.hpp"
-
-// ----- CONSTANTS ------------------------------
-constexpr int DAMAGE{10};
+#include "game_objects/stats.hpp"
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of attack algorithms available.
@@ -31,6 +29,42 @@ struct Attack final : ComponentBase {
   ///
   /// @param attack_algorithms - The attack algorithms the game object can use.
   explicit Attack(const std::vector<AttackAlgorithm> &attack_algorithms) : attack_algorithms(attack_algorithms) {}
+};
+
+/// Allows a game object to have an attack cooldown.
+struct AttackCooldown final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial and maximum value of the attack cooldown stat.
+  /// @param maximum_level - The maximum level of the attack cooldown stat.
+  AttackCooldown(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+};
+
+/// Allows a game object to have an attack range.
+struct AttackRange final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial and maximum value of the attack range stat.
+  /// @param maximum_level - The maximum level of the attack range stat.
+  AttackRange(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+};
+
+/// Allows a game object to deal damage to other game objects.
+struct Damage final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial and maximum value of the damage stat.
+  /// @param maximum_level - The maximum level of the damage stat.
+  Damage(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+};
+
+/// Allows a game object to have a melee attack size.
+struct MeleeAttackSize final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial and maximum value of the melee attack size stat.
+  /// @param maximum_level - The maximum level of the melee attack size stat.
+  MeleeAttackSize(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
 // ----- SYSTEMS ------------------------------
@@ -86,7 +120,7 @@ struct DamageSystem final : SystemBase {
   /// Deal damage to a game object.
   ///
   /// @param game_object_id - The game object ID to deal damage to.
-  /// @param damage - The amount of damage to deal to the game object.
-  /// @throws RegistryError - If the game object does not exist or does not have health and armour components.
-  void deal_damage(GameObjectID game_object_id, int damage) const;
+  /// @param attacker_id - The game object ID of the attacker.
+  /// @throws RegistryError - If the game object does not exist or does not have the required components.
+  void deal_damage(GameObjectID game_object_id, GameObjectID attacker_id) const;
 };

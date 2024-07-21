@@ -11,7 +11,6 @@
 
 // ----- CONSTANTS ------------------------------
 #define PI_RADIANS (std::numbers::pi / 180)
-#define TWO_PI (2 * std::numbers::pi)
 constexpr double MAX_SEE_AHEAD{2 * SPRITE_SIZE};
 constexpr int MAX_VELOCITY{200};
 constexpr double OBSTACLE_AVOIDANCE_ANGLE{60 * PI_RADIANS};
@@ -101,11 +100,11 @@ auto seek(const cpVect &current_position, const cpVect &target_position) -> cpVe
   return cpvnormalize(target_position - current_position);
 }
 
-auto wander(const cpVect &current_velocity, const int displacement_angle) -> cpVect {
+auto wander(const cpVect &current_velocity, const double displacement_angle) -> cpVect {
   // Calculate the position of an invisible circle in front of the game object
   const cpVect circle_center{cpvnormalize(current_velocity) * WANDER_CIRCLE_DISTANCE};
 
   // Add a displacement force to the centre of the circle to randomise the movement
-  const cpVect displacement{cpvrotate(cpv(0, -1) * WANDER_CIRCLE_RADIUS, cpvforangle(displacement_angle * PI_RADIANS))};
+  const cpVect displacement{cpvrotate(cpv(0, -1) * WANDER_CIRCLE_RADIUS, cpvforangle(displacement_angle))};
   return cpvnormalize(circle_center + displacement);
 }
