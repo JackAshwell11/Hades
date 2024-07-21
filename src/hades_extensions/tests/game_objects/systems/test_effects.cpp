@@ -48,11 +48,15 @@ class EffectSystemFixture : public testing::Test {
     registry.add_system<EffectSystem>();
     registry.create_game_object(
         GameObjectType::Player, cpvzero,
-        {std::make_shared<TestStat>(200, -1), std::make_shared<TestStat2>(100, -1), std::make_shared<StatusEffect>()});
+        {std::make_shared<StatusEffect>(), std::make_shared<TestStat>(200, -1), std::make_shared<TestStat2>(100, -1)});
   }
 
   /// Create a game object to hold the instant and status effects.
-  void create_effect_applier(const bool instant = false, const bool status = false) {
+  ///
+  /// @param instant - Whether to create an instant effect or not.
+  /// @param status - Whether to create a status effect or not.
+  /// @param level - The level of the effect.
+  void create_effect_applier(const bool instant = false, const bool status = false, const int level = 1) {
     const auto effect_applier{std::make_shared<EffectApplier>(std::unordered_map<std::type_index, ActionFunction>{},
                                                               std::unordered_map<std::type_index, StatusEffectData>{})};
     if (instant) {
@@ -61,7 +65,8 @@ class EffectSystemFixture : public testing::Test {
     if (status) {
       effect_applier->status_effects.emplace(typeid(TestStat), status_effect_data);
     }
-    registry.create_game_object(GameObjectType::Player, cpvzero, {effect_applier});
+    registry.create_game_object(GameObjectType::Player, cpvzero,
+                                {effect_applier, std::make_shared<EffectLevel>(level, -1)});
   }
 
   /// Get the effect system from the registry.
@@ -146,6 +151,15 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsInstantValueLowerMax) {
   ASSERT_EQ(component->get_value(), 156);
 }
 
+/// Test that an instant effect is applied correctly with a higher effect level.
+TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsInstantHighEffectLevel) {
+  create_effect_applier(true, false, 5);
+  const auto component{registry.get_component<TestStat>(0)};
+  component->set_value(150);
+  ASSERT_TRUE(get_effect_system()->apply_effects(1, 0));
+  ASSERT_EQ(component->get_value(), 180);
+}
+
 /// Test that a status effect is applied correctly if no status effect is currently applied.
 TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusNoAppliedEffect) {
   create_effect_applier(false, true);
@@ -186,6 +200,19 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusMultipleStatusEffe
   const auto status_effects{registry.get_component<StatusEffect>(0)->applied_effects};
   ASSERT_TRUE(status_effects.contains(StatusEffectType::TEMP));
   ASSERT_TRUE(status_effects.contains(StatusEffectType::TEMP2));
+}
+
+/// Test that a status effect is applied correctly with a higher effect level.
+TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusHighEffectLevel) {
+  create_effect_applier(false, true, 10);
+  const auto component{registry.get_component<TestStat>(0)};
+  component->set_value(150);
+  ASSERT_TRUE(get_effect_system()->apply_effects(1, 0));
+  ASSERT_EQ(component->get_value(), 200);
+  const auto applied_status_effect{registry.get_component<StatusEffect>(0)->applied_effects.at(StatusEffectType::TEMP)};
+  ASSERT_EQ(applied_status_effect.value, 105);
+  ASSERT_EQ(applied_status_effect.duration, 100);
+  ASSERT_EQ(applied_status_effect.interval, 1024);
 }
 
 /// Test that an exception is thrown if the game object does not have the target component.

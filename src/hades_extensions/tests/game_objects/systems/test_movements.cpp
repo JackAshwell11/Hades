@@ -5,7 +5,6 @@
 #include <numbers>
 
 // Local headers
-#include "game_objects/stats.hpp"
 #include "game_objects/systems/movements.hpp"
 #include "game_objects/systems/physics.hpp"
 #include "macros.hpp"
@@ -21,7 +20,8 @@ class FootprintSystemFixture : public testing::Test {
   void SetUp() override {
     registry.create_game_object(
         GameObjectType::Player, cpvzero,
-        {std::make_shared<Footprints>(), std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
+        {std::make_shared<Footprints>(), std::make_shared<KinematicComponent>(std::vector<cpVect>{}),
+         std::make_shared<FootprintInterval>(0.2, -1), std::make_shared<FootprintLimit>(10, -1)});
     registry.add_system<FootprintSystem>();
     registry.add_system<SteeringMovementSystem>();
 
@@ -72,7 +72,8 @@ class SteeringMovementSystemFixture : public testing::Test {
     // Create the target game object and add the required systems
     registry.create_game_object(
         GameObjectType::Player, cpvzero,
-        {std::make_shared<Footprints>(), std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
+        {std::make_shared<FootprintInterval>(0.3, -1), std::make_shared<FootprintLimit>(10, -1),
+         std::make_shared<Footprints>(), std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
     registry.add_system<FootprintSystem>();
     registry.add_system<PhysicsSystem>();
     registry.add_system<SteeringMovementSystem>();
@@ -86,8 +87,9 @@ class SteeringMovementSystemFixture : public testing::Test {
       const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> &steering_behaviours) -> int {
     const int game_object_id{registry.create_game_object(
         GameObjectType::Player, cpvzero,
-        {std::make_shared<MovementForce>(100, -1), std::make_shared<SteeringMovement>(steering_behaviours),
-         std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
+        {std::make_shared<MovementForce>(200, -1), std::make_shared<SteeringMovement>(steering_behaviours),
+         std::make_shared<KinematicComponent>(std::vector<cpVect>{}),
+         std::make_shared<ViewDistance>(2 * SPRITE_SIZE, -1)})};
     registry.get_component<SteeringMovement>(game_object_id)->target_id = 0;
     return game_object_id;
   }
@@ -295,9 +297,9 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateNoBehaviou
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateArrive) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Arrive}}});
   registry.get_component<KinematicComponent>(0)->body->p = cpvzero;
-  registry.get_component<KinematicComponent>(1)->body->p = {100, 100};
+  registry.get_component<KinematicComponent>(1)->body->p = {50, 50};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -70.71067811865476, -70.71067811865476);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -141.42135623730951, -141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
@@ -307,7 +309,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateEvade) {
   registry.get_component<KinematicComponent>(0)->body->p = {100, 100};
   registry.get_component<KinematicComponent>(0)->body->v = {-50, 0};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -54.28888213891886, -83.98045770360257);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -108.57776427783772, -167.96091540720511);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.1446695001689107);
 }
 
@@ -317,8 +319,8 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateFlee) {
   registry.get_component<KinematicComponent>(0)->body->p = {50, 50};
   registry.get_component<KinematicComponent>(1)->body->p = {100, 100};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 70.71067811865475, 70.7106781186547);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 70.71067811865476, 70.71067811865476);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 141.42135623730951, 141.42135623730951);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 141.42135623730951, 141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.7853981633974483);
 }
 
@@ -328,7 +330,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateFollowPath
   registry.get_component<KinematicComponent>(1)->body->p = {200, 200};
   registry.get_component<SteeringMovement>(1)->path_list = {{350, 350}, {500, 500}};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 70.71067811865475, 70.71067811865475);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 141.42135623730951, 141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.7853981633974483);
 }
 
@@ -339,7 +341,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateObstacleAv
   registry.get_component<KinematicComponent>(1)->body->v = {100, 100};
   registry.create_game_object(GameObjectType::Wall, {1, 2}, {std::make_shared<KinematicComponent>(true)});
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -70.710678118654755, -70.710678118654755);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -141.42135623730951, -141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
@@ -349,7 +351,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePursue) {
   registry.get_component<KinematicComponent>(0)->body->p = {100, 100};
   registry.get_component<KinematicComponent>(0)->body->v = {-50, 0};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 54.28888213891886, 83.98045770360257);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 108.57776427783772, 167.96091540720511);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.99692315342088256);
 }
 
@@ -359,7 +361,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateSeek) {
   registry.get_component<KinematicComponent>(0)->body->p = {50, 50};
   registry.get_component<KinematicComponent>(1)->body->p = {100, 100};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -70.71067811865475, -70.7106781186547);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -141.42135623730951, -141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
@@ -370,7 +372,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateWander) {
   const auto before_force{registry.get_component<KinematicComponent>(1)->body->f};
   get_steering_movement_system()->update(0);
   const auto after_force{registry.get_component<KinematicComponent>(1)->body->f};
-  ASSERT_EQ(round(cpvlength(after_force)), 100);
+  ASSERT_EQ(round(cpvlength(after_force)), 200);
   ASSERT_NE(before_force, after_force);
   ASSERT_GE(registry.get_component<KinematicComponent>(1)->rotation, -std::numbers::pi);
   ASSERT_LE(registry.get_component<KinematicComponent>(1)->rotation, std::numbers::pi);
@@ -383,7 +385,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleBe
   registry.get_component<KinematicComponent>(1)->body->p = {300, 300};
   registry.get_component<SteeringMovement>(1)->path_list = {{100, 200}, {-100, 0}};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -81.12421851755609, -58.47102846637651);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -162.2484370351122, -116.94205693275299);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.5170697673906659);
 }
 
@@ -397,14 +399,14 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleSt
   registry.get_component<KinematicComponent>(0)->body->v = {-50, 100};
   registry.get_component<KinematicComponent>(1)->body->p = {100, 100};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -97.73793955511094, -21.14935392681019);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -195.47587911022185, -42.298707853620392);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.9284898398506929);
 
   // Test the default state making sure to clear the force
   registry.get_component<KinematicComponent>(1)->body->f = cpvzero;
   registry.get_component<KinematicComponent>(1)->body->p = {300, 300};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -70.71067811865476, -70.71067811865476);
+  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -141.42135623730951, -141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
@@ -435,8 +437,9 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePathListOu
 /// Test if the path list is updated if the position is equal to the view distance.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePathListEqualDistance) {
   create_steering_movement_component({});
-  get_steering_movement_system()->update_path_list(0, {{135.764501987, 135.764501987}});
-  ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, std::vector{cpv(135.764501987, 135.764501987)});
+  get_steering_movement_system()->update_path_list(0, {{122.50966798868408, 122.50966798868408}});
+  ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list,
+            std::vector{cpv(122.50966798868408, 122.50966798868408)});
 }
 
 /// Test if the path list is updated if multiple footprints are within view distance.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 # Builtin
+import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -12,6 +13,7 @@ from arcade import load_texture
 # Custom
 from hades_extensions.game_objects import (
     SPRITE_SCALE,
+    SPRITE_SIZE,
     AttackAlgorithm,
     GameObjectType,
     SteeringBehaviours,
@@ -21,15 +23,25 @@ from hades_extensions.game_objects import (
 from hades_extensions.game_objects.components import (
     Armour,
     Attack,
+    AttackCooldown,
+    AttackRange,
+    Damage,
     EffectApplier,
+    EffectLevel,
+    FootprintInterval,
+    FootprintLimit,
     Footprints,
     Health,
     Inventory,
+    InventorySize,
     KeyboardMovement,
     KinematicComponent,
+    MeleeAttackSize,
     MovementForce,
     StatusEffect,
     SteeringMovement,
+    Upgrades,
+    ViewDistance,
 )
 
 if TYPE_CHECKING:
@@ -120,9 +132,7 @@ def player_factory() -> GameObjectConstructor:
         GameObjectType.Player,
         [":resources:player_idle.png"],
         [
-            Health(200, 5),
             Armour(100, 5),
-            Inventory(6, 5),
             Attack(
                 [
                     AttackAlgorithm.Ranged,
@@ -130,10 +140,20 @@ def player_factory() -> GameObjectConstructor:
                     AttackAlgorithm.AreaOfEffect,
                 ],
             ),
-            MovementForce(5000, 5),
-            KeyboardMovement(),
+            AttackCooldown(1, 3),
+            AttackRange(3 * SPRITE_SIZE, 3),
+            Damage(20, 3),
             Footprints(),
+            FootprintInterval(0.5, 3),
+            FootprintLimit(5, 3),
+            Health(200, 5),
+            Inventory(),
+            InventorySize(30, 3),
+            KeyboardMovement(),
+            MeleeAttackSize(math.pi / 4, 3),
+            MovementForce(5000, 5),
             StatusEffect(),
+            Upgrades({Health: lambda level: 2**level + 10}),
         ],
         kinematic=True,
     )
@@ -151,9 +171,12 @@ def enemy_factory() -> GameObjectConstructor:
         GameObjectType.Enemy,
         [":resources:enemy_idle.png"],
         [
-            Health(100, 5),
             Armour(50, 5),
             Attack([AttackAlgorithm.Ranged]),
+            AttackCooldown(1, 3),
+            AttackRange(3 * SPRITE_SIZE, 3),
+            Damage(10, 3),
+            Health(100, 5),
             MovementForce(1000, 5),
             SteeringMovement(
                 {
@@ -167,6 +190,7 @@ def enemy_factory() -> GameObjectConstructor:
                     SteeringMovementState.Target: [SteeringBehaviours.Pursue],
                 },
             ),
+            ViewDistance(3 * SPRITE_SIZE, 3),
         ],
         kinematic=True,
     )
@@ -190,6 +214,7 @@ def health_potion_factory() -> GameObjectConstructor:
                 },
                 {},
             ),
+            EffectLevel(1, 3),
         ],
     )
 

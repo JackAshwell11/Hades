@@ -5,7 +5,7 @@
 #include <typeindex>
 
 // Local headers
-#include "game_objects/types.hpp"
+#include "game_objects/stats.hpp"
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of status effects available.
@@ -89,6 +89,15 @@ struct EffectApplier final : ComponentBase {
   EffectApplier(const std::unordered_map<std::type_index, ActionFunction> &instant_effects,
                 const std::unordered_map<std::type_index, StatusEffectData> &status_effects)
       : instant_effects(instant_effects), status_effects(status_effects) {}
+};
+
+/// Allows a game object to have a level associated with its effects.
+struct EffectLevel final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial value of the effect level stat.
+  /// @param maximum_level - The maximum level of the effect level stat.
+  EffectLevel(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
 /// Allows a game object to have status effects applied to it.

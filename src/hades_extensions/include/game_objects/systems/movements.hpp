@@ -8,7 +8,7 @@
 #include <chipmunk/chipmunk.h>
 
 // Local headers
-#include "game_objects/types.hpp"
+#include "game_objects/stats.hpp"
 
 // ----- ENUMS ------------------------------
 /// Stores the different types of steering behaviours available.
@@ -31,6 +31,24 @@ enum class SteeringMovementState : std::uint8_t {
 };
 
 // ----- COMPONENTS ------------------------------
+/// Allows a game object to determine the time interval between footprints.
+struct FootprintInterval final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial and maximum value of the footprint interval stat.
+  /// @param maximum_level - The maximum level of the footprint interval stat.
+  FootprintInterval(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+};
+
+/// Allows a game object to determine the maximum number of footprints it can leave.
+struct FootprintLimit final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial and maximum value of the footprint limit stat.
+  /// @param maximum_level - The maximum level of the footprint limit stat.
+  FootprintLimit(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+};
+
 /// Allows a game object to periodically leave footprints around the game map.
 struct Footprints final : ComponentBase {
   /// The footprints the game object has left.
@@ -53,6 +71,24 @@ struct KeyboardMovement final : ComponentBase {
 
   /// Whether the game object is moving west or not.
   bool moving_west{false};
+};
+
+/// Allows a game object to determine how fast it can move.
+struct MovementForce final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial and maximum value of the movement force stat.
+  /// @param maximum_level - The maximum level of the movement force stat.
+  MovementForce(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+};
+
+/// Allows a game object to determine how far it can see.
+struct ViewDistance final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial and maximum value of the view distance stat.
+  /// @param maximum_level - The maximum level of the view distance stat.
+  ViewDistance(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
 /// Allows a game object's movement to be controlled by steering behaviours.

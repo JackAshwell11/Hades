@@ -243,9 +243,6 @@ class Registry {
   /// The Chipmunk2D space.
   ChipmunkHandle<cpSpace, cpSpaceFree> space_{cpSpaceNew()};
 
-  /// The Chipmunk2D shapes registered with the registry.
-  std::unordered_map<cpShape *, GameObjectID> shapes_;
-
   /// The callbacks registered with the registry to listen for events.
   std::unordered_map<EventType, std::function<void(GameObjectID)>> callbacks_;
 };

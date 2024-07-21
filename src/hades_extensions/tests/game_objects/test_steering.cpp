@@ -1,3 +1,6 @@
+// Std headers
+#include <numbers>
+
 // Local headers
 #include "game_objects/steering.hpp"
 #include "game_objects/types.hpp"
@@ -241,13 +244,15 @@ TEST(Tests, TestSeekNegativePositions) { ASSERT_EQ(seek({-50, -50}, {-50, -50}),
 /// Test if a non-moving game object produces the correct wander force.
 TEST(Tests, TestWanderNonMoving) {
   // This is due to floating point precision
-  const auto [non_moving_result_x, non_moving_result_y] = wander(cpvzero, 60);
+  const auto [non_moving_result_x, non_moving_result_y] = wander(cpvzero, std::numbers::pi / 3);
   ASSERT_DOUBLE_EQ(non_moving_result_x, 0.8660254037844385);
   ASSERT_DOUBLE_EQ(non_moving_result_y, -0.5);
 }
 
 /// Test if a moving game object produces the correct wander force.
-TEST(Tests, TestWanderMoving) { ASSERT_EQ(wander({100, -100}, 60), cpv(0.76590121355591045, -0.64295826542131307)); }
+TEST(Tests, TestWanderMoving) {
+  ASSERT_EQ(wander({100, -100}, std::numbers::pi / 3), cpv(0.76590121355591045, -0.64295826542131307));
+}
 
 /// Test if a zero angle produces the correct wander force.
 TEST(Tests, TestWanderZeroAngle) { ASSERT_EQ(wander(cpvzero, 0), cpv(0, -1)); }

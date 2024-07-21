@@ -2,6 +2,7 @@
 #include "game_objects/systems/movements.hpp"
 
 // Std headers
+#include <numbers>
 #include <random>
 
 // External headers
@@ -10,12 +11,6 @@
 // Local headers
 #include "game_objects/registry.hpp"
 #include "game_objects/systems/physics.hpp"
-
-// ----- CONSTANTS ------------------------------
-constexpr double FOOTPRINT_INTERVAL{0.5};
-constexpr int FOOTPRINT_LIMIT{5};
-constexpr double TARGET_DISTANCE{3 * SPRITE_SIZE};
-constexpr int MAX_DEGREE{360};
 
 // ----- FUNCTIONS ------------------------------
 /// Calculate the new steering force to apply to the game object.
@@ -53,7 +48,8 @@ auto calculate_steering_force(const Registry *registry, const std::shared_ptr<St
         steering_force += seek(kinematic_owner->p, kinematic_target->p);
         break;
       case SteeringBehaviours::Wander:
-        steering_force += wander(kinematic_owner->v, std::uniform_int_distribution{0, MAX_DEGREE}(number_generator));
+        steering_force +=
+            wander(kinematic_owner->v, std::uniform_real_distribution{0.0, std::numbers::pi * 2}(number_generator));
         break;
     }
   }
@@ -65,14 +61,16 @@ void FootprintSystem::update(const double delta_time) const {
   for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<Footprints>()) {
     const auto footprints{std::get<0>(component_tuple)};
     footprints->time_since_last_footprint += delta_time;
-    if (footprints->time_since_last_footprint < FOOTPRINT_INTERVAL) {
+    if (footprints->time_since_last_footprint <
+        get_registry()->get_component<FootprintInterval>(game_object_id)->get_value()) {
       return;
     }
 
     // Reset the counter and create a new footprint making sure to only keep FOOTPRINT_LIMIT footprints
     const cpVect current_position{get_registry()->get_component<KinematicComponent>(game_object_id)->body->p};
     footprints->time_since_last_footprint = 0;
-    if (footprints->footprints.size() >= FOOTPRINT_LIMIT) {
+    if (static_cast<int>(footprints->footprints.size()) >=
+        get_registry()->get_component<FootprintLimit>(game_object_id)->get_value()) {
       footprints->footprints.pop_front();
     }
     footprints->footprints.push_back(current_position);
@@ -104,7 +102,8 @@ void SteeringMovementSystem::update(const double /*delta_time*/) const {
     const auto kinematic_target{get_registry()->get_component<KinematicComponent>(steering_movement->target_id)};
 
     // Determine if the movement state should change or not
-    if (cpvdist(kinematic_owner->body->p, kinematic_target->body->p) <= TARGET_DISTANCE) {
+    if (cpvdist(kinematic_owner->body->p, kinematic_target->body->p) <=
+        get_registry()->get_component<ViewDistance>(game_object_id)->get_value()) {
       steering_movement->movement_state = SteeringMovementState::Target;
     } else if (!steering_movement->path_list.empty()) {
       steering_movement->movement_state = SteeringMovementState::Footprint;
@@ -113,8 +112,8 @@ void SteeringMovementSystem::update(const double /*delta_time*/) const {
     }
 
     // Calculate and apply the new steering force to the game object
-    const auto steering_force =
-        calculate_steering_force(get_registry(), steering_movement, *kinematic_owner->body, *kinematic_target->body);
+    const auto steering_force{
+        calculate_steering_force(get_registry(), steering_movement, *kinematic_owner->body, *kinematic_target->body)};
     get_registry()->get_system<PhysicsSystem>()->add_force(game_object_id, steering_force);
     kinematic_owner->rotation = cpvtoangle(steering_force);
   }
@@ -135,7 +134,7 @@ void SteeringMovementSystem::update_path_list(const GameObjectID target_game_obj
 
     // Get the closest footprint to the target that is still within range of the game object
     auto closest_footprint{footprints.end()};
-    double closest_distance{TARGET_DISTANCE};
+    double closest_distance{get_registry()->get_component<ViewDistance>(game_object_id)->get_value()};
     for (auto it{footprints.begin()}; it != footprints.end(); ++it) {
       if (const double distance{cpvdist(current_position, *it)}; distance < closest_distance) {
         closest_footprint = it;

@@ -22,8 +22,10 @@ from hades.views.player import (
 from hades_extensions.game_objects import GameObjectType, Registry, RegistryError, Vec2d
 from hades_extensions.game_objects.components import (
     EffectApplier,
+    EffectLevel,
     Health,
     Inventory,
+    InventorySize,
     PythonSprite,
     StatusEffect,
 )
@@ -98,7 +100,8 @@ def player_view(registry: Registry, mock_sprite: HadesSprite) -> PlayerView:
         GameObjectType.Player,
         Vec2d(0, 0),
         [
-            Inventory(5, 2),
+            Inventory(),
+            InventorySize(10, -1),
             Health(100, -1),
             StatusEffect(),
             python_sprite,
@@ -543,6 +546,7 @@ def test_player_view_update_info_view_use_callback(
                 },
                 {},
             ),
+            EffectLevel(2, -1),
         ],
     )
     mock_inventory_item_button.sprite_object.game_object_id = item_id
@@ -561,7 +565,7 @@ def test_player_view_update_info_view_use_callback(
     assert len(inventory.items) == 1
     assert health.get_value() == 50
     player_view.update_info_view(mock_event)
-    assert health.get_value() == 56
+    assert health.get_value() == 63
     assert len(inventory.items) == 0
 
 

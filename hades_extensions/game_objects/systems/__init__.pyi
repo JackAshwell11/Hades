@@ -13,7 +13,11 @@ class AttackSystem(SystemBase):
     def next_attack(self: AttackSystem, game_object_id: int) -> None: ...
 
 class DamageSystem(SystemBase):
-    def deal_damage(self: DamageSystem, game_object_id: int, damage: int) -> None: ...
+    def deal_damage(
+        self: DamageSystem,
+        game_object_id: int,
+        attacker_id: int,
+    ) -> None: ...
 
 class EffectSystem(SystemBase):
     def apply_effects(

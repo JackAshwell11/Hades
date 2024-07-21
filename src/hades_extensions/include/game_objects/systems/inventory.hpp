@@ -2,30 +2,22 @@
 #pragma once
 
 // Local headers
-#include "game_objects/types.hpp"
+#include "game_objects/stats.hpp"
 
 // ----- COMPONENTS ------------------------------
 /// Allows a game object to have a fixed size inventory.
 struct Inventory final : ComponentBase {
-  /// The width of the inventory.
-  int width;
-
-  /// The height of the inventory.
-  int height;
-
   /// The game object's inventory.
   std::vector<int> items;
+};
 
+/// Allows a game object to change the size of its inventory.
+struct InventorySize final : Stat {
   /// Initialise the object.
   ///
-  /// @param width - The width of the inventory.
-  /// @param height - The height of the inventory.
-  Inventory(const int width, const int height) : width(width), height(height) {}
-
-  /// Get the capacity of the inventory.
-  ///
-  /// @return The capacity of the inventory.
-  [[nodiscard]] auto get_capacity() const -> int { return width * height; }
+  /// @param value - The initial and maximum value of the inventory size stat.
+  /// @param maximum_level - The maximum level of the inventory size stat.
+  InventorySize(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
 // ----- SYSTEMS --------------------------------

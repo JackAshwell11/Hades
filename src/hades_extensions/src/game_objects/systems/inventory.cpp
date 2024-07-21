@@ -8,7 +8,8 @@
 // ----- FUNCTIONS ------------------------------
 auto InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, const GameObjectID item) const -> bool {
   const auto inventory{get_registry()->get_component<Inventory>(game_object_id)};
-  if (static_cast<int>(inventory->items.size()) == inventory->get_capacity()) {
+  const auto inventory_size{get_registry()->get_component<InventorySize>(game_object_id)};
+  if (static_cast<int>(inventory->items.size()) == inventory_size->get_value()) {
     throw std::runtime_error("The inventory is full.");
   }
   inventory->items.push_back(item);

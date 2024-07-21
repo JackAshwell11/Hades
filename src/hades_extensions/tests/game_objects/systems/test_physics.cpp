@@ -2,7 +2,7 @@
 #include <chipmunk/chipmunk_structs.h>
 
 // Local headers
-#include "game_objects/stats.hpp"
+#include "game_objects/systems/movements.hpp"
 #include "game_objects/systems/physics.hpp"
 #include "macros.hpp"
 
@@ -135,27 +135,27 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceInvalidGameObjectId) {
 
 /// Test that adding a bullet with a zero position and velocity works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletZero) {
-  const auto bullet_id = get_physics_system()->add_bullet({cpvzero, cpvzero});
+  const auto bullet_id{get_physics_system()->add_bullet({cpvzero, cpvzero}, 50)};
   ASSERT_EQ(bullet_id, 1);
-  const auto *body = *registry.get_component<KinematicComponent>(bullet_id)->body;
+  const auto *body{*registry.get_component<KinematicComponent>(bullet_id)->body};
   ASSERT_EQ(body->p, cpvzero);
   ASSERT_EQ(body->f, cpvzero);
 }
 
 /// Test that adding a bullet with a non-zero position works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroPosition) {
-  const auto bullet_id = get_physics_system()->add_bullet({{100, 0}, cpvzero});
+  const auto bullet_id{get_physics_system()->add_bullet({{100, 0}, cpvzero}, 100)};
   ASSERT_EQ(bullet_id, 1);
-  const auto *body = *registry.get_component<KinematicComponent>(bullet_id)->body;
+  const auto *body{*registry.get_component<KinematicComponent>(bullet_id)->body};
   ASSERT_EQ(body->p, cpv(100, 0));
   ASSERT_EQ(body->f, cpvzero);
 }
 
 /// Test that adding a bullet with a non-zero velocity works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroVelocity) {
-  const auto bullet_id = get_physics_system()->add_bullet({cpvzero, {200, 150}});
+  const auto bullet_id{get_physics_system()->add_bullet({cpvzero, {200, 150}}, 10)};
   ASSERT_EQ(bullet_id, 1);
-  const auto *body = *registry.get_component<KinematicComponent>(bullet_id)->body;
+  const auto *body{*registry.get_component<KinematicComponent>(bullet_id)->body};
   ASSERT_EQ(body->p, cpvzero);
   ASSERT_EQ(body->v, cpv(200, 150));
 }

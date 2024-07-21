@@ -6,6 +6,15 @@
 #include "game_objects/systems/physics.hpp"
 
 // ----- FUNCTIONS ------------------------------
+/// Convert a Chipmunk2D data pointer to a game object ID.
+///
+/// @param data - The Chipmunk2D data pointer to convert.
+/// @return The game object ID.
+auto cpDataPointerToGameObjectID(void *data) -> GameObjectID {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  return static_cast<GameObjectID>(reinterpret_cast<uintptr_t>(data));
+}
+
 Registry::Registry() {
   // Set the damping to ensure the game objects don't drift
   cpSpaceSetDamping(*space_, DAMPING);
@@ -35,10 +44,11 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
       cpBodySetPosition(body, game_object_type == GameObjectType::Bullet ? position : grid_pos_to_pixel(position));
       cpShapeSetCollisionType(shape, static_cast<cpCollisionType>(game_object_type));
       cpShapeSetFilter(shape, {CP_NO_GROUP, static_cast<cpBitmask>(game_object_type), CP_ALL_CATEGORIES});
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+      cpShapeSetUserData(shape, reinterpret_cast<void *>(static_cast<uintptr_t>(next_game_object_id_)));
       cpShapeSetBody(shape, body);
       cpSpaceAddBody(*space_, body);
       cpSpaceAddShape(*space_, shape);
-      shapes_[shape] = next_game_object_id_;
     }
 
     // Add the component to the registry
@@ -58,7 +68,6 @@ void Registry::delete_game_object(const GameObjectID game_object_id) {
 
   // Remove the shape and body from the space if the game object has a kinematic component
   if (has_component(game_object_id, typeid(KinematicComponent))) {
-    shapes_.erase(*get_component<KinematicComponent>(game_object_id)->shape);
     cpSpaceRemoveShape(*space_, *get_component<KinematicComponent>(game_object_id)->shape);
     cpSpaceRemoveBody(*space_, *get_component<KinematicComponent>(game_object_id)->body);
   }
@@ -90,25 +99,34 @@ void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameOb
     cpShape *shape2{nullptr};
     cpArbiterGetShapes(arbiter, &shape1, &shape2);
 
+    // Get the game object IDs of the shapes
+    auto collision_data{std::make_unique<std::pair<GameObjectID, GameObjectID>>(
+        cpDataPointerToGameObjectID(cpShapeGetUserData(shape1)),
+        cpDataPointerToGameObjectID(cpShapeGetUserData(shape2)))};
+
     // Deal damage to the first shape if it is an entity
     if (static_cast<GameObjectType>(cpShapeGetCollisionType(shape1)) != GameObjectType::Wall) {
       cpSpaceAddPostStepCallback(
           registry->get_space(),
-          [](cpSpace * /*space*/, void *shape, void *registry_ptr) {
-            auto *reg{static_cast<Registry *>(registry_ptr)};
-            reg->get_system<DamageSystem>()->deal_damage(reg->shapes_[static_cast<cpShape *>(shape)], DAMAGE);
+          [](cpSpace * /*space*/, void *ids, void *registry_ptr) {
+            const auto *collision_ids{static_cast<std::pair<GameObjectID, GameObjectID> *>(ids)};
+            const auto *reg{static_cast<Registry *>(registry_ptr)};
+            reg->get_system<DamageSystem>()->deal_damage(collision_ids->first, collision_ids->second);
           },
-          shape1, registry);
+          collision_data.get(), registry);
     }
 
     // Register the post step callback to delete the bullet
     cpSpaceAddPostStepCallback(
         registry->get_space(),
-        [](cpSpace * /*space*/, void *bullet, void *registry_ptr) {
+        [](cpSpace * /*space*/, void *bullet_id, void *registry_ptr) {
           auto *reg{static_cast<Registry *>(registry_ptr)};
-          reg->delete_game_object(reg->shapes_[static_cast<cpShape *>(bullet)]);
+          reg->delete_game_object(cpDataPointerToGameObjectID(bullet_id));
         },
-        shape2, registry);
+        cpShapeGetUserData(shape2), registry);
+
+    // Release the collision data so Chipmunk2D can take ownership of it
+    [[maybe_unused]] auto *const ptr{collision_data.release()};
     return cpFalse;
   };
 }
