@@ -29,10 +29,12 @@ class UpgradeSystemFixture : public testing::Test {
   /// @param value - The value of the game object.
   /// @param max_level - The maximum level of the game object.
   void create_game_object(const int value, const int max_level) {
-    const std::unordered_map<std::type_index, ActionFunction> upgrades{
-        {typeid(TestStat), [](const int level) { return 150 * (level + 1); }}};
+    const std::unordered_map<std::type_index, std::pair<ActionFunction, ActionFunction>> upgrades{
+        {typeid(TestStat), std::make_pair([](const int level) { return 150 * (level + 1); },
+                                          [](const int level) { return std::pow(level, 2) + 30; })}};
     registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<TestStat>(value, max_level), std::make_shared<Upgrades>(upgrades)});
+                                {std::make_shared<TestStat>(value, max_level), std::make_shared<Upgrades>(upgrades),
+                                 std::make_shared<Money>()});
   }
 
   /// Create a game object that is upgradable multiple times.
@@ -50,6 +52,7 @@ class UpgradeSystemFixture : public testing::Test {
 /// Test that a test stat is upgraded correctly if the value equals the maximum.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeValueEqualMax) {
   create_upgradeable_game_object();
+  registry.get_component<Money>(0)->money = 1000;
   ASSERT_TRUE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)));
   ASSERT_EQ(registry.get_component<TestStat>(0)->get_value(), 350);
   ASSERT_EQ(registry.get_component<TestStat>(0)->get_max_value(), 350);
@@ -59,6 +62,7 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeValueEqualMax) {
 /// Test that a test stat is upgraded correctly if the value is lower than the maximum.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeValueLowerMax) {
   create_upgradeable_game_object();
+  registry.get_component<Money>(0)->money = 1000;
   registry.get_component<TestStat>(0)->set_value(150);
   ASSERT_TRUE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)));
   ASSERT_EQ(registry.get_component<TestStat>(0)->get_value(), 300);
@@ -69,6 +73,7 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeValueLowerMax) {
 /// Test that a test stat that can be upgraded multiple times is upgraded correctly.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeMultipleTimes) {
   create_upgradeable_game_object();
+  registry.get_component<Money>(0)->money = 1000;
   ASSERT_TRUE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)));
   ASSERT_TRUE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)));
   ASSERT_TRUE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)));
@@ -81,7 +86,14 @@ TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeMultipleTimes) {
 /// Test that a test stat is upgraded only one time.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeOnce) {
   create_game_object(150, 1);
+  registry.get_component<Money>(0)->money = 1000;
   ASSERT_TRUE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)));
+  ASSERT_FALSE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)));
+}
+
+/// Test that a test stat is not upgraded if the player does not have enough money.
+TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeNotEnoughMoney) {
+  create_game_object(100, 1);
   ASSERT_FALSE(get_upgrade_system()->upgrade_component(0, typeid(TestStat)));
 }
 
