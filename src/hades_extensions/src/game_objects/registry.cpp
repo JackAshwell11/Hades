@@ -110,8 +110,10 @@ void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameOb
           registry->get_space(),
           [](cpSpace * /*space*/, void *ids, void *registry_ptr) {
             const auto *collision_ids{static_cast<std::pair<GameObjectID, GameObjectID> *>(ids)};
-            const auto *reg{static_cast<Registry *>(registry_ptr)};
-            reg->get_system<DamageSystem>()->deal_damage(collision_ids->first, collision_ids->second);
+            if (const auto *reg{static_cast<Registry *>(registry_ptr)};
+                reg->has_component(collision_ids->second, typeid(KinematicComponent))) {
+              reg->get_system<DamageSystem>()->deal_damage(collision_ids->first, collision_ids->second);
+            }
           },
           collision_data.get(), registry);
     }
@@ -120,8 +122,10 @@ void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameOb
     cpSpaceAddPostStepCallback(
         registry->get_space(),
         [](cpSpace * /*space*/, void *bullet_id, void *registry_ptr) {
-          auto *reg{static_cast<Registry *>(registry_ptr)};
-          reg->delete_game_object(cpDataPointerToGameObjectID(bullet_id));
+          if (auto *reg{static_cast<Registry *>(registry_ptr)};
+              reg->has_component(cpDataPointerToGameObjectID(bullet_id), typeid(KinematicComponent))) {
+            reg->delete_game_object(cpDataPointerToGameObjectID(bullet_id));
+          }
         },
         cpShapeGetUserData(shape2), registry);
 
