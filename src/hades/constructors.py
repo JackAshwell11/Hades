@@ -37,6 +37,7 @@ from hades_extensions.game_objects.components import (
     KeyboardMovement,
     KinematicComponent,
     MeleeAttackSize,
+    Money,
     MovementForce,
     StatusEffect,
     SteeringMovement,
@@ -151,9 +152,12 @@ def player_factory() -> GameObjectConstructor:
             InventorySize(30, 3),
             KeyboardMovement(),
             MeleeAttackSize(math.pi / 4, 3),
+            Money(),
             MovementForce(5000, 5),
             StatusEffect(),
-            Upgrades({Health: lambda level: 2**level + 10}),
+            Upgrades(
+                {Health: (lambda level: 2**level + 10, lambda level: level * 10 + 5)},
+            ),
         ],
         kinematic=True,
     )

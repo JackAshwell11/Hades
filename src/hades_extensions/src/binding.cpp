@@ -546,10 +546,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "    angle: The angle to set the game object to.");
   pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
       components, "Money", "Allows a game object to record the amount of money it has.")
-      .def(pybind11::init<int>(), pybind11::arg("money"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    money: The amount of money the game object has.")
+      .def(pybind11::init<>(), "Initialise the object.")
       .def_readonly("money", &Money::money);
   pybind11::class_<StatusEffectData>(components, "StatusEffectData",
                                      "Represents the data required to apply a status effect.")
@@ -568,10 +565,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    interval: The interval function to apply.");
   pybind11::class_<PythonSprite, ComponentBase, std::shared_ptr<PythonSprite>>(
       components, "PythonSprite", "Allows a game object to hold a reference to the Python sprite object.")
-      .def(pybind11::init<>(),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    sprite: The reference to the Python sprite object.")
+      .def(pybind11::init<>(), "Initialise the object")
       .def_readwrite("sprite", &PythonSprite::sprite);
   pybind11::class_<StatusEffect, ComponentBase, std::shared_ptr<StatusEffect>>(
       components, "StatusEffect", "Allows a game object to have status effects applied to it.")
@@ -588,11 +582,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
                                                                        "Allows a game object to be upgraded.")
       .def(pybind11::init([](const pybind11::dict &upgrades) {
              // Create a mapping to hold the upgrades
-             std::unordered_map<std::type_index, ActionFunction> target_upgrades;
+             std::unordered_map<std::type_index, std::pair<ActionFunction, ActionFunction>> target_upgrades;
 
              // Iterate through the upgrades and add them to the mapping
              for (const auto &[type, func] : upgrades) {
-               target_upgrades.emplace(get_type_index(type), make_action_function(func.cast<pybind11::function>()));
+               const auto [increase, cost]{func.cast<std::tuple<pybind11::function, pybind11::function>>()};
+               target_upgrades.emplace(get_type_index(type),
+                                       std::make_pair(make_action_function(increase), make_action_function(cost)));
              }
 
              // Initialise the object
@@ -699,14 +695,19 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
                                "Provides facilities to manipulate steering movement components.");
   pybind11::class_<UpgradeSystem, SystemBase, std::shared_ptr<UpgradeSystem>>(
       systems, "UpgradeSystem", "Provides facilities to manipulate game object upgrades.")
-      .def("upgrade_component", &UpgradeSystem::upgrade_component, pybind11::arg("game_object_id"),
-           pybind11::arg("target_component"),
-           "Upgrade a component to the next level if possible.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to upgrade the component for.\n"
-           "    target_component: The type of component to upgrade.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have the target component.\n\n"
-           "Returns:\n"
-           "    Whether the component upgrade was successful or not.");
+      .def(
+          "upgrade_component",
+          [](const UpgradeSystem &upgrade_system, const GameObjectID game_object_id,
+             const pybind11::object &target_component) {
+            return upgrade_system.upgrade_component(game_object_id, get_type_index(target_component));
+          },
+          pybind11::arg("game_object_id"), pybind11::arg("target_component"),
+          "Upgrade a component to the next level if possible.\n\n"
+          "Args:\n"
+          "    game_object_id: The ID of the game object to upgrade the component for.\n"
+          "    target_component: The type of component to upgrade.\n\n"
+          "Raises:\n"
+          "    RegistryError: If the game object does not exist or does not have the target component.\n\n"
+          "Returns:\n"
+          "    Whether the component upgrade was successful or not.");
 }

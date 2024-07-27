@@ -12,22 +12,18 @@
 struct Money final : ComponentBase {
   /// The amount of money the game object has.
   int money;
-
-  /// Initialise the object.
-  ///
-  /// @param money - The amount of money the game object has.
-  explicit Money(const int money) : money(money) {}
 };
 
 /// Allows a game object to be upgraded.
 struct Upgrades final : ComponentBase {
   /// The upgrades the game object has.
-  std::unordered_map<std::type_index, ActionFunction> upgrades;
+  std::unordered_map<std::type_index, std::pair<ActionFunction, ActionFunction>> upgrades;
 
   /// Initialise the object.
   ///
   /// @param upgrades - The upgrades the game object has.
-  explicit Upgrades(const std::unordered_map<std::type_index, ActionFunction> &upgrades) : upgrades(upgrades) {}
+  explicit Upgrades(const std::unordered_map<std::type_index, std::pair<ActionFunction, ActionFunction>> &upgrades)
+      : upgrades(upgrades) {}
 };
 
 // ----- SYSTEMS --------------------------------
