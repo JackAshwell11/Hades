@@ -61,7 +61,7 @@ def test_raise_indicator_bar_error() -> None:
         expected_exception=IndicatorBarError,
         match="Index must be greater than or equal to 0.",
     ):
-        raise IndicatorBarError
+        raise IndicatorBarError  # noqa: DOC501
 
 
 @pytest.mark.parametrize(
