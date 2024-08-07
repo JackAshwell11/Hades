@@ -133,6 +133,7 @@ disable = [
     "no-name-in-module",  # Pylint can't infer imports from the extensions
     "too-few-public-methods",  # Stop Pylint complaining about too few public methods
     "too-many-instance-attributes",  # Stop Pylint complaining about too many instance attributes
+    "too-many-lines",  # Stop Pylint complaining about too many lines in a file
     "unpacking-non-sequence",  # Stop Pylint complaining about unpacking tuples
 ]
 

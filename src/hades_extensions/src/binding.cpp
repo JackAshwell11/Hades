@@ -547,7 +547,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
       components, "Money", "Allows a game object to record the amount of money it has.")
       .def(pybind11::init<>(), "Initialise the object.")
-      .def_readonly("money", &Money::money);
+      .def_readwrite("money", &Money::money);
   pybind11::class_<StatusEffectData>(components, "StatusEffectData",
                                      "Represents the data required to apply a status effect.")
       .def(pybind11::init([](const StatusEffectType status_effect_type, const pybind11::function &increase,
