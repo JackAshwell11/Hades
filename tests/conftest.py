@@ -16,13 +16,9 @@ from arcade.texture import default_texture_cache
 from hades_extensions.game_objects import Registry
 
 if TYPE_CHECKING:
-    from typing import Final
+    from collections.abc import Generator
 
 __all__ = ()
-
-
-# Create a global window for testing. This should be reset before each test
-WINDOW: Final[Window] = Window()
 
 
 @pytest.fixture
@@ -37,26 +33,41 @@ def registry() -> Registry:
     return registry
 
 
+@pytest.fixture(scope="session")
+def session_window() -> Generator[Window, None, None]:
+    """Create a window for the session.
+
+    Yields:
+        The window for the session.
+    """
+    window = Window()
+    yield window
+    window.close()
+
+
 @pytest.fixture
-def window() -> Window:
+def window(session_window: Window) -> Window:
     """Create a window for testing.
+
+    Args:
+        session_window: The window for the session.
 
     Returns:
         The window for testing.
     """
     # Reset the window before running the test
     default_texture_cache.flush()
-    WINDOW.switch_to()
-    WINDOW.hide_view()
-    WINDOW.dispatch_pending_events()
-    WINDOW.flip()
-    WINDOW.clear()
-    WINDOW.default_camera.use()
+    session_window.switch_to()
+    session_window.hide_view()
+    session_window.dispatch_pending_events()
+    session_window.flip()
+    session_window.clear()
+    session_window.default_camera.use()
 
     # Reset the context and run the garbage collector
-    ctx = WINDOW.ctx
+    ctx = session_window.ctx
     ctx.gc_mode = "context_gc"
     ctx.reset()
     ctx.gc()
     gc.collect()
-    return WINDOW
+    return session_window

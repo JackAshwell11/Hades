@@ -5,7 +5,7 @@ from __future__ import annotations
 # Builtin
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Final, cast
+from typing import TYPE_CHECKING, Final, TypedDict, Unpack, cast
 
 # Pip
 from arcade import (
@@ -36,12 +36,13 @@ from arcade.types import Color
 from PIL.ImageFilter import GaussianBlur
 
 # Custom
-from hades_extensions.game_objects import SPRITE_SIZE, ComponentBase
+from hades_extensions.game_objects import SPRITE_SIZE
 from hades_extensions.game_objects.components import (
     Inventory,
     InventorySize,
     Money,
     PythonSprite,
+    Stat,
     Upgrades,
 )
 from hades_extensions.game_objects.systems import InventorySystem, UpgradeSystem
@@ -50,12 +51,17 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from hades.sprite import HadesSprite
-    from hades_extensions.game_objects import Registry
+    from hades_extensions.game_objects import ActionFunction, Registry
 
 __all__ = (
     "InventoryItemButton",
+    "ItemButton",
+    "ItemButtonKwargs",
     "PaginatedGridLayout",
+    "PlayerAttributesLayout",
     "PlayerView",
+    "StatsLayout",
+    "UpgradesItemButton",
     "create_divider_line",
 )
 
@@ -86,11 +92,17 @@ def create_divider_line(*, vertical: bool = False) -> UISpace:
     )
 
 
+class ItemButtonKwargs(TypedDict, total=False):
+    """The keyword arguments for the item button."""
+
+    target_component: type[Stat]
+    target_functions: tuple[ActionFunction, ActionFunction]
+
+
 class ItemButton(UIBoxLayout, ABC):
     """Represents an item button."""
 
     __slots__ = (
-        "flat_button",
         "sprite_layout",
         "texture_button",
     )
@@ -98,6 +110,7 @@ class ItemButton(UIBoxLayout, ABC):
     def __init__(
         self: InventoryItemButton,
         callback: Callable[[UIOnClickEvent], None],
+        **_: Unpack[ItemButtonKwargs],
     ) -> None:
         """Initialise the object.
 
@@ -126,8 +139,8 @@ class ItemButton(UIBoxLayout, ABC):
     def get_info(self: ItemButton) -> tuple[str, str, Texture]:
         """Get the information about the item.
 
-        Returns:
-            The name, description, and texture of the item.
+        Raises:
+            NotImplementedError: If the method is not implemented.
         """
         raise NotImplementedError
 
@@ -136,7 +149,7 @@ class ItemButton(UIBoxLayout, ABC):
         """Use the item."""
         raise NotImplementedError
 
-    def __repr__(self: InventoryItemButton) -> str:
+    def __repr__(self: InventoryItemButton) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
 
         Returns:
@@ -153,13 +166,14 @@ class InventoryItemButton(ItemButton):
     def __init__(
         self: InventoryItemButton,
         callback: Callable[[UIOnClickEvent], None],
+        **_: Unpack[ItemButtonKwargs],
     ) -> None:
         """Initialise the object.
 
         Args:
             callback: The callback to call when an item is clicked or used.
         """
-        super().__init__(callback)
+        super().__init__(callback, **_)
         self._sprite_object: HadesSprite | None = None
 
         # The default layout which just has a black border
@@ -200,17 +214,30 @@ class InventoryItemButton(ItemButton):
     def get_info(self: InventoryItemButton) -> tuple[str, str, Texture]:
         """Get the information about the item.
 
+        Raises:
+            ValueError: If no sprite object is set for this item.
+
         Returns:
             The name, description, and texture of the item.
         """
+        if not self.sprite_object:
+            error = "No sprite object set for this item."
+            raise ValueError(error)
         return (
-            self._sprite_object.name,
-            self._sprite_object.description,
-            self._sprite_object.texture,
+            self.sprite_object.name,
+            self.sprite_object.description,
+            self.sprite_object.texture,
         )
 
     def use(self: InventoryItemButton) -> None:
-        """Use the item."""
+        """Use the item.
+
+        Raises:
+            ValueError: If no sprite object is set for this
+        """
+        if not self.sprite_object:
+            error = "No sprite object set for this item."
+            raise ValueError(error)
         view = cast(PlayerView, get_window().current_view)
         view.registry.get_system(InventorySystem).use_item(
             view.game_object_id,
@@ -223,32 +250,34 @@ class InventoryItemButton(ItemButton):
         Returns:
             The human-readable representation of this object.
         """
-        return f"<InventoryItemButton (Sprite object={self._sprite_object})>"
+        return f"<InventoryItemButton (Sprite object={self.sprite_object})>"
 
 
 class UpgradesItemButton(ItemButton):
     """Represents an upgrades item button."""
 
     __slots__ = (
-        "_sprite_object",
-        "default_layout",
-        "flat_button",
-        "sprite_layout",
-        "texture_button",
+        "description",
+        "target_component",
+        "target_functions",
     )
 
     def __init__(
         self: UpgradesItemButton,
         callback: Callable[[UIOnClickEvent], None],
+        **kwargs: Unpack[ItemButtonKwargs],
     ) -> None:
         """Initialise the object.
 
         Args:
             callback: The callback to call when an item is clicked or used.
+            kwargs: The keyword arguments for the item button.
         """
-        super().__init__(callback)
-        self.target_component: type[ComponentBase] | None = None
-        self.target_functions = None
+        super().__init__(callback, **kwargs)
+        self.target_component: type[Stat] = kwargs["target_component"]
+        self.target_functions: tuple[ActionFunction, ActionFunction] = kwargs[
+            "target_functions"
+        ]
         self.description: str = ""
 
     def update_description(self: UpgradesItemButton) -> None:
@@ -262,7 +291,7 @@ class UpgradesItemButton(ItemButton):
         money = view.registry.get_component(view.game_object_id, Money)
 
         # Calculate the new values for the description
-        new_component_value = component.get_value() + self.target_functions[0](
+        new_component_value = component.get_max_value() + self.target_functions[0](
             component.get_current_level(),
         )
         new_money_value = money.money - self.target_functions[1](
@@ -271,10 +300,10 @@ class UpgradesItemButton(ItemButton):
 
         # Update the description
         self.description = (
-            f"{self.target_component.__name__}:\n"
-            f"  {component.get_value()} -> {new_component_value}\n"
+            f"Max {self.target_component.__name__}:\n"
+            f"  {component.get_max_value()} -> {new_component_value}\n"
             f"{money.__class__.__name__}:\n"
-            f"  {money.money} ->{new_money_value}"
+            f"  {money.money} -> {new_money_value}"
         )
 
     def get_info(self: UpgradesItemButton) -> tuple[str, str, Texture]:
@@ -283,7 +312,7 @@ class UpgradesItemButton(ItemButton):
         Returns:
             The name, description, and texture of the item.
         """
-        self.update_description()
+        self.update_description()  # TODO: MOVE THIS
         return self.target_component.__name__, self.description, get_default_texture()
 
     def use(self: UpgradesItemButton) -> None:
@@ -293,9 +322,9 @@ class UpgradesItemButton(ItemButton):
             view.game_object_id,
             self.target_component,
         )
-        view.stats_layout.set_info(self.get_info())
+        view.stats_layout.set_info(*self.get_info())
 
-    def __repr__(self: UpgradesItemButton) -> str:
+    def __repr__(self: UpgradesItemButton) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
 
         Returns:
@@ -319,7 +348,7 @@ class PaginatedGridLayout(UIBoxLayout):
         "current_row",
         "grid_layout",
         "items",
-        "total_count",
+        "total_size",
     )
 
     def _update_grid(self: PaginatedGridLayout) -> None:
@@ -337,16 +366,16 @@ class PaginatedGridLayout(UIBoxLayout):
 
     def __init__(
         self,
-        counts: tuple[int, int, int],
-        callback: Callable[[UIOnClickEvent], None],
+        total_size: int,
         button_type: type[ItemButton],
+        button_params: list[ItemButtonKwargs] | None = None,
     ) -> None:
         """Initialise the object.
 
         Args:
-            counts: The number of columns, rows, and total items to display.
-            callback: The callback to call when an item is clicked or used.
+            total_size: The total number of items to display in the grid layout.
             button_type: The type of button to use for the items.
+            button_params: The parameters to pass to the button type.
         """
         super().__init__(
             vertical=False,
@@ -355,8 +384,9 @@ class PaginatedGridLayout(UIBoxLayout):
 
         # Create and add the layouts necessary for this object
         self.grid_layout = UIGridLayout(
-            column_count=counts[0],
-            row_count=counts[1],
+            # TODO: Make this dynamic
+            column_count=7,
+            row_count=2,
             horizontal_spacing=WIDGET_SPACING,
             vertical_spacing=WIDGET_SPACING,
         )
@@ -371,9 +401,15 @@ class PaginatedGridLayout(UIBoxLayout):
         self.add(self.button_layout)
 
         # Initialise the rest of the object
-        self.total_count: int = counts[2]
+        self.total_size: int = max(
+            total_size,
+            self.grid_layout.column_count * self.grid_layout.row_count,
+        )
         self.current_row: int = 0
-        self.items = [button_type(callback) for _ in range(counts[2])]
+        self.items = [
+            button_type(self.item_clicked, **button_params[i] if button_params else {})
+            for i in range(total_size)
+        ]
         self._update_grid()
 
     def on_action(self: PaginatedGridLayout, event: UIOnActionEvent) -> None:
@@ -386,6 +422,23 @@ class PaginatedGridLayout(UIBoxLayout):
             self.navigate_rows(-1)
         elif event.action == "Down":
             self.navigate_rows(1)
+
+    @staticmethod
+    def item_clicked(event: UIOnClickEvent) -> None:
+        """Handle the item click event.
+
+        Args:
+            event: The event that occurred.
+        """
+        # Get the item that was clicked and either show its stats or use it
+        # depending on what button was clicked
+        item = cast(ItemButton, event.source.parent.parent)
+        if isinstance(event.source, UITextureButton):
+            cast(PlayerView, get_window().current_view).stats_layout.set_info(
+                *item.get_info(),
+            )
+        else:
+            item.use()
 
     def navigate_rows(self: PaginatedGridLayout, diff: int) -> None:
         """Navigate the rows.
@@ -409,7 +462,7 @@ class PaginatedGridLayout(UIBoxLayout):
             The human-readable representation of this object.
         """
         return (
-            f"<PaginatedGridLayout (Total count={self.total_count}) (Current"
+            f"<PaginatedGridLayout (Total count={self.total_size}) (Current"
             f" row={self.current_row})>"
         )
 
@@ -432,19 +485,26 @@ class StatsLayout(UIBoxLayout):
         self.add(create_divider_line())
         self.add(UILabel(text="Test description", text_color=(0, 0, 0), multiline=True))
 
-    def set_info(self: StatsLayout, info: tuple[str, str, Texture]) -> None:
+    def set_info(
+        self: StatsLayout,
+        title: str,
+        description: str,
+        texture: Texture,
+    ) -> None:
         """Set the information for the stats layout.
 
         Args:
-            info: The new information to set.
+            title: The title of the stats layout.
+            description: The description of the stats layout.
+            texture: The texture to display in the stats layout.
         """
         title_obj = cast(UILabel, self.children[0])
-        title_obj.text = info[0]
+        title_obj.text = title
         title_obj.fit_content()
         description_obj = cast(UILabel, self.children[4])
-        description_obj.text = info[1]
+        description_obj.text = description
         description_obj.fit_content()
-        self.children[2].with_background(texture=info[2])
+        self.children[2].with_background(texture=texture)
 
     def __repr__(self: StatsLayout) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
@@ -463,34 +523,40 @@ class PlayerAttributesLayout(UIBoxLayout):
         upgrades_layout: The layout for displaying the player's upgrades
     """
 
-    __slots__ = ("inventory_layout", "stats_layout", "upgrades_layout")
+    __slots__ = ("inventory_layout", "upgrades_layout")
 
     def __init__(
         self: PlayerAttributesLayout,
-        stats_layout: StatsLayout,
-        grid_sizes: tuple[float, float],
+        registry: Registry,
+        game_object_id: int,
     ) -> None:
         """Initialise the object.
 
         Args:
-            stats_layout: The layout for displaying the player or item's stats.
-            grid_sizes: The total number of items in the inventory and upgrades grid.
+            registry: The registry that manages the game objects, components, and
+                systems.
+            game_object_id: The ID of the player game object to manage.
         """
         super().__init__(
             width=get_window().width * 0.8,
             height=get_window().height * 0.5,
             space_between=WIDGET_SPACING,
         )
-        self.stats_layout: StatsLayout = stats_layout
+        upgrades = registry.get_component(game_object_id, Upgrades).upgrades
         self.inventory_layout: PaginatedGridLayout = PaginatedGridLayout(
-            (7, 2, int(grid_sizes[0])),
-            self.item_clicked,
+            int(registry.get_component(game_object_id, InventorySize).get_value()),
             InventoryItemButton,
         )
         self.upgrades_layout: PaginatedGridLayout = PaginatedGridLayout(
-            (7, 2, int(grid_sizes[1])),
-            self.item_clicked,
+            len(upgrades),
             UpgradesItemButton,
+            [
+                {
+                    "target_component": component,
+                    "target_functions": functions,
+                }
+                for component, functions in upgrades.items()
+            ],
         )
 
         # Add the tab menu
@@ -503,20 +569,6 @@ class PlayerAttributesLayout(UIBoxLayout):
         self.add(tab_menu)
         self.add(create_divider_line())
         self.add(self.inventory_layout)
-
-    def item_clicked(self: PlayerAttributesLayout, event: UIOnClickEvent) -> None:
-        """Handle the item click event.
-
-        Args:
-            event: The event that occurred.
-        """
-        # Get the item that was clicked and either show its stats or use it
-        # depending on what button was clicked
-        item = cast(ItemButton, event.source.parent.parent)
-        if isinstance(event.source, UITextureButton):
-            self.stats_layout.set_info(item.get_info())
-        else:
-            item.use()
 
     def on_action(self: PlayerAttributesLayout, event: UIOnActionEvent) -> None:
         """Handle the button row actions.
@@ -590,11 +642,8 @@ class PlayerView(View):
         # Create the UI widgets for the player view
         self.stats_layout: StatsLayout = StatsLayout()
         self.player_attributes_layout: PlayerAttributesLayout = PlayerAttributesLayout(
-            self.stats_layout,
-            (
-                self.registry.get_component(game_object_id, InventorySize).get_value(),
-                len(self.registry.get_component(game_object_id, Upgrades).upgrades),
-            ),
+            self.registry,
+            self.game_object_id,
         )
 
         # Make the player view UI
@@ -618,17 +667,8 @@ class PlayerView(View):
         root_layout.add(back_button)
         self.ui_manager.add(UIAnchorLayout(children=(root_layout,)))
 
-        # Update the inventory to show the player's items and the upgrades
+        # Update the inventory to show the player's items
         self.on_update_inventory(game_object_id)
-        for index, (upgrade, functions) in enumerate(
-            self.registry.get_component(game_object_id, Upgrades).upgrades.items(),
-        ):
-            upgrades_item_button = cast(
-                UpgradesItemButton,
-                self.player_attributes_layout.upgrades_layout.items[index],
-            )
-            upgrades_item_button.target_component = upgrade
-            upgrades_item_button.target_functions = functions
 
     def on_draw(self: PlayerView) -> None:
         """Render the screen."""
