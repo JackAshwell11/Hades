@@ -80,7 +80,11 @@ class GameObjectConstructor:
 
 
 def wall_factory() -> GameObjectConstructor:
-    """Create a wall game object constructor."""
+    """Create a wall game object constructor.
+
+    Returns:
+        A wall game object constructor.
+    """
     return GameObjectConstructor(
         "Wall",
         "A wall that blocks movement.",
@@ -91,7 +95,11 @@ def wall_factory() -> GameObjectConstructor:
 
 
 def floor_factory() -> GameObjectConstructor:
-    """Create a floor game object constructor."""
+    """Create a floor game object constructor.
+
+    Returns:
+        A floor game object constructor.
+    """
     return GameObjectConstructor(
         "Floor",
         "A floor that allows movement.",
@@ -101,7 +109,11 @@ def floor_factory() -> GameObjectConstructor:
 
 
 def player_factory() -> GameObjectConstructor:
-    """Create a player game object constructor."""
+    """Create a player game object constructor.
+
+    Returns:
+        A player game object constructor.
+    """
     return GameObjectConstructor(
         "Player",
         "The player character.",
@@ -128,7 +140,11 @@ def player_factory() -> GameObjectConstructor:
 
 
 def enemy_factory() -> GameObjectConstructor:
-    """Create an enemy game object constructor."""
+    """Create an enemy game object constructor.
+
+    Returns:
+        An enemy game object constructor.
+    """
     return GameObjectConstructor(
         "Enemy",
         "An enemy character.",
@@ -157,7 +173,11 @@ def enemy_factory() -> GameObjectConstructor:
 
 
 def health_potion_factory() -> GameObjectConstructor:
-    """Create a health potion game object constructor."""
+    """Create a health potion game object constructor.
+
+    Returns:
+        A health potion game object constructor.
+    """
     return GameObjectConstructor(
         "Health Potion",
         "A potion that restores health.",
@@ -175,7 +195,11 @@ def health_potion_factory() -> GameObjectConstructor:
 
 
 def bullet_factory() -> GameObjectConstructor:
-    """Create a bullet game object constructor."""
+    """Create a bullet game object constructor.
+
+    Returns:
+        A bullet game object constructor
+    """
     return GameObjectConstructor(
         "Bullet",
         "A bullet that damages other game objects.",
