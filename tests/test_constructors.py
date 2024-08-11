@@ -6,9 +6,19 @@ from __future__ import annotations
 import pytest
 
 # Custom
-from hades.constructors import GameObjectConstructor, game_object_constructors
+from hades.constructors import (
+    GameObjectConstructor,
+    game_object_constructors,
+    texture_cache,
+)
 from hades_extensions.game_objects import GameObjectType
 from hades_extensions.game_objects.components import KinematicComponent
+
+
+@pytest.fixture(autouse=True)
+def _clear_texture_cache() -> None:
+    """Clear the texture cache before each test."""
+    texture_cache.clear()
 
 
 @pytest.mark.parametrize(
@@ -51,3 +61,17 @@ def test_factory_functions(
     assert (
         KinematicComponent in [type(component) for component in constructor.components]
     ) == (constructor.static or constructor.kinematic)
+    for texture_path in constructor.texture_paths:
+        assert texture_cache[texture_path] is not None
+
+
+def test_nonexistent_texture_path() -> None:
+    """Test that a FileNotFoundError is raised when a texture path does not exist."""
+    with pytest.raises(expected_exception=FileNotFoundError, match="non_existent.png"):
+        GameObjectConstructor(
+            "Test",
+            "Test description",
+            GameObjectType.Player,
+            ["non_existent.png"],
+            kinematic=True,
+        )
