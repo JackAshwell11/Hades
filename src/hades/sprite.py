@@ -9,11 +9,10 @@ from typing import TYPE_CHECKING
 from arcade import (
     BasicSprite,
     Texture,
-    load_texture,
 )
 
 # Custom
-from hades.constructors import game_object_constructors
+from hades.constructors import game_object_constructors, texture_cache
 from hades_extensions.game_objects import (
     SPRITE_SCALE,
     GameObjectType,
@@ -55,7 +54,7 @@ class HadesSprite(BasicSprite):
             constructor: The game object's constructor.
         """
         super().__init__(
-            load_texture(constructor.texture_paths[0]),
+            texture_cache[constructor.texture_paths[0]],
             SPRITE_SCALE,
             *grid_pos_to_pixel(position),
         )
@@ -166,7 +165,7 @@ class AnimatedSprite(HadesSprite):
         """
         super().__init__(registry, game_object_id, position, constructor)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
-            (load_texture(texture), load_texture(texture).flip_left_right())
+            (texture_cache[texture], texture_cache[texture].flip_left_right())
             for texture in constructor.texture_paths
         ]
 

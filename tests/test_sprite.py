@@ -10,9 +10,10 @@ from unittest.mock import Mock
 
 # Pip
 import pytest
+from arcade import Texture
 
 # Custom
-from hades.constructors import GameObjectConstructor
+from hades.constructors import GameObjectConstructor, texture_cache
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
 from hades_extensions.game_objects import GameObjectType, Vec2d
 
@@ -42,6 +43,14 @@ def mock_constructor(request: pytest.FixtureRequest) -> Mock:
     mock_constructor.description = "Test description"
     mock_constructor.game_object_type = GameObjectType.Player
     mock_constructor.texture_paths = [f":resources:{param}" for param in request.param]
+    for mock_texture_path in mock_constructor.texture_paths:
+        mock_texture = Mock(spec=Texture)
+        mock_texture.size = (32, 32)
+        mock_texture.file_path = texture_path / mock_texture_path.replace(
+            ":resources:",
+            "",
+        )
+        texture_cache[mock_texture_path] = mock_texture
     return mock_constructor
 
 
@@ -191,11 +200,6 @@ def test_animated_sprite_init(
             [],
             Vec2d(10, 20),
             [IndexError, "list index out of range"],
-        ),
-        (
-            ["non_existent.png"],
-            Vec2d(5, 10),
-            [FileNotFoundError, "non_existent.png"],
         ),
         (
             ["floor.png"],

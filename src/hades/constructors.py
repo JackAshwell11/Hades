@@ -48,9 +48,15 @@ from hades_extensions.game_objects.components import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from arcade import Texture
+
     from hades_extensions.game_objects import ComponentBase
 
-__all__ = ("GameObjectConstructor", "game_object_constructors")
+__all__ = ("GameObjectConstructor", "game_object_constructors", "texture_cache")
+
+
+# The cache for all Arcade textures
+texture_cache: dict[str, Texture] = {}
 
 
 @dataclass()
@@ -77,6 +83,7 @@ class GameObjectConstructor:
 
     def __post_init__(self: GameObjectConstructor) -> None:
         """Post-initialise the object."""
+        # Initialise the correct kinematic component if needed
         if self.kinematic:
             self.components.append(
                 KinematicComponent(
@@ -90,6 +97,11 @@ class GameObjectConstructor:
             )
         elif self.static:
             self.components.append(KinematicComponent(is_static=True))
+
+        # Load the texture(s) into their respective caches
+        for texture_path in self.texture_paths:
+            if texture_path not in texture_cache:
+                texture_cache[texture_path] = load_texture(texture_path)
 
 
 def wall_factory() -> GameObjectConstructor:
