@@ -30,7 +30,7 @@ pytest-icdiff = "0.9"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.15.0"
 pytest-sugar = "1.0.0"
-ruff = "0.5.6"
+ruff = "0.5.7"
 ssort = "v0.13.0"
 
 [tool.black]
