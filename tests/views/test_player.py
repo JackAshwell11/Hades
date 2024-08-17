@@ -38,7 +38,6 @@ from hades_extensions.game_objects.components import (
     InventorySize,
     Money,
     PythonSprite,
-    Stat,
     StatusEffect,
     Upgrades,
 )
@@ -193,7 +192,7 @@ def paginated_grid_layout(window: Window) -> PaginatedGridLayout:  # noqa: ARG00
     Returns:
         The PaginatedGridLayout object for testing.
     """
-    return PaginatedGridLayout(25, InventoryItemButton)
+    return PaginatedGridLayout(25, InventoryItemButton, [])
 
 
 @pytest.fixture
@@ -294,7 +293,7 @@ def test_item_button_init(
     """
     assert item_button.texture_button is not None
     assert item_button.texture_button.on_click == mock_callback
-    assert item_button.children == [item_button.sprite_layout]
+    assert item_button.children == [item_button.default_layout]
     for child in item_button.sprite_layout.children:
         assert child.on_click == mock_callback
 
@@ -448,7 +447,7 @@ def test_upgrades_item_button_init(upgrades_item_button: UpgradesItemButton) -> 
         upgrades_item_button: The UpgradesItemButton object for testing.
     """
     assert upgrades_item_button.target_component == Health
-    assert len(upgrades_item_button.target_functions) == 2
+    assert len(upgrades_item_button.target_functions) == 2  # type: ignore[arg-type]
     assert not upgrades_item_button.description
 
 
@@ -503,6 +502,12 @@ def test_upgrades_item_button_get_info(
     """
     assert upgrades_item_button.get_info() == (
         "Health",
+        "",
+        get_default_texture(),
+    )
+    upgrades_item_button.update_description()
+    assert upgrades_item_button.get_info() == (
+        "Health",
         "Max Health:\n  100.0 -> 105.0\nMoney:\n  0 -> -10",
         get_default_texture(),
     )
@@ -538,20 +543,49 @@ def test_upgrades_item_button_use(
 
 
 @pytest.mark.usefixtures("window")
+def test_upgrades_item_button_no_targets(
+    mock_callback: Callable[[UIOnClickEvent], None],
+) -> None:
+    """Test that the UpgradesItemButton raises errors for missing target components.
+
+    Args:
+        mock_callback: The mock callback function to use for testing.
+    """
+    upgrades_item_button = UpgradesItemButton(
+        mock_callback,
+        target_component=None,  # type: ignore[arg-type]
+        target_functions=None,  # type: ignore[arg-type]
+    )
+    upgrades_item_button.update_description()
+    assert not upgrades_item_button.description
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="No target component or functions set for this item.",
+    ):
+        upgrades_item_button.get_info()
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="No target component or functions set for this item.",
+    ):
+        upgrades_item_button.use()
+
+
+@pytest.mark.usefixtures("window")
 @pytest.mark.parametrize(
-    ("total_size", "button_type", "button_params"),
+    ("total_size", "items_size", "button_type", "button_params"),
     [
-        (0, InventoryItemButton, None),
-        (1, InventoryItemButton, None),
-        (2, InventoryItemButton, None),
-        (5, InventoryItemButton, None),
-        (10, InventoryItemButton, None),
-        (20, InventoryItemButton, None),
-        (35, InventoryItemButton, None),
-        (50, InventoryItemButton, None),
-        (1, InventoryItemButton, [{}]),
+        (0, 14, InventoryItemButton, []),
+        (1, 14, InventoryItemButton, []),
+        (2, 14, InventoryItemButton, []),
+        (5, 14, InventoryItemButton, []),
+        (10, 14, InventoryItemButton, []),
+        (20, 20, InventoryItemButton, []),
+        (35, 35, InventoryItemButton, []),
+        (50, 50, InventoryItemButton, []),
+        (1, 14, UpgradesItemButton, []),
         (
             1,
+            14,
             UpgradesItemButton,
             [
                 {
@@ -563,37 +597,67 @@ def test_upgrades_item_button_use(
                 },
             ],
         ),
-        (1, UpgradesItemButton, None),
     ],
 )
 def test_paginated_grid_layout_init(
     total_size: int,
+    items_size: int,
     button_type: type[ItemButton],
-    button_params: list[ItemButtonKwargs] | None,
+    button_params: list[ItemButtonKwargs],
 ) -> None:
     """Test that the PaginatedGridLayout initialises correctly.
 
     Args:
         total_size: The total size of the grid layout.
+        items_size: The size of the items in the grid layout.
         button_type: The type of button to use for the grid layout.
         button_params: The parameters to pass to the button type.
     """
-    if button_type is UpgradesItemButton and button_params is None:
-        with pytest.raises(
-            expected_exception=KeyError,
-            match="'target_component'",
-        ):
-            PaginatedGridLayout(total_size, button_type, button_params)
-        return
     paginated_grid_layout = PaginatedGridLayout(total_size, button_type, button_params)
-    assert paginated_grid_layout.total_size == total_size
     assert paginated_grid_layout.current_row == 0
     assert [button.text for button in paginated_grid_layout.button_layout.children] == [
         "Up",
         "Down",
     ]
-    assert len(paginated_grid_layout.items) == total_size
+    assert len(paginated_grid_layout.items) == items_size
     assert all(isinstance(item, button_type) for item in paginated_grid_layout.items)
+
+
+@pytest.mark.parametrize(
+    ("window_size", "counts"),
+    [
+        ((320, 240), (2, 1)),
+        ((640, 480), (4, 2)),
+        ((1280, 720), (7, 2)),
+        ((1920, 1080), (11, 3)),
+        ((2560, 1440), (15, 5)),
+        ((3840, 2160), (22, 7)),
+        ((7680, 4320), (45, 14)),
+    ],
+)
+def test_paginated_grid_layout_init_window_size(
+    monkeypatch: MonkeyPatch,
+    window: Window,
+    window_size: tuple[int, int],
+    counts: tuple[int, int],
+) -> None:
+    """Test that the PaginatedGridLayout handles different window sizes correctly.
+
+    Args:
+        monkeypatch: The monkeypatch fixture for mocking.
+        window: The window for testing.
+        window_size: The size of the window.
+        counts: The expected column and row counts.
+    """
+    # We need to set these attributes since `set_size()` doesn't work in
+    # headless mode
+    monkeypatch.setattr(window, "_width", window_size[0])
+    monkeypatch.setattr(window, "_height", window_size[1])
+
+    # Test that the correct column and row count is calculated
+    paginated_grid_layout = PaginatedGridLayout(10, InventoryItemButton, [])
+    assert paginated_grid_layout.grid_layout.column_count == counts[0]
+    assert paginated_grid_layout.grid_layout.row_count == counts[1]
 
 
 def test_paginated_grid_layout_on_action(
@@ -817,15 +881,10 @@ def test_player_attributes_layout_init(
     )
 
     # Make sure the inventory layout is correct
-    assert (
-        player_attributes_layout.inventory_layout.total_size
-        == cast(Stat, components[0]).get_value()
-    )
+    assert len(player_attributes_layout.inventory_layout.items) == 14
 
     # Make sure the upgrades layout is correct
-    assert player_attributes_layout.upgrades_layout.total_size == len(
-        cast(Upgrades, components[1]).upgrades,
-    )
+    assert len(player_attributes_layout.upgrades_layout.items) == 14
     for upgrades_item_button, component in zip(
         player_attributes_layout.upgrades_layout.items,
         cast(Upgrades, components[1]).upgrades.keys(),

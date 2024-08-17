@@ -70,6 +70,7 @@ logger = logging.getLogger(__name__)
 
 # Constants
 WIDGET_SPACING: Final[int] = 5
+ITEM_BUTTON_HEIGHT: Final[int] = 90
 PLAYER_VIEW_BACKGROUND_COLOUR: Final[Color] = Color(198, 198, 198)
 BUTTON_BACKGROUND_COLOUR: Final[Color] = Color(68, 68, 68)
 TAB_SEPARATOR_COLOUR: Final[Color] = Color(128, 128, 128)
@@ -102,10 +103,7 @@ class ItemButtonKwargs(TypedDict, total=False):
 class ItemButton(UIBoxLayout, ABC):
     """Represents an item button."""
 
-    __slots__ = (
-        "sprite_layout",
-        "texture_button",
-    )
+    __slots__ = ("default_layout", "sprite_layout", "texture_button")
 
     def __init__(
         self: InventoryItemButton,
@@ -122,18 +120,25 @@ class ItemButton(UIBoxLayout, ABC):
         self.texture_button: UITextureButton = UITextureButton(
             texture=get_default_texture(),
             width=SPRITE_SIZE,
-            height=60,
+            height=ITEM_BUTTON_HEIGHT * 2 // 3,
         )
         self.texture_button.on_click = callback  # type: ignore[assignment]
         self.sprite_layout.add(self.texture_button.with_border(color=(0, 0, 0)))
         flat_button: UIFlatButton = UIFlatButton(
             text="Use",
             width=SPRITE_SIZE,
-            height=30,
+            height=ITEM_BUTTON_HEIGHT // 3,
         )
         flat_button.on_click = callback  # type: ignore[assignment]
         self.sprite_layout.add(flat_button.with_border(color=(0, 0, 0)))
-        super().__init__(children=(self.sprite_layout,))
+
+        # The default layout which just has a black border
+        self.default_layout: UISpace = UISpace(
+            color=PLAYER_VIEW_BACKGROUND_COLOUR,
+            width=SPRITE_SIZE,
+            height=ITEM_BUTTON_HEIGHT,
+        ).with_border(color=(0, 0, 0))
+        super().__init__(children=(self.default_layout,))
 
     @abstractmethod
     def get_info(self: ItemButton) -> tuple[str, str, Texture]:
@@ -161,7 +166,7 @@ class ItemButton(UIBoxLayout, ABC):
 class InventoryItemButton(ItemButton):
     """Represents an inventory item button."""
 
-    __slots__ = ("_sprite_object", "default_layout")
+    __slots__ = ("_sprite_object",)
 
     def __init__(
         self: InventoryItemButton,
@@ -175,15 +180,6 @@ class InventoryItemButton(ItemButton):
         """
         super().__init__(callback, **_)
         self._sprite_object: HadesSprite | None = None
-
-        # The default layout which just has a black border
-        self.default_layout: UISpace = UISpace(
-            color=PLAYER_VIEW_BACKGROUND_COLOUR,
-            width=SPRITE_SIZE,
-            height=90,
-        ).with_border(color=(0, 0, 0))
-        self.remove(self.sprite_layout)
-        self.add(self.default_layout)
 
     @property
     def sprite_object(self: InventoryItemButton) -> HadesSprite | None:
@@ -274,14 +270,22 @@ class UpgradesItemButton(ItemButton):
             kwargs: The keyword arguments for the item button.
         """
         super().__init__(callback, **kwargs)
-        self.target_component: type[Stat] = kwargs["target_component"]
-        self.target_functions: tuple[ActionFunction, ActionFunction] = kwargs[
-            "target_functions"
-        ]
+        self.target_component: type[Stat] | None = kwargs.get("target_component")
+        self.target_functions: tuple[ActionFunction, ActionFunction] | None = (
+            kwargs.get("target_functions")
+        )
         self.description: str = ""
+
+        # Enable the sprite layout if valid targets are given
+        if self.target_component and self.target_functions:
+            self.remove(self.default_layout)
+            self.add(self.sprite_layout)
 
     def update_description(self: UpgradesItemButton) -> None:
         """Update the description of the item."""
+        if not self.target_component or not self.target_functions:
+            return
+
         # Get the required components
         view = cast(PlayerView, get_window().current_view)
         component = view.registry.get_component(
@@ -309,14 +313,26 @@ class UpgradesItemButton(ItemButton):
     def get_info(self: UpgradesItemButton) -> tuple[str, str, Texture]:
         """Get the information about the item.
 
+        Raises:
+            ValueError: If no target component or functions are set for this item.
+
         Returns:
             The name, description, and texture of the item.
         """
-        self.update_description()  # TODO: MOVE THIS
+        if not self.target_component or not self.target_functions:
+            error = "No target component or functions set for this item."
+            raise ValueError(error)
         return self.target_component.__name__, self.description, get_default_texture()
 
     def use(self: UpgradesItemButton) -> None:
-        """Use the item."""
+        """Use the item.
+
+        Raises:
+            ValueError: If no target component or functions are set for this item
+        """
+        if not self.target_component or not self.target_functions:
+            error = "No target component or functions set for this item."
+            raise ValueError(error)
         view = cast(PlayerView, get_window().current_view)
         view.registry.get_system(UpgradeSystem).upgrade_component(
             view.game_object_id,
@@ -348,7 +364,6 @@ class PaginatedGridLayout(UIBoxLayout):
         "current_row",
         "grid_layout",
         "items",
-        "total_size",
     )
 
     def _update_grid(self: PaginatedGridLayout) -> None:
@@ -368,7 +383,7 @@ class PaginatedGridLayout(UIBoxLayout):
         self,
         total_size: int,
         button_type: type[ItemButton],
-        button_params: list[ItemButtonKwargs] | None = None,
+        button_params: list[ItemButtonKwargs],
     ) -> None:
         """Initialise the object.
 
@@ -384,9 +399,12 @@ class PaginatedGridLayout(UIBoxLayout):
 
         # Create and add the layouts necessary for this object
         self.grid_layout = UIGridLayout(
-            # TODO: Make this dynamic
-            column_count=7,
-            row_count=2,
+            column_count=round(
+                (get_window().width * 0.4) / (SPRITE_SIZE + WIDGET_SPACING),
+            ),
+            row_count=round(
+                (get_window().height * 0.3) / (ITEM_BUTTON_HEIGHT + WIDGET_SPACING),
+            ),
             horizontal_spacing=WIDGET_SPACING,
             vertical_spacing=WIDGET_SPACING,
         )
@@ -401,11 +419,18 @@ class PaginatedGridLayout(UIBoxLayout):
         self.add(self.button_layout)
 
         # Initialise the rest of the object
-        self.total_size: int = total_size
         self.current_row: int = 0
         self.items = [
-            button_type(self.item_clicked, **button_params[i] if button_params else {})
-            for i in range(total_size)
+            button_type(
+                self.item_clicked,
+                **button_params[i] if i < len(button_params) else {},
+            )
+            for i in range(
+                max(
+                    self.grid_layout.column_count * self.grid_layout.row_count,
+                    total_size,
+                ),
+            )
         ]
         self._update_grid()
 
@@ -447,7 +472,7 @@ class PaginatedGridLayout(UIBoxLayout):
         start_index = new_row * self.grid_layout.column_count
         if (
             new_row >= 0
-            and len(self.items[start_index:]) >= self.grid_layout.column_count
+            and len(self.items[start_index:]) > self.grid_layout.column_count
         ):
             self.current_row = new_row
             self._update_grid()
@@ -459,8 +484,8 @@ class PaginatedGridLayout(UIBoxLayout):
             The human-readable representation of this object.
         """
         return (
-            f"<PaginatedGridLayout (Total count={self.total_size}) (Current"
-            f" row={self.current_row})>"
+            f"<PaginatedGridLayout (Column count={self.grid_layout.column_count}) (Row"
+            f" count={self.grid_layout.row_count}) (Current row={self.current_row})>"
         )
 
 
@@ -543,6 +568,7 @@ class PlayerAttributesLayout(UIBoxLayout):
         self.inventory_layout: PaginatedGridLayout = PaginatedGridLayout(
             int(registry.get_component(game_object_id, InventorySize).get_value()),
             InventoryItemButton,
+            [],
         )
         self.upgrades_layout: PaginatedGridLayout = PaginatedGridLayout(
             len(upgrades),
