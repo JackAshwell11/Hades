@@ -20,7 +20,7 @@ from arcade.gui import (
 from hades.views.game import Game
 
 if TYPE_CHECKING:
-    from hades.window import Window
+    from hades.window import HadesWindow
 
 __all__ = ("StartMenu",)
 
@@ -39,7 +39,7 @@ class StartButton(UIFlatButton):
     def on_click(self: StartButton, _: UIOnClickEvent) -> None:
         """Create a game instance when the button is clicked."""
         # Get the current window and view
-        window: Window = arcade.get_window()
+        window: HadesWindow = arcade.get_window()
 
         # Set up the new game
         new_game = Game(0)

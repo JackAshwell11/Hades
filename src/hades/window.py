@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 # Builtin
-import logging.config
 from datetime import datetime, timezone
+from logging import getLogger
+from logging.config import dictConfig
 from pathlib import Path
 from typing import Final
 
 # Pip
-import arcade
+from arcade import View, Window
 
 # Custom
 from hades.views.start_menu import StartMenu
@@ -25,7 +26,7 @@ log_dir = Path(__file__).resolve().parent.parent / "logs"
 log_dir.mkdir(parents=True, exist_ok=True)
 
 # Initialise logging and get the game logger
-logging.config.dictConfig(
+dictConfig(
     {
         "version": 1,
         "disable_existing_loggers": False,
@@ -68,22 +69,22 @@ logging.config.dictConfig(
         },
     },
 )
-logger = logging.getLogger(GAME_LOGGER)
+logger = getLogger(GAME_LOGGER)
 
 
-class Window(arcade.Window):
+class HadesWindow(Window):
     """Manages the window and allows switching between views.
 
     Attributes:
         views: Holds all the views used by the game.
     """
 
-    def __init__(self: Window) -> None:
+    def __init__(self: HadesWindow) -> None:
         """Initialise the object."""
         super().__init__()
-        self.views: dict[str, arcade.View] = {}
+        self.views: dict[str, View] = {}
 
-    def __repr__(self: Window) -> str:  # pragma: no cover
+    def __repr__(self: HadesWindow) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
 
         Returns:
@@ -95,14 +96,13 @@ class Window(arcade.Window):
 def main() -> None:
     """Initialise the game and runs it."""
     # Initialise the window
-    window = Window()
+    window = HadesWindow()
     window.center_window()
 
     # Initialise and load the start menu view
     new_view = StartMenu()
     window.views["StartMenu"] = new_view
-    window.show_view(window.views["StartMenu"])
-    new_view.ui_manager.enable()
+    window.show_view(new_view)
     logger.info("Initialised start menu view")
 
     # Run the game
