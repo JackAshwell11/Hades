@@ -18,6 +18,15 @@ version = "0.1.0"
 Homepage = "https://github.com/JackAshwell11/Hades"
 Repository = "https://github.com/JackAshwell11/Hades"
 
+[project.optional-dependencies]
+ai = [
+    "gymnasium==0.29.1",
+    "ipython==8.27.0",
+    "matplotlib==3.9.2",
+    "mpld3==0.5.10",
+    "torch==2.4.1",
+]
+
 [tool.black]
 preview = true
 target_version = ["py312"]
