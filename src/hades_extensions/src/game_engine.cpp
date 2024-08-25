@@ -62,8 +62,14 @@ GameEngine::GameEngine(const int level, const std::optional<unsigned int> seed)
 }
 
 void GameEngine::create_game_objects() {
+  // Make 30x20 grid of TileType::Floor surrounded by TileType::Wall
+  auto grid{std::vector(600, TileType::Wall)};
+  for (auto i{0}; i < 18; i++) {
+    std::fill(grid.begin() + 30 * (i + 1) + 1, grid.begin() + 30 * (i + 2) - 1, TileType::Floor);
+  }
+  grid[62] = TileType::Player;
+
   // Create the game objects ignoring empty and obstacle tiles
-  const auto &grid{*generator_.get_grid().grid};
   for (auto i{0}; i < static_cast<int>(grid.size()); i++) {
     const auto tile_type{grid[i]};
     if (tile_type == TileType::Empty || tile_type == TileType::Obstacle) {
