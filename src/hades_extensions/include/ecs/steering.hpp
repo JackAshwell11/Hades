@@ -85,3 +85,10 @@ auto seek(const cpVect &current_position, const cpVect &target_position) -> cpVe
 /// @param displacement_angle - The angle of the displacement force in radians.
 /// @return The new steering force from this behaviour.
 auto wander(const cpVect &current_velocity, double displacement_angle) -> cpVect;
+
+/// Calculate the distance to the walls around a game object.
+///
+/// @param space - The Chipmunk2D space.
+/// @param current_position - The position of the game object.
+/// @return The distances to the walls around the game object.
+auto wall_distances(cpSpace *space, const cpVect &current_position) -> std::vector<cpVect>;
