@@ -133,6 +133,16 @@ class Game(UIView):
         self.registry: Registry = Registry()
         self.game_ui: GameUI = GameUI(self.ui)
 
+        # make 30x20 grid of tiletype.floor surrounded by tiletype.wall
+        generation_result = [TileType.Wall] * 30
+        for i in range(18):
+            generation_result += (
+                [TileType.Wall] + [TileType.Floor] * 28 + [TileType.Wall]
+            )
+        generation_result += [TileType.Wall] * 30
+        generation_result[62] = TileType.Player
+        generation_result[27 + 17 * 30] = TileType.Potion
+
         # Initialise all the systems then the game objects
         self.registry.add_systems()
         for count, tile in enumerate(generation_result):
@@ -209,9 +219,9 @@ class Game(UIView):
         self.registry.add_callback(EventType.SpriteRemoval, self.on_sprite_removal)
 
         # Generate half of the total enemies allowed to then schedule their generation
-        for _ in range(self.level_constants.enemy_limit // 2):
-            self.generate_enemy()
-        schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
+        # for _ in range(self.level_constants.enemy_limit // 2):
+        #     self.generate_enemy()
+        # schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
 
     def on_draw_before_ui(self: Game) -> None:
         """Render the screen before the UI elements are drawn."""

@@ -180,7 +180,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   const pybind11::class_<SystemBase, std::shared_ptr<SystemBase>> system_base(ecs, "SystemBase",
                                                                               "The base class for all systems.");
 
-  // Add the cpVect class
+  // Add the Chipmunk2D class
+  pybind11::class_<cpSpace>(ecs, "Space", "Represents a Chipmunk2D space");
   pybind11::class_<cpVect>(ecs, "Vec2d", "Represents a 2D vector.")
       .def(pybind11::init<float, float>(), pybind11::arg("x"), pybind11::arg("y"),
            "Initialise the object.\n\n"
@@ -203,6 +204,15 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "    scalar: The scalar to multiply the vector by.\n\n"
           "Returns:\n"
           "    The vector multiplied by the scalar.");
+
+  // Add the physics functions for the AI training
+  ecs.def("wall_distances", &wall_distances, pybind11::arg("space"), pybind11::arg("current_position"),
+                   "Calculate the distance to the walls around a game object.\n\n"
+                   "Args:\n"
+                   "    space: The Chipmunk2D space.\n"
+                   "    current_position: The current position of the game object.\n\n"
+                   "Returns:\n"
+                   "    The distances to the walls around the game object.");
 
   // Add the enums
   pybind11::enum_<AttackAlgorithm>(ecs, "AttackAlgorithm", "Stores the different types of attack algorithms available.")
@@ -348,6 +358,10 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Update all systems in the registry.\n\n"
            "Args:\n"
            "    delta_time: The time interval since the last time the function was called.")
+      .def("get_space", &Registry::get_space,
+           "Get the physics space from the registry.\n\n"
+           "Returns:\n"
+           "    The physics space from the registry.")
       .def("add_callback", &Registry::add_callback, pybind11::arg("event_type"), pybind11::arg("callback"),
            "Add a callback to the registry to listen for events.\n\n"
            "Args:\n"
@@ -554,6 +568,14 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "Get the position of the game object.\n\n"
           "Returns:\n"
           "    The position of the game object.")
+      .def(
+          "get_velocity",
+          [](const KinematicComponent &kinematic_component) {
+            return pybind11::make_tuple(kinematic_component.body->v.x, kinematic_component.body->v.y);
+          },
+          "Get the velocity of the game object.\n\n"
+          "Returns:\n"
+          "    The velocity of the game object.")
       .def(
           "set_rotation",
           [](KinematicComponent &kinematic_component, const double angle) { kinematic_component.rotation = angle; },
