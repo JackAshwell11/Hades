@@ -18,7 +18,7 @@ python = "^3.11"
 
 [tool.poetry.dev-dependencies]
 black = "24.8.0"
-mypy = "1.11.1"
+mypy = "1.11.2"
 nox = "2024.4.15"
 nuitka = "2.4.7"
 ordered-set = "4.1.0"
@@ -30,7 +30,7 @@ pytest-icdiff = "0.9"
 pytest-instafail = "0.5.0"
 pytest-randomly = "3.15.0"
 pytest-sugar = "1.0.0"
-ruff = "0.6.1"
+ruff = "0.6.2"
 ssort = "v0.13.0"
 
 [tool.black]
