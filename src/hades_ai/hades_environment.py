@@ -14,7 +14,7 @@ from pyglet import app, clock
 
 # Custom
 from hades.views.game import Game
-from hades.window import HadesWindow
+from hades_ai.capture_window import CaptureWindow
 from hades_extensions.ecs import SPRITE_SIZE, GameObjectType, Vec2d, wall_distances
 from hades_extensions.ecs.components import KinematicComponent
 
@@ -118,8 +118,9 @@ class HadesEnvironment(Env):
                     dtype=np.float32,
                 ),
                 "current_velocity": Box(
-                    low=-np.inf,
-                    high=np.inf,
+                    # This matches the MAX_VELOCITY in steering.cpp
+                    low=-200,
+                    high=200,
                     shape=(2,),
                     dtype=np.float32,
                 ),
@@ -142,7 +143,7 @@ class HadesEnvironment(Env):
         # TODO: Maybe add steering force
 
         # Store some variables for the environment
-        self.window: HadesWindow = HadesWindow()
+        self.window: CaptureWindow = CaptureWindow()
         self.game: Game | None = None
         self.kinematic_component: KinematicComponent | None = None
         self.previous_action: int = 0
