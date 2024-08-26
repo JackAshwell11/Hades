@@ -14,7 +14,7 @@ from pyglet import app, clock
 
 # Custom
 from hades.views.game import Game
-from hades.window import HadesWindow
+from hades_ai.capture_window import CaptureWindow
 from hades_extensions.ecs.components import KinematicComponent
 
 if TYPE_CHECKING:
@@ -111,7 +111,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         )
 
         # Store some variables for the environment
-        self.window: HadesWindow = HadesWindow()
+        self.window: CaptureWindow = CaptureWindow()
         self.game: Game | None = None
         self.kinematic_component: KinematicComponent | None = None
 
