@@ -77,7 +77,7 @@ def executable(executable_session: Session) -> None:
         executable_session: The Nox session to compile the game into an executable with.
     """
     # Install the required dependencies
-    executable_session.install("nuitka", "ordered-set")
+    executable_session.install(".", "nuitka", "ordered-set")
 
     # Display some info about the system and the environment
     print(
