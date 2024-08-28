@@ -1,37 +1,18 @@
-[build-system]
-requires = ["poetry-core>=1.8.1"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry]
-name = "hades"
-version = "0.1.0"
+[project]
+authors = [
+    {name = "JackAshwell11", email = "jack.ashwell1@gmail.com"}
+]
+dependencies = ["arcade==3.0.0.dev30"]
 description = "A procedurally generated bullet bullet-hell dungeon crawler made in Python."
-authors = ["Aspect1103 <jack.ashwell1@gmail.com>"]
-license = "GPL-3.0-or-later"
+license = {file = "LICENSE"}
+name = "hades"
 readme = "README.md"
-homepage = "https://github.com/Aspect1103/Hades"
-repository = "https://github.com/Aspect1103/Hades"
+requires-python = ">=3.11"
+version = "0.1.0"
 
-[tool.poetry.dependencies]
-arcade = "3.0.0.dev30"
-python = "^3.11"
-
-[tool.poetry.dev-dependencies]
-black = "24.8.0"
-mypy = "1.11.2"
-nox = "2024.4.15"
-nuitka = "2.4.7"
-ordered-set = "4.1.0"
-pre-commit = "3.8.0"
-pylint = "3.2.6"
-pytest = "8.3.2"
-pytest-cov = "5.0.0"
-pytest-icdiff = "0.9"
-pytest-instafail = "0.5.0"
-pytest-randomly = "3.15.0"
-pytest-sugar = "1.0.0"
-ruff = "0.6.2"
-ssort = "v0.13.0"
+[project.urls]
+Homepage = "https://github.com/JackAshwell11/Hades"
+Repository = "https://github.com/JackAshwell11/Hades"
 
 [tool.black]
 preview = true
@@ -186,3 +167,23 @@ select = ["ALL"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.uv]
+dev-dependencies = [
+    "black==24.8.0",
+    "mypy==1.11.2",
+    "nox==2024.4.15",
+    "nuitka==2.4.7",
+    "ordered-set==4.1.0",
+    "pre-commit==3.8.0",
+    "pylint==3.2.6",
+    "pytest==8.3.2",
+    "pytest-cov==5.0.0",
+    "pytest-icdiff==0.9",
+    "pytest-instafail==0.5.0",
+    "pytest-randomly==3.15.0",
+    "pytest-sugar==1.0.0",
+    "ruff==0.6.2",
+    "ssort==v0.13.0",
+]
+prerelease = "allow"
