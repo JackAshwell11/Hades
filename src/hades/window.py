@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Builtin
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from logging import getLogger
 from logging.config import dictConfig
 from pathlib import Path
@@ -50,7 +50,7 @@ dictConfig(
                 "level": "DEBUG",
                 "formatter": "default",
                 "filename": log_dir
-                / f"{datetime.now(tz=timezone.utc).strftime('%Y-%m-%d')}.log",
+                / f"{datetime.now(tz=UTC).strftime('%Y-%m-%d')}.log",
                 "maxBytes": 5242880,  # 5MB
                 "backupCount": 5,
             },

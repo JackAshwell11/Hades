@@ -1,6 +1,7 @@
 # Builtin
+from collections.abc import Callable, Iterator
 from enum import Enum
-from typing import Callable, Final, Iterator, SupportsFloat, TypeAlias, TypeVar
+from typing import Final, SupportsFloat, TypeAlias, TypeVar
 
 # Define some type vars for the registry
 _C = TypeVar("_C")

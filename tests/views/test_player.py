@@ -888,6 +888,7 @@ def test_player_attributes_layout_init(
     for upgrades_item_button, component in zip(
         player_attributes_layout.upgrades_layout.items,
         cast(Upgrades, components[1]).upgrades.keys(),
+        strict=False,
     ):
         assert upgrades_item_button.target_component == component
 
