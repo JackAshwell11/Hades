@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from arcade import load_texture
 
 # Custom
-from hades_extensions.game_objects import (
+from hades_extensions.ecs import (
     SPRITE_SCALE,
     SPRITE_SIZE,
     AttackAlgorithm,
@@ -20,7 +20,7 @@ from hades_extensions.game_objects import (
     SteeringMovementState,
     Vec2d,
 )
-from hades_extensions.game_objects.components import (
+from hades_extensions.ecs.components import (
     Armour,
     Attack,
     AttackCooldown,
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 
     from arcade import Texture
 
-    from hades_extensions.game_objects import ComponentBase
+    from hades_extensions.ecs import ComponentBase
 
 __all__ = ("GameObjectConstructor", "game_object_constructors", "texture_cache")
 

@@ -11,8 +11,8 @@ from hades.constructors import (
     game_object_constructors,
     texture_cache,
 )
-from hades_extensions.game_objects import GameObjectType
-from hades_extensions.game_objects.components import KinematicComponent
+from hades_extensions.ecs import GameObjectType
+from hades_extensions.ecs.components import KinematicComponent
 
 
 @pytest.fixture(autouse=True)

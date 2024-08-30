@@ -13,14 +13,14 @@ from arcade import (
 
 # Custom
 from hades.constructors import game_object_constructors, texture_cache
-from hades_extensions.game_objects import (
+from hades_extensions.ecs import (
     SPRITE_SCALE,
     GameObjectType,
     Registry,
     Vec2d,
     grid_pos_to_pixel,
 )
-from hades_extensions.game_objects.components import KinematicComponent
+from hades_extensions.ecs.components import KinematicComponent
 
 if TYPE_CHECKING:
     from hades.constructors import GameObjectConstructor

@@ -16,8 +16,8 @@ from hades.indicator_bar import IndicatorBar, IndicatorBarError
 
 # Custom
 from hades.sprite import HadesSprite
-from hades_extensions.game_objects import GameObjectType, Vec2d
-from hades_extensions.game_objects.components import Stat
+from hades_extensions.ecs import GameObjectType, Vec2d
+from hades_extensions.ecs.components import Stat
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch

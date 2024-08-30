@@ -25,14 +25,14 @@ from hades.views.player import (
     UpgradesItemButton,
     create_divider_line,
 )
-from hades_extensions.game_objects import (
+from hades_extensions.ecs import (
     ComponentBase,
     GameObjectType,
     Registry,
     RegistryError,
     Vec2d,
 )
-from hades_extensions.game_objects.components import (
+from hades_extensions.ecs.components import (
     Health,
     Inventory,
     InventorySize,
@@ -41,7 +41,7 @@ from hades_extensions.game_objects.components import (
     StatusEffect,
     Upgrades,
 )
-from hades_extensions.game_objects.systems import InventorySystem, UpgradeSystem
+from hades_extensions.ecs.systems import InventorySystem, UpgradeSystem
 
 if TYPE_CHECKING:
     from collections.abc import Callable

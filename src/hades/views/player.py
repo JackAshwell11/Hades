@@ -36,8 +36,8 @@ from arcade.types import Color
 from PIL.ImageFilter import GaussianBlur
 
 # Custom
-from hades_extensions.game_objects import SPRITE_SIZE
-from hades_extensions.game_objects.components import (
+from hades_extensions.ecs import SPRITE_SIZE
+from hades_extensions.ecs.components import (
     Inventory,
     InventorySize,
     Money,
@@ -45,13 +45,13 @@ from hades_extensions.game_objects.components import (
     Stat,
     Upgrades,
 )
-from hades_extensions.game_objects.systems import InventorySystem, UpgradeSystem
+from hades_extensions.ecs.systems import InventorySystem, UpgradeSystem
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from hades.sprite import HadesSprite
-    from hades_extensions.game_objects import ActionFunction, Registry
+    from hades_extensions.ecs import ActionFunction, Registry
 
 __all__ = (
     "InventoryItemButton",

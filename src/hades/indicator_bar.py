@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING, Final
 from arcade import SpriteSolidColor, color
 
 # Custom
-from hades_extensions.game_objects.components import Armour, Health
+from hades_extensions.ecs.components import Armour, Health
 
 if TYPE_CHECKING:
     from arcade import SpriteList
 
     from hades.sprite import HadesSprite
-    from hades_extensions.game_objects import ComponentBase
-    from hades_extensions.game_objects.components import Stat
+    from hades_extensions.ecs import ComponentBase
+    from hades_extensions.ecs.components import Stat
 
 __all__ = ("INDICATOR_BAR_COMPONENTS", "IndicatorBar", "IndicatorBarError")
 

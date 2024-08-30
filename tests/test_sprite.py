@@ -15,10 +15,10 @@ from arcade import Texture
 # Custom
 from hades.constructors import GameObjectConstructor, texture_cache
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
-from hades_extensions.game_objects import GameObjectType, Vec2d
+from hades_extensions.ecs import GameObjectType, Vec2d
 
 if TYPE_CHECKING:
-    from hades_extensions.game_objects import Registry
+    from hades_extensions.ecs import Registry
 
 __all__ = ()
 

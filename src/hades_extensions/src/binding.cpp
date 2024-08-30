@@ -11,14 +11,14 @@
 #endif
 
 // Local headers
-#include "game_objects/systems/armour_regen.hpp"
-#include "game_objects/systems/attacks.hpp"
-#include "game_objects/systems/effects.hpp"
-#include "game_objects/systems/inventory.hpp"
-#include "game_objects/systems/movements.hpp"
-#include "game_objects/systems/physics.hpp"
-#include "game_objects/systems/sprite.hpp"
-#include "game_objects/systems/upgrade.hpp"
+#include "ecs/systems/armour_regen.hpp"
+#include "ecs/systems/attacks.hpp"
+#include "ecs/systems/effects.hpp"
+#include "ecs/systems/inventory.hpp"
+#include "ecs/systems/movements.hpp"
+#include "ecs/systems/physics.hpp"
+#include "ecs/systems/sprite.hpp"
+#include "ecs/systems/upgrade.hpp"
 #include "generation/map.hpp"
 
 // ----- STRUCTURES ------------------------------------------
@@ -151,18 +151,17 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
                  "Returns:\n"
                  "    A tuple containing the generated map and the level constants.");
 
-  // Create the game_objects, game_objects/components, and game_objects/systems modules
-  pybind11::module game_objects = module.def_submodule(
-      "game_objects", "Contains the registry and the various components and systems that can be used with it.");
-  const pybind11::module systems =
-      game_objects.def_submodule("systems", "Contains the systems which manage the game objects.");
+  // Create the ecs, ecs/components, and ecs/systems modules
+  pybind11::module ecs = module.def_submodule(
+      "ecs", "Contains the registry and the various components and systems that can be used with it.");
+  const pybind11::module systems = ecs.def_submodule("systems", "Contains the systems which manage the game objects.");
   const pybind11::module components =
-      game_objects.def_submodule("components", "Contains the components which can be added to game objects.");
+      ecs.def_submodule("components", "Contains the components which can be added to game objects.");
 
   // Add the global constants, functions, and base classes
-  game_objects.attr("SPRITE_SCALE") = SPRITE_SCALE;
-  game_objects.attr("SPRITE_SIZE") = SPRITE_SIZE;
-  game_objects.def(
+  ecs.attr("SPRITE_SCALE") = SPRITE_SCALE;
+  ecs.attr("SPRITE_SIZE") = SPRITE_SIZE;
+  ecs.def(
       "grid_pos_to_pixel",
       [](const cpVect &position) {
         auto [x, y] = grid_pos_to_pixel(position);
@@ -176,12 +175,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       "Returns:\n"
       "    The pixel position.");
   const pybind11::class_<ComponentBase, std::shared_ptr<ComponentBase>> component_base(
-      game_objects, "ComponentBase", "The base class for all components.");
-  const pybind11::class_<SystemBase, std::shared_ptr<SystemBase>> system_base(game_objects, "SystemBase",
+      ecs, "ComponentBase", "The base class for all components.");
+  const pybind11::class_<SystemBase, std::shared_ptr<SystemBase>> system_base(ecs, "SystemBase",
                                                                               "The base class for all systems.");
 
   // Add the cpVect class
-  pybind11::class_<cpVect>(game_objects, "Vec2d", "Represents a 2D vector.")
+  pybind11::class_<cpVect>(ecs, "Vec2d", "Represents a 2D vector.")
       .def(pybind11::init<float, float>(), pybind11::arg("x"), pybind11::arg("y"),
            "Initialise the object.\n\n"
            "Args:\n"
@@ -205,24 +204,21 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "    The vector multiplied by the scalar.");
 
   // Add the enums
-  pybind11::enum_<AttackAlgorithm>(game_objects, "AttackAlgorithm",
-                                   "Stores the different types of attack algorithms available.")
+  pybind11::enum_<AttackAlgorithm>(ecs, "AttackAlgorithm", "Stores the different types of attack algorithms available.")
       .value("AreaOfEffect", AttackAlgorithm::AreaOfEffect)
       .value("Melee", AttackAlgorithm::Melee)
       .value("Ranged", AttackAlgorithm::Ranged);
-  pybind11::enum_<GameObjectType>(game_objects, "GameObjectType",
-                                  "Stores the different types of game objects available.")
+  pybind11::enum_<GameObjectType>(ecs, "GameObjectType", "Stores the different types of game objects available.")
       .value("Bullet", GameObjectType::Bullet)
       .value("Enemy", GameObjectType::Enemy)
       .value("Floor", GameObjectType::Floor)
       .value("Player", GameObjectType::Player)
       .value("Potion", GameObjectType::Potion)
       .value("Wall", GameObjectType::Wall);
-  pybind11::enum_<StatusEffectType>(game_objects, "StatusEffectType",
-                                    "Stores the different types of status effects available.")
+  pybind11::enum_<StatusEffectType>(ecs, "StatusEffectType", "Stores the different types of status effects available.")
       .value("TEMP", StatusEffectType::TEMP)
       .value("TEMP2", StatusEffectType::TEMP2);
-  pybind11::enum_<SteeringBehaviours>(game_objects, "SteeringBehaviours",
+  pybind11::enum_<SteeringBehaviours>(ecs, "SteeringBehaviours",
                                       "Stores the different types of steering behaviours available.")
       .value("Arrive", SteeringBehaviours::Arrive)
       .value("Evade", SteeringBehaviours::Evade)
@@ -232,20 +228,19 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Pursue", SteeringBehaviours::Pursue)
       .value("Seek", SteeringBehaviours::Seek)
       .value("Wander", SteeringBehaviours::Wander);
-  pybind11::enum_<SteeringMovementState>(game_objects, "SteeringMovementState",
+  pybind11::enum_<SteeringMovementState>(ecs, "SteeringMovementState",
                                          "Stores the different states the steering movement component can be in.")
       .value("Default", SteeringMovementState::Default)
       .value("Footprint", SteeringMovementState::Footprint)
       .value("Target", SteeringMovementState::Target);
-  pybind11::enum_<EventType>(game_objects, "EventType", "Stores the different types of events that can occur.")
+  pybind11::enum_<EventType>(ecs, "EventType", "Stores the different types of events that can occur.")
       .value("BulletCreation", EventType::BulletCreation)
       .value("GameObjectDeath", EventType::GameObjectDeath)
       .value("InventoryUpdate", EventType::InventoryUpdate);
 
   // Add the registry class
-  register_exception<RegistryError>(game_objects, "RegistryError");
-  pybind11::class_<Registry>(game_objects, "Registry",
-                             "Manages game objects, components, and systems that are registered.")
+  register_exception<RegistryError>(ecs, "RegistryError");
+  pybind11::class_<Registry>(ecs, "Registry", "Manages game objects, components, and systems that are registered.")
       .def(pybind11::init<>(), "Initialise the object.")
       .def("create_game_object", &Registry::create_game_object, pybind11::arg("game_object_type"),
            pybind11::arg("position"), pybind11::arg("components"),

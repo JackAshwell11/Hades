@@ -20,7 +20,7 @@ from hades.constructors import (
 from hades.indicator_bar import INDICATOR_BAR_COMPONENTS, IndicatorBar
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
 from hades.views.player import PlayerView
-from hades_extensions.game_objects import (
+from hades_extensions.ecs import (
     SPRITE_SIZE,
     EventType,
     GameObjectType,
@@ -28,14 +28,14 @@ from hades_extensions.game_objects import (
     Vec2d,
     grid_pos_to_pixel,
 )
-from hades_extensions.game_objects.components import (
+from hades_extensions.ecs.components import (
     KeyboardMovement,
     KinematicComponent,
     PythonSprite,
     Stat,
     SteeringMovement,
 )
-from hades_extensions.game_objects.systems import AttackSystem, InventorySystem
+from hades_extensions.ecs.systems import AttackSystem, InventorySystem
 from hades_extensions.generation import TileType, create_map
 
 __all__ = ("Game",)

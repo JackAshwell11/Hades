@@ -13,7 +13,7 @@ from arcade import Window
 from arcade.texture import default_texture_cache
 
 # Custom
-from hades_extensions.game_objects import Registry
+from hades_extensions.ecs import Registry
 
 if TYPE_CHECKING:
     from collections.abc import Generator
