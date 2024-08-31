@@ -19,7 +19,7 @@ target_include_directories(${CPP_LIB}
         PRIVATE ${chipmunk_SOURCE_DIR}/include
 )
 target_link_libraries(${CPP_LIB}
-        PRIVATE unofficial::chipmunk::chipmunk
+        PUBLIC chipmunk2d::chipmunk2d
         PRIVATE pybind11::module
 )
 
@@ -29,7 +29,7 @@ if (DO_PYTHON)
     pybind11_add_module(${PY_MODULE} ${CMAKE_SOURCE_DIR}/src/binding.cpp)
     target_link_libraries(${PY_MODULE} PRIVATE ${CPP_LIB})
     install(TARGETS ${PY_MODULE} LIBRARY DESTINATION .)
-    get_target_property(CHIPMUNK_DLL unofficial::chipmunk::chipmunk LOCATION)
+    get_target_property(CHIPMUNK_DLL chipmunk2d::chipmunk2d LOCATION)
     install(FILES ${CHIPMUNK_DLL} DESTINATION .)
 else ()
     message(STATUS "Python bindings disabled (DO_PYTHON is not set)")
