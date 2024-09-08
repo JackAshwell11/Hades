@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import Final
+from typing import Final, cast
 
 # Pip
 import arcade
@@ -49,10 +49,6 @@ TOTAL_ENEMY_COUNT: Final[int] = 1
 
 # Get the logger
 logger = logging.getLogger(__name__)
-
-
-# TODO: Improve the look of the indicator bars including their sizing, positioning, and
-#  colouring.
 
 
 class Game(arcade.View):
@@ -113,16 +109,18 @@ class Game(arcade.View):
         # Add all the indicator bars to the game
         indicator_bar_offset = 0
         for component in constructor.components:
-            if type(component) in INDICATOR_BAR_COMPONENTS and isinstance(
-                component,
-                Stat,
-            ):
+            if type(component) in INDICATOR_BAR_COMPONENTS:
                 self.indicator_bars.append(
                     IndicatorBar(
-                        sprite,
-                        component,
-                        self.indicator_bar_sprites,
+                        (sprite, cast(Stat, component)),
+                        (
+                            self.gui_sprites
+                            if constructor.game_object_type == GameObjectType.Player
+                            else self.indicator_bar_sprites
+                        ),
                         indicator_bar_offset,
+                        fixed_position=constructor.game_object_type
+                        == GameObjectType.Player,
                     ),
                 )
                 indicator_bar_offset += 1
@@ -150,6 +148,9 @@ class Game(arcade.View):
         self.indicator_bar_sprites: arcade.SpriteList[arcade.SpriteSolidColor] = (
             arcade.SpriteList[arcade.SpriteSolidColor]()
         )
+        self.gui_sprites: arcade.SpriteList[arcade.Sprite] = arcade.SpriteList[
+            arcade.Sprite
+        ]()
         self.nearest_item: list[HadesSprite] = []
         self.player_status_text: arcade.Text = arcade.Text(
             "Money: 0",
@@ -249,6 +250,7 @@ class Game(arcade.View):
 
         # Draw the gui on the screen
         self.gui_camera.use()
+        self.gui_sprites.draw()
         self.player_status_text.draw()
 
     def on_update(self: Game, delta_time: float) -> None:
@@ -266,7 +268,7 @@ class Game(arcade.View):
 
         # Update the indicator bars
         for indicator_bar in self.indicator_bars:
-            indicator_bar.on_update(delta_time)
+            indicator_bar.update()
 
         # Position the camera on the player
         self.game_camera.position = self.player.position
