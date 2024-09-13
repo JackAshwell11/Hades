@@ -108,16 +108,20 @@ class Game(arcade.View):
 
         # Add all the indicator bars to the game
         indicator_bar_offset = 0
+        spritelist = cast(
+            arcade.SpriteList[arcade.Sprite],
+            (
+                self.gui_sprites
+                if constructor.game_object_type == GameObjectType.Player
+                else self.indicator_bar_sprites
+            ),
+        )
         for component in constructor.components:
             if type(component) in INDICATOR_BAR_COMPONENTS:
                 self.indicator_bars.append(
                     IndicatorBar(
                         (sprite, cast(Stat, component)),
-                        (
-                            self.gui_sprites
-                            if constructor.game_object_type == GameObjectType.Player
-                            else self.indicator_bar_sprites
-                        ),
+                        spritelist,
                         indicator_bar_offset,
                         fixed_position=constructor.game_object_type
                         == GameObjectType.Player,

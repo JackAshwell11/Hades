@@ -18,6 +18,8 @@ from hades_extensions.ecs import Registry
 if TYPE_CHECKING:
     from collections.abc import Generator
 
+    from _pytest.monkeypatch import MonkeyPatch
+
 __all__ = ()
 
 
@@ -71,3 +73,26 @@ def window(session_window: Window) -> Window:
     ctx.gc()
     gc.collect()
     return session_window
+
+
+@pytest.fixture
+def sized_window(
+    monkeypatch: MonkeyPatch,
+    request: pytest.FixtureRequest,
+    window: Window,
+) -> Window:
+    """Create a window with a custom size for testing.
+
+    Args:
+        monkeypatch: The monkeypatch fixture for mocking.
+        request: The fixture request object.
+        window: The window for testing.
+
+    Returns:
+        A window with a tom size for testing.
+    """
+    # We need to set these attributes since `set_size()` doesn't work in
+    # headless mode
+    monkeypatch.setattr(window, "_width", request.param[0])
+    monkeypatch.setattr(window, "_height", request.param[1])
+    return window

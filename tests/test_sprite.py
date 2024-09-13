@@ -10,10 +10,9 @@ from unittest.mock import Mock
 
 # Pip
 import pytest
-from arcade import Texture
 
 # Custom
-from hades.constructors import GameObjectConstructor, texture_cache
+from hades.constructors import GameObjectConstructor
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
 from hades_extensions.ecs import GameObjectType, Vec2d
 
@@ -29,33 +28,25 @@ texture_path = (
 
 
 @pytest.fixture
-def mock_constructor(request: pytest.FixtureRequest) -> Mock:
-    """Create a mocked game object constructor for testing.
+def constructor(request: pytest.FixtureRequest) -> GameObjectConstructor:
+    """Create a game object constructor for testing.
 
     Args:
         request: The fixture request object.
 
     Returns:
-        The mocked game object constructor.
+        The game object constructor.
     """
-    mock_constructor = Mock(spec=GameObjectConstructor)
-    mock_constructor.name = "Test"
-    mock_constructor.description = "Test description"
-    mock_constructor.game_object_type = GameObjectType.Player
-    mock_constructor.texture_paths = [f":resources:{param}" for param in request.param]
-    for mock_texture_path in mock_constructor.texture_paths:
-        mock_texture = Mock(spec=Texture)
-        mock_texture.size = (32, 32)
-        mock_texture.file_path = texture_path / mock_texture_path.replace(
-            ":resources:",
-            "",
-        )
-        texture_cache[mock_texture_path] = mock_texture
-    return mock_constructor
+    return GameObjectConstructor(
+        "Test",
+        "Test description",
+        GameObjectType.Player,
+        [f":resources:{param}" for param in request.param],
+    )
 
 
 @pytest.mark.parametrize(
-    ("mock_constructor", "position", "expected_result"),
+    ("constructor", "position", "expected_result"),
     [
         (
             ["floor.png"],
@@ -73,17 +64,17 @@ def mock_constructor(request: pytest.FixtureRequest) -> Mock:
             [(32.0, 32.0), texture_path / "floor.png"],
         ),
     ],
-    indirect=["mock_constructor"],
+    indirect=["constructor"],
 )
 def test_hades_sprite_init(
-    mock_constructor: Mock,
+    constructor: GameObjectConstructor,
     position: Vec2d,
     expected_result: tuple[tuple[float, float], Path],
 ) -> None:
     """Test that a HadesSprite object is initialised correctly.
 
     Args:
-        mock_constructor: The mocked game object constructor for testing.
+        constructor: The game object constructor for testing.
         position: The position of the sprite object.
         expected_result: The expected result of the test.
     """
@@ -91,7 +82,7 @@ def test_hades_sprite_init(
         Mock(),
         0,
         position,
-        mock_constructor,
+        constructor,
     )
     assert sprite.position == expected_result[0]
     assert sprite.texture.file_path == expected_result[1]
@@ -143,7 +134,7 @@ def test_bullet_init() -> None:
 
 
 @pytest.mark.parametrize(
-    ("mock_constructor", "position", "expected_result"),
+    ("constructor", "position", "expected_result"),
     [
         (
             ["floor.png"],
@@ -161,17 +152,17 @@ def test_bullet_init() -> None:
             [(32.0, 32.0), [texture_path / "floor.png", texture_path / "wall.png"]],
         ),
     ],
-    indirect=["mock_constructor"],
+    indirect=["constructor"],
 )
 def test_animated_sprite_init(
-    mock_constructor: Mock,
+    constructor: GameObjectConstructor,
     position: Vec2d,
     expected_result: tuple[tuple[float, float], list[Path]],
 ) -> None:
     """Test that an AnimatedSprite object is initialised correctly.
 
     Args:
-        mock_constructor: The mocked game object constructor for testing.
+        constructor: The game object constructor for testing.
         position: The position of the sprite object.
         expected_result: The expected result of the test.
     """
@@ -179,7 +170,7 @@ def test_animated_sprite_init(
         Mock(),
         0,
         position,
-        mock_constructor,
+        constructor,
     )
     assert sprite.position == expected_result[0]
     assert sprite.texture.file_path == expected_result[1][0]
@@ -194,7 +185,7 @@ def test_animated_sprite_init(
 
 
 @pytest.mark.parametrize(
-    ("mock_constructor", "position", "expected_result"),
+    ("constructor", "position", "expected_result"),
     [
         (
             [],
@@ -207,17 +198,17 @@ def test_animated_sprite_init(
             [ValueError, "The position cannot be negative."],
         ),
     ],
-    indirect=["mock_constructor"],
+    indirect=["constructor"],
 )
 def test_hades_sprite_errors(
-    mock_constructor: Mock,
+    constructor: GameObjectConstructor,
     position: Vec2d,
     expected_result: tuple[type[Exception], str],
 ) -> None:
     """Test that a HadesSprite object raises the correct errors.
 
     Args:
-        mock_constructor: The mocked game object constructor for testing.
+        constructor: The game object constructor for testing.
         position: The position of the sprite object.
         expected_result: The expected result of the test.
     """
@@ -225,4 +216,4 @@ def test_hades_sprite_errors(
         expected_exception=expected_result[0],
         match=expected_result[1],
     ):
-        HadesSprite(Mock(), 0, position, mock_constructor)
+        HadesSprite(Mock(), 0, position, constructor)

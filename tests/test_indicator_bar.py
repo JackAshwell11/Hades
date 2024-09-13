@@ -20,7 +20,6 @@ from hades_extensions.ecs.components import Stat
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
-    from arcade import Window
 
 __all__ = ()
 
@@ -111,47 +110,32 @@ def test_indicator_bar_init(
     assert mock_append.call_count == 2
 
 
+@pytest.mark.usefixtures("sized_window")
 @pytest.mark.parametrize(
-    ("window_height", "expected_y"),
+    ("sized_window", "expected_y"),
     [
-        (140, 131),
-        (480, 471),
-        (720, 711),
-        (1080, 1071),
-        (144, 135),
-        (2160, 2151),
+        ((0, 140), 131),
+        ((0, 480), 471),
+        ((0, 720), 711),
+        ((0, 1080), 1071),
+        ((0, 144), 135),
+        ((0, 2160), 2151),
     ],
+    indirect=["sized_window"],
 )
-def test_indicator_bar_init_fixed_position(
-    monkeypatch: MonkeyPatch,
-    window: Window,
-    stat: Stat,
-    window_height: int,
-    expected_y: int,
-) -> None:
+def test_indicator_bar_init_fixed_position(stat: Stat, expected_y: int) -> None:
     """Test that an IndicatorBar is initialised with a fixed position.
 
     Args:
-        monkeypatch: The monkeypatch fixture for mocking.
-        window: The window for testing.
         stat: A stat for testing.
-        window_height: The height of the window.
         expected_y: The expected y position of the IndicatorBar.
     """
-    # We need to set this attribute since `set_size()` doesn't work in headless
-    # mode
-    monkeypatch.setattr(window, "height", window_height)
-
-    # Make sure the IndicatorBar is initialised correctly
     indicator_bar = IndicatorBar((Mock(), stat), Mock(), fixed_position=True)
     assert (
         indicator_bar.background_box.position
         == indicator_bar.actual_bar.position
         == (29, expected_y)
     )
-
-
-# TODO: TEST UPDATING POSITION AND VALUE FOR FIXED POS
 
 
 def test_indicator_bar_negative_index() -> None:
@@ -172,6 +156,7 @@ def test_indicator_bar_invalid_component_colour() -> None:
         IndicatorBar((Mock(), Mock()), Mock(), fixed_position=False)
 
 
+@pytest.mark.usefixtures("window")
 @pytest.mark.parametrize(
     (
         "init_data",
@@ -183,6 +168,8 @@ def test_indicator_bar_invalid_component_colour() -> None:
         ((0, False), (100, 50), (132, 130)),
         ((1, False), (0, 0), (32, 94)),
         ((1, False), (100, 50), (132, 144)),
+        ((0, True), (0, 0), (29, 711)),
+        ((0, True), (100, 50), (29, 711)),
     ],
 )
 def test_indicator_bar_on_update_position(
@@ -214,14 +201,16 @@ def test_indicator_bar_on_update_position(
     assert indicator_bar.actual_bar.position == expected_position
 
 
+@pytest.mark.usefixtures("window")
 @pytest.mark.parametrize(
-    ("new_value", "expected_width"),
+    ("new_value", "expected_width", "fixed_position"),
     [
-        (0, 0),
-        (50, 25),
-        (200, 50),
-        (100, 50),
-        (-50, 0),
+        (0, 0, False),
+        (50, 25, False),
+        (200, 50, False),
+        (100, 50, False),
+        (-50, 0, False),
+        (50, 25, True),
     ],
 )
 def test_indicator_bar_on_update_value_changed(
@@ -229,6 +218,8 @@ def test_indicator_bar_on_update_value_changed(
     stat: Stat,
     new_value: int,
     expected_width: int,
+    *,
+    fixed_position: bool,
 ) -> None:
     """Test that an IndicatorBar is updated if the target value has changed.
 
@@ -237,8 +228,9 @@ def test_indicator_bar_on_update_value_changed(
         stat: A stat for testing.
         new_value: The new value of the stat.
         expected_width: The expected width of the actual bar.
+        fixed_position: Whether the IndicatorBar has a fixed position or not.
     """
-    indicator_bar = IndicatorBar((sprite, stat), Mock(), fixed_position=False)
+    indicator_bar = IndicatorBar((sprite, stat), Mock(), fixed_position=fixed_position)
     stat.set_value(new_value)
     indicator_bar.update()
     assert indicator_bar.actual_bar.width == expected_width

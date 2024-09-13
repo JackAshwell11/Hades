@@ -623,8 +623,9 @@ def test_paginated_grid_layout_init(
     assert all(isinstance(item, button_type) for item in paginated_grid_layout.items)
 
 
+@pytest.mark.usefixtures("sized_window")
 @pytest.mark.parametrize(
-    ("window_size", "counts"),
+    ("sized_window", "counts"),
     [
         ((320, 240), (2, 1)),
         ((640, 480), (4, 2)),
@@ -634,27 +635,14 @@ def test_paginated_grid_layout_init(
         ((3840, 2160), (22, 7)),
         ((7680, 4320), (45, 14)),
     ],
+    indirect=["sized_window"],
 )
-def test_paginated_grid_layout_init_window_size(
-    monkeypatch: MonkeyPatch,
-    window: Window,
-    window_size: tuple[int, int],
-    counts: tuple[int, int],
-) -> None:
+def test_paginated_grid_layout_init_window_size(counts: tuple[int, int]) -> None:
     """Test that the PaginatedGridLayout handles different window sizes correctly.
 
     Args:
-        monkeypatch: The monkeypatch fixture for mocking.
-        window: The window for testing.
-        window_size: The size of the window.
         counts: The expected column and row counts.
     """
-    # We need to set these attributes since `set_size()` doesn't work in
-    # headless mode
-    monkeypatch.setattr(window, "_width", window_size[0])
-    monkeypatch.setattr(window, "_height", window_size[1])
-
-    # Test that the correct column and row count is calculated
     paginated_grid_layout = PaginatedGridLayout(10, InventoryItemButton, [])
     assert paginated_grid_layout.grid_layout.column_count == counts[0]
     assert paginated_grid_layout.grid_layout.row_count == counts[1]
