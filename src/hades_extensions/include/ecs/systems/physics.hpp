@@ -4,7 +4,6 @@
 // Local headers
 #include "ecs/registry.hpp"
 
-// ----- COMPONENTS ------------------------------
 /// Allows a game object to interact with the physics system.
 struct KinematicComponent final : ComponentBase {
   /// The Chipmunk2D body of the game object.
@@ -31,7 +30,6 @@ struct KinematicComponent final : ComponentBase {
         shape(cpPolyShapeNew(*body, static_cast<int>(vertices.size()), vertices.data(), cpTransformIdentity, 0.0)) {}
 };
 
-// ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate a game object's physics.
 struct PhysicsSystem final : SystemBase {
   /// Initialise the object.

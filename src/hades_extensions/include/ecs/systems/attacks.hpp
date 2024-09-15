@@ -5,7 +5,6 @@
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 
-// ----- ENUMS ------------------------------
 /// Stores the different types of attack algorithms available.
 enum class AttackAlgorithm : std::uint8_t {
   AreaOfEffect,
@@ -13,7 +12,6 @@ enum class AttackAlgorithm : std::uint8_t {
   Ranged,
 };
 
-// ----- COMPONENTS ------------------------------
 /// Allows a game object to attack other game objects.
 struct Attack final : ComponentBase {
   /// The attack algorithms the game object can use.
@@ -67,7 +65,6 @@ struct MeleeAttackSize final : Stat {
   MeleeAttackSize(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
-// ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate attack components.
 struct AttackSystem final : SystemBase {
   /// Initialise the object.

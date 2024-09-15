@@ -7,7 +7,6 @@
 // Local headers
 #include "ecs/types.hpp"
 
-// ----- COMPONENTS ------------------------------
 /// Allows a game object to record the amount of money it has.
 struct Money final : ComponentBase {
   /// The amount of money the game object has.
@@ -26,7 +25,6 @@ struct Upgrades final : ComponentBase {
       : upgrades(upgrades) {}
 };
 
-// ----- SYSTEMS --------------------------------
 /// Provides facilities to manipulate game object upgrades.
 struct UpgradeSystem final : SystemBase {
   /// Initialise the object.

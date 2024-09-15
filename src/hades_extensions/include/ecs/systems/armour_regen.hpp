@@ -4,7 +4,6 @@
 // Local headers
 #include "ecs/stats.hpp"
 
-// ----- COMPONENTS ------------------------------
 /// Allows a game object to regenerate armour.
 struct ArmourRegen final : Stat {
   /// The time since the game object last regenerated armour.
@@ -17,7 +16,6 @@ struct ArmourRegen final : Stat {
   ArmourRegen(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
-// ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate armour regen components.
 struct ArmourRegenSystem final : SystemBase {
   /// Initialise the object.

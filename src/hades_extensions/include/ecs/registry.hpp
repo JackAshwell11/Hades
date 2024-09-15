@@ -14,11 +14,9 @@
 #include "ecs/steering.hpp"
 #include "ecs/types.hpp"
 
-// ----- CONSTANTS ------------------------------
 // The percentage of velocity a game object will retain after a second.
 constexpr double DAMPING = 0.0001;
 
-// ----- FUNCTIONS ------------------------------
 /// Calculate the screen position based on a grid position.
 ///
 /// @param position - The position in the grid.
@@ -50,7 +48,6 @@ static auto demangle(const std::type_index &type) -> std::string {
 static auto demangle(const std::type_index &type) -> std::string { return std::string(type.name()).substr(7); }
 #endif
 
-// ----- EXCEPTIONS ------------------------------
 /// Raised when an error occurs with the registry.
 class RegistryError final : public std::runtime_error {
  public:
@@ -86,7 +83,6 @@ class RegistryError final : public std::runtime_error {
   static auto to_string(const GameObjectID value) -> std::string { return std::to_string(value); }
 };
 
-// ----- CLASSES ------------------------------
 /// Manages game objects, components, and systems that are registered.
 class Registry {
  public:

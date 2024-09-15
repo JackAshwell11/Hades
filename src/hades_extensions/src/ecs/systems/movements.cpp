@@ -12,7 +12,7 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/physics.hpp"
 
-// ----- FUNCTIONS ------------------------------
+namespace {
 /// Calculate the new steering force to apply to the game object.
 ///
 /// @param registry - The registry that manages the game objects, components, and systems.
@@ -55,6 +55,7 @@ auto calculate_steering_force(const Registry *registry, const std::shared_ptr<St
   }
   return steering_force;
 }
+}  // namespace
 
 void FootprintSystem::update(const double delta_time) const {
   // Update the time since the last footprint then check if a new footprint should be created

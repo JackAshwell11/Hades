@@ -5,7 +5,6 @@
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 
-// ----- FUNCTIONS ------------------------------
 auto UpgradeSystem::upgrade_component(const GameObjectID game_object_id, const std::type_index &target_component) const
     -> bool {
   // Get the component to upgrade as well as the upgrade function

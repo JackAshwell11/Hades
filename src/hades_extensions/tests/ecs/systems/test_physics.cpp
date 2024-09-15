@@ -6,7 +6,6 @@
 #include "ecs/systems/physics.hpp"
 #include "macros.hpp"
 
-// ----- FIXTURES ------------------------------
 /// Implements the fixture for the PhysicsSystem tests.
 class PhysicsSystemFixture : public testing::Test {
  protected:
@@ -29,7 +28,6 @@ class PhysicsSystemFixture : public testing::Test {
   }
 };
 
-// ----- TESTS ----------------------------------
 /// Test updating the physics system with a game object that has no velocity and no force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityNoForce) {
   get_physics_system()->update(1.0);
@@ -40,7 +38,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityNoForce) {
 
 /// Test updating the physics system with a game object that has no velocity and a force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityValidForce) {
-  registry.get_component<KinematicComponent>(0)->body->f = {10, 0};
+  registry.get_component<KinematicComponent>(0)->body->f = {.x = 10, .y = 0};
   get_physics_system()->update(1.0);
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->p, cpv(32, 32));
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->v, cpv(10, 0));
@@ -49,7 +47,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityValidForce) {
 
 /// Test updating the physics system with a game object that has velocity and no force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityNoForce) {
-  registry.get_component<KinematicComponent>(0)->body->v = {100, 0};
+  registry.get_component<KinematicComponent>(0)->body->v = {.x = 100, .y = 0};
   get_physics_system()->update(1.0);
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->p, cpv(132, 32));
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->v, cpv(0.01, 0));
@@ -58,8 +56,8 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityNoForce) {
 
 /// Test updating the physics system with a game object that has velocity and a force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityValidForce) {
-  registry.get_component<KinematicComponent>(0)->body->v = {100, 0};
-  registry.get_component<KinematicComponent>(0)->body->f = {10, 0};
+  registry.get_component<KinematicComponent>(0)->body->v = {.x = 100, .y = 0};
+  registry.get_component<KinematicComponent>(0)->body->f = {.x = 10, .y = 0};
   get_physics_system()->update(1.0);
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->p, cpv(132, 32));
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->v, cpv(10.01, 0));
@@ -94,7 +92,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveInfiniteForceNoFor
 
 /// Test that adding a positive force to a game object with a force works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveForceValidForce) {
-  registry.get_component<KinematicComponent>(0)->body->f = {10, 0};
+  registry.get_component<KinematicComponent>(0)->body->f = {.x = 10, .y = 0};
   get_physics_system()->add_force(0, {10, 0});
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(110, 0));
 }
@@ -144,7 +142,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletZero) {
 
 /// Test that adding a bullet with a non-zero position works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroPosition) {
-  const auto bullet_id{get_physics_system()->add_bullet({{100, 0}, cpvzero}, 100)};
+  const auto bullet_id{get_physics_system()->add_bullet({{.x = 100, .y = 0}, cpvzero}, 100)};
   ASSERT_EQ(bullet_id, 1);
   const auto *body{*registry.get_component<KinematicComponent>(bullet_id)->body};
   ASSERT_EQ(body->p, cpv(100, 0));
@@ -153,7 +151,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroPosition) {
 
 /// Test that adding a bullet with a non-zero velocity works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroVelocity) {
-  const auto bullet_id{get_physics_system()->add_bullet({cpvzero, {200, 150}}, 10)};
+  const auto bullet_id{get_physics_system()->add_bullet({cpvzero, {.x = 200, .y = 150}}, 10)};
   ASSERT_EQ(bullet_id, 1);
   const auto *body{*registry.get_component<KinematicComponent>(bullet_id)->body};
   ASSERT_EQ(body->p, cpvzero);

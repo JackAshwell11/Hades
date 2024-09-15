@@ -10,7 +10,6 @@
 // Local headers
 #include "ecs/stats.hpp"
 
-// ----- ENUMS ------------------------------
 /// Stores the different types of steering behaviours available.
 enum class SteeringBehaviours : std::uint8_t {
   Arrive,
@@ -30,7 +29,6 @@ enum class SteeringMovementState : std::uint8_t {
   Target,
 };
 
-// ----- COMPONENTS ------------------------------
 /// Allows a game object to determine the time interval between footprints.
 struct FootprintInterval final : Stat {
   /// Initialise the object.
@@ -113,7 +111,6 @@ struct SteeringMovement final : ComponentBase {
       : behaviours(behaviours) {}
 };
 
-// ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate footprint components.
 struct FootprintSystem final : SystemBase {
   /// Initialise the object.

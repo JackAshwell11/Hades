@@ -4,7 +4,6 @@
 #include "ecs/systems/upgrade.hpp"
 #include "macros.hpp"
 
-// ----- STRUCTURES -----------------------------
 /// Represents a test stat useful for testing.
 struct TestStat final : Stat {
   /// Initialise the object.
@@ -14,7 +13,6 @@ struct TestStat final : Stat {
   TestStat(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
-// ----- FIXTURES ------------------------------
 /// Implements the fixture for the UpgradeSystem tests.
 class UpgradeSystemFixture : public testing::Test {
  protected:
@@ -48,7 +46,6 @@ class UpgradeSystemFixture : public testing::Test {
   }
 };
 
-// ----- TESTS ----------------------------------
 /// Test that a test stat is upgraded correctly if the value equals the maximum.
 TEST_F(UpgradeSystemFixture, TestUpgradeSystemUpgradeValueEqualMax) {
   create_upgradeable_game_object();

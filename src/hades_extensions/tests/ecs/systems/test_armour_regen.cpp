@@ -5,7 +5,6 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/armour_regen.hpp"
 
-// ----- FIXTURES ------------------------------
 /// Implements the fixture for the ArmourRegenSystem tests.
 class ArmourRegenSystemFixture : public testing::Test {
  protected:
@@ -27,7 +26,6 @@ class ArmourRegenSystemFixture : public testing::Test {
   }
 };
 
-// ----- TESTS ----------------------------------
 /// Test that the armour regen component is updated correctly when armour is full.
 TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateFullArmour) {
   get_armour_regen_system()->update(5);

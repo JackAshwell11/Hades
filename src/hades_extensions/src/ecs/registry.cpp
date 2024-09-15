@@ -5,7 +5,7 @@
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/physics.hpp"
 
-// ----- FUNCTIONS ------------------------------
+namespace {
 /// Convert a Chipmunk2D data pointer to a game object ID.
 ///
 /// @param data - The Chipmunk2D data pointer to convert.
@@ -14,6 +14,7 @@ auto cpDataPointerToGameObjectID(void *data) -> GameObjectID {
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   return static_cast<GameObjectID>(reinterpret_cast<uintptr_t>(data));
 }
+}  // namespace
 
 Registry::Registry() {
   // Set the damping to ensure the game objects don't drift

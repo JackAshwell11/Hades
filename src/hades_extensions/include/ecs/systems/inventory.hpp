@@ -4,7 +4,6 @@
 // Local headers
 #include "ecs/stats.hpp"
 
-// ----- COMPONENTS ------------------------------
 /// Allows a game object to have a fixed size inventory.
 struct Inventory final : ComponentBase {
   /// The game object's inventory.
@@ -20,7 +19,6 @@ struct InventorySize final : Stat {
   InventorySize(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
-// ----- SYSTEMS --------------------------------
 /// Provides facilities to manipulate inventory components.
 struct InventorySystem final : SystemBase {
   /// Initialise the object.

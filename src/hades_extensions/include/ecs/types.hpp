@@ -5,15 +5,13 @@
 #include <functional>
 #include <memory>
 
-// ----- FORWARD DECLARATIONS ------------------------------
+// Avoid having to include headers for this
 class Registry;
 
-// ----- TYPEDEFS ------------------------------
 // Represents unique identifiers for game objects
 using GameObjectID = int;
 using ActionFunction = std::function<double(int)>;
 
-// ----- ENUMS ------------------------------
 /// Stores the different types of game objects available.
 enum class GameObjectType : std::uint8_t {
   Bullet = 1U << 0U,  // 1
@@ -31,7 +29,6 @@ enum class EventType : std::uint8_t {
   InventoryUpdate,
 };
 
-// ----- BASE TYPES ------------------------------
 /// The base class for all components.
 struct ComponentBase {
   /// The copy assignment operator.
@@ -89,7 +86,6 @@ class SystemBase {
   Registry *registry_;
 };
 
-// ----- RAII TYPES ------------------------------
 /// Allows for the RAII management of a Chipmunk2D object.
 ///
 /// @tparam T - The type of Chipmunk2D object to manage.

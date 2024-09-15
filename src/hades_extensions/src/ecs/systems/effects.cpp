@@ -5,7 +5,6 @@
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 
-// ----- FUNCTIONS ------------------------------
 void EffectSystem::update(const double delta_time) const {
   for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<StatusEffect>()) {
     // Create a vector to store the expired status effects

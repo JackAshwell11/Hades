@@ -4,10 +4,11 @@
 // Local headers
 #include "ecs/registry.hpp"
 
-// ----- CONSTANTS -------------------------------
+namespace {
+// The amount of armour to regenerate each time.
 constexpr int ARMOUR_REGEN_AMOUNT{1};
+}  // namespace
 
-// ----- FUNCTIONS ------------------------------
 void ArmourRegenSystem::update(const double delta_time) const {
   // Update the time since the last armour regen then check if the armour should be regenerated
   for (const auto &[_, component_tuple] : get_registry()->find_components<Armour, ArmourRegen>()) {

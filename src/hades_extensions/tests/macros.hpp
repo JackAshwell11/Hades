@@ -4,7 +4,6 @@
 // External headers
 #include <gtest/gtest.h>
 
-// ----- MACROS ------------------------------
 /// Assert that a statement throws an exception of a given type with a given message.
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define ASSERT_THROW_MESSAGE(statement, exception_type, expected_msg) \

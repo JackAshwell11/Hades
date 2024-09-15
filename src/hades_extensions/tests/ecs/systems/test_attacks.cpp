@@ -11,7 +11,6 @@
 #include "ecs/systems/physics.hpp"
 #include "macros.hpp"
 
-// ----- FIXTURES ------------------------------
 /// Implements the fixture for the AttackSystem tests.
 class AttackSystemFixture : public testing::Test {
  protected:
@@ -103,7 +102,6 @@ class DamageSystemFixture : public testing::Test {
   }
 };
 
-// ----- TESTS ----------------------------------
 /// Test that the attack component is updated correctly with a zero deltatime.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateZeroDeltaTime) {
   create_attack_component({AttackAlgorithm::Ranged});

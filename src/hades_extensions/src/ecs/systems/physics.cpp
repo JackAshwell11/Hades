@@ -6,7 +6,6 @@
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/sprite.hpp"
 
-// ----- FUNCTIONS ------------------------------
 void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect &force) const {
   cpBodyApplyForceAtLocalPoint(
       *get_registry()->get_component<KinematicComponent>(game_object_id)->body,

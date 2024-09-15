@@ -7,14 +7,12 @@
 // Local headers
 #include "ecs/stats.hpp"
 
-// ----- ENUMS ------------------------------
 /// Stores the different types of status effects available.
 enum class StatusEffectType : std::uint8_t {
   TEMP,
   TEMP2,
 };
 
-// ----- STRUCTURES ------------------------------
 /// Represents a status effect that can be applied to a game object.
 struct Effect {
   /// The value that should be applied to the game object temporarily.
@@ -73,7 +71,6 @@ struct StatusEffectData {
         interval(std::move(interval)) {}
 };
 
-// ----- COMPONENTS ------------------------------
 /// Allows a game object to provide instant or status effects.
 struct EffectApplier final : ComponentBase {
   /// The instant effects the game object provides.
@@ -106,7 +103,6 @@ struct StatusEffect final : ComponentBase {
   std::unordered_map<StatusEffectType, Effect> applied_effects;
 };
 
-// ----- SYSTEMS ------------------------------
 /// Provides facilities to manipulate instant and status effects.
 struct EffectSystem final : SystemBase {
   /// Initialise the object.

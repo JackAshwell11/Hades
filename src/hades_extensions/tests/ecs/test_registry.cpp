@@ -8,7 +8,18 @@
 #include "ecs/systems/physics.hpp"
 #include "macros.hpp"
 
-// ----- COMPONENTS ------------------------------
+namespace {
+/// Throw a RegistryError with given values.
+///
+/// @tparam Ts - The types of the values.
+/// @param vals - The values to be used for testing.
+/// @throws RegistryError - Always for testing.
+template <typename... Ts>
+void throw_registry_error(const Ts... vals) {
+  throw RegistryError(vals...);
+}
+}  // namespace
+
 /// Represents a game object component useful for testing.
 struct TestGameObjectComponentOne final : ComponentBase {};
 
@@ -23,7 +34,6 @@ struct TestGameObjectComponentTwo final : ComponentBase {
   explicit TestGameObjectComponentTwo(const std::vector<int> &test_list) : test_list(test_list) {}
 };
 
-// ----- SYSTEMS --------------------------------
 /// Represents a test system useful for testing.
 struct TestSystem final : SystemBase {
   /// Whether the system has been called or not.
@@ -38,7 +48,6 @@ struct TestSystem final : SystemBase {
   void update(double /*delta_time*/) const override { called = true; }
 };
 
-// ----- FIXTURES ------------------------------
 /// Implements the fixture for the ecs/registry.hpp tests.
 class RegistryFixture : public testing::Test {
  protected:
@@ -46,18 +55,6 @@ class RegistryFixture : public testing::Test {
   Registry registry;
 };
 
-// ----- HELPER FUNCTIONS -----------------------------
-/// Throw a RegistryError with given values.
-///
-/// @tparam Ts - The types of the values.
-/// @param vals - The values to be used for testing.
-/// @throws RegistryError - Always for testing.
-template <typename... Ts>
-void throw_registry_error(const Ts... vals) {
-  throw RegistryError(vals...);
-}
-
-// ----- TESTS ------------------------------
 /// Test that RegistryError is thrown correctly when given a message.
 TEST(Tests, TestThrowRegistryErrorNonEmptyMessage){
     ASSERT_THROW_MESSAGE(throw_registry_error("test", std::type_index(typeid(TestSystem))), RegistryError,
@@ -80,7 +77,7 @@ TEST(Tests, TestThrowRegistryErrorGameObjectIDTypeIndex){
 
 /// Test that a valid position is converted correctly.
 TEST(Tests, TestGridPosToPixelPositivePosition) {
-  ASSERT_EQ(grid_pos_to_pixel({100, 100}), cpv(6432, 6432));
+  ASSERT_EQ(grid_pos_to_pixel({.x = 100, .y = 100}), cpv(6432, 6432));
 }
 
 /// Test that a zero position is converted correctly.
@@ -258,7 +255,7 @@ TEST_F(RegistryFixture, TestRegistryPlayerBulletCollision) {
   const auto player_id{registry.create_game_object(GameObjectType::Player, cpvzero,
                                                    {std::make_shared<Armour>(0, 0), std::make_shared<Health>(200, 0),
                                                     std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
-  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{-32, 0}, {16, 0}}, 20)};
+  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 20)};
 
   // Test that the collision is handled correctly
   ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 200);
@@ -281,7 +278,7 @@ TEST_F(RegistryFixture, TestRegistryEnemyBulletCollision) {
   const auto enemy_id{registry.create_game_object(GameObjectType::Enemy, cpvzero,
                                                   {std::make_shared<Armour>(100, 0), std::make_shared<Health>(100, 0),
                                                    std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
-  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{-32, 0}, {16, 0}}, 50)};
+  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 50)};
 
   // Test that the collision is handled correctly
   ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
@@ -306,7 +303,7 @@ TEST_F(RegistryFixture, TestRegistryWallBulletCollision) {
   registry.add_system<DamageSystem>();
   const auto wall_id{
       registry.create_game_object(GameObjectType::Wall, cpvzero, {std::make_shared<KinematicComponent>(true)})};
-  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{-32, 0}, {16, 0}}, 30)};
+  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 30)};
 
   // Test that the collision is handled correctly
   ASSERT_EQ(registry.get_component<KinematicComponent>(wall_id)->body->p, cpv(32, 32));
@@ -333,7 +330,7 @@ TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksListening) {
   ASSERT_FALSE(called);
 }
 
-/// Test that an event is notified correctly if there is an callback listening for that event.
+/// Test that an event is notified correctly if there is a callback listening for that event.
 TEST_F(RegistryFixture, TestRegistryNotifyCallbacksListeningCallback) {
   bool called{false};
   registry.add_callback(EventType::GameObjectDeath, [&called](const auto /*event*/) { called = true; });

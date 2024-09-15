@@ -4,7 +4,6 @@
 #include "ecs/systems/effects.hpp"
 #include "macros.hpp"
 
-// ----- STRUCTURES -----------------------------
 /// Represents a test stat useful for testing.
 struct TestStat final : Stat {
   /// Initialise the object.
@@ -23,7 +22,6 @@ struct TestStat2 final : Stat {
   TestStat2(const double value, const int maximum_level) : Stat(value, maximum_level) {}
 };
 
-// ----- FIXTURES ------------------------------
 /// Implements the fixture for the EffectSystem tests.
 class EffectSystemFixture : public testing::Test {
  protected:
@@ -77,7 +75,6 @@ class EffectSystemFixture : public testing::Test {
   }
 };
 
-// ----- TESTS ----------------------------------
 /// Test that a status effect is updated correctly with a small delta time.
 TEST_F(EffectSystemFixture, TestEffectSystemUpdateSmallDeltaTime) {
   create_effect_applier(false, true);

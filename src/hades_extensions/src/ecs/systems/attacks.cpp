@@ -1,9 +1,6 @@
 // Related header
 #include "ecs/systems/attacks.hpp"
 
-// Std headers
-#include <numbers>
-
 // External headers
 #include <chipmunk/chipmunk_structs.h>
 
@@ -12,10 +9,10 @@
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 
-// ----- CONSTANTS -------------------------------
+namespace {
+// The velocity of the bullet.
 constexpr int BULLET_VELOCITY{500};
 
-// ----- FUNCTIONS ------------------------------
 /// Performs an area of effect attack around the game object.
 ///
 /// @param registry - The registry that manages the game objects, components, and systems.
@@ -72,6 +69,7 @@ auto ranged_attack(const cpVect &current_position, const double current_rotation
   const auto direction{cpvforangle(current_rotation)};
   return {current_position + direction * SPRITE_SIZE, direction * BULLET_VELOCITY};
 }
+}  // namespace
 
 void AttackSystem::update(const double delta_time) const {
   for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<Attack>()) {

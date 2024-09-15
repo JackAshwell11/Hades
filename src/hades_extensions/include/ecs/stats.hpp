@@ -4,7 +4,6 @@
 // Local headers
 #include "ecs/types.hpp"
 
-// ----- COMPONENTS ------------------------------
 /// Represents a component that has a variable value and maximum value.
 class Stat : public ComponentBase {
  public:

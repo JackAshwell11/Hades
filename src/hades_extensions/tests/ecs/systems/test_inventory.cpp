@@ -5,7 +5,6 @@
 #include "ecs/systems/inventory.hpp"
 #include "macros.hpp"
 
-// ----- FIXTURES ------------------------------
 /// Implements the fixture for the InventorySystem fixture.
 class InventorySystemFixture : public testing::Test {
  protected:
@@ -35,13 +34,12 @@ class InventorySystemFixture : public testing::Test {
     return registry.create_game_object(GameObjectType::Player, cpvzero,
                                        {std::make_shared<EffectApplier>(
                                             std::unordered_map<std::type_index, ActionFunction>{
-                                                {typeid(Health), [](const int level) { return level * 3 + 5; }}},
+                                                {typeid(Health), [](const int level) { return (level * 3) + 5; }}},
                                             std::unordered_map<std::type_index, StatusEffectData>{}),
                                         std::make_shared<EffectLevel>(1, -1)});
   }
 };
 
-// ----- TESTS ----------------------------------
 /// Test that a valid item is added to the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   bool inventory_update{false};

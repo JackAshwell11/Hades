@@ -9,22 +9,32 @@
 // Local headers
 #include "ecs/types.hpp"
 
-// ----- CONSTANTS ------------------------------
+// The value of PI in radians.
 #define PI_RADIANS (std::numbers::pi / 180)
+
+namespace {
+// The maximum distance the game object can see ahead.
 constexpr double MAX_SEE_AHEAD{2 * SPRITE_SIZE};
+
+// The maximum velocity of the game object.
 constexpr int MAX_VELOCITY{200};
+
+// The angle in which the game object can avoid obstacles.
 constexpr double OBSTACLE_AVOIDANCE_ANGLE{60 * PI_RADIANS};
+
+// The radius of the path position.
 constexpr double PATH_POSITION_RADIUS{1 * SPRITE_SIZE};
+
+// The distance of when the game object should start slowing down.
 constexpr double SLOWING_RADIUS{3 * SPRITE_SIZE};
+
+// The distance of the wander circle from the game object.
 constexpr int WANDER_CIRCLE_DISTANCE{50};
+
+// The radius of the wander circle.
 constexpr int WANDER_CIRCLE_RADIUS{25};
+}  // namespace
 
-// ----- OPERATORS ------------------------------
-inline auto operator/(const cpVect &lhs, const double val) -> cpVect {
-  return {std::floor(lhs.x / val), std::floor(lhs.y / val)};
-}
-
-// ----- FUNCTIONS ------------------------------
 auto arrive(const cpVect &current_position, const cpVect &target_position) -> cpVect {
   // Calculate a vector to the target and its length
   const cpVect direction{target_position - current_position};

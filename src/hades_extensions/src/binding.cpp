@@ -21,7 +21,6 @@
 #include "ecs/systems/upgrade.hpp"
 #include "generation/map.hpp"
 
-// ----- STRUCTURES ------------------------------------------
 /// The hash function for a pybind11 handle.
 struct py_handle_hash {
   /// Calculate the hash of a pybind11 handle.
@@ -43,7 +42,7 @@ struct py_handle_equal {
   }
 };
 
-// ----- FUNCTIONS -------------------------------------------
+namespace {
 /// Make the component types mapping.
 ///
 /// @return The component types mapping.
@@ -65,7 +64,7 @@ auto make_system_types()
 /// Get the component types mapping.
 ///
 /// @return The component types mapping.
-inline auto get_component_types()
+auto get_component_types()
     -> const std::unordered_map<pybind11::handle, std::type_index, py_handle_hash, py_handle_equal> & {
   static const auto component_types{
       make_component_types<Armour, ArmourRegen, Attack, AttackCooldown, AttackRange, Damage, EffectApplier, EffectLevel,
@@ -78,7 +77,7 @@ inline auto get_component_types()
 /// Get the system types mapping.
 ///
 /// @return The system types mapping.
-inline auto get_system_types()
+auto get_system_types()
     -> const std::unordered_map<pybind11::handle, std::function<std::shared_ptr<SystemBase>(const Registry &)>,
                                 py_handle_hash, py_handle_equal> & {
   static const auto system_types{
@@ -92,7 +91,7 @@ inline auto get_system_types()
 /// @param component_type - The component type.
 /// @throws std::runtime_error - If the component type is invalid.
 /// @return The type index for the component type.
-inline auto get_type_index(const pybind11::handle &component_type) -> std::type_index {
+auto get_type_index(const pybind11::handle &component_type) -> std::type_index {
   const auto &component_types{get_component_types()};
   const auto iter{component_types.find(component_type)};
   if (iter == component_types.end()) {
@@ -106,7 +105,7 @@ inline auto get_type_index(const pybind11::handle &component_type) -> std::type_
 /// @param type_index - The type index.
 /// @throws std::runtime_error - If the type index is invalid.
 /// @return The Python type for the component type index.
-inline auto get_python_type(const std::type_index type_index) -> pybind11::handle {
+auto get_python_type(const std::type_index type_index) -> pybind11::handle {
   for (const auto &component_types{get_component_types()}; const auto &[handle, index] : component_types) {
     if (index == type_index) {
       return handle;
@@ -123,8 +122,8 @@ auto make_action_function(const pybind11::function &py_func) -> ActionFunction {
   // NOLINTNEXTLINE(bugprone-exception-escape)
   return [py_func](int level) { return py_func(level).cast<double>(); };
 }
+}  // namespace
 
-// ----- PYTHON MODULE CREATION ------------------------------
 PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   // Add the module docstring and the custom converters
   module.doc() = "Manages the various C++ extension modules for the game.";
