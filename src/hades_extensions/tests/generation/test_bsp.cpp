@@ -4,7 +4,6 @@
 // Local headers
 #include "generation/bsp.hpp"
 
-// ----- FIXTURES ------------------------------
 /// Implements the fixture for the generation/bsp.hpp tests.
 class BspFixture : public testing::Test {  // NOLINT
  protected:
@@ -18,12 +17,11 @@ class BspFixture : public testing::Test {  // NOLINT
   void SetUp() override { random_generator.seed(0); }
 };
 
-// ----- TESTS ------------------------------
 /// Test that the split function correctly splits a leaf vertically.
 TEST_F(BspFixture, TestBspSplitVertical) {
   // Split a leaf vertically
-  Leaf leaf{{{0, 0}, {15, 10}}};
-  split(leaf, random_generator);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 15, .y = 10}}};
+  leaf.split(random_generator);
 
   // Make sure the children are correct
   ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {7, 10}));
@@ -33,8 +31,8 @@ TEST_F(BspFixture, TestBspSplitVertical) {
 /// Test that the split function correctly splits a leaf horizontally.
 TEST_F(BspFixture, TestBspSplitHorizontal) {
   // Split a leaf horizontally
-  Leaf leaf{{{0, 0}, {10, 15}}};
-  split(leaf, random_generator);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 10, .y = 15}}};
+  leaf.split(random_generator);
 
   // Make sure the children are correct
   ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {10, 7}));
@@ -44,8 +42,8 @@ TEST_F(BspFixture, TestBspSplitHorizontal) {
 /// Test that the split function correctly splits a leaf in a random direction.
 TEST_F(BspFixture, TestBspSplitRandom) {
   // Split a leaf randomly
-  Leaf leaf{{{0, 0}, {15, 15}}};
-  split(leaf, random_generator);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 15, .y = 15}}};
+  leaf.split(random_generator);
 
   // Make sure the children are correct
   ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {7, 15}));
@@ -55,8 +53,8 @@ TEST_F(BspFixture, TestBspSplitRandom) {
 /// Test that the split function correctly splits a leaf multiple times.
 TEST_F(BspFixture, TestBspSplitMultiple) {
   // Split a leaf multiple times
-  Leaf leaf{{{0, 0}, {20, 20}}};
-  split(leaf, random_generator);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 20, .y = 20}}};
+  leaf.split(random_generator);
 
   // Make sure the children are correct
   ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {10, 20}));
@@ -70,10 +68,10 @@ TEST_F(BspFixture, TestBspSplitMultiple) {
 /// Test that the split function returns if the leaf is already split.
 TEST_F(BspFixture, TestBspSplitExistingChildren) {
   // Split a leaf that already has children
-  Leaf leaf{{{0, 0}, {100, 100}}};
-  leaf.left = std::make_unique<Leaf>(Rect{{0, 0}, {0, 0}});
-  leaf.right = std::make_unique<Leaf>(Rect{{0, 0}, {0, 0}});
-  split(leaf, random_generator);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 100, .y = 100}}};
+  leaf.left = std::make_unique<Leaf>(Rect{{.x = 0, .y = 0}, {.x = 0, .y = 0}});
+  leaf.right = std::make_unique<Leaf>(Rect{{.x = 0, .y = 0}, {.x = 0, .y = 0}});
+  leaf.split(random_generator);
 
   // Make sure the children haven't changed
   ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {0, 0}));
@@ -83,9 +81,9 @@ TEST_F(BspFixture, TestBspSplitExistingChildren) {
 /// Test that the split function overwrites the children if only one child exists.
 TEST_F(BspFixture, TestBspSplitSingleChild) {
   // Split a leaf that only has one child
-  Leaf leaf{{{0, 0}, {15, 15}}};
-  leaf.left = std::make_unique<Leaf>(Rect{{0, 0}, {0, 0}});
-  split(leaf, random_generator);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 15, .y = 15}}};
+  leaf.left = std::make_unique<Leaf>(Rect{{.x = 0, .y = 0}, {.x = 0, .y = 0}});
+  leaf.split(random_generator);
 
   // Make sure the children are correct
   ASSERT_EQ(*leaf.left->container, Rect({0, 0}, {7, 15}));
@@ -94,8 +92,8 @@ TEST_F(BspFixture, TestBspSplitSingleChild) {
 
 /// Test that the split function returns if the leaf is too small to split.
 TEST_F(BspFixture, TestBspSplitTooSmall) {
-  Leaf leaf{{{0, 0}, {0, 0}}};
-  split(leaf, random_generator);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 0, .y = 0}}};
+  leaf.split(random_generator);
   ASSERT_EQ(leaf.left, nullptr);
   ASSERT_EQ(leaf.right, nullptr);
 }
@@ -104,8 +102,8 @@ TEST_F(BspFixture, TestBspSplitTooSmall) {
 TEST_F(BspFixture, TestBspCreateRoomSingleLeaf) {
   // Create a room inside a leaf
   std::vector<Rect> rooms;
-  Leaf leaf{{{0, 0}, {15, 15}}};
-  create_room(leaf, grid, random_generator, rooms);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 15, .y = 15}}};
+  leaf.create_room(grid, random_generator, rooms);
 
   // Make sure the room is correct
   ASSERT_EQ(*leaf.room, Rect({4, 4}, {13, 14}));
@@ -116,10 +114,10 @@ TEST_F(BspFixture, TestBspCreateRoomSingleLeaf) {
 TEST_F(BspFixture, TestBspCreateRoomChildLeafs) {
   // Create a room inside a leaf that has already been split
   std::vector<Rect> rooms;
-  Leaf leaf{{{0, 0}, {15, 15}}};
-  leaf.left = std::make_unique<Leaf>(Rect{{0, 0}, {7, 15}});
-  leaf.right = std::make_unique<Leaf>(Rect{{9, 0}, {15, 15}});
-  create_room(leaf, grid, random_generator, rooms);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 15, .y = 15}}};
+  leaf.left = std::make_unique<Leaf>(Rect{{.x = 0, .y = 0}, {.x = 7, .y = 15}});
+  leaf.right = std::make_unique<Leaf>(Rect{{.x = 9, .y = 0}, {.x = 15, .y = 15}});
+  leaf.create_room(grid, random_generator, rooms);
 
   // Make sure the room is correct
   ASSERT_EQ(*leaf.left->room, Rect({2, 0}, {6, 6}));
@@ -131,9 +129,9 @@ TEST_F(BspFixture, TestBspCreateRoomChildLeafs) {
 TEST_F(BspFixture, TestBspCreateRoomExistingRoom) {
   // Create a room inside a leaf that already has a room
   std::vector<Rect> rooms;
-  Leaf leaf{{{0, 0}, {15, 15}}};
-  leaf.room = std::make_unique<Rect>(Rect{{0, 0}, {0, 0}});
-  create_room(leaf, grid, random_generator, rooms);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 15, .y = 15}}};
+  leaf.room = std::make_unique<Rect>(Rect{{.x = 0, .y = 0}, {.x = 0, .y = 0}});
+  leaf.create_room(grid, random_generator, rooms);
 
   // Make sure the room is correct
   ASSERT_EQ(*leaf.room, Rect({4, 4}, {13, 14}));
@@ -143,8 +141,8 @@ TEST_F(BspFixture, TestBspCreateRoomExistingRoom) {
 /// Test that the create_room function throws an exception if the leaf is too small.
 TEST_F(BspFixture, TestBspCreateRoomTooSmallLeaf) {
   std::vector<Rect> rooms;
-  Leaf leaf{{{0, 0}, {0, 0}}};
-  create_room(leaf, grid, random_generator, rooms);
+  Leaf leaf{{{.x = 0, .y = 0}, {.x = 0, .y = 0}}};
+  leaf.create_room(grid, random_generator, rooms);
   ASSERT_EQ(leaf.room, nullptr);
   ASSERT_TRUE(rooms.empty());
 }

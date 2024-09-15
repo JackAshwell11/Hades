@@ -2,7 +2,6 @@
 #include "generation/primitives.hpp"
 #include "macros.hpp"
 
-// ----- FIXTURES ------------------------------
 /// Implements the fixture for the generation/primitives.hpp tests.
 class PrimitivesFixture : public testing::Test {
  protected:
@@ -10,13 +9,12 @@ class PrimitivesFixture : public testing::Test {
   const Grid grid{5, 5};
 
   /// A rect inside the grid for use in testing.
-  const Rect rect_one{{0, 0}, {2, 3}};
+  const Rect rect_one{{.x = 0, .y = 0}, {.x = 2, .y = 3}};
 
   /// A rect inside the grid for use in testing.
-  const Rect rect_two{{2, 2}, {4, 4}};
+  const Rect rect_two{{.x = 2, .y = 2}, {.x = 4, .y = 4}};
 };
 
-// ----- TESTS ------------------------------
 /// Test that finding the distance between two identical rects works correctly.
 TEST_F(PrimitivesFixture, TestRectGetDistanceToIdentical) { ASSERT_EQ(rect_one.get_distance_to(rect_one), 0); }
 
@@ -104,13 +102,13 @@ TEST_F(PrimitivesFixture, TestGridGetValueLarger){
 
 /// Test that a position in the middle can be set correctly.
 TEST_F(PrimitivesFixture, TestGridSetValueMiddle) {
-  grid.set_value({1, 3}, TileType::Player);
+  grid.set_value({.x = 1, .y = 3}, TileType::Player);
   ASSERT_EQ((*grid.grid)[16], TileType::Player);
 }
 
 /// Test that a position on the edge can be set correctly.
 TEST_F(PrimitivesFixture, TestGridSetValueEdge) {
-  grid.set_value({4, 4}, TileType::Player);
+  grid.set_value({.x = 4, .y = 4}, TileType::Player);
   ASSERT_EQ((*grid.grid)[24], TileType::Player);
 }
 
@@ -126,7 +124,7 @@ TEST_F(PrimitivesFixture,
 
 /// Test that a zero size rect can be placed correctly in a valid grid.
 TEST_F(PrimitivesFixture, TestGridPlaceRectZeroSize) {
-  grid.place_rect({{0, 0}, {0, 0}});
+  grid.place_rect({{.x = 0, .y = 0}, {.x = 0, .y = 0}});
   const std::vector target_result{
       TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
@@ -152,7 +150,7 @@ TEST_F(PrimitivesFixture, TestGridPlaceRectValidGrid) {
 
 /// Test that placing a rect that doesn't fit in the grid works correctly.
 TEST_F(PrimitivesFixture, TestGridPlaceRectOutsideGrid) {
-  grid.place_rect({{0, 0}, {10, 10}});
+  grid.place_rect({{.x = 0, .y = 0}, {.x = 10, .y = 10}});
   const std::vector target_result{
       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,

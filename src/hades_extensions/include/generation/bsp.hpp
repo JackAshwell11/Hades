@@ -7,7 +7,6 @@
 // Local headers
 #include "primitives.hpp"
 
-// ----- STRUCTURES ------------------------------
 /// A binary spaced partition leaf used to generate the dungeon's rooms.
 struct Leaf {
   /// The rect object that represents this leaf.
@@ -26,19 +25,16 @@ struct Leaf {
   ///
   /// @param container - The rect object that represents this leaf.
   explicit Leaf(const Rect &container) : container(std::make_unique<Rect>(container)) {}
+
+  /// Split a leaf either horizontally or vertically recursively.
+  ///
+  /// @param random_generator - The random generator to use.
+  void split(std::mt19937 &random_generator);
+
+  /// Create a random sized room inside a container.
+  ///
+  /// @param grid - The 2D grid which represents the dungeon.
+  /// @param random_generator - The random generator to use.
+  /// @param rooms - The vector of rooms to add the new room to.
+  void create_room(const Grid &grid, std::mt19937 &random_generator, std::vector<Rect> &rooms);
 };
-
-// ----- FUNCTIONS -------------------------------
-/// Split a leaf either horizontally or vertically recursively.
-///
-/// @param leaf - The leaf to split.
-/// @param random_generator - The random generator to use.
-void split(Leaf &leaf, std::mt19937 &random_generator);
-
-/// Create a random sized room inside a container.
-///
-/// @param leaf - The leaf to create a room inside of.
-/// @param grid - The 2D grid which represents the dungeon.
-/// @param random_generator - The random generator to use.
-/// @param rooms - The vector of rooms to add the new room to.
-void create_room(Leaf &leaf, const Grid &grid, std::mt19937 &random_generator, std::vector<Rect> &rooms);

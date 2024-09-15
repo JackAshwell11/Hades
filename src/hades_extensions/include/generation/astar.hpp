@@ -5,11 +5,10 @@
 #include <unordered_set>
 #include <vector>
 
-// ----- FORWARD DECLARATIONS ------------------------------
+// Avoid having to include headers for these
 struct Grid;
 struct Position;
 
-// ----- FUNCTIONS ------------------------------
 /// Calculate the shortest path in a grid from one pair to another using the A*
 /// algorithm.
 ///

@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <vector>
 
-// ----- ENUMS ------------------------------
 /// Stores the different types of tiles in the game map.
 enum class TileType : std::uint8_t {
   Empty,
@@ -19,17 +18,16 @@ enum class TileType : std::uint8_t {
   Potion,
 };
 
-// ----- STRUCTURES ------------------------------
 /// Represents a 2D position.
 struct Position {
   auto operator==(const Position &position) const -> bool { return x == position.x && y == position.y; }
 
   auto operator!=(const Position &position) const -> bool { return x != position.x || y != position.y; }
 
-  auto operator+(const Position &position) const -> Position { return {x + position.x, y + position.y}; }
+  auto operator+(const Position &position) const -> Position { return {.x = x + position.x, .y = y + position.y}; }
 
   auto operator-(const Position &position) const -> Position {
-    return {std::abs(x - position.x), std::abs(y - position.y)};
+    return {.x = std::abs(x - position.x), .y = std::abs(y - position.y)};
   }
 
   /// The x position of the position.
@@ -72,8 +70,8 @@ struct Rect {
       : top_left(top_left),
         bottom_right(bottom_right),
         // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        centre({static_cast<int>(std::round((top_left + bottom_right).x / 2.0)),
-                static_cast<int>(std::round((top_left + bottom_right).y / 2.0))}),
+        centre({.x = static_cast<int>(std::round((top_left + bottom_right).x / 2.0)),
+                .y = static_cast<int>(std::round((top_left + bottom_right).y / 2.0))}),
         // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
         width((top_left - bottom_right).x),
         height((top_left - bottom_right).y) {}
@@ -99,14 +97,14 @@ struct Grid {
   std::unique_ptr<std::vector<TileType>> grid;
 
   /// The offsets for the intercardinal directions.
-  static constexpr std::array INTERCARDINAL_OFFSETS{Position{-1, -1},  // North-west
-                                                    Position{0, -1},   // North
-                                                    Position{1, -1},   // North-east
-                                                    Position{-1, 0},   // West
-                                                    Position{1, 0},    // East
-                                                    Position{-1, 1},   // South-west
-                                                    Position{0, 1},    // South
-                                                    Position{1, 1}};   // South-east
+  static constexpr std::array INTERCARDINAL_OFFSETS{Position{.x = -1, .y = -1},  // North-west
+                                                    Position{.x = 0, .y = -1},   // North
+                                                    Position{.x = 1, .y = -1},   // North-east
+                                                    Position{.x = -1, .y = 0},   // West
+                                                    Position{.x = 1, .y = 0},    // East
+                                                    Position{.x = -1, .y = 1},   // South-west
+                                                    Position{.x = 0, .y = 1},    // South
+                                                    Position{.x = 1, .y = 1}};   // South-east
 
   /// Initialise the object.
   ///
@@ -132,7 +130,7 @@ struct Grid {
     if (!is_position_within(position)) {
       throw std::out_of_range("Position not within the grid.");
     }
-    return width * position.y + position.x;
+    return (width * position.y) + position.x;
   }
 
   /// Get a value in the 2D grid from a given position.
@@ -175,13 +173,12 @@ struct Grid {
     // Place only the floors as the walls will be placed after the cellular automata
     for (int y{std::max(rect.top_left.y, 0)}; y < std::min(rect.bottom_right.y + 1, height); y++) {
       for (int x{std::max(rect.top_left.x, 0)}; x < std::min(rect.bottom_right.x + 1, width); x++) {
-        set_value({x, y}, TileType::Floor);
+        set_value({.x = x, .y = y}, TileType::Floor);
       }
     }
   }
 };
 
-// ----- FUNCTIONS ------------------------------
 /// Allows multiple hashes to be combined for a struct
 ///
 /// @tparam T - The type of the value to hash.
@@ -193,7 +190,6 @@ void hash_combine(std::size_t &seed, const T &value) {
   seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);  // NOLINT
 }
 
-// ----- HASHES ------------------------------
 template <>
 struct std::hash<Position> {
   auto operator()(const Position &position) const noexcept -> std::size_t {

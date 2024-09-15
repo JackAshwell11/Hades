@@ -4,13 +4,11 @@
 // Std headers
 #include <optional>
 #include <random>
-#include <unordered_map>
 #include <unordered_set>
 
 // Local headers
 #include "primitives.hpp"
 
-// ----- STRUCTURES ------------------------------
 /// Represents an undirected weighted edge in a graph.
 struct Edge {
   // std::priority_queue uses a max heap, but we want a min heap, so the operator needs to be reversed
@@ -42,7 +40,6 @@ struct LevelConstants {
   int height;
 };
 
-// ----- HASHES ------------------------------
 template <>
 struct std::hash<Edge> {
   auto operator()(const Edge &edge) const noexcept -> size_t {
@@ -54,42 +51,21 @@ struct std::hash<Edge> {
   }
 };
 
-// ----- FUNCTIONS ------------------------------
-/// Place a random tile in the 2D grid.
+/// Place a given amount of tiles in the 2D grid.
 ///
 /// @param grid - The 2D grid which represents the dungeon.
 /// @param random_generator - The random generator used to pick the position.
-/// @param replaceable_tile - The tile to replace in the 2D grid.
 /// @param target_tile - The tile to place in the 2D grid.
 /// @param count - The number of tiles to place.
-/// @throws std::length_error - If there are not enough replaceable tiles to place the target tiles.
-[[maybe_unused]] auto place_random_tiles(const Grid &grid, std::mt19937 &random_generator, TileType replaceable_tile,
-                                         TileType target_tile, int count = 1) -> std::unordered_set<Position>;
-
-/// Places a tile in the 2D grid using the Dijkstra map algorithm.
-///
-/// @param grid - The 2D grid which represents the dungeon.
-/// @param random_generator - The random generator used to pick the position.
-/// @param item_positions - The positions of all the items in the 2D grid.
-/// @param target_tile - The tile to place in the 2D grid.
-/// @param count - The number of tiles to place.
-void place_dijkstra_tiles(const Grid &grid, std::mt19937 &random_generator,
-                          std::unordered_set<Position> &item_positions, TileType target_tile, int count);
-
-/// Create a complete graph from a given list of rooms.
-///
-/// @param rooms - The rooms to create connections between.
-/// @throws std::length_error - If rooms is empty.
-/// @return A adjacency list of all the rooms and their neighbours.
-auto create_complete_graph(const std::vector<Rect> &rooms) -> std::unordered_map<Rect, std::vector<Rect>>;
+void place_tiles(const Grid &grid, std::mt19937 &random_generator, TileType target_tile, int count = 1);
 
 /// Create a minimum spanning tree from a given complete graph.
 ///
 /// @details https://en.wikipedia.org/wiki/Prim%27s_algorithm
-/// @param complete_graph - An adjacency list which represents a complete graph. This should not be empty.
-/// @throws std::length_error - If complete_graph is empty.
+/// @param rooms - The rooms to create connections between.
+/// @throws std::length_error - If rooms is empty.
 /// @return A set of edges which form the connections between rects.
-auto create_connections(const std::unordered_map<Rect, std::vector<Rect>> &complete_graph) -> std::unordered_set<Edge>;
+auto create_connections(const std::vector<Rect> &rooms) -> std::unordered_set<Edge>;
 
 /// Create the hallways by using A* to pathfind between the rooms.
 ///
