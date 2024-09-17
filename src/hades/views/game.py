@@ -41,11 +41,10 @@ from hades_extensions.generation import TileType, create_map
 __all__ = ("Game",)
 
 # Constants
-COLLECTIBLE_TYPES: Final[set[GameObjectType]] = {GameObjectType.Potion}
+COLLECTIBLE_TYPES: Final[set[GameObjectType]] = {GameObjectType.HealthPotion}
 ENEMY_GENERATE_INTERVAL: Final[int] = 1
 ENEMY_GENERATION_DISTANCE: Final[int] = 5
 ENEMY_RETRY_COUNT: Final[int] = 3
-TOTAL_ENEMY_COUNT: Final[int] = 1
 
 # Get the logger
 logger = logging.getLogger(__name__)
@@ -199,10 +198,17 @@ class Game(arcade.View):
                         position,
                     )
                     self.entity_sprites.append(self.player)
-                elif tile == TileType.Potion:
+                elif tile == TileType.HealthPotion:
                     self.item_sprites.append(
                         self._create_sprite(
-                            game_object_constructors[GameObjectType.Potion](),
+                            game_object_constructors[GameObjectType.HealthPotion](),
+                            position,
+                        ),
+                    )
+                elif tile == TileType.Chest:
+                    self.item_sprites.append(
+                        self._create_sprite(
+                            game_object_constructors[GameObjectType.Chest](),
                             position,
                         ),
                     )
@@ -233,7 +239,7 @@ class Game(arcade.View):
         )
 
         # Generate half of the total enemies allowed to then schedule their generation
-        for _ in range(TOTAL_ENEMY_COUNT // 2):
+        for _ in range(self.level_constants.enemy_limit // 2):
             self.generate_enemy()
         arcade.schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
 
@@ -443,7 +449,7 @@ class Game(arcade.View):
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
-        if (len(self.entity_sprites) - 1) >= TOTAL_ENEMY_COUNT:
+        if (len(self.entity_sprites) - 1) >= self.level_constants.enemy_limit:
             return
 
         # Enemy limit is not reached so try to initialise a new enemy game object

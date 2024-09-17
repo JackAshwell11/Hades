@@ -221,7 +221,7 @@ def health_potion_factory() -> GameObjectConstructor:
     return GameObjectConstructor(
         "Health Potion",
         "A potion that restores health.",
-        GameObjectType.Potion,
+        GameObjectType.HealthPotion,
         [":resources:health_potion.png"],
         [
             EffectApplier(
@@ -231,6 +231,25 @@ def health_potion_factory() -> GameObjectConstructor:
                 {},
             ),
             EffectLevel(1, 3),
+        ],
+    )
+
+
+def chest_factory() -> GameObjectConstructor:
+    """Create a chest game object constructor.
+
+    Returns:
+        A chest game object constructor.
+    """
+    return GameObjectConstructor(
+        "Chest",
+        "A chest that contains loot.",
+        GameObjectType.Chest,
+        [":resources:shop.png"],
+        [
+            Inventory(),
+            InventorySize(30, 3),
+            Money(),
         ],
     )
 
@@ -254,8 +273,9 @@ game_object_constructors: dict[GameObjectType, Callable[[], GameObjectConstructo
     GameObjectType.Enemy: enemy_factory,
     GameObjectType.Floor: floor_factory,
     GameObjectType.Player: player_factory,
-    GameObjectType.Potion: health_potion_factory,
     GameObjectType.Wall: wall_factory,
+    GameObjectType.HealthPotion: health_potion_factory,
+    GameObjectType.Chest: chest_factory,
 }
 
 # TODO: Attack should be modified to accept multiple categories (e.g. ranged,

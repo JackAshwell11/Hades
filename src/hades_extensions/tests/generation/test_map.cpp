@@ -53,7 +53,7 @@ namespace {
 void assert_no_adjacent_walls(const Grid &grid) {
   for (int y = 0; y < grid.height; y++) {
     for (int x = 0; x < grid.width; x++) {
-      if (grid.get_value({.x = x, .y = y}) == TileType::Potion) {
+      if (grid.get_value({.x = x, .y = y}) == TileType::HealthPotion) {
         const auto neighbours{grid.get_neighbours({.x = x, .y = y})};
         ASSERT_EQ(std::ranges::count_if(neighbours.begin(), neighbours.end(),
                                         [&grid](const auto &pos) { return grid.get_value(pos) == TileType::Wall; }),
@@ -91,22 +91,22 @@ void assert_min_distance(const Grid &grid, const TileType tile_type) {
 }  // namespace
 
 /// Test that placing a tile in an empty grid does nothing.
-TEST_F(MapFixture, TestMapPlaceTilessEmptyGrid) {
+TEST_F(MapFixture, TestMapPlaceTilesEmptyGrid) {
   const Grid empty_grid{0, 0};
-  place_tiles(empty_grid, random_generator, TileType::Obstacle);
+  place_tiles(empty_grid, random_generator, TileType::Obstacle, 1, 1);
   ASSERT_EQ(*empty_grid.grid, std::vector<TileType>{});
 }
 
 /// Test that placing zero tiles in the grid does nothing.
 TEST_F(MapFixture, TestMapPlaceTilesZeroCount) {
-  place_tiles(grid, random_generator, TileType::Obstacle, 0);
+  place_tiles(grid, random_generator, TileType::Obstacle, 1, 0);
   ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 25);
   ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Obstacle), 0);
 }
 
 /// Test that placing an obstacle tile in the grid works correctly.
 TEST_F(MapFixture, TestMapPlaceTilesObstacleSingleCount) {
-  place_tiles(grid, random_generator, TileType::Obstacle);
+  place_tiles(grid, random_generator, TileType::Obstacle, 1, 1);
   ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 24);
   ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Obstacle), 1);
   assert_min_distance(grid, TileType::Obstacle);
@@ -115,16 +115,16 @@ TEST_F(MapFixture, TestMapPlaceTilesObstacleSingleCount) {
 /// Test that placing an item tile in the grid works correctly.
 TEST_F(MapFixture, TestMapPlaceTilesItemSingleCount) {
   place_covered_box();
-  place_tiles(very_large_grid, random_generator, TileType::Potion);
+  place_tiles(very_large_grid, random_generator, TileType::HealthPotion, 1, 1);
   ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Floor), 360);
-  ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Potion), 1);
-  assert_min_distance(very_large_grid, TileType::Potion);
+  ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::HealthPotion), 1);
+  assert_min_distance(very_large_grid, TileType::HealthPotion);
   assert_no_adjacent_walls(very_large_grid);
 }
 
 /// Test that placing multiple obstacle tiles in the grid works correctly.
 TEST_F(MapFixture, TestMapPlaceTilesObstacleMultipleCount) {
-  place_tiles(very_large_grid, random_generator, TileType::Obstacle, 2);
+  place_tiles(very_large_grid, random_generator, TileType::Obstacle, 1, 2);
   ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Obstacle), 2);
   assert_min_distance(grid, TileType::Obstacle);
 }
@@ -132,16 +132,16 @@ TEST_F(MapFixture, TestMapPlaceTilesObstacleMultipleCount) {
 /// Test that placing multiple item tiles in the grid works correctly.
 TEST_F(MapFixture, TestMapPlaceTilesItemMultipleCount) {
   place_covered_box();
-  place_tiles(very_large_grid, random_generator, TileType::Potion, 2);
+  place_tiles(very_large_grid, random_generator, TileType::HealthPotion, 1, 2);
   ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Floor), 359);
-  ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Potion), 2);
-  assert_min_distance(very_large_grid, TileType::Potion);
+  ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::HealthPotion), 2);
+  assert_min_distance(very_large_grid, TileType::HealthPotion);
   assert_no_adjacent_walls(very_large_grid);
 }
 
 /// Test that placing an unknown number of obstacle tiles in the grid works correctly.
 TEST_F(MapFixture, TestMapPlaceTilesObstacleUnknownCount) {
-  place_tiles(very_large_grid, random_generator, TileType::Obstacle, std::numeric_limits<int>::max());
+  place_tiles(very_large_grid, random_generator, TileType::Obstacle, 1, std::numeric_limits<int>::max());
   ASSERT_GE(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Empty), 621);
   ASSERT_GE(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Obstacle), 4);
   assert_min_distance(very_large_grid, TileType::Obstacle);
@@ -150,16 +150,26 @@ TEST_F(MapFixture, TestMapPlaceTilesObstacleUnknownCount) {
 /// Test that placing an unknown number of item tiles in the grid works correctly.
 TEST_F(MapFixture, TestMapPlaceTilesItemUnknownCount) {
   place_covered_box();
-  place_tiles(very_large_grid, random_generator, TileType::Potion, std::numeric_limits<int>::max());
+  place_tiles(very_large_grid, random_generator, TileType::HealthPotion, 1, std::numeric_limits<int>::max());
   ASSERT_GE(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Floor), 358);
-  ASSERT_GE(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Potion), 2);
-  assert_min_distance(very_large_grid, TileType::Potion);
+  ASSERT_GE(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::HealthPotion), 2);
+  assert_min_distance(very_large_grid, TileType::HealthPotion);
   assert_no_adjacent_walls(very_large_grid);
+}
+
+/// Test that placing a tile in the grid with a given probability works correctly.
+TEST_F(MapFixture, TestMapPlaceTilesWithProbability) {
+  place_tiles(grid, random_generator, TileType::Obstacle, 0.1, 1);
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 25);
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Obstacle), 0);
+  place_tiles(grid, random_generator, TileType::Obstacle, 0.9, 1);
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 24);
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Obstacle), 1);
 }
 
 /// Test that placing a tile in the grid with no available positions throws an exception.
 TEST_F(MapFixture, TestMapPlaceTilesNoAvailablePositions) {
-  place_tiles(grid, random_generator, TileType::Floor);
+  place_tiles(grid, random_generator, TileType::Floor, 1, 1);
   ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 25);
 }
 
@@ -369,12 +379,13 @@ TEST_F(MapFixture, TestMapRunCellularAutomataEmptyGrid) {
 
 /// Test that creating a map with a valid level and seed works correctly.
 TEST_F(MapFixture, TestMapCreateMapValidLevelSeed) {
-  const auto [create_map_valid_grid, create_map_valid_constants] = create_map(0, 5);
+  const auto [create_map_valid_grid, create_map_valid_constants] = create_map(0, 10);
   ASSERT_EQ(create_map_valid_constants.level, 0);
   ASSERT_EQ(create_map_valid_constants.width, 30);
   ASSERT_EQ(create_map_valid_constants.height, 20);
   ASSERT_EQ(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Player), 1);
-  ASSERT_EQ(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Potion), 2);
+  ASSERT_GE(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::HealthPotion), 1);
+  ASSERT_GE(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Chest), 1);
 }
 
 /// Test that creating a map without a seed works correctly.

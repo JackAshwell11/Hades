@@ -74,7 +74,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) 
   auto inventory_update{false};
   auto inventory_update_callback{[&](const GameObjectID /*game_object_id*/) { inventory_update = true; }};
   registry.add_callback(EventType::InventoryUpdate, inventory_update_callback);
-  const auto item_id{registry.create_game_object(GameObjectType::Potion, cpvzero, {})};
+  const auto item_id{registry.create_game_object(GameObjectType::HealthPotion, cpvzero, {})};
   const std::vector result{1, 4};
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, 1));
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, item_id));
@@ -123,7 +123,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemUseItemStatusEffectInvalid) {
 
 /// Test that an item is not used if it doesn't match any of the strategies.
 TEST_F(InventorySystemFixture, TestInventorySystemUseItemNoEffect) {
-  const auto item_id{registry.create_game_object(GameObjectType::Potion, cpvzero, {})};
+  const auto item_id{registry.create_game_object(GameObjectType::HealthPotion, cpvzero, {})};
   ASSERT_FALSE(get_inventory_system()->use_item(0, item_id));
 }
 

@@ -15,7 +15,8 @@ enum class TileType : std::uint8_t {
   Wall,
   Obstacle,
   Player,
-  Potion,
+  HealthPotion,
+  Chest,
 };
 
 /// Represents a 2D position.

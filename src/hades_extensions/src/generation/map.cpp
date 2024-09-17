@@ -4,6 +4,7 @@
 // Std headers
 #include <execution>
 #include <queue>
+#include <unordered_map>
 
 // Local headers
 #include "generation/astar.hpp"
@@ -54,9 +55,17 @@ constexpr MapGenerationConstant HEIGHT{.base_value = 20, .increase = 1.2, .max_v
 
 // The number of obstacles to place in the grid.
 constexpr MapGenerationConstant OBSTACLE_COUNT{.base_value = 20, .increase = 1.3, .max_value = 200};
+
+// The total number of enemies that should exist for a given level.
+constexpr MapGenerationConstant ENEMY_LIMIT{.base_value = 5, .increase = 1.2, .max_value = 50};
+
+// The chances of placing an item tile in the grid.
+constexpr std::array<std::pair<TileType, double>, 2> ITEM_CHANCES{
+    {{TileType::HealthPotion, 0.75}, {TileType::Chest, 0.25}}};
 }  // namespace
 
-void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const int count) {
+void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
+                 const int count) {
   // Get all the possible positions for the target tile
   std::vector<Position> valid_positions;
   for (int y{0}; y < grid.height; y++) {
@@ -84,10 +93,13 @@ void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
 
   // Place the target tile in random positions and remove surrounding positions
   std::ranges::shuffle(valid_positions.begin(), valid_positions.end(), random_generator);
+  std::uniform_real_distribution distribution(0.0, 1.0);
   for (int _{0}; _ < count && !valid_positions.empty(); _++) {
     const Position possible_tile{valid_positions.back()};
     valid_positions.pop_back();
-    grid.set_value(possible_tile, target_tile);
+    if (distribution(random_generator) <= probability) {
+      grid.set_value(possible_tile, target_tile);
+    }
 
     // Remove all tiles from valid_positions within MIN_TILE_DISTANCE of the
     // placed tile
@@ -206,8 +218,10 @@ auto create_map(const int level, std::optional<unsigned int> seed) -> std::pair<
   std::mt19937 random_generator{seed.value()};
 
   // Initialise a few variables needed for the map generation
-  const LevelConstants constants{
-      .level = level, .width = WIDTH.generate_value(level), .height = HEIGHT.generate_value(level)};
+  const LevelConstants constants{.level = level,
+                                 .width = WIDTH.generate_value(level),
+                                 .height = HEIGHT.generate_value(level),
+                                 .enemy_limit = ENEMY_LIMIT.generate_value(level)};
   Grid grid{constants.width, constants.height};
 
   // Split the BSP tree to create the containers
@@ -219,7 +233,7 @@ auto create_map(const int level, std::optional<unsigned int> seed) -> std::pair<
   bsp.create_room(grid, random_generator, rooms);
 
   // Place random obstacles in the grid and create the hallways between the rooms
-  place_tiles(grid, random_generator, TileType::Obstacle, OBSTACLE_COUNT.generate_value(level));
+  place_tiles(grid, random_generator, TileType::Obstacle, 1, OBSTACLE_COUNT.generate_value(level));
   create_hallways(grid, create_connections(rooms));
 
   // Run some cellular automata simulations on the grid then place the walls around the floor tiles
@@ -228,8 +242,10 @@ auto create_map(const int level, std::optional<unsigned int> seed) -> std::pair<
   }
 
   // Place the player as well as the item tiles in the grid
-  place_tiles(grid, random_generator, TileType::Player);
-  place_tiles(grid, random_generator, TileType::Potion, std::numeric_limits<int>::max());
+  place_tiles(grid, random_generator, TileType::Player, 1, 1);
+  for (const auto &[tile, probability] : ITEM_CHANCES) {
+    place_tiles(grid, random_generator, tile, probability);
+  }
 
   // Return the grid and the level constants
   return std::make_pair(*grid.grid, constants);

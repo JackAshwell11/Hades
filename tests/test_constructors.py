@@ -32,9 +32,10 @@ def _clear_texture_cache() -> None:
         (GameObjectType.Player, ("Player", "The player character.", False, True)),
         (GameObjectType.Enemy, ("Enemy", "An enemy character.", False, True)),
         (
-            GameObjectType.Potion,
+            GameObjectType.HealthPotion,
             ("Health Potion", "A potion that restores health.", False, False),
         ),
+        (GameObjectType.Chest, ("Chest", "A chest that contains loot.", False, False)),
         (
             GameObjectType.Bullet,
             ("Bullet", "A bullet that damages other game objects.", False, False),

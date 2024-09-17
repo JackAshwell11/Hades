@@ -137,11 +137,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Wall", TileType::Wall)
       .value("Obstacle", TileType::Obstacle)
       .value("Player", TileType::Player)
-      .value("Potion", TileType::Potion);
+      .value("HealthPotion", TileType::HealthPotion)
+      .value("Chest", TileType::Chest);
   pybind11::class_<LevelConstants>(generation, "LevelConstants", "Holds the constants for a specific level.")
       .def_readonly("level", &LevelConstants::level)
       .def_readonly("width", &LevelConstants::width)
-      .def_readonly("height", &LevelConstants::height);
+      .def_readonly("height", &LevelConstants::height)
+      .def_readonly("enemy_limit", &LevelConstants::enemy_limit);
   generation.def("create_map", &create_map, pybind11::arg("level"), pybind11::arg("seed") = pybind11::none(),
                  "Generate the game map for a given game level.\n\n"
                  "Args:\n"
@@ -212,8 +214,9 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Enemy", GameObjectType::Enemy)
       .value("Floor", GameObjectType::Floor)
       .value("Player", GameObjectType::Player)
-      .value("Potion", GameObjectType::Potion)
-      .value("Wall", GameObjectType::Wall);
+      .value("Wall", GameObjectType::Wall)
+      .value("HealthPotion", GameObjectType::HealthPotion)
+      .value("Chest", GameObjectType::Chest);
   pybind11::enum_<StatusEffectType>(ecs, "StatusEffectType", "Stores the different types of status effects available.")
       .value("TEMP", StatusEffectType::TEMP)
       .value("TEMP2", StatusEffectType::TEMP2);

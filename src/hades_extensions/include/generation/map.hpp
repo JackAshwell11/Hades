@@ -38,6 +38,9 @@ struct LevelConstants {
 
   /// The height of the dungeon.
   int height;
+
+  /// The total number of enemies that should exist in the dungeon.
+  int enemy_limit;
 };
 
 template <>
@@ -56,8 +59,10 @@ struct std::hash<Edge> {
 /// @param grid - The 2D grid which represents the dungeon.
 /// @param random_generator - The random generator used to pick the position.
 /// @param target_tile - The tile to place in the 2D grid.
+/// @param probability - The probability of placing the tile.
 /// @param count - The number of tiles to place.
-void place_tiles(const Grid &grid, std::mt19937 &random_generator, TileType target_tile, int count = 1);
+void place_tiles(const Grid &grid, std::mt19937 &random_generator, TileType target_tile, double probability,
+                 int count = std::numeric_limits<int>::max());
 
 /// Create a minimum spanning tree from a given complete graph.
 ///

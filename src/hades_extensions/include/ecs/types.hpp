@@ -14,12 +14,13 @@ using ActionFunction = std::function<double(int)>;
 
 /// Stores the different types of game objects available.
 enum class GameObjectType : std::uint8_t {
-  Bullet = 1U << 0U,  // 1
-  Enemy = 1U << 1U,   // 2
-  Floor = 1U << 2U,   // 4
-  Player = 1U << 3U,  // 8
-  Potion = 1U << 4U,  // 16
-  Wall = 1U << 5U,    // 32
+  Bullet = 1U << 0U,        // 1
+  Enemy = 1U << 1U,         // 2
+  Floor = 1U << 2U,         // 4
+  Player = 1U << 3U,        // 8
+  Wall = 1U << 4U,          // 16
+  HealthPotion = 1U << 5U,  // 32
+  Chest = 1U << 6U          // 64
 };
 
 /// Stores the different types of events that can occur.
