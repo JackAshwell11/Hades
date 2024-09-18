@@ -10,6 +10,7 @@ from typing import Final, cast
 
 # Pip
 import arcade
+import arcade.gui
 from arcade.camera.camera_2d import Camera2D
 
 # Custom
@@ -19,7 +20,7 @@ from hades.constructors import (
 )
 from hades.indicator_bar import INDICATOR_BAR_COMPONENTS, IndicatorBar
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
-from hades.views.player import PlayerView
+from hades.views.player import UI_BACKGROUND_COLOUR, PlayerView
 from hades_extensions.ecs import (
     SPRITE_SIZE,
     EventType,
@@ -62,6 +63,8 @@ class Game(arcade.View):
         nearest_item: The nearest item to the player.
         player_status_text: The text object used for displaying the player's health and
             armour.
+        ui_manager: The manager for the GUI elements.
+        info_box: The label for the information box.
         level_constants: Holds the constants for the current level.
         registry: The registry that manages the game objects, components, and systems.
         possible_enemy_spawns: A list of possible positions that enemies can spawn in.
@@ -161,6 +164,13 @@ class Game(arcade.View):
             10,
             font_size=20,
         )
+        self.ui_manager: arcade.gui.UIManager = arcade.gui.UIManager()
+        self.info_box: arcade.gui.UILabel = arcade.gui.UILabel(
+            "",
+            x=self.window.width // 2,
+            y=30,
+            text_color=arcade.color.BLACK,
+        ).with_background(color=UI_BACKGROUND_COLOUR)
 
         # Custom types
         generation_result, self.level_constants = create_map(level)
@@ -262,6 +272,7 @@ class Game(arcade.View):
         self.gui_camera.use()
         self.gui_sprites.draw()
         self.player_status_text.draw()
+        self.ui_manager.draw()
 
     def on_update(self: Game, delta_time: float) -> None:
         """Process movement and game logic.
@@ -275,6 +286,17 @@ class Game(arcade.View):
 
         # Find the nearest item to the player
         self.nearest_item = self.player.collides_with_list(self.item_sprites)
+        if self.nearest_item and not self.info_box.visible:
+            self.info_box.text = (
+                f"{self.nearest_item[0].game_object_type.name}: Collect (C), Use (E)"
+            )
+            self.info_box.fit_content()
+            self.info_box.rect = self.info_box.rect.align_x(self.window.width // 2)
+            self.info_box.visible = True
+            self.ui_manager.add(self.info_box)
+        elif not self.nearest_item and self.info_box.visible:
+            self.info_box.visible = False
+            self.ui_manager.remove(self.info_box)
 
         # Update the indicator bars
         for indicator_bar in self.indicator_bars:

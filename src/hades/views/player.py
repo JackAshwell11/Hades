@@ -54,6 +54,7 @@ if TYPE_CHECKING:
     from hades_extensions.ecs import ActionFunction, Registry
 
 __all__ = (
+    "UI_BACKGROUND_COLOUR",
     "InventoryItemButton",
     "ItemButton",
     "ItemButtonKwargs",
@@ -71,7 +72,7 @@ logger = logging.getLogger(__name__)
 # Constants
 WIDGET_SPACING: Final[int] = 5
 ITEM_BUTTON_HEIGHT: Final[int] = 90
-PLAYER_VIEW_BACKGROUND_COLOUR: Final[Color] = Color(198, 198, 198)
+UI_BACKGROUND_COLOUR: Final[Color] = Color(198, 198, 198)
 BUTTON_BACKGROUND_COLOUR: Final[Color] = Color(68, 68, 68)
 TAB_SEPARATOR_COLOUR: Final[Color] = Color(128, 128, 128)
 
@@ -134,7 +135,7 @@ class ItemButton(UIBoxLayout, ABC):
 
         # The default layout which just has a black border
         self.default_layout: UISpace = UISpace(
-            color=PLAYER_VIEW_BACKGROUND_COLOUR,
+            color=UI_BACKGROUND_COLOUR,
             width=SPRITE_SIZE,
             height=ITEM_BUTTON_HEIGHT,
         ).with_border(color=(0, 0, 0))
@@ -673,12 +674,12 @@ class PlayerView(View):
         root_layout = UIBoxLayout(vertical=True, space_between=WIDGET_SPACING)
         root_layout.add(
             self.stats_layout.with_background(
-                color=PLAYER_VIEW_BACKGROUND_COLOUR,
+                color=UI_BACKGROUND_COLOUR,
             ).with_padding(all=WIDGET_SPACING),
         )
         root_layout.add(
             self.player_attributes_layout.with_background(
-                color=PLAYER_VIEW_BACKGROUND_COLOUR,
+                color=UI_BACKGROUND_COLOUR,
             ).with_padding(all=WIDGET_SPACING),
         )
         back_button = UIFlatButton(text="Back")
