@@ -90,9 +90,6 @@ class ProgressBarGroup(UIBoxLayout):
 
     __slots__ = ("sprite",)
 
-    # Override the type hint for the parent so we can access its attributes
-    children: list[ProgressBar]
-
     def __init__(self: ProgressBarGroup, sprite: HadesSprite) -> None:
         """Initialise the object.
 
@@ -121,7 +118,7 @@ class ProgressBarGroup(UIBoxLayout):
 
     def on_update(self: ProgressBarGroup, _: float) -> None:
         """Process progress bar update logic."""
-        for progress_bar in self.children:
+        for progress_bar in self.children:  # type: ProgressBar
             value = (
                 progress_bar.target_component.get_value()
                 / progress_bar.target_component.get_max_value()

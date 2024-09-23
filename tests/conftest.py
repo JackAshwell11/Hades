@@ -36,7 +36,7 @@ def registry() -> Registry:
 
 
 @pytest.fixture(scope="session")
-def session_window() -> Generator[Window, None, None]:
+def session_window() -> Generator[Window]:
     """Create a window for the session.
 
     Yields:
