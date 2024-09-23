@@ -37,6 +37,7 @@ docs/_build/
 # Editor files
 .idea/
 .vscode/
+.fleet/
 
 # Environments
 .env
