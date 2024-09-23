@@ -28,6 +28,13 @@ struct KinematicComponent final : ComponentBase {
   explicit KinematicComponent(const std::vector<cpVect> &&vertices)
       : body(cpBodyNew(1, std::numeric_limits<cpFloat>::infinity())),
         shape(cpPolyShapeNew(*body, static_cast<int>(vertices.size()), vertices.data(), cpTransformIdentity, 0.0)) {}
+
+  /// Set the vertices.
+  ///
+  /// @param vertices - The new vertices for the shape.
+  void set_vertices(const std::vector<cpVect> &&vertices) {
+    shape = cpPolyShapeNew(*body, static_cast<int>(vertices.size()), vertices.data(), cpTransformIdentity, 0.0);
+  }
 };
 
 /// Provides facilities to manipulate a game object's physics.

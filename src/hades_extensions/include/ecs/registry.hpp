@@ -14,9 +14,6 @@
 #include "ecs/steering.hpp"
 #include "ecs/types.hpp"
 
-// The percentage of velocity a game object will retain after a second.
-constexpr double DAMPING = 0.0001;
-
 /// Calculate the screen position based on a grid position.
 ///
 /// @param position - The position in the grid.

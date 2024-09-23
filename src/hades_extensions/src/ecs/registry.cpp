@@ -6,6 +6,9 @@
 #include "ecs/systems/physics.hpp"
 
 namespace {
+// The percentage of velocity a game object will retain after a second.
+constexpr double DAMPING = 0.0001;
+
 /// Convert a Chipmunk2D data pointer to a game object ID.
 ///
 /// @param data - The Chipmunk2D data pointer to convert.

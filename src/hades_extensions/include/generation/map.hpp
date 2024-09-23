@@ -2,7 +2,6 @@
 #pragma once
 
 // Std headers
-#include <optional>
 #include <random>
 #include <unordered_set>
 
@@ -26,21 +25,6 @@ struct Edge {
 
   /// The destination rect.
   Rect destination;
-};
-
-/// Holds the constants for a specific level.
-struct LevelConstants {
-  /// The level of this game.
-  int level;
-
-  /// The width of the dungeon.
-  int width;
-
-  /// The height of the dungeon.
-  int height;
-
-  /// The total number of enemies that should exist in the dungeon.
-  int enemy_limit;
 };
 
 template <>
@@ -82,12 +66,3 @@ void create_hallways(const Grid &grid, const std::unordered_set<Edge> &connectio
 ///
 /// @param grid - The 2D grid which represents the dungeon.
 void run_cellular_automata(Grid &grid);
-
-/// Generate the game map for a given game level.
-///
-/// @param level - The game level to generate a map for.
-/// @param seed - The seed to initialise the random generator. If this is empty then one will be generated.
-/// @throws std::invalid_argument - If the level is less than 0.
-/// @return A tuple containing the generated map and the level constants.
-auto create_map(int level, std::optional<unsigned int> seed = std::nullopt)
-    -> std::pair<std::vector<TileType>, LevelConstants>;

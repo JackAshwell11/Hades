@@ -31,7 +31,6 @@ from hades_extensions.ecs import (
     SPRITE_SIZE,
     EventType,
     GameObjectType,
-    Registry,
     Vec2d,
 )
 from hades_extensions.ecs.components import (
@@ -42,7 +41,8 @@ from hades_extensions.ecs.components import (
     SteeringMovement,
 )
 from hades_extensions.ecs.systems import AttackSystem, InventorySystem
-from hades_extensions.generation import TileType, create_map
+from hades_extensions.game_engine import GameEngine
+from hades_extensions.generation import TileType
 
 __all__ = ("Game",)
 
@@ -129,12 +129,12 @@ class Game(UIView):
         self.nearest_item: list[HadesSprite] = []
 
         # Custom types
-        generation_result, self.level_constants = create_map(level)
-        self.registry: Registry = Registry()
         self.game_ui: GameUI = GameUI(self.ui)
+        self.game_engine = GameEngine(level, None)
+        generation_result, self.level_constants = self.game_engine.generate_map(level)
 
         # Initialise all the systems then the game objects
-        self.registry.add_systems()
+        # self.registry.add_systems()
         for count, tile in enumerate(generation_result):
             # Skip all empty tiles
             if tile in {TileType.Empty, TileType.Obstacle}:

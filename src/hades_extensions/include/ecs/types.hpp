@@ -119,11 +119,20 @@ class ChipmunkHandle {
     return *this;
   }
 
+  /// The move assignment operator.
+  auto operator=(T *obj) -> ChipmunkHandle & {
+    if (obj_ && obj_.get() != obj) {
+      Destructor(obj_.get());
+    }
+    obj_ = std::unique_ptr<T, void (*)(T *)>(obj, Destructor);
+    return *this;
+  }
+
   /// The dereference operator.
   auto operator*() const -> T * { return obj_.get(); }
 
   /// The arrow operator.
-  auto operator->() const -> T * { return obj_.get(); }
+  auto operator-> () const -> T * { return obj_.get(); }
 
  private:
   /// The Chipmunk2D object.

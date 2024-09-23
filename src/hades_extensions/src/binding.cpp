@@ -19,7 +19,7 @@
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/sprite.hpp"
 #include "ecs/systems/upgrade.hpp"
-#include "generation/map.hpp"
+#include "game_engine.hpp"
 
 /// The hash function for a pybind11 handle.
 struct py_handle_hash {
@@ -129,8 +129,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   module.doc() = "Manages the various C++ extension modules for the game.";
 
   // Create the generation module
-  pybind11::module generation{
-      module.def_submodule("generation", "Generates the dungeon and places game objects in it.")};
+  const pybind11::module generation{module.def_submodule("generation", "Generates the dungeon and places game objects in it.")};
   pybind11::enum_<TileType>(generation, "TileType")
       .value("Empty", TileType::Empty)
       .value("Floor", TileType::Floor)
@@ -144,13 +143,20 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def_readonly("width", &LevelConstants::width)
       .def_readonly("height", &LevelConstants::height)
       .def_readonly("enemy_limit", &LevelConstants::enemy_limit);
-  generation.def("create_map", &create_map, pybind11::arg("level"), pybind11::arg("seed") = pybind11::none(),
-                 "Generate the game map for a given game level.\n\n"
-                 "Args:\n"
-                 "    level: The game level to generate a map for.\n"
-                 "    seed: The seed to initialise the random generator.\n\n"
-                 "Returns:\n"
-                 "    A tuple containing the generated map and the level constants.");
+
+  // Create the game engine module
+  pybind11::module game_engine{module.def_submodule("game_engine", "Manages the game objects and systems.")};
+  pybind11::class_<GameEngine>(game_engine, "GameEngine", "Manages the game objects and systems.")
+      .def(pybind11::init<int, std::optional<unsigned int>>(), pybind11::arg("level"), pybind11::arg("seed"),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    level: The level to generate the game engine for.\n"
+           "    seed: The seed to use for the random number generator.")
+      .def("generate_map", &GameEngine::generate_map, pybind11::arg("level"),
+           "Generate a new level.\n\n"
+           "Args:\n"
+           "    level: The level to generate the game engine for.")
+      .def("get_registry", &GameEngine::get_registry, "Get the registry.");
 
   // Create the ecs, ecs/components, and ecs/systems modules
   pybind11::module ecs = module.def_submodule(

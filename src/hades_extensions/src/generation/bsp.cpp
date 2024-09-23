@@ -62,18 +62,20 @@ void Leaf::split(std::mt19937 &random_generator) {  // NOLINT(misc-no-recursion)
   right->split(random_generator);
 }
 
-void Leaf::create_room(const Grid &grid, std::mt19937 &random_generator,  // NOLINT(misc-no-recursion)
-                       std::vector<Rect> &rooms) {
+auto Leaf::create_room(const Grid &grid, std::mt19937 &random_generator) -> std::vector<Rect> {  // NOLINT(misc-no-recursion)
   // Check if this leaf is already split or not, if so, create rooms for the left and right leafs
+  std::vector<Rect> rooms;
   if (left && right) {
-    left->create_room(grid, random_generator, rooms);
-    right->create_room(grid, random_generator, rooms);
-    return;
+    const auto left_rooms{left->create_room(grid, random_generator)};
+    const auto right_rooms{right->create_room(grid, random_generator)};
+    rooms.insert(rooms.end(), left_rooms.begin(), left_rooms.end());
+    rooms.insert(rooms.end(), right_rooms.begin(), right_rooms.end());
+    return rooms;
   }
 
   // Check if this leaf is too small to create a room. If the leaf has been split correctly, this should never happen
   if (container->width < MIN_ROOM_SIZE || container->height < MIN_ROOM_SIZE) {
-    return;
+    return rooms;
   }
 
   // Determine the width and height of the room making sure it is at least MIN_ROOM_SIZE wide
@@ -91,12 +93,14 @@ void Leaf::create_room(const Grid &grid, std::mt19937 &random_generator,  // NOL
   if (static_cast<double>(std::min(rect.width, rect.height)) / std::max(rect.width, rect.height) < ROOM_RATIO) {
     // Since MIN_ROOM_SIZE ensures the random generator will always raise an exception if a leaf is too small, a valid
     // room will always be created, so we can just keep trying
-    create_room(grid, random_generator, rooms);
-    return;
+    auto new_rooms{create_room(grid, random_generator)};
+    rooms.insert(rooms.end(), new_rooms.begin(), new_rooms.end());
+    return rooms;
   }
 
   // Place the rect in the 2D grid then save it in the leaf and the rooms vector
   grid.place_rect(rect);
   room = std::make_unique<Rect>(rect);
   rooms.push_back(rect);
+  return rooms;
 }

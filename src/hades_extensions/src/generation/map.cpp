@@ -3,36 +3,10 @@
 
 // Std headers
 #include <execution>
-#include <queue>
-#include <unordered_map>
 
 // Local headers
 #include "generation/astar.hpp"
 #include "generation/bsp.hpp"
-
-/// Stores a map generation constant which can be calculated.
-///
-/// @param base_value - The base value for the exponential calculation.
-/// @param increase - The percentage increase for the constant.
-/// @param max_value - The max value for the exponential calculation.
-struct MapGenerationConstant {
-  /// The base value for the exponential calculation.
-  double base_value;
-
-  /// The percentage increase for the constant.
-  double increase;
-
-  /// The max value for the exponential calculation.
-  double max_value;
-
-  /// Generate a value based on the exponential equation.
-  ///
-  /// @param level - The game level to generate a value for.
-  /// @return The generated value.
-  [[nodiscard]] auto generate_value(const int level) const -> int {
-    return static_cast<int>(std::min(round(base_value * pow(increase, level)), max_value));
-  }
-};
 
 namespace {
 // The width of the floor tiles in the hallway.
@@ -41,27 +15,8 @@ constexpr int HALLWAY_SIZE{3};
 // The minimum distance between tiles of the same type.
 constexpr int MIN_TILE_DISTANCE{5};
 
-// The number of cellular automata runs to perform.
-constexpr int CELLULAR_AUTOMATA_SIMULATIONS{3};
-
 // The number of neighbours a tile must have to remain alive.
 constexpr int MIN_NEIGHBOUR_DISTANCE{4};
-
-// The width of the grid.
-constexpr MapGenerationConstant WIDTH{.base_value = 30, .increase = 1.2, .max_value = 150};
-
-// The height of the grid.
-constexpr MapGenerationConstant HEIGHT{.base_value = 20, .increase = 1.2, .max_value = 100};
-
-// The number of obstacles to place in the grid.
-constexpr MapGenerationConstant OBSTACLE_COUNT{.base_value = 20, .increase = 1.3, .max_value = 200};
-
-// The total number of enemies that should exist for a given level.
-constexpr MapGenerationConstant ENEMY_LIMIT{.base_value = 5, .increase = 1.2, .max_value = 50};
-
-// The chances of placing an item tile in the grid.
-constexpr std::array<std::pair<TileType, double>, 2> ITEM_CHANCES{
-    {{TileType::HealthPotion, 0.75}, {TileType::Chest, 0.25}}};
 }  // namespace
 
 void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
@@ -187,6 +142,7 @@ void run_cellular_automata(Grid &grid) {
   grid.grid = std::move(temp_grid);
 
   // Place walls around the floor tiles
+  // TODO: This can be moved to another function
   for (int y{0}; y < grid.height; y++) {
     for (int x{0}; x < grid.width; x++) {
       // Check if the tile is on the edge of the grid or if it has a floor neighbour (while not being a floor tile)
@@ -201,52 +157,4 @@ void run_cellular_automata(Grid &grid) {
       }
     }
   }
-}
-
-auto create_map(const int level, std::optional<unsigned int> seed) -> std::pair<std::vector<TileType>, LevelConstants> {
-  // Check that the level number is valid
-  if (level < 0) {
-    throw std::length_error("Level must be bigger than or equal to 0.");
-  }
-
-  // Create the random generator generating a seed if one isn't provided
-  if (!seed.has_value()) {
-    std::random_device random_device;
-    std::mt19937_64 seed_generator{random_device()};
-    seed = std::uniform_int_distribution<unsigned int>{}(seed_generator);
-  }
-  std::mt19937 random_generator{seed.value()};
-
-  // Initialise a few variables needed for the map generation
-  const LevelConstants constants{.level = level,
-                                 .width = WIDTH.generate_value(level),
-                                 .height = HEIGHT.generate_value(level),
-                                 .enemy_limit = ENEMY_LIMIT.generate_value(level)};
-  Grid grid{constants.width, constants.height};
-
-  // Split the BSP tree to create the containers
-  Leaf bsp{{{.x = 0, .y = 0}, {.x = constants.width - 1, .y = constants.height - 1}}};
-  bsp.split(random_generator);
-
-  // Create the rooms inside the grid using the BSP
-  std::vector<Rect> rooms;
-  bsp.create_room(grid, random_generator, rooms);
-
-  // Place random obstacles in the grid and create the hallways between the rooms
-  place_tiles(grid, random_generator, TileType::Obstacle, 1, OBSTACLE_COUNT.generate_value(level));
-  create_hallways(grid, create_connections(rooms));
-
-  // Run some cellular automata simulations on the grid then place the walls around the floor tiles
-  for (int _{0}; _ < CELLULAR_AUTOMATA_SIMULATIONS; _++) {
-    run_cellular_automata(grid);
-  }
-
-  // Place the player as well as the item tiles in the grid
-  place_tiles(grid, random_generator, TileType::Player, 1, 1);
-  for (const auto &[tile, probability] : ITEM_CHANCES) {
-    place_tiles(grid, random_generator, tile, probability);
-  }
-
-  // Return the grid and the level constants
-  return std::make_pair(*grid.grid, constants);
 }
