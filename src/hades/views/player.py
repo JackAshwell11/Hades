@@ -36,6 +36,7 @@ from arcade.types import Color
 from PIL.ImageFilter import GaussianBlur
 
 # Custom
+from hades.views import UI_BACKGROUND_COLOUR
 from hades_extensions.ecs import SPRITE_SIZE
 from hades_extensions.ecs.components import (
     Inventory,
@@ -54,7 +55,6 @@ if TYPE_CHECKING:
     from hades_extensions.ecs import ActionFunction, Registry
 
 __all__ = (
-    "UI_BACKGROUND_COLOUR",
     "InventoryItemButton",
     "ItemButton",
     "ItemButtonKwargs",
@@ -72,7 +72,6 @@ logger = logging.getLogger(__name__)
 # Constants
 WIDGET_SPACING: Final[int] = 5
 ITEM_BUTTON_HEIGHT: Final[int] = 90
-UI_BACKGROUND_COLOUR: Final[Color] = Color(198, 198, 198)
 BUTTON_BACKGROUND_COLOUR: Final[Color] = Color(68, 68, 68)
 TAB_SEPARATOR_COLOUR: Final[Color] = Color(128, 128, 128)
 

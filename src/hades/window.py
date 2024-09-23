@@ -15,7 +15,7 @@ from arcade import View, Window
 # Custom
 from hades.views.start_menu import StartMenu
 
-__all__ = ("Window",)
+__all__ = ("HadesWindow",)
 
 # Constants
 GAME_LOGGER: Final[str] = "hades"
