@@ -6,34 +6,39 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import Final, cast
+from typing import Final
 
 # Pip
-import arcade
-import arcade.gui
+from arcade import (
+    MOUSE_BUTTON_LEFT,
+    SpriteList,
+    color,
+    get_sprites_at_point,
+    key,
+    schedule,
+)
 from arcade.camera.camera_2d import Camera2D
+from arcade.gui import UIView
+from pyglet import app
 
 # Custom
-from hades.constructors import (
-    GameObjectConstructor,
-    game_object_constructors,
-)
-from hades.indicator_bar import INDICATOR_BAR_COMPONENTS, IndicatorBar
+from hades.constructors import GameObjectConstructor, game_object_constructors
+from hades.progress_bar import ProgressBarGroup
 from hades.sprite import AnimatedSprite, Bullet, HadesSprite
-from hades.views.player import UI_BACKGROUND_COLOUR, PlayerView
+from hades.views.game_ui import GameUI
+from hades.views.player import PlayerView
 from hades_extensions.ecs import (
     SPRITE_SIZE,
     EventType,
     GameObjectType,
     Registry,
     Vec2d,
-    grid_pos_to_pixel,
 )
 from hades_extensions.ecs.components import (
     KeyboardMovement,
     KinematicComponent,
+    Money,
     PythonSprite,
-    Stat,
     SteeringMovement,
 )
 from hades_extensions.ecs.systems import AttackSystem, InventorySystem
@@ -51,24 +56,17 @@ ENEMY_RETRY_COUNT: Final[int] = 3
 logger = logging.getLogger(__name__)
 
 
-class Game(arcade.View):
+class Game(UIView):
     """Manages the game and its actions.
 
     Attributes:
         game_camera: The camera used for moving the viewport around the screen.
-        gui_camera: The camera used for visualising the GUI elements.
         tile_sprites: The sprite list for the tile game objects.
         entity_sprites: The sprite list for the entity game objects.
         item_sprites: The sprite list for the item game objects.
         nearest_item: The nearest item to the player.
-        player_status_text: The text object used for displaying the player's health and
-            armour.
-        ui_manager: The manager for the GUI elements.
-        info_box: The label for the information box.
         level_constants: Holds the constants for the current level.
         registry: The registry that manages the game objects, components, and systems.
-        possible_enemy_spawns: A list of possible positions that enemies can spawn in.
-        indicator_bars: A list of indicator bars that are currently being displayed.
         player: The player's sprite object.
     """
 
@@ -87,7 +85,6 @@ class Game(arcade.View):
             The created sprite object.
         """
         # Initialise the game object's constructor and a few other variables
-        python_sprite = None
         game_object_id = -1
         sprite_class = (
             AnimatedSprite if len(constructor.texture_paths) > 1 else HadesSprite
@@ -96,40 +93,25 @@ class Game(arcade.View):
         # Create a game object if possible, adding a PythonSprite component if the game
         # object has other components
         if constructor.components:
-            python_sprite = PythonSprite()
             game_object_id = self.registry.create_game_object(
                 constructor.game_object_type,
                 position,
-                [*constructor.components, python_sprite],
+                [*constructor.components],
             )
 
         # Create a sprite and add its ID to the dictionary
         sprite = sprite_class(self.registry, game_object_id, position, constructor)
-        if python_sprite:
-            python_sprite.sprite = sprite
+        if self.registry.has_component(game_object_id, PythonSprite):
+            self.registry.get_component(game_object_id, PythonSprite).sprite = sprite
 
-        # Add all the indicator bars to the game
-        indicator_bar_offset = 0
-        spritelist = cast(
-            arcade.SpriteList[arcade.Sprite],
-            (
-                self.gui_sprites
-                if constructor.game_object_type == GameObjectType.Player
-                else self.indicator_bar_sprites
-            ),
-        )
-        for component in constructor.components:
-            if type(component) in INDICATOR_BAR_COMPONENTS:
-                self.indicator_bars.append(
-                    IndicatorBar(
-                        (sprite, cast(Stat, component)),
-                        spritelist,
-                        indicator_bar_offset,
-                        fixed_position=constructor.game_object_type
-                        == GameObjectType.Player,
-                    ),
-                )
-                indicator_bar_offset += 1
+        # Create progress bars if needed
+        if constructor.game_object_type == GameObjectType.Player:
+            progress_bar_group = ProgressBarGroup(sprite)
+            self.game_ui.player_ui.add(progress_bar_group)
+        elif constructor.game_object_type == GameObjectType.Enemy:
+            progress_bar_group = ProgressBarGroup(sprite)
+            self.ui.add(progress_bar_group)
+            self.game_ui.progress_bar_groups.append(progress_bar_group)
         return sprite
 
     def __init__(self: Game, level: int) -> None:
@@ -141,44 +123,15 @@ class Game(arcade.View):
         super().__init__()
         # Arcade types
         self.game_camera: Camera2D = Camera2D()
-        self.gui_camera: Camera2D = Camera2D()
-        self.tile_sprites: arcade.SpriteList[HadesSprite] = arcade.SpriteList[
-            HadesSprite
-        ]()
-        self.entity_sprites: arcade.SpriteList[HadesSprite] = arcade.SpriteList[
-            HadesSprite
-        ]()
-        self.item_sprites: arcade.SpriteList[HadesSprite] = arcade.SpriteList[
-            HadesSprite
-        ]()
-        self.indicator_bar_sprites: arcade.SpriteList[arcade.SpriteSolidColor] = (
-            arcade.SpriteList[arcade.SpriteSolidColor]()
-        )
-        self.gui_sprites: arcade.SpriteList[arcade.Sprite] = arcade.SpriteList[
-            arcade.Sprite
-        ]()
+        self.tile_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
+        self.entity_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
+        self.item_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.nearest_item: list[HadesSprite] = []
-        self.player_status_text: arcade.Text = arcade.Text(
-            "Money: 0",
-            10,
-            10,
-            font_size=20,
-        )
-        self.ui_manager: arcade.gui.UIManager = arcade.gui.UIManager()
-        self.info_box: arcade.gui.UILabel = arcade.gui.UILabel(
-            "",
-            x=self.window.width // 2,
-            y=30,
-            text_color=arcade.color.BLACK,
-        ).with_background(color=UI_BACKGROUND_COLOUR)
 
         # Custom types
         generation_result, self.level_constants = create_map(level)
         self.registry: Registry = Registry()
-
-        # Custom collections
-        self.possible_enemy_spawns: list[Vec2d] = []
-        self.indicator_bars: list[IndicatorBar] = []
+        self.game_ui: GameUI = GameUI(self.ui)
 
         # Initialise all the systems then the game objects
         self.registry.add_systems()
@@ -230,7 +183,6 @@ class Game(arcade.View):
                         position,
                     ),
                 )
-                self.possible_enemy_spawns.append(position)
 
         # Create the required views for the game
         inventory_view = PlayerView(
@@ -251,28 +203,18 @@ class Game(arcade.View):
         # Generate half of the total enemies allowed to then schedule their generation
         for _ in range(self.level_constants.enemy_limit // 2):
             self.generate_enemy()
-        arcade.schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
+        schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
 
-    def on_draw(self: Game) -> None:
-        """Render the screen."""
-        # Clear the screen and set the background colour
-        self.clear()
-        self.window.background_color = arcade.color.BLACK
-
-        # Activate our game camera
+    def on_draw_before_ui(self: Game) -> None:
+        """Render the screen before the UI elements are drawn."""
+        # Set the background colour and activate our game camera
+        self.window.background_color = color.BLACK
         self.game_camera.use()
 
         # Draw the various spritelists
         self.tile_sprites.draw(pixelated=True)
         self.item_sprites.draw(pixelated=True)
         self.entity_sprites.draw(pixelated=True)
-        self.indicator_bar_sprites.draw()
-
-        # Draw the gui on the screen
-        self.gui_camera.use()
-        self.gui_sprites.draw()
-        self.player_status_text.draw()
-        self.ui_manager.draw()
 
     def on_update(self: Game, delta_time: float) -> None:
         """Process movement and game logic.
@@ -284,23 +226,13 @@ class Game(arcade.View):
         self.registry.update(delta_time)
         self.entity_sprites.update()
 
-        # Find the nearest item to the player
+        # Update the game UI elements
         self.nearest_item = self.player.collides_with_list(self.item_sprites)
-        if self.nearest_item and not self.info_box.visible:
-            self.info_box.text = (
-                f"{self.nearest_item[0].game_object_type.name}: Collect (C), Use (E)"
-            )
-            self.info_box.fit_content()
-            self.info_box.rect = self.info_box.rect.align_x(self.window.width // 2)
-            self.info_box.visible = True
-            self.ui_manager.add(self.info_box)
-        elif not self.nearest_item and self.info_box.visible:
-            self.info_box.visible = False
-            self.ui_manager.remove(self.info_box)
-
-        # Update the indicator bars
-        for indicator_bar in self.indicator_bars:
-            indicator_bar.update()
+        self.game_ui.update_progress_bars(self.game_camera)
+        self.game_ui.update_info_box(self.nearest_item)
+        self.game_ui.update_money(
+            self.registry.get_component(self.player.game_object_id, Money).money,
+        )
 
         # Position the camera on the player
         self.game_camera.position = self.player.position
@@ -323,13 +255,13 @@ class Game(arcade.View):
             modifiers,
         )
         match symbol:
-            case arcade.key.W:
+            case key.W:
                 player_movement.moving_north = True
-            case arcade.key.S:
+            case key.S:
                 player_movement.moving_south = True
-            case arcade.key.A:
+            case key.A:
                 player_movement.moving_west = True
-            case arcade.key.D:
+            case key.D:
                 player_movement.moving_east = True
 
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
@@ -350,15 +282,15 @@ class Game(arcade.View):
             modifiers,
         )
         match symbol:
-            case arcade.key.W:
+            case key.W:
                 player_movement.moving_north = False
-            case arcade.key.S:
+            case key.S:
                 player_movement.moving_south = False
-            case arcade.key.A:
+            case key.A:
                 player_movement.moving_west = False
-            case arcade.key.D:
+            case key.D:
                 player_movement.moving_east = False
-            case arcade.key.C:
+            case key.C:
                 if (
                     self.nearest_item
                     and self.nearest_item[0].game_object_type in COLLECTIBLE_TYPES
@@ -368,7 +300,7 @@ class Game(arcade.View):
                     )
                 ):
                     self.nearest_item[0].remove_from_sprite_lists()
-            case arcade.key.E:
+            case key.E:
                 if self.nearest_item and self.registry.get_system(
                     InventorySystem,
                 ).use_item(
@@ -376,15 +308,15 @@ class Game(arcade.View):
                     self.nearest_item[0].game_object_id,
                 ):
                     self.nearest_item[0].remove_from_sprite_lists()
-            case arcade.key.Z:
+            case key.Z:
                 self.registry.get_system(AttackSystem).previous_attack(
                     self.player.game_object_id,
                 )
-            case arcade.key.X:
+            case key.X:
                 self.registry.get_system(AttackSystem).next_attack(
                     self.player.game_object_id,
                 )
-            case arcade.key.I:
+            case key.I:
                 self.window.show_view(self.window.views["InventoryView"])
 
     def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
@@ -404,7 +336,7 @@ class Game(arcade.View):
             y,
             modifiers,
         )
-        if button is arcade.MOUSE_BUTTON_LEFT:
+        if button is MOUSE_BUTTON_LEFT:
             self.registry.get_system(AttackSystem).do_attack(
                 self.player.game_object_id,
                 [
@@ -453,37 +385,31 @@ class Game(arcade.View):
         Args:
             game_object_id: The ID of the game object to remove.
         """
-        # Delete all the indicator bars for the game object
-        indicator_bars_to_remove = []
-        for indicator_bar in self.indicator_bars:
-            if indicator_bar.target_sprite.game_object_id == game_object_id:
-                indicator_bar.actual_bar.remove_from_sprite_lists()
-                indicator_bar.background_box.remove_from_sprite_lists()
-                indicator_bars_to_remove.append(indicator_bar)
-        for indicator_bar in indicator_bars_to_remove:
-            self.indicator_bars.remove(indicator_bar)
-
         # Remove the sprite from the game
+        self.game_ui.on_game_object_death(game_object_id)
         game_object = self.registry.get_component(game_object_id, PythonSprite).sprite
         game_object.remove_from_sprite_lists()
         if game_object.game_object_type == GameObjectType.Player:
-            arcade.exit()
+            app.exit()
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""
+        # Check if we have the maximum number of enemies
         if (len(self.entity_sprites) - 1) >= self.level_constants.enemy_limit:
             return
 
         # Enemy limit is not reached so try to initialise a new enemy game object
         # ENEMY_RETRY_COUNT times
-        random.shuffle(self.possible_enemy_spawns)
-        for position in self.possible_enemy_spawns[:ENEMY_RETRY_COUNT]:
+        tile_positions = [
+            floor.position
+            for floor in self.tile_sprites
+            if floor.game_object_type == GameObjectType.Floor
+        ]
+        random.shuffle(tile_positions)
+        for position in tile_positions[:ENEMY_RETRY_COUNT]:
             if (
-                arcade.get_sprites_at_point(
-                    grid_pos_to_pixel(position),
-                    self.entity_sprites,
-                )
-                or math.dist(self.player.position, tuple(position))
+                get_sprites_at_point(position, self.entity_sprites)
+                or math.dist(self.player.position, position)
                 < ENEMY_GENERATION_DISTANCE * SPRITE_SIZE
             ):
                 continue
@@ -491,7 +417,7 @@ class Game(arcade.View):
             # Set the required data for the steering to correctly function
             new_sprite = self._create_sprite(
                 game_object_constructors[GameObjectType.Enemy](),
-                position,
+                Vec2d(position[0] // SPRITE_SIZE, position[1] // SPRITE_SIZE),
             )
             self.entity_sprites.append(new_sprite)
             steering_movement = self.registry.get_component(

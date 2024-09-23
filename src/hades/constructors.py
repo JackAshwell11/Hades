@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 # Pip
-from arcade import load_texture
+from arcade import color, load_texture
 
 # Custom
 from hades_extensions.ecs import (
@@ -39,6 +39,7 @@ from hades_extensions.ecs.components import (
     MeleeAttackSize,
     Money,
     MovementForce,
+    PythonSprite,
     StatusEffect,
     SteeringMovement,
     Upgrades,
@@ -49,6 +50,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from arcade import Texture
+    from arcade.types.color import RGBA255
 
     from hades_extensions.ecs import ComponentBase
 
@@ -69,6 +71,7 @@ class GameObjectConstructor:
         game_object_type: The game object's type.
         texture_paths: The paths to the game object's textures.
         components: The game object's components.
+        progress_bars: The game object's progress bars.
         kinematic: Whether the game object can move or not.
         static: Whether the game object blocks movement or not.
     """
@@ -78,6 +81,9 @@ class GameObjectConstructor:
     game_object_type: GameObjectType
     texture_paths: list[str]
     components: list[ComponentBase] = field(default_factory=list)
+    progress_bars: dict[type[ComponentBase], tuple[int, float, RGBA255]] = field(
+        default_factory=dict,
+    )
     kinematic: bool = False
     static: bool = False
 
@@ -166,11 +172,16 @@ def player_factory() -> GameObjectConstructor:
             MeleeAttackSize(math.pi / 4, 3),
             Money(),
             MovementForce(5000, 5),
+            PythonSprite(),
             StatusEffect(),
             Upgrades(
                 {Health: (lambda level: 2**level + 10, lambda level: level * 10 + 5)},
             ),
         ],
+        {
+            Armour: (0, 2, color.SILVER),
+            Health: (1, 2, color.RED),
+        },
         kinematic=True,
     )
 
@@ -194,6 +205,7 @@ def enemy_factory() -> GameObjectConstructor:
             Damage(10, 3),
             Health(100, 5),
             MovementForce(1000, 5),
+            PythonSprite(),
             SteeringMovement(
                 {
                     SteeringMovementState.Default: [
@@ -208,6 +220,10 @@ def enemy_factory() -> GameObjectConstructor:
             ),
             ViewDistance(3 * SPRITE_SIZE, 3),
         ],
+        {
+            Armour: (0, 1, color.SILVER),
+            Health: (1, 1, color.RED),
+        },
         kinematic=True,
     )
 
@@ -231,6 +247,7 @@ def health_potion_factory() -> GameObjectConstructor:
                 {},
             ),
             EffectLevel(1, 3),
+            PythonSprite(),
         ],
     )
 
@@ -250,6 +267,7 @@ def chest_factory() -> GameObjectConstructor:
             Inventory(),
             InventorySize(30, 3),
             Money(),
+            PythonSprite(),
         ],
     )
 
