@@ -35,10 +35,12 @@ from hades_extensions.ecs import (
     Vec2d,
 )
 from hades_extensions.ecs.components import (
+    Attack,
     KeyboardMovement,
     KinematicComponent,
     Money,
     PythonSprite,
+    StatusEffect,
     SteeringMovement,
 )
 from hades_extensions.ecs.systems import AttackSystem, InventorySystem
@@ -106,11 +108,9 @@ class Game(UIView):
 
         # Create progress bars if needed
         if constructor.game_object_type == GameObjectType.Player:
-            progress_bar_group = ProgressBarGroup(sprite)
-            self.game_ui.player_ui.add(progress_bar_group)
+            self.game_ui.player_ui.add(ProgressBarGroup(sprite))
         elif constructor.game_object_type == GameObjectType.Enemy:
-            progress_bar_group = ProgressBarGroup(sprite)
-            self.ui.add(progress_bar_group)
+            progress_bar_group = self.ui.add(ProgressBarGroup(sprite))
             self.game_ui.progress_bar_groups.append(progress_bar_group)
         return sprite
 
@@ -233,6 +233,12 @@ class Game(UIView):
         self.game_ui.update_money(
             self.registry.get_component(self.player.game_object_id, Money).money,
         )
+        self.game_ui.update_status_effects(
+            self.registry.get_component(
+                self.player.game_object_id,
+                StatusEffect,
+            ).applied_effects,
+        )
 
         # Position the camera on the player
         self.game_camera.position = self.player.position
@@ -312,9 +318,21 @@ class Game(UIView):
                 self.registry.get_system(AttackSystem).previous_attack(
                     self.player.game_object_id,
                 )
+                self.game_ui.set_attack_algorithm(
+                    self.registry.get_component(
+                        self.player.game_object_id,
+                        Attack,
+                    ).current_attack,
+                )
             case key.X:
                 self.registry.get_system(AttackSystem).next_attack(
                     self.player.game_object_id,
+                )
+                self.game_ui.set_attack_algorithm(
+                    self.registry.get_component(
+                        self.player.game_object_id,
+                        Attack,
+                    ).current_attack,
                 )
             case key.I:
                 self.window.show_view(self.window.views["InventoryView"])

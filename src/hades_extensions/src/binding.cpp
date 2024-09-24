@@ -469,7 +469,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def(pybind11::init<std::vector<AttackAlgorithm>>(), pybind11::arg("attack_algorithms"),
            "Initialise the object.\n\n"
            "Args:\n"
-           "    attack_algorithms: The attack algorithms the game object can use.");
+           "    attack_algorithms: The attack algorithms the game object can use.")
+      .def_property_readonly("current_attack",
+                             [](const Attack &attack) { return attack.attack_algorithms[attack.attack_state]; });
+  pybind11::class_<Effect>(components, "Effect", "Represents an effect that can be applied to a game object.")
+      .def_readonly("duration", &Effect::duration)
+      .def_property_readonly("target_component",
+                             [](const Effect &effect) { return get_python_type(effect.target_component); });
   pybind11::class_<EffectApplier, ComponentBase, std::shared_ptr<EffectApplier>>(
       components, "EffectApplier", "Allows a game object to provide instant or status effects.")
       .def(pybind11::init([](const pybind11::dict &instant_effects, const pybind11::dict &status_effects) {
@@ -485,13 +491,11 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
 
              // Iterate through the status effects and add them to the mapping
              for (const auto &[type, data] : status_effects) {
-               auto data_dict = data.cast<pybind11::dict>();
-               const auto status_effect_type = data_dict["status_effect_type"].cast<StatusEffectType>();
-               const auto increase = make_action_function(data_dict["increase"].cast<pybind11::function>());
-               const auto duration = make_action_function(data_dict["duration"].cast<pybind11::function>());
-               const auto interval = make_action_function(data_dict["interval"].cast<pybind11::function>());
-               target_status_effects.emplace(get_type_index(type),
-                                             StatusEffectData{status_effect_type, increase, duration, interval});
+               auto status_effect_data{data.cast<StatusEffectData>()};
+               target_status_effects.emplace(
+                   get_type_index(type),
+                   StatusEffectData{status_effect_data.status_effect_type, status_effect_data.increase,
+                                    status_effect_data.duration, status_effect_data.interval});
              }
 
              // Initialise the object
@@ -566,7 +570,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def_readwrite("sprite", &PythonSprite::sprite);
   pybind11::class_<StatusEffect, ComponentBase, std::shared_ptr<StatusEffect>>(
       components, "StatusEffect", "Allows a game object to have status effects applied to it.")
-      .def(pybind11::init<>(), "Initialise the object.");
+      .def(pybind11::init<>(), "Initialise the object.")
+      .def_readonly("applied_effects", &StatusEffect::applied_effects);
   pybind11::class_<SteeringMovement, ComponentBase, std::shared_ptr<SteeringMovement>>(
       components, "SteeringMovement", "Allows a game object's movement to be controlled by steering behaviours.")
       .def(pybind11::init<std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>>(),

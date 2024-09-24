@@ -506,6 +506,9 @@ class StatsLayout(UIBoxLayout):
         self.add(UIWidget().with_background(texture=get_default_texture()))
         self.add(create_divider_line())
         self.add(UILabel(text="Test description", text_color=(0, 0, 0), multiline=True))
+        self.with_background(color=UI_BACKGROUND_COLOUR).with_padding(
+            all=WIDGET_SPACING,
+        )
 
     def set_info(
         self: StatsLayout,
@@ -592,6 +595,9 @@ class PlayerAttributesLayout(UIBoxLayout):
         self.add(tab_menu)
         self.add(create_divider_line())
         self.add(self.inventory_layout)
+        self.with_background(color=UI_BACKGROUND_COLOUR).with_padding(
+            all=WIDGET_SPACING,
+        )
 
     def on_action(self: PlayerAttributesLayout, event: UIOnActionEvent) -> None:
         """Handle the button row actions.
@@ -671,16 +677,8 @@ class PlayerView(View):
 
         # Make the player view UI
         root_layout = UIBoxLayout(vertical=True, space_between=WIDGET_SPACING)
-        root_layout.add(
-            self.stats_layout.with_background(
-                color=UI_BACKGROUND_COLOUR,
-            ).with_padding(all=WIDGET_SPACING),
-        )
-        root_layout.add(
-            self.player_attributes_layout.with_background(
-                color=UI_BACKGROUND_COLOUR,
-            ).with_padding(all=WIDGET_SPACING),
-        )
+        root_layout.add(self.stats_layout)
+        root_layout.add(self.player_attributes_layout)
         back_button = UIFlatButton(text="Back")
         back_button.on_click = (  # type: ignore[method-assign]
             lambda _: self.window.show_view(  # type: ignore[assignment]

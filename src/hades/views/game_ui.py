@@ -7,32 +7,38 @@ from typing import TYPE_CHECKING
 
 # Pip
 from arcade import color
-from arcade.gui import UIAnchorLayout, UIGridLayout, UILabel, UIManager
+from arcade.gui import UIAnchorLayout, UIBoxLayout, UIGridLayout, UILabel, UIManager
 
 # Custom
 from hades.progress_bar import PROGRESS_BAR_DISTANCE, ProgressBarGroup
 from hades.views import UI_BACKGROUND_COLOUR
-from hades_extensions.ecs import GameObjectType
+from hades_extensions.ecs import AttackAlgorithm, GameObjectType
 
 if TYPE_CHECKING:
     from arcade.camera import Camera2D
 
     from hades.sprite import HadesSprite
+    from hades_extensions.ecs import StatusEffectType
+    from hades_extensions.ecs.components import Effect
 
 
 class GameUI:
     """Manages and updates the game UI.
 
     Attributes:
+        attack_algorithm_label: The label for the player's attack algorithm.
         info_box: The information box for the nearest item.
         progress_bar_groups: The progress bar groups to display on the screen.
         player_ui: The UI for the player.
+        status_effect_layout: The layout for the status effects.
     """
 
     __slots__ = (
+        "attack_algorithm_label",
         "info_box",
         "player_ui",
         "progress_bar_groups",
+        "status_effect_layout",
         "ui",
     )
 
@@ -54,7 +60,7 @@ class GameUI:
         # Initialise the player UI
         anchor = UIAnchorLayout()
         self.player_ui: UIGridLayout = anchor.add(
-            UIGridLayout(column_count=2, row_count=2),
+            UIGridLayout(row_count=4),
             anchor_x="left",
             anchor_y="top",
         )
@@ -70,6 +76,17 @@ class GameUI:
             anchor_y="top",
         )
         self.player_ui.add(money_anchor, row_num=1)
+
+        # Add the status effect indicator to the player UI
+        self.status_effect_layout: UIBoxLayout = UIBoxLayout(vertical=False)
+        self.player_ui.add(self.status_effect_layout, row_num=2)
+
+        # Add the player attack algorithm indicator to the player UI
+        self.attack_algorithm_label: UILabel = UILabel(
+            f"Attack Algorithm: {AttackAlgorithm.Ranged.name}",
+            text_color=color.BLACK,
+        ).with_background(color=UI_BACKGROUND_COLOUR)
+        self.player_ui.add(self.attack_algorithm_label, row_num=3)
 
     def update_progress_bars(self: GameUI, camera: Camera2D) -> None:
         """Update the progress bars on the screen.
@@ -112,6 +129,43 @@ class GameUI:
             money: The amount of money the player has.
         """
         self.player_ui.children[0].children[0].text = f"Money: {money}"
+
+    def update_status_effects(
+        self: GameUI,
+        status_effects: dict[StatusEffectType, Effect],
+    ) -> None:
+        """Update the status effects indicator on the screen.
+
+        Args:
+            status_effects: The status effects to display.
+        """
+        if len(status_effects) != len(self.status_effect_layout.children):
+            self.status_effect_layout.clear()
+
+            # For each status effect, create a vertical box layout with two labels
+            for status_effect_type, effect in status_effects.items():
+                layout = UIBoxLayout()
+                layout.add(
+                    UILabel(
+                        status_effect_type.name,
+                        text_color=color.BLACK,
+                    ).with_background(color=UI_BACKGROUND_COLOUR),
+                )
+                layout.add(
+                    UILabel(
+                        f"{effect.duration:.1f}",
+                        text_color=color.BLACK,
+                    ).with_background(color=UI_BACKGROUND_COLOUR),
+                )
+                self.status_effect_layout.add(layout)
+
+    def set_attack_algorithm(self: GameUI, attack_algorithm: AttackAlgorithm) -> None:
+        """Set the player's attack algorithm.
+
+        Args:
+            attack_algorithm: The player's attack algorithm.
+        """
+        self.attack_algorithm_label.text = f"Attack Algorithm: {attack_algorithm.name}"
 
     def on_game_object_death(self: GameUI, game_object_id: int) -> None:
         """Remove a game object from the game.
