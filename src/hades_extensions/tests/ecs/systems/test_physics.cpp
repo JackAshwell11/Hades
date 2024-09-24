@@ -133,7 +133,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceInvalidGameObjectId) {
 
 /// Test that adding a bullet with a zero position and velocity works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletZero) {
-  const auto bullet_id{get_physics_system()->add_bullet({cpvzero, cpvzero}, 50)};
+  const auto bullet_id{get_physics_system()->add_bullet({cpvzero, cpvzero}, 50, GameObjectType::Player)};
   ASSERT_EQ(bullet_id, 1);
   const auto *body{*registry.get_component<KinematicComponent>(bullet_id)->body};
   ASSERT_EQ(body->p, cpvzero);
@@ -142,7 +142,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletZero) {
 
 /// Test that adding a bullet with a non-zero position works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroPosition) {
-  const auto bullet_id{get_physics_system()->add_bullet({{.x = 100, .y = 0}, cpvzero}, 100)};
+  const auto bullet_id{get_physics_system()->add_bullet({{.x = 100, .y = 0}, cpvzero}, 100, GameObjectType::Player)};
   ASSERT_EQ(bullet_id, 1);
   const auto *body{*registry.get_component<KinematicComponent>(bullet_id)->body};
   ASSERT_EQ(body->p, cpv(100, 0));
@@ -151,7 +151,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroPosition) {
 
 /// Test that adding a bullet with a non-zero velocity works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroVelocity) {
-  const auto bullet_id{get_physics_system()->add_bullet({cpvzero, {.x = 200, .y = 150}}, 10)};
+  const auto bullet_id{get_physics_system()->add_bullet({cpvzero, {.x = 200, .y = 150}}, 10, GameObjectType::Player)};
   ASSERT_EQ(bullet_id, 1);
   const auto *body{*registry.get_component<KinematicComponent>(bullet_id)->body};
   ASSERT_EQ(body->p, cpvzero);

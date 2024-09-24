@@ -338,7 +338,7 @@ class Game(UIView):
         )
         if button is MOUSE_BUTTON_LEFT:
             self.registry.get_system(AttackSystem).do_attack(
-                self.player.game_object_id,
+                (self.player.game_object_id, self.player.game_object_type),
                 [
                     game_object.game_object_id
                     for game_object in self.entity_sprites

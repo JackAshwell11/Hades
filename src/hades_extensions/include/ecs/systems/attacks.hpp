@@ -79,10 +79,10 @@ struct AttackSystem final : SystemBase {
 
   /// Perform the currently selected attack algorithm.
   ///
-  /// @param game_object_id - The ID of the game object to perform the attack for.
+  /// @param game_object - The game object to perform the attack.
   /// @param targets - The targets to attack.
   /// @throws RegistryError - If the game object does not exist or does not have an attack or kinematic component.
-  void do_attack(GameObjectID game_object_id, const std::vector<int> &targets) const;
+  void do_attack(std::pair<GameObjectID, GameObjectType> game_object, const std::vector<int> &targets) const;
 
   /// Select the previous attack algorithm.
   ///

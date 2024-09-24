@@ -11,7 +11,7 @@
 
 namespace {
 // The velocity of the bullet.
-constexpr int BULLET_VELOCITY{500};
+constexpr int BULLET_VELOCITY{1000};
 
 /// Performs an area of effect attack around the game object.
 ///
@@ -82,14 +82,16 @@ void AttackSystem::update(const double delta_time) const {
     if (get_registry()->has_component(game_object_id, typeid(SteeringMovement))) {
       if (const auto steering_movement{get_registry()->get_component<SteeringMovement>(game_object_id)};
           steering_movement->movement_state == SteeringMovementState::Target) {
-        do_attack(game_object_id, {steering_movement->target_id});
+        do_attack({game_object_id, GameObjectType::Enemy}, {steering_movement->target_id});
       }
     }
   }
 }
 
-void AttackSystem::do_attack(const GameObjectID game_object_id, const std::vector<int> &targets) const {
+void AttackSystem::do_attack(const std::pair<GameObjectID, GameObjectType> game_object,
+                             const std::vector<int> &targets) const {
   // Check if the game object can attack or not
+  const auto [game_object_id, game_object_type]{game_object};
   const auto attack{get_registry()->get_component<Attack>(game_object_id)};
   if (attack->time_since_last_attack < get_registry()->get_component<AttackCooldown>(game_object_id)->get_value()) {
     return;
@@ -112,10 +114,10 @@ void AttackSystem::do_attack(const GameObjectID game_object_id, const std::vecto
                    targets);
       break;
     case AttackAlgorithm::Ranged:
-      get_registry()->notify_callbacks(EventType::BulletCreation,
-                                       get_registry()->get_system<PhysicsSystem>()->add_bullet(
-                                           ranged_attack(kinematic_component->body->p, kinematic_component->rotation),
-                                           get_registry()->get_component<Damage>(game_object_id)->get_value()));
+      const auto bullet_id{get_registry()->get_system<PhysicsSystem>()->add_bullet(
+          ranged_attack(kinematic_component->body->p, kinematic_component->rotation),
+          get_registry()->get_component<Damage>(game_object_id)->get_value(), game_object_type)};
+      get_registry()->notify_callbacks(EventType::BulletCreation, bullet_id);
   }
 }
 

@@ -151,7 +151,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
   create_attack_component({AttackAlgorithm::AreaOfEffect});
   get_attack_system()->update(5);
-  get_attack_system()->do_attack(8, targets);
+  get_attack_system()->do_attack({8, GameObjectType::Player}, targets);
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 60);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
@@ -166,7 +166,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
   create_attack_component({AttackAlgorithm::Melee});
   get_attack_system()->update(5);
-  get_attack_system()->do_attack(8, targets);
+  get_attack_system()->do_attack({8, GameObjectType::Player}, targets);
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
@@ -185,13 +185,13 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
     ASSERT_NEAR(bullet->p.x, 32, 1e-13);
     ASSERT_NEAR(bullet->p.y, -32, 1e-13);
     ASSERT_NEAR(bullet->v.x, 0, 1e-13);
-    ASSERT_NEAR(bullet->v.y, -500, 1e-13);
+    ASSERT_NEAR(bullet->v.y, -1000, 1e-13);
     bullet_created = true;
   }};
   registry.add_callback(EventType::BulletCreation, bullet_creation_callback);
   create_attack_component({AttackAlgorithm::Ranged});
   get_attack_system()->update(5);
-  get_attack_system()->do_attack(8, targets);
+  get_attack_system()->do_attack({8, GameObjectType::Player}, targets);
   ASSERT_TRUE(bullet_created);
 }
 
@@ -199,7 +199,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackEmptyAttacks) {
   create_attack_component({});
   get_attack_system()->update(5);
-  get_attack_system()->do_attack(8, targets);
+  get_attack_system()->do_attack({8, GameObjectType::Player}, targets);
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 80);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
@@ -213,13 +213,13 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackEmptyAttacks) {
 /// Test that performing an attack before the cooldown is up doesn't work.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackCooldown) {
   create_attack_component({AttackAlgorithm::Ranged});
-  get_attack_system()->do_attack(8, targets);
+  get_attack_system()->do_attack({8, GameObjectType::Player}, targets);
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackInvalidGameObjectId) {
   create_attack_component({AttackAlgorithm::Ranged});
-  ASSERT_THROW_MESSAGE((get_attack_system()->do_attack(-1, targets)), RegistryError,
+  ASSERT_THROW_MESSAGE((get_attack_system()->do_attack({-1, GameObjectType::Player}, targets)), RegistryError,
                        "The component `Attack` for the game object ID `-1` is not registered with the registry.")
 }
 

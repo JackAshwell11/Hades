@@ -608,10 +608,10 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       systems, "ArmourRegenSystem", "Provides facilities to manipulate armour regen components.");
   pybind11::class_<AttackSystem, SystemBase, std::shared_ptr<AttackSystem>>(
       systems, "AttackSystem", "Provides facilities to manipulate attack components.")
-      .def("do_attack", &AttackSystem::do_attack, pybind11::arg("game_object_id"), pybind11::arg("targets"),
+      .def("do_attack", &AttackSystem::do_attack, pybind11::arg("game_object"), pybind11::arg("targets"),
            "Perform the currently selected attack algorithm.\n\n"
            "Args:\n"
-           "    game_object_id: The ID of the game object to perform the attack for.\n"
+           "    game_object: The game object to perform the attack.\n"
            "    targets: The targets to attack.\n\n"
            "Raises:\n"
            "    RegistryError: If the game object does not exist or does not have an attack or kinematic component.")

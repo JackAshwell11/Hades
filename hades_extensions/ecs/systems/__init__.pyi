@@ -1,12 +1,12 @@
 # Custom
-from hades_extensions.ecs import ComponentBase, SystemBase
+from hades_extensions.ecs import ComponentBase, GameObjectType, SystemBase
 
 class ArmourRegenSystem(SystemBase): ...
 
 class AttackSystem(SystemBase):
     def do_attack(
         self: AttackSystem,
-        game_object_id: int,
+        game_object: tuple[int, GameObjectType],
         targets: list[int],
     ) -> None: ...
     def previous_attack(self: AttackSystem, game_object_id: int) -> None: ...

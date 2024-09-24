@@ -247,15 +247,16 @@ TEST_F(RegistryFixture, TestRegistryGetSystemNotRegistered){
     ASSERT_THROW_MESSAGE(registry.get_system<TestSystem>(), RegistryError,
                          "The system `TestSystem` is not registered with the registry.")}
 
-/// Test a collision between a player and a bullet.
-TEST_F(RegistryFixture, TestRegistryPlayerBulletCollision) {
+/// Test a collision between a player and an enemy bullet.
+TEST_F(RegistryFixture, TestRegistryPlayerEnemyBulletCollision) {
   // Add the required systems and the player and bullet to the registry
   registry.add_system<PhysicsSystem>();
   registry.add_system<DamageSystem>();
   const auto player_id{registry.create_game_object(GameObjectType::Player, cpvzero,
                                                    {std::make_shared<Armour>(0, 0), std::make_shared<Health>(200, 0),
                                                     std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
-  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 20)};
+  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 20,
+                                                                        GameObjectType::Enemy)};
 
   // Test that the collision is handled correctly
   ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 200);
@@ -270,30 +271,66 @@ TEST_F(RegistryFixture, TestRegistryPlayerBulletCollision) {
       "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.")
 }
 
-/// Test a collision between an enemy and a bullet.
-TEST_F(RegistryFixture, TestRegistryEnemyBulletCollision) {
+/// Test a collision between a player and a player bullet.
+TEST_F(RegistryFixture, TestRegistryPlayerPlayerBulletCollision) {
+  // Add the required systems and the player and bullet to the registry
+  registry.add_system<PhysicsSystem>();
+  registry.add_system<DamageSystem>();
+  const auto player_id{registry.create_game_object(GameObjectType::Player, cpvzero,
+                                                   {std::make_shared<Armour>(0, 0), std::make_shared<Health>(200, 0),
+                                                    std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
+  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 20,
+                                                                        GameObjectType::Player)};
+
+  // Test that the collision is handled correctly
+  for (int i = 0; i < 10; ++i) {
+    ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 200);
+    ASSERT_EQ(registry.get_component<KinematicComponent>(bullet_id)->body->p, cpv(-32 + (i * 16), 0));
+    registry.get_system<PhysicsSystem>()->update(1);
+  }
+}
+
+/// Test a collision between an enemy and a player bullet.
+TEST_F(RegistryFixture, TestRegistryEnemyPlayerBulletCollision) {
   // Add the required systems and the enemy and bullet to the registry
   registry.add_system<PhysicsSystem>();
   registry.add_system<DamageSystem>();
   const auto enemy_id{registry.create_game_object(GameObjectType::Enemy, cpvzero,
-                                                  {std::make_shared<Armour>(100, 0), std::make_shared<Health>(100, 0),
+                                                  {std::make_shared<Armour>(0, 0), std::make_shared<Health>(100, 0),
                                                    std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
-  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 50)};
+  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 50,
+                                                                        GameObjectType::Player)};
 
   // Test that the collision is handled correctly
   ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
-  ASSERT_EQ(registry.get_component<Armour>(enemy_id)->get_value(), 100);
   ASSERT_EQ(registry.get_component<KinematicComponent>(bullet_id)->body->p, cpv(-32, 0));
   registry.get_system<PhysicsSystem>()->update(1);
   ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
-  ASSERT_EQ(registry.get_component<Armour>(enemy_id)->get_value(), 100);
   ASSERT_EQ(registry.get_component<KinematicComponent>(bullet_id)->body->p, cpv(-16, 0));
   registry.get_system<PhysicsSystem>()->update(1);
-  ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
-  ASSERT_EQ(registry.get_component<Armour>(enemy_id)->get_value(), 50);
+  ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 50);
   ASSERT_THROW_MESSAGE(
       registry.get_component<KinematicComponent>(bullet_id), RegistryError,
       "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.")
+}
+
+/// Test a collision between an enemy and an enemy bullet.
+TEST_F(RegistryFixture, TestRegistryEnemyEnemyBulletCollision) {
+  // Add the required systems and the enemy and bullet to the registry
+  registry.add_system<PhysicsSystem>();
+  registry.add_system<DamageSystem>();
+  const auto enemy_id{registry.create_game_object(GameObjectType::Enemy, cpvzero,
+                                                  {std::make_shared<Armour>(0, 0), std::make_shared<Health>(100, 0),
+                                                   std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
+  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 50,
+                                                                        GameObjectType::Enemy)};
+
+  // Test that the collision is handled correctly
+  for (int i = 0; i < 10; ++i) {
+    ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
+    ASSERT_EQ(registry.get_component<KinematicComponent>(bullet_id)->body->p, cpv(-32 + (i * 16), 0));
+    registry.get_system<PhysicsSystem>()->update(1);
+  }
 }
 
 /// Test a collision between a wall and a bullet.
@@ -303,7 +340,8 @@ TEST_F(RegistryFixture, TestRegistryWallBulletCollision) {
   registry.add_system<DamageSystem>();
   const auto wall_id{
       registry.create_game_object(GameObjectType::Wall, cpvzero, {std::make_shared<KinematicComponent>(true)})};
-  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 30)};
+  const auto bullet_id{registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 30,
+                                                                        GameObjectType::Player)};
 
   // Test that the collision is handled correctly
   ASSERT_EQ(registry.get_component<KinematicComponent>(wall_id)->body->p, cpv(32, 32));

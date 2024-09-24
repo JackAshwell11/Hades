@@ -53,6 +53,8 @@ struct PhysicsSystem final : SystemBase {
   ///
   /// @param bullet - The bullet's position and velocity.
   /// @param damage - The damage the bullet inflicts.
+  /// @param source - The game object type that fired the bullet.
   /// @return The game object ID for the bullet.
-  [[nodiscard]] auto add_bullet(const std::pair<cpVect, cpVect> &bullet, double damage) const -> GameObjectID;
+  [[nodiscard]] auto add_bullet(const std::pair<cpVect, cpVect> &bullet, double damage, GameObjectType source) const
+      -> GameObjectID;
 };
