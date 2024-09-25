@@ -43,7 +43,7 @@ from hades_extensions.ecs.components import (
     StatusEffect,
     SteeringMovement,
 )
-from hades_extensions.ecs.systems import AttackSystem, InventorySystem
+from hades_extensions.ecs.systems import AttackSystem, InventorySystem, PhysicsSystem
 from hades_extensions.generation import TileType, create_map
 
 __all__ = ("Game",)
@@ -126,7 +126,7 @@ class Game(UIView):
         self.tile_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.entity_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.item_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
-        self.nearest_item: list[HadesSprite] = []
+        self.nearest_item: int = -1
 
         # Custom types
         generation_result, self.level_constants = create_map(level)
@@ -227,9 +227,11 @@ class Game(UIView):
         self.entity_sprites.update()
 
         # Update the game UI elements
-        self.nearest_item = self.player.collides_with_list(self.item_sprites)
+        self.nearest_item = self.registry.get_system(PhysicsSystem).get_nearest_item(
+            self.player.game_object_id,
+        )
         self.game_ui.update_progress_bars(self.game_camera)
-        self.game_ui.update_info_box(self.nearest_item)
+        self.game_ui.update_info_box(self.registry, self.nearest_item)
         self.game_ui.update_money(
             self.registry.get_component(self.player.game_object_id, Money).money,
         )
@@ -356,7 +358,7 @@ class Game(UIView):
         )
         if button is MOUSE_BUTTON_LEFT:
             self.registry.get_system(AttackSystem).do_attack(
-                (self.player.game_object_id, self.player.game_object_type),
+                self.player.game_object_id,
                 [
                     game_object.game_object_id
                     for game_object in self.entity_sprites

@@ -13,12 +13,12 @@ from arcade.gui import UIAnchorLayout, UIBoxLayout, UIGridLayout, UILabel, UIMan
 from hades.progress_bar import PROGRESS_BAR_DISTANCE, ProgressBarGroup
 from hades.views import UI_BACKGROUND_COLOUR
 from hades_extensions.ecs import AttackAlgorithm, GameObjectType
+from hades_extensions.ecs.components import PythonSprite
 
 if TYPE_CHECKING:
     from arcade.camera import Camera2D
 
-    from hades.sprite import HadesSprite
-    from hades_extensions.ecs import StatusEffectType
+    from hades_extensions.ecs import Registry, StatusEffectType
     from hades_extensions.ecs.components import Effect
 
 
@@ -104,21 +104,22 @@ class GameUI:
                     ui_x,
                 ).align_bottom(ui_y + PROGRESS_BAR_DISTANCE)
 
-    def update_info_box(self: GameUI, nearest_item: list[HadesSprite]) -> None:
+    def update_info_box(self: GameUI, registry: Registry, nearest_item: int) -> None:
         """Update the info box on the screen.
 
         Args:
+            registry: The registry that manages the game objects, components, and
+            systems.
             nearest_item: The nearest item to the player.
         """
-        if nearest_item and not self.info_box.visible:
-            self.info_box.text = (
-                f"{nearest_item[0].game_object_type.name}: Collect (C), Use (E)"
-            )
+        if nearest_item != -1 and not self.info_box.visible:
+            sprite = registry.get_component(nearest_item, PythonSprite).sprite
+            self.info_box.text = f"{sprite.game_object_type.name}: Collect (C), Use (E)"
             self.info_box.fit_content()
             self.info_box.rect = self.info_box.rect.align_x(self.ui.window.width // 2)
             self.info_box.visible = True
             self.ui.add(self.info_box)
-        elif not nearest_item and self.info_box.visible:
+        elif nearest_item == -1 and self.info_box.visible:
             self.info_box.visible = False
             self.ui.remove(self.info_box)
 

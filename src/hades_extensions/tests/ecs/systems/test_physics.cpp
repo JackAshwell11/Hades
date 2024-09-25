@@ -20,6 +20,15 @@ class PhysicsSystemFixture : public testing::Test {
     registry.add_system<PhysicsSystem>();
   }
 
+  /// Create an item at the specified position.
+  ///
+  /// @param position The position to create the item.
+  void create_item(const cpVect &position) {
+    const auto item_id{
+        registry.create_game_object(GameObjectType::HealthPotion, cpvzero, {std::make_shared<KinematicComponent>()})};
+    registry.get_component<KinematicComponent>(item_id)->body->p = position;
+  }
+
   /// Get the physics system from the registry.
   ///
   /// @return The physics system.
@@ -156,4 +165,35 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroVelocity) {
   const auto *body{*registry.get_component<KinematicComponent>(bullet_id)->body};
   ASSERT_EQ(body->p, cpvzero);
   ASSERT_EQ(body->v, cpv(200, 150));
+}
+
+/// Test that getting the nearest item doesn't work if the game object is far away.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemFarAway) {
+  create_item({100, 100});
+  ASSERT_EQ(get_physics_system()->get_nearest_item(0), -1);
+}
+
+/// Test that getting the nearest item doesn't work if the game object is next to the item.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemNextTo) {
+  create_item({65, 32});
+  ASSERT_EQ(get_physics_system()->get_nearest_item(0), -1);
+}
+
+/// Test that getting the nearest item works if the game object is touching the item.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemTouching) {
+  create_item({64, 32});
+  ASSERT_EQ(get_physics_system()->get_nearest_item(0), 1);
+}
+
+/// Test that getting the nearest item works if the game object is on top of the item.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemOnTopOf) {
+  create_item({32, 32});
+  ASSERT_EQ(get_physics_system()->get_nearest_item(0), 1);
+}
+
+/// Test that getting the nearest item works if the game object is touching the item and there are multiple items.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemMultipleItems) {
+  create_item({48, 32});
+  create_item({32, 32});
+  ASSERT_EQ(get_physics_system()->get_nearest_item(0), 2);
 }

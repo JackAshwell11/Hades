@@ -1,12 +1,12 @@
 # Custom
-from hades_extensions.ecs import ComponentBase, GameObjectType, SystemBase
+from hades_extensions.ecs import ComponentBase, SystemBase
 
 class ArmourRegenSystem(SystemBase): ...
 
 class AttackSystem(SystemBase):
     def do_attack(
         self: AttackSystem,
-        game_object: tuple[int, GameObjectType],
+        game_object_id: int,
         targets: list[int],
     ) -> None: ...
     def previous_attack(self: AttackSystem, game_object_id: int) -> None: ...
@@ -42,7 +42,10 @@ class InventorySystem(SystemBase):
     def use_item(self: InventorySystem, target_id: int, item_id: int) -> bool: ...
 
 class KeyboardMovementSystem(SystemBase): ...
-class PhysicsSystem(SystemBase): ...
+
+class PhysicsSystem(SystemBase):
+    def get_nearest_item(self: PhysicsSystem, game_object_id: int) -> int: ...
+
 class SteeringMovementSystem(SystemBase): ...
 
 class UpgradeSystem(SystemBase):

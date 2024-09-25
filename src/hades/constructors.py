@@ -247,6 +247,7 @@ def health_potion_factory() -> GameObjectConstructor:
                 {},
             ),
             EffectLevel(1, 3),
+            KinematicComponent(is_static=False),
             PythonSprite(),
         ],
     )

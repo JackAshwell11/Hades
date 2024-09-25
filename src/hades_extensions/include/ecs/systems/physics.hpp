@@ -15,12 +15,17 @@ struct KinematicComponent final : ComponentBase {
   /// The rotation angle of the game object in radians.
   double rotation{0};
 
+  /// Whether the game object has been collected by the player or not.
+  bool collected{false};
+
   /// Initialise the object.
   ///
   /// @param is_static - Whether the body is static or not.
   explicit KinematicComponent(const bool is_static = false)
       : body(is_static ? cpBodyNewStatic() : cpBodyNewKinematic()),
-        shape(cpBoxShapeNew(*body, SPRITE_SIZE, SPRITE_SIZE, 0.0)) {}
+        shape(cpBoxShapeNew(*body, SPRITE_SIZE, SPRITE_SIZE, 0.0)) {
+    cpShapeSetSensor(*shape, !is_static);
+  }
 
   /// Initialise the object.
   ///
@@ -57,4 +62,11 @@ struct PhysicsSystem final : SystemBase {
   /// @return The game object ID for the bullet.
   [[nodiscard]] auto add_bullet(const std::pair<cpVect, cpVect> &bullet, double damage, GameObjectType source) const
       -> GameObjectID;
+
+  /// Get the nearest item to a game object.
+  ///
+  /// @param game_object_id - The ID of the game object to get the nearest item to.
+  /// @throws RegistryError if the game object does not exist or does not have a kinematic component.
+  /// @return The ID of the nearest item.
+  [[nodiscard]] auto get_nearest_item(GameObjectID game_object_id) const -> GameObjectID;
 };
