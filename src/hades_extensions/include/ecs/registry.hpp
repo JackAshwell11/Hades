@@ -134,6 +134,13 @@ class Registry {
   [[nodiscard]] auto get_component(GameObjectID game_object_id, const std::type_index &component_type) const
       -> std::shared_ptr<ComponentBase>;
 
+  /// Get the type of a game object.
+  ///
+  /// @param game_object_id - The game object ID.
+  /// @throws RegistryError - If the game object is not registered.
+  /// @return The type of the game object.
+  [[nodiscard]] auto get_game_object_type(GameObjectID game_object_id) const -> GameObjectType;
+
   /// Find all the game objects that have the required components.
   ///
   /// @tparam Ts - The types of components to find.
@@ -232,6 +239,9 @@ class Registry {
 
   /// The game objects and their components registered with the registry.
   std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::shared_ptr<ComponentBase>>> game_objects_;
+
+  /// The game object types registered with the registry.
+  std::unordered_map<GameObjectID, GameObjectType> game_object_types_;
 
   /// The systems registered with the registry.
   std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_;

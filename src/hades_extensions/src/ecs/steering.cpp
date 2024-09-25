@@ -2,7 +2,6 @@
 #include "ecs/steering.hpp"
 
 // Std headers
-#include <cmath>
 #include <numbers>
 #include <stdexcept>
 

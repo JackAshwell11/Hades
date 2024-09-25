@@ -105,6 +105,7 @@ TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
   ASSERT_FALSE(registry.has_component(0, typeid(TestGameObjectComponentOne)));
   ASSERT_FALSE(registry.has_component(0, typeid(TestGameObjectComponentTwo)));
+  ASSERT_EQ(registry.get_game_object_type(0), GameObjectType::Player);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 0);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 0);
 
@@ -123,6 +124,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
                                std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))});
   ASSERT_NE(registry.get_component<TestGameObjectComponentOne>(0), nullptr);
   ASSERT_NE(registry.get_component(0, typeid(TestGameObjectComponentTwo)), nullptr);
+  ASSERT_EQ(registry.get_game_object_type(0), GameObjectType::Player);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 1);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 1);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>()),
@@ -136,6 +138,8 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
   ASSERT_THROW_MESSAGE(
       (registry.get_component(0, typeid(TestGameObjectComponentTwo))), RegistryError,
       "The component `TestGameObjectComponentTwo` for the game object ID `0` is not registered with the registry.")
+  ASSERT_THROW_MESSAGE(registry.get_game_object_type(0), RegistryError,
+                       "The game object `0` is not registered with the registry.")
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 0);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 0);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>()),

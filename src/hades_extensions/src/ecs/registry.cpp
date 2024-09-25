@@ -30,6 +30,7 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
                                   const std::vector<std::shared_ptr<ComponentBase>> &&components) -> GameObjectID {
   // Add the components to the game object
   game_objects_[next_game_object_id_] = {};
+  game_object_types_[next_game_object_id_] = game_object_type;
   for (const auto &component : components) {
     // Check if the component already exists in the registry
     const auto &obj{*component};
@@ -76,6 +77,7 @@ void Registry::delete_game_object(const GameObjectID game_object_id) {
   // Notify the callbacks then delete the game object
   notify_callbacks(EventType::GameObjectDeath, game_object_id);
   game_objects_.erase(game_object_id);
+  game_object_types_.erase(game_object_id);
 }
 
 auto Registry::get_component(const GameObjectID game_object_id, const std::type_index &component_type) const
@@ -87,6 +89,16 @@ auto Registry::get_component(const GameObjectID game_object_id, const std::type_
 
   // Return the specified component
   return game_objects_.at(game_object_id).at(component_type);
+}
+
+auto Registry::get_game_object_type(const GameObjectID game_object_id) const -> GameObjectType {
+  // Check if the game object is registered or not
+  if (!game_object_types_.contains(game_object_id)) {
+    throw RegistryError("game object", game_object_id);
+  }
+
+  // Return the game object type
+  return game_object_types_.at(game_object_id);
 }
 
 void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameObjectType game_object_two) {

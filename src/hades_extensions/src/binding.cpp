@@ -289,6 +289,14 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "   RuntimeError: If the component type is invalid.\n\n"
           "Returns:\n"
           "    The component from the registry.")
+      .def("get_game_object_type", &Registry::get_game_object_type, pybind11::arg("game_object_id"),
+           "Get the type of a game object.\n\n"
+           "Args:\n"
+           "    game_object_id: The game object ID.\n\n"
+           "Raises:\n"
+           "    RegistryError: If the game object is not registered.\n\n"
+           "Returns:\n"
+           "    The type of the game object.")
       .def(
           "add_systems",
           [](Registry &registry) {
@@ -613,10 +621,10 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       systems, "ArmourRegenSystem", "Provides facilities to manipulate armour regen components.");
   pybind11::class_<AttackSystem, SystemBase, std::shared_ptr<AttackSystem>>(
       systems, "AttackSystem", "Provides facilities to manipulate attack components.")
-      .def("do_attack", &AttackSystem::do_attack, pybind11::arg("game_object"), pybind11::arg("targets"),
+      .def("do_attack", &AttackSystem::do_attack, pybind11::arg("game_object_id"), pybind11::arg("targets"),
            "Perform the currently selected attack algorithm.\n\n"
            "Args:\n"
-           "    game_object: The game object to perform the attack.\n"
+           "    game_object_id: The ID of the game object to perform the attack for.\n"
            "    targets: The targets to attack.\n\n"
            "Raises:\n"
            "    RegistryError: If the game object does not exist or does not have an attack or kinematic component.")
@@ -690,8 +698,16 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   const pybind11::class_<KeyboardMovementSystem, SystemBase, std::shared_ptr<KeyboardMovementSystem>>
       keyboard_movement_system(systems, "KeyboardMovementSystem",
                                "Provides facilities to manipulate keyboard movement components.");
-  const pybind11::class_<PhysicsSystem, SystemBase, std::shared_ptr<PhysicsSystem>> physics_system(
-      systems, "PhysicsSystem", "Provides facilities to manipulate a game object's physics.");
+  pybind11::class_<PhysicsSystem, SystemBase, std::shared_ptr<PhysicsSystem>>(
+      systems, "PhysicsSystem", "Provides facilities to manipulate a game object's physics.")
+      .def("get_nearest_item", &PhysicsSystem::get_nearest_item,
+           "Get the nearest item to a game object.\n\n"
+           "Args:\n"
+           "    game_object_id: The ID of the game object to find the nearest item for.\n\n"
+           "Raises:\n"
+           "    RegistryError: If the game object does not exist or does not have a kinematic component.\n\n"
+           "Returns:\n"
+           "    The ID of the nearest item to the game object.");
   const pybind11::class_<SteeringMovementSystem, SystemBase, std::shared_ptr<SteeringMovementSystem>>
       steering_movement_system(systems, "SteeringMovementSystem",
                                "Provides facilities to manipulate steering movement components.");
