@@ -199,6 +199,7 @@ class Game(UIView):
             EventType.InventoryUpdate,
             inventory_view.on_update_inventory,
         )
+        self.registry.add_callback(EventType.SpriteRemoval, self.on_sprite_removal)
 
         # Generate half of the total enemies allowed to then schedule their generation
         for _ in range(self.level_constants.enemy_limit // 2):
@@ -299,23 +300,15 @@ class Game(UIView):
             case key.D:
                 player_movement.moving_east = False
             case key.C:
-                if (
-                    self.nearest_item
-                    and self.nearest_item[0].game_object_type in COLLECTIBLE_TYPES
-                    and self.registry.get_system(InventorySystem).add_item_to_inventory(
-                        self.player.game_object_id,
-                        self.nearest_item[0].game_object_id,
-                    )
-                ):
-                    self.nearest_item[0].remove_from_sprite_lists()
-            case key.E:
-                if self.nearest_item and self.registry.get_system(
-                    InventorySystem,
-                ).use_item(
+                self.registry.get_system(InventorySystem).add_item_to_inventory(
                     self.player.game_object_id,
-                    self.nearest_item[0].game_object_id,
-                ):
-                    self.nearest_item[0].remove_from_sprite_lists()
+                    self.nearest_item,
+                )
+            case key.E:
+                self.registry.get_system(InventorySystem).use_item(
+                    self.player.game_object_id,
+                    self.nearest_item,
+                )
             case key.Z:
                 self.registry.get_system(AttackSystem).previous_attack(
                     self.player.game_object_id,
@@ -411,6 +404,16 @@ class Game(UIView):
         game_object.remove_from_sprite_lists()
         if game_object.game_object_type == GameObjectType.Player:
             app.exit()
+
+    def on_sprite_removal(self: Game, game_object_id: int) -> None:
+        """Remove a sprite from the game.
+
+        Args:
+            game_object_id: The ID of the game object to remove.
+        """
+        sprite = self.registry.get_component(game_object_id, PythonSprite).sprite
+        if sprite.sprite_lists:
+            sprite.remove_from_sprite_lists()
 
     def generate_enemy(self: Game, _: float = 1 / 60) -> None:
         """Generate an enemy outside the player's fov."""

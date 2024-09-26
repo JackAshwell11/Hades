@@ -1016,24 +1016,16 @@ def test_player_view_on_hide_view(
     mock_ui_manager_disable.assert_called_once()
 
 
-@pytest.mark.parametrize(
-    "items",
-    [
-        [],
-        [1],
-        [1, 2],
-        [1, 2, 3],
-    ],
-)
+@pytest.mark.parametrize("inventory_size", [0, 1, 2, 3])
 def test_player_view_on_update_inventory(
     player_view: PlayerView,
-    items: list[int],
+    inventory_size: int,
 ) -> None:
     """Test that the PlayerView correctly updates the inventory.
 
     Args:
         player_view: The PlayerView object for testing.
-        items: The items to add to the inventory.
+        inventory_size: The size of the inventory to test.
     """
 
     def get_inventory_count() -> int:
@@ -1051,19 +1043,17 @@ def test_player_view_on_update_inventory(
 
     # Add an item to the inventory
     sprites = []
-    for item in items:
-        player_view.registry.get_system(InventorySystem).add_item_to_inventory(
-            0,
-            item,
-        )
+    for _ in range(inventory_size):
+        # Create a game object for the item and add it to the inventory
         python_sprite = PythonSprite()
-        player_view.registry.create_game_object(
-            GameObjectType.Player,
+        item = player_view.registry.create_game_object(
+            GameObjectType.HealthPotion,
             Vec2d(0, 0),
             [python_sprite],
         )
         mock_item_sprite = Mock(spec=HadesSprite)
         python_sprite.sprite = mock_item_sprite
+        player_view.registry.get_system(InventorySystem).add_item_to_inventory(0, item)
 
         # Prevent garbage collection of the mock sprite due to the PythonSprite using a
         # pybind11::handle which is not reference counted as this would cause a segfault
@@ -1071,12 +1061,12 @@ def test_player_view_on_update_inventory(
 
     # Make sure the inventory item buttons are updated correctly
     player_view.on_update_inventory(0)
-    assert get_inventory_count() == len(items)
+    assert get_inventory_count() == inventory_size
 
     # Remove an item from the inventory
     player_view.registry.get_system(InventorySystem).remove_item_from_inventory(0, 1)
     player_view.on_update_inventory(0)
-    assert get_inventory_count() == max(len(items) - 1, 0)
+    assert get_inventory_count() == max(inventory_size - 1, 0)
 
 
 def test_player_view_back_button(

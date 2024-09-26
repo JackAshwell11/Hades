@@ -103,6 +103,7 @@ TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
 
   // Test that creating the game object works correctly
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
+  ASSERT_TRUE(registry.has_game_object(0));
   ASSERT_FALSE(registry.has_component(0, typeid(TestGameObjectComponentOne)));
   ASSERT_FALSE(registry.has_component(0, typeid(TestGameObjectComponentTwo)));
   ASSERT_EQ(registry.get_game_object_type(0), GameObjectType::Player);
@@ -122,6 +123,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
   registry.create_game_object(GameObjectType::Player, cpvzero,
                               {std::make_shared<TestGameObjectComponentOne>(),
                                std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))});
+  ASSERT_TRUE(registry.has_game_object(0));
   ASSERT_NE(registry.get_component<TestGameObjectComponentOne>(0), nullptr);
   ASSERT_NE(registry.get_component(0, typeid(TestGameObjectComponentTwo)), nullptr);
   ASSERT_EQ(registry.get_game_object_type(0), GameObjectType::Player);
@@ -132,6 +134,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectComponents) {
 
   // Test that deleting the game object works correctly
   registry.delete_game_object(0);
+  ASSERT_FALSE(registry.has_game_object(0));
   ASSERT_THROW_MESSAGE(
       registry.get_component<TestGameObjectComponentOne>(0), RegistryError,
       "The component `TestGameObjectComponentOne` for the game object ID `0` is not registered with the registry.")
@@ -156,6 +159,7 @@ TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
                                         {std::make_shared<TestGameObjectComponentOne>(),
                                          std::make_shared<TestGameObjectComponentTwo>(std::vector({10}))}),
             1);
+  ASSERT_TRUE(registry.has_game_object(0));
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 2);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 1);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>()),
@@ -163,6 +167,7 @@ TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
 
   // Test that deleting the first game object works correctly
   registry.delete_game_object(0);
+  ASSERT_FALSE(registry.has_game_object(0));
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne>()), 1);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentTwo>()), 1);
   ASSERT_EQ(std::ranges::distance(registry.find_components<TestGameObjectComponentOne, TestGameObjectComponentTwo>()),
@@ -174,6 +179,7 @@ TEST_F(RegistryFixture, TestRegistryGameObjectKinematicComponent) {
   // Test that creating the game object works correctly
   registry.create_game_object(GameObjectType::Player, cpvzero,
                               {std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
+  ASSERT_TRUE(registry.has_game_object(0));
   ASSERT_NE(registry.get_component<KinematicComponent>(0), nullptr);
   ASSERT_NE(registry.get_component(0, typeid(KinematicComponent)), nullptr);
   ASSERT_EQ(std::ranges::distance(registry.find_components<KinematicComponent>()), 1);
@@ -192,9 +198,10 @@ TEST_F(RegistryFixture, TestRegistryGameObjectKinematicComponent) {
   ASSERT_EQ(registry.get_component<KinematicComponent>(0)->shape->filter.mask, CP_ALL_CATEGORIES);
 
   // Test that deleting the game object works correctly
-  auto *body = *registry.get_component<KinematicComponent>(0)->body;
-  auto *shape = *registry.get_component<KinematicComponent>(0)->shape;
+  auto *body{*registry.get_component<KinematicComponent>(0)->body};
+  auto *shape{*registry.get_component<KinematicComponent>(0)->shape};
   registry.delete_game_object(0);
+  ASSERT_FALSE(registry.has_game_object(0));
   ASSERT_EQ(std::ranges::distance(registry.find_components<KinematicComponent>()), 0);
   ASSERT_FALSE(cpSpaceContainsBody(registry.get_space(), body));
   ASSERT_FALSE(cpSpaceContainsShape(registry.get_space(), shape));
