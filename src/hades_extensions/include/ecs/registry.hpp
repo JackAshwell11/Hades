@@ -104,6 +104,14 @@ class Registry {
   /// @throws RegistryError - If the game object is not registered.
   void delete_game_object(GameObjectID game_object_id);
 
+  /// Check if a game object is registered or not.
+  ///
+  /// @param game_object_id - The game object ID.
+  /// @return Whether the game object is registered or not.
+  [[nodiscard]] auto has_game_object(const GameObjectID game_object_id) const -> bool {
+    return game_objects_.contains(game_object_id);
+  }
+
   /// Checks if a game object has a given component or not.
   ///
   /// @param game_object_id - The game object ID.
@@ -111,7 +119,7 @@ class Registry {
   /// @return Whether the game object has the component or not.
   [[nodiscard]] auto has_component(const GameObjectID game_object_id, const std::type_index &component_type) const
       -> bool {
-    return game_objects_.contains(game_object_id) && game_objects_.at(game_object_id).contains(component_type);
+    return has_game_object(game_object_id) && game_objects_.at(game_object_id).contains(component_type);
   }
 
   /// Get a component from the registry.

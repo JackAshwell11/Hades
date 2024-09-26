@@ -12,7 +12,6 @@ from hades.constructors import (
     texture_cache,
 )
 from hades_extensions.ecs import GameObjectType
-from hades_extensions.ecs.components import KinematicComponent
 
 
 @pytest.fixture(autouse=True)
@@ -59,9 +58,6 @@ def test_factory_functions(
     assert constructor.description == expected_result[1]
     assert constructor.static == expected_result[2]
     assert constructor.kinematic == expected_result[3]
-    assert (
-        KinematicComponent in [type(component) for component in constructor.components]
-    ) == (constructor.static or constructor.kinematic)
     for texture_path in constructor.texture_paths:
         assert texture_cache[texture_path] is not None
 

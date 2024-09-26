@@ -238,7 +238,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   pybind11::enum_<EventType>(ecs, "EventType", "Stores the different types of events that can occur.")
       .value("BulletCreation", EventType::BulletCreation)
       .value("GameObjectDeath", EventType::GameObjectDeath)
-      .value("InventoryUpdate", EventType::InventoryUpdate);
+      .value("InventoryUpdate", EventType::InventoryUpdate)
+      .value("SpriteRemoval", EventType::SpriteRemoval);
 
   // Add the registry class
   register_exception<RegistryError>(ecs, "RegistryError");
@@ -259,6 +260,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    game_object_id: The game object ID.\n\n"
            "Raises:\n"
            "    RegistryError: If the game object is not registered.")
+      .def("has_game_object", &Registry::has_game_object, pybind11::arg("game_object_id"),
+           "Checks if a game object is registered or not.\n\n"
+           "Args:\n"
+           "    game_object_id: The game object ID.\n\n"
+           "Returns:\n"
+           "    Whether the game object is registered or not.")
       .def(
           "has_component",
           [](const Registry &registry, const GameObjectID game_object_id, const pybind11::handle &component_type) {
@@ -672,7 +679,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    game_object_id: The ID of the game object to add the item to.\n"
            "    item: The item to add to the inventory.\n\n"
            "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an inventory component.\n"
            "    RuntimeError: If the inventory is full.\n\n"
            "Returns:\n"
            "    Whether the item was added or not.")
@@ -682,8 +688,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Args:\n"
            "    game_object_id: The ID of the game object to remove the item from.\n"
            "    item_id: The ID of the item to remove from the inventory.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an inventory component.\n\n"
            "Returns:\n"
            "    Whether the item was removed or not.")
       .def("use_item", &InventorySystem::use_item, pybind11::arg("target_id"), pybind11::arg("item_id"),
@@ -691,8 +695,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Args:\n"
            "    target_id: The game object ID of the game object to use the item on.\n"
            "    item_id: The game object ID of the item to use.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or if the required systems is not registered.\n\n"
            "Returns:\n"
            "    Whether the item was used or not.");
   const pybind11::class_<KeyboardMovementSystem, SystemBase, std::shared_ptr<KeyboardMovementSystem>>

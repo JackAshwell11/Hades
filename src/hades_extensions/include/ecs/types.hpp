@@ -28,6 +28,7 @@ enum class EventType : std::uint8_t {
   BulletCreation,
   GameObjectDeath,
   InventoryUpdate,
+  SpriteRemoval,
 };
 
 /// The base class for all components.
