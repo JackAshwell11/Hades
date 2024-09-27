@@ -19,6 +19,7 @@
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/sprite.hpp"
 #include "ecs/systems/upgrade.hpp"
+#include "game_engine.hpp"
 #include "generation/map.hpp"
 
 /// The hash function for a pybind11 handle.
@@ -151,6 +152,18 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
                  "    seed: The seed to initialise the random generator.\n\n"
                  "Returns:\n"
                  "    A tuple containing the generated map and the level constants.");
+
+  // Add the game engine class
+  pybind11::class_<GameEngine>(generation, "GameEngine", "Manages the registry and the event handling")
+      .def("get_registry", &GameEngine::get_registry, "Get the registry.")
+      .def("set_player_id", &GameEngine::set_player_id, pybind11::arg("player_id"), "Set the player game object ID.")
+      .def("set_window_size", &GameEngine::set_window_size, pybind11::arg("window_size"), "Set the window size.")
+      .def("set_camera_position", &GameEngine::set_camera_position, pybind11::arg("camera_position"),
+           "Set the camera position.")
+      .def("on_key_press", &GameEngine::on_key_press, pybind11::arg("key"), pybind11::arg("modifiers"), "Handle key press events.")
+      .def("on_key_release", &GameEngine::on_key_release, pybind11::arg("key"), pybind11::arg("modifiers"), "Handle key release events.")
+      .def("on_mouse_motion", &GameEngine::on_mouse_motion, pybind11::arg("x"), pybind11::arg("y"),
+           pybind11::arg("delta_x"), pybind11::arg("delta_y"), "Handle mouse motion events.");
 
   // Create the ecs, ecs/components, and ecs/systems modules
   pybind11::module ecs = module.def_submodule(

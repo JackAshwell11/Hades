@@ -31,12 +31,10 @@ from hades_extensions.ecs import (
     SPRITE_SIZE,
     EventType,
     GameObjectType,
-    Registry,
     Vec2d,
 )
 from hades_extensions.ecs.components import (
     Attack,
-    KeyboardMovement,
     KinematicComponent,
     Money,
     PythonSprite,
@@ -44,7 +42,7 @@ from hades_extensions.ecs.components import (
     SteeringMovement,
 )
 from hades_extensions.ecs.systems import AttackSystem, InventorySystem, PhysicsSystem
-from hades_extensions.generation import TileType, create_map
+from hades_extensions.generation import GameEngine, TileType, create_map
 
 __all__ = ("Game",)
 
@@ -63,6 +61,7 @@ class Game(UIView):
 
     Attributes:
         game_camera: The camera used for moving the viewport around the screen.
+        game_engine: The game engine used for managing the game.
         tile_sprites: The sprite list for the tile game objects.
         entity_sprites: The sprite list for the entity game objects.
         item_sprites: The sprite list for the item game objects.
@@ -95,14 +94,14 @@ class Game(UIView):
         # Create a game object if possible, adding a PythonSprite component if the game
         # object has other components
         if constructor.components:
-            game_object_id = self.registry.create_game_object(
+            game_object_id = self.game_engine.get_registry().create_game_object(
                 constructor.game_object_type,
                 position,
                 [*constructor.components],
             )
 
         # Create a sprite and add its ID to the dictionary
-        sprite = sprite_class(self.registry, game_object_id, position, constructor)
+        sprite = sprite_class(game_object_id, position, constructor)
         if self.registry.has_component(game_object_id, PythonSprite):
             self.registry.get_component(game_object_id, PythonSprite).sprite = sprite
 
@@ -130,11 +129,10 @@ class Game(UIView):
 
         # Custom types
         generation_result, self.level_constants = create_map(level)
-        self.registry: Registry = Registry()
         self.game_ui: GameUI = GameUI(self.ui)
+        self.game_engine: GameEngine = GameEngine()
 
-        # Initialise all the systems then the game objects
-        self.registry.add_systems()
+        # Initialise the game objects
         for count, tile in enumerate(generation_result):
             # Skip all empty tiles
             if tile in {TileType.Empty, TileType.Obstacle}:
@@ -161,6 +159,7 @@ class Game(UIView):
                         position,
                     )
                     self.entity_sprites.append(self.player)
+                    self.game_engine.set_player_id(self.player.game_object_id)
                 elif tile == TileType.HealthPotion:
                     self.item_sprites.append(
                         self._create_sprite(
@@ -185,21 +184,32 @@ class Game(UIView):
                 )
 
         # Create the required views for the game
+        registry = self.game_engine.get_registry()
         inventory_view = PlayerView(
-            self.registry,
+            registry,
             self.player.game_object_id,
             self.item_sprites,
         )
         self.window.views["InventoryView"] = inventory_view
 
         # Add the callbacks to the registry
-        self.registry.add_callback(EventType.BulletCreation, self.on_bullet_creation)
-        self.registry.add_callback(EventType.GameObjectDeath, self.on_game_object_death)
-        self.registry.add_callback(
+        registry.add_callback(
+            EventType.BulletCreation,
+            self.on_bullet_creation,
+        )
+        registry.add_callback(
+            EventType.GameObjectDeath,
+            self.on_game_object_death,
+        )
+        registry.add_callback(
             EventType.InventoryUpdate,
             inventory_view.on_update_inventory,
         )
         self.registry.add_callback(EventType.SpriteRemoval, self.on_sprite_removal)
+
+        # Add the callbacks for the game engine
+        self.window.push_handlers(self.game_engine.on_key_press)
+        self.window.push_handlers(self.game_engine.on_key_release)
 
         # Generate half of the total enemies allowed to then schedule their generation
         for _ in range(self.level_constants.enemy_limit // 2):
@@ -224,20 +234,25 @@ class Game(UIView):
             delta_time: Time interval since the last time the function was called.
         """
         # Update the systems and entities
-        self.registry.update(delta_time)
-        self.entity_sprites.update()
+        registry = self.game_engine.get_registry()
+        registry.update(delta_time)
+        for entity in self.entity_sprites:
+            entity.position = registry.get_component(
+                entity.game_object_id,
+                KinematicComponent,
+            ).get_position()
 
         # Update the game UI elements
         self.nearest_item = self.registry.get_system(PhysicsSystem).get_nearest_item(
             self.player.game_object_id,
         )
         self.game_ui.update_progress_bars(self.game_camera)
-        self.game_ui.update_info_box(self.registry, self.nearest_item)
+        self.game_ui.update_info_box(registry, self.nearest_item)
         self.game_ui.update_money(
-            self.registry.get_component(self.player.game_object_id, Money).money,
+            registry.get_component(self.player.game_object_id, Money).money,
         )
         self.game_ui.update_status_effects(
-            self.registry.get_component(
+            registry.get_component(
                 self.player.game_object_id,
                 StatusEffect,
             ).applied_effects,
@@ -245,33 +260,6 @@ class Game(UIView):
 
         # Position the camera on the player
         self.game_camera.position = self.player.position
-
-    def on_key_press(self: Game, symbol: int, modifiers: int) -> None:
-        """Process key press functionality.
-
-        Args:
-            symbol: The key that was hit.
-            modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
-                during this event.
-        """
-        player_movement = self.registry.get_component(
-            self.player.game_object_id,
-            KeyboardMovement,
-        )
-        logger.debug(
-            "Received key press with key %r and modifiers %r",
-            symbol,
-            modifiers,
-        )
-        match symbol:
-            case key.W:
-                player_movement.moving_north = True
-            case key.S:
-                player_movement.moving_south = True
-            case key.A:
-                player_movement.moving_west = True
-            case key.D:
-                player_movement.moving_east = True
 
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.
@@ -281,36 +269,28 @@ class Game(UIView):
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
-        player_movement = self.registry.get_component(
-            self.player.game_object_id,
-            KeyboardMovement,
-        )
         logger.debug(
             "Received key release with key %r and modifiers %r",
             symbol,
             modifiers,
         )
         match symbol:
-            case key.W:
-                player_movement.moving_north = False
-            case key.S:
-                player_movement.moving_south = False
-            case key.A:
-                player_movement.moving_west = False
-            case key.D:
-                player_movement.moving_east = False
             case key.C:
-                self.registry.get_system(InventorySystem).add_item_to_inventory(
+                self.game_engine.get_registry().get_system(
+                    InventorySystem,
+                ).add_item_to_inventory(
                     self.player.game_object_id,
                     self.nearest_item,
                 )
             case key.E:
-                self.registry.get_system(InventorySystem).use_item(
+                self.game_engine.get_registry().get_system(InventorySystem).use_item(
                     self.player.game_object_id,
                     self.nearest_item,
                 )
             case key.Z:
-                self.registry.get_system(AttackSystem).previous_attack(
+                self.game_engine.get_registry().get_system(
+                    AttackSystem,
+                ).previous_attack(
                     self.player.game_object_id,
                 )
                 self.game_ui.set_attack_algorithm(
@@ -320,7 +300,7 @@ class Game(UIView):
                     ).current_attack,
                 )
             case key.X:
-                self.registry.get_system(AttackSystem).next_attack(
+                self.game_engine.get_registry().get_system(AttackSystem).next_attack(
                     self.player.game_object_id,
                 )
                 self.game_ui.set_attack_algorithm(
@@ -350,7 +330,7 @@ class Game(UIView):
             modifiers,
         )
         if button is MOUSE_BUTTON_LEFT:
-            self.registry.get_system(AttackSystem).do_attack(
+            self.game_engine.get_registry().get_system(AttackSystem).do_attack(
                 self.player.game_object_id,
                 [
                     game_object.game_object_id
@@ -359,37 +339,17 @@ class Game(UIView):
                 ],
             )
 
-    def on_mouse_motion(self: Game, x: int, y: int, _: int, __: int) -> None:
-        """Process mouse motion functionality.
-
-        Args:
-            x: The x position of the mouse.
-            y: The y position of the mouse.
-        """
-        # Get the player's position
-        kinematic_component = self.registry.get_component(
-            self.player.game_object_id,
-            KinematicComponent,
-        )
-        player_x, player_y = kinematic_component.get_position()
-
-        # Transform the mouse from window space to world space using the camera position
-        # then set the player's rotation
-        kinematic_component.set_rotation(
-            math.atan2(
-                y + self.game_camera.position[1] - self.window.height / 2 - player_y,
-                x + self.game_camera.position[0] - self.window.width / 2 - player_x,
-            ),
-        )
-
     def on_bullet_creation(self: Game, game_object_id: int) -> None:
         """Create a bullet game object.
 
         Args:
             game_object_id: The ID of the created bullet game object.
         """
-        bullet = Bullet(self.registry, game_object_id)
-        self.registry.get_component(game_object_id, PythonSprite).sprite = bullet
+        bullet = Bullet(game_object_id)
+        self.game_engine.get_registry().get_component(
+            game_object_id,
+            PythonSprite,
+        ).sprite = bullet
         self.entity_sprites.append(bullet)
 
     def on_game_object_death(self: Game, game_object_id: int) -> None:
@@ -400,9 +360,13 @@ class Game(UIView):
         """
         # Remove the sprite from the game
         self.game_ui.on_game_object_death(game_object_id)
-        game_object = self.registry.get_component(game_object_id, PythonSprite).sprite
-        game_object.remove_from_sprite_lists()
-        if game_object.game_object_type == GameObjectType.Player:
+        sprite = (
+            self.game_engine.get_registry()
+            .get_component(game_object_id, PythonSprite)
+            .sprite
+        )
+        sprite.remove_from_sprite_lists()
+        if sprite.game_object_type == GameObjectType.Player:
             app.exit()
 
     def on_sprite_removal(self: Game, game_object_id: int) -> None:
@@ -443,7 +407,7 @@ class Game(UIView):
                 Vec2d(position[0] // SPRITE_SIZE, position[1] // SPRITE_SIZE),
             )
             self.entity_sprites.append(new_sprite)
-            steering_movement = self.registry.get_component(
+            steering_movement = self.game_engine.get_registry().get_component(
                 new_sprite.game_object_id,
                 SteeringMovement,
             )

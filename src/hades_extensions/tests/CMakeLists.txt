@@ -1,7 +1,5 @@
 # Create an executable from our test code and link it against GTest and the C++ library
 add_executable(${TEST_MODULE}
-        ${CMAKE_SOURCE_DIR}/tests/ecs/test_registry.cpp
-        ${CMAKE_SOURCE_DIR}/tests/ecs/test_steering.cpp
         ${CMAKE_SOURCE_DIR}/tests/ecs/systems/test_armour_regen.cpp
         ${CMAKE_SOURCE_DIR}/tests/ecs/systems/test_attacks.cpp
         ${CMAKE_SOURCE_DIR}/tests/ecs/systems/test_effects.cpp
@@ -9,6 +7,8 @@ add_executable(${TEST_MODULE}
         ${CMAKE_SOURCE_DIR}/tests/ecs/systems/test_movements.cpp
         ${CMAKE_SOURCE_DIR}/tests/ecs/systems/test_physics.cpp
         ${CMAKE_SOURCE_DIR}/tests/ecs/systems/test_upgrade.cpp
+        ${CMAKE_SOURCE_DIR}/tests/ecs/test_registry.cpp
+        ${CMAKE_SOURCE_DIR}/tests/ecs/test_steering.cpp
         ${CMAKE_SOURCE_DIR}/tests/generation/test_astar.cpp
         ${CMAKE_SOURCE_DIR}/tests/generation/test_bsp.cpp
         ${CMAKE_SOURCE_DIR}/tests/generation/test_map.cpp

@@ -13,14 +13,7 @@ from arcade import (
 
 # Custom
 from hades.constructors import game_object_constructors, texture_cache
-from hades_extensions.ecs import (
-    SPRITE_SCALE,
-    GameObjectType,
-    Registry,
-    Vec2d,
-    grid_pos_to_pixel,
-)
-from hades_extensions.ecs.components import KinematicComponent
+from hades_extensions.ecs import SPRITE_SCALE, GameObjectType, Vec2d, grid_pos_to_pixel
 
 if TYPE_CHECKING:
     from hades.constructors import GameObjectConstructor
@@ -35,11 +28,10 @@ __all__ = (
 class HadesSprite(BasicSprite):
     """Represents a sprite object in the game."""
 
-    __slots__ = ("constructor", "game_object_id", "registry")
+    __slots__ = ("constructor", "game_object_id")
 
     def __init__(
         self: HadesSprite,
-        registry: Registry,
         game_object_id: int,
         position: Vec2d,
         constructor: GameObjectConstructor,
@@ -47,8 +39,6 @@ class HadesSprite(BasicSprite):
         """Initialise the object.
 
         Args:
-            registry: The registry that manages the game objects, components, and
-                systems.
             game_object_id: The game object's ID.
             position: The position of the sprite object in the grid.
             constructor: The game object's constructor.
@@ -58,7 +48,6 @@ class HadesSprite(BasicSprite):
             SPRITE_SCALE,
             *grid_pos_to_pixel(position),
         )
-        self.registry: Registry = registry
         self.game_object_id: int = game_object_id
         self.constructor: GameObjectConstructor = constructor
 
@@ -89,13 +78,6 @@ class HadesSprite(BasicSprite):
         """
         return self.constructor.description
 
-    def update(self: HadesSprite) -> None:
-        """Update the sprite object."""
-        self.position = self.registry.get_component(
-            self.game_object_id,
-            KinematicComponent,
-        ).get_position()
-
     def __repr__(self: HadesSprite) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
 
@@ -111,16 +93,13 @@ class HadesSprite(BasicSprite):
 class Bullet(HadesSprite):
     """Represents a bullet sprite object in the game."""
 
-    def __init__(self: Bullet, registry: Registry, game_object_id: int) -> None:
+    def __init__(self: Bullet, game_object_id: int) -> None:
         """Initialise the object.
 
         Args:
-            registry: The registry that manages the game objects, components, and
-                systems.
             game_object_id: The game object's ID.
         """
         super().__init__(
-            registry,
             game_object_id,
             Vec2d(0, 0),
             game_object_constructors[GameObjectType.Bullet](),
@@ -149,7 +128,6 @@ class AnimatedSprite(HadesSprite):
 
     def __init__(
         self: AnimatedSprite,
-        registry: Registry,
         game_object_id: int,
         position: Vec2d,
         constructor: GameObjectConstructor,
@@ -157,13 +135,11 @@ class AnimatedSprite(HadesSprite):
         """Initialise the object.
 
         Args:
-            registry: The registry that manages the game objects, components, and
-                systems.
             game_object_id: The game object's ID.
             position: The position of the sprite object in the grid.
             constructor: The game object's constructor.
         """
-        super().__init__(registry, game_object_id, position, constructor)
+        super().__init__(game_object_id, position, constructor)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
             (texture_cache[texture], texture_cache[texture].flip_left_right())
             for texture in constructor.texture_paths
