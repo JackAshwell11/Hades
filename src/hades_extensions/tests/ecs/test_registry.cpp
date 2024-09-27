@@ -98,8 +98,8 @@ TEST(Tests, TestGridPosToPixelNegativeXYPosition){
 /// Test that a game object with no components is added to the registry correctly.
 TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
   // Create the callback for the game object death event
-  bool called{false};
-  registry.add_callback(EventType::GameObjectDeath, [&called](const auto /*event*/) { called = true; });
+  int called{-1};
+  registry.add_callback(EventType::GameObjectDeath, [&called](const auto event) { called = event; });
 
   // Test that creating the game object works correctly
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
@@ -112,7 +112,7 @@ TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
 
   // Test that deleting the game object works correctly
   registry.delete_game_object(0);
-  ASSERT_TRUE(called);
+  ASSERT_EQ(called, 0);
   ASSERT_THROW_MESSAGE(registry.delete_game_object(0), RegistryError,
                        "The game object `0` is not registered with the registry.")
 }
@@ -373,16 +373,16 @@ TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksAdded) {
 
 /// Test that an event is not notified if there are no callbacks listening for that event.
 TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksListening) {
-  bool called{false};
-  registry.add_callback(EventType::BulletCreation, [&called](const auto /*event*/) { called = true; });
+  auto called{-1};
+  registry.add_callback(EventType::BulletCreation, [&called](const auto event) { called = event; });
   registry.notify_callbacks(EventType::GameObjectDeath, 0);
-  ASSERT_FALSE(called);
+  ASSERT_EQ(called, -1);
 }
 
 /// Test that an event is notified correctly if there is a callback listening for that event.
 TEST_F(RegistryFixture, TestRegistryNotifyCallbacksListeningCallback) {
-  bool called{false};
-  registry.add_callback(EventType::GameObjectDeath, [&called](const auto /*event*/) { called = true; });
+  auto called{-1};
+  registry.add_callback(EventType::GameObjectDeath, [&called](const auto event) { called = event; });
   registry.notify_callbacks(EventType::GameObjectDeath, 0);
-  ASSERT_TRUE(called);
+  ASSERT_EQ(called, 0);
 }

@@ -57,19 +57,19 @@ class InventorySystemFixture : public testing::Test {
 /// Test that a valid item is added to the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   // Add the callbacks to the registry
-  bool inventory_update{false};
-  auto inventory_update_callback{[&](const GameObjectID /*game_object_id*/) { inventory_update = true; }};
+  auto inventory_update{-1};
+  auto inventory_update_callback{[&](const GameObjectID game_object_id) { inventory_update = game_object_id; }};
   registry.add_callback(EventType::InventoryUpdate, inventory_update_callback);
-  bool sprite_removal{false};
-  auto sprite_removal_callback{[&](const GameObjectID /*game_object_id*/) { sprite_removal = true; }};
+  auto sprite_removal{-1};
+  auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
   registry.add_callback(EventType::SpriteRemoval, sprite_removal_callback);
 
   // Add the item to the inventory and check the results
   const auto game_object_id{create_item(GameObjectType::HealthPotion)};
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, game_object_id));
   ASSERT_EQ(registry.get_component<Inventory>(0)->items, std::vector{game_object_id});
-  ASSERT_TRUE(inventory_update);
-  ASSERT_TRUE(sprite_removal);
+  ASSERT_EQ(inventory_update, 0);
+  ASSERT_EQ(sprite_removal, game_object_id);
 }
 
 /// Test that an item with a kinematic component is added to the inventory correctly.
@@ -101,11 +101,11 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryZeroSize) {
 /// Test that a valid item is removed from the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
   // Add the callbacks to the registry
-  auto inventory_update{false};
-  auto inventory_update_callback{[&](const GameObjectID /*game_object_id*/) { inventory_update = true; }};
+  auto inventory_update{-1};
+  auto inventory_update_callback{[&](const GameObjectID game_object_id) { inventory_update = game_object_id; }};
   registry.add_callback(EventType::InventoryUpdate, inventory_update_callback);
-  auto sprite_removal{false};
-  auto sprite_removal_callback{[&](const GameObjectID /*game_object_id*/) { sprite_removal = true; }};
+  auto sprite_removal{-1};
+  auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
   registry.add_callback(EventType::SpriteRemoval, sprite_removal_callback);
 
   // Add two items and remove one of them from the inventory and check the
@@ -117,8 +117,8 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) 
   ASSERT_TRUE(get_inventory_system()->remove_item_from_inventory(0, item_id_one));
   const std::vector result{item_id_two};
   ASSERT_EQ(registry.get_component<Inventory>(0)->items, result);
-  ASSERT_TRUE(inventory_update);
-  ASSERT_TRUE(sprite_removal);
+  ASSERT_EQ(inventory_update, 0);
+  ASSERT_EQ(sprite_removal, item_id_one);
 }
 
 /// Test that an item is not removed from the inventory if it is not added.
