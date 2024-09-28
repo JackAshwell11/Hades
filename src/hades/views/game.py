@@ -161,6 +161,13 @@ class Game(UIView):
                         position,
                     )
                     self.entity_sprites.append(self.player)
+                elif tile == TileType.Goal:
+                    self.entity_sprites.append(
+                        self._create_sprite(
+                            game_object_constructors[GameObjectType.Goal](),
+                            position,
+                        ),
+                    )
                 elif tile == TileType.HealthPotion:
                     self.item_sprites.append(
                         self._create_sprite(
@@ -242,6 +249,17 @@ class Game(UIView):
                 StatusEffect,
             ).applied_effects,
         )
+
+        # Check if the player has reached the goal
+        if (
+            self.nearest_item != -1
+            and self.registry.get_component(
+                self.nearest_item,
+                PythonSprite,
+            ).sprite.game_object_type
+            == GameObjectType.Goal
+        ):
+            app.exit()
 
         # Position the camera on the player
         self.game_camera.position = self.player.position

@@ -19,8 +19,9 @@ enum class GameObjectType : std::uint8_t {
   Floor = 1U << 2U,         // 4
   Player = 1U << 3U,        // 8
   Wall = 1U << 4U,          // 16
-  HealthPotion = 1U << 5U,  // 32
-  Chest = 1U << 6U          // 64
+  Goal = 1U << 5U,          // 32
+  HealthPotion = 1U << 6U,  // 64
+  Chest = 1U << 7U,         // 128
 };
 
 /// Stores the different types of events that can occur.

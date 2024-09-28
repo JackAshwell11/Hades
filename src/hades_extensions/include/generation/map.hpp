@@ -61,8 +61,10 @@ struct std::hash<Edge> {
 /// @param target_tile - The tile to place in the 2D grid.
 /// @param probability - The probability of placing the tile.
 /// @param count - The number of tiles to place.
-void place_tiles(const Grid &grid, std::mt19937 &random_generator, TileType target_tile, double probability,
-                 int count = std::numeric_limits<int>::max());
+/// @return A vector containing the positions of the placed tiles.
+[[maybe_unused]] auto place_tiles(const Grid &grid, std::mt19937 &random_generator, TileType target_tile,
+                                  double probability, int count = std::numeric_limits<int>::max())
+    -> std::vector<Position>;
 
 /// Create a minimum spanning tree from a given complete graph.
 ///

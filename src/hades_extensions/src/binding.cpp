@@ -136,6 +136,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Floor", TileType::Floor)
       .value("Wall", TileType::Wall)
       .value("Obstacle", TileType::Obstacle)
+      .value("Goal", TileType::Goal)
       .value("Player", TileType::Player)
       .value("HealthPotion", TileType::HealthPotion)
       .value("Chest", TileType::Chest);
@@ -215,6 +216,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Floor", GameObjectType::Floor)
       .value("Player", GameObjectType::Player)
       .value("Wall", GameObjectType::Wall)
+      .value("Goal", GameObjectType::Goal)
       .value("HealthPotion", GameObjectType::HealthPotion)
       .value("Chest", GameObjectType::Chest);
   pybind11::enum_<StatusEffectType>(ecs, "StatusEffectType", "Stores the different types of status effects available.")

@@ -386,6 +386,7 @@ TEST_F(MapFixture, TestMapCreateMapValidLevelSeed) {
   ASSERT_EQ(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Player), 1);
   ASSERT_GE(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::HealthPotion), 1);
   ASSERT_GE(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Chest), 1);
+  ASSERT_GE(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Goal), 1);
 }
 
 /// Test that creating a map without a seed works correctly.
