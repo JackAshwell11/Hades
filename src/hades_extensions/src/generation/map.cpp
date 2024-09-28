@@ -7,8 +7,8 @@
 #include <unordered_map>
 
 // Local headers
-#include "generation/astar.hpp"
 #include "generation/bsp.hpp"
+#include "generation/dijkstra.hpp"
 
 /// Stores a map generation constant which can be calculated.
 ///
@@ -64,8 +64,8 @@ constexpr std::array<std::pair<TileType, double>, 2> ITEM_CHANCES{
     {{TileType::HealthPotion, 0.75}, {TileType::Chest, 0.25}}};
 }  // namespace
 
-void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
-                 const int count) {
+auto place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
+                 const int count) -> std::vector<Position> {
   // Get all the possible positions for the target tile
   std::vector<Position> valid_positions;
   for (int y{0}; y < grid.height; y++) {
@@ -92,6 +92,7 @@ void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
   }
 
   // Place the target tile in random positions and remove surrounding positions
+  std::vector<Position> positions;
   std::ranges::shuffle(valid_positions.begin(), valid_positions.end(), random_generator);
   std::uniform_real_distribution distribution(0.0, 1.0);
   for (int _{0}; _ < count && !valid_positions.empty(); _++) {
@@ -99,6 +100,7 @@ void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
     valid_positions.pop_back();
     if (distribution(random_generator) <= probability) {
       grid.set_value(possible_tile, target_tile);
+      positions.push_back(possible_tile);
     }
 
     // Remove all tiles from valid_positions within MIN_TILE_DISTANCE of the
@@ -108,6 +110,7 @@ void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
              std::abs(pos.y - possible_tile.y) <= MIN_TILE_DISTANCE;
     });
   }
+  return positions;
 }
 
 auto create_connections(const std::vector<Rect> &rooms) -> std::unordered_set<Edge> {
@@ -241,11 +244,13 @@ auto create_map(const int level, std::optional<unsigned int> seed) -> std::pair<
     run_cellular_automata(grid);
   }
 
-  // Place the player as well as the item tiles in the grid
-  place_tiles(grid, random_generator, TileType::Player, 1, 1);
+  // Place the player as well as the item tiles in the grid then place the end
+  // goal at the furthest position from the player
+  const auto player_position{place_tiles(grid, random_generator, TileType::Player, 1, 1)};
   for (const auto &[tile, probability] : ITEM_CHANCES) {
     place_tiles(grid, random_generator, tile, probability);
   }
+  grid.set_value(get_furthest_position(grid, player_position.front()), TileType::Goal);
 
   // Return the grid and the level constants
   return std::make_pair(*grid.grid, constants);

@@ -228,6 +228,24 @@ def enemy_factory() -> GameObjectConstructor:
     )
 
 
+def goal_factory() -> GameObjectConstructor:
+    """Create a goal game object constructor.
+
+    Returns:
+        A goal game object constructor.
+    """
+    return GameObjectConstructor(
+        "Goal",
+        "The goal of the level.",
+        GameObjectType.Goal,
+        [":resources:armour_potion.png"],
+        [
+            KinematicComponent(is_static=False),
+            PythonSprite(),
+        ],
+    )
+
+
 def health_potion_factory() -> GameObjectConstructor:
     """Create a health potion game object constructor.
 
@@ -291,6 +309,7 @@ game_object_constructors: dict[GameObjectType, Callable[[], GameObjectConstructo
     GameObjectType.Bullet: bullet_factory,
     GameObjectType.Enemy: enemy_factory,
     GameObjectType.Floor: floor_factory,
+    GameObjectType.Goal: goal_factory,
     GameObjectType.Player: player_factory,
     GameObjectType.Wall: wall_factory,
     GameObjectType.HealthPotion: health_potion_factory,

@@ -14,6 +14,7 @@ enum class TileType : std::uint8_t {
   Floor,
   Wall,
   Obstacle,
+  Goal,
   Player,
   HealthPotion,
   Chest,
