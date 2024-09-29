@@ -128,7 +128,7 @@ auto create_connections(const std::vector<Rect> &rooms) -> std::unordered_set<Ed
   visited.emplace(rooms[0]);
   for (const auto &room : rooms) {
     if (room != rooms[0]) {
-      unexplored.emplace(rooms[0].get_distance_to(room), rooms[0], room);
+      unexplored.emplace(rooms[0].centre.get_distance_to(room.centre), rooms[0], room);
     }
   }
 
@@ -150,7 +150,7 @@ auto create_connections(const std::vector<Rect> &rooms) -> std::unordered_set<Ed
     // Add edges from the newly visited room to all other unvisited rooms
     for (const auto &room : rooms) {
       if (!visited.contains(room)) {
-        unexplored.emplace(lowest.destination.get_distance_to(room), lowest.destination, room);
+        unexplored.emplace(lowest.destination.centre.get_distance_to(room.centre), lowest.destination, room);
       }
     }
   }

@@ -3,6 +3,7 @@
 
 // Local headers
 #include "generation/bsp.hpp"
+#include "generation/primitives.hpp"
 
 /// Implements the fixture for the generation/bsp.hpp tests.
 class BspFixture : public testing::Test {  // NOLINT

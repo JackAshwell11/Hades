@@ -2,10 +2,8 @@
 #include "generation/dijkstra.hpp"
 
 // Std headers
-#include <algorithm>
 #include <functional>
 #include <queue>
-#include <ranges>
 #include <unordered_map>
 
 // Local headers
@@ -24,9 +22,17 @@ struct Neighbour {
 };
 
 namespace {
-auto explore_grid(const Grid &grid, const Position &start, const Position &end,
-                  const std::function<bool(const Position &)> &neighbour_check,
-                  const std::function<int(const Position &, int)> &cost_calc)
+/// Perform pathfinding on a grid using a specific heuristic and cost calculation.
+///
+/// @param grid - The 2D grid which represents the dungeon.
+/// @param start - The start position for the algorithm.
+/// @param end - The end position for the algorithm.
+/// @param is_not_traversable - A function which checks if a position is not traversable.
+/// @param heuristic_function - A function which calculates the heuristic cost between two positions.
+/// @return A map of positions and their neighbours.
+auto pathfind(const Grid &grid, const Position &start, const Position &end,
+              const std::function<bool(const Position &)> &is_not_traversable,
+              const std::function<int(const Position &, int)> &heuristic_function)
     -> std::unordered_map<Position, Neighbour> {
   // Check if the grid size is not zero
   if (grid.width == 0 || grid.height == 0) {
@@ -51,21 +57,22 @@ auto explore_grid(const Grid &grid, const Position &start, const Position &end,
     // Add all the neighbours to the priority queue with their cost being f = g + h:
     //   f - The total cost of traversing the neighbour.
     //   g - The distance between the start pair and the neighbour pair.
-    //   h - The estimated distance between the neighbour and the end position using the cost_calc function.
+    //   h - The estimated distance between the neighbour and the end position.
     for (const Position &neighbour : grid.get_neighbours(current)) {
       // Move around the neighbour if it's not valid
-      if (neighbour_check(neighbour)) {
+      if (is_not_traversable(neighbour)) {
         continue;
       }
 
       // Check if we've found a more efficient path to the neighbour
       const auto distance{neighbours.at(current).cost + 1};
-      if (neighbours.contains(neighbour) && distance >= neighbours.at(neighbour).cost) {
+      if (const auto neighbour_it{neighbours.find(neighbour)};
+          neighbour_it != neighbours.end() && distance >= neighbour_it->second.cost) {
         continue;
       }
 
       // Add the neighbour to the queue and neighbours map
-      queue.emplace(cost_calc(neighbour, distance), neighbour);
+      queue.emplace(heuristic_function(neighbour, distance), neighbour);
       neighbours[neighbour] = {.cost = distance, .destination = current};
     }
   }
@@ -76,11 +83,11 @@ auto explore_grid(const Grid &grid, const Position &start, const Position &end,
 auto calculate_astar_path(const Grid &grid, const Position &start, const Position &end) -> std::vector<Position> {
   // Explore the grid using the A* algorithm with the Chebyshev distance
   // heuristic and then check if we've reached the end
-  const auto result{explore_grid(
-      grid, start, end, [&grid](const Position &neighbour) { return grid.get_value(neighbour) == TileType::Obstacle; },
-      [&end](const Position &neighbour, const int cost) {
-        return cost + std::max(abs(end.x - neighbour.x), abs(end.y - neighbour.y));
-      })};
+  const auto obstacle_check{
+      [&grid](const Position &neighbour) { return grid.get_value(neighbour) == TileType::Obstacle; }};
+  const auto chebyshev_heuristic{
+      [&end](const Position &neighbour, const int cost) { return cost + neighbour.get_distance_to(end); }};
+  const auto result{pathfind(grid, start, end, obstacle_check, chebyshev_heuristic)};
   if (!result.contains(end)) {
     return {};
   }
@@ -98,22 +105,20 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
 }
 
 auto get_furthest_position(const Grid &grid, const Position &start) -> Position {
-  // Explore the grid using the Dijkstra algorithm
-  const auto result{explore_grid(
-      grid, start, {.x = -1, .y = -1},
-      [&grid](const Position &neighbour) { return grid.get_value(neighbour) != TileType::Floor; },
-      [](const Position & /*neighbour*/, const int cost) { return cost; })};
+  // Initialise some variables needed to find the furthest position
+  Position furthest_position{.x = -1, .y = -1};
+  int max_distance{-1};
 
-  // Find the position with the highest cost that isn't touching a wall
-  std::pair furthest_position{std::make_pair(Position{.x = -1, .y = -1}, Neighbour{.cost = -1, .destination = start})};
-  for (const auto [position, neighbour] : result) {
-    const auto neighbours{grid.get_neighbours(neighbour.destination)};
-    if (const bool is_next_to_wall{std::ranges::any_of(
-            neighbours,
-            [&grid](const Position &neighbour_pos) { return grid.get_value(neighbour_pos) == TileType::Wall; })};
-        neighbour.cost > furthest_position.second.cost && !is_next_to_wall) {
-      furthest_position = {position, neighbour};
+  // Explore the grid using the Dijkstra algorithm to find the furthest
+  // position from the start
+  const auto floor_check{[&grid](const Position &neighbour) { return grid.get_value(neighbour) != TileType::Floor; }};
+  const auto dijkstra_heuristic{[&max_distance, &furthest_position](const Position &neighbour, const int cost) {
+    if (cost > max_distance) {
+      max_distance = cost;
+      furthest_position = neighbour;
     }
-  }
-  return furthest_position.first;
+    return cost;
+  }};
+  pathfind(grid, start, {.x = -1, .y = -1}, floor_check, dijkstra_heuristic);
+  return furthest_position;
 }

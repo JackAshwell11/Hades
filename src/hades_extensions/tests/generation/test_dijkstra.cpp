@@ -22,14 +22,21 @@ class DijkstraFixture : public testing::Test {
   const Position position_three{.x = 4, .y = 0};
 
   /// Add obstacles to the grid for use in testing.
-  void add_obstacles() const {
-    grid.set_value({.x = 1, .y = 3}, TileType::Obstacle);
-    grid.set_value({.x = 2, .y = 7}, TileType::Obstacle);
-    grid.set_value({.x = 3, .y = 2}, TileType::Obstacle);
-    grid.set_value({.x = 3, .y = 3}, TileType::Obstacle);
-    grid.set_value({.x = 3, .y = 6}, TileType::Obstacle);
-    grid.set_value({.x = 4, .y = 3}, TileType::Obstacle);
-    grid.set_value({.x = 4, .y = 6}, TileType::Obstacle);
+  ///
+  /// @param all - Whether to add obstacles to the entire grid or not.
+  void add_obstacles(const bool all = false) const {
+    const std::unordered_set<Position> obstacles{{.x = 1, .y = 3}, {.x = 2, .y = 7}, {.x = 3, .y = 2}, {.x = 3, .y = 3},
+                                                 {.x = 3, .y = 6}, {.x = 4, .y = 3}, {.x = 4, .y = 6}};
+    for (int y = 0; y < grid.height; y++) {
+      for (int x = 0; x < grid.width; x++) {
+        const Position position{.x = x, .y = y};
+        if (all) {
+          grid.set_value(position, TileType::Obstacle);
+        } else {
+          grid.set_value(position, !obstacles.contains(position) ? TileType::Floor : TileType::Obstacle);
+        }
+      }
+    }
   }
 
   /// Add floors and walls to the grid for use in testing.
@@ -81,6 +88,13 @@ TEST_F(DijkstraFixture, TestCalculateAstarPathObstaclesBoundaryEnd) {
   ASSERT_EQ(calculate_astar_path(grid, position_one, position_three), obstacles_result);
 }
 
+/// Test that A* doesn't work in a grid with only obstacles.
+TEST_F(DijkstraFixture, TestCalculateAstarPathOnlyObstacles) {
+  add_obstacles(true);
+  const std::vector<Position> only_walls_result{};
+  ASSERT_EQ(calculate_astar_path(grid, position_one, position_two), only_walls_result);
+}
+
 /// Test that A* throws an exception in an empty grid.
 TEST_F(DijkstraFixture,
        TestCalculateAstarPathEmptyGrid){ASSERT_THROW_MESSAGE(calculate_astar_path({0, 0}, position_one, position_two),
@@ -98,7 +112,7 @@ TEST_F(DijkstraFixture, TestGetFurthestPositionNoWalls) {
 /// Test that getting the furthest position works in a grid with walls.
 TEST_F(DijkstraFixture, TestGetFurthestPositionWalls) {
   add_floors({{.x = 2, .y = 4}, {.x = 4, .y = 2}, {.x = 4, .y = 6}});
-  constexpr Position furthest_position{.x = 1, .y = 0};
+  constexpr Position furthest_position{.x = 4, .y = 0};
   ASSERT_EQ(get_furthest_position(grid, position_one), furthest_position);
 }
 

@@ -4,8 +4,9 @@
 // Std headers
 #include <random>
 
-// Local headers
-#include "primitives.hpp"
+// Avoid having to include headers for these
+struct Grid;
+struct Rect;
 
 /// A binary spaced partition leaf used to generate the dungeon's rooms.
 struct Leaf {
@@ -24,7 +25,7 @@ struct Leaf {
   /// Initialise the object.
   ///
   /// @param container - The rect object that represents this leaf.
-  explicit Leaf(const Rect &container) : container(std::make_unique<Rect>(container)) {}
+  explicit Leaf(const Rect &container);
 
   /// Split a leaf either horizontally or vertically recursively.
   ///

@@ -1,6 +1,9 @@
 // Related header
 #include "generation/bsp.hpp"
 
+// Local headers
+#include "generation/primitives.hpp"
+
 namespace {
 // The maximum width to height ratio that is allowed.
 constexpr double CONTAINER_RATIO{1.25};
@@ -14,6 +17,8 @@ constexpr int MIN_ROOM_SIZE{4};
 // The minimum width to height ratio that is allowed for a room.
 constexpr double ROOM_RATIO{0.625};
 }  // namespace
+
+Leaf::Leaf(const Rect &container) : container{std::make_unique<Rect>(container)} {}
 
 void Leaf::split(std::mt19937 &random_generator) {  // NOLINT(misc-no-recursion)
   // Check if this leaf is already split or not
