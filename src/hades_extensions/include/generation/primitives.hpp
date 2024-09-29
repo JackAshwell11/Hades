@@ -22,12 +22,16 @@ enum class TileType : std::uint8_t {
 
 /// Represents a 2D position.
 struct Position {
+  /// The equality operator.
   auto operator==(const Position &position) const -> bool { return x == position.x && y == position.y; }
 
+  /// The inequality operator.
   auto operator!=(const Position &position) const -> bool { return x != position.x || y != position.y; }
 
+  /// The addition operator.
   auto operator+(const Position &position) const -> Position { return {.x = x + position.x, .y = y + position.y}; }
 
+  /// The subtraction operator.
   auto operator-(const Position &position) const -> Position {
     return {.x = std::abs(x - position.x), .y = std::abs(y - position.y)};
   }
@@ -37,6 +41,14 @@ struct Position {
 
   /// The y position of the position.
   int y;
+
+  /// Get the Chebyshev distance to another position.
+  ///
+  /// @param other - The other position to find the distance to.
+  /// @return The Chebyshev distance between this position and the other position.
+  [[nodiscard]] auto get_distance_to(const Position &other) const -> int {
+    return std::max(abs(x - other.x), abs(y - other.y));
+  }
 };
 
 /// Represents a rectangle in 2D space.
@@ -77,14 +89,6 @@ struct Rect {
         // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
         width((top_left - bottom_right).x),
         height((top_left - bottom_right).y) {}
-
-  /// Get the Chebyshev distance to another rect.
-  ///
-  /// @param other - The rect to find the distance to.
-  /// @return The Chebyshev distance between this rect and the given rect.
-  [[nodiscard]] auto get_distance_to(const Rect &other) const -> int {
-    return std::max(abs(centre.x - other.centre.x), abs(centre.y - other.centre.y));
-  }
 };
 
 /// Represents a 2D grid with a set width and height through a 1D vector.

@@ -15,11 +15,15 @@ class PrimitivesFixture : public testing::Test {
   const Rect rect_two{{.x = 2, .y = 2}, {.x = 4, .y = 4}};
 };
 
-/// Test that finding the distance between two identical rects works correctly.
-TEST_F(PrimitivesFixture, TestRectGetDistanceToIdentical) { ASSERT_EQ(rect_one.get_distance_to(rect_one), 0); }
+/// Test that finding the distance between two identical positions works correctly.
+TEST_F(PrimitivesFixture, TestPositionGetDistanceToIdentical) {
+  ASSERT_EQ(rect_one.centre.get_distance_to(rect_one.centre), 0);
+}
 
-/// Test that finding the distance between two different rects works correctly.
-TEST_F(PrimitivesFixture, TestRectGetDistanceToDifferent) { ASSERT_EQ(rect_one.get_distance_to(rect_two), 2); }
+/// Test that finding the distance between two different positions works correctly.
+TEST_F(PrimitivesFixture, TestPositionGetDistanceToDifferent) {
+  ASSERT_EQ(rect_one.centre.get_distance_to(rect_two.centre), 2);
+}
 
 /// Test that a position with two small values is not within the grid.
 TEST_F(PrimitivesFixture, TestGridIsPositionWithinSmallerXY) { ASSERT_FALSE(grid.is_position_within({-1, -1})); }
