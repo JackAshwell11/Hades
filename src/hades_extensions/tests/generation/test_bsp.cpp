@@ -102,7 +102,7 @@ TEST_F(BspFixture, TestBspSplitTooSmall) {
 /// Test that the create_room function creates a room in a leaf correctly.
 TEST_F(BspFixture, TestBspCreateRoomSingleLeaf) {
   // Create a room inside a leaf
-  std::vector<Rect> rooms;
+  std::vector<Position> rooms;
   Leaf leaf{{{.x = 0, .y = 0}, {.x = 15, .y = 15}}};
   leaf.create_room(grid, random_generator, rooms);
 
@@ -114,7 +114,7 @@ TEST_F(BspFixture, TestBspCreateRoomSingleLeaf) {
 /// Test that the create_room function creates rooms in the left and right children.
 TEST_F(BspFixture, TestBspCreateRoomChildLeafs) {
   // Create a room inside a leaf that has already been split
-  std::vector<Rect> rooms;
+  std::vector<Position> rooms;
   Leaf leaf{{{.x = 0, .y = 0}, {.x = 15, .y = 15}}};
   leaf.left = std::make_unique<Leaf>(Rect{{.x = 0, .y = 0}, {.x = 7, .y = 15}});
   leaf.right = std::make_unique<Leaf>(Rect{{.x = 9, .y = 0}, {.x = 15, .y = 15}});
@@ -129,7 +129,7 @@ TEST_F(BspFixture, TestBspCreateRoomChildLeafs) {
 /// Test that the create_room function overwrites the room if it already exists.
 TEST_F(BspFixture, TestBspCreateRoomExistingRoom) {
   // Create a room inside a leaf that already has a room
-  std::vector<Rect> rooms;
+  std::vector<Position> rooms;
   Leaf leaf{{{.x = 0, .y = 0}, {.x = 15, .y = 15}}};
   leaf.room = std::make_unique<Rect>(Rect{{.x = 0, .y = 0}, {.x = 0, .y = 0}});
   leaf.create_room(grid, random_generator, rooms);
@@ -141,7 +141,7 @@ TEST_F(BspFixture, TestBspCreateRoomExistingRoom) {
 
 /// Test that the create_room function throws an exception if the leaf is too small.
 TEST_F(BspFixture, TestBspCreateRoomTooSmallLeaf) {
-  std::vector<Rect> rooms;
+  std::vector<Position> rooms;
   Leaf leaf{{{.x = 0, .y = 0}, {.x = 0, .y = 0}}};
   leaf.create_room(grid, random_generator, rooms);
   ASSERT_EQ(leaf.room, nullptr);

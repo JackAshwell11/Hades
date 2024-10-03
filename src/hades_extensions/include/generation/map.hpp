@@ -4,35 +4,16 @@
 // Std headers
 #include <optional>
 #include <random>
-#include <unordered_set>
 
 // Local headers
-#include "primitives.hpp"
+#include "generation/dijkstra.hpp"
+#include "generation/primitives.hpp"
 
-/// Represents an undirected weighted edge in a graph.
-struct Edge {
-  // std::priority_queue uses a max heap, but we want a min heap, so the operator needs to be reversed
-  auto operator<(const Edge &edge) const -> bool { return cost > edge.cost; }
-
-  auto operator==(const Edge &edge) const -> bool {
-    return cost == edge.cost && source == edge.source && destination == edge.destination;
-  }
-
-  /// The cost of the edge.
-  int cost;
-
-  /// The source rect.
-  Rect source;
-
-  /// The destination rect.
-  Rect destination;
-};
+// Avoid having to include headers for this
+struct Connection;
 
 /// Holds the constants for a specific level.
 struct LevelConstants {
-  /// The level of this game.
-  int level;
-
   /// The width of the dungeon.
   int width;
 
@@ -43,47 +24,75 @@ struct LevelConstants {
   int enemy_limit;
 };
 
-template <>
-struct std::hash<Edge> {
-  auto operator()(const Edge &edge) const noexcept -> size_t {
-    size_t res{0};
-    hash_combine(res, edge.cost);
-    hash_combine(res, edge.source);
-    hash_combine(res, edge.destination);
-    return res;
-  }
+/// Manages the generation of the map.
+class MapGenerator {
+ public:
+  /// Initialise the object.
+  ///
+  /// @param level - The game level to generate a map for.
+  /// @param random_generator - The random generator to use for the map generation.
+  explicit MapGenerator(int level, std::mt19937 random_generator);
+
+  /// Generate the rooms in the dungeon.
+  auto generate_rooms() -> MapGenerator &;
+
+  /// Create connections between the rooms in the dungeon.
+  auto create_connections() -> MapGenerator &;
+
+  /// Generate the hallways in the dungeon.
+  auto generate_hallways() -> MapGenerator &;
+
+  /// Perform the cellular automata simulation in the dungeon.
+  ///
+  /// @param generations - The number of generations to simulate.
+  auto cellular_automata(int generations = 1) -> MapGenerator &;
+
+  /// Generate the walls in the dungeon.
+  auto generate_walls() -> MapGenerator &;
+
+  /// Place the obstacles in the dungeon.
+  auto place_obstacles() -> MapGenerator &;
+
+  /// Place the player in the dungeon.
+  auto place_player() -> MapGenerator &;
+
+  /// Place the items in the dungeon.
+  auto place_items() -> MapGenerator &;
+
+  /// Place the goal in the dungeon.
+  auto place_goal() -> MapGenerator &;
+
+  /// Get the grid.
+  ///
+  /// @return The grid.
+  [[nodiscard]] auto get_grid() -> Grid & { return grid_; }
+
+  /// Get the rooms.
+  ///
+  /// @return The rooms.
+  [[nodiscard]] auto get_rooms() -> std::vector<Position> & { return rooms_; }
+
+  /// Get the connections.
+  ///
+  /// @return The connections.
+  [[nodiscard]] auto get_connections() -> std::vector<Connection> & { return connections_; }
+
+ private:
+  /// The level of the dungeon.
+  int level_;
+
+  /// The 2D grid which represents the dungeon.
+  Grid grid_;
+
+  /// The random generator used to generate the map.
+  std::mt19937 random_generator_;
+
+  /// The rooms that have been generated.
+  std::vector<Position> rooms_;
+
+  /// The connections between the rooms.
+  std::vector<Connection> connections_;
 };
-
-/// Place a given amount of tiles in the 2D grid.
-///
-/// @param grid - The 2D grid which represents the dungeon.
-/// @param random_generator - The random generator used to pick the position.
-/// @param target_tile - The tile to place in the 2D grid.
-/// @param probability - The probability of placing the tile.
-/// @param count - The number of tiles to place.
-/// @return A vector containing the positions of the placed tiles.
-[[maybe_unused]] auto place_tiles(const Grid &grid, std::mt19937 &random_generator, TileType target_tile,
-                                  double probability, int count = std::numeric_limits<int>::max())
-    -> std::vector<Position>;
-
-/// Create a minimum spanning tree from a given complete graph.
-///
-/// @details https://en.wikipedia.org/wiki/Prim%27s_algorithm
-/// @param rooms - The rooms to create connections between.
-/// @throws std::length_error - If rooms is empty.
-/// @return A set of edges which form the connections between rects.
-auto create_connections(const std::vector<Rect> &rooms) -> std::unordered_set<Edge>;
-
-/// Create the hallways by using A* to pathfind between the rooms.
-///
-/// @param grid - The 2D grid which represents the dungeon.
-/// @param connections - The connections to pathfind using the A* algorithm.
-void create_hallways(const Grid &grid, const std::unordered_set<Edge> &connections);
-
-/// Perform a cellular automata simulation on the grid.
-///
-/// @param grid - The 2D grid which represents the dungeon.
-void run_cellular_automata(Grid &grid);
 
 /// Generate the game map for a given game level.
 ///

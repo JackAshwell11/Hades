@@ -3,7 +3,6 @@
 
 // Local headers
 #include "generation/dijkstra.hpp"
-#include "generation/primitives.hpp"
 #include "macros.hpp"
 
 /// Implements the fixture for the generation/dijkstra.hpp tests.
@@ -96,9 +95,9 @@ TEST_F(DijkstraFixture, TestCalculateAstarPathOnlyObstacles) {
 }
 
 /// Test that A* throws an exception in an empty grid.
-TEST_F(DijkstraFixture,
-       TestCalculateAstarPathEmptyGrid){ASSERT_THROW_MESSAGE(calculate_astar_path({0, 0}, position_one, position_two),
-                                                             std::length_error, "Grid size must be bigger than 0.")}
+TEST_F(DijkstraFixture, TestCalculateAstarPathEmptyGrid) {
+  ASSERT_EQ(calculate_astar_path({0, 0}, position_one, position_two), std::vector<Position>{});
+}
 
 /// Test that getting the furthest position works in a grid with no walls.
 TEST_F(DijkstraFixture, TestGetFurthestPositionNoWalls) {
@@ -125,6 +124,6 @@ TEST_F(DijkstraFixture, TestGetFurthestPositionOnlyWalls) {
 
 /// Test that getting the furthest position throws an exception in an empty grid.
 TEST_F(DijkstraFixture, TestGetFurthestPositionEmptyGrid) {
-  ASSERT_THROW_MESSAGE(get_furthest_position({0, 0}, position_one), std::length_error,
-                       "Grid size must be bigger than 0.")
+  constexpr Position furthest_position{.x = -1, .y = -1};
+  ASSERT_EQ(get_furthest_position({0, 0}, position_one), furthest_position);
 }

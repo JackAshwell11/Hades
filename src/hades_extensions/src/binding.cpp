@@ -141,7 +141,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("HealthPotion", TileType::HealthPotion)
       .value("Chest", TileType::Chest);
   pybind11::class_<LevelConstants>(generation, "LevelConstants", "Holds the constants for a specific level.")
-      .def_readonly("level", &LevelConstants::level)
       .def_readonly("width", &LevelConstants::width)
       .def_readonly("height", &LevelConstants::height)
       .def_readonly("enemy_limit", &LevelConstants::enemy_limit);

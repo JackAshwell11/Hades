@@ -61,8 +61,36 @@ TEST_F(PrimitivesFixture, TestGridIsPositionWithinLargerX) { ASSERT_FALSE(grid.i
 /// Test that a position with a large Y value is not within the grid.
 TEST_F(PrimitivesFixture, TestGridIsPositionWithinLargerY) { ASSERT_FALSE(grid.is_position_within({3, 5})); }
 
+/// Test that an index at the start of the grid can be converted correctly.
+TEST_F(PrimitivesFixture, TestGridConvertIndexStart) {
+  constexpr Position start_position{.x = 0, .y = 0};
+  ASSERT_EQ(grid.convert_position(0), start_position);
+}
+
+/// Test that an index in the middle of the grid can be converted correctly.
+TEST_F(PrimitivesFixture, TestGridConvertIndexMiddle) {
+  constexpr Position middle_position{.x = 1, .y = 2};
+  ASSERT_EQ(grid.convert_position(11), middle_position);
+}
+
+/// Test that an index on the end of the grid can be converted correctly.
+TEST_F(PrimitivesFixture, TestGridConvertIndexEnd) {
+  constexpr Position end_position{.x = 4, .y = 4};
+  ASSERT_EQ(grid.convert_position(24), end_position);
+}
+
+/// Test that converting an index smaller than the array throws an exception.
+TEST_F(PrimitivesFixture, TestGridConvertIndexSmaller){
+    ASSERT_THROW_MESSAGE((grid.convert_position(-1)), std::out_of_range, "Position not within the grid.")}
+
+/// Test that converting an index larger than the array throws an exception.
+TEST_F(PrimitivesFixture, TestGridConvertIndexLarger){
+    ASSERT_THROW_MESSAGE((grid.convert_position(100)), std::out_of_range, "Position not within the grid.")}
+
 /// Test that a position in the middle of the grid can be converted correctly.
-TEST_F(PrimitivesFixture, TestGridConvertPositionMiddle) { ASSERT_EQ(grid.convert_position({1, 2}), 11); }
+TEST_F(PrimitivesFixture, TestGridConvertPositionMiddle) {
+  ASSERT_EQ(grid.convert_position({1, 2}), 11);
+}
 
 /// Test that a position on the top of the grid can be converted correctly.
 TEST_F(PrimitivesFixture, TestGridConvertPositionEdgeTop) { ASSERT_EQ(grid.convert_position({3, 0}), 3); }

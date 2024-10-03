@@ -1,12 +1,31 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std headers
-#include <vector>
+// Local headers
+#include "generation/primitives.hpp"
 
-// Avoid having to include headers for these
-struct Grid;
-struct Position;
+/// Represents an undirected weighted connection in a graph.
+struct Connection {
+  /// The less than operator.
+  auto operator<(const Connection &connection) const -> bool {
+    // std::priority_queue uses a max heap, but we want a min heap, so the operator needs to be reversed
+    return cost > connection.cost;
+  }
+
+  /// The equality operator.
+  auto operator==(const Connection &connection) const -> bool {
+    return cost == connection.cost && source == connection.source && destination == connection.destination;
+  }
+
+  /// The cost of the connection.
+  int cost;
+
+  /// The source position.
+  Position source;
+
+  /// The destination position.
+  Position destination;
+};
 
 /// Calculate the shortest path in a grid from one pair to another using the A*
 /// algorithm.
