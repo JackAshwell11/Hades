@@ -4,11 +4,10 @@
 // Std headers
 #include <execution>
 #include <queue>
-#include <unordered_map>
+#include <unordered_set>
 
 // Local headers
 #include "generation/bsp.hpp"
-#include "generation/dijkstra.hpp"
 
 /// Stores a map generation constant which can be calculated.
 ///
@@ -62,46 +61,53 @@ constexpr MapGenerationConstant ENEMY_LIMIT{.base_value = 5, .increase = 1.2, .m
 // The chances of placing an item tile in the grid.
 constexpr std::array<std::pair<TileType, double>, 2> ITEM_CHANCES{
     {{TileType::HealthPotion, 0.75}, {TileType::Chest, 0.25}}};
-}  // namespace
 
-auto place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
-                 const int count) -> std::vector<Position> {
+/// Count the number of floor neighbours for a given position.
+///
+/// @param grid - The 2D grid which represents the dungeon.
+/// @param position - The position to check the neighbours for.
+/// @return The number of floor neighbours.
+const auto count_floor_neighbours{[](const Grid &grid, const Position &position) {
+  return std::ranges::count_if(grid.get_neighbours(position), [&grid](const Position &neighbour) {
+    return grid.get_value(neighbour) == TileType::Floor;
+  });
+}};
+
+/// Place a given amount of tiles in the 2D grid.
+///
+/// @param grid - The 2D grid which represents the dungeon.
+/// @param random_generator - The random generator used to pick the position.
+/// @param target_tile - The tile to place in the 2D grid.
+/// @param probability - The probability of placing the tile.
+/// @param count - The number of tiles to place.
+void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
+                 const int count = std::numeric_limits<int>::max()) {
+  const auto is_next_to_wall{[&grid](const Position &position) {
+    return std::ranges::any_of(grid.get_neighbours(position), [&grid](const Position &neighbour) {
+      return grid.get_value(neighbour) == TileType::Wall;
+    });
+  }};
+
   // Get all the possible positions for the target tile
   std::vector<Position> valid_positions;
-  for (int y{0}; y < grid.height; y++) {
-    for (int x{0}; x < grid.width; x++) {
-      // If the target tile is not an obstacle, only pick positions which are
-      // not next to a wall. Otherwise, only pick empty positions
-      bool should_add{false};
-      const Position pos{.x = x, .y = y};
-      if (target_tile != TileType::Obstacle) {
-        const auto neighbours{grid.get_neighbours(pos)};
-        should_add = std::ranges::all_of(
-                         neighbours.begin(), neighbours.end(),
-                         [&grid](const Position &neighbour) { return grid.get_value(neighbour) != TileType::Wall; }) &&
-                     grid.get_value(pos) == TileType::Floor;
-      } else {
-        should_add = grid.get_value(pos) == TileType::Empty;
+  for (auto i{0}; i < grid.width * grid.height; i++) {
+    const Position position{grid.convert_position(i)};
+    if (target_tile != TileType::Obstacle) {
+      if (grid.get_value(position) == TileType::Floor && !is_next_to_wall(position)) {
+        valid_positions.push_back(position);
       }
-
-      // Add the position if it is valid
-      if (should_add) {
-        valid_positions.push_back(pos);
-      }
+    } else if (grid.get_value(position) == TileType::Empty) {
+      valid_positions.push_back(position);
     }
   }
 
   // Place the target tile in random positions and remove surrounding positions
-  std::vector<Position> positions;
   std::ranges::shuffle(valid_positions.begin(), valid_positions.end(), random_generator);
-  std::uniform_real_distribution distribution(0.0, 1.0);
-  for (int _{0}; _ < count && !valid_positions.empty(); _++) {
+  const auto tile_count{std::max(1, static_cast<int>(count * probability))};
+  for (auto _{0}; _ < tile_count && !valid_positions.empty(); _++) {
     const Position possible_tile{valid_positions.back()};
     valid_positions.pop_back();
-    if (distribution(random_generator) <= probability) {
-      grid.set_value(possible_tile, target_tile);
-      positions.push_back(possible_tile);
-    }
+    grid.set_value(possible_tile, target_tile);
 
     // Remove all tiles from valid_positions within MIN_TILE_DISTANCE of the
     // placed tile
@@ -110,148 +116,144 @@ auto place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
              std::abs(pos.y - possible_tile.y) <= MIN_TILE_DISTANCE;
     });
   }
-  return positions;
+}
+}  // namespace
+
+MapGenerator::MapGenerator(const int level, const std::mt19937 random_generator)
+    : level_(level),
+      grid_{WIDTH.generate_value(level), HEIGHT.generate_value(level)},
+      random_generator_{random_generator} {}
+
+auto MapGenerator::generate_rooms() -> MapGenerator & {
+  Leaf bsp{{{.x = 0, .y = 0}, {.x = grid_.width - 1, .y = grid_.height - 1}}};
+  bsp.split(random_generator_);
+  bsp.create_room(grid_, random_generator_, rooms_);
+  return *this;
 }
 
-auto create_connections(const std::vector<Rect> &rooms) -> std::unordered_set<Edge> {
-  // Check if the rooms vector is empty
-  if (rooms.empty()) {
+auto MapGenerator::create_connections() -> MapGenerator & {
+  if (rooms_.empty()) {
     throw std::length_error("Rooms size must be bigger than 0.");
   }
+  std::priority_queue<Connection> unexplored;
+  std::unordered_set visited{rooms_.front()};
 
-  // Use Prim's algorithm to construct a minimum spanning tree from complete_graph
-  std::priority_queue<Edge> unexplored;
-  std::unordered_set<Rect> visited;
-  std::unordered_set<Edge> mst;
-
-  // Start with the first room
-  visited.emplace(rooms[0]);
-  for (const auto &room : rooms) {
-    if (room != rooms[0]) {
-      unexplored.emplace(rooms[0].centre.get_distance_to(room.centre), rooms[0], room);
-    }
+  // Add all the rooms to the unexplored queue
+  for (auto i{1}; i < static_cast<int>(rooms_.size()); i++) {
+    unexplored.emplace(rooms_[0].get_distance_to(rooms_[i]), rooms_[0], rooms_[i]);
   }
 
   // Construct the minimum spanning tree
-  while (mst.size() < rooms.size() - 1 && !unexplored.empty()) {
-    // Get the neighbour with the lowest cost
-    const Edge lowest{unexplored.top()};
+  while (connections_.size() < rooms_.size() - 1 && !unexplored.empty()) {
+    // Get the neighbour with the lowest cost that has not been visited
+    const Connection lowest{unexplored.top()};
     unexplored.pop();
-
-    // Check if the neighbour is already visited or not
     if (visited.contains(lowest.destination)) {
       continue;
     }
 
-    // Mark the destination room as visited
+    // Add connections from the newly visited room to all other unvisited rooms
+    connections_.push_back(lowest);
     visited.emplace(lowest.destination);
-    mst.emplace(lowest);
-
-    // Add edges from the newly visited room to all other unvisited rooms
-    for (const auto &room : rooms) {
+    for (const auto &room : rooms_) {
       if (!visited.contains(room)) {
-        unexplored.emplace(lowest.destination.centre.get_distance_to(room.centre), lowest.destination, room);
+        unexplored.emplace(lowest.destination.get_distance_to(room), lowest.destination, room);
       }
     }
   }
-
-  // Return the constructed minimum-spanning tree
-  return mst;
+  return *this;
 }
 
-void create_hallways(const Grid &grid, const std::unordered_set<Edge> &connections) {
+auto MapGenerator::generate_hallways() -> MapGenerator & {
   // Use the A* algorithm to connect each pair of rooms avoiding the obstacles
-  std::vector<std::vector<Position>> path_positions(connections.size());
-  std::transform(std::execution::par, connections.begin(), connections.end(), path_positions.begin(),
-                 [&grid](const Edge &connection) {
-                   return calculate_astar_path(grid, connection.source.centre, connection.destination.centre);
+  constexpr int HALF_HALLWAY_SIZE{HALLWAY_SIZE / 2};
+  std::vector<std::vector<Position>> path_positions(connections_.size());
+  std::transform(std::execution::par, connections_.begin(), connections_.end(), path_positions.begin(),
+                 [this](const Connection &connection) {
+                   return calculate_astar_path(grid_, connection.source, connection.destination);
                  });
 
   // Place a rect box around each path_position to create the hallways
-  constexpr int HALF_HALLWAY_SIZE{HALLWAY_SIZE / 2};
   for (const std::vector<Position> &path : path_positions) {
     for (const auto &[x_pos, y_pos] : path) {
-      grid.place_rect({{.x = x_pos - HALF_HALLWAY_SIZE, .y = y_pos - HALF_HALLWAY_SIZE},
-                       {.x = x_pos + HALF_HALLWAY_SIZE, .y = y_pos + HALF_HALLWAY_SIZE}});
+      grid_.place_rect({{.x = x_pos - HALF_HALLWAY_SIZE, .y = y_pos - HALF_HALLWAY_SIZE},
+                        {.x = x_pos + HALF_HALLWAY_SIZE, .y = y_pos + HALF_HALLWAY_SIZE}});
     }
   }
+  return *this;
 }
 
-void run_cellular_automata(Grid &grid) {
-  // Create a temporary grid to store the next generation then perform the cellular automata simulation
-  auto temp_grid{std::make_unique<std::vector<TileType>>(*grid.grid)};
-  for (int i{0}; i < grid.width * grid.height; i++) {
-    // Get the number of alive neighbours and check if the tile should be alive or dead
-    const auto alive_neighbours{std::ranges::count_if(
-        grid.get_neighbours({.x = i % grid.width, .y = i / grid.width}),
-        [&grid](const Position &neighbour) { return grid.get_value(neighbour) == TileType::Floor; })};
-    temp_grid->at(i) = alive_neighbours >= MIN_NEIGHBOUR_DISTANCE ? TileType::Floor : TileType::Empty;
+auto MapGenerator::cellular_automata(const int generations) -> MapGenerator & {
+  for (int _{0}; _ < generations; _++) {
+    auto temp_grid{std::make_unique<std::vector<TileType>>(*grid_.grid)};
+    for (auto i{0}; i < grid_.width * grid_.height; i++) {
+      const auto floor_neighbours{count_floor_neighbours(grid_, grid_.convert_position(i))};
+      temp_grid->at(i) = floor_neighbours >= MIN_NEIGHBOUR_DISTANCE ? TileType::Floor : TileType::Empty;
+    }
+    grid_.grid = std::move(temp_grid);
   }
-  grid.grid = std::move(temp_grid);
+  return *this;
+}
 
-  // Place walls around the floor tiles
-  for (int y{0}; y < grid.height; y++) {
-    for (int x{0}; x < grid.width; x++) {
-      // Check if the tile is on the edge of the grid or if it has a floor neighbour (while not being a floor tile)
-      const Position position{.x = x, .y = y};
-      if (const auto floor_neighbours{std::ranges::count_if(
-              grid.get_neighbours(position),
-              [&grid](const Position &neighbour) { return grid.get_value(neighbour) == TileType::Floor; })};
-          (x == 0 || y == 0 || x == grid.width - 1 || y == grid.height - 1 ||
-           grid.get_value(position) != TileType::Floor) &&
-          floor_neighbours > 0) {
-        grid.set_value(position, TileType::Wall);
-      }
+auto MapGenerator::generate_walls() -> MapGenerator & {
+  auto is_edge_or_non_floor{[this](const Position &position) {
+    return position.x == 0 || position.y == 0 || position.x == grid_.width - 1 || position.y == grid_.height - 1 ||
+           grid_.get_value(position) != TileType::Floor;
+  }};
+
+  for (auto i{0}; i < grid_.width * grid_.height; i++) {
+    if (const Position position{grid_.convert_position(i)};
+        is_edge_or_non_floor(position) && count_floor_neighbours(grid_, position) > 0) {
+      grid_.set_value(position, TileType::Wall);
     }
   }
+  return *this;
 }
 
-auto create_map(const int level, std::optional<unsigned int> seed) -> std::pair<std::vector<TileType>, LevelConstants> {
+auto MapGenerator::place_obstacles() -> MapGenerator & {
+  place_tiles(grid_, random_generator_, TileType::Obstacle, 1.0, OBSTACLE_COUNT.generate_value(level_));
+  return *this;
+}
+
+auto MapGenerator::place_player() -> MapGenerator & {
+  place_tiles(grid_, random_generator_, TileType::Player, 1.0, 1);
+  return *this;
+}
+
+auto MapGenerator::place_items() -> MapGenerator & {
+  for (const auto &[tile, probability] : ITEM_CHANCES) {
+    place_tiles(grid_, random_generator_, tile, probability);
+  }
+  return *this;
+}
+
+auto MapGenerator::place_goal() -> MapGenerator & {
+  const auto player_iter{std::ranges::find(grid_.grid->begin(), grid_.grid->end(), TileType::Player)};
+  const auto player_index{static_cast<int>(std::distance(grid_.grid->begin(), player_iter))};
+  grid_.set_value(get_furthest_position(grid_, grid_.convert_position(player_index)), TileType::Goal);
+  return *this;
+}
+
+auto create_map(const int level, const std::optional<unsigned int> seed)
+    -> std::pair<std::vector<TileType>, LevelConstants> {
   // Check that the level number is valid
   if (level < 0) {
     throw std::length_error("Level must be bigger than or equal to 0.");
   }
 
-  // Create the random generator generating a seed if one isn't provided
-  if (!seed.has_value()) {
-    std::random_device random_device;
-    std::mt19937_64 seed_generator{random_device()};
-    seed = std::uniform_int_distribution<unsigned int>{}(seed_generator);
-  }
-  std::mt19937 random_generator{seed.value()};
-
-  // Initialise a few variables needed for the map generation
-  const LevelConstants constants{.level = level,
-                                 .width = WIDTH.generate_value(level),
-                                 .height = HEIGHT.generate_value(level),
-                                 .enemy_limit = ENEMY_LIMIT.generate_value(level)};
-  Grid grid{constants.width, constants.height};
-
-  // Split the BSP tree to create the containers
-  Leaf bsp{{{.x = 0, .y = 0}, {.x = constants.width - 1, .y = constants.height - 1}}};
-  bsp.split(random_generator);
-
-  // Create the rooms inside the grid using the BSP
-  std::vector<Rect> rooms;
-  bsp.create_room(grid, random_generator, rooms);
-
-  // Place random obstacles in the grid and create the hallways between the rooms
-  place_tiles(grid, random_generator, TileType::Obstacle, 1, OBSTACLE_COUNT.generate_value(level));
-  create_hallways(grid, create_connections(rooms));
-
-  // Run some cellular automata simulations on the grid then place the walls around the floor tiles
-  for (int _{0}; _ < CELLULAR_AUTOMATA_SIMULATIONS; _++) {
-    run_cellular_automata(grid);
-  }
-
-  // Place the player as well as the item tiles in the grid then place the end
-  // goal at the furthest position from the player
-  const auto player_position{place_tiles(grid, random_generator, TileType::Player, 1, 1)};
-  for (const auto &[tile, probability] : ITEM_CHANCES) {
-    place_tiles(grid, random_generator, tile, probability);
-  }
-  grid.set_value(get_furthest_position(grid, player_position.front()), TileType::Goal);
-
-  // Return the grid and the level constants
-  return std::make_pair(*grid.grid, constants);
+  // Build the map using the map generator
+  const std::mt19937 random_generator{seed.has_value() ? seed.value() : std::random_device{}()};
+  MapGenerator generator{level, random_generator};
+  generator.generate_rooms()
+      .place_obstacles()
+      .create_connections()
+      .generate_hallways()
+      .cellular_automata(CELLULAR_AUTOMATA_SIMULATIONS)
+      .generate_walls()
+      .place_player()
+      .place_items()
+      .place_goal();
+  return std::make_pair(*generator.get_grid().grid, LevelConstants{.width = WIDTH.generate_value(level),
+                                                                   .height = HEIGHT.generate_value(level),
+                                                                   .enemy_limit = ENEMY_LIMIT.generate_value(level)});
 }

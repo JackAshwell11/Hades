@@ -2,11 +2,13 @@
 #pragma once
 
 // Std headers
+#include <memory>
 #include <random>
 
 // Avoid having to include headers for these
-struct Grid;
+struct Position;
 struct Rect;
+struct Grid;
 
 /// A binary spaced partition leaf used to generate the dungeon's rooms.
 struct Leaf {
@@ -37,5 +39,5 @@ struct Leaf {
   /// @param grid - The 2D grid which represents the dungeon.
   /// @param random_generator - The random generator to use.
   /// @param rooms - The vector of rooms to add the new room to.
-  void create_room(const Grid &grid, std::mt19937 &random_generator, std::vector<Rect> &rooms);
+  void create_room(const Grid &grid, std::mt19937 &random_generator, std::vector<Position> &rooms);
 };

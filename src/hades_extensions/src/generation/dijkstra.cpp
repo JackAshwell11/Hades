@@ -4,22 +4,6 @@
 // Std headers
 #include <functional>
 #include <queue>
-#include <unordered_map>
-
-// Local headers
-#include "generation/primitives.hpp"
-
-/// Represents a grid position and its distance from the start position.
-struct Neighbour {
-  // std::priority_queue uses a max heap, but we want a min heap, so the operator needs to be reversed
-  auto operator<(const Neighbour &neighbour) const -> bool { return cost > neighbour.cost; }
-
-  /// The cost to traverse to this neighbour.
-  int cost;
-
-  /// The destination position in the grid.
-  Position destination;
-};
 
 namespace {
 /// Perform pathfinding on a grid using a specific heuristic and cost calculation.
@@ -33,16 +17,16 @@ namespace {
 auto pathfind(const Grid &grid, const Position &start, const Position &end,
               const std::function<bool(const Position &)> &is_not_traversable,
               const std::function<int(const Position &, int)> &heuristic_function)
-    -> std::unordered_map<Position, Neighbour> {
+    -> std::unordered_map<Position, Connection> {
   // Check if the grid size is not zero
   if (grid.width == 0 || grid.height == 0) {
-    throw std::length_error("Grid size must be bigger than 0.");
+    return {};
   }
 
   // Initialise the result vector, priority queue and neighbours map which will be used during the algorithm
-  std::priority_queue<Neighbour> queue;
-  std::unordered_map<Position, Neighbour> neighbours{{start, {.cost = 0, .destination = start}}};
-  queue.emplace(0, start);
+  std::priority_queue<Connection> queue;
+  std::unordered_map<Position, Connection> neighbours{{start, {.cost = 0, .source = start, .destination = start}}};
+  queue.emplace(0, start, start);
 
   // Loop until we have explored every neighbour or until we've reached the end
   while (!queue.empty()) {
@@ -72,8 +56,8 @@ auto pathfind(const Grid &grid, const Position &start, const Position &end,
       }
 
       // Add the neighbour to the queue and neighbours map
-      queue.emplace(heuristic_function(neighbour, distance), neighbour);
-      neighbours[neighbour] = {.cost = distance, .destination = current};
+      queue.emplace(heuristic_function(neighbour, distance), current, neighbour);
+      neighbours[neighbour] = {.cost = distance, .source = current, .destination = neighbour};
     }
   }
   return neighbours;
@@ -95,10 +79,8 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
   // Backtrack through the neighbours to get the resultant path since we've
   // reached the end
   std::vector<Position> path;
-  Position current{end};
-  while (result.at(current).destination != current) {
+  for (Position current{end}; current != start; current = result.at(current).source) {
     path.push_back(current);
-    current = result.at(current).destination;
   }
   path.push_back(start);
   return path;

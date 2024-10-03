@@ -12,53 +12,52 @@ class MapFixture : public testing::Test {  // NOLINT
   /// A random generator for use in testing.
   std::mt19937 random_generator;
 
-  /// An 2D grid for use in testing.
-  Grid grid{5, 5};
+  /// An empty map generator for use in testing.
+  MapGenerator empty_map{-50, random_generator};  // 0x0 grid
 
-  /// A large 2D grid for use in testing.
-  const Grid large_grid{8, 8};
+  /// A small map generator for use in testing.
+  MapGenerator small_map{-5, random_generator};  // 12x8 grid
 
-  /// A very large 2D grid for use in testing.
-  const Grid very_large_grid{25, 25};
+  /// A large map generator for use in testing.
+  MapGenerator large_map{0, random_generator};  // 30x20 grid
 
   /// A rect that fits inside the grid for use in testing.
-  const Rect rect_one{{.x = 0, .y = 1}, {.x = 3, .y = 4}};
+  const Rect rect_one{{.x = 0, .y = 3}, {.x = 3, .y = 7}};
 
-  /// An extra rect that fits inside the grid for use in testing.
-  const Rect rect_two{{.x = 2, .y = 1}, {.x = 4, .y = 2}};
+  /// A rect that fits inside the grid for use in testing.
+  const Rect rect_two{{.x = 6, .y = 1}, {.x = 11, .y = 5}};
 
   /// A large rect that doesn't fit inside the grid for use in testing.
-  const Rect rect_three{{.x = 4, .y = 4}, {.x = 6, .y = 6}};
+  const Rect rect_three{{.x = 14, .y = 1}, {.x = 28, .y = 18}};
 
   /// Set up the fixture for the tests.
   void SetUp() override { random_generator.seed(0); }
 
-  /// Place a rect made up of walls and floors in the grid for use in testing.
-  void place_covered_box() const {
-    very_large_grid.place_rect({{.x = 2, .y = 2}, {.x = 20, .y = 20}});
-    for (int y = 1; y <= 21; y++) {
-      for (int x = 1; x <= 21; x++) {
-        if (very_large_grid.get_value({.x = x, .y = y}) != TileType::Floor) {
-          very_large_grid.set_value({.x = x, .y = y}, TileType::Wall);
-        }
-      }
-    }
-  }
+  // /// Place a rect made up of walls and floors in the grid for use in testing.
+  // void place_covered_box() const {
+  //   very_large_grid.place_rect({{.x = 2, .y = 2}, {.x = 20, .y = 20}});
+  //   for (int y = 1; y <= 21; y++) {
+  //     for (int x = 1; x <= 21; x++) {
+  //       if (very_large_grid.get_value({.x = x, .y = y}) != TileType::Floor) {
+  //         very_large_grid.set_value({.x = x, .y = y}, TileType::Wall);
+  //       }
+  //     }
+  //   }
+  // }
 };
 
 namespace {
 /// Assert that there are no adjacent walls to the specified tile type in the grid.
 ///
 /// @param grid - The grid to check for adjacent walls.
-void assert_no_adjacent_walls(const Grid &grid) {
-  for (int y = 0; y < grid.height; y++) {
-    for (int x = 0; x < grid.width; x++) {
-      if (grid.get_value({.x = x, .y = y}) == TileType::HealthPotion) {
-        const auto neighbours{grid.get_neighbours({.x = x, .y = y})};
-        ASSERT_EQ(std::ranges::count_if(neighbours.begin(), neighbours.end(),
-                                        [&grid](const auto &pos) { return grid.get_value(pos) == TileType::Wall; }),
-                  0);
-      }
+/// @param tile_type - The tile type to check for adjacent walls.
+void assert_no_adjacent_walls(const Grid &grid, const TileType tile_type) {
+  for (int i{0}; i < grid.width * grid.height; i++) {
+    if (const Position pos{grid.convert_position(i)}; grid.get_value(pos) == tile_type) {
+      const auto neighbours{grid.get_neighbours(pos)};
+      ASSERT_EQ(std::ranges::count_if(neighbours.begin(), neighbours.end(),
+                                      [&grid](const auto &pos) { return grid.get_value(pos) == TileType::Wall; }),
+                0);
     }
   }
 }
@@ -70,11 +69,9 @@ void assert_no_adjacent_walls(const Grid &grid) {
 void assert_min_distance(const Grid &grid, const TileType tile_type) {
   // Collect all positions of the specified tile type
   std::vector<Position> positions;
-  for (int y = 0; y < grid.height; y++) {
-    for (int x = 0; x < grid.width; x++) {
-      if (grid.get_value({.x = x, .y = y}) == tile_type) {
-        positions.emplace_back(x, y);
-      }
+  for (int i{0}; i < grid.width * grid.height; i++) {
+    if (const Position pos{grid.convert_position(i)}; grid.get_value(pos) == tile_type) {
+      positions.push_back(pos);
     }
   }
 
@@ -90,213 +87,106 @@ void assert_min_distance(const Grid &grid, const TileType tile_type) {
 }
 }  // namespace
 
-/// Test that placing a tile in an empty grid does nothing.
-TEST_F(MapFixture, TestMapPlaceTilesEmptyGrid) {
-  const Grid empty_grid{0, 0};
-  place_tiles(empty_grid, random_generator, TileType::Obstacle, 1, 1);
-  ASSERT_EQ(*empty_grid.grid, std::vector<TileType>{});
+/// Test that generating rooms in an empty map doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorGenerateRoomsEmptyMap) {
+  const auto rooms{empty_map.generate_rooms().get_rooms()};
+  ASSERT_EQ(rooms.size(), 0);
 }
 
-/// Test that placing zero tiles in the grid does nothing.
-TEST_F(MapFixture, TestMapPlaceTilesZeroCount) {
-  place_tiles(grid, random_generator, TileType::Obstacle, 1, 0);
-  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 25);
-  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Obstacle), 0);
+/// Test that generating rooms in a small map works correctly.
+TEST_F(MapFixture, TestMapGeneratorGenerateRoomsSmallMap) {
+  const auto rooms{small_map.generate_rooms().get_rooms()};
+  ASSERT_GE(rooms.size(), 2);
+  ASSERT_LE(rooms.size(), 2);
 }
 
-/// Test that placing an obstacle tile in the grid works correctly.
-TEST_F(MapFixture, TestMapPlaceTilesObstacleSingleCount) {
-  place_tiles(grid, random_generator, TileType::Obstacle, 1, 1);
-  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 24);
-  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Obstacle), 1);
-  assert_min_distance(grid, TileType::Obstacle);
+/// Test that generating rooms in a large map works correctly.
+TEST_F(MapFixture, TestMapGeneratorGenerateRoomsLargeMap) {
+  const auto rooms{large_map.generate_rooms().get_rooms()};
+  ASSERT_GE(rooms.size(), 12);
+  ASSERT_LE(rooms.size(), 12);
 }
 
-/// Test that placing an item tile in the grid works correctly.
-TEST_F(MapFixture, TestMapPlaceTilesItemSingleCount) {
-  place_covered_box();
-  place_tiles(very_large_grid, random_generator, TileType::HealthPotion, 1, 1);
-  ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Floor), 360);
-  ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::HealthPotion), 1);
-  assert_min_distance(very_large_grid, TileType::HealthPotion);
-  assert_no_adjacent_walls(very_large_grid);
-}
-
-/// Test that placing multiple obstacle tiles in the grid works correctly.
-TEST_F(MapFixture, TestMapPlaceTilesObstacleMultipleCount) {
-  place_tiles(very_large_grid, random_generator, TileType::Obstacle, 1, 2);
-  ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Obstacle), 2);
-  assert_min_distance(grid, TileType::Obstacle);
-}
-
-/// Test that placing multiple item tiles in the grid works correctly.
-TEST_F(MapFixture, TestMapPlaceTilesItemMultipleCount) {
-  place_covered_box();
-  place_tiles(very_large_grid, random_generator, TileType::HealthPotion, 1, 2);
-  ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Floor), 359);
-  ASSERT_EQ(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::HealthPotion), 2);
-  assert_min_distance(very_large_grid, TileType::HealthPotion);
-  assert_no_adjacent_walls(very_large_grid);
-}
-
-/// Test that placing an unknown number of obstacle tiles in the grid works correctly.
-TEST_F(MapFixture, TestMapPlaceTilesObstacleUnknownCount) {
-  place_tiles(very_large_grid, random_generator, TileType::Obstacle, 1, std::numeric_limits<int>::max());
-  ASSERT_GE(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Empty), 621);
-  ASSERT_GE(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Obstacle), 4);
-  assert_min_distance(very_large_grid, TileType::Obstacle);
-}
-
-/// Test that placing an unknown number of item tiles in the grid works correctly.
-TEST_F(MapFixture, TestMapPlaceTilesItemUnknownCount) {
-  place_covered_box();
-  place_tiles(very_large_grid, random_generator, TileType::HealthPotion, 1, std::numeric_limits<int>::max());
-  ASSERT_GE(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::Floor), 358);
-  ASSERT_GE(std::ranges::count(very_large_grid.grid->begin(), very_large_grid.grid->end(), TileType::HealthPotion), 2);
-  assert_min_distance(very_large_grid, TileType::HealthPotion);
-  assert_no_adjacent_walls(very_large_grid);
-}
-
-/// Test that placing a tile in the grid with a given probability works correctly.
-TEST_F(MapFixture, TestMapPlaceTilesWithProbability) {
-  place_tiles(grid, random_generator, TileType::Obstacle, 0.1, 1);
-  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 25);
-  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Obstacle), 0);
-  place_tiles(grid, random_generator, TileType::Obstacle, 0.9, 1);
-  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 24);
-  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Obstacle), 1);
-}
-
-/// Test that placing a tile in the grid with no available positions throws an exception.
-TEST_F(MapFixture, TestMapPlaceTilesNoAvailablePositions) {
-  place_tiles(grid, random_generator, TileType::Floor, 1, 1);
-  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Empty), 25);
-}
-
-/// Test that creating a minimum spanning tree with a single room works correctly.
+/// Test that generating the connections with a single room doesn't do anything.
 TEST_F(MapFixture, TestMapCreateConnectionsSingleRoom) {
-  const std::unordered_set<Edge> single_room_result{};
-  ASSERT_EQ(create_connections({rect_one}), single_room_result);
+  small_map.get_rooms().emplace_back(rect_one.centre);
+  const auto connections{small_map.create_connections().get_connections()};
+  ASSERT_EQ(connections.size(), 0);
 }
 
-/// Test that creating a minimum spanning tree with multiple rooms works correctly.
+/// Test that generating the connections with multiple rooms works correctly.
 TEST_F(MapFixture, TestMapCreateConnectionsMultipleRooms) {
   // Create the minimum-spanning tree and check its size
-  auto connections{create_connections({rect_one, rect_two, rect_three})};
+  large_map.get_rooms().emplace_back(rect_one.centre);
+  large_map.get_rooms().emplace_back(rect_two.centre);
+  large_map.get_rooms().emplace_back(rect_three.centre);
+  const auto connections{large_map.create_connections().get_connections()};
   ASSERT_EQ(connections.size(), 2);
 
   // Check that the minimum spanning tree has the correct total cost
   ASSERT_EQ(std::accumulate(connections.begin(), connections.end(), 0,
-                            [](const int &sum, const Edge &edge) { return sum + edge.cost; }),
-            4);
+                            [](const int &sum, const Connection &connection) { return sum + connection.cost; }),
+            19);
 
-  // Check that all the edges are correct
-  for (const auto &edge : {Edge{.cost = 1, .source = rect_one, .destination = rect_two},
-                           Edge{.cost = 3, .source = rect_one, .destination = rect_three}}) {
+  // Check that all the connections are correct
+  const std::vector<Connection> expected_connections{
+      {.cost = 7, .source = {.x = 2, .y = 5}, .destination = {.x = 9, .y = 3}},
+      {.cost = 12, .source = {.x = 9, .y = 3}, .destination = {.x = 21, .y = 10}}};
+  for (const auto &connection : connections) {
     ASSERT_TRUE(std::ranges::any_of(connections.begin(), connections.end(),
-                                    [&edge](const Edge &connection) { return connection == edge; }));
+                                    [&connection](const Connection &other) { return connection == other; }));
   }
 }
 
-/// Test that creating a minimum spanning tree with zero rooms throws an exception.
+/// Test that generating the connections with zero rooms throws an exception.
 TEST_F(MapFixture, TestMapCreateConnectionsEmptyRooms){
-    ASSERT_THROW_MESSAGE(create_connections({}), std::length_error, "Rooms size must be bigger than 0.")}
+    ASSERT_THROW_MESSAGE(small_map.create_connections(), std::length_error, "Rooms size must be bigger than 0.")}
 
-/// Test that creating hallways with a single connection works correctly.
-TEST_F(MapFixture, TestMapCreateHallwaysSingleConnection) {
-  create_hallways(large_grid, {{.cost = 0, .source = rect_one, .destination = rect_three}});
+/// Test that generating hallways with a single connection works correctly.
+TEST_F(MapFixture, TestMapGenerateHallwaysSingleConnection) {
+  small_map.get_connections().emplace_back(
+      Connection{.cost = 0, .source = rect_one.centre, .destination = rect_two.centre});
+  small_map.generate_hallways();
   const std::vector single_connection_result{
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor,
       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-  };
-  ASSERT_EQ(*large_grid.grid, single_connection_result);
-}
-
-/// Test that creating hallways with multiple connections works correctly.
-TEST_F(MapFixture, TestMapCreateHallwaysMultipleConnections) {
-  create_hallways(large_grid, {{.cost = 0, .source = rect_one, .destination = rect_two},
-                               {.cost = 0, .source = rect_one, .destination = rect_three}});
-  const std::vector obstacles_result{
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty,
       TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
-  ASSERT_EQ(*large_grid.grid, obstacles_result);
+  ASSERT_EQ(*small_map.get_grid().grid, single_connection_result);
 }
 
-/// Test that creating hallways with no connections doesn't do anything.
-TEST_F(MapFixture, TestMapCreateHallwaysNoConnections) {
-  create_hallways(large_grid, {});
-  const std::vector no_connections_result{
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-  };
-  ASSERT_EQ(*large_grid.grid, no_connections_result);
+/// Test that generating hallways with no connections doesn't do anything.
+TEST_F(MapFixture, TestMapGenerateHallwaysNoConnections) {
+  small_map.generate_hallways();
+  const std::vector no_connections_result{96, TileType::Empty};
+  ASSERT_EQ(*small_map.get_grid().grid, no_connections_result);
 }
 
-/// Test that running cellular automata on a grid with all empty tiles doesn't do anything.
-TEST_F(MapFixture, TestMapRunCellularAutomataAllEmpty) {
-  run_cellular_automata(grid);
-  ASSERT_EQ(*grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Empty));
-}
-
-/// Test that running cellular automata on a grid with all floor tiles sets the edges to walls.
-TEST_F(MapFixture, TestMapRunCellularAutomataAllFloors) {
-  for (int y = 0; y < grid.height; y++) {
-    for (int x = 0; x < grid.width; x++) {
-      grid.set_value({.x = x, .y = y}, TileType::Floor);
-    }
-  }
-  run_cellular_automata(grid);
-  const std::vector all_floor_result{
-      TileType::Wall, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
-      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
-  };
-  ASSERT_EQ(*grid.grid, all_floor_result);
-}
-
-/// Test that running cellular automata on a grid with all wall tiles sets all tiles to empty.
-TEST_F(MapFixture, TestMapRunCellularAutomataAllWalls) {
-  for (int y = 0; y < grid.height; y++) {
-    for (int x = 0; x < grid.width; x++) {
-      grid.set_value({.x = x, .y = y}, TileType::Wall);
-    }
-  }
-  run_cellular_automata(grid);
-  ASSERT_EQ(*grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Empty));
+/// Test that generating hallways in an empty map doesn't do anything.
+TEST_F(MapFixture, TestMapGenerateHallwaysEmptyMap) {
+  empty_map.get_connections().emplace_back(
+      Connection{.cost = 0, .source = rect_one.centre, .destination = rect_two.centre});
+  empty_map.generate_hallways();
+  const std::vector empty_map_result{0, TileType::Empty};
+  ASSERT_EQ(*empty_map.get_grid().grid, empty_map_result);
 }
 
 /// Test that running cellular automata on a grid with mixed floor and wall tiles works correctly.
-TEST_F(MapFixture, TestMapRunCellularAutomataMixedFloors) {
+TEST_F(MapFixture, TestMapGeneratorCellularAutomataMixedFloors) {
+  const auto &grid{small_map.get_grid()};
   grid.set_value({.x = 1, .y = 1}, TileType::Floor);
   grid.set_value({.x = 2, .y = 1}, TileType::Floor);
   grid.set_value({.x = 3, .y = 1}, TileType::Floor);
@@ -305,82 +195,290 @@ TEST_F(MapFixture, TestMapRunCellularAutomataMixedFloors) {
   grid.set_value({.x = 1, .y = 3}, TileType::Floor);
   grid.set_value({.x = 2, .y = 3}, TileType::Floor);
   grid.set_value({.x = 3, .y = 3}, TileType::Floor);
-  run_cellular_automata(grid);
+  small_map.cellular_automata();
   const std::vector mixed_floor_result{
-      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty,
-      TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Wall,
-      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Wall,
-      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty,
-  };
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty};
   ASSERT_EQ(*grid.grid, mixed_floor_result);
 }
 
-/// Test that running cellular automata on a grid with mixed floor and wall tiles works correctly.
-TEST_F(MapFixture, TestMapRunCellularAutomataFloorsAtEdge) {
-  grid.set_value({.x = 1, .y = 0}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 0}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 0}, TileType::Floor);
-  grid.set_value({.x = 0, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 0, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 0, .y = 3}, TileType::Floor);
-  grid.set_value({.x = 4, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 4, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 4, .y = 3}, TileType::Floor);
-  grid.set_value({.x = 1, .y = 4}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 4}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 4}, TileType::Floor);
-  run_cellular_automata(grid);
-  const std::vector edge_floor_result{
-      TileType::Wall, TileType::Wall,  TileType::Wall, TileType::Wall,  TileType::Wall,
-      TileType::Wall, TileType::Floor, TileType::Wall, TileType::Floor, TileType::Wall,
-      TileType::Wall, TileType::Wall,  TileType::Wall, TileType::Wall,  TileType::Wall,
-      TileType::Wall, TileType::Floor, TileType::Wall, TileType::Floor, TileType::Wall,
-      TileType::Wall, TileType::Wall,  TileType::Wall, TileType::Wall,  TileType::Wall,
-  };
-  ASSERT_EQ(*grid.grid, edge_floor_result);
-}
-
 /// Test that running multiple cellular automata simulations works correctly.
-TEST_F(MapFixture, TestMapRunCellularAutomataMultipleSimulations) {
-  grid.set_value({.x = 0, .y = 0}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 0}, TileType::Floor);
-  grid.set_value({.x = 4, .y = 0}, TileType::Floor);
-  grid.set_value({.x = 0, .y = 2}, TileType::Floor);
+TEST_F(MapFixture, TestMapGeneratorCellularAutomataMultipleSimulations) {
+  const auto &grid{small_map.get_grid()};
+  grid.set_value({.x = 1, .y = 1}, TileType::Floor);
   grid.set_value({.x = 2, .y = 1}, TileType::Floor);
+  grid.set_value({.x = 3, .y = 1}, TileType::Floor);
   grid.set_value({.x = 1, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 2}, TileType::Floor);
   grid.set_value({.x = 3, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 4, .y = 2}, TileType::Floor);
+  grid.set_value({.x = 1, .y = 3}, TileType::Floor);
   grid.set_value({.x = 2, .y = 3}, TileType::Floor);
-  grid.set_value({.x = 0, .y = 4}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 4}, TileType::Floor);
-  grid.set_value({.x = 4, .y = 4}, TileType::Floor);
-  grid.set_value({.x = 4, .y = 4}, TileType::Floor);
-  for (int i = 0; i < 3; i++) {
-    run_cellular_automata(grid);
-  }
+  grid.set_value({.x = 3, .y = 3}, TileType::Floor);
+  small_map.cellular_automata(2);
   const std::vector multiple_simulation_result{
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty,
-      TileType::Empty, TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Empty,
-      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
   ASSERT_EQ(*grid.grid, multiple_simulation_result);
 }
 
 /// Test that running cellular automata on an empty grid doesn't do anything.
-TEST_F(MapFixture, TestMapRunCellularAutomataEmptyGrid) {
-  Grid empty_grid{0, 0};
-  run_cellular_automata(empty_grid);
-  ASSERT_EQ(*empty_grid.grid, std::vector<TileType>{});
+TEST_F(MapFixture, TestMapGeneratorCellularAutomataEmptyGrid) {
+  empty_map.cellular_automata();
+  ASSERT_EQ(*empty_map.get_grid().grid, std::vector<TileType>{});
+}
+
+/// Test that placing walls in an empty grid doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorGenerateWallsEmptyGrid) {
+  empty_map.generate_walls();
+  ASSERT_EQ(*empty_map.get_grid().grid, std::vector<TileType>{});
+}
+
+/// Test that placing walls in a grid with all empty tiles doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllEmpty) {
+  const auto &grid{empty_map.get_grid()};
+  empty_map.generate_walls();
+  ASSERT_EQ(*grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Empty));
+}
+
+/// Test that placing walls in a grid with all wall tiles sets all tiles to walls.
+TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllWalls) {
+  const auto &grid{small_map.get_grid()};
+  for (int y = 0; y < grid.height; y++) {
+    for (int x = 0; x < grid.width; x++) {
+      grid.set_value({.x = x, .y = y}, TileType::Wall);
+    }
+  }
+  small_map.generate_walls();
+  ASSERT_EQ(*grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Wall));
+}
+
+/// Test that placing walls in a grid with all floor tiles sets the edges to walls.
+TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllFloors) {
+  const auto &grid{small_map.get_grid()};
+  for (int y = 0; y < grid.height; y++) {
+    for (int x = 0; x < grid.width; x++) {
+      grid.set_value({.x = x, .y = y}, TileType::Floor);
+    }
+  }
+  small_map.generate_walls();
+  const std::vector all_floor_result{
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+  };
+  ASSERT_EQ(*grid.grid, all_floor_result);
+}
+
+/// Test that placing walls in a grid with a non-uniform floor pattern works correctly.
+TEST_F(MapFixture, TestMapGeneratorGenerateWallsMixedFloors) {
+  const auto &grid{small_map.get_grid()};
+  grid.set_value({.x = 1, .y = 1}, TileType::Floor);
+  grid.set_value({.x = 2, .y = 1}, TileType::Floor);
+  grid.set_value({.x = 3, .y = 1}, TileType::Floor);
+  grid.set_value({.x = 1, .y = 2}, TileType::Floor);
+  grid.set_value({.x = 2, .y = 2}, TileType::Floor);
+  grid.set_value({.x = 3, .y = 2}, TileType::Floor);
+  grid.set_value({.x = 2, .y = 3}, TileType::Floor);
+  small_map.generate_walls();
+  const std::vector mixed_floor_result{
+      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,  TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,  TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Wall,  TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+  };
+  ASSERT_EQ(*grid.grid, mixed_floor_result);
+}
+
+/// Test that placing obstacles in an empty grid doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesEmptyGrid) {
+  empty_map.place_obstacles();
+  ASSERT_EQ(*empty_map.get_grid().grid, std::vector<TileType>{});
+}
+
+/// Test that placing obstacles in a grid with all empty tiles works correctly.
+TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllEmpty) {
+  small_map.place_obstacles();
+  ASSERT_EQ(
+      std::ranges::count(small_map.get_grid().grid->begin(), small_map.get_grid().grid->end(), TileType::Obstacle), 2);
+  assert_min_distance(small_map.get_grid(), TileType::Obstacle);
+}
+
+/// Test that placing obstacles in a grid with all floor tiles doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllFloors) {
+  const auto &grid{small_map.get_grid()};
+  for (int i{0}; i < grid.width * grid.height; i++) {
+    grid.set_value(grid.convert_position(i), TileType::Floor);
+  }
+  small_map.place_obstacles();
+  ASSERT_EQ(*grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Floor));
+}
+
+/// Test that placing obstacles in a grid with all wall tiles doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllWalls) {
+  const auto &grid{small_map.get_grid()};
+  for (int i{0}; i < grid.width * grid.height; i++) {
+    grid.set_value(grid.convert_position(i), TileType::Wall);
+  }
+  small_map.place_obstacles();
+  ASSERT_EQ(*grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Wall));
+}
+
+/// Test that placing a player in an empty grid doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorPlacePlayerEmptyGrid) {
+  empty_map.place_player();
+  ASSERT_EQ(*empty_map.get_grid().grid, std::vector<TileType>{});
+}
+
+/// Test that placing a player in a grid with all empty tiles doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllEmpty) {
+  small_map.place_player();
+  ASSERT_EQ(std::ranges::count(small_map.get_grid().grid->begin(), small_map.get_grid().grid->end(), TileType::Player),
+            0);
+}
+
+/// Test that placing a player in a grid with all floor tiles works correctly.
+TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllFloors) {
+  const auto &grid{small_map.get_grid()};
+  for (int i{0}; i < grid.width * grid.height; i++) {
+    grid.set_value(grid.convert_position(i), TileType::Floor);
+  }
+  small_map.place_player();
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Player), 1);
+  assert_no_adjacent_walls(grid, TileType::Player);
+  assert_min_distance(grid, TileType::Player);
+}
+
+/// Test that placing a player in a grid with all wall tiles doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllWalls) {
+  const auto &grid{small_map.get_grid()};
+  for (int i{0}; i < grid.width * grid.height; i++) {
+    grid.set_value(grid.convert_position(i), TileType::Wall);
+  }
+  small_map.place_player();
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Player), 0);
+}
+
+/// Test that placing items in an empty grid doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorPlaceItemsEmptyGrid) {
+  empty_map.place_items();
+  ASSERT_EQ(*empty_map.get_grid().grid, std::vector<TileType>{});
+}
+
+/// Test that placing items in a grid with all empty tiles doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllEmpty) {
+  small_map.place_items();
+  ASSERT_EQ(
+      std::ranges::count(small_map.get_grid().grid->begin(), small_map.get_grid().grid->end(), TileType::HealthPotion),
+      0);
+}
+
+/// Test that placing items in a grid with all floor tiles works correctly.
+TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllFloors) {
+  const auto &grid{small_map.get_grid()};
+  for (int i{0}; i < grid.width * grid.height; i++) {
+    grid.set_value(grid.convert_position(i), TileType::Floor);
+  }
+  small_map.place_items();
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::HealthPotion), 2);
+  assert_no_adjacent_walls(grid, TileType::HealthPotion);
+  assert_min_distance(grid, TileType::HealthPotion);
+}
+
+/// Test that placing items in a grid with all wall tiles doesn't do anything.
+TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllWalls) {
+  const auto &grid{small_map.get_grid()};
+  for (int i{0}; i < grid.width * grid.height; i++) {
+    grid.set_value(grid.convert_position(i), TileType::Wall);
+  }
+  small_map.place_items();
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::HealthPotion), 0);
+}
+
+/// Test that generating a goal on an empty grid throws an exception.
+TEST_F(MapFixture, TestMapGeneratorPlaceGoalEmptyGrid){
+    ASSERT_THROW_MESSAGE(empty_map.place_goal(), std::out_of_range, "Position not within the grid.")}
+
+/// Test that generating a goal on a grid with all empty tiles throws an exception.
+TEST_F(MapFixture, TestMapGeneratorPlaceGoalAllEmpty){
+    ASSERT_THROW_MESSAGE(small_map.place_goal(), std::out_of_range, "Position not within the grid.")}
+
+/// Test that generating a goal on a grid with no player tile throws an exception.
+TEST_F(MapFixture, TestMapGeneratorPlaceGoalNoPlayer) {
+  const auto &grid{small_map.get_grid()};
+  for (auto i{0}; i < grid.width * grid.height; i++) {
+    grid.set_value(grid.convert_position(i), TileType::Floor);
+  }
+  ASSERT_THROW_MESSAGE(small_map.place_goal(), std::out_of_range, "Position not within the grid.")
+}
+
+/// Test that generating a goal on a grid with a player tile works correctly.
+TEST_F(MapFixture, TestMapGeneratorPlaceGoalPlayer) {
+  const auto &grid{small_map.get_grid()};
+  for (auto i{0}; i < grid.width * grid.height; i++) {
+    grid.set_value(grid.convert_position(i), TileType::Floor);
+  }
+  grid.set_value({.x = 0, .y = 0}, TileType::Player);
+  small_map.place_goal();
+  ASSERT_EQ(std::ranges::count(grid.grid->begin(), grid.grid->end(), TileType::Goal), 1);
+  assert_min_distance(grid, TileType::Goal);
 }
 
 /// Test that creating a map with a valid level and seed works correctly.
-TEST_F(MapFixture, TestMapCreateMapValidLevelSeed) {
-  const auto [create_map_valid_grid, create_map_valid_constants] = create_map(0, 10);
-  ASSERT_EQ(create_map_valid_constants.level, 0);
+TEST_F(MapFixture, TestMapGeneratorCreateMapValidLevelSeed) {
+  const auto [create_map_valid_grid, create_map_valid_constants]{create_map(0, 10)};
   ASSERT_EQ(create_map_valid_constants.width, 30);
   ASSERT_EQ(create_map_valid_constants.height, 20);
   ASSERT_EQ(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Player), 1);
@@ -390,12 +488,12 @@ TEST_F(MapFixture, TestMapCreateMapValidLevelSeed) {
 }
 
 /// Test that creating a map without a seed works correctly.
-TEST_F(MapFixture, TestMapCreateMapEmptySeed) {
-  const auto [create_map_empty_seed_grid, _] = create_map(0);
+TEST_F(MapFixture, TestMapGeneratorCreateMapEmptySeed) {
+  const auto [create_map_empty_seed_grid, _]{create_map(0)};
   ASSERT_NE(create_map_empty_seed_grid, create_map(0).first);
 }
 
 /// Test that creating a map with a negative level throws an exception.
-TEST_F(MapFixture, TestMapCreateMapNegativeLevel) {
+TEST_F(MapFixture, TestMapGeneratorCreateMapNegativeLevel) {
   ASSERT_THROW_MESSAGE(create_map(-1, 5), std::length_error, "Level must be bigger than or equal to 0.")
 }

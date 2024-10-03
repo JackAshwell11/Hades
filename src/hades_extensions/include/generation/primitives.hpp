@@ -9,7 +9,7 @@
 #include <vector>
 
 /// Stores the different types of tiles in the game map.
-enum class TileType : std::uint8_t {
+enum struct TileType : std::uint8_t {
   Empty,
   Floor,
   Wall,
@@ -127,6 +127,18 @@ struct Grid {
     return position.x >= 0 && position.x < width && position.y >= 0 && position.y < height;
   }
 
+  /// Convert a 1D grid position to a 2D grid position.
+  ///
+  /// @param position - The position to convert.
+  /// @throws std::out_of_range - If the position is not within the 2D grid.
+  /// @return The 2D grid position.
+  [[nodiscard]] auto convert_position(const int position) const -> Position {
+    if (position < 0 || position >= width * height) {
+      throw std::out_of_range("Position not within the grid.");
+    }
+    return {.x = position % width, .y = position / width};
+  }
+
   /// Convert a 2D grid position to a 1D grid position.
   ///
   /// @param position - The position to convert.
@@ -176,7 +188,6 @@ struct Grid {
   /// @details It is the responsibility of the caller to ensure that the rect fits in the grid.
   /// @param rect - The rect to place in the 2D grid.
   void place_rect(const Rect &rect) const {
-    // Place only the floors as the walls will be placed after the cellular automata
     for (int y{std::max(rect.top_left.y, 0)}; y < std::min(rect.bottom_right.y + 1, height); y++) {
       for (int x{std::max(rect.top_left.x, 0)}; x < std::min(rect.bottom_right.x + 1, width); x++) {
         set_value({.x = x, .y = y}, TileType::Floor);
@@ -202,16 +213,6 @@ struct std::hash<Position> {
     std::size_t res{0};
     hash_combine(res, position.x);
     hash_combine(res, position.y);
-    return res;
-  }
-};
-
-template <>
-struct std::hash<Rect> {
-  auto operator()(const Rect &rect) const noexcept -> std::size_t {
-    std::size_t res{0};
-    hash_combine(res, rect.top_left);
-    hash_combine(res, rect.bottom_right);
     return res;
   }
 };

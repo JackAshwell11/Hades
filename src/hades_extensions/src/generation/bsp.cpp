@@ -68,7 +68,7 @@ void Leaf::split(std::mt19937 &random_generator) {  // NOLINT(misc-no-recursion)
 }
 
 void Leaf::create_room(const Grid &grid, std::mt19937 &random_generator,  // NOLINT(misc-no-recursion)
-                       std::vector<Rect> &rooms) {
+                       std::vector<Position> &rooms) {
   // Check if this leaf is already split or not, if so, create rooms for the left and right leafs
   if (left && right) {
     left->create_room(grid, random_generator, rooms);
@@ -103,5 +103,5 @@ void Leaf::create_room(const Grid &grid, std::mt19937 &random_generator,  // NOL
   // Place the rect in the 2D grid then save it in the leaf and the rooms vector
   grid.place_rect(rect);
   room = std::make_unique<Rect>(rect);
-  rooms.push_back(rect);
+  rooms.push_back(rect.centre);
 }
