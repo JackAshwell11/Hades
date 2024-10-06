@@ -108,24 +108,3 @@ auto wander(const cpVect &current_velocity, const double displacement_angle) -> 
   const cpVect displacement{cpvrotate(cpv(0, -1) * WANDER_CIRCLE_RADIUS, cpvforangle(displacement_angle))};
   return cpvnormalize(circle_center + displacement);
 }
-
-auto wall_distances(cpSpace *space, const cpVect &current_position) -> std::vector<cpVect> {
-  // do raycast in each axis and find distance to wall
-  auto raycast{[&space, &current_position](const cpVect direction) -> cpVect {
-    // Calculate the end position of the ray based on the direction
-    const auto end_position{current_position + cpvnormalize(direction) * 30 * SPRITE_SIZE};
-
-    // Perform the raycast
-    cpSegmentQueryInfo info;
-    if (cpSpaceSegmentQueryFirst(space, current_position, end_position, SPRITE_SIZE / 4,
-                                 {CP_NO_GROUP, CP_ALL_CATEGORIES, static_cast<cpBitmask>(GameObjectType::Wall)},
-                                 &info) != nullptr) {
-      return info.point;
-    }
-    return cpvzero;
-  }};
-
-  // Perform raycasts in all directions
-  return {raycast({0, 1}), raycast({1, 0}),  raycast({0, -1}), raycast({-1, 0}),
-          raycast({1, 1}), raycast({1, -1}), raycast({-1, 1}), raycast({-1, -1})};
-}

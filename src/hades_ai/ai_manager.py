@@ -29,11 +29,11 @@ if TYPE_CHECKING:
 # The size of the input and output layers for the neural network (larger values can
 # provide better results but require more computational power and may lead to
 # overfitting)
-FEATURE_COUNT: Final[int] = 128  # TODO: Experiment with this to find best value
+FEATURE_COUNT: Final[int] = 256
 
 # The number of episodes to train the agent for (larger values can provide better
 # results but require more time)
-EPISODE_COUNT: Final[int] = 1000
+EPISODE_COUNT: Final[int] = 2000
 
 # The number of transitions to sample from the replay memory for each training step
 # (larger values can provide more stable training but require more memory and
@@ -46,7 +46,7 @@ GAMMA: Final[float] = 0.99
 
 # The maximum number of transitions to store in the replay memory (larger values can
 # improve training but require more memory)
-REPLAY_MEMORY_SIZE: Final[int] = 10000
+REPLAY_MEMORY_SIZE: Final[int] = 100000
 
 # The number of episodes to average the rewards over for the graph (larger values can
 # show a smoother graph but may hide important details)
@@ -54,12 +54,12 @@ GRAPH_MOVING_AVERAGE: Final[int] = 50
 
 # The maximum number of steps to take in each episode before stopping (larger values can
 # give the agent more time to learn but may take longer to train)
-MAX_STEP_COUNT: Final[int] = 2000
+MAX_STEP_COUNT: Final[int] = 1000
 
 # The starting epsilon value for the epsilon-greedy policy which determines the initial
 # exploration rate (higher values mean the agent will explore more at the beginning of
 # training which can help discover better strategies)
-EPS_START: Final[float] = 0.9
+EPS_START: Final[float] = 0.99
 
 # The final epsilon value for the epsilon-greedy policy which determines the minimum
 # exploration rate (lower values mean the agent will exploit its learned policy more as
@@ -73,16 +73,16 @@ EPS_DECAY: Final[int] = 1000
 # The rate at which the target network's weights are adjusted towards the policy
 # network's weights (smaller values mean the target network will change more slowly
 # providing more stable training)
-TAU: Final[float] = 0.005
+TAU: Final[float] = 0.01
 
 # The learning rate for the AdamW optimiser which determines the step size during
 # gradient descent (smaller values can lead to more stable training but may require more
 # training steps)
 LR: Final[float] = 0.0001
 
-# The interval at which to record the gameplay (larger values can reduce the number of
-# recordings, but may miss important details)
-RECORDING_INTERVAL: Final[int] = 100
+# The interval at which to save the gameplay and graphs (larger values can reduce the
+# number of saves, but may miss important details)
+SAVE_INTERVAL: Final[int] = 50
 
 # Check if we're running in interactive mode or not
 if IS_IPYTHON := "inline" in get_backend():
@@ -153,6 +153,8 @@ class DQN(Sequential):
             ReLU(),
             Linear(FEATURE_COUNT, FEATURE_COUNT),
             ReLU(),
+            Linear(FEATURE_COUNT, FEATURE_COUNT),
+            ReLU(),
             Linear(FEATURE_COUNT, action_space.n),
         )
 
@@ -163,6 +165,7 @@ class DQNAgent:
     __slots__ = (
         "action_space",
         "device",
+        "epsilon",
         "memory",
         "optimiser",
         "policy_net",
@@ -192,6 +195,7 @@ class DQNAgent:
         self.policy_net: DQN = DQN(observation_space, action_space).to(self.device)
         self.target_net: DQN = DQN(observation_space, action_space).to(self.device)
         self.optimiser: AdamW = AdamW(self.policy_net.parameters(), lr=LR)
+        self.epsilon: float = EPS_START
 
     def select_action(self: DQNAgent, state: torch.Tensor) -> torch.Tensor:
         """Select an action.
@@ -205,24 +209,22 @@ class DQNAgent:
         # Increment the steps_done counter so that we can decay epsilon over time
         self.steps_done += 1
 
-        # Calculate the epsilon threshold for the epsilon-greedy policy using an
-        # exponential decay function
-        eps_threshold: float = EPS_END + (EPS_START - EPS_END) * np.exp(
-            -self.steps_done / EPS_DECAY,
-        )
-
         # Select an action based on the epsilon-greedy policy
-        if random.random() > eps_threshold:
-            # Exploit the policy network to select the best action
+        if random.random() > self.epsilon:
+            # Exploit the policy network with noise to select the best action
             with torch.no_grad():
-                return self.policy_net(state).argmax(dim=1).view(1, 1).to(self.device)
+                action = self.policy_net(state).argmax(dim=1).view(1, 1).to(self.device)
         else:
             # Explore by selecting a random action
-            return torch.tensor(
+            action = torch.tensor(
                 [[self.action_space.sample()]],
                 device=self.device,
                 dtype=torch.float32,
             )
+
+        # Decay epsilon after each action selection
+        self.epsilon = max(EPS_END, self.epsilon - (EPS_START - EPS_END) / EPS_DECAY)
+        return action
 
     def optimise_model(self: DQNAgent) -> float:
         """Optimise the model.
@@ -231,7 +233,7 @@ class DQNAgent:
             The loss value.
         """
         # Get a batch of transitions
-        batch = Transition(*zip(*random.sample(self.memory, BATCH_SIZE)))
+        batch = Transition(*zip(*random.sample(self.memory, BATCH_SIZE), strict=False))
 
         # Compute mask of non-final states and concatenate the batch elements
         non_final_mask = torch.tensor(
@@ -289,21 +291,32 @@ class DQNAgent:
         self.target_net.load_state_dict(target_net_state_dict)
 
 
-def plot_graphs(*, show_result: bool = False) -> None:
+def get_episode_dir(episode: int) -> Path:
+    """Get the directory for the given episode.
+
+    Args:
+        episode: The episode number.
+
+    Returns:
+        The directory path for the given episode.
+    """
+    episode_dir = OUTPUT_DIR / f"{episode}"
+    episode_dir.mkdir(exist_ok=True)
+    return episode_dir
+
+
+def plot_graphs(save_dir: Path | None = None) -> None:
     """Plot the graphs for the AI training.
 
     Args:
-        show_result: Whether to show the final result or not.
+        save_dir: The directory to save the graphs to.
     """
 
     def plot_metric(plot_num: int, metric: list[float], label: str) -> None:
         # Give the figure a number and title so that we can update it
         plt.figure(plot_num)
-        if show_result:
-            plt.title("Result")
-        else:
-            plt.clf()
-            plt.title("Training...")
+        plt.clf()
+        plt.title("Training")
 
         # Label the x and y axes and plot the metric
         plt.xlabel("Episode")
@@ -322,9 +335,9 @@ def plot_graphs(*, show_result: bool = False) -> None:
         # we need to know the label)
         plt.legend()
 
-        # Save the graph if we're showing the final result
-        if show_result:
-            plt.savefig(OUTPUT_DIR / f"{label.lower()}.png")
+        # Save the graph if possible
+        if save_dir:
+            plt.savefig(save_dir / f"{label.lower()}.png")
 
     # Create a graph for the losses and rewards
     plot_metric(0, episode_losses, "Loss")
@@ -336,8 +349,7 @@ def plot_graphs(*, show_result: bool = False) -> None:
     # If we're running in interactive mode, update the graphs
     if IS_IPYTHON:
         display.display(plt.gcf())
-        if not show_result:
-            display.clear_output(wait=True)
+        display.clear_output(wait=True)
 
 
 def concat_observation(obs: ObsType) -> torch.Tensor:
@@ -366,10 +378,8 @@ def train_dqn() -> None:
     """Train the DQN agent in the environment."""
     # Loop over the episodes
     for episode in range(EPISODE_COUNT):
-        # Enable recording if possible
-        env.window.record = (
-            episode % RECORDING_INTERVAL == 0 or episode == EPISODE_COUNT - 1
-        )
+        # Enable saving if possible
+        env.window.save = episode % SAVE_INTERVAL == 0 or episode == EPISODE_COUNT - 1
 
         # Reset the environment
         state, _ = env.reset()
@@ -384,14 +394,15 @@ def train_dqn() -> None:
         for _ in range(MAX_STEP_COUNT):
             # Select an action and perform it then store the reward
             action = agent.select_action(state)
-            observation, reward, done, _, _ = env.step(action.item())
+            observation, reward, done, truncated, _ = env.step(action.item())
             total_reward += reward
 
             # Ensure the reward tensor is on the correct device
             reward = torch.tensor([reward], device=agent.device)
 
             # Ensure the next state tensor includes all parts of the observation
-            next_state = concat_observation(observation) if not done else None
+            finish = truncated or done
+            next_state = concat_observation(observation) if not finish else None
 
             # Store the transition in memory
             agent.memory.append(Transition(state, action, next_state, reward))
@@ -405,23 +416,27 @@ def train_dqn() -> None:
 
             # If we're done, stop the current episode
             total_step += 1
-            if done:
+            if finish:
                 break
 
         # Print the episode results
         print(  # noqa: T201
-            f"Finished episode {episode + 1} (recording: {env.window.record}) after"
-            f" {total_step + 1} steps, average reward: {total_reward / total_step},"
-            f" average loss: {total_loss / total_step}",
+            f"Finished episode {episode + 1} (saving: {env.window.save}) after"
+            f" {total_step} steps, average reward: {total_reward / total_step}, average"
+            f" loss: {total_loss / total_step}",
         )
 
-        # Log the rewards and losses for this episode and plot the graphs
-        episode_rewards.append(total_reward / total_step)
-        episode_losses.append(total_loss / total_step)
-        plot_graphs()
+        # Log the rewards and losses for this episode
+        episode_rewards.append(total_reward)
+        episode_losses.append(total_loss)
 
-        # Save the recording if possible
-        env.window.save_video(OUTPUT_DIR / f"episode_{episode}.mp4")
+        # Plot the graphs for the episode and save them if possible
+        if env.window.save:
+            episode_dir = get_episode_dir(episode)
+            plot_graphs(episode_dir)
+            env.window.save_video(episode_dir / f"episode_{episode}.mp4")
+        else:
+            plot_graphs()
 
         # Update the target network after the episode
         agent.update_target_network()
@@ -430,7 +445,9 @@ def train_dqn() -> None:
 def run_dqn() -> None:
     """Run the DQN agent in the environment."""
     # Load the trained model
-    agent.policy_net.load_state_dict(torch.load(OUTPUT_DIR / "dqn.pth"))
+    agent.policy_net.load_state_dict(
+        torch.load(OUTPUT_DIR / "dqn.pth", weights_only=True),
+    )
 
     # Reset the environment
     state, _ = env.reset()
@@ -501,4 +518,6 @@ if __name__ == "__main__":
     elif args.train:
         train_dqn()
         torch.save(agent.policy_net.state_dict(), OUTPUT_DIR / "dqn.pth")
-        plot_graphs(show_result=True)
+
+# TODO: Could add option for training using stable-baselines3 (would need to figure out
+#  graph plotting)

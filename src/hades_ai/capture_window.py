@@ -23,27 +23,25 @@ class CaptureWindow(HadesWindow):
     """Allow periodic gameplay recordings for the AI model.
 
     Attributes:
-        record: Whether to record the gameplay or not.
+        save: Whether to save the gameplay and graphs or not.
     """
 
-    __slots__ = ("frames", "record")
+    __slots__ = ("frames", "save")
 
     def __init__(self: CaptureWindow) -> None:
         """Initialise the object."""
         super().__init__()
-        self.record: bool = False
+        self.save: bool = False
         self.frames: list[Image] = []
 
     def on_update(self: CaptureWindow, _: float) -> None:
         """Capture the current gameplay frame."""
-        # Save the current image to the frames list if we're recording
-        if self.record:
+        if self.save:
             self.frames.append(get_image())
 
     def save_video(self: CaptureWindow, path: Path) -> None:
         """Save the recorded gameplay as a video."""
-        # Check if there is any gameplay to save or not
-        if not self.record:
+        if not self.save:
             return
 
         # Create a video writer object
