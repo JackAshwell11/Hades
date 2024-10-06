@@ -6,6 +6,9 @@
 #include "ecs/systems/physics.hpp"
 
 namespace {
+// The percentage of velocity a game object will retain after a second.
+constexpr double DAMPING = 0.0001;
+
 /// Convert a Chipmunk2D data pointer to a game object ID.
 ///
 /// @param data - The Chipmunk2D data pointer to convert.
@@ -58,6 +61,7 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
   }
 
   // Increment the game object ID and return the current game object ID
+  notify_callbacks(EventType::GameObjectCreation, next_game_object_id_);
   next_game_object_id_++;
   return next_game_object_id_ - 1;
 }

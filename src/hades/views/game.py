@@ -15,18 +15,18 @@ from arcade import (
     color,
     get_sprites_at_point,
     key,
-    schedule,
 )
 from arcade.camera.camera_2d import Camera2D
 from arcade.gui import UIView
 from pyglet import app
 
 # Custom
-from hades.constructors import GameObjectConstructor, game_object_constructors
+from hades.constructors import game_object_constructors
 from hades.progress_bar import ProgressBarGroup
-from hades.sprite import AnimatedSprite, Bullet, HadesSprite
+from hades.sprite import AnimatedSprite, HadesSprite
 from hades.views.game_ui import GameUI
 from hades.views.player import PlayerView
+from hades_extensions import GameEngine
 from hades_extensions.ecs import (
     SPRITE_SIZE,
     EventType,
@@ -44,7 +44,6 @@ from hades_extensions.ecs.components import (
     SteeringMovement,
 )
 from hades_extensions.ecs.systems import AttackSystem, InventorySystem, PhysicsSystem
-from hades_extensions.generation import TileType, create_map
 
 __all__ = ("Game",)
 
@@ -67,52 +66,7 @@ class Game(UIView):
         entity_sprites: The sprite list for the entity game objects.
         item_sprites: The sprite list for the item game objects.
         nearest_item: The nearest item to the player.
-        level_constants: Holds the constants for the current level.
-        registry: The registry that manages the game objects, components, and systems.
-        player: The player's sprite object.
     """
-
-    def _create_sprite(
-        self: Game,
-        constructor: GameObjectConstructor,
-        position: Vec2d,
-    ) -> HadesSprite:
-        """Create a sprite.
-
-        Args:
-            constructor: The constructor for the game object.
-            position: The position of the game object in the grid.
-
-        Returns:
-            The created sprite object.
-        """
-        # Initialise the game object's constructor and a few other variables
-        game_object_id = -1
-        sprite_class = (
-            AnimatedSprite if len(constructor.texture_paths) > 1 else HadesSprite
-        )
-
-        # Create a game object if possible, adding a PythonSprite component if the game
-        # object has other components
-        if constructor.components:
-            game_object_id = self.registry.create_game_object(
-                constructor.game_object_type,
-                position,
-                [*constructor.components],
-            )
-
-        # Create a sprite and add its ID to the dictionary
-        sprite = sprite_class(self.registry, game_object_id, position, constructor)
-        if self.registry.has_component(game_object_id, PythonSprite):
-            self.registry.get_component(game_object_id, PythonSprite).sprite = sprite
-
-        # Create progress bars if needed
-        if constructor.game_object_type == GameObjectType.Player:
-            self.game_ui.player_ui.add(ProgressBarGroup(sprite))
-        elif constructor.game_object_type == GameObjectType.Enemy:
-            progress_bar_group = self.ui.add(ProgressBarGroup(sprite))
-            self.game_ui.progress_bar_groups.append(progress_bar_group)
-        return sprite
 
     def __init__(self: Game, level: int) -> None:
         """Initialise the object.
@@ -129,89 +83,35 @@ class Game(UIView):
         self.nearest_item: int = -1
 
         # Custom types
-        generation_result, self.level_constants = create_map(level)
-        self.registry: Registry = Registry()
         self.game_ui: GameUI = GameUI(self.ui)
+        self.game_engine = GameEngine(level)
+        self.registry: Registry = self.game_engine.get_registry()
 
-        # Initialise all the systems then the game objects
-        self.registry.add_systems()
-        for count, tile in enumerate(generation_result):
-            # Skip all empty tiles
-            if tile in {TileType.Empty, TileType.Obstacle}:
-                continue
-
-            # Get the screen position from the grid position
-            position = Vec2d(
-                count % self.level_constants.width,
-                count // self.level_constants.width,
-            )
-
-            # Determine the type of the tile
-            if tile == TileType.Wall:
-                self.tile_sprites.append(
-                    self._create_sprite(
-                        game_object_constructors[GameObjectType.Wall](),
-                        position,
-                    ),
-                )
-            else:
-                if tile == TileType.Player:
-                    self.player = self._create_sprite(
-                        game_object_constructors[GameObjectType.Player](),
-                        position,
-                    )
-                    self.entity_sprites.append(self.player)
-                elif tile == TileType.Goal:
-                    self.entity_sprites.append(
-                        self._create_sprite(
-                            game_object_constructors[GameObjectType.Goal](),
-                            position,
-                        ),
-                    )
-                elif tile == TileType.HealthPotion:
-                    self.item_sprites.append(
-                        self._create_sprite(
-                            game_object_constructors[GameObjectType.HealthPotion](),
-                            position,
-                        ),
-                    )
-                elif tile == TileType.Chest:
-                    self.item_sprites.append(
-                        self._create_sprite(
-                            game_object_constructors[GameObjectType.Chest](),
-                            position,
-                        ),
-                    )
-
-                # Make the game object's backdrop a floor
-                self.tile_sprites.append(
-                    self._create_sprite(
-                        game_object_constructors[GameObjectType.Floor](),
-                        position,
-                    ),
-                )
+        # Create all the game objects for the current map
+        self.registry.add_callback(
+            EventType.GameObjectCreation,
+            self.on_game_object_creation,
+        )
+        self.registry.add_callback(EventType.GameObjectDeath, self.on_game_object_death)
+        self.registry.add_callback(EventType.SpriteRemoval, self.on_sprite_removal)
+        self.game_engine.create_game_objects()
 
         # Create the required views for the game
         inventory_view = PlayerView(
-            self.registry,
+            self.game_engine.get_registry(),
             self.player.game_object_id,
             self.item_sprites,
         )
-        self.window.views["InventoryView"] = inventory_view
-
-        # Add the callbacks to the registry
-        self.registry.add_callback(EventType.BulletCreation, self.on_bullet_creation)
-        self.registry.add_callback(EventType.GameObjectDeath, self.on_game_object_death)
         self.registry.add_callback(
             EventType.InventoryUpdate,
             inventory_view.on_update_inventory,
         )
-        self.registry.add_callback(EventType.SpriteRemoval, self.on_sprite_removal)
+        self.window.views["InventoryView"] = inventory_view
 
         # Generate half of the total enemies allowed to then schedule their generation
-        for _ in range(self.level_constants.enemy_limit // 2):
-            self.generate_enemy()
-        schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
+        # for _ in range(self.level_constants.enemy_limit // 2):
+        #     self.generate_enemy()
+        # schedule(self.generate_enemy, ENEMY_GENERATE_INTERVAL)
 
     def on_draw_before_ui(self: Game) -> None:
         """Render the screen before the UI elements are drawn."""
@@ -400,15 +300,50 @@ class Game(UIView):
             ),
         )
 
-    def on_bullet_creation(self: Game, game_object_id: int) -> None:
-        """Create a bullet game object.
+    def on_game_object_creation(self: Game, game_object_id: int) -> None:
+        """Create a sprite from a newly created game object.
 
         Args:
-            game_object_id: The ID of the created bullet game object.
+            game_object_id: The ID of the newly created game object.
         """
-        bullet = Bullet(self.registry, game_object_id)
-        self.registry.get_component(game_object_id, PythonSprite).sprite = bullet
-        self.entity_sprites.append(bullet)
+        constructor = game_object_constructors[
+            self.registry.get_game_object_type(game_object_id)
+        ]
+        sprite_class = (
+            AnimatedSprite if len(constructor.texture_paths) > 1 else HadesSprite
+        )
+        sprite = sprite_class(
+            self.game_engine.get_registry(),
+            game_object_id,
+            self.registry.get_component(
+                game_object_id,
+                KinematicComponent,
+            ).get_position(),
+            constructor,
+        )
+        if self.registry.has_component(game_object_id, PythonSprite):
+            self.registry.get_component(game_object_id, PythonSprite).sprite = sprite
+
+        # Add the sprite to the correct list
+        sprite_lists = {
+            GameObjectType.Player: self.entity_sprites,
+            GameObjectType.Enemy: self.entity_sprites,
+            GameObjectType.Goal: self.tile_sprites,
+            GameObjectType.HealthPotion: self.item_sprites,
+            GameObjectType.Chest: self.item_sprites,
+            GameObjectType.Wall: self.tile_sprites,
+            GameObjectType.Floor: self.tile_sprites,
+        }
+        if constructor.game_object_type == GameObjectType.Player:
+            self.player = sprite
+        sprite_lists[constructor.game_object_type].append(sprite)
+
+        # Create progress bars if needed
+        if constructor.game_object_type == GameObjectType.Player:
+            self.game_ui.player_ui.add(ProgressBarGroup(sprite))
+        elif constructor.game_object_type == GameObjectType.Enemy:
+            progress_bar_group = self.ui.add(ProgressBarGroup(sprite))
+            self.game_ui.progress_bar_groups.append(progress_bar_group)
 
     def on_game_object_death(self: Game, game_object_id: int) -> None:
         """Remove a game object from the game.

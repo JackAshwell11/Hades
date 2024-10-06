@@ -19,7 +19,8 @@
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/sprite.hpp"
 #include "ecs/systems/upgrade.hpp"
-#include "generation/map.hpp"
+#include "factories.hpp"
+#include "game_engine.hpp"
 
 /// The hash function for a pybind11 handle.
 struct py_handle_hash {
@@ -113,23 +114,36 @@ auto get_python_type(const std::type_index type_index) -> pybind11::handle {
   }
   throw std::runtime_error("Invalid type index provided.");
 }
-
-/// Make a C++ action function from a pybind11 function.
-///
-/// @param py_func - The pybind11 function.
-/// @return The C++ action function.
-auto make_action_function(const pybind11::function &py_func) -> ActionFunction {
-  // NOLINTNEXTLINE(bugprone-exception-escape)
-  return [py_func](int level) { return py_func(level).cast<double>(); };
-}
 }  // namespace
 
 PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   // Add the module docstring and the custom converters
   module.doc() = "Manages the various C++ extension modules for the game.";
 
+  // Add the GameEngine to the extension module
+  module.def("load_hitbox", &load_hitbox, pybind11::arg("game_object_type"), pybind11::arg("hitbox"),
+             "Load a hitbox for a game object type.\n\n"
+             "Args:\n"
+             "    game_object_type: The type of game object to load the hitbox for.\n"
+             "    hitbox: The hitbox to load for the game object type.");
+  pybind11::class_<GameEngine>(module, "GameEngine", "Manages the game objects and systems.")
+      .def(pybind11::init<int, std::optional<unsigned int>>(), pybind11::arg("level"),
+           pybind11::arg("seed") = pybind11::none(),
+           "Initialise the object.\n\n"
+           "Args:\n"
+           "    level: The level to generate the game engine for.\n"
+           "    seed: The seed to use for the random number generator.")
+      .def("get_registry", &GameEngine::get_registry,
+           "Get the registry.\n\n"
+           "Returns:\n"
+           "    The registry.")
+      .def("create_game_objects", &GameEngine::create_game_objects,
+           "Create the game objects.\n\n"
+           "Returns:\n"
+           "    The game objects.");
+
   // Create the generation module
-  pybind11::module generation{
+  const pybind11::module generation{
       module.def_submodule("generation", "Generates the dungeon and places game objects in it.")};
   pybind11::enum_<TileType>(generation, "TileType")
       .value("Empty", TileType::Empty)
@@ -140,17 +154,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Player", TileType::Player)
       .value("HealthPotion", TileType::HealthPotion)
       .value("Chest", TileType::Chest);
-  pybind11::class_<LevelConstants>(generation, "LevelConstants", "Holds the constants for a specific level.")
-      .def_readonly("width", &LevelConstants::width)
-      .def_readonly("height", &LevelConstants::height)
-      .def_readonly("enemy_limit", &LevelConstants::enemy_limit);
-  generation.def("create_map", &create_map, pybind11::arg("level"), pybind11::arg("seed") = pybind11::none(),
-                 "Generate the game map for a given game level.\n\n"
-                 "Args:\n"
-                 "    level: The game level to generate a map for.\n"
-                 "    seed: The seed to initialise the random generator.\n\n"
-                 "Returns:\n"
-                 "    A tuple containing the generated map and the level constants.");
 
   // Create the ecs, ecs/components, and ecs/systems modules
   pybind11::module ecs = module.def_submodule(
@@ -237,7 +240,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("Footprint", SteeringMovementState::Footprint)
       .value("Target", SteeringMovementState::Target);
   pybind11::enum_<EventType>(ecs, "EventType", "Stores the different types of events that can occur.")
-      .value("BulletCreation", EventType::BulletCreation)
+      .value("GameObjectCreation", EventType::GameObjectCreation)
       .value("GameObjectDeath", EventType::GameObjectDeath)
       .value("InventoryUpdate", EventType::InventoryUpdate)
       .value("SpriteRemoval", EventType::SpriteRemoval);
@@ -245,7 +248,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   // Add the registry class
   register_exception<RegistryError>(ecs, "RegistryError");
   pybind11::class_<Registry>(ecs, "Registry", "Manages game objects, components, and systems that are registered.")
-      .def(pybind11::init<>(), "Initialise the object.")
       .def("create_game_object", &Registry::create_game_object, pybind11::arg("game_object_type"),
            pybind11::arg("position"), pybind11::arg("components"),
            "Create a new game object.\n\n"
@@ -306,23 +308,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Returns:\n"
            "    The type of the game object.")
       .def(
-          "add_systems",
-          [](Registry &registry) {
-            registry.add_system<ArmourRegenSystem>();
-            registry.add_system<AttackSystem>();
-            registry.add_system<DamageSystem>();
-            registry.add_system<EffectSystem>();
-            registry.add_system<FootprintSystem>();
-            registry.add_system<InventorySystem>();
-            registry.add_system<KeyboardMovementSystem>();
-            registry.add_system<PhysicsSystem>();
-            registry.add_system<SteeringMovementSystem>();
-            registry.add_system<UpgradeSystem>();
-          },
-          "Add all the systems into the registry.\n\n"
-          "Raises:\n"
-          "    RegistryError: If one of the systems is already registered.")
-      .def(
           "get_system",
           [](const Registry &registry, const pybind11::object &system_type) {
             // Get all the system types and check if the given system type exists
@@ -357,11 +342,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   // Add the stat components
   pybind11::class_<Stat, ComponentBase, std::shared_ptr<Stat>>(
       components, "Stat", "Represents a component that has a variable value and maximum value.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the stat.\n"
-           "    maximum_level: The maximum level of the stat.")
       .def("get_value", &Stat::get_value,
            "Get the value of the stat.\n\n"
            "Returns:\n"
@@ -388,104 +368,35 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Returns:\n"
            "    The maximum level of the stat.");
   pybind11::class_<AttackCooldown, Stat, std::shared_ptr<AttackCooldown>>(
-      components, "AttackCooldown", "Allows a game object to have an attack cooldown.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the attack cooldown stat.\n"
-           "    maximum_level: The maximum level of the attack cooldown stat.");
+      components, "AttackCooldown", "Allows a game object to have an attack cooldown.");
   pybind11::class_<AttackRange, Stat, std::shared_ptr<AttackRange>>(components, "AttackRange",
-                                                                    "Allows a game object to have an attack range.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the attack range stat.\n"
-           "    maximum_level: The maximum level of the attack range stat.");
+                                                                    "Allows a game object to have an attack range.");
   pybind11::class_<Armour, Stat, std::shared_ptr<Armour>>(components, "Armour",
-                                                          "Allows a game object to have an armour stat.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the armour stat.\n"
-           "    maximum_level: The maximum level of the armour stat.");
+                                                          "Allows a game object to have an armour stat.");
   pybind11::class_<ArmourRegen, Stat, std::shared_ptr<ArmourRegen>>(components, "ArmourRegen",
-                                                                    "Allows a game object to regenerate armour.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the armour regen stat.\n"
-           "    maximum_level: The maximum level of the armour regen stat.");
+                                                                    "Allows a game object to regenerate armour.");
   pybind11::class_<Damage, Stat, std::shared_ptr<Damage>>(components, "Damage",
-                                                          "Allows a game object to deal damage to other game objects.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the damage stat.\n"
-           "    maximum_level: The maximum level of the damage stat.");
+                                                          "Allows a game object to deal damage to other game objects.");
   pybind11::class_<EffectLevel, Stat, std::shared_ptr<EffectLevel>>(
-      components, "EffectLevel", "Allows a game object to have a level associated with its effects.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial value of the effect level stat.\n"
-           "    maximum_level: The maximum level of the effect level stat.");
+      components, "EffectLevel", "Allows a game object to have a level associated with its effects.");
   pybind11::class_<FootprintInterval, Stat, std::shared_ptr<FootprintInterval>>(
-      components, "FootprintInterval", "Allows a game object to determine the time interval between footprints.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the footprint interval stat.\n"
-           "    maximum_level: The maximum level of the footprint interval stat.");
+      components, "FootprintInterval", "Allows a game object to determine the time interval between footprints.");
   pybind11::class_<FootprintLimit, Stat, std::shared_ptr<FootprintLimit>>(
-      components, "FootprintLimit", "Allows a game object to determine the maximum number of footprints it can leave.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the footprint limit stat.\n"
-           "    maximum_level: The maximum level of the footprint limit stat.");
+      components, "FootprintLimit", "Allows a game object to determine the maximum number of footprints it can leave.");
   pybind11::class_<Health, Stat, std::shared_ptr<Health>>(components, "Health",
-                                                          "Allows a game object to have a health stat.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the health stat.\n"
-           "    maximum_level: The maximum level of the health stat.");
+                                                          "Allows a game object to have a health stat.");
   pybind11::class_<InventorySize, Stat, std::shared_ptr<InventorySize>>(
-      components, "InventorySize", "Allows a game object to change the size of its inventory.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the inventory size stat.\n"
-           "    maximum_level: The maximum level of the inventory size stat.");
+      components, "InventorySize", "Allows a game object to change the size of its inventory.");
   pybind11::class_<MeleeAttackSize, Stat, std::shared_ptr<MeleeAttackSize>>(
-      components, "MeleeAttackSize", "Allows a game object to have a melee attack size.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the melee attack size stat.\n"
-           "    maximum_level: The maximum level of the melee attack size stat.");
+      components, "MeleeAttackSize", "Allows a game object to have a melee attack size.");
   pybind11::class_<MovementForce, Stat, std::shared_ptr<MovementForce>>(
-      components, "MovementForce", "Allows a game object to determine how fast it can move.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the movement force stat.\n"
-           "    maximum_level: The maximum level of the movement force stat.");
+      components, "MovementForce", "Allows a game object to determine how fast it can move.");
   pybind11::class_<ViewDistance, Stat, std::shared_ptr<ViewDistance>>(
-      components, "ViewDistance", "Allows a game object to determine how far it can see.")
-      .def(pybind11::init<double, int>(), pybind11::arg("value"), pybind11::arg("maximum_level"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    value: The initial and maximum value of the view distance stat.\n"
-           "    maximum_level: The maximum level of the view distance stat.");
+      components, "ViewDistance", "Allows a game object to determine how far it can see.");
 
   // Add the components
   pybind11::class_<Attack, ComponentBase, std::shared_ptr<Attack>>(components, "Attack",
                                                                    "Allows a game object to attack other game objects.")
-      .def(pybind11::init<std::vector<AttackAlgorithm>>(), pybind11::arg("attack_algorithms"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    attack_algorithms: The attack algorithms the game object can use.")
       .def_property_readonly("current_attack",
                              [](const Attack &attack) { return attack.attack_algorithms[attack.attack_state]; });
   pybind11::class_<Effect>(components, "Effect", "Represents an effect that can be applied to a game object.")
@@ -493,59 +404,20 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def_property_readonly("target_component",
                              [](const Effect &effect) { return get_python_type(effect.target_component); });
   pybind11::class_<EffectApplier, ComponentBase, std::shared_ptr<EffectApplier>>(
-      components, "EffectApplier", "Allows a game object to provide instant or status effects.")
-      .def(pybind11::init([](const pybind11::dict &instant_effects, const pybind11::dict &status_effects) {
-             // Create two mappings to hold the instant and status effects
-             std::unordered_map<std::type_index, ActionFunction> target_instant_effects;
-             std::unordered_map<std::type_index, StatusEffectData> target_status_effects;
-
-             // Iterate through the instant effects and add them to the mapping
-             for (const auto &[type, func] : instant_effects) {
-               target_instant_effects.emplace(get_type_index(type),
-                                              make_action_function(func.cast<pybind11::function>()));
-             }
-
-             // Iterate through the status effects and add them to the mapping
-             for (const auto &[type, data] : status_effects) {
-               auto status_effect_data{data.cast<StatusEffectData>()};
-               target_status_effects.emplace(
-                   get_type_index(type),
-                   StatusEffectData{status_effect_data.status_effect_type, status_effect_data.increase,
-                                    status_effect_data.duration, status_effect_data.interval});
-             }
-
-             // Initialise the object
-             return std::make_shared<EffectApplier>(target_instant_effects, target_status_effects);
-           }),
-           pybind11::arg("instant_effects"), pybind11::arg("status_effects"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    instant_effects: The instant effects the game object provides.\n"
-           "    status_effects: The status effects the game object provides.");
+      components, "EffectApplier", "Allows a game object to provide instant or status effects.");
   pybind11::class_<Footprints, ComponentBase, std::shared_ptr<Footprints>>(
-      components, "Footprints", "Allows a game object to periodically leave footprints around the game map.")
-      .def(pybind11::init<>(), "Initialise the object.");
+      components, "Footprints", "Allows a game object to periodically leave footprints around the game map.");
   pybind11::class_<Inventory, ComponentBase, std::shared_ptr<Inventory>>(
       components, "Inventory", "Allows a game object to have a fixed size inventory.")
-      .def(pybind11::init<>(), "Initialise the object.")
       .def_readonly("items", &Inventory::items);
   pybind11::class_<KeyboardMovement, ComponentBase, std::shared_ptr<KeyboardMovement>>(
       components, "KeyboardMovement", "Allows a game object's movement to be controlled by the keyboard.")
-      .def(pybind11::init<>(), "Initialise the object.")
       .def_readwrite("moving_north", &KeyboardMovement::moving_north)
       .def_readwrite("moving_east", &KeyboardMovement::moving_east)
       .def_readwrite("moving_south", &KeyboardMovement::moving_south)
       .def_readwrite("moving_west", &KeyboardMovement::moving_west);
   pybind11::class_<KinematicComponent, ComponentBase, std::shared_ptr<KinematicComponent>>(
       components, "KinematicComponent", "Allows a game object to interact with the physics system.")
-      .def(pybind11::init<std::vector<cpVect>>(), pybind11::arg("vertices"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    vertices: The vertices of the shape.")
-      .def(pybind11::init<bool>(), pybind11::arg("is_static"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    is_static: Whether the game object is static or not.")
       .def(
           "get_position",
           [](const KinematicComponent &kinematic_component) {
@@ -563,59 +435,20 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "    angle: The angle to set the game object to.");
   pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
       components, "Money", "Allows a game object to record the amount of money it has.")
-      .def(pybind11::init<>(), "Initialise the object.")
       .def_readwrite("money", &Money::money);
   pybind11::class_<StatusEffectData>(components, "StatusEffectData",
-                                     "Represents the data required to apply a status effect.")
-      .def(pybind11::init([](const StatusEffectType status_effect_type, const pybind11::function &increase,
-                             const pybind11::function &duration, const pybind11::function &interval) {
-             return StatusEffectData(status_effect_type, make_action_function(increase), make_action_function(duration),
-                                     make_action_function(interval));
-           }),
-           pybind11::arg("status_effect_type"), pybind11::arg("increase"), pybind11::arg("duration"),
-           pybind11::arg("interval"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    status_effect_type: The type of status effect.\n"
-           "    increase: The increase function to apply.\n"
-           "    duration: The duration function to apply.\n"
-           "    interval: The interval function to apply.");
+                                     "Represents the data required to apply a status effect.");
   pybind11::class_<PythonSprite, ComponentBase, std::shared_ptr<PythonSprite>>(
       components, "PythonSprite", "Allows a game object to hold a reference to the Python sprite object.")
-      .def(pybind11::init<>(), "Initialise the object")
       .def_readwrite("sprite", &PythonSprite::sprite);
   pybind11::class_<StatusEffect, ComponentBase, std::shared_ptr<StatusEffect>>(
       components, "StatusEffect", "Allows a game object to have status effects applied to it.")
-      .def(pybind11::init<>(), "Initialise the object.")
       .def_readonly("applied_effects", &StatusEffect::applied_effects);
   pybind11::class_<SteeringMovement, ComponentBase, std::shared_ptr<SteeringMovement>>(
       components, "SteeringMovement", "Allows a game object's movement to be controlled by steering behaviours.")
-      .def(pybind11::init<std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>>(),
-           pybind11::arg("behaviours"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    behaviours: The steering behaviours the game object can use.")
       .def_readwrite("target_id", &SteeringMovement::target_id);
   pybind11::class_<Upgrades, ComponentBase, std::shared_ptr<Upgrades>>(components, "Upgrades",
                                                                        "Allows a game object to be upgraded.")
-      .def(pybind11::init([](const pybind11::dict &upgrades) {
-             // Create a mapping to hold the upgrades
-             std::unordered_map<std::type_index, std::pair<ActionFunction, ActionFunction>> target_upgrades;
-
-             // Iterate through the upgrades and add them to the mapping
-             for (const auto &[type, func] : upgrades) {
-               const auto [increase, cost]{func.cast<std::tuple<pybind11::function, pybind11::function>>()};
-               target_upgrades.emplace(get_type_index(type),
-                                       std::make_pair(make_action_function(increase), make_action_function(cost)));
-             }
-
-             // Initialise the object
-             return std::make_shared<Upgrades>(target_upgrades);
-           }),
-           pybind11::arg("upgrades"),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    upgrades: The upgrades the game object has.")
       .def_property_readonly("upgrades", [](const Upgrades &upgrades) {
         pybind11::dict target_upgrades;
         for (const auto &[type, func] : upgrades.upgrades) {

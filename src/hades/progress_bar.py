@@ -104,14 +104,19 @@ class ProgressBarGroup(UIBoxLayout):
         # Create a progress bar for each component that supports one
         progress_bars = [
             (
-                sprite.constructor.progress_bars[type(component)][0],
+                sprite.constructor.progress_bars[component_type][0],
                 ProgressBar(
-                    cast(Stat, component),
-                    *sprite.constructor.progress_bars[type(component)][1:],
+                    cast(
+                        Stat,
+                        sprite.registry.get_component(
+                            sprite.game_object_id,
+                            component_type,
+                        ),
+                    ),
+                    *sprite.constructor.progress_bars[component_type][1:],
                 ),
             )
-            for component in sprite.constructor.components
-            if type(component) in sprite.constructor.progress_bars
+            for component_type in sprite.constructor.progress_bars
         ]
         for _, progress_bar in sorted(progress_bars, key=operator.itemgetter(0)):
             self.add(progress_bar)

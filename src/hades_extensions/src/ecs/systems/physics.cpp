@@ -18,8 +18,8 @@ void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect &f
       cpvnormalize(force) * get_registry()->get_component<MovementForce>(game_object_id)->get_value(), cpvzero);
 }
 
-auto PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect> &bullet, const double damage,
-                               const GameObjectType source) const -> GameObjectID {
+void PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect> &bullet, const double damage,
+                               const GameObjectType source) const {
   const auto bullet_id{
       get_registry()->create_game_object(GameObjectType::Bullet, get<0>(bullet),
                                          {std::make_shared<Damage>(damage, -1), std::make_shared<KinematicComponent>(),
@@ -28,7 +28,6 @@ auto PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect> &bullet, const do
       *get_registry()->get_component<KinematicComponent>(bullet_id)->shape,
       {static_cast<cpGroup>(source), static_cast<cpBitmask>(GameObjectType::Bullet), ~static_cast<cpBitmask>(source)});
   cpBodySetVelocity(*get_registry()->get_component<KinematicComponent>(bullet_id)->body, get<1>(bullet));
-  return bullet_id;
 }
 
 auto PhysicsSystem::get_nearest_item(const GameObjectID game_object_id) const -> GameObjectID {
@@ -39,7 +38,8 @@ auto PhysicsSystem::get_nearest_item(const GameObjectID game_object_id) const ->
   std::vector<std::pair<GameObjectID, cpFloat>> distances;
   for (const auto &[id, component_tuple] : get_registry()->find_components<KinematicComponent>()) {
     if (const auto kinematic_component{std::get<0>(component_tuple)};
-        game_object_id != id && (kinematic_component->shape->sensor != 0U) && !kinematic_component->collected) {
+        game_object_id != id && (kinematic_component->shape->sensor != 0U) &&
+        get_registry()->get_game_object_type(id) != GameObjectType::Floor && !kinematic_component->collected) {
       if (const cpFloat distance{cpvlength(cpvsub(game_object_position, kinematic_component->body->p))};
           distance <= SPRITE_SIZE / 2) {
         distances.emplace_back(id, distance);

@@ -112,11 +112,10 @@ void AttackSystem::do_attack(const GameObjectID game_object_id, const std::vecto
                    targets);
       break;
     case AttackAlgorithm::Ranged:
-      const auto bullet_id{get_registry()->get_system<PhysicsSystem>()->add_bullet(
+      get_registry()->get_system<PhysicsSystem>()->add_bullet(
           ranged_attack(kinematic_component->body->p, kinematic_component->rotation),
           get_registry()->get_component<Damage>(game_object_id)->get_value(),
-          get_registry()->get_game_object_type(game_object_id))};
-      get_registry()->notify_callbacks(EventType::BulletCreation, bullet_id);
+          get_registry()->get_game_object_type(game_object_id));
   }
 }
 

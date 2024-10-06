@@ -40,9 +40,6 @@ constexpr int HALLWAY_SIZE{3};
 // The minimum distance between tiles of the same type.
 constexpr int MIN_TILE_DISTANCE{5};
 
-// The number of cellular automata runs to perform.
-constexpr int CELLULAR_AUTOMATA_SIMULATIONS{3};
-
 // The number of neighbours a tile must have to remain alive.
 constexpr int MIN_NEIGHBOUR_DISTANCE{4};
 
@@ -54,9 +51,6 @@ constexpr MapGenerationConstant HEIGHT{.base_value = 20, .increase = 1.2, .max_v
 
 // The number of obstacles to place in the grid.
 constexpr MapGenerationConstant OBSTACLE_COUNT{.base_value = 20, .increase = 1.3, .max_value = 200};
-
-// The total number of enemies that should exist for a given level.
-constexpr MapGenerationConstant ENEMY_LIMIT{.base_value = 5, .increase = 1.2, .max_value = 50};
 
 // The chances of placing an item tile in the grid.
 constexpr std::array<std::pair<TileType, double>, 2> ITEM_CHANCES{
@@ -232,28 +226,4 @@ auto MapGenerator::place_goal() -> MapGenerator & {
   const auto player_index{static_cast<int>(std::distance(grid_.grid->begin(), player_iter))};
   grid_.set_value(get_furthest_position(grid_, grid_.convert_position(player_index)), TileType::Goal);
   return *this;
-}
-
-auto create_map(const int level, const std::optional<unsigned int> seed)
-    -> std::pair<std::vector<TileType>, LevelConstants> {
-  // Check that the level number is valid
-  if (level < 0) {
-    throw std::length_error("Level must be bigger than or equal to 0.");
-  }
-
-  // Build the map using the map generator
-  const std::mt19937 random_generator{seed.has_value() ? seed.value() : std::random_device{}()};
-  MapGenerator generator{level, random_generator};
-  generator.generate_rooms()
-      .place_obstacles()
-      .create_connections()
-      .generate_hallways()
-      .cellular_automata(CELLULAR_AUTOMATA_SIMULATIONS)
-      .generate_walls()
-      .place_player()
-      .place_items()
-      .place_goal();
-  return std::make_pair(*generator.get_grid().grid, LevelConstants{.width = WIDTH.generate_value(level),
-                                                                   .height = HEIGHT.generate_value(level),
-                                                                   .enemy_limit = ENEMY_LIMIT.generate_value(level)});
 }
