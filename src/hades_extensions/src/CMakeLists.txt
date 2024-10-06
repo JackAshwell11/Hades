@@ -13,6 +13,8 @@ add_library(${CPP_LIB} STATIC
         ${CMAKE_SOURCE_DIR}/src/generation/bsp.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/dijkstra.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/map.cpp
+        ${CMAKE_SOURCE_DIR}/src/factories.cpp
+        ${CMAKE_SOURCE_DIR}/src/game_engine.cpp
 )
 target_include_directories(${CPP_LIB}
         PUBLIC ${CMAKE_SOURCE_DIR}/include

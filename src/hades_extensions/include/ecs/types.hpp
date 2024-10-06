@@ -26,7 +26,7 @@ enum class GameObjectType : std::uint8_t {
 
 /// Stores the different types of events that can occur.
 enum class EventType : std::uint8_t {
-  BulletCreation,
+  GameObjectCreation,
   GameObjectDeath,
   InventoryUpdate,
   SpriteRemoval,
