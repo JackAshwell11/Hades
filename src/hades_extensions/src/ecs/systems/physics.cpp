@@ -54,3 +54,24 @@ auto PhysicsSystem::get_nearest_item(const GameObjectID game_object_id) const ->
       distances.begin(), distances.end(), [](const auto &lhs, const auto &rhs) { return lhs.second < rhs.second; })};
   return nearest_element != distances.end() ? nearest_element->first : -1;
 }
+
+auto PhysicsSystem::get_wall_distances(const cpVect &current_position) const -> std::vector<cpVect> {
+  const auto space{get_registry()->get_space()};
+  auto raycast{[&space, &current_position](const cpVect direction) -> cpVect {
+    // Calculate the end position of the ray based on the direction
+    const auto end_position{current_position + cpvnormalize(direction) * MAX_WALL_DISTANCE};
+
+    // Perform the raycast
+    cpSegmentQueryInfo info;
+    if (cpSpaceSegmentQueryFirst(space, current_position, end_position, SPRITE_SIZE / 4,
+                                 {CP_NO_GROUP, CP_ALL_CATEGORIES, static_cast<cpBitmask>(GameObjectType::Wall)},
+                                 &info) != nullptr) {
+      return info.point;
+    }
+    return {MAX_WALL_DISTANCE, MAX_WALL_DISTANCE};
+  }};
+
+  // Perform raycasts in all directions
+  return {raycast({0, 1}), raycast({1, 0}),  raycast({0, -1}), raycast({-1, 0}),
+          raycast({1, 1}), raycast({1, -1}), raycast({-1, 1}), raycast({-1, -1})};
+}

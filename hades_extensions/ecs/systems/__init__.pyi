@@ -1,5 +1,5 @@
 # Custom
-from hades_extensions.ecs import ComponentBase, SystemBase
+from hades_extensions.ecs import ComponentBase, SystemBase, Vec2d
 
 class ArmourRegenSystem(SystemBase): ...
 
@@ -45,6 +45,10 @@ class KeyboardMovementSystem(SystemBase): ...
 
 class PhysicsSystem(SystemBase):
     def get_nearest_item(self: PhysicsSystem, game_object_id: int) -> int: ...
+    def get_wall_distances(
+        self: PhysicsSystem,
+        current_position: Vec2d,
+    ) -> list[Vec2d]: ...
 
 class SteeringMovementSystem(SystemBase): ...
 
