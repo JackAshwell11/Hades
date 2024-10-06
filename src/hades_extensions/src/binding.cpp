@@ -181,7 +181,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
                                                                               "The base class for all systems.");
 
   // Add the Chipmunk2D class
-  pybind11::class_<cpSpace>(ecs, "Space", "Represents a Chipmunk2D space");
   pybind11::class_<cpVect>(ecs, "Vec2d", "Represents a 2D vector.")
       .def(pybind11::init<float, float>(), pybind11::arg("x"), pybind11::arg("y"),
            "Initialise the object.\n\n"
@@ -204,15 +203,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "    scalar: The scalar to multiply the vector by.\n\n"
           "Returns:\n"
           "    The vector multiplied by the scalar.");
-
-  // Add the physics functions for the AI training
-  ecs.def("wall_distances", &wall_distances, pybind11::arg("space"), pybind11::arg("current_position"),
-                   "Calculate the distance to the walls around a game object.\n\n"
-                   "Args:\n"
-                   "    space: The Chipmunk2D space.\n"
-                   "    current_position: The current position of the game object.\n\n"
-                   "Returns:\n"
-                   "    The distances to the walls around the game object.");
 
   // Add the enums
   pybind11::enum_<AttackAlgorithm>(ecs, "AttackAlgorithm", "Stores the different types of attack algorithms available.")
@@ -358,10 +348,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Update all systems in the registry.\n\n"
            "Args:\n"
            "    delta_time: The time interval since the last time the function was called.")
-      .def("get_space", &Registry::get_space,
-           "Get the physics space from the registry.\n\n"
-           "Returns:\n"
-           "    The physics space from the registry.")
       .def("add_callback", &Registry::add_callback, pybind11::arg("event_type"), pybind11::arg("callback"),
            "Add a callback to the registry to listen for events.\n\n"
            "Args:\n"
@@ -732,7 +718,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Raises:\n"
            "    RegistryError: If the game object does not exist or does not have a kinematic component.\n\n"
            "Returns:\n"
-           "    The ID of the nearest item to the game object.");
+           "    The ID of the nearest item to the game object.")
+      .def("get_wall_distances", &PhysicsSystem::get_wall_distances, pybind11::arg("current_position"),
+           "Calculate the distance to the walls around a game object.\n\n"
+           "Args:\n"
+           "    current_position: The current position of the game object.\n\n"
+           "Returns:\n"
+           "    The distances to the walls around the game object.");
   const pybind11::class_<SteeringMovementSystem, SystemBase, std::shared_ptr<SteeringMovementSystem>>
       steering_movement_system(systems, "SteeringMovementSystem",
                                "Provides facilities to manipulate steering movement components.");

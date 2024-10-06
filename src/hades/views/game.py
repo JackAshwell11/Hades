@@ -9,14 +9,7 @@ import random
 from typing import Final
 
 # Pip
-from arcade import (
-    MOUSE_BUTTON_LEFT,
-    SpriteList,
-    color,
-    get_sprites_at_point,
-    key,
-    schedule,
-)
+from arcade import MOUSE_BUTTON_LEFT, SpriteList, color, get_sprites_at_point, key
 from arcade.camera.camera_2d import Camera2D
 from arcade.gui import UIView
 from pyglet import app
@@ -132,16 +125,6 @@ class Game(UIView):
         generation_result, self.level_constants = create_map(level)
         self.registry: Registry = Registry()
         self.game_ui: GameUI = GameUI(self.ui)
-
-        # make 30x20 grid of tiletype.floor surrounded by tiletype.wall
-        generation_result = [TileType.Wall] * 30
-        for i in range(18):
-            generation_result += (
-                [TileType.Wall] + [TileType.Floor] * 28 + [TileType.Wall]
-            )
-        generation_result += [TileType.Wall] * 30
-        generation_result[62] = TileType.Player
-        generation_result[27 + 17 * 30] = TileType.Potion
 
         # Initialise all the systems then the game objects
         self.registry.add_systems()
