@@ -215,8 +215,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Args:\n"
            "    x: The x value of the vector.\n"
            "    y: The y value of the vector.")
-      .def_readonly("x", &cpVect::x)
-      .def_readonly("y", &cpVect::y)
+      .def_property_readonly("pos", [](const cpVect &vec) { return pybind11::make_tuple(vec.x, vec.y); })
       .def(
           // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           "__iter__", [](const cpVect &vec) { return pybind11::make_iterator(&vec.x, &vec.y + 1); },
@@ -604,7 +603,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Raises:\n"
            "    RegistryError: If the game object does not exist or does not have a kinematic component.\n\n"
            "Returns:\n"
-           "    The ID of the nearest item to the game object.");
+           "    The ID of the nearest item to the game object.")
+      .def("get_wall_distances", &PhysicsSystem::get_wall_distances, pybind11::arg("current_position"),
+           "Calculate the distance to the walls around a game object.\n\n"
+           "Args:\n"
+           "    current_position: The current position of the game object.\n\n"
+           "Returns:\n"
+           "    The distances to the walls around the game object.");
   const pybind11::class_<SteeringMovementSystem, SystemBase, std::shared_ptr<SteeringMovementSystem>>
       steering_movement_system(systems, "SteeringMovementSystem",
                                "Provides facilities to manipulate steering movement components.");
