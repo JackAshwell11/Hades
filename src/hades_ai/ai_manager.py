@@ -31,11 +31,11 @@ __all__ = ()
 # The size of the input and output layers for the neural network (larger values can
 # provide better results but require more computational power and may lead to
 # overfitting)
-FEATURE_COUNT: Final[int] = 128
+FEATURE_COUNT: Final[int] = 256
 
 # The number of episodes to train the agent for (larger values can provide better
 # results but require more time)
-EPISODE_COUNT: Final[int] = 1000
+EPISODE_COUNT: Final[int] = 2000
 
 # The number of transitions to sample from the replay memory for each training step
 # (larger values can provide more stable training but require more memory and
@@ -48,7 +48,7 @@ GAMMA: Final[float] = 0.99
 
 # The maximum number of transitions to store in the replay memory (larger values can
 # improve training but require more memory)
-REPLAY_MEMORY_SIZE: Final[int] = 10000
+REPLAY_MEMORY_SIZE: Final[int] = 100000
 
 # The number of episodes to average the rewards over for the graph (larger values can
 # show a smoother graph but may hide important details)
@@ -56,12 +56,12 @@ GRAPH_MOVING_AVERAGE: Final[int] = 50
 
 # The maximum number of steps to take in each episode before stopping (larger values can
 # give the agent more time to learn but may take longer to train)
-MAX_STEP_COUNT: Final[int] = 2000
+MAX_STEP_COUNT: Final[int] = 1000
 
 # The starting epsilon value for the epsilon-greedy policy which determines the initial
 # exploration rate (higher values mean the agent will explore more at the beginning of
 # training which can help discover better strategies)
-EPS_START: Final[float] = 0.9
+EPS_START: Final[float] = 0.99
 
 # The final epsilon value for the epsilon-greedy policy which determines the minimum
 # exploration rate (lower values mean the agent will exploit its learned policy more as
@@ -75,7 +75,7 @@ EPS_DECAY: Final[int] = 1000
 # The rate at which the target network's weights are adjusted towards the policy
 # network's weights (smaller values mean the target network will change more slowly
 # providing more stable training)
-TAU: Final[float] = 0.005
+TAU: Final[float] = 0.01
 
 # The learning rate for the AdamW optimiser which determines the step size during
 # gradient descent (smaller values can lead to more stable training but may require more
@@ -155,6 +155,8 @@ class DQN(Sequential):
         # environments.
         super().__init__(
             Linear(input_size, FEATURE_COUNT),
+            ReLU(),
+            Linear(FEATURE_COUNT, FEATURE_COUNT),
             ReLU(),
             Linear(FEATURE_COUNT, FEATURE_COUNT),
             ReLU(),
