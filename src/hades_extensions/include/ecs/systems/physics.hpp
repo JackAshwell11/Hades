@@ -4,6 +4,9 @@
 // Local headers
 #include "ecs/registry.hpp"
 
+// The maximum distance to raycast for walls.
+constexpr double MAX_WALL_DISTANCE{30 * SPRITE_SIZE};
+
 /// Allows a game object to interact with the physics system.
 struct KinematicComponent final : ComponentBase {
   /// The Chipmunk2D body of the game object.
@@ -67,4 +70,10 @@ struct PhysicsSystem final : SystemBase {
   /// @throws RegistryError if the game object does not exist or does not have a kinematic component.
   /// @return The ID of the nearest item.
   [[nodiscard]] auto get_nearest_item(GameObjectID game_object_id) const -> GameObjectID;
+
+  /// Calculate the distance to the walls around a game object.
+  ///
+  /// @param current_position - The current position of the game object.
+  /// @return The distances to the walls around the game object.
+  [[nodiscard]] auto get_wall_distances(const cpVect &current_position) const -> std::vector<cpVect>;
 };
