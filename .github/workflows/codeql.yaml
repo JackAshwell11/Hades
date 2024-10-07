@@ -22,18 +22,18 @@ jobs:
         with:
           submodules: recursive
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3.26.10
+        uses: github/codeql-action/init@v3.26.11
         with:
           languages: ${{ matrix.language }}
           setup-python-dependencies: false
       - name: Set up CMake
         if: matrix.language == 'cpp'
-        uses: lukka/get-cmake@v3.30.3
+        uses: lukka/get-cmake@v3.30.4
       - name: Build CMake
         if: matrix.language == 'cpp'
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: cmake . --preset LinuxDebug && cmake --build build-debug
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3.26.10
+        uses: github/codeql-action/analyze@v3.26.11
         with:
           category: /language:${{ matrix.language }}
