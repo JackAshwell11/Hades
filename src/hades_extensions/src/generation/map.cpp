@@ -64,8 +64,8 @@ constexpr std::array<std::pair<TileType, double>, 2> ITEM_CHANCES{
 /// @param grid - The 2D grid which represents the dungeon.
 /// @param position - The position to check the neighbours for.
 /// @return The number of floor neighbours.
-const auto count_floor_neighbours{[](const Grid &grid, const Position &position) {
-  return std::ranges::count_if(grid.get_neighbours(position), [&grid](const Position &neighbour) {
+const auto count_floor_neighbours{[](const Grid &grid, const cpVect &position) {
+  return std::ranges::count_if(grid.get_neighbours(position), [&grid](const cpVect &neighbour) {
     return grid.get_value(neighbour) == TileType::Floor;
   });
 }};
@@ -79,16 +79,16 @@ const auto count_floor_neighbours{[](const Grid &grid, const Position &position)
 /// @param count - The number of tiles to place.
 void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
                  const int count = std::numeric_limits<int>::max()) {
-  const auto is_next_to_wall{[&grid](const Position &position) {
-    return std::ranges::any_of(grid.get_neighbours(position), [&grid](const Position &neighbour) {
+  const auto is_next_to_wall{[&grid](const cpVect &position) {
+    return std::ranges::any_of(grid.get_neighbours(position), [&grid](const cpVect &neighbour) {
       return grid.get_value(neighbour) == TileType::Wall;
     });
   }};
 
   // Get all the possible positions for the target tile
-  std::vector<Position> valid_positions;
+  std::vector<cpVect> valid_positions;
   for (auto i{0}; i < grid.width * grid.height; i++) {
-    const Position position{grid.convert_position(i)};
+    const cpVect position{grid.convert_position(i)};
     if (target_tile != TileType::Obstacle) {
       if (grid.get_value(position) == TileType::Floor && !is_next_to_wall(position)) {
         valid_positions.push_back(position);
@@ -102,13 +102,13 @@ void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
   std::ranges::shuffle(valid_positions.begin(), valid_positions.end(), random_generator);
   const auto tile_count{std::max(1, static_cast<int>(count * probability))};
   for (auto _{0}; _ < tile_count && !valid_positions.empty(); _++) {
-    const Position possible_tile{valid_positions.back()};
+    const cpVect possible_tile{valid_positions.back()};
     valid_positions.pop_back();
     grid.set_value(possible_tile, target_tile);
 
     // Remove all tiles from valid_positions within MIN_TILE_DISTANCE of the
     // placed tile
-    std::erase_if(valid_positions, [&possible_tile](const Position &pos) {
+    std::erase_if(valid_positions, [&possible_tile](const cpVect &pos) {
       return std::abs(pos.x - possible_tile.x) <= MIN_TILE_DISTANCE ||
              std::abs(pos.y - possible_tile.y) <= MIN_TILE_DISTANCE;
     });
@@ -122,7 +122,7 @@ MapGenerator::MapGenerator(const int level, const std::mt19937 random_generator)
       random_generator_{random_generator} {}
 
 auto MapGenerator::generate_rooms() -> MapGenerator & {
-  Leaf bsp{{{.x = 0, .y = 0}, {.x = grid_.width - 1, .y = grid_.height - 1}}};
+  Leaf bsp{{cpv(0, 0), cpv(grid_.width - 1, grid_.height - 1)}};
   bsp.split(random_generator_);
   bsp.create_room(grid_, random_generator_, rooms_);
   return *this;
@@ -137,7 +137,7 @@ auto MapGenerator::create_connections() -> MapGenerator & {
 
   // Add all the rooms to the unexplored queue
   for (auto i{1}; i < static_cast<int>(rooms_.size()); i++) {
-    unexplored.emplace(rooms_[0].get_distance_to(rooms_[i]), rooms_[0], rooms_[i]);
+    unexplored.emplace(get_distance_to(rooms_[0], rooms_[i]), rooms_[0], rooms_[i]);
   }
 
   // Construct the minimum spanning tree
@@ -154,7 +154,7 @@ auto MapGenerator::create_connections() -> MapGenerator & {
     visited.emplace(lowest.destination);
     for (const auto &room : rooms_) {
       if (!visited.contains(room)) {
-        unexplored.emplace(lowest.destination.get_distance_to(room), lowest.destination, room);
+        unexplored.emplace(get_distance_to(lowest.destination, room), lowest.destination, room);
       }
     }
   }
@@ -164,14 +164,14 @@ auto MapGenerator::create_connections() -> MapGenerator & {
 auto MapGenerator::generate_hallways() -> MapGenerator & {
   // Use the A* algorithm to connect each pair of rooms avoiding the obstacles
   constexpr int HALF_HALLWAY_SIZE{HALLWAY_SIZE / 2};
-  std::vector<std::vector<Position>> path_positions(connections_.size());
+  std::vector<std::vector<cpVect>> path_positions(connections_.size());
   std::transform(std::execution::par, connections_.begin(), connections_.end(), path_positions.begin(),
                  [this](const Connection &connection) {
                    return calculate_astar_path(grid_, connection.source, connection.destination);
                  });
 
   // Place a rect box around each path_position to create the hallways
-  for (const std::vector<Position> &path : path_positions) {
+  for (const std::vector<cpVect> &path : path_positions) {
     for (const auto &[x_pos, y_pos] : path) {
       grid_.place_rect({{.x = x_pos - HALF_HALLWAY_SIZE, .y = y_pos - HALF_HALLWAY_SIZE},
                         {.x = x_pos + HALF_HALLWAY_SIZE, .y = y_pos + HALF_HALLWAY_SIZE}});
@@ -193,13 +193,13 @@ auto MapGenerator::cellular_automata(const int generations) -> MapGenerator & {
 }
 
 auto MapGenerator::generate_walls() -> MapGenerator & {
-  auto is_edge_or_non_floor{[this](const Position &position) {
+  auto is_edge_or_non_floor{[this](const cpVect &position) {
     return position.x == 0 || position.y == 0 || position.x == grid_.width - 1 || position.y == grid_.height - 1 ||
            grid_.get_value(position) != TileType::Floor;
   }};
 
   for (auto i{0}; i < grid_.width * grid_.height; i++) {
-    if (const Position position{grid_.convert_position(i)};
+    if (const cpVect position{grid_.convert_position(i)};
         is_edge_or_non_floor(position) && count_floor_neighbours(grid_, position) > 0) {
       grid_.set_value(position, TileType::Wall);
     }

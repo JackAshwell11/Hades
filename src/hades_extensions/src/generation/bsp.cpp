@@ -47,7 +47,7 @@ void Leaf::split(std::mt19937 &random_generator) {  // NOLINT(misc-no-recursion)
 
   // Determine the random split position to use ensuring that the containers are at least MIN_CONTAINER_SIZE wide
   const int pos{std::uniform_int_distribution{MIN_CONTAINER_SIZE, max_size}(random_generator)};
-  const int split_pos{split_vertical ? container->top_left.x + pos : container->top_left.y + pos};
+  const cpFloat split_pos{split_vertical ? container->top_left.x + pos : container->top_left.y + pos};
 
   // Generate the left and right leafs making sure that the containers do not include the split position
   if (split_vertical) {
@@ -68,7 +68,7 @@ void Leaf::split(std::mt19937 &random_generator) {  // NOLINT(misc-no-recursion)
 }
 
 void Leaf::create_room(const Grid &grid, std::mt19937 &random_generator,  // NOLINT(misc-no-recursion)
-                       std::vector<Position> &rooms) {
+                       std::vector<cpVect> &rooms) {
   // Check if this leaf is already split or not, if so, create rooms for the left and right leafs
   if (left && right) {
     left->create_room(grid, random_generator, rooms);
@@ -86,9 +86,9 @@ void Leaf::create_room(const Grid &grid, std::mt19937 &random_generator,  // NOL
   const int height{std::uniform_int_distribution{MIN_ROOM_SIZE, container->height}(random_generator)};
 
   // Determine the top left position of the new room based on the width and height
-  const int x_pos{
+  const cpFloat x_pos{
       std::uniform_int_distribution{container->top_left.x, container->bottom_right.x - width}(random_generator)};
-  const int y_pos{
+  const cpFloat y_pos{
       std::uniform_int_distribution{container->top_left.y, container->bottom_right.y - height}(random_generator)};
 
   // Create the room rect and check its width to height ratio so oddly shaped rooms can be avoided

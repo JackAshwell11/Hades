@@ -53,7 +53,7 @@ class MapGenerator {
   /// Get the rooms.
   ///
   /// @return The rooms.
-  [[nodiscard]] auto get_rooms() -> std::vector<Position> & { return rooms_; }
+  [[nodiscard]] auto get_rooms() -> std::vector<cpVect> & { return rooms_; }
 
   /// Get the connections.
   ///
@@ -76,7 +76,7 @@ class MapGenerator {
   std::mt19937 random_generator_;
 
   /// The rooms that have been generated.
-  std::vector<Position> rooms_;
+  std::vector<cpVect> rooms_;
 
   /// The connections between the rooms.
   std::vector<Connection> connections_;

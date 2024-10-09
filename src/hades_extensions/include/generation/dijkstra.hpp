@@ -21,10 +21,10 @@ struct Connection {
   int cost;
 
   /// The source position.
-  Position source;
+  cpVect source;
 
   /// The destination position.
-  Position destination;
+  cpVect destination;
 };
 
 /// Calculate the shortest path in a grid from one pair to another using the A*
@@ -36,7 +36,7 @@ struct Connection {
 /// @param end - The end position for the algorithm.
 /// @throws std::length_error - If the grid size is less than 0.
 /// @return A vector of positions mapping out the shortest path from start to end.
-auto calculate_astar_path(const Grid &grid, const Position &start, const Position &end) -> std::vector<Position>;
+auto calculate_astar_path(const Grid &grid, const cpVect &start, const cpVect &end) -> std::vector<cpVect>;
 
 /// Get the furthest position from the start position in the grid using a
 /// Dijkstra map.
@@ -45,4 +45,4 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
 /// @param start - The start position for the algorithm.
 /// @throws std::length_error - If the grid size is less than 0.
 /// @return A position which is the furthest from the start position.
-auto get_furthest_position(const Grid &grid, const Position &start) -> Position;
+auto get_furthest_position(const Grid &grid, const cpVect &start) -> cpVect;
