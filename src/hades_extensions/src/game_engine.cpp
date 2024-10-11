@@ -4,9 +4,6 @@
 // Std headers
 #include <algorithm>
 
-// External headers
-#include <chipmunk/chipmunk_structs.h>
-
 // Local headers
 #include "ecs/systems/armour_regen.hpp"
 #include "ecs/systems/attacks.hpp"
@@ -114,7 +111,7 @@ void GameEngine::generate_enemy(const double /*delta_time*/) {
   const auto &factories{get_factories()};
   for (auto attempt{0}; attempt < std::min(static_cast<int>(floor_positions.size()), ENEMY_RETRY_ATTEMPTS); attempt++) {
     const auto position{floor_positions[attempt]};
-    if (const auto player_position{registry_->get_component<KinematicComponent>(player_id_)->body->p};
+    if (const auto player_position{cpBodyGetPosition(*registry_->get_component<KinematicComponent>(player_id_)->body)};
         cpSpacePointQueryNearest(registry_->get_space(), position, 0.0,
                                  {CP_NO_GROUP, CP_ALL_CATEGORIES, static_cast<cpBitmask>(GameObjectType::Enemy)},
                                  nullptr) != nullptr ||

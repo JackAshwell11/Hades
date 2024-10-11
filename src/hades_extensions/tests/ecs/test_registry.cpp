@@ -1,6 +1,3 @@
-// External headers
-#include <chipmunk/chipmunk_structs.h>
-
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
@@ -187,15 +184,15 @@ TEST_F(RegistryFixture, TestRegistryGameObjectKinematicComponent) {
   // Test that the body and shape are added to each other and the space correctly
   ASSERT_TRUE(cpSpaceContainsBody(registry.get_space(), *registry.get_component<KinematicComponent>(0)->body));
   ASSERT_TRUE(cpSpaceContainsShape(registry.get_space(), *registry.get_component<KinematicComponent>(0)->shape));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->shapeList,
-            *registry.get_component<KinematicComponent>(0)->shape);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->p, cpv(32, 32));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->shape->type,
+  ASSERT_EQ(cpShapeGetBody(*registry.get_component<KinematicComponent>(0)->shape),
+            *registry.get_component<KinematicComponent>(0)->body);
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(32, 32));
+  ASSERT_EQ(cpShapeGetCollisionType(*registry.get_component<KinematicComponent>(0)->shape),
             static_cast<cpCollisionType>(GameObjectType::Player));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->shape->filter.group, CP_NO_GROUP);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->shape->filter.categories,
-            static_cast<cpBitmask>(GameObjectType::Player));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->shape->filter.mask, CP_ALL_CATEGORIES);
+  const auto [group, categories, mask]{cpShapeGetFilter(*registry.get_component<KinematicComponent>(0)->shape)};
+  ASSERT_EQ(group, CP_NO_GROUP);
+  ASSERT_EQ(categories, static_cast<cpBitmask>(GameObjectType::Player));
+  ASSERT_EQ(mask, CP_ALL_CATEGORIES);
 
   // Test that deleting the game object works correctly
   auto *body{*registry.get_component<KinematicComponent>(0)->body};
@@ -270,10 +267,10 @@ TEST_F(RegistryFixture, TestRegistryPlayerEnemyBulletCollision) {
 
   // Test that the collision is handled correctly
   ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 200);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->p, cpv(-32, 0));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(1)->body), cpv(-32, 0));
   registry.get_system<PhysicsSystem>()->update(1);
   ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 200);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->p, cpv(-16, 0));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(1)->body), cpv(-16, 0));
   registry.get_system<PhysicsSystem>()->update(1);
   ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 180);
   ASSERT_THROW_MESSAGE(
@@ -292,9 +289,9 @@ TEST_F(RegistryFixture, TestRegistryPlayerPlayerBulletCollision) {
   registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 20, GameObjectType::Player);
 
   // Test that the collision is handled correctly
-  for (int i = 0; i < 10; i++) {
+  for (int i{0}; i < 10; i++) {
     ASSERT_EQ(registry.get_component<Health>(player_id)->get_value(), 200);
-    ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->p, cpv(-32 + (i * 16), 0));
+    ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(1)->body), cpv(-32 + (i * 16), 0));
     registry.get_system<PhysicsSystem>()->update(1);
   }
 }
@@ -311,10 +308,10 @@ TEST_F(RegistryFixture, TestRegistryEnemyPlayerBulletCollision) {
 
   // Test that the collision is handled correctly
   ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->p, cpv(-32, 0));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(1)->body), cpv(-32, 0));
   registry.get_system<PhysicsSystem>()->update(1);
   ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->p, cpv(-16, 0));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(1)->body), cpv(-16, 0));
   registry.get_system<PhysicsSystem>()->update(1);
   ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 50);
   ASSERT_THROW_MESSAGE(
@@ -335,7 +332,7 @@ TEST_F(RegistryFixture, TestRegistryEnemyEnemyBulletCollision) {
   // Test that the collision is handled correctly
   for (int i = 0; i < 10; i++) {
     ASSERT_EQ(registry.get_component<Health>(enemy_id)->get_value(), 100);
-    ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->p, cpv(-32 + (i * 16), 0));
+    ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(1)->body), cpv(-32 + (i * 16), 0));
     registry.get_system<PhysicsSystem>()->update(1);
   }
 }
@@ -350,10 +347,10 @@ TEST_F(RegistryFixture, TestRegistryWallBulletCollision) {
   registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 30, GameObjectType::Player);
 
   // Test that the collision is handled correctly
-  ASSERT_EQ(registry.get_component<KinematicComponent>(wall_id)->body->p, cpv(32, 32));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->p, cpv(-32, 0));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(wall_id)->body), cpv(32, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(1)->body), cpv(-32, 0));
   registry.get_system<PhysicsSystem>()->update(1);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(wall_id)->body->p, cpv(32, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(wall_id)->body), cpv(32, 32));
   ASSERT_THROW_MESSAGE(
       registry.get_component<KinematicComponent>(1), RegistryError,
       "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.")
