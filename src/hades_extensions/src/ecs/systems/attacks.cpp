@@ -1,9 +1,6 @@
 // Related header
 #include "ecs/systems/attacks.hpp"
 
-// External headers
-#include <chipmunk/chipmunk_structs.h>
-
 // Local headers
 #include "ecs/stats.hpp"
 #include "ecs/systems/movements.hpp"
@@ -23,7 +20,7 @@ void area_of_effect_attack(const Registry *registry, const GameObjectID attacker
                            const std::vector<int> &targets) {
   // Find all targets that are within range and attack them
   for (const auto target : targets) {
-    if (cpvdist(current_position, registry->get_component<KinematicComponent>(target)->body->p) <=
+    if (cpvdist(current_position, cpBodyGetPosition(*registry->get_component<KinematicComponent>(target)->body)) <=
         registry->get_component<AttackRange>(attacker_id)->get_value()) {
       registry->get_system<DamageSystem>()->deal_damage(target, attacker_id);
     }
@@ -45,7 +42,7 @@ void melee_attack(const Registry *registry, const GameObjectID attacker_id, cons
   // Find all targets that can be attacked
   for (const auto target : targets) {
     // Calculate the target direction and distance
-    const auto target_position{registry->get_component<KinematicComponent>(target)->body->p};
+    const auto target_position{cpBodyGetPosition(*registry->get_component<KinematicComponent>(target)->body)};
     const auto target_direction{cpvsub(target_position, current_position)};
 
     // Check if the target is within the attack range and circle sector
@@ -105,15 +102,15 @@ void AttackSystem::do_attack(const GameObjectID game_object_id, const std::vecto
   const auto kinematic_component{get_registry()->get_component<KinematicComponent>(game_object_id)};
   switch (attack->attack_algorithms[attack->attack_state]) {
     case AttackAlgorithm::AreaOfEffect:
-      area_of_effect_attack(get_registry(), game_object_id, kinematic_component->body->p, targets);
+      area_of_effect_attack(get_registry(), game_object_id, cpBodyGetPosition(*kinematic_component->body), targets);
       break;
     case AttackAlgorithm::Melee:
-      melee_attack(get_registry(), game_object_id, kinematic_component->body->p, kinematic_component->rotation,
-                   targets);
+      melee_attack(get_registry(), game_object_id, cpBodyGetPosition(*kinematic_component->body),
+                   kinematic_component->rotation, targets);
       break;
     case AttackAlgorithm::Ranged:
       get_registry()->get_system<PhysicsSystem>()->add_bullet(
-          ranged_attack(kinematic_component->body->p, kinematic_component->rotation),
+          ranged_attack(cpBodyGetPosition(*kinematic_component->body), kinematic_component->rotation),
           get_registry()->get_component<Damage>(game_object_id)->get_value(),
           get_registry()->get_game_object_type(game_object_id));
   }

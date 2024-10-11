@@ -1,5 +1,4 @@
 // External headers
-#include <chipmunk/chipmunk_structs.h>
 #ifdef Py_DEBUG
 #undef Py_DEBUG
 #include <pybind11/functional.h>
@@ -435,7 +434,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def(
           "get_position",
           [](const KinematicComponent &kinematic_component) {
-            return pybind11::make_tuple(kinematic_component.body->p.x, kinematic_component.body->p.y);
+            const auto [x, y]{cpBodyGetPosition(*kinematic_component.body)};
+            return pybind11::make_tuple(x, y);
           },
           "Get the position of the game object.\n\n"
           "Returns:\n"

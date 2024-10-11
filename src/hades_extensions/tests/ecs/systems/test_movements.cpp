@@ -1,6 +1,3 @@
-// External headers
-#include <chipmunk/chipmunk_structs.h>
-
 // Std headers
 #include <numbers>
 
@@ -40,7 +37,7 @@ class FootprintSystemFixture : public testing::Test {
 
     // Set the position of the game object to (0, 0) since grid_pos_to_pixel
     // sets the position to (32, 32)
-    registry.get_component<KinematicComponent>(0)->body->p = cpvzero;
+    cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, cpvzero);
   }
 
   /// Get the footprint system from the registry.
@@ -158,7 +155,7 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateMultipleUpdates) {
   get_footprint_system()->update(0.6);
   ASSERT_EQ(footprints->footprints, std::deque{cpvzero});
   ASSERT_EQ(footprints->time_since_last_footprint, 0);
-  registry.get_component<KinematicComponent>(0)->body->p = {.x = 1, .y = 1};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 1, .y = 1});
   get_footprint_system()->update(0.7);
   const std::deque<cpVect> expected_footprints{{.x = 0, .y = 0}, {.x = 1, .y = 1}};
   ASSERT_EQ(footprints->footprints, expected_footprints);
@@ -177,35 +174,35 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateIncompleteComponents) {
 /// Test that the new force is updated correctly if no keys are pressed.
 TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateNoKeys) {
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test that the new force is updated correctly if the north key is pressed.
 TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateNorth) {
   registry.get_component<KeyboardMovement>(0)->moving_north = true;
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(0, 100));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(0, 100));
 }
 
 /// Test that the new force is updated correctly if the south key is pressed.
 TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateSouth) {
   registry.get_component<KeyboardMovement>(0)->moving_south = true;
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(0, -100));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(0, -100));
 }
 
 /// Test that the new force is updated correctly if the east key is pressed.
 TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateEast) {
   registry.get_component<KeyboardMovement>(0)->moving_east = true;
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(100, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(100, 0));
 }
 
 /// Test that the new force is updated correctly if the west key is pressed.
 TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateWest) {
   registry.get_component<KeyboardMovement>(0)->moving_west = true;
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(-100, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(-100, 0));
 }
 
 /// Test that the correct force is calculated if the east and west keys are pressed.
@@ -214,7 +211,7 @@ TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateEastWest) 
   keyboard_movement->moving_east = true;
   keyboard_movement->moving_west = true;
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test that the correct force is calculated if the north and south are pressed.
@@ -223,7 +220,7 @@ TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateNorthSouth
   keyboard_movement->moving_east = true;
   keyboard_movement->moving_west = true;
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test that the correct force is calculated if north and west keys are pressed.
@@ -232,7 +229,8 @@ TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateNorthWest)
   keyboard_movement->moving_north = true;
   keyboard_movement->moving_west = true;
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(-70.710678118654741, 70.710678118654741));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body),
+            cpv(-70.710678118654741, 70.710678118654741));
 }
 
 /// Test that the correct force is calculated if south and east keys are pressed.
@@ -241,7 +239,8 @@ TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateSouthEast)
   keyboard_movement->moving_south = true;
   keyboard_movement->moving_east = true;
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(70.710678118654741, -70.710678118654741));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body),
+            cpv(70.710678118654741, -70.710678118654741));
 }
 
 /// Test that the correct force is not applied if the game object does not have the required components.
@@ -250,7 +249,7 @@ TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateIncomplete
       GameObjectType::Player, cpvzero,
       {std::make_shared<KinematicComponent>(std::vector<cpVect>{}), std::make_shared<MovementForce>(100, -1)});
   get_keyboard_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test that a game object is not updated if the target ID is invalid.
@@ -258,13 +257,13 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateInvalidTar
   create_steering_movement_component({});
   registry.get_component<SteeringMovement>(1)->target_id = -1;
   get_steering_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), cpvzero);
 }
 
 /// Test that the state is correctly changed to the default state.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateOutsideDistanceEmptyPathList) {
   create_steering_movement_component({});
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 500, .y = 500};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 500, .y = 500});
   get_steering_movement_system()->update(0);
   ASSERT_EQ(registry.get_component<SteeringMovement>(1)->movement_state, SteeringMovementState::Default);
 }
@@ -272,7 +271,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateOutsideDis
 /// Test that the state is correctly changed to the footprint state.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateOutsideDistanceNonEmptyPathList) {
   create_steering_movement_component({});
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 500, .y = 500};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 500, .y = 500});
   const auto steering_movement{registry.get_component<SteeringMovement>(1)};
   steering_movement->path_list = {{.x = 300, .y = 300}, {.x = 400, .y = 400}};
   get_steering_movement_system()->update(0);
@@ -290,89 +289,97 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateWithinDist
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateNoBehaviours) {
   create_steering_movement_component({});
   get_steering_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(1)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), cpvzero);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0);
 }
 
 /// Test that the correct force is calculated for the arrive behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateArrive) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Arrive}}});
-  registry.get_component<KinematicComponent>(0)->body->p = cpvzero;
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 50, .y = 50};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, cpvzero);
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 50, .y = 50});
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -141.42135623730951, -141.42135623730951);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -141.42135623730951,
+                    -141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
 /// Test that the correct force is calculated for the evade behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateEvade) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Evade}}});
-  registry.get_component<KinematicComponent>(0)->body->p = {.x = 100, .y = 100};
-  registry.get_component<KinematicComponent>(0)->body->v = {.x = -50, .y = 0};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 100});
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = -50, .y = 0});
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -108.57776427783772, -167.96091540720511);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -108.57776427783772,
+                    -167.96091540720511);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.1446695001689107);
 }
 
 /// Test that the correct force is calculated for the flee behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateFlee) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Flee}}});
-  registry.get_component<KinematicComponent>(0)->body->p = {.x = 50, .y = 50};
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 100, .y = 100};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 50, .y = 50});
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 100, .y = 100});
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 141.42135623730951, 141.42135623730951);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 141.42135623730951, 141.42135623730951);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), 141.42135623730951,
+                    141.42135623730951);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), 141.42135623730951,
+                    141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.7853981633974483);
 }
 
 /// Test that the correct force is calculated for the follow path behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateFollowPath) {
   create_steering_movement_component({{SteeringMovementState::Footprint, {SteeringBehaviours::FollowPath}}});
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 200, .y = 200};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 200, .y = 200});
   registry.get_component<SteeringMovement>(1)->path_list = {{.x = 350, .y = 350}, {.x = 500, .y = 500}};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 141.42135623730951, 141.42135623730951);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), 141.42135623730951,
+                    141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.7853981633974483);
 }
 
 /// Test that the correct force is calculated for the obstacle avoidance behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateObstacleAvoidance) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::ObstacleAvoidance}}});
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 32, .y = 96};
-  registry.get_component<KinematicComponent>(1)->body->v = {.x = 100, .y = 100};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 32, .y = 96});
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(1)->body, {.x = 100, .y = 100});
   registry.create_game_object(GameObjectType::Wall, {.x = 1, .y = 2}, {std::make_shared<KinematicComponent>(true)});
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -141.42135623730951, -141.42135623730951);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -141.42135623730951,
+                    -141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
 /// Test that the correct force is calculated for the pursue behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePursue) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Pursue}}});
-  registry.get_component<KinematicComponent>(0)->body->p = {.x = 100, .y = 100};
-  registry.get_component<KinematicComponent>(0)->body->v = {.x = -50, .y = 0};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 100});
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = -50, .y = 0});
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, 108.57776427783772, 167.96091540720511);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), 108.57776427783772,
+                    167.96091540720511);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.99692315342088256);
 }
 
 /// Test that the correct force is calculated for the seek behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateSeek) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Seek}}});
-  registry.get_component<KinematicComponent>(0)->body->p = {.x = 50, .y = 50};
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 100, .y = 100};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 50, .y = 50});
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 100, .y = 100});
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -141.42135623730951, -141.42135623730951);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -141.42135623730951,
+                    -141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
 /// Test that the correct force is calculated for the wander behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateWander) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Wander}}});
-  registry.get_component<KinematicComponent>(1)->body->v = {.x = 100, .y = -100};
-  const auto before_force{registry.get_component<KinematicComponent>(1)->body->f};
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(1)->body, {.x = 100, .y = -100});
+  const auto before_force{cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body)};
   get_steering_movement_system()->update(0);
-  const auto after_force{registry.get_component<KinematicComponent>(1)->body->f};
+  const auto after_force{cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body)};
   ASSERT_EQ(round(cpvlength(after_force)), 200);
   ASSERT_NE(before_force, after_force);
   ASSERT_GE(registry.get_component<KinematicComponent>(1)->rotation, -std::numbers::pi);
@@ -383,10 +390,11 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateWander) {
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleBehaviours) {
   create_steering_movement_component(
       {{SteeringMovementState::Footprint, {SteeringBehaviours::FollowPath, SteeringBehaviours::Seek}}});
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 300, .y = 300};
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 300, .y = 300});
   registry.get_component<SteeringMovement>(1)->path_list = {{.x = 100, .y = 200}, {.x = -100, .y = 0}};
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -162.2484370351122, -116.94205693275299);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -162.2484370351122,
+                    -116.94205693275299);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.5170697673906659);
 }
 
@@ -397,17 +405,19 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleSt
                                       {SteeringMovementState::Default, {SteeringBehaviours::Seek}}});
 
   // Test the target state
-  registry.get_component<KinematicComponent>(0)->body->v = {.x = -50, .y = 100};
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 100, .y = 100};
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = -50, .y = 100});
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 100, .y = 100});
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -195.47587911022185, -42.298707853620392);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -195.47587911022185,
+                    -42.298707853620392);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.9284898398506929);
 
   // Test the default state making sure to clear the force
-  registry.get_component<KinematicComponent>(1)->body->f = cpvzero;
-  registry.get_component<KinematicComponent>(1)->body->p = {.x = 300, .y = 300};
+  cpBodySetForce(*registry.get_component<KinematicComponent>(1)->body, cpvzero);
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 300, .y = 300});
   get_steering_movement_system()->update(0);
-  test_force_double(registry.get_component<KinematicComponent>(1)->body->f, -141.42135623730951, -141.42135623730951);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -141.42135623730951,
+                    -141.42135623730951);
   ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 }
 
@@ -417,7 +427,7 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateIncomplete
       GameObjectType::Player, cpvzero,
       {std::make_shared<KinematicComponent>(std::vector<cpVect>{}), std::make_shared<MovementForce>(100, -1)});
   get_steering_movement_system()->update(0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test if the path list is updated if the position is within the view distance.

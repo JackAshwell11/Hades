@@ -1,6 +1,3 @@
-// External headers
-#include <chipmunk/chipmunk_structs.h>
-
 // Local headers
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
@@ -26,7 +23,7 @@ class PhysicsSystemFixture : public testing::Test {
   void create_item(const cpVect &position) {
     const auto item_id{
         registry.create_game_object(GameObjectType::HealthPotion, cpvzero, {std::make_shared<KinematicComponent>()})};
-    registry.get_component<KinematicComponent>(item_id)->body->p = position;
+    cpBodySetPosition(*registry.get_component<KinematicComponent>(item_id)->body, position);
   }
 
   /// Get the physics system from the registry.
@@ -40,70 +37,70 @@ class PhysicsSystemFixture : public testing::Test {
 /// Test updating the physics system with a game object that has no velocity and no force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityNoForce) {
   get_physics_system()->update(1.0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->p, cpv(32, 32));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->v, cpvzero);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(32, 32));
+  ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test updating the physics system with a game object that has no velocity and a force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityValidForce) {
-  registry.get_component<KinematicComponent>(0)->body->f = {.x = 10, .y = 0};
+  cpBodySetForce(*registry.get_component<KinematicComponent>(0)->body, {.x = 10, .y = 0});
   get_physics_system()->update(1.0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->p, cpv(32, 32));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->v, cpv(10, 0));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(32, 32));
+  ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(10, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test updating the physics system with a game object that has velocity and no force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityNoForce) {
-  registry.get_component<KinematicComponent>(0)->body->v = {.x = 100, .y = 0};
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 0});
   get_physics_system()->update(1.0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->p, cpv(132, 32));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->v, cpv(0.01, 0));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(132, 32));
+  ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(0.01, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test updating the physics system with a game object that has velocity and a force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityValidForce) {
-  registry.get_component<KinematicComponent>(0)->body->v = {.x = 100, .y = 0};
-  registry.get_component<KinematicComponent>(0)->body->f = {.x = 10, .y = 0};
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 0});
+  cpBodySetForce(*registry.get_component<KinematicComponent>(0)->body, {.x = 10, .y = 0});
   get_physics_system()->update(1.0);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->p, cpv(132, 32));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->v, cpv(10.01, 0));
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(132, 32));
+  ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(10.01, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test that adding a zero force to a game object without a force works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceZeroForceNoForce) {
   get_physics_system()->add_force(0, cpvzero);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
 
 /// Test that adding a positive force to a game object without a force works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveForceNoForce) {
   get_physics_system()->add_force(0, {10, 0});
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(100, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(100, 0));
 }
 
 /// Test that adding a negative force to a game object without a force works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNegativeForceNoForce) {
   get_physics_system()->add_force(0, {-10, 0});
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(-100, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(-100, 0));
 }
 
 /// Test that adding a positive infinite force to a game object without a force works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveInfiniteForceNoForce) {
   get_physics_system()->add_force(0,
                                   {std::numeric_limits<cpFloat>::infinity(), std::numeric_limits<cpFloat>::infinity()});
-  ASSERT_TRUE(std::isnan(registry.get_component<KinematicComponent>(0)->body->f.x));
-  ASSERT_TRUE(std::isnan(registry.get_component<KinematicComponent>(0)->body->f.y));
+  ASSERT_TRUE(std::isnan(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body).x));
+  ASSERT_TRUE(std::isnan(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body).y));
 }
 
 /// Test that adding a positive force to a game object with a force works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveForceValidForce) {
-  registry.get_component<KinematicComponent>(0)->body->f = {.x = 10, .y = 0};
+  cpBodySetForce(*registry.get_component<KinematicComponent>(0)->body, {.x = 10, .y = 0});
   get_physics_system()->add_force(0, {10, 0});
-  ASSERT_EQ(registry.get_component<KinematicComponent>(0)->body->f, cpv(110, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(110, 0));
 }
 
 /// Test that adding a force to a static wall body doesn't change its position.
@@ -113,8 +110,8 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceStaticWall) {
       GameObjectType::Wall, cpvzero,
       {std::make_shared<KinematicComponent>(true), std::make_shared<MovementForce>(100, -1)})};
   get_physics_system()->add_force(wall_id, {10, 0});
-  registry.get_system<PhysicsSystem>()->update(1);
-  ASSERT_EQ(registry.get_component<KinematicComponent>(wall_id)->body->p, cpv(32, 32));
+  get_physics_system()->update(1);
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(wall_id)->body), cpv(32, 32));
 }
 
 /// Test that an exception is thrown if a game object does not have a kinematic component.
@@ -144,24 +141,24 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceInvalidGameObjectId) {
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletZero) {
   get_physics_system()->add_bullet({cpvzero, cpvzero}, 50, GameObjectType::Player);
   const auto *body{*registry.get_component<KinematicComponent>(1)->body};
-  ASSERT_EQ(body->p, cpvzero);
-  ASSERT_EQ(body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetPosition(body), cpvzero);
+  ASSERT_EQ(cpBodyGetForce(body), cpvzero);
 }
 
 /// Test that adding a bullet with a non-zero position works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroPosition) {
   get_physics_system()->add_bullet({{.x = 100, .y = 0}, cpvzero}, 100, GameObjectType::Player);
   const auto *body{*registry.get_component<KinematicComponent>(1)->body};
-  ASSERT_EQ(body->p, cpv(100, 0));
-  ASSERT_EQ(body->f, cpvzero);
+  ASSERT_EQ(cpBodyGetPosition(body), cpv(100, 0));
+  ASSERT_EQ(cpBodyGetForce(body), cpvzero);
 }
 
 /// Test that adding a bullet with a non-zero velocity works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroVelocity) {
   get_physics_system()->add_bullet({cpvzero, {.x = 200, .y = 150}}, 10, GameObjectType::Player);
   const auto *body{*registry.get_component<KinematicComponent>(1)->body};
-  ASSERT_EQ(body->p, cpvzero);
-  ASSERT_EQ(body->v, cpv(200, 150));
+  ASSERT_EQ(cpBodyGetPosition(body), cpvzero);
+  ASSERT_EQ(cpBodyGetVelocity(body), cpv(200, 150));
 }
 
 /// Test that getting the nearest item doesn't work if the game object is far away.

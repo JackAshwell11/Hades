@@ -1,6 +1,3 @@
-// External headers
-#include <chipmunk/chipmunk_structs.h>
-
 // Std headers
 #include <numbers>
 
@@ -27,7 +24,7 @@ class AttackSystemFixture : public testing::Test {
           GameObjectType::Enemy, cpvzero,
           {std::make_shared<Armour>(0, -1), std::make_shared<AttackRange>(-1, -1), std::make_shared<Health>(80, -1),
            std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
-      registry.get_component<KinematicComponent>(target)->body->p = position;
+      cpBodySetPosition(*registry.get_component<KinematicComponent>(target)->body, position);
       return target;
     }};
 
@@ -183,10 +180,12 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
   auto game_object_creation_callback{[&](const GameObjectID game_object_id) {
     // The velocity for the bullet is set after the game object is created
     const auto *bullet{*registry.get_component<KinematicComponent>(game_object_id)->body};
-    ASSERT_NEAR(bullet->p.x, 32, 1e-13);
-    ASSERT_NEAR(bullet->p.y, -32, 1e-13);
-    ASSERT_NEAR(bullet->v.x, 0, 1e-13);
-    ASSERT_NEAR(bullet->v.y, 0, 1e-13);
+    const auto [pos_x, pos_y]{cpBodyGetPosition(bullet)};
+    const auto [vel_x, vel_y]{cpBodyGetVelocity(bullet)};
+    ASSERT_NEAR(pos_x, 32, 1e-13);
+    ASSERT_NEAR(pos_y, -32, 1e-13);
+    ASSERT_NEAR(vel_x, 0, 1e-13);
+    ASSERT_NEAR(vel_y, 0, 1e-13);
     game_object_created = game_object_id;
   }};
   create_attack_component({AttackAlgorithm::Ranged});

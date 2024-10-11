@@ -4,9 +4,6 @@
 // Std headers
 #include <algorithm>
 
-// External headers
-#include <chipmunk/chipmunk_structs.h>
-
 // Local headers
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/movements.hpp"
@@ -34,15 +31,17 @@ void PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect> &bullet, const do
 
 auto PhysicsSystem::get_nearest_item(const GameObjectID game_object_id) const -> GameObjectID {
   // Get the current position of the game object
-  const cpVect &game_object_position{get_registry()->get_component<KinematicComponent>(game_object_id)->body->p};
+  const cpVect &game_object_position{
+      cpBodyGetPosition(*get_registry()->get_component<KinematicComponent>(game_object_id)->body)};
 
   // Collect all relevant game objects
   std::vector<std::pair<GameObjectID, cpFloat>> distances;
   for (const auto &[id, component_tuple] : get_registry()->find_components<KinematicComponent>()) {
     if (const auto kinematic_component{std::get<0>(component_tuple)};
-        game_object_id != id && (kinematic_component->shape->sensor != 0U) &&
+        game_object_id != id && (cpShapeGetSensor(*kinematic_component->shape) != 0U) &&
         get_registry()->get_game_object_type(id) != GameObjectType::Floor && !kinematic_component->collected) {
-      if (const cpFloat distance{cpvlength(cpvsub(game_object_position, kinematic_component->body->p))};
+      if (const cpFloat distance{
+              cpvlength(cpvsub(game_object_position, cpBodyGetPosition(*kinematic_component->body)))};
           distance <= SPRITE_SIZE / 2) {
         distances.emplace_back(id, distance);
       }
