@@ -146,6 +146,12 @@ class Registry {
   /// @return The type of the game object.
   [[nodiscard]] auto get_game_object_type(GameObjectID game_object_id) const -> GameObjectType;
 
+  /// Get the game object IDs of a game object type.
+  ///
+  /// @param game_object_type - The game object type.
+  /// @return The game object IDs of the game object type.
+  [[nodiscard]] auto get_game_object_ids(GameObjectType game_object_type) -> std::vector<GameObjectID>;
+
   /// Find all the game objects that have the required components.
   ///
   /// @tparam Ts - The types of components to find.
@@ -247,6 +253,9 @@ class Registry {
 
   /// The game object types registered with the registry.
   std::unordered_map<GameObjectID, GameObjectType> game_object_types_;
+
+  /// The game object IDs registered with the registry.
+  std::unordered_map<GameObjectType, std::vector<GameObjectID>> game_object_ids_;
 
   /// The systems registered with the registry.
   std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_;
