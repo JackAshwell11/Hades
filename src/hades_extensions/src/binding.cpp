@@ -133,14 +133,20 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Args:\n"
            "    level: The level to generate the game engine for.\n"
            "    seed: The seed to use for the random number generator.")
+      .def_property_readonly("player_id", &GameEngine::get_player_id)
       .def("get_registry", &GameEngine::get_registry,
            "Get the registry.\n\n"
            "Returns:\n"
            "    The registry.")
       .def("create_game_objects", &GameEngine::create_game_objects,
            "Create the game objects.\n\n"
+           "If this is called twice, the game objects will be duplicated.\n\n"
            "Returns:\n"
-           "    The game objects.");
+           "    The game objects.")
+      .def("generate_enemy", &GameEngine::generate_enemy, pybind11::arg("delta_time"),
+           "Generate an enemy.\n\n"
+           "Args:\n"
+           "    delta_time: The time interval since the last time the function was called.");
 
   // Create the generation module
   const pybind11::module generation{
@@ -307,6 +313,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    RegistryError: If the game object is not registered.\n\n"
            "Returns:\n"
            "    The type of the game object.")
+      .def("get_game_object_ids", &Registry::get_game_object_ids, pybind11::arg("game_object_type"),
+           "Get the game object IDs of a game object type.\n\n"
+           "Args:\n"
+           "    game_object_type: The type of game object to get the IDs for.\n\n"
+           "Returns:\n"
+           "    The game object IDs of the game object type.")
       .def(
           "get_system",
           [](const Registry &registry, const pybind11::object &system_type) {
@@ -367,31 +379,31 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Get the maximum level of the stat.\n\n"
            "Returns:\n"
            "    The maximum level of the stat.");
-  pybind11::class_<AttackCooldown, Stat, std::shared_ptr<AttackCooldown>>(
+  const pybind11::class_<AttackCooldown, Stat, std::shared_ptr<AttackCooldown>> attack_cooldown(
       components, "AttackCooldown", "Allows a game object to have an attack cooldown.");
-  pybind11::class_<AttackRange, Stat, std::shared_ptr<AttackRange>>(components, "AttackRange",
-                                                                    "Allows a game object to have an attack range.");
-  pybind11::class_<Armour, Stat, std::shared_ptr<Armour>>(components, "Armour",
-                                                          "Allows a game object to have an armour stat.");
-  pybind11::class_<ArmourRegen, Stat, std::shared_ptr<ArmourRegen>>(components, "ArmourRegen",
-                                                                    "Allows a game object to regenerate armour.");
-  pybind11::class_<Damage, Stat, std::shared_ptr<Damage>>(components, "Damage",
-                                                          "Allows a game object to deal damage to other game objects.");
-  pybind11::class_<EffectLevel, Stat, std::shared_ptr<EffectLevel>>(
+  const pybind11::class_<AttackRange, Stat, std::shared_ptr<AttackRange>> attack_range(
+      components, "AttackRange", "Allows a game object to have an attack range.");
+  const pybind11::class_<Armour, Stat, std::shared_ptr<Armour>> armour(components, "Armour",
+                                                                       "Allows a game object to have an armour stat.");
+  const pybind11::class_<ArmourRegen, Stat, std::shared_ptr<ArmourRegen>> armour_regen(
+      components, "ArmourRegen", "Allows a game object to regenerate armour.");
+  const pybind11::class_<Damage, Stat, std::shared_ptr<Damage>> damage(
+      components, "Damage", "Allows a game object to deal damage to other game objects.");
+  const pybind11::class_<EffectLevel, Stat, std::shared_ptr<EffectLevel>> effect_level(
       components, "EffectLevel", "Allows a game object to have a level associated with its effects.");
-  pybind11::class_<FootprintInterval, Stat, std::shared_ptr<FootprintInterval>>(
+  const pybind11::class_<FootprintInterval, Stat, std::shared_ptr<FootprintInterval>> footprint_interval(
       components, "FootprintInterval", "Allows a game object to determine the time interval between footprints.");
-  pybind11::class_<FootprintLimit, Stat, std::shared_ptr<FootprintLimit>>(
+  const pybind11::class_<FootprintLimit, Stat, std::shared_ptr<FootprintLimit>> footprint_limit(
       components, "FootprintLimit", "Allows a game object to determine the maximum number of footprints it can leave.");
-  pybind11::class_<Health, Stat, std::shared_ptr<Health>>(components, "Health",
-                                                          "Allows a game object to have a health stat.");
-  pybind11::class_<InventorySize, Stat, std::shared_ptr<InventorySize>>(
+  const pybind11::class_<Health, Stat, std::shared_ptr<Health>> health(components, "Health",
+                                                                       "Allows a game object to have a health stat.");
+  const pybind11::class_<InventorySize, Stat, std::shared_ptr<InventorySize>> inventory_size(
       components, "InventorySize", "Allows a game object to change the size of its inventory.");
-  pybind11::class_<MeleeAttackSize, Stat, std::shared_ptr<MeleeAttackSize>>(
+  const pybind11::class_<MeleeAttackSize, Stat, std::shared_ptr<MeleeAttackSize>> melee_attack_size(
       components, "MeleeAttackSize", "Allows a game object to have a melee attack size.");
-  pybind11::class_<MovementForce, Stat, std::shared_ptr<MovementForce>>(
+  const pybind11::class_<MovementForce, Stat, std::shared_ptr<MovementForce>> movement_force(
       components, "MovementForce", "Allows a game object to determine how fast it can move.");
-  pybind11::class_<ViewDistance, Stat, std::shared_ptr<ViewDistance>>(
+  const pybind11::class_<ViewDistance, Stat, std::shared_ptr<ViewDistance>> view_distance(
       components, "ViewDistance", "Allows a game object to determine how far it can see.");
 
   // Add the components
@@ -403,9 +415,9 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def_readonly("duration", &Effect::duration)
       .def_property_readonly("target_component",
                              [](const Effect &effect) { return get_python_type(effect.target_component); });
-  pybind11::class_<EffectApplier, ComponentBase, std::shared_ptr<EffectApplier>>(
+  const pybind11::class_<EffectApplier, ComponentBase, std::shared_ptr<EffectApplier>> effect_applier(
       components, "EffectApplier", "Allows a game object to provide instant or status effects.");
-  pybind11::class_<Footprints, ComponentBase, std::shared_ptr<Footprints>>(
+  const pybind11::class_<Footprints, ComponentBase, std::shared_ptr<Footprints>> footprints(
       components, "Footprints", "Allows a game object to periodically leave footprints around the game map.");
   pybind11::class_<Inventory, ComponentBase, std::shared_ptr<Inventory>>(
       components, "Inventory", "Allows a game object to have a fixed size inventory.")
@@ -436,8 +448,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
       components, "Money", "Allows a game object to record the amount of money it has.")
       .def_readwrite("money", &Money::money);
-  pybind11::class_<StatusEffectData>(components, "StatusEffectData",
-                                     "Represents the data required to apply a status effect.");
+  const pybind11::class_<StatusEffectData> status_effect_data(components, "StatusEffectData",
+                                                              "Represents the data required to apply a status effect.");
   pybind11::class_<PythonSprite, ComponentBase, std::shared_ptr<PythonSprite>>(
       components, "PythonSprite", "Allows a game object to hold a reference to the Python sprite object.")
       .def_readwrite("sprite", &PythonSprite::sprite);

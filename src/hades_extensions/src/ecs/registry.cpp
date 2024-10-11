@@ -34,6 +34,7 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
   // Add the components to the game object
   game_objects_[next_game_object_id_] = {};
   game_object_types_[next_game_object_id_] = game_object_type;
+  game_object_ids_[game_object_type].push_back(next_game_object_id_);
   for (const auto &component : components) {
     // Check if the component already exists in the registry
     const auto &obj{*component};
@@ -80,6 +81,7 @@ void Registry::delete_game_object(const GameObjectID game_object_id) {
 
   // Notify the callbacks then delete the game object
   notify_callbacks(EventType::GameObjectDeath, game_object_id);
+  std::erase(game_object_ids_[get_game_object_type(game_object_id)], game_object_id);
   game_objects_.erase(game_object_id);
   game_object_types_.erase(game_object_id);
 }
@@ -103,6 +105,11 @@ auto Registry::get_game_object_type(const GameObjectID game_object_id) const -> 
 
   // Return the game object type
   return game_object_types_.at(game_object_id);
+}
+
+auto Registry::get_game_object_ids(const GameObjectType game_object_type) -> std::vector<GameObjectID> {
+  const auto ids{game_object_ids_.find(game_object_type)};
+  return ids != game_object_ids_.end() ? ids->second : std::vector<GameObjectID>{};
 }
 
 void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameObjectType game_object_two) {

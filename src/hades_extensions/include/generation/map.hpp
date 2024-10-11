@@ -2,15 +2,10 @@
 #pragma once
 
 // Std headers
-#include <optional>
 #include <random>
 
 // Local headers
 #include "generation/dijkstra.hpp"
-#include "generation/primitives.hpp"
-
-// Avoid having to include headers for this
-struct Connection;
 
 /// Manages the generation of the map.
 class MapGenerator {
@@ -64,6 +59,11 @@ class MapGenerator {
   ///
   /// @return The connections.
   [[nodiscard]] auto get_connections() -> std::vector<Connection> & { return connections_; }
+
+  /// Get the enemy limit.
+  ///
+  /// @return The enemy limit.
+  [[nodiscard]] auto get_enemy_limit() const -> int;
 
  private:
   /// The level of the dungeon.

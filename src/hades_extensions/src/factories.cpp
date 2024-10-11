@@ -14,6 +14,7 @@
 #include "ecs/systems/sprite.hpp"
 #include "ecs/systems/upgrade.hpp"
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 namespace {
 /// Get the hitboxes for the game objects.
 ///
@@ -23,7 +24,32 @@ auto get_hitboxes() -> auto & {
   return hitboxes;
 }
 
+/// The enemy factory.
+///
+/// @return The components for the enemy.
+const auto enemy_factory{[] {
+  return std::vector<std::shared_ptr<ComponentBase>>{
+      std::make_shared<Armour>(50, 5),
+      std::make_shared<Attack>(std::vector{AttackAlgorithm::Ranged}),
+      std::make_shared<AttackCooldown>(1, 3),
+      std::make_shared<AttackRange>(3 * SPRITE_SIZE, 3),
+      std::make_shared<Damage>(10, 3),
+      std::make_shared<Health>(100, 5),
+      std::make_shared<KinematicComponent>(get_hitboxes()[GameObjectType::Enemy]),
+      std::make_shared<MovementForce>(1000, 5),
+      std::make_shared<PythonSprite>(),
+      std::make_shared<SteeringMovement>(std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{
+          {SteeringMovementState::Default, {SteeringBehaviours::ObstacleAvoidance, SteeringBehaviours::Wander}},
+          {SteeringMovementState::Footprint, {SteeringBehaviours::FollowPath}},
+          {SteeringMovementState::Target, {SteeringBehaviours::Pursue}},
+      }),
+      std::make_shared<ViewDistance>(3 * SPRITE_SIZE, 3),
+  };
+}};
+
 /// The wall factory.
+///
+/// @return The components for the wall.
 const auto wall_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(true),
@@ -32,6 +58,8 @@ const auto wall_factory{[] {
 }};
 
 /// The floor factory.
+///
+/// @return The components for the floor.
 const auto floor_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(),
@@ -39,6 +67,8 @@ const auto floor_factory{[] {
 }};
 
 /// The goal factory.
+///
+/// @return The components for the goal.
 const auto goal_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(),
@@ -47,6 +77,8 @@ const auto goal_factory{[] {
 }};
 
 /// The player factory.
+///
+/// @return The components for the player.
 const auto player_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<Armour>(100, 5),
@@ -75,6 +107,8 @@ const auto player_factory{[] {
 }};
 
 /// The health potion factory.
+///
+/// @return The components for the health potion.
 const auto health_potion_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<EffectLevel>(1, 3),
@@ -84,6 +118,8 @@ const auto health_potion_factory{[] {
 }};
 
 /// The chest factory.
+///
+/// @return The components for the chest.
 const auto chest_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<PythonSprite>(),
@@ -91,6 +127,7 @@ const auto chest_factory{[] {
   };
 }};
 }  // namespace
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
 void load_hitbox(const GameObjectType game_object_type, const std::vector<std::pair<double, double>> &hitbox) {
   if (get_hitboxes().contains(game_object_type)) {
@@ -106,11 +143,9 @@ void load_hitbox(const GameObjectType game_object_type, const std::vector<std::p
 
 auto get_factories() -> const std::unordered_map<GameObjectType, ComponentFactory> & {
   static const std::unordered_map<GameObjectType, ComponentFactory> factories{
-      {GameObjectType::Floor, floor_factory},
-      {GameObjectType::Player, player_factory},
-      {GameObjectType::Wall, wall_factory},
-      {GameObjectType::Goal, goal_factory},
-      {GameObjectType::HealthPotion, health_potion_factory},
+      {GameObjectType::Enemy, enemy_factory},   {GameObjectType::Floor, floor_factory},
+      {GameObjectType::Player, player_factory}, {GameObjectType::Wall, wall_factory},
+      {GameObjectType::Goal, goal_factory},     {GameObjectType::HealthPotion, health_potion_factory},
       {GameObjectType::Chest, chest_factory},
   };
   return factories;

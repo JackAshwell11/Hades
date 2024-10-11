@@ -52,6 +52,9 @@ constexpr MapGenerationConstant HEIGHT{.base_value = 20, .increase = 1.2, .max_v
 // The number of obstacles to place in the grid.
 constexpr MapGenerationConstant OBSTACLE_COUNT{.base_value = 20, .increase = 1.3, .max_value = 200};
 
+// The total number of enemies that should exist for a given level.
+constexpr MapGenerationConstant ENEMY_LIMIT{.base_value = 5, .increase = 1.2, .max_value = 50};
+
 // The chances of placing an item tile in the grid.
 constexpr std::array<std::pair<TileType, double>, 2> ITEM_CHANCES{
     {{TileType::HealthPotion, 0.75}, {TileType::Chest, 0.25}}};
@@ -227,3 +230,5 @@ auto MapGenerator::place_goal() -> MapGenerator & {
   grid_.set_value(get_furthest_position(grid_, grid_.convert_position(player_index)), TileType::Goal);
   return *this;
 }
+
+auto MapGenerator::get_enemy_limit() const -> int { return ENEMY_LIMIT.generate_value(level_); }
