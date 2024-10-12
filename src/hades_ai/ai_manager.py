@@ -376,7 +376,9 @@ def train_dqn() -> None:
     # Loop over the episodes
     for episode in range(EPISODE_COUNT):
         # Enable saving if possible
-        env.window.save = episode % SAVE_INTERVAL == 0 or episode == EPISODE_COUNT - 1
+        episode_dir = get_episode_dir(episode)
+        if episode % SAVE_INTERVAL == 0 or episode == EPISODE_COUNT - 1:
+            env.window.make_writer(episode_dir / f"episode_{episode + 1}.mp4")
 
         # Reset the environment
         state, _ = env.reset()
@@ -418,9 +420,9 @@ def train_dqn() -> None:
 
         # Print the episode results
         print(  # noqa: T201
-            f"Finished episode {episode + 1} (saving: {env.window.save}) after"
-            f" {total_step} steps. Average reward: {total_reward / total_step}, average"
-            f" loss: {total_loss / total_step}",
+            f"Finished episode {episode + 1} (saving: {env.window.writer is not None})"
+            f" after {total_step} steps. Average reward: {total_reward / total_step},"
+            f" average loss: {total_loss / total_step}",
         )
 
         # Log the rewards and losses for this episode
@@ -428,10 +430,9 @@ def train_dqn() -> None:
         episode_losses.append(total_loss)
 
         # Plot the graphs for the episode and save them and the video if possible
-        if env.window.save:
-            episode_dir = get_episode_dir(episode)
+        if env.window.writer:
             plot_graphs(episode_dir)
-            env.window.save_video(episode_dir / f"episode_{episode + 1}.mp4")
+            env.window.save_video()
         else:
             plot_graphs()
 
