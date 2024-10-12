@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 # Pip
 import cv2
@@ -13,49 +13,43 @@ from arcade import get_image
 # Custom
 from hades.window import HadesWindow
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from PIL.Image import Image
-
 
 class CaptureWindow(HadesWindow):
     """Allow periodic gameplay recordings for the AI model.
 
     Attributes:
-        save: Whether to save the gameplay and graphs or not.
+        path: The path to save the recorded gameplay.
+        writer: The video writer object to save the recorded gameplay.
     """
 
-    __slots__ = ("frames", "save")
+    __slots__ = ("path", "writer")
 
     def __init__(self: CaptureWindow) -> None:
         """Initialise the object."""
         super().__init__()
-        self.save: bool = False
-        self.frames: list[Image] = []
+        self.path: Path = Path()
+        self.writer: cv2.VideoWriter | None = None
 
-    def on_update(self: CaptureWindow, _: float) -> None:
-        """Capture the current gameplay frame."""
-        if self.save:
-            self.frames.append(get_image())
-
-    def save_video(self: CaptureWindow, path: Path) -> None:
-        """Save the recorded gameplay as a video."""
-        if not self.save:
-            return
-
-        # Create a video writer object
-        video = cv2.VideoWriter(
-            str(path),
+    def make_writer(self: CaptureWindow) -> None:
+        """Create a video writer object."""
+        self.writer = cv2.VideoWriter(
+            str(self.path),
             cv2.VideoWriter_fourcc(*"mp4v"),
             60,
             (self.width, self.height),
         )
 
-        # Write each frame to the video
-        for frame in self.frames:
-            video.write(cv2.cvtColor(np.array(frame), cv2.COLOR_RGB2BGR))
+    def on_update(self: CaptureWindow, _: float) -> None:
+        """Capture the current gameplay frame."""
+        if self.writer:
+            self.writer.write(cv2.cvtColor(np.array(get_image()), cv2.COLOR_RGB2BGR))
 
-        # Release the video writer object and clear the frames list
-        video.release()
-        self.frames.clear()
+    def save_video(self: CaptureWindow) -> None:
+        """Save the recorded gameplay as a video."""
+        if not self.writer:
+            return
+
+        # Create a video writer object
+        self.writer.release()
+        self.writer = None
+        self.path = Path()
