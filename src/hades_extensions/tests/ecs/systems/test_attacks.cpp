@@ -181,11 +181,12 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
   auto game_object_created{-1};
   auto game_object_creation_callback{[&](const GameObjectID game_object_id) {
+    // The velocity for the bullet is set after the game object is created
     const auto *bullet{*registry.get_component<KinematicComponent>(game_object_id)->body};
     ASSERT_NEAR(bullet->p.x, 32, 1e-13);
     ASSERT_NEAR(bullet->p.y, -32, 1e-13);
     ASSERT_NEAR(bullet->v.x, 0, 1e-13);
-    ASSERT_NEAR(bullet->v.y, -1000, 1e-13);
+    ASSERT_NEAR(bullet->v.y, 0, 1e-13);
     game_object_created = game_object_id;
   }};
   create_attack_component({AttackAlgorithm::Ranged});

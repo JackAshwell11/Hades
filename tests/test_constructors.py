@@ -14,37 +14,28 @@ from hades.constructors import (
 from hades_extensions.ecs import GameObjectType
 
 
-@pytest.fixture(autouse=True)
-def _clear_texture_cache() -> None:
-    """Clear the texture cache before each test."""
-    texture_cache.clear()
-
-
 @pytest.mark.parametrize(
     ("game_object_type", "expected_result"),
     [
-        (GameObjectType.Wall, ("Wall", "A wall that blocks movement.", True, False)),
-        (
-            GameObjectType.Floor,
-            ("Floor", "A floor that allows movement.", False, False),
-        ),
-        (GameObjectType.Player, ("Player", "The player character.", False, True)),
-        (GameObjectType.Enemy, ("Enemy", "An enemy character.", False, True)),
-        (GameObjectType.Goal, ("Goal", "The goal of the level.", False, False)),
+        (GameObjectType.Wall, ("Wall", "A wall that blocks movement.")),
+        (GameObjectType.Floor, ("Floor", "A floor that allows movement.")),
+        (GameObjectType.Player, ("Player", "The player character.")),
+        (GameObjectType.Enemy, ("Enemy", "An enemy character.")),
+        (GameObjectType.Goal, ("Goal", "The goal of the level.")),
         (
             GameObjectType.HealthPotion,
-            ("Health Potion", "A potion that restores health.", False, False),
+            ("Health Potion", "A potion that restores health."),
         ),
-        (GameObjectType.Chest, ("Chest", "A chest that contains loot.", False, False)),
+        (GameObjectType.Chest, ("Chest", "A chest that contains loot.")),
         (
             GameObjectType.Bullet,
-            ("Bullet", "A bullet that damages other game objects.", False, False),
+            ("Bullet", "A bullet that damages other game objects."),
         ),
     ],
 )
 def test_factory_functions(
     game_object_type: GameObjectType,
-    expected_result: tuple[str, str, bool, bool],
+    expected_result: tuple[str, str],
 ) -> None:
     """Test that the factory functions return the expected results.
 
@@ -52,13 +43,11 @@ def test_factory_functions(
         game_object_type: The game object type to test.
         expected_result: The expected results.
     """
-    constructor = game_object_constructors[game_object_type]()
+    constructor = game_object_constructors[game_object_type]
     assert isinstance(constructor, GameObjectConstructor)
     assert constructor.game_object_type == game_object_type
     assert constructor.name == expected_result[0]
     assert constructor.description == expected_result[1]
-    assert constructor.static == expected_result[2]
-    assert constructor.kinematic == expected_result[3]
     for texture_path in constructor.texture_paths:
         assert texture_cache[texture_path] is not None
 
@@ -71,5 +60,16 @@ def test_nonexistent_texture_path() -> None:
             "Test description",
             GameObjectType.Player,
             ["non_existent.png"],
-            kinematic=True,
         )
+
+
+def test_duplicate_texture_paths() -> None:
+    """Test that only one texture is loaded for duplicate texture paths."""
+    constructor = GameObjectConstructor(
+        "Test",
+        "Test description",
+        GameObjectType.Player,
+        [":resources:floor.png", ":resources:floor.png"],
+    )
+    assert len(constructor.texture_paths) == 2
+    assert texture_cache[":resources:floor.png"] is not None

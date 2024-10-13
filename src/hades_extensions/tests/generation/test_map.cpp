@@ -32,18 +32,6 @@ class MapFixture : public testing::Test {  // NOLINT
 
   /// Set up the fixture for the tests.
   void SetUp() override { random_generator.seed(0); }
-
-  // /// Place a rect made up of walls and floors in the grid for use in testing.
-  // void place_covered_box() const {
-  //   very_large_grid.place_rect({{.x = 2, .y = 2}, {.x = 20, .y = 20}});
-  //   for (int y = 1; y <= 21; y++) {
-  //     for (int x = 1; x <= 21; x++) {
-  //       if (very_large_grid.get_value({.x = x, .y = y}) != TileType::Floor) {
-  //         very_large_grid.set_value({.x = x, .y = y}, TileType::Wall);
-  //       }
-  //     }
-  //   }
-  // }
 };
 
 namespace {
@@ -476,24 +464,11 @@ TEST_F(MapFixture, TestMapGeneratorPlaceGoalPlayer) {
   assert_min_distance(grid, TileType::Goal);
 }
 
-// /// Test that creating a map with a valid level and seed works correctly.
-// TEST_F(MapFixture, TestMapGeneratorCreateMapValidLevelSeed) {
-//   const auto [create_map_valid_grid, create_map_valid_constants]{create_map(0, 10)};
-//   ASSERT_EQ(create_map_valid_constants.width, 30);
-//   ASSERT_EQ(create_map_valid_constants.height, 20);
-//   ASSERT_EQ(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Player), 1);
-//   ASSERT_GE(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::HealthPotion),
-//   1); ASSERT_GE(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Chest), 1);
-//   ASSERT_GE(std::ranges::count(create_map_valid_grid.begin(), create_map_valid_grid.end(), TileType::Goal), 1);
-// }
-//
-// /// Test that creating a map without a seed works correctly.
-// TEST_F(MapFixture, TestMapGeneratorCreateMapEmptySeed) {
-//   const auto [create_map_empty_seed_grid, _]{create_map(0)};
-//   ASSERT_NE(create_map_empty_seed_grid, create_map(0).first);
-// }
-//
-// /// Test that creating a map with a negative level throws an exception.
-// TEST_F(MapFixture, TestMapGeneratorCreateMapNegativeLevel) {
-//   ASSERT_THROW_MESSAGE(create_map(-1, 5), std::length_error, "Level must be bigger than or equal to 0.")
-// }
+/// Test that getting the enemy limit works correctly for a positive level.
+TEST_F(MapFixture, TestMapGeneratorGetEnemyLimitPositiveLevel) { ASSERT_EQ(small_map.get_enemy_limit(), 2); }
+
+/// Test that getting the enemy limit works correctly for a zero level.
+TEST_F(MapFixture, TestMapGeneratorGetEnemyLimitZeroLevel) { ASSERT_EQ(large_map.get_enemy_limit(), 5); }
+
+/// Test that getting the enemy limit works correctly for a negative level.
+TEST_F(MapFixture, TestMapGeneratorGetEnemyLimitNegativeLevel) { ASSERT_EQ(empty_map.get_enemy_limit(), 0); }

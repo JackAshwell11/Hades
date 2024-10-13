@@ -15,7 +15,7 @@ from arcade import color
 from hades.constructors import GameObjectConstructor
 from hades.progress_bar import ProgressBar, ProgressBarGroup
 from hades.sprite import HadesSprite
-from hades_extensions.ecs import ComponentBase, GameObjectType, Vec2d
+from hades_extensions.ecs import ComponentBase, GameObjectType, Registry
 from hades_extensions.ecs.components import Armour, Health
 
 if TYPE_CHECKING:
@@ -31,7 +31,15 @@ def health() -> Health:
     Returns:
         A health stat for testing.
     """
-    return Health(100, -1)
+    health = Mock(spec=Health)
+    health.get_value.return_value = 100
+    health.get_max_value.return_value = 100
+
+    def set_value(value: int) -> None:
+        health.get_value.return_value = max(0, min(value, health.get_max_value()))
+
+    health.set_value.side_effect = set_value
+    return health
 
 
 @pytest.fixture
@@ -44,18 +52,17 @@ def sprite(health: Health) -> HadesSprite:
     Returns:
         A sprite for testing.
     """
+    registry = Mock(spec=Registry)
+    registry.get_component.return_value = health
     return HadesSprite(
-        Mock(),
+        registry,
         0,
-        Vec2d(0, 0),
+        (0, 0),
         GameObjectConstructor(
             "Test",
             "Test description",
             GameObjectType.Player,
             [":resources:floor.png"],
-            [
-                health,
-            ],
             {
                 Health: (0, 1, color.GREEN),
             },
@@ -109,56 +116,35 @@ def test_progress_bar_init_negative_scale(scale: float) -> None:
 
 
 @pytest.mark.parametrize(
-    ("components", "progress_bars"),
+    "progress_bars",
     [
-        (
-            [
-                Health(100, -1),
-                Armour(50, -1),
-            ],
-            {
-                Health: (0, 1, color.GREEN),
-                Armour: (1, 1, color.YELLOW),
-            },
-        ),
-        (
-            [
-                Health(100, -1),
-                Armour(50, -1),
-            ],
-            {
-                Health: (1, 1, color.GREEN),
-                Armour: (0, 1, color.YELLOW),
-            },
-        ),
-        (
-            [
-                Health(100, -1),
-                Armour(50, -1),
-            ],
-            {
-                Armour: (0, 1, color.YELLOW),
-            },
-        ),
+        ({Health: (0, 1, color.GREEN), Armour: (1, 1, color.YELLOW)}),
+        ({Health: (1, 1, color.GREEN), Armour: (0, 1, color.YELLOW)}),
+        ({Armour: (0, 1, color.YELLOW)}),
     ],
 )
 def test_progress_bar_group_init(
     sprite: HadesSprite,
-    components: list[ComponentBase],
     progress_bars: dict[type[ComponentBase], tuple[int, float, RGBA255]],
 ) -> None:
     """Test that a ProgressBarGroup is initialised correctly.
 
     Args:
         sprite: A sprite for testing.
-        components: The game object's components
         progress_bars: The game object's progress bars.
     """
-    sprite.constructor.components = components
+    # Set up the mock components
+    mock_health = Mock(spec=Health)
+    mock_health.get_value.return_value = 100
+    mock_health.get_max_value.return_value = 100
+    mock_armour = Mock(spec=Armour)
+    mock_armour.get_value.return_value = 50
+    mock_armour.get_max_value.return_value = 50
+
     sprite.constructor.progress_bars = progress_bars
     progress_bar_group = ProgressBarGroup(sprite)
     assert len(progress_bar_group.children) == len(progress_bars)
-    for component in components:
+    for component in (mock_health, mock_armour):
         if type(component) in progress_bars:
             index = progress_bars[type(component)][0]
             assert progress_bar_group.children[index].target_component == component
