@@ -125,7 +125,9 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
              "Load a hitbox for a game object type.\n\n"
              "Args:\n"
              "    game_object_type: The type of game object to load the hitbox for.\n"
-             "    hitbox: The hitbox to load for the game object type.");
+             "    hitbox: The hitbox to load for the game object type.\n\n"
+             "Returns:\n"
+             "    Whether the hitbox was loaded or not.");
   pybind11::class_<GameEngine>(module, "GameEngine", "Manages the game objects and systems.")
       .def(pybind11::init<int, std::optional<unsigned int>>(), pybind11::arg("level"),
            pybind11::arg("seed") = pybind11::none(),

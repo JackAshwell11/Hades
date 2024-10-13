@@ -11,6 +11,7 @@
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/sprite.hpp"
+#include "factories.hpp"
 
 void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect &force) const {
   cpBodyApplyForceAtLocalPoint(
@@ -20,10 +21,11 @@ void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect &f
 
 void PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect> &bullet, const double damage,
                                const GameObjectType source) const {
-  const auto bullet_id{
-      get_registry()->create_game_object(GameObjectType::Bullet, get<0>(bullet),
-                                         {std::make_shared<Damage>(damage, -1), std::make_shared<KinematicComponent>(),
-                                          std::make_shared<PythonSprite>()})};
+  const auto bullet_id{get_registry()->create_game_object(GameObjectType::Bullet, get<0>(bullet),
+                                                          get_factories().at(GameObjectType::Bullet)())};
+  const auto damage_component{get_registry()->get_component<Damage>(bullet_id)};
+  damage_component->add_to_max_value(damage - damage_component->get_value());
+  damage_component->set_value(damage);
   cpShapeSetFilter(
       *get_registry()->get_component<KinematicComponent>(bullet_id)->shape,
       {static_cast<cpGroup>(source), static_cast<cpBitmask>(GameObjectType::Bullet), ~static_cast<cpBitmask>(source)});

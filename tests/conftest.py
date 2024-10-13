@@ -12,27 +12,12 @@ import pytest
 from arcade import Window
 from arcade.texture import default_texture_cache
 
-# Custom
-from hades_extensions.ecs import Registry
-
 if TYPE_CHECKING:
     from collections.abc import Generator
 
     from _pytest.monkeypatch import MonkeyPatch
 
 __all__ = ()
-
-
-@pytest.fixture
-def registry() -> Registry:
-    """Get the registry for testing.
-
-    Returns:
-        Registry: The registry for testing.
-    """
-    registry = Registry()
-    registry.add_systems()
-    return registry
 
 
 @pytest.fixture(scope="session")

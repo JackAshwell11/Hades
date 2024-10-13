@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 # Pip
@@ -25,20 +25,13 @@ from hades.views.player import (
     UpgradesItemButton,
     create_divider_line,
 )
-from hades_extensions.ecs import (
-    ComponentBase,
-    GameObjectType,
-    Registry,
-    RegistryError,
-    Vec2d,
-)
+from hades_extensions.ecs import ComponentBase, Registry, RegistryError
 from hades_extensions.ecs.components import (
     Health,
     Inventory,
     InventorySize,
     Money,
     PythonSprite,
-    StatusEffect,
     Upgrades,
 )
 from hades_extensions.ecs.systems import InventorySystem, UpgradeSystem
@@ -84,31 +77,75 @@ def mock_sprite() -> HadesSprite:
 
 
 @pytest.fixture
-def component_sprite(registry: Registry) -> int:
+def mock_registry() -> Registry:
+    """Create a mock registry for testing.
+
+    Returns:
+        The mock registry for testing.
+    """
+    return Mock(spec=Registry)
+
+
+@pytest.fixture
+def component_sprite(mock_registry: Registry) -> int:
     """Create a HadesSprite object with components for testing.
 
     Args:
-        registry: The registry for testing.
+        mock_registry: The mock registry for testing.
 
     Returns:
         The game object ID of the HadesSprite object.
     """
-    python_sprite = PythonSprite()
-    game_object_id = registry.create_game_object(
-        GameObjectType.Player,
-        Vec2d(0, 0),
-        [
-            Health(100, -1),
-            Inventory(),
-            InventorySize(10, -1),
-            Money(),
-            StatusEffect(),
-            Upgrades({}),
-            python_sprite,
-        ],
-    )
+
+    def add_to_max_value_side_effect(value: float) -> None:
+        health.get_max_value.return_value += value
+
+    def increment_current_level_side_effect() -> None:
+        health.get_current_level.return_value += 1
+
+    # Create the mock components and set the required values
+    health = Mock(spec=Health)
+    health.get_value.return_value = 100.0
+    health.get_max_value.return_value = 100.0
+    health.get_current_level.return_value = 0
+    health.add_to_max_value.side_effect = add_to_max_value_side_effect
+    health.increment_current_level.side_effect = increment_current_level_side_effect
+    inventory = Mock(spec=Inventory)
+    inventory.items = []
+    inventory_size = Mock(spec=InventorySize)
+    inventory_size.get_value.return_value = 10.0
+    inventory_size.get_max_value.return_value = 10.0
+    money = Mock(spec=Money)
+    money.money = 0
+    upgrades = Mock(spec=Upgrades)
+    upgrades.upgrades = {Health: (lambda level: level * 5, lambda level: level * 10)}
+    python_sprite = Mock(spec=PythonSprite)
     python_sprite.sprite = Mock(spec=HadesSprite)
-    return game_object_id
+
+    def get_component_side_effect(
+        _: int,
+        component_type: type[ComponentBase],
+    ) -> ComponentBase:
+        if component_type == Health:
+            return health
+        if component_type == Inventory:
+            return inventory
+        if component_type == InventorySize:
+            return inventory_size
+        if component_type == Money:
+            return money
+        if component_type == Upgrades:
+            return upgrades
+        if component_type == PythonSprite:
+            return python_sprite
+        error = f"Unexpected component type: {component_type}"
+        raise ValueError(error)
+
+    # Ensure the mock registry returns the correct components
+    mock_registry.get_component.side_effect = (  # type: ignore[attr-defined]
+        get_component_side_effect
+    )
+    return 0
 
 
 @pytest.fixture
@@ -210,33 +247,33 @@ def stats_layout(window: Window) -> StatsLayout:  # noqa: ARG001
 
 @pytest.fixture
 def player_attributes_layout(
-    registry: Registry,
+    mock_registry: Registry,
     window: Window,  # noqa: ARG001
     component_sprite: int,
 ) -> PlayerAttributesLayout:
     """Create a PlayerAttributesLayout for testing.
 
     Args:
-        registry: The registry for testing.
+        mock_registry: The mock registry for testing.
         window: The window for testing.
         component_sprite: The game object ID of the HadesSprite object.
 
     Returns:
         The PlayerAttributesLayout object for testing.
     """
-    return PlayerAttributesLayout(registry, component_sprite)
+    return PlayerAttributesLayout(mock_registry, component_sprite)
 
 
 @pytest.fixture
 def player_view(
-    registry: Registry,
+    mock_registry: Registry,
     window: Window,  # noqa: ARG001
     component_sprite: int,
 ) -> PlayerView:
     """Create a PlayerView for testing.
 
     Args:
-        registry: The registry for testing.
+        mock_registry: The mock registry for testing.
         window: The window for testing.
         component_sprite: The game object ID of the HadesSprite object.
 
@@ -244,7 +281,7 @@ def player_view(
         The PlayerView object for testing.
     """
     player_view = PlayerView(
-        registry,
+        mock_registry,
         component_sprite,
         [],  # type: ignore[arg-type]
     )
@@ -827,31 +864,19 @@ def test_stats_layout_set_info_no_title(
     assert stats_layout.children[4].text == description
 
 
-@pytest.mark.parametrize(
-    "components",
-    [
-        [InventorySize(0, -1), Upgrades({})],
-        [
-            InventorySize(10, -1),
-            Upgrades({Health: (lambda level: level * 5, lambda level: level * 10)}),
-        ],
-    ],
-)
+@pytest.mark.usefixtures("window")
 def test_player_attributes_layout_init(
-    registry: Registry,
-    components: list[ComponentBase],
+    mock_registry: Registry,
+    component_sprite: int,
 ) -> None:
     """Test that the PlayerAttributesLayout initialises correctly.
 
     Args:
-        registry: The registry for testing.
-        components: The components to use for testing.
+        mock_registry: The mock registry for testing.
+        component_sprite: The game object ID of the HadesSprite
     """
     # Make sure the width and height are correct
-    player_attributes_layout = PlayerAttributesLayout(
-        registry,
-        registry.create_game_object(GameObjectType.Player, Vec2d(0, 0), components),
-    )
+    player_attributes_layout = PlayerAttributesLayout(mock_registry, component_sprite)
     assert player_attributes_layout.width == 1024
     assert player_attributes_layout.height == 360
 
@@ -875,48 +900,50 @@ def test_player_attributes_layout_init(
     assert len(player_attributes_layout.upgrades_layout.items) == 14
     for upgrades_item_button, component in zip(
         player_attributes_layout.upgrades_layout.items,
-        cast(Upgrades, components[1]).upgrades.keys(),
+        mock_registry.get_component(0, Upgrades).upgrades.keys(),
         strict=False,
     ):
         assert upgrades_item_button.target_component == component
 
 
+@pytest.mark.usefixtures("window")
 @pytest.mark.parametrize(
-    ("components", "expected_error", "expected_error_message"),
+    ("missing_component", "expected_error_message"),
     [
-        (
-            [Upgrades({})],
-            RegistryError,
-            "The component `InventorySize` for the game object ID `0` is not registered"
-            " with the registry.",
-        ),
-        (
-            [InventorySize(0, -1)],
-            RegistryError,
-            "The component `Upgrades` for the game object ID `0` is not registered with"
-            " the registry.",
-        ),
+        (InventorySize, "Upgrades not found."),
+        (Upgrades, "InventorySize not found."),
     ],
 )
-def test_player_attributes_layout_init_errors(
-    registry: Registry,
-    components: list[ComponentBase],
-    expected_error: type[Exception],
+def test_player_attributes_layout_init_missing_component(
+    mock_registry: Registry,
+    missing_component: type[ComponentBase],
     expected_error_message: str,
 ) -> None:
-    """Test that the PlayerAttributesLayout raises the correct errors.
+    """Test that the PlayerAttributesLayout raises an error for missing components.
 
     Args:
-        registry: The registry for testing.
-        components: The components to use for testing.
-        expected_error: The expected error to raise.
-        expected_error_message: The expected error message to raise.
+        mock_registry: The mock registry for testing.
+        missing_component: The component type that is missing.
+        expected_error_message: The expected error message.
     """
-    with pytest.raises(expected_error, match=expected_error_message):
-        PlayerAttributesLayout(
-            registry,
-            registry.create_game_object(GameObjectType.Player, Vec2d(0, 0), components),
-        )
+
+    def get_component_side_effect(
+        _: int,
+        component_type: type[ComponentBase],
+    ) -> ComponentBase:
+        if component_type == missing_component:
+            raise RegistryError(expected_error_message)
+        return Mock(spec=component_type)
+
+    mock_registry.get_component.side_effect = (  # type: ignore[attr-defined]
+        get_component_side_effect
+    )
+
+    with pytest.raises(
+        expected_exception=RegistryError,
+        match=expected_error_message,
+    ):
+        PlayerAttributesLayout(mock_registry, 0)
 
 
 def test_player_attributes_layout_on_action(
@@ -1042,29 +1069,17 @@ def test_player_view_on_update_inventory(
         )
 
     # Add an item to the inventory
-    sprites = []
-    for _ in range(inventory_size):
-        # Create a game object for the item and add it to the inventory
-        python_sprite = PythonSprite()
-        item = player_view.registry.create_game_object(
-            GameObjectType.HealthPotion,
-            Vec2d(0, 0),
-            [python_sprite],
-        )
-        mock_item_sprite = Mock(spec=HadesSprite)
-        python_sprite.sprite = mock_item_sprite
-        player_view.registry.get_system(InventorySystem).add_item_to_inventory(0, item)
-
-        # Prevent garbage collection of the mock sprite due to the PythonSprite using a
-        # pybind11::handle which is not reference counted as this would cause a segfault
-        sprites.append(mock_item_sprite)
+    for item_id in range(inventory_size):
+        player_view.registry.get_component(0, Inventory).items.append(item_id + 1)
 
     # Make sure the inventory item buttons are updated correctly
+    assert get_inventory_count() == 0
     player_view.on_update_inventory(0)
     assert get_inventory_count() == inventory_size
 
     # Remove an item from the inventory
-    player_view.registry.get_system(InventorySystem).remove_item_from_inventory(0, 1)
+    if inventory_size > 0:
+        player_view.registry.get_component(0, Inventory).items.pop(0)
     player_view.on_update_inventory(0)
     assert get_inventory_count() == max(inventory_size - 1, 0)
 
