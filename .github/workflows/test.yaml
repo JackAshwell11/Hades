@@ -18,7 +18,7 @@ jobs:
         python-version: ["3.11", "3.12"]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v4.2.1
         with:
           submodules: recursive
       - name: Set up Python ${{ matrix.python-version }}
@@ -28,7 +28,7 @@ jobs:
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Set up CMake
-        uses: lukka/get-cmake@v3.30.4
+        uses: lukka/get-cmake@v3.30.5
       - name: Install Mesa on Windows for headless Arcade
         if: matrix.os == 'windows-latest'
         uses: ssciwr/setup-mesa-dist-win@v2
@@ -40,7 +40,7 @@ jobs:
           fi
           pipx run nox --error-on-missing-interpreters --stop-on-first-error -s tests-${{ matrix.python-version }}
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v2.3.0
+        uses: coverallsapp/github-action@v2.3.1
         with:
           file: coverage.lcov
           flag-name: run-python-${{ matrix.os }}-${{ matrix.python-version }}
@@ -57,13 +57,13 @@ jobs:
             cmake-preset: LinuxDebug
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v4.2.1
         with:
           submodules: recursive
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Set up CMake
-        uses: lukka/get-cmake@v3.30.4
+        uses: lukka/get-cmake@v3.30.5
       - name: Build CMake and run CTest
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: |
@@ -77,7 +77,7 @@ jobs:
           gcovr -r ${{ github.workspace }} --exclude src/hades_extensions/build-debug --exclude src/hades_extensions/tests --exclude src/hades_extensions/src/binding.cpp --coveralls coverage.json
       - name: Upload coverage report
         if: matrix.os == 'ubuntu-latest'
-        uses: coverallsapp/github-action@v2.3.0
+        uses: coverallsapp/github-action@v2.3.1
         with:
           file: coverage.json
           flag-name: run-cpp-${{ matrix.os }}
@@ -87,6 +87,6 @@ jobs:
     needs: [python, cpp]
     steps:
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v2.3.0
+        uses: coverallsapp/github-action@v2.3.1
         with:
           parallel-finished: true
