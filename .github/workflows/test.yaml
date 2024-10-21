@@ -40,7 +40,7 @@ jobs:
           fi
           pipx run nox --error-on-missing-interpreters --stop-on-first-error -s tests-${{ matrix.python-version }}
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v2.3.1
+        uses: coverallsapp/github-action@v2.3.3
         with:
           file: coverage.lcov
           flag-name: run-python-${{ matrix.os }}-${{ matrix.python-version }}
@@ -77,7 +77,7 @@ jobs:
           gcovr -r ${{ github.workspace }} --exclude src/hades_extensions/build-debug --exclude src/hades_extensions/tests --exclude src/hades_extensions/src/binding.cpp --coveralls coverage.json
       - name: Upload coverage report
         if: matrix.os == 'ubuntu-latest'
-        uses: coverallsapp/github-action@v2.3.1
+        uses: coverallsapp/github-action@v2.3.3
         with:
           file: coverage.json
           flag-name: run-cpp-${{ matrix.os }}
@@ -87,6 +87,6 @@ jobs:
     needs: [python, cpp]
     steps:
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v2.3.1
+        uses: coverallsapp/github-action@v2.3.3
         with:
           parallel-finished: true
