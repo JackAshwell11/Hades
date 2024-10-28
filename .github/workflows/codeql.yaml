@@ -18,11 +18,11 @@ jobs:
         language: [python, cpp]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4.2.2
         with:
           submodules: recursive
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3.26.13
+        uses: github/codeql-action/init@v3.27.0
         with:
           languages: ${{ matrix.language }}
           setup-python-dependencies: false
@@ -34,6 +34,6 @@ jobs:
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: cmake . --preset LinuxDebug && cmake --build build-debug
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3.26.13
+        uses: github/codeql-action/analyze@v3.27.0
         with:
           category: /language:${{ matrix.language }}
