@@ -429,9 +429,14 @@ def train_dqn() -> None:
         episode_rewards.append(total_reward)
         episode_losses.append(total_loss)
 
-        # Plot the graphs for the episode and save them and the video if possible
+        # Plot the graphs for the episode and save them, the model, and the video if
+        # possible
         if env.window.writer:
             plot_graphs(episode_dir)
+            torch.save(
+                agent.policy_net.state_dict(),
+                get_episode_dir(episode) / MODEL_NAME,
+            )
             env.window.save_video()
         else:
             plot_graphs()
@@ -442,10 +447,21 @@ def train_dqn() -> None:
 
 def run_dqn() -> None:
     """Run the DQN agent in the environment."""
-    # Load the trained model
-    agent.policy_net.load_state_dict(
-        torch.load(OUTPUT_DIR / MODEL_NAME, weights_only=True),
+    # Find the most recent model
+    path = (
+        max(
+            (d for d in OUTPUT_DIR.iterdir() if d.is_dir()),
+            key=lambda d: d.stat().st_mtime,
+            default=OUTPUT_DIR,
+        )
+        / MODEL_NAME
     )
+    if not path.exists():
+        print("No model found, please train the model first")  # noqa: T201
+        return
+
+    # Load the trained model
+    agent.policy_net.load_state_dict(torch.load(path, weights_only=True))
 
     # Reset the environment
     state, _ = env.reset()
