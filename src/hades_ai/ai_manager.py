@@ -84,6 +84,9 @@ LR: Final[float] = 0.0001
 # number of saves, but may miss important details)
 SAVE_INTERVAL: Final[int] = 50
 
+# The name of the model file that will be saved
+MODEL_NAME: Final[str] = "model.pth"
+
 # Check if we're running in interactive mode or not
 if IS_IPYTHON := "inline" in get_backend():
     from IPython import display
@@ -248,7 +251,7 @@ class DQNAgent:
         action_batch = torch.cat(list(batch.action))
         reward_batch = torch.cat(list(batch.reward))
 
-        # Computer Q(s_t, a) - the model computes Q(s_t), then we select the columns of
+        # Compute Q(s_t, a) - the model computes Q(s_t), then we select the columns of
         # actions taken
         state_action_values = self.policy_net(state_batch).gather(
             1,
@@ -300,7 +303,7 @@ def get_episode_dir(episode: int) -> Path:
     Returns:
         The directory path for the given episode.
     """
-    episode_dir = OUTPUT_DIR / f"{episode}"
+    episode_dir = OUTPUT_DIR / f"{episode + 1}"
     episode_dir.mkdir(exist_ok=True)
     return episode_dir
 
@@ -432,10 +435,15 @@ def train_dqn() -> None:
         episode_rewards.append(total_reward)
         episode_losses.append(total_loss)
 
-        # Plot the graphs for the episode and save them if possible
+        # Plot the graphs for the episode and save them, the video, and the model if
+        # possible
         if env.window.writer:
             plot_graphs(get_episode_dir(episode))
             env.window.save_video()
+            torch.save(
+                agent.policy_net.state_dict(),
+                get_episode_dir(episode) / MODEL_NAME,
+            )
         else:
             plot_graphs()
 
@@ -445,10 +453,21 @@ def train_dqn() -> None:
 
 def run_dqn() -> None:
     """Run the DQN agent in the environment."""
-    # Load the trained model
-    agent.policy_net.load_state_dict(
-        torch.load(OUTPUT_DIR / "dqn.pth", weights_only=True),
+    # Find the most recent model
+    path = (
+        max(
+            (d for d in OUTPUT_DIR.iterdir() if d.is_dir()),
+            key=lambda d: d.stat().st_mtime,
+            default=OUTPUT_DIR,
+        )
+        / MODEL_NAME
     )
+    if not path.exists():
+        print("No model found, please train the model first")
+        return
+
+    # Load the trained model
+    agent.policy_net.load_state_dict(torch.load(path, weights_only=True))
 
     # Reset the environment
     state, _ = env.reset()
@@ -518,7 +537,7 @@ if __name__ == "__main__":
         run_dqn()
     elif args.train:
         train_dqn()
-        torch.save(agent.policy_net.state_dict(), OUTPUT_DIR / "dqn.pth")
+        torch.save(agent.policy_net.state_dict(), OUTPUT_DIR / MODEL_NAME)
 
 # TODO: Could add option for training using stable-baselines3 (would need to figure out
 #  graph plotting)
