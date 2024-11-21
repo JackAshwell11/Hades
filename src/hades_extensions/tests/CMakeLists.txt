@@ -18,8 +18,8 @@ add_executable(${TEST_MODULE}
 )
 target_include_directories(${TEST_MODULE} PRIVATE ${CMAKE_SOURCE_DIR}/tests)
 target_link_libraries(${TEST_MODULE}
-        PRIVATE GTest::gtest_main
         PRIVATE ${CPP_LIB}
+        PRIVATE GTest::gtest_main
 )
 
 # Add the executable as a test to CTest

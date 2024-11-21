@@ -9,7 +9,7 @@
       "binaryDir": "${sourceDir}/build-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
       },
       "description": "Debug build",
       "generator": "Ninja",
@@ -17,7 +17,7 @@
     },
     {
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic"
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
       },
       "inherits": "WinDebug",
       "name": "MinGWDebug"
@@ -34,7 +34,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "ENABLE_COVERAGE": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
       },
       "description": "Release build",
       "generator": "Ninja",
@@ -42,7 +42,7 @@
     },
     {
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic"
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
       },
       "inherits": "WinRelease",
       "name": "MinGWRelease"

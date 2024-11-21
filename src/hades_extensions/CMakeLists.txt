@@ -8,6 +8,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
+# Ensure we use the correct runtime library for MSVC
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 # Define custom options
 set(ENABLE_COVERAGE ON CACHE BOOL "Enable coverage reporting for GCC/Clang")
 set(DO_PYTHON ON CACHE BOOL "Enable Python bindings")
