@@ -8,7 +8,7 @@ import math
 from typing import Final
 
 # Pip
-from arcade import MOUSE_BUTTON_LEFT, SpriteList, color, key, schedule
+from arcade import MOUSE_BUTTON_LEFT, SpriteList, color, key
 from arcade.camera.camera_2d import Camera2D
 from arcade.gui import UIView
 from pyglet import app
@@ -70,7 +70,6 @@ class Game(UIView):
         self.game_ui: GameUI = GameUI(self.ui)
         self.game_engine = GameEngine(level)
         self.registry: Registry = self.game_engine.get_registry()
-        schedule(self.game_engine.generate_enemy, ENEMY_GENERATE_INTERVAL)
 
         # Create all the game objects for the current map
         self.registry.add_callback(
@@ -81,6 +80,10 @@ class Game(UIView):
         self.registry.add_callback(EventType.SpriteRemoval, self.on_sprite_removal)
         self.game_engine.create_game_objects()
         self.player: int = self.game_engine.player_id
+
+        # Generate a fixed number of enemies
+        for _ in range(3):
+            self.game_engine.generate_enemy(0)
 
         # Create the required views for the game
         inventory_view = PlayerView(

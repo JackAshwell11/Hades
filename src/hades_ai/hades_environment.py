@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 # Builtin
+import time
 from typing import TYPE_CHECKING, Any, Final, SupportsFloat
 
 # Pip
@@ -10,30 +11,28 @@ import numpy as np
 from arcade import get_sprites_at_point, key
 from gymnasium import Env
 from gymnasium.spaces import Box, Dict, Discrete
-from pyglet import clock
 
 # Custom
 from hades.views.game import Game
 from hades_ai.capture_window import CaptureWindow
 from hades_extensions.ecs import (
     SPRITE_SIZE,
+    EventType,
     GameObjectType,
+    RegistryError,
     Vec2d,
 )
-from hades_extensions.ecs.components import KinematicComponent
+from hades_extensions.ecs.components import KinematicComponent, PythonSprite
 from hades_extensions.ecs.systems import PhysicsSystem
 
 if TYPE_CHECKING:
     from gymnasium.core import ActType, ObsType
 
-# The rate at which to draw the game
-DRAW_RATE: Final[float] = 1 / 60
-
 # The safe distance to be from a wall
 SAFE_DISTANCE: Final[float] = SPRITE_SIZE * 1.5
 
 # The size of the position history
-POSITION_HISTORY_SIZE: Final[int] = 50
+POSITION_HISTORY_SIZE: Final[int] = 25
 
 
 class HadesEnvironment(Env):
@@ -90,6 +89,7 @@ class HadesEnvironment(Env):
         "_action_to_direction",
         "action_space",
         "game",
+        "last_update_time",
         "observation_space",
         "previous_action",
         "target_position",
@@ -138,14 +138,44 @@ class HadesEnvironment(Env):
                 ),
                 "previous_action": Discrete(9),
                 "is_near_wall": Discrete(2),
+                "distance_to_enemies": Box(
+                    low=0,
+                    high=np.inf,
+                    shape=(3,),
+                    dtype=np.float32,
+                ),
+                "is_near_enemy": Discrete(2),
+                "distance_to_nearest_enemy": Box(
+                    low=0,
+                    high=np.inf,
+                    shape=(1,),
+                    dtype=np.float32,
+                ),
+                "direction_to_nearest_enemy": Box(
+                    low=-1,
+                    high=1,
+                    shape=(2,),
+                    dtype=np.float32,
+                ),
+                # "empowerment": Box(
+                #     low=0,
+                #     high=1,
+                #     shape=(1,),
+                #     dtype=np.float32,
+                # ),
             },
         )
 
         # Store some variables for the environment
         self.window: CaptureWindow = CaptureWindow()
+        self.window.center_window()
         self.game: Game | None = None
         self.previous_action: int = 0
         self.position_history: list[tuple[int, int]] = []
+        self.enemy_ids: list[int] = []
+        self.empowerment_matrix = None
+        self.finished: bool = False
+        self.last_update_time = 0
 
     def _get_obs(self: HadesEnvironment) -> ObsType:
         """Returns the current observation.
@@ -161,26 +191,61 @@ class HadesEnvironment(Env):
             error = "Game is not initialised."
             raise ValueError(error)
 
-        # Calculate the distances to the walls
-        kinematic_component = self.game.registry.get_component(
-            self.game.player,
-            KinematicComponent,
-        )
+        try:
+            kinematic_component = self.game.registry.get_component(
+                self.game.player,
+                KinematicComponent,
+            )
+        except RegistryError:
+            return {}
         current_position = np.array(
             kinematic_component.get_position(),
             dtype=np.float32,
         )
-        wall_distances = np.array(
+
+        wall_positions = np.array(
             [
-                np.linalg.norm(
-                    np.array([wall.x, wall.y], dtype=np.float32) - current_position,
-                )
+                [wall.x, wall.y]
                 for wall in self.game.registry.get_system(
                     PhysicsSystem,
                 ).get_wall_distances(Vec2d(*kinematic_component.get_position()))
             ],
             dtype=np.float32,
         )
+        wall_distances = np.linalg.norm(wall_positions - current_position, axis=1)
+
+        enemy_positions = []
+        distance_to_enemies = []
+        for enemy_id in self.enemy_ids:
+            enemy_kinematic_component = self.game.registry.get_component(
+                enemy_id,
+                KinematicComponent,
+            )
+            enemy_position = np.array(
+                enemy_kinematic_component.get_position(),
+                dtype=np.float32,
+            )
+            distance_to_enemies.append(
+                np.linalg.norm(current_position - enemy_position),
+            )
+            enemy_positions.append(enemy_position)
+        enemy_positions = np.array(enemy_positions, dtype=np.float32)
+        distance_to_enemies = np.array(distance_to_enemies, dtype=np.float32)
+
+        if not enemy_positions.size:
+            direction_to_nearest_enemy = np.zeros(2, dtype=np.float32)
+        else:
+            direction_to_nearest_enemy = (
+                current_position - enemy_positions[np.argmin(distance_to_enemies)]
+            )
+
+        # Ensure distance_to_enemies has a fixed size
+        if len(distance_to_enemies) < 3:
+            distance_to_enemies = np.pad(
+                distance_to_enemies,
+                (0, 3 - len(distance_to_enemies)),
+                "constant",
+            )
 
         # Return the observations
         return {
@@ -192,7 +257,58 @@ class HadesEnvironment(Env):
             "distance_to_walls": wall_distances,
             "previous_action": self.previous_action,
             "is_near_wall": float(np.any(wall_distances <= (SPRITE_SIZE / 2))),
+            "distance_to_enemies": distance_to_enemies,
+            "is_near_enemy": float(np.any(distance_to_enemies <= (SAFE_DISTANCE * 3))),
+            "distance_to_nearest_enemy": np.min(distance_to_enemies),
+            "direction_to_nearest_enemy": direction_to_nearest_enemy,
         }
+
+    def _calculate_empowerment(self, current_position: np.ndarray) -> float:
+        """Calculate empowerment based on inverse distance to enemies."""
+        if not self.enemy_ids:
+            return 1.0  # Maximum empowerment if there are no enemies
+
+        # Calculate grid distances to all enemies from the player's grid position
+        distances_to_enemies = [
+            np.linalg.norm(
+                current_position
+                - np.array(
+                    (
+                        int(
+                            self.game.registry.get_component(
+                                enemy_id,
+                                KinematicComponent,
+                            ).get_position()[0]
+                            // SPRITE_SIZE,
+                        ),
+                        int(
+                            self.game.registry.get_component(
+                                enemy_id,
+                                KinematicComponent,
+                            ).get_position()[1]
+                            // SPRITE_SIZE,
+                        ),
+                    ),
+                ),
+            )
+            for enemy_id in self.enemy_ids
+        ]
+
+        # Define a threshold grid distance for high-risk zones
+        ENEMY_SAFE_GRID_DISTANCE = 3  # In grid cells, adjustable for higher avoidance
+
+        # Calculate empowerment based on grid distance: the further from enemies, the higher the empowerment
+        return (
+            1
+            - max(
+                0,
+                min(
+                    ENEMY_SAFE_GRID_DISTANCE - min(distances_to_enemies),
+                    ENEMY_SAFE_GRID_DISTANCE,
+                ),
+            )
+            / ENEMY_SAFE_GRID_DISTANCE
+        )
 
     def reset(
         self,
@@ -215,11 +331,25 @@ class HadesEnvironment(Env):
         # Reset the window and store the required variables
         self.previous_action = 0
         self.game = Game(0)
+        self.finished = False
+        self.game.registry.add_callback(
+            EventType.GameObjectDeath,
+            self.on_game_object_death,
+        )
         self.position_history.clear()
 
         # Show the game view and render it so that the AI agent can interact with it
         self.window.show_view(self.game)
         self.render()
+
+        # Get the enemy id
+        self.enemy_ids = [
+            entity.game_object_id
+            for entity in self.game.entity_sprites
+            if entity.game_object_type == GameObjectType.Enemy
+        ]
+
+        self.empowerment_matrix = np.zeros((20, 30), dtype=np.float32)
 
         # Return the initial observation and information
         return self._get_obs(), {}
@@ -244,20 +374,25 @@ class HadesEnvironment(Env):
             error = "Game is not initialised"
             raise ValueError(error)
 
-        # For all directions, send a key_release event
+        # For all directions, send a key_release event to stop previous movement
         for direction in (key.W, key.A, key.S, key.D):
             self.game.on_key_release(direction, 0)
 
-        # Get the direction from the action and send the event key
+        # Send the current action's key press event
         for direction in self._action_to_direction[action]:
             self.game.on_key_press(direction, 0)
 
-        # Update the game and render it
+        # Update and render the game to reflect the new action
+        if self.finished:
+            print("finished early")
+            return {}, 0, True, True, {}
         self.render()
 
-        # Get the observations and store the previous action
+        # Get current observation
         observations = self._get_obs()
-        self.previous_action = action
+        if observations == {}:
+            print("no obs")
+            return {}, -1, True, True, {}
 
         # Check if the agent is outside the dungeon
         sprites = get_sprites_at_point(
@@ -268,59 +403,77 @@ class HadesEnvironment(Env):
             self.game.tile_sprites,
         )
         if not sprites or sprites[0].game_object_type == GameObjectType.Wall:
-            return observations, 0, False, True, {}
+            print("outside dungeon")
+            return observations, -1, False, True, {}
 
-        # Add the current position to the position history
-        current_position = (
-            observations["current_position"][0] // SPRITE_SIZE,
-            observations["current_position"][1] // SPRITE_SIZE,
+        # Get agent's current grid position
+        agent_grid_position = (
+            int(observations["current_position"][0] // SPRITE_SIZE),
+            int(observations["current_position"][1] // SPRITE_SIZE),
         )
-        self.position_history.append(current_position)
 
-        # Start with a neutral reward to encourage exploration
-        reward = 0.5
+        # Empowerment reward: incentivising movement away from enemies
+        reward = self._calculate_empowerment(agent_grid_position)
 
-        # Determine if the agent is near a wall or not
-        # TODO: These rewards need a bit of tweaking
+        # Penalize getting close to enemies
+        MAX_PENALTY_DISTANCE = SPRITE_SIZE * 3
+        for distance in observations["distance_to_enemies"]:
+            if distance < MAX_PENALTY_DISTANCE:
+                normalized_penalty = 1 - (distance / MAX_PENALTY_DISTANCE)
+                reward -= normalized_penalty * 0.5
+
+        # Wall avoidance reward
         min_distance_to_wall = np.min(observations["distance_to_walls"])
-        if min_distance_to_wall <= SPRITE_SIZE / 2:
-            # Strong penalty for touching a wall
-            reward = 0.0
-        elif min_distance_to_wall < SAFE_DISTANCE:
-            # Penalty for being too close to the wall based on proximity to the wall
-            reward -= 0.3 * (1 - (min_distance_to_wall / SAFE_DISTANCE))
+        if min_distance_to_wall <= (SPRITE_SIZE / 2):
+            reward -= 5
         else:
-            # Reward for being safely away from walls
-            reward += 0.2
+            reward += 1 - np.exp(-min_distance_to_wall / SAFE_DISTANCE)
 
-        # Determine if the agent is moving around or not
+        # Exploration bonus for new grid position
+        if agent_grid_position not in self.position_history:
+            reward += 1.0
+            self.position_history.append(agent_grid_position)
         if len(self.position_history) > POSITION_HISTORY_SIZE:
-            # Maintain a fixed size for the history
             self.position_history.pop(0)
-            if any(pos == current_position for pos in self.position_history):
-                # Penalty for being stationary for too long
-                reward -= 0.2
-            elif self.position_history.count(current_position) > 5:
-                # Penalty for oscillating on the same tile
-                reward -= 0.1
-            else:
-                # Reward for moving around
-                reward += 0.3
 
-        # Return the observations, reward, done flag, truncated flag, and info
+        self.previous_action = action
+
+        # TODO: Would like to have reward be very small (-2 to 2 for combined and -1 to
+        #  1 for individual)
+
+        # Return the observation, reward, done, truncated, and info
         return observations, reward, False, False, {}
 
     def render(self: HadesEnvironment) -> None:
         """Renders the environment."""
-        # Update the pyglet clock
-        clock.tick()
-
-        # Call the events for the window and render it
-        self.window.switch_to()
-        self.window.dispatch_events()
-        self.window.dispatch_event("on_draw")
+        current_time = time.time()
+        try:
+            self.game.on_update(current_time - self.last_update_time)
+        except RegistryError:
+            self.finished = True
+            return
+        self.game.on_draw()
+        self.window.on_update(current_time - self.last_update_time)
         self.window.flip()
+        self.last_update_time = current_time
 
     def close(self: HadesEnvironment) -> None:
         """Closes the environment."""
         self.window.close()
+
+    def on_game_object_death(self: HadesEnvironment, game_object_id: int) -> None:
+        """Remove a game object from the game.
+
+        Args:
+            game_object_id: The ID of the game object to remove.
+        """
+        self.game.game_ui.on_game_object_death(game_object_id)
+        game_object = self.game.registry.get_component(
+            game_object_id,
+            PythonSprite,
+        ).sprite
+        game_object.remove_from_sprite_lists()
+        if game_object_id == self.game.player:
+            self.finished = True
+            print("finished true")
+            return
