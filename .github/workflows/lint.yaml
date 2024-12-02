@@ -40,7 +40,7 @@ jobs:
         with:
           submodules: recursive
       - name: Run clang-format
-        uses: jidicula/clang-format-action@v4.13.0
+        uses: jidicula/clang-format-action@v4.14.0
         with:
           check-path: ${{ github.workspace }}/src/hades_extensions
           exclude-regex: build-debug|vcpkg
