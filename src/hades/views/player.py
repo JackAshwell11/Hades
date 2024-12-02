@@ -234,7 +234,7 @@ class InventoryItemButton(ItemButton):
         if not self.sprite_object:
             error = "No sprite object set for this item."
             raise ValueError(error)
-        view = cast(PlayerView, get_window().current_view)
+        view = cast("PlayerView", get_window().current_view)
         view.registry.get_system(InventorySystem).use_item(
             view.game_object_id,
             self.sprite_object.game_object_id,
@@ -287,7 +287,7 @@ class UpgradesItemButton(ItemButton):
             return
 
         # Get the required components
-        view = cast(PlayerView, get_window().current_view)
+        view = cast("PlayerView", get_window().current_view)
         component = view.registry.get_component(
             view.game_object_id,
             self.target_component,
@@ -333,7 +333,7 @@ class UpgradesItemButton(ItemButton):
         if not self.target_component or not self.target_functions:
             error = "No target component or functions set for this item."
             raise ValueError(error)
-        view = cast(PlayerView, get_window().current_view)
+        view = cast("PlayerView", get_window().current_view)
         view.registry.get_system(UpgradeSystem).upgrade_component(
             view.game_object_id,
             self.target_component,
@@ -454,9 +454,9 @@ class PaginatedGridLayout(UIBoxLayout):
         """
         # Get the item that was clicked and either show its stats or use it
         # depending on what button was clicked
-        item = cast(ItemButton, event.source.parent.parent)
+        item = cast("ItemButton", event.source.parent.parent)
         if isinstance(event.source, UITextureButton):
-            cast(PlayerView, get_window().current_view).stats_layout.set_info(
+            cast("PlayerView", get_window().current_view).stats_layout.set_info(
                 *item.get_info(),
             )
         else:
@@ -523,10 +523,10 @@ class StatsLayout(UIBoxLayout):
             description: The description of the stats layout.
             texture: The texture to display in the stats layout.
         """
-        title_obj = cast(UILabel, self.children[0])
+        title_obj = cast("UILabel", self.children[0])
         title_obj.text = title
         title_obj.fit_content()
-        description_obj = cast(UILabel, self.children[4])
+        description_obj = cast("UILabel", self.children[4])
         description_obj.text = description
         description_obj.fit_content()
         self.children[2].with_background(texture=texture)
