@@ -10,13 +10,11 @@ from typing import TYPE_CHECKING, Final, cast
 from arcade import color
 from arcade.gui import UIAnchorLayout, UIBoxLayout, UISpace
 
-# Custom
-from hades_extensions.ecs.components import Stat
-
 if TYPE_CHECKING:
     from arcade.types.color import RGBA255
 
     from hades.sprite import HadesSprite
+    from hades_extensions.ecs.components import Stat
 
 __all__ = (
     "PROGRESS_BAR_DISTANCE",
@@ -107,7 +105,7 @@ class ProgressBarGroup(UIBoxLayout):
                 sprite.constructor.progress_bars[component_type][0],
                 ProgressBar(
                     cast(
-                        Stat,
+                        "Stat",
                         sprite.registry.get_component(
                             sprite.game_object_id,
                             component_type,
