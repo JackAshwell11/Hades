@@ -95,6 +95,9 @@ if IS_IPYTHON := "inline" in get_backend():
 OUTPUT_DIR: Final[Path] = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
+# Create the environment for the AI agent
+ENV: Final[HadesEnvironment] = HadesEnvironment()
+
 # Store the total rewards and losses for each episode
 episode_rewards: list[float] = []
 episode_losses: list[float] = []
@@ -200,11 +203,17 @@ class DQNAgent:
         self.optimiser: AdamW = AdamW(self.policy_net.parameters(), lr=LR)
         self.epsilon: float = EPS_START
 
-    def select_action(self: DQNAgent, state: torch.Tensor) -> torch.Tensor:
+    def select_action(
+        self: DQNAgent,
+        state: torch.Tensor,
+        *,
+        train: bool,
+    ) -> torch.Tensor:
         """Select an action.
 
         Args:
             state: The state tensor.
+            train: Whether to train the agent or not.
 
         Returns:
             The action tensor.
@@ -213,7 +222,7 @@ class DQNAgent:
         self.steps_done += 1
 
         # Select an action based on the epsilon-greedy policy
-        if random.random() > self.epsilon:
+        if random.random() > self.epsilon or not train:
             # Exploit the policy network with noise to select the best action
             with torch.no_grad():
                 action = self.policy_net(state).argmax(dim=1).view(1, 1).to(self.device)
@@ -292,6 +301,10 @@ class DQNAgent:
                 key
             ] * TAU + target_net_state_dict[key] * (1 - TAU)
         self.target_net.load_state_dict(target_net_state_dict)
+
+
+# Create the agent for the AI
+AGENT: Final[DQNAgent] = DQNAgent(ENV.observation_space, ENV.action_space)
 
 
 def get_episode_dir(episode: int) -> Path:
@@ -373,8 +386,64 @@ def concat_observation(obs: ObsType) -> torch.Tensor:
     return torch.tensor(
         arr,
         dtype=torch.float32,
-        device=agent.device,
+        device=AGENT.device,
     ).unsqueeze(0)
+
+
+def process_episode(*, train: bool = True) -> tuple[float, float, int]:
+    """Process an episode of the environment.
+
+    Args:
+        env: The AI environment.
+        agent: The reinforcement learning agent.
+        train: Whether to train the agent or not.
+
+    Returns:
+        A tuple containing the total reward, total loss, and total step count.
+    """
+    # Reset the environment
+    state, _ = ENV.reset()
+
+    # Ensure the state tensor includes all parts of the observation
+    state = concat_observation(state)
+
+    # Run the episode and get the total reward, loss, and step count
+    total_reward = 0
+    total_loss = 0
+    total_step = 0
+    for _ in range(MAX_STEP_COUNT):
+        # Select an action based on whether we're training or not
+        action = AGENT.select_action(state, train=train)
+
+        # Perform the action and get the next state
+        observation, reward, done, truncated, _ = ENV.step(action.item())
+        total_reward += reward
+        finish = truncated or done
+        next_state = concat_observation(observation) if not finish else None
+
+        # Store the transition in memory
+        if train:
+            AGENT.memory.append(
+                Transition(
+                    state,
+                    action,
+                    next_state,
+                    torch.tensor([reward], device=AGENT.device),
+                ),
+            )
+
+        # Move to the next state
+        state = next_state
+
+        # Optimise the model if we have enough transitions
+        if train and len(AGENT.memory) >= BATCH_SIZE:
+            total_loss += AGENT.optimise_model()
+
+        # If we're done, stop the current episode
+        total_step += 1
+        if finish:
+            break
+    return total_reward, total_loss, total_step
 
 
 def train_dqn() -> None:
@@ -383,50 +452,15 @@ def train_dqn() -> None:
     for episode in range(EPISODE_COUNT):
         # Enable saving if possible
         if episode % SAVE_INTERVAL == 0 or episode == EPISODE_COUNT - 1:
-            env.window.path = get_episode_dir(episode) / f"episode_{episode}.mp4"
-            env.window.make_writer()
-
-        # Reset the environment
-        state, _ = env.reset()
-
-        # Ensure the state tensor includes all parts of the observation
-        state = concat_observation(state)
+            ENV.window.path = get_episode_dir(episode) / f"episode_{episode}.mp4"
+            ENV.window.make_writer()
 
         # Loop over the steps
-        total_reward = 0
-        total_loss = 0
-        total_step = 0
-        for _ in range(MAX_STEP_COUNT):
-            # Select an action and perform it then store the reward
-            action = agent.select_action(state)
-            observation, reward, done, truncated, _ = env.step(action.item())
-            total_reward += reward
-
-            # Ensure the reward tensor is on the correct device
-            reward = torch.tensor([reward], device=agent.device)
-
-            # Ensure the next state tensor includes all parts of the observation
-            finish = truncated or done
-            next_state = concat_observation(observation) if not finish else None
-
-            # Store the transition in memory
-            agent.memory.append(Transition(state, action, next_state, reward))
-
-            # Move to the next state
-            state = next_state
-
-            # Optimise the model if we have enough transitions
-            if len(agent.memory) >= BATCH_SIZE:
-                total_loss += agent.optimise_model()
-
-            # If we're done, stop the current episode
-            total_step += 1
-            if finish:
-                break
+        total_reward, total_loss, total_step = process_episode()
 
         # Print the episode results
         print(  # noqa: T201
-            f"Finished episode {episode + 1} (saving: {env.window.writer is not None})"
+            f"Finished episode {episode + 1} (saving: {ENV.window.writer is not None})"
             f" after {total_step} steps, average reward: {total_reward / total_step},"
             f" average loss: {total_loss / total_step}",
         )
@@ -437,18 +471,21 @@ def train_dqn() -> None:
 
         # Plot the graphs for the episode and save them, the video, and the model if
         # possible
-        if env.window.writer:
+        if ENV.window.writer:
             plot_graphs(get_episode_dir(episode))
-            env.window.save_video()
+            ENV.window.save_video()
             torch.save(
-                agent.policy_net.state_dict(),
+                AGENT.policy_net.state_dict(),
                 get_episode_dir(episode) / MODEL_NAME,
             )
         else:
             plot_graphs()
 
         # Update the target network after the episode
-        agent.update_target_network()
+        AGENT.update_target_network()
+
+    # Save the final model
+    torch.save(AGENT.policy_net.state_dict(), OUTPUT_DIR / MODEL_NAME)
 
 
 def run_dqn() -> None:
@@ -466,42 +503,13 @@ def run_dqn() -> None:
         print("No model found, please train the model first")
         return
 
-    # Load the trained model
-    agent.policy_net.load_state_dict(torch.load(path, weights_only=True))
-
-    # Reset the environment
-    state, _ = env.reset()
-
-    # Ensure the state tensor includes all parts of the observation
-    state = concat_observation(state)
-
-    # Loop until the episode is done
-    total_reward = 0
-    while True:
-        # Select an action using the policy network
-        with torch.no_grad():
-            action = agent.policy_net(state).argmax(dim=1).view(1, 1).to(agent.device)
-
-        # Perform the action
-        observation, reward, done, _, _ = env.step(action.item())
-        total_reward += reward
-
-        # Ensure the next state tensor includes all parts of the observation
-        state = concat_observation(observation) if not done else None
-
-        # If we're done, stop the current episode
-        if done:
-            break
-
-    # Print the total reward
-    print(f"Total reward: {total_reward}")
+    # Load the trained model then run the agent
+    AGENT.policy_net.load_state_dict(torch.load(path, weights_only=True))
+    total_reward, _, total_step = process_episode(train=False)
+    print(f"Average reward: {total_reward / total_step}")
 
 
 if __name__ == "__main__":
-    # Create the environment and agent
-    env = HadesEnvironment()
-    agent = DQNAgent(env.observation_space, env.action_space)
-
     # Build the argument parser and start parsing arguments
     parser = ArgumentParser(
         description="Manages the reinforcement learning training for the Hades AI"
@@ -531,13 +539,12 @@ if __name__ == "__main__":
     # Determine which argument was selected
     if args.check:
         print("*****Checking Environment*****")
-        check_env(env)
+        check_env(HadesEnvironment())
         print("*****Checking Complete*****")
     elif args.run:
         run_dqn()
     elif args.train:
         train_dqn()
-        torch.save(agent.policy_net.state_dict(), OUTPUT_DIR / MODEL_NAME)
 
 # TODO: Could add option for training using stable-baselines3 (would need to figure out
 #  graph plotting)
