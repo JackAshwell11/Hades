@@ -35,6 +35,8 @@ SAFE_DISTANCE: Final[float] = SPRITE_SIZE * 1.5
 # The size of the position history
 POSITION_HISTORY_SIZE: Final[int] = 50
 
+__all__ = ("HadesEnvironment",)
+
 
 class HadesEnvironment(Env):
     """Represents the reinforcement learning environment for Hades.

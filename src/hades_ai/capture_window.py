@@ -13,6 +13,8 @@ from arcade import get_image
 # Custom
 from hades.window import HadesWindow
 
+__all__ = ("CaptureWindow",)
+
 
 class CaptureWindow(HadesWindow):
     """Allow periodic gameplay recordings for the AI model.
