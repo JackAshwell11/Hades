@@ -76,7 +76,7 @@ class HadesSprite(BasicSprite):
         """
         return self.constructor.description
 
-    def update(self: HadesSprite) -> None:
+    def update(self: HadesSprite, *_: tuple[float]) -> None:
         """Update the sprite object."""
         self.position = self.registry.get_component(
             self.game_object_id,

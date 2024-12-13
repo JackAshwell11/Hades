@@ -6,7 +6,7 @@ build-backend = "scikit_build_core.build"
 authors = [
     {name = "JackAshwell11", email = "jack.ashwell1@gmail.com"}
 ]
-dependencies = ["arcade==3.0.0.dev30"]
+dependencies = ["arcade==3.0.0.dev39"]
 description = "A procedurally generated bullet bullet-hell dungeon crawler made in Python."
 license = {file = "LICENSE"}
 name = "hades"
@@ -185,20 +185,20 @@ cmake.args = ["-GNinja", "-DDO_TESTS=OFF", "--preset LinuxRelease"]
 
 [tool.uv]
 dev-dependencies = [
-    "black==24.8.0",
-    "mypy==1.11.2",
-    "nox==2024.4.15",
-    "nuitka==2.4.7",
+    "black==24.10.0",
+    "mypy==1.13.0",
+    "nox==2024.10.9",
+    "nuitka==2.5.6",
     "ordered-set==4.1.0",
-    "pre-commit==3.8.0",
-    "pylint==3.2.6",
-    "pytest==8.3.2",
-    "pytest-cov==5.0.0",
+    "pre-commit==4.0.1",
+    "pylint==3.3.2",
+    "pytest==8.3.4",
+    "pytest-cov==6.0.0",
     "pytest-icdiff==0.9",
     "pytest-instafail==0.5.0",
-    "pytest-randomly==3.15.0",
+    "pytest-randomly==3.16.0",
     "pytest-sugar==1.0.0",
-    "ruff==0.6.2",
-    "ssort==v0.13.0",
+    "ruff==0.8.3",
+    "ssort==v0.14.0",
 ]
 prerelease = "allow"

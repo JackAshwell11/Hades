@@ -822,7 +822,7 @@ def test_stats_layout_init(stats_layout: StatsLayout) -> None:
     assert stats_layout.children[0].text == "Test"
     description = stats_layout.children[4]
     assert description.text == "Test description"
-    assert description.label.multiline
+    assert description.multiline
 
 
 @pytest.mark.parametrize(
