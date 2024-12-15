@@ -64,13 +64,13 @@ TEST(Tests, TestEvadeNonMovingTarget) {
 
 /// Test if a moving target produces the correct evade force.
 TEST(Tests, TestEvadeMovingTarget) {
-  ASSERT_EQ(evade(cpvzero, {100, 100}, {-50, 0}), cpv(-0.54288882138918848, -0.8398045770360254));
+  ASSERT_EQ(evade(cpvzero, {100, 100}, {-50, 0}), cpv(-0.44721359549995798, -0.89442719099991597));
 }
 
 /// Test if having the same position produces the correct evade force.
 TEST(Tests, TestEvadeSamePositions) {
   ASSERT_EQ(evade(cpvzero, cpvzero, cpvzero), cpvzero);
-  ASSERT_EQ(evade(cpvzero, cpvzero, {-50, 0}), cpvzero);
+  ASSERT_EQ(evade(cpvzero, cpvzero, {-50, 0}), cpv(1, 0));
 }
 
 /// Test if a higher current position produces the correct flee force.
@@ -204,13 +204,13 @@ TEST(Tests, TestPursueNonMovingTarget) {
 
 /// Test if a moving target produces the correct pursue force.
 TEST(Tests, TestPursueMovingTarget) {
-  ASSERT_EQ(pursue(cpvzero, {100, 100}, {-50, 0}), cpv(0.54288882138918848, 0.8398045770360254));
+  ASSERT_EQ(pursue(cpvzero, {100, 100}, {-50, 0}), cpv(0.44721359549995798, 0.89442719099991597));
 }
 
 /// Test if having the same position produces the correct pursue force.
 TEST(Tests, TestPursueSamePositions) {
   ASSERT_EQ(pursue(cpvzero, cpvzero, cpvzero), cpvzero);
-  ASSERT_EQ(pursue(cpvzero, cpvzero, {-50, 0}), cpvzero);
+  ASSERT_EQ(pursue(cpvzero, cpvzero, {-50, 0}), cpv(-1, 0));
 }
 
 /// Test if a higher current position produces the correct seek force.

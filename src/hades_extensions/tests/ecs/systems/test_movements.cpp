@@ -309,9 +309,9 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateEvade) {
   cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 100});
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = -50, .y = 0});
   get_steering_movement_system()->update(0);
-  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -108.57776427783772,
-                    -167.96091540720511);
-  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.1446695001689107);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -51.17851206325652,
+                    -193.34104557230242);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -1.8295672187585943);
 }
 
 /// Test that the correct force is calculated for the flee behaviour.
@@ -356,9 +356,9 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePursue) {
   cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 100});
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = -50, .y = 0});
   get_steering_movement_system()->update(0);
-  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), 108.57776427783772,
-                    167.96091540720511);
-  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 0.99692315342088256);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), 51.17851206325652,
+                    193.34104557230242);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 1.312025434831199);
 }
 
 /// Test that the correct force is calculated for the seek behaviour.
@@ -407,9 +407,9 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleSt
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = -50, .y = 100});
   cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 100, .y = 100});
   get_steering_movement_system()->update(0);
-  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -195.47587911022185,
-                    -42.298707853620392);
-  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.9284898398506929);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -193.02806555399468,
+                    52.346594048540929);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 2.8767753236840043);
 
   // Test the default state making sure to clear the force
   cpBodySetForce(*registry.get_component<KinematicComponent>(1)->body, cpvzero);

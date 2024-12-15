@@ -15,9 +15,6 @@ namespace {
 // The maximum distance the game object can see ahead.
 constexpr double MAX_SEE_AHEAD{2 * SPRITE_SIZE};
 
-// The maximum velocity of the game object.
-constexpr int MAX_VELOCITY{200};
-
 // The angle in which the game object can avoid obstacles.
 constexpr double OBSTACLE_AVOIDANCE_ANGLE{60 * PI_RADIANS};
 
@@ -46,9 +43,7 @@ auto arrive(const cpVect &current_position, const cpVect &target_position) -> cp
 }
 
 auto evade(const cpVect &current_position, const cpVect &target_position, const cpVect &target_velocity) -> cpVect {
-  // Calculate the future position of the target based on their distance, and steer away from it
-  return flee(current_position,
-              target_position + target_velocity * (cpvdist(target_position, current_position) / MAX_VELOCITY));
+  return flee(current_position, target_position + target_velocity);
 }
 
 auto flee(const cpVect &current_position, const cpVect &target_position) -> cpVect {
@@ -98,9 +93,7 @@ auto obstacle_avoidance(cpSpace *space, const cpVect &current_position, const cp
 }
 
 auto pursue(const cpVect &current_position, const cpVect &target_position, const cpVect &target_velocity) -> cpVect {
-  // Calculate the future position of the target based on their distance, and steer towards it
-  return seek(current_position,
-              target_position + target_velocity * (cpvdist(target_position, current_position) / MAX_VELOCITY));
+  return seek(current_position, target_position + target_velocity);
 }
 
 auto seek(const cpVect &current_position, const cpVect &target_position) -> cpVect {
