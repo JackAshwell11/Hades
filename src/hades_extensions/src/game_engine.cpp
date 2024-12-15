@@ -67,8 +67,7 @@ void GameEngine::create_game_objects() {
       continue;
     }
 
-    // If the tile is not a wall tile, we want an extra floor tile placed at
-    // the same position
+    // If the tile is not a wall tile, we want an extra floor tile placed at the same position
     static const std::unordered_map<TileType, GameObjectType> tile_to_game_object_type{
         {TileType::Floor, GameObjectType::Floor},
         {TileType::Wall, GameObjectType::Wall},
@@ -106,8 +105,7 @@ void GameEngine::generate_enemy(const double /*delta_time*/) {
   }
   std::ranges::shuffle(floor_positions, std::mt19937{std::random_device{}()});
 
-  // Determine which floor to place the enemy on only trying
-  // ENEMY_RETRY_ATTEMPTS times
+  // Determine which floor to place the enemy on only trying ENEMY_RETRY_ATTEMPTS times
   const auto &factories{get_factories()};
   for (auto attempt{0}; attempt < std::min(static_cast<int>(floor_positions.size()), ENEMY_RETRY_ATTEMPTS); attempt++) {
     const auto position{floor_positions[attempt]};

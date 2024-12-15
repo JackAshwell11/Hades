@@ -185,7 +185,6 @@ struct Grid {
 
   /// Place a rect in the 2D grid.
   ///
-  /// @details It is the responsibility of the caller to ensure that the rect fits in the grid.
   /// @param rect - The rect to place in the 2D grid.
   void place_rect(const Rect &rect) const {
     for (int y{std::max(rect.top_left.y, 0)}; y < std::min(rect.bottom_right.y + 1, height); y++) {

@@ -38,8 +38,7 @@ auto InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, c
   get_registry()->notify_callbacks(EventType::InventoryUpdate, game_object_id);
   get_registry()->notify_callbacks(EventType::SpriteRemoval, item);
 
-  // If the item has a kinematic component, set the collected flag to true to
-  // prevent collision detection
+  // If the item has a kinematic component, set the collected flag to true to prevent collision detection
   if (get_registry()->has_component(item, typeid(KinematicComponent))) {
     get_registry()->get_component<KinematicComponent>(item)->collected = true;
   }
@@ -61,8 +60,7 @@ auto InventorySystem::remove_item_from_inventory(const GameObjectID game_object_
     return false;
   }
 
-  // Remove the item from the inventory, delete the game object, and notify the
-  // callbacks
+  // Remove the item from the inventory, delete the game object, and notify the callbacks
   inventory->items.erase(inventory->items.begin() + index);
   get_registry()->delete_game_object(item_id);
   get_registry()->notify_callbacks(EventType::InventoryUpdate, game_object_id);

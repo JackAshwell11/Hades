@@ -204,9 +204,8 @@ TEST_F(RegistryFixture, TestRegistryGameObjectKinematicComponent) {
   ASSERT_FALSE(cpSpaceContainsShape(registry.get_space(), shape));
 }
 
-/// Test that a game object with duplicate components is added to the registry correctly.
+/// Test that a game object with two identical components only adds the first one.
 TEST_F(RegistryFixture, TestRegistryGameObjectDuplicateComponents) {
-  // Test that creating a game object with two of the same components only adds the first one
   registry.create_game_object(GameObjectType::Player, cpvzero,
                               {std::make_shared<TestGameObjectComponentTwo>(std::vector({10})),
                                std::make_shared<TestGameObjectComponentTwo>(std::vector({20}))});

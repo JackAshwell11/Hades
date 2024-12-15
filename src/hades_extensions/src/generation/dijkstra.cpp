@@ -65,8 +65,8 @@ auto pathfind(const Grid &grid, const Position &start, const Position &end,
 }  // namespace
 
 auto calculate_astar_path(const Grid &grid, const Position &start, const Position &end) -> std::vector<Position> {
-  // Explore the grid using the A* algorithm with the Chebyshev distance
-  // heuristic and then check if we've reached the end
+  // Explore the grid using the A* algorithm with the Chebyshev distance heuristic and then check if we've reached the
+  // end
   const auto obstacle_check{
       [&grid](const Position &neighbour) { return grid.get_value(neighbour) == TileType::Obstacle; }};
   const auto chebyshev_heuristic{
@@ -76,8 +76,7 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
     return {};
   }
 
-  // Backtrack through the neighbours to get the resultant path since we've
-  // reached the end
+  // Backtrack through the neighbours to get the resultant path since we've reached the end
   std::vector<Position> path;
   for (Position current{end}; current != start; current = result.at(current).source) {
     path.push_back(current);
@@ -91,8 +90,7 @@ auto get_furthest_position(const Grid &grid, const Position &start) -> Position 
   Position furthest_position{.x = -1, .y = -1};
   int max_distance{-1};
 
-  // Explore the grid using the Dijkstra algorithm to find the furthest
-  // position from the start
+  // Explore the grid using the Dijkstra algorithm to find the furthest position from the start
   const auto floor_check{[&grid](const Position &neighbour) { return grid.get_value(neighbour) != TileType::Floor; }};
   const auto dijkstra_heuristic{[&max_distance, &furthest_position](const Position &neighbour, const int cost) {
     if (cost > max_distance) {

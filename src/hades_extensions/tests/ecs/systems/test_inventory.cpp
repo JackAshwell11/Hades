@@ -108,8 +108,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) 
   auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
   registry.add_callback(EventType::SpriteRemoval, sprite_removal_callback);
 
-  // Add two items and remove one of them from the inventory and check the
-  // results
+  // Add two items and remove one of them from the inventory and check the results
   const auto item_id_one{create_item(GameObjectType::HealthPotion)};
   const auto item_id_two{create_item(GameObjectType::HealthPotion)};
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, item_id_one));

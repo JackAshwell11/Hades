@@ -46,8 +46,7 @@ auto arrive(const cpVect &current_position, const cpVect &target_position) -> cp
 }
 
 auto evade(const cpVect &current_position, const cpVect &target_position, const cpVect &target_velocity) -> cpVect {
-  // Calculate the future position of the target based on their distance, and steer away from it.
-  // Higher distances will require more time to reach, so the future position will be further away
+  // Calculate the future position of the target based on their distance, and steer away from it
   return flee(current_position,
               target_position + target_velocity * (cpvdist(target_position, current_position) / MAX_VELOCITY));
 }
@@ -99,8 +98,7 @@ auto obstacle_avoidance(cpSpace *space, const cpVect &current_position, const cp
 }
 
 auto pursue(const cpVect &current_position, const cpVect &target_position, const cpVect &target_velocity) -> cpVect {
-  // Calculate the future position of the target based on their distance, and steer away from it.
-  // Higher distances will require more time to reach, so the future position will be further away
+  // Calculate the future position of the target based on their distance, and steer towards it
   return seek(current_position,
               target_position + target_velocity * (cpvdist(target_position, current_position) / MAX_VELOCITY));
 }

@@ -11,9 +11,8 @@ void EffectSystem::update(const double delta_time) const {
     auto &applied_effects{std::get<0>(component_tuple)->applied_effects};
     std::vector<StatusEffectType> expired_status_effects;
 
-    // Update the status effects and keep track of the expired ones.
-    // Note that in reality, delta_time will be ~0.016 (60 FPS), so big jumps in time where multiple intervals are
-    // covered within a single update should never happen.
+    // Update the status effects and keep track of the expired ones. Note that in reality, delta_time will be ~0.016
+    // (60 FPS), so big jumps in time where multiple intervals are covered within a single update should never happen.
     // But if they do, this will accumulate the leftover time and the status effect is applied in subsequent updates
     for (auto &[status_effect_type, status_effect] : std::get<0>(component_tuple)->applied_effects) {
       status_effect.time_counter += delta_time;

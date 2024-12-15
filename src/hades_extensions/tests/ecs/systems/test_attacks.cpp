@@ -28,9 +28,8 @@ class AttackSystemFixture : public testing::Test {
       return target;
     }};
 
-    // Create the targets and add the attack system offseting the positions
-    // by (32, 32) since grid_pos_to_pixel() converts the target position to
-    //(32, 32)
+    // Create the targets and add the attack system offseting the positions by (32, 32) since grid_pos_to_pixel()
+    // converts the target position to (32, 32)
     targets = {
         create_target({12, -68}),  create_target({52, 92}),   create_target({-168, 132}), create_target({132, -68}),
         create_target({-68, -68}), create_target({32, -168}), create_target({32, -160}),  create_target({32, 32}),

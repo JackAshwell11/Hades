@@ -106,8 +106,7 @@ void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
     valid_positions.pop_back();
     grid.set_value(possible_tile, target_tile);
 
-    // Remove all tiles from valid_positions within MIN_TILE_DISTANCE of the
-    // placed tile
+    // Remove all tiles from valid_positions within MIN_TILE_DISTANCE of the placed tile
     std::erase_if(valid_positions, [&possible_tile](const Position &pos) {
       return std::abs(pos.x - possible_tile.x) <= MIN_TILE_DISTANCE ||
              std::abs(pos.y - possible_tile.y) <= MIN_TILE_DISTANCE;

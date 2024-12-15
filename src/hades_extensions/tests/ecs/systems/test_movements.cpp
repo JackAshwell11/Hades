@@ -35,8 +35,7 @@ class FootprintSystemFixture : public testing::Test {
     registry.add_system<FootprintSystem>();
     registry.add_system<SteeringMovementSystem>();
 
-    // Set the position of the game object to (0, 0) since grid_pos_to_pixel
-    // sets the position to (32, 32)
+    // Set the position of the game object to (0, 0) since grid_pos_to_pixel() sets the position to (32, 32)
     cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, cpvzero);
   }
 
