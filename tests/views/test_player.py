@@ -362,7 +362,7 @@ def test_item_button_on_click_invalid_callback(item_button: ItemButton) -> None:
     item_button.texture_button.on_click = invalid_callback  # type: ignore[assignment]
     with pytest.raises(
         expected_exception=TypeError,
-        match=".*missing 1 required positional argument: '__'.*",
+        match=r".*missing 1 required positional argument: '__'.*",
     ):
         item_button.texture_button.on_click(None)  # type: ignore[arg-type]
 
@@ -413,7 +413,7 @@ def test_inventory_item_button_get_info_no_sprite_object(
     """
     with pytest.raises(
         expected_exception=ValueError,
-        match="No sprite object set for this item.",
+        match=r"No sprite object set for this item.",
     ):
         inventory_item_button.get_info()
 
@@ -446,7 +446,7 @@ def test_inventory_item_button_use_no_sprite_object(
     """
     with pytest.raises(
         expected_exception=ValueError,
-        match="No sprite object set for this item.",
+        match=r"No sprite object set for this item.",
     ):
         inventory_item_button.use()
 
@@ -597,12 +597,12 @@ def test_upgrades_item_button_no_targets(
     assert not upgrades_item_button.description
     with pytest.raises(
         expected_exception=ValueError,
-        match="No target component or functions set for this item.",
+        match=r"No target component or functions set for this item.",
     ):
         upgrades_item_button.get_info()
     with pytest.raises(
         expected_exception=ValueError,
-        match="No target component or functions set for this item.",
+        match=r"No target component or functions set for this item.",
     ):
         upgrades_item_button.use()
 
