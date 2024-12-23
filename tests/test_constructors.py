@@ -54,7 +54,7 @@ def test_factory_functions(
 
 def test_nonexistent_texture_path() -> None:
     """Test that a FileNotFoundError is raised when a texture path does not exist."""
-    with pytest.raises(expected_exception=FileNotFoundError, match="non_existent.png"):
+    with pytest.raises(expected_exception=FileNotFoundError, match=r"non_existent.png"):
         GameObjectConstructor(
             "Test",
             "Test description",
