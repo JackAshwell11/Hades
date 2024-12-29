@@ -58,8 +58,8 @@ struct PhysicsSystem final : SystemBase {
   ///
   /// @param bullet - The bullet's position and velocity.
   /// @param damage - The damage the bullet inflicts.
-  /// @param source - The game object type that fired the bullet.
-  void add_bullet(const std::pair<cpVect, cpVect> &bullet, double damage, GameObjectType source) const;
+  /// @param source_type - The game object type that fired the bullet.
+  void add_bullet(const std::pair<cpVect, cpVect> &bullet, double damage, GameObjectType source_type) const;
 
   /// Get the nearest item to a game object.
   ///

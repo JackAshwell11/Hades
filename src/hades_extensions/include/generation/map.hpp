@@ -11,6 +11,9 @@
 class MapGenerator {
  public:
   /// Initialise the object.
+  MapGenerator();
+
+  /// Initialise the object.
   ///
   /// @param level - The game level to generate a map for.
   /// @param random_generator - The random generator to use for the map generation.

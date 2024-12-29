@@ -12,8 +12,8 @@
 // Avoid having to include headers for this
 struct cpVect;
 
-/// Alias for a factory function that creates components for a game object.
-using ComponentFactory = std::function<std::vector<std::shared_ptr<ComponentBase>>()>;
+/// Alias for a factory function that creates components for a game object with a given level.
+using ComponentFactory = std::function<std::vector<std::shared_ptr<ComponentBase>>(int)>;
 
 /// Load a hitbox for a given game object type.
 ///

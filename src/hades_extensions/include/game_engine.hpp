@@ -36,6 +36,22 @@ class GameEngine {
   void generate_enemy(double delta_time = 1.0 / 60.0);
 
  private:
+  /// Get the components for a game object type.
+  ///
+  /// @param game_object_type - The game object type.
+  /// @return The components for the game object type.
+  [[nodiscard]] auto get_game_object_components(GameObjectType game_object_type)
+      -> std::vector<std::shared_ptr<ComponentBase>>;
+
+  /// The current level of the game.
+  int level_;
+
+  /// The random generator for the game.
+  std::mt19937 random_generator_;
+
+  /// The normal distribution to determine the level of the game objects.
+  std::normal_distribution<> level_distribution_;
+
   /// Manages game objects, components, and systems that are registered.
   std::shared_ptr<Registry> registry_;
 

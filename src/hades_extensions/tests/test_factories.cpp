@@ -19,16 +19,16 @@ TEST_F(FactoriesFixture, TestLoadHitboxTwice) {
 
 /// Test that loading a factory that doesn't require a hitbox works.
 TEST_F(FactoriesFixture, TestGetFactoryNoHitboxRequired) {
-  ASSERT_NO_THROW(get_factories().at(GameObjectType::Floor)());
+  ASSERT_NO_THROW(get_factories().at(GameObjectType::Floor)(0));
 }
 
 /// Test that loading a factory that requires a hitbox works when the hitbox is loaded.
 TEST_F(FactoriesFixture, TestGetFactoryHitboxLoaded) {
   load_hitbox(GameObjectType::Player, {{0.0, 0.0}});
-  ASSERT_NO_THROW(get_factories().at(GameObjectType::Player)());
+  ASSERT_NO_THROW(get_factories().at(GameObjectType::Player)(0));
 }
 
 /// Test that loading a factory that requires a hitbox which isn't loaded throws an exception.
 TEST_F(FactoriesFixture, TestGetFactoriesHitboxNotLoaded) {
-  ASSERT_THROW(get_factories().at(GameObjectType::Player)(), std::out_of_range);
+  ASSERT_THROW(get_factories().at(GameObjectType::Player)(0), std::out_of_range);
 }

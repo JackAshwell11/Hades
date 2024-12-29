@@ -115,6 +115,8 @@ void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileTyp
 }
 }  // namespace
 
+MapGenerator::MapGenerator() : level_{0}, grid_{0, 0}, random_generator_{std::random_device{}()} {}
+
 MapGenerator::MapGenerator(const int level, const std::mt19937 random_generator)
     : level_(level),
       grid_{WIDTH.generate_value(level), HEIGHT.generate_value(level)},

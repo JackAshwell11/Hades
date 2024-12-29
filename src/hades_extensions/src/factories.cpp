@@ -27,7 +27,7 @@ auto get_hitboxes() -> auto & {
 /// The bullet factory.
 ///
 /// @return The components for the bullet.
-const auto bullet_factory{[] {
+const auto bullet_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<Damage>(10, -1),
       std::make_shared<KinematicComponent>(),
@@ -38,7 +38,7 @@ const auto bullet_factory{[] {
 /// The enemy factory.
 ///
 /// @return The components for the enemy.
-const auto enemy_factory{[] {
+const auto enemy_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<Armour>(50, 5),
       std::make_shared<Attack>(std::vector{AttackAlgorithm::Ranged}),
@@ -61,7 +61,7 @@ const auto enemy_factory{[] {
 /// The wall factory.
 ///
 /// @return The components for the wall.
-const auto wall_factory{[] {
+const auto wall_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(true),
 
@@ -71,7 +71,7 @@ const auto wall_factory{[] {
 /// The floor factory.
 ///
 /// @return The components for the floor.
-const auto floor_factory{[] {
+const auto floor_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(),
   };
@@ -80,7 +80,7 @@ const auto floor_factory{[] {
 /// The goal factory.
 ///
 /// @return The components for the goal.
-const auto goal_factory{[] {
+const auto goal_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(),
       std::make_shared<PythonSprite>(),
@@ -90,7 +90,7 @@ const auto goal_factory{[] {
 /// The player factory.
 ///
 /// @return The components for the player.
-const auto player_factory{[] {
+const auto player_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<Armour>(100, 5),
       std::make_shared<Attack>(
@@ -120,7 +120,7 @@ const auto player_factory{[] {
 /// The health potion factory.
 ///
 /// @return The components for the health potion.
-const auto health_potion_factory{[] {
+const auto health_potion_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<EffectLevel>(1, 3),
       std::make_shared<PythonSprite>(),
@@ -131,7 +131,7 @@ const auto health_potion_factory{[] {
 /// The chest factory.
 ///
 /// @return The components for the chest.
-const auto chest_factory{[] {
+const auto chest_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<PythonSprite>(),
       std::make_shared<KinematicComponent>(),
