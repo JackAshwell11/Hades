@@ -96,7 +96,7 @@ TEST(Tests, TestGridPosToPixelNegativeXYPosition){
 TEST_F(RegistryFixture, TestRegistryEmptyGameObject) {
   // Create the callback for the game object death event
   int called{-1};
-  registry.add_callback(EventType::GameObjectDeath, [&called](const auto event) { called = event; });
+  registry.add_callback<EventType::GameObjectDeath>([&called](const GameObjectID event) { called = event; });
 
   // Test that creating the game object works correctly
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
@@ -358,22 +358,22 @@ TEST_F(RegistryFixture, TestRegistryWallBulletCollision) {
 /// Test that an event is not notified if there are no callbacks added to the registry.
 TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksAdded) {
   constexpr bool called{false};
-  registry.notify_callbacks(EventType::GameObjectDeath, 0);
+  registry.notify<EventType::GameObjectDeath>(0);
   ASSERT_FALSE(called);
 }
 
 /// Test that an event is not notified if there are no callbacks listening for that event.
 TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksListening) {
   auto called{-1};
-  registry.add_callback(EventType::GameObjectCreation, [&called](const auto event) { called = event; });
-  registry.notify_callbacks(EventType::GameObjectDeath, 0);
+  registry.add_callback<EventType::GameObjectCreation>([&called](const auto event) { called = event; });
+  registry.notify<EventType::GameObjectDeath>(0);
   ASSERT_EQ(called, -1);
 }
 
 /// Test that an event is notified correctly if there is a callback listening for that event.
 TEST_F(RegistryFixture, TestRegistryNotifyCallbacksListeningCallback) {
   auto called{-1};
-  registry.add_callback(EventType::GameObjectDeath, [&called](const auto event) { called = event; });
-  registry.notify_callbacks(EventType::GameObjectDeath, 0);
+  registry.add_callback<EventType::GameObjectDeath>([&called](const auto event) { called = event; });
+  registry.notify<EventType::GameObjectDeath>(0);
   ASSERT_EQ(called, 0);
 }

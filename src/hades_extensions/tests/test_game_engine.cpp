@@ -45,7 +45,7 @@ TEST_F(GameEngineFixture, TestGameEngineGenerateEnemy) {
   auto enemy_created{-1};
   auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
   game_engine.create_game_objects();
-  game_engine.get_registry()->add_callback(EventType::GameObjectCreation, enemy_creation);
+  game_engine.get_registry()->add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.generate_enemy();
   ASSERT_NE(enemy_created, -1);
 }
@@ -72,7 +72,7 @@ TEST_F(GameEngineFixture, TestGameEngineGenerateEnemyLimit) {
   }
   auto enemy_created{-1};
   auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
-  game_engine.get_registry()->add_callback(EventType::GameObjectCreation, enemy_creation);
+  game_engine.get_registry()->add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.generate_enemy();
   ASSERT_EQ(enemy_created, -1);
 }

@@ -32,6 +32,34 @@ enum class EventType : std::uint8_t {
   SpriteRemoval,
 };
 
+/// A helper struct to provide the argument types for each event type.
+template <EventType>
+struct EventTraits;
+
+/// Provides the argument types for the GameObjectCreation event.
+template <>
+struct EventTraits<EventType::GameObjectCreation> {
+  using EventArgs = std::tuple<GameObjectID>;
+};
+
+/// Provides the argument types for the GameObjectDeath event.
+template <>
+struct EventTraits<EventType::GameObjectDeath> {
+  using EventArgs = std::tuple<GameObjectID>;
+};
+
+/// Provides the argument types for the InventoryUpdate event.
+template <>
+struct EventTraits<EventType::InventoryUpdate> {
+  using EventArgs = std::tuple<GameObjectID>;
+};
+
+/// Provides the argument types for the SpriteRemoval event.
+template <>
+struct EventTraits<EventType::SpriteRemoval> {
+  using EventArgs = std::tuple<GameObjectID>;
+};
+
 /// The base class for all components.
 struct ComponentBase {
   /// The copy assignment operator.

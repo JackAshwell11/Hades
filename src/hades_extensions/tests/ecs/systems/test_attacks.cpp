@@ -117,7 +117,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementZeroDeltaTime)
   auto game_object_created{-1};
   auto game_object_creation_callback{[&](const GameObjectID game_object_id) { game_object_created = game_object_id; }};
   create_attack_component({AttackAlgorithm::Ranged}, true);
-  registry.add_callback(EventType::GameObjectCreation, game_object_creation_callback);
+  registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(0);
   ASSERT_EQ(game_object_created, -1);
 }
@@ -127,7 +127,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementNotTarget) {
   auto game_object_created{-1};
   auto game_object_creation_callback{[&](const GameObjectID game_object_id) { game_object_created = game_object_id; }};
   create_attack_component({AttackAlgorithm::Ranged}, true);
-  registry.add_callback(EventType::GameObjectCreation, game_object_creation_callback);
+  registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
   ASSERT_EQ(game_object_created, -1);
 }
@@ -137,7 +137,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
   auto game_object_created{-1};
   auto game_object_creation_callback{[&](const GameObjectID game_object_id) { game_object_created = game_object_id; }};
   create_attack_component({AttackAlgorithm::Ranged}, true);
-  registry.add_callback(EventType::GameObjectCreation, game_object_creation_callback);
+  registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   registry.get_component<SteeringMovement>(8)->movement_state = SteeringMovementState::Target;
   get_attack_system()->update(5);
   ASSERT_EQ(game_object_created, 9);
@@ -188,7 +188,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
     game_object_created = game_object_id;
   }};
   create_attack_component({AttackAlgorithm::Ranged});
-  registry.add_callback(EventType::GameObjectCreation, game_object_creation_callback);
+  registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
   get_attack_system()->do_attack(8, targets);
   ASSERT_EQ(game_object_created, 9);

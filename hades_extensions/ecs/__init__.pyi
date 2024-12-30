@@ -1,7 +1,7 @@
 # Builtin
 from collections.abc import Callable, Iterator
 from enum import Enum
-from typing import Final, SupportsFloat, TypeAlias, TypeVar
+from typing import Final, Literal, SupportsFloat, TypeAlias, TypeVar, overload
 
 # Define some type vars for the registry
 _C = TypeVar("_C")
@@ -94,9 +94,28 @@ class Registry:
     ) -> list[int]: ...
     def get_system(self: Registry, system: type[_S]) -> _S: ...
     def update(self: Registry, delta_time: float) -> None: ...
+    @overload
     def add_callback(
         self: Registry,
-        event_type: EventType,
+        event_type: Literal[EventType.GameObjectCreation],
+        callback: Callable[[int], None],
+    ) -> None: ...
+    @overload
+    def add_callback(
+        self: Registry,
+        event_type: Literal[EventType.GameObjectDeath],
+        callback: Callable[[int], None],
+    ) -> None: ...
+    @overload
+    def add_callback(
+        self: Registry,
+        event_type: Literal[EventType.InventoryUpdate],
+        callback: Callable[[int], None],
+    ) -> None: ...
+    @overload
+    def add_callback(
+        self: Registry,
+        event_type: Literal[EventType.SpriteRemoval],
         callback: Callable[[int], None],
     ) -> None: ...
 

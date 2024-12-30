@@ -62,7 +62,7 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
   }
 
   // Increment the game object ID and return the current game object ID
-  notify_callbacks(EventType::GameObjectCreation, next_game_object_id_);
+  notify<EventType::GameObjectCreation>(next_game_object_id_);
   next_game_object_id_++;
   return next_game_object_id_ - 1;
 }
@@ -80,7 +80,7 @@ void Registry::delete_game_object(const GameObjectID game_object_id) {
   }
 
   // Notify the callbacks then delete the game object
-  notify_callbacks(EventType::GameObjectDeath, game_object_id);
+  notify<EventType::GameObjectDeath>(game_object_id);
   std::erase(game_object_ids_[get_game_object_type(game_object_id)], game_object_id);
   game_objects_.erase(game_object_id);
   game_object_types_.erase(game_object_id);

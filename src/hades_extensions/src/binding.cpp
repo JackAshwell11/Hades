@@ -346,11 +346,31 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Update all systems in the registry.\n\n"
            "Args:\n"
            "    delta_time: The time interval since the last time the function was called.")
-      .def("add_callback", &Registry::add_callback, pybind11::arg("event_type"), pybind11::arg("callback"),
-           "Add a callback to the registry to listen for events.\n\n"
-           "Args:\n"
-           "    event_type: The type of event to listen for.\n"
-           "    callback: The callback to add.");
+      .def(
+          "add_callback",
+          [](Registry &registry, const EventType event_type, const pybind11::function &callback) {
+            switch (event_type) {
+              case EventType::GameObjectCreation:
+                registry.add_callback<EventType::GameObjectCreation>(callback);
+                break;
+              case EventType::GameObjectDeath:
+                registry.add_callback<EventType::GameObjectDeath>(callback);
+                break;
+              case EventType::InventoryUpdate:
+                registry.add_callback<EventType::InventoryUpdate>(callback);
+                break;
+              case EventType::SpriteRemoval:
+                registry.add_callback<EventType::SpriteRemoval>(callback);
+                break;
+              default:
+                throw std::runtime_error("Unsupported event type.");
+            }
+          },
+          pybind11::arg("event_type"), pybind11::arg("callback"),
+          "Add a callback to the registry to listen for events.\n\n"
+          "Args:\n"
+          "    event_type: The type of event to listen for.\n"
+          "    callback: The callback to add.");
 
   // Add the stat components
   pybind11::class_<Stat, ComponentBase, std::shared_ptr<Stat>>(

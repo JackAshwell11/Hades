@@ -2,6 +2,7 @@
 #pragma once
 
 // Std headers
+#include <any>
 #ifdef __GNUC__
 #include <cxxabi.h>
 #endif
@@ -222,19 +223,28 @@ class Registry {
 
   /// Add a callback to the registry to listen for events.
   ///
-  /// @param event_type - The type of event to listen for.
+  /// @tparam E - The type of event to listen for.
+  /// @tparam Func - The callback functions' signature
   /// @param callback - The callback to add.
-  void add_callback(const EventType event_type, const std::function<void(GameObjectID)> &callback) {
-    callbacks_[event_type] = callback;
+  template <EventType E, typename Func>
+  void add_callback(Func &&callback) {
+    listeners_[E].emplace_back([callback = std::forward<Func>(callback)](std::any args) {
+      std::apply(callback, std::any_cast<typename EventTraits<E>::EventArgs>(args));
+    });
   }
 
   /// Notify all callbacks of an event.
   ///
-  /// @param event_type - The type of event to notify callbacks of.
-  /// @param game_object_id - The game object ID to pass to the callbacks.
-  void notify_callbacks(const EventType event_type, const GameObjectID game_object_id) {
-    if (callbacks_.contains(event_type)) {
-      callbacks_[event_type](game_object_id);
+  /// @tparam E - The type of event to notify callbacks of.
+  /// @tparam Args - The types of the arguments to pass to the callbacks.
+  /// @param args - The arguments to pass to the callbacks.
+  template <EventType E, typename... Args>
+  void notify(Args &&...args) {
+    using ExpectedArgs = typename EventTraits<E>::EventArgs;
+    static_assert(std::is_same_v<std::tuple<std::decay_t<Args>...>, ExpectedArgs>);
+    const ExpectedArgs tuple_args{std::forward<Args>(args)...};
+    for (const auto &callback : listeners_[E]) {
+      callback(tuple_args);
     }
   }
 
@@ -263,6 +273,6 @@ class Registry {
   /// The Chipmunk2D space.
   ChipmunkHandle<cpSpace, cpSpaceFree> space_{cpSpaceNew()};
 
-  /// The callbacks registered with the registry to listen for events.
-  std::unordered_map<EventType, std::function<void(GameObjectID)>> callbacks_;
+  /// The listeners registered for each event type.
+  std::unordered_map<EventType, std::vector<std::function<void(std::any)>>> listeners_;
 };

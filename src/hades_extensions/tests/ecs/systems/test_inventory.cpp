@@ -59,10 +59,10 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   // Add the callbacks to the registry
   auto inventory_update{-1};
   auto inventory_update_callback{[&](const GameObjectID game_object_id) { inventory_update = game_object_id; }};
-  registry.add_callback(EventType::InventoryUpdate, inventory_update_callback);
+  registry.add_callback<EventType::InventoryUpdate>(inventory_update_callback);
   auto sprite_removal{-1};
   auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
-  registry.add_callback(EventType::SpriteRemoval, sprite_removal_callback);
+  registry.add_callback<EventType::SpriteRemoval>(sprite_removal_callback);
 
   // Add the item to the inventory and check the results
   const auto game_object_id{create_item(GameObjectType::HealthPotion)};
@@ -103,10 +103,10 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) 
   // Add the callbacks to the registry
   auto inventory_update{-1};
   auto inventory_update_callback{[&](const GameObjectID game_object_id) { inventory_update = game_object_id; }};
-  registry.add_callback(EventType::InventoryUpdate, inventory_update_callback);
+  registry.add_callback<EventType::InventoryUpdate>(inventory_update_callback);
   auto sprite_removal{-1};
   auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
-  registry.add_callback(EventType::SpriteRemoval, sprite_removal_callback);
+  registry.add_callback<EventType::SpriteRemoval>(sprite_removal_callback);
 
   // Add two items and remove one of them from the inventory and check the results
   const auto item_id_one{create_item(GameObjectType::HealthPotion)};
