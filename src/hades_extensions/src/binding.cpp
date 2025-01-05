@@ -135,6 +135,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    level: The level to generate the game engine for.\n"
            "    seed: The seed to use for the random number generator.")
       .def_property_readonly("player_id", &GameEngine::get_player_id)
+      .def_property_readonly("level_constants", &GameEngine::get_level_constants)
       .def("get_registry", &GameEngine::get_registry,
            "Get the registry.\n\n"
            "Returns:\n"
