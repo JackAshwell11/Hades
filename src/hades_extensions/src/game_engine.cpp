@@ -61,6 +61,10 @@ GameEngine::GameEngine(const int level, const std::optional<unsigned int> seed)
   registry_->add_system<UpgradeSystem>();
 }
 
+auto GameEngine::get_level_constants() -> std::tuple<int, int, int> {
+  return {generator_.get_grid().width, generator_.get_grid().height, generator_.get_enemy_limit()};
+}
+
 void GameEngine::create_game_objects() {
   // Create the game objects ignoring empty and obstacle tiles
   const auto &grid{*generator_.get_grid().grid};

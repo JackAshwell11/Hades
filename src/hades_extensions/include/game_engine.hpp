@@ -31,6 +31,11 @@ class GameEngine {
   /// @return The player's game object ID.
   [[nodiscard]] auto get_player_id() const -> GameObjectID { return player_id_; }
 
+  /// Get the level constants.
+  ///
+  /// @return The level constants.
+  [[nodiscard]] auto get_level_constants() -> std::tuple<int, int, int>;
+
   /// Create the game objects from the generator.
   ///
   /// @details If this is called twice, the game objects will be duplicated.
