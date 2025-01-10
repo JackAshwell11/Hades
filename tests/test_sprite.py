@@ -35,9 +35,10 @@ def constructor(request: pytest.FixtureRequest) -> GameObjectConstructor:
         The game object constructor.
     """
     return GameObjectConstructor(
-        "Test",
+        "Test constructor",
         "Test description",
         GameObjectType.Player,
+        0,
         [f":resources:{param}" for param in request.param],
     )
 
@@ -85,7 +86,7 @@ def test_hades_sprite_init(
     assert sprite.texture.file_path == expected_path
     assert sprite.game_object_id == 0
     assert sprite.game_object_type == GameObjectType.Player
-    assert sprite.name == "Test"
+    assert sprite.name == "Test constructor"
     assert sprite.description == "Test description"
 
 
@@ -102,6 +103,7 @@ def test_hades_sprite_update() -> None:
         "Test",
         "Test description",
         GameObjectType.Player,
+        0,
         [":resources:floor.png"],
     )
     sprite = HadesSprite(registry, -1, (32.0, 32.0), constructor)
@@ -154,7 +156,7 @@ def test_animated_sprite_init(
     assert sprite.texture.file_path == expected_paths[0]
     assert sprite.game_object_id == 0
     assert sprite.game_object_type == GameObjectType.Player
-    assert sprite.name == "Test"
+    assert sprite.name == "Test constructor"
     assert sprite.description == "Test description"
     assert len(sprite.sprite_textures) == len(expected_paths)
     for i, textures in enumerate(sprite.sprite_textures):
@@ -169,5 +171,5 @@ def test_hades_sprite_no_texture() -> None:
             Mock(),
             0,
             (0, 0),
-            GameObjectConstructor("Test", "Test", GameObjectType.Player, []),
+            GameObjectConstructor("Test", "Test", GameObjectType.Player, 0, []),
         )

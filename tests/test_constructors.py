@@ -56,9 +56,10 @@ def test_nonexistent_texture_path() -> None:
     """Test that a FileNotFoundError is raised when a texture path does not exist."""
     with pytest.raises(expected_exception=FileNotFoundError, match=r"non_existent.png"):
         GameObjectConstructor(
-            "Test",
-            "Test description",
+            "Test non_existent",
+            "Test non_existent description",
             GameObjectType.Player,
+            0,
             ["non_existent.png"],
         )
 
@@ -66,9 +67,10 @@ def test_nonexistent_texture_path() -> None:
 def test_duplicate_texture_paths() -> None:
     """Test that only one texture is loaded for duplicate texture paths."""
     constructor = GameObjectConstructor(
-        "Test",
+        "Test duplicate",
         "Test description",
         GameObjectType.Player,
+        0,
         [":resources:floor.png", ":resources:floor.png"],
     )
     assert len(constructor.texture_paths) == 2

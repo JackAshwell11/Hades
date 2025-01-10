@@ -59,9 +59,10 @@ def sprite(health: Health) -> HadesSprite:
         0,
         (0, 0),
         GameObjectConstructor(
-            "Test",
+            "Test sprite",
             "Test description",
             GameObjectType.Player,
+            0,
             [":resources:floor.png"],
             {
                 Health: (0, 1, color.GREEN),

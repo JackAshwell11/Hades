@@ -280,11 +280,7 @@ def player_view(
     Returns:
         The PlayerView object for testing.
     """
-    player_view = PlayerView(
-        mock_registry,
-        component_sprite,
-        [],  # type: ignore[arg-type]
-    )
+    player_view = PlayerView(mock_registry, component_sprite)
     get_window().show_view(player_view)
     return player_view
 

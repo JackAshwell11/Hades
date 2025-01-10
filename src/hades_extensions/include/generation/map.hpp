@@ -17,7 +17,7 @@ class MapGenerator {
   ///
   /// @param level - The game level to generate a map for.
   /// @param random_generator - The random generator to use for the map generation.
-  explicit MapGenerator(int level, std::mt19937 random_generator);
+  explicit MapGenerator(int level, const std::mt19937 &random_generator);
 
   /// Generate the rooms in the dungeon.
   auto generate_rooms() -> MapGenerator &;

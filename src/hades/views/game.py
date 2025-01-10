@@ -46,10 +46,13 @@ class Game(UIView):
 
     Attributes:
         game_camera: The camera used for moving the viewport around the screen.
-        tile_sprites: The sprite list for the tile game objects.
-        entity_sprites: The sprite list for the entity game objects.
-        item_sprites: The sprite list for the item game objects.
+        sprites: The list of all sprites in the game.
         nearest_item: The nearest item to the player.
+        game_ui: The UI elements for the game.
+        game_engine: The engine for the game which manages the game
+        registry: The registry for the game which manages the game objects, components,
+        and systems.
+        player: The ID of the player game object.
     """
 
     def __init__(self: Game, level: int) -> None:
@@ -61,9 +64,7 @@ class Game(UIView):
         super().__init__()
         # Arcade types
         self.game_camera: Camera2D = Camera2D()
-        self.tile_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
-        self.entity_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
-        self.item_sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
+        self.sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.nearest_item: int = -1
 
         # Custom types
@@ -83,11 +84,7 @@ class Game(UIView):
         self.player: int = self.game_engine.player_id
 
         # Create the required views for the game
-        inventory_view = PlayerView(
-            self.game_engine.get_registry(),
-            self.player,
-            self.item_sprites,
-        )
+        inventory_view = PlayerView(self.game_engine.get_registry(), self.player)
         self.registry.add_callback(
             EventType.InventoryUpdate,
             inventory_view.on_update_inventory,
@@ -96,14 +93,10 @@ class Game(UIView):
 
     def on_draw_before_ui(self: Game) -> None:
         """Render the screen before the UI elements are drawn."""
-        # Set the background colour and activate our game camera
         self.window.background_color = color.BLACK
         self.game_camera.use()
-
-        # Draw the various spritelists
-        self.tile_sprites.draw(pixelated=True)
-        self.item_sprites.draw(pixelated=True)
-        self.entity_sprites.draw(pixelated=True)
+        with self.window.ctx.enabled(self.window.ctx.DEPTH_TEST):
+            self.sprites.draw(pixelated=True)
 
     def on_update(self: Game, delta_time: float) -> None:
         """Process movement and game logic.
@@ -113,7 +106,7 @@ class Game(UIView):
         """
         # Update the systems and entities
         self.registry.update(delta_time)
-        self.entity_sprites.update()
+        self.sprites.update()
 
         # Update the game UI elements
         self.nearest_item = self.registry.get_system(PhysicsSystem).get_nearest_item(
@@ -235,7 +228,7 @@ class Game(UIView):
                 self.player,
                 [
                     game_object.game_object_id
-                    for game_object in self.entity_sprites
+                    for game_object in self.sprites
                     if game_object.game_object_type == GameObjectType.Enemy
                 ],
             )
@@ -284,21 +277,9 @@ class Game(UIView):
             ).get_position(),
             constructor,
         )
+        self.sprites.append(sprite)
         if self.registry.has_component(game_object_id, PythonSprite):
             self.registry.get_component(game_object_id, PythonSprite).sprite = sprite
-
-        # Add the sprite to the correct list
-        sprite_lists = {
-            GameObjectType.Bullet: self.entity_sprites,
-            GameObjectType.Player: self.entity_sprites,
-            GameObjectType.Enemy: self.entity_sprites,
-            GameObjectType.Goal: self.tile_sprites,
-            GameObjectType.HealthPotion: self.item_sprites,
-            GameObjectType.Chest: self.item_sprites,
-            GameObjectType.Wall: self.tile_sprites,
-            GameObjectType.Floor: self.tile_sprites,
-        }
-        sprite_lists[constructor.game_object_type].append(sprite)
 
         # Create progress bars if needed
         if constructor.game_object_type == GameObjectType.Player:

@@ -35,6 +35,7 @@ class GameObjectConstructor:
         name: The game object's name.
         description: The game object's description.
         game_object_type: The game object's type.
+        depth: The game object's OpenGL rendering depth.
         texture_paths: The paths to the game object's textures.
         progress_bars: The game object's progress bars.
     """
@@ -42,6 +43,7 @@ class GameObjectConstructor:
     name: str
     description: str
     game_object_type: GameObjectType
+    depth: int
     texture_paths: list[str]
     progress_bars: dict[type[ComponentBase], tuple[int, float, RGBA255]] = field(
         default_factory=dict,
@@ -68,6 +70,7 @@ def wall_factory() -> GameObjectConstructor:
         "Wall",
         "A wall that blocks movement.",
         GameObjectType.Wall,
+        0,
         [":resources:wall.png"],
     )
 
@@ -82,6 +85,7 @@ def floor_factory() -> GameObjectConstructor:
         "Floor",
         "A floor that allows movement.",
         GameObjectType.Floor,
+        0,
         [":resources:floor.png"],
     )
 
@@ -96,6 +100,7 @@ def player_factory() -> GameObjectConstructor:
         "Player",
         "The player character.",
         GameObjectType.Player,
+        3,
         [":resources:player_idle.png"],
         {
             Armour: (0, 2, color.SILVER),
@@ -114,6 +119,7 @@ def enemy_factory() -> GameObjectConstructor:
         "Enemy",
         "An enemy character.",
         GameObjectType.Enemy,
+        3,
         [":resources:enemy_idle.png"],
         {
             Armour: (0, 1, color.SILVER),
@@ -132,6 +138,7 @@ def goal_factory() -> GameObjectConstructor:
         "Goal",
         "The goal of the level.",
         GameObjectType.Goal,
+        1,
         [":resources:armour_potion.png"],
     )
 
@@ -146,6 +153,7 @@ def health_potion_factory() -> GameObjectConstructor:
         "Health Potion",
         "A potion that restores health.",
         GameObjectType.HealthPotion,
+        1,
         [":resources:health_potion.png"],
     )
 
@@ -160,6 +168,7 @@ def chest_factory() -> GameObjectConstructor:
         "Chest",
         "A chest that contains loot.",
         GameObjectType.Chest,
+        1,
         [":resources:shop.png"],
     )
 
@@ -174,6 +183,7 @@ def bullet_factory() -> GameObjectConstructor:
         "Bullet",
         "A bullet that damages other game objects.",
         GameObjectType.Bullet,
+        2,
         [":resources:bullet.png"],
     )
 

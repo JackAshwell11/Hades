@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Final, TypedDict, Unpack, cast
 # Pip
 from arcade import (
     XYWH,
-    SpriteList,
     Texture,
     View,
     draw_texture_rect,
@@ -637,30 +636,22 @@ class PlayerView(View):
         "game_object_id",
         "inventory",
         "inventory_layout",
-        "item_sprites",
         "registry",
         "stats_layout",
         "ui_manager",
     )
 
-    def __init__(
-        self: PlayerView,
-        registry: Registry,
-        game_object_id: int,
-        item_sprites: SpriteList[HadesSprite],
-    ) -> None:
+    def __init__(self: PlayerView, registry: Registry, game_object_id: int) -> None:
         """Initialise the object.
 
         Args:
             registry: The registry that manages the game objects, components, and
                 systems.
             game_object_id: The ID of the player game object to manage.
-            item_sprites: The list of item sprites that exist in the game.
         """
         super().__init__()
         self.registry: Registry = registry
         self.game_object_id: int = game_object_id
-        self.item_sprites: SpriteList[HadesSprite] = item_sprites
         self.inventory: Inventory = self.registry.get_component(
             game_object_id,
             Inventory,

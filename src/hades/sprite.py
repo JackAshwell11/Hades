@@ -48,6 +48,7 @@ class HadesSprite(BasicSprite):
         self.registry: Registry = registry
         self.game_object_id: int = game_object_id
         self.constructor: GameObjectConstructor = constructor
+        self.depth = constructor.depth
 
     @property
     def game_object_type(self: HadesSprite) -> GameObjectType:
