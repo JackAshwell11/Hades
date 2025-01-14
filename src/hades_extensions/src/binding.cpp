@@ -449,7 +449,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   pybind11::class_<Attack, ComponentBase, std::shared_ptr<Attack>>(components, "Attack",
                                                                    "Allows a game object to attack other game objects.")
       .def_property_readonly("current_attack",
-                             [](const Attack &attack) { return attack.attack_algorithms[attack.attack_state]; });
+                             [](const Attack &attack) { return attack.attack_algorithms[attack.attack_state]; })
+      .def_readonly("time_since_last_attack", &Attack::time_since_last_attack);
   pybind11::class_<Effect>(components, "Effect", "Represents an effect that can be applied to a game object.")
       .def_readonly("duration", &Effect::duration)
       .def_property_readonly("target_component",
