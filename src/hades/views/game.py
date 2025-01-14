@@ -98,17 +98,10 @@ class Game(UIView):
         with self.window.ctx.enabled(self.window.ctx.DEPTH_TEST):
             self.sprites.draw(pixelated=True)
 
-    def on_update(self: Game, delta_time: float) -> None:
-        """Process movement and game logic.
-
-        Args:
-            delta_time: Time interval since the last time the function was called.
-        """
-        # Update the systems and entities
-        self.registry.update(delta_time)
+    def on_update(self: Game, _: float) -> None:
+        """Process movement and game logic."""
+        # Update the entities and the game UI elements
         self.sprites.update()
-
-        # Update the game UI elements
         self.nearest_item = self.registry.get_system(PhysicsSystem).get_nearest_item(
             self.player,
         )
@@ -135,6 +128,14 @@ class Game(UIView):
             self.player,
             KinematicComponent,
         ).get_position()
+
+    def on_fixed_update(self: Game, delta_time: float) -> None:
+        """Process fixed update functionality.
+
+        Args:
+            delta_time: Time interval since the last time the function was called.
+        """
+        self.registry.update(delta_time)
 
     def on_key_press(self: Game, symbol: int, modifiers: int) -> None:
         """Process key press functionality.
@@ -206,7 +207,13 @@ class Game(UIView):
             case key.I:
                 self.window.show_view(self.window.views["InventoryView"])
 
-    def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
+    def on_mouse_press(
+        self: Game,
+        x: int,
+        y: int,
+        button: int,
+        modifiers: int,
+    ) -> bool:
         """Process mouse button functionality.
 
         Args:
@@ -215,6 +222,9 @@ class Game(UIView):
             button: Which button was hit.
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
             during this event.
+
+        Returns:
+            Whether the event was handled or not.
         """
         logger.debug(
             "%r mouse button was pressed at position (%f, %f) with modifiers %r",
@@ -224,7 +234,7 @@ class Game(UIView):
             modifiers,
         )
         if button is MOUSE_BUTTON_LEFT:
-            self.registry.get_system(AttackSystem).do_attack(
+            return self.registry.get_system(AttackSystem).do_attack(
                 self.player,
                 [
                     game_object.game_object_id
@@ -232,6 +242,7 @@ class Game(UIView):
                     if game_object.game_object_type == GameObjectType.Enemy
                 ],
             )
+        return False
 
     def on_mouse_motion(self: Game, x: int, y: int, _: int, __: int) -> None:
         """Process mouse motion functionality.
