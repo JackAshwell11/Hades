@@ -177,12 +177,12 @@ TEST_F(GameEngineFixture, TestGameEngineOnMousePressLeft) {
   int called{-1};
   game_engine.get_registry()->add_callback<EventType::GameObjectCreation>(
       [&called](const GameObjectID event) { called = event; });
-  game_engine.on_mouse_press(0, 0, MOUSE_BUTTON_LEFT, 0);
+  ASSERT_TRUE(game_engine.on_mouse_press(0, 0, MOUSE_BUTTON_LEFT, 0));
   ASSERT_NE(called, -1);
 }
 
 /// Test that the game engine processes a unknown mouse press correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnMousePressUnknown) {
   game_engine.create_game_objects();
-  game_engine.on_mouse_press(0, 0, -1, 0);
+  ASSERT_FALSE(game_engine.on_mouse_press(0, 0, -1, 0));
 }
