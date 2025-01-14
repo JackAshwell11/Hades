@@ -172,11 +172,13 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) const
   }
 }
 
-void GameEngine::on_mouse_press(const double /*x*/, const double /*y*/, const int button,
-                                const int /*modifiers*/) const {
+auto GameEngine::on_mouse_press(const double /*x*/, const double /*y*/, const int button, const int /*modifiers*/) const
+    -> bool {
   if (button == MOUSE_BUTTON_LEFT) {
-    registry_->get_system<AttackSystem>()->do_attack(player_id_, registry_->get_game_object_ids(GameObjectType::Enemy));
+    return registry_->get_system<AttackSystem>()->do_attack(player_id_,
+                                                            registry_->get_game_object_ids(GameObjectType::Enemy));
   }
+  return false;
 }
 
 auto GameEngine::get_game_object_components(const GameObjectType game_object_type)
