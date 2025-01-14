@@ -102,17 +102,10 @@ class Game(UIView):
         with self.window.ctx.enabled(self.window.ctx.DEPTH_TEST):
             self.sprites.draw(pixelated=True)
 
-    def on_update(self: Game, delta_time: float) -> None:
-        """Process movement and game logic.
-
-        Args:
-            delta_time: Time interval since the last time the function was called.
-        """
-        # Update the systems and entities
-        self.registry.update(delta_time)
+    def on_update(self: Game, _: float) -> None:
+        """Process movement and game logic."""
+        # Update the entities and the game UI elements
         self.sprites.update()
-
-        # Update the game UI elements
         self.nearest_item = self.registry.get_system(PhysicsSystem).get_nearest_item(
             self.player,
         )
@@ -139,6 +132,14 @@ class Game(UIView):
             self.player,
             KinematicComponent,
         ).get_position()
+
+    def on_fixed_update(self: Game, delta_time: float) -> None:
+        """Process fixed update functionality.
+
+        Args:
+            delta_time: Time interval since the last time the function was called.
+        """
+        self.registry.update(delta_time)
 
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.

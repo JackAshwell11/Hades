@@ -65,7 +65,8 @@ class GameEngine {
   /// @param y - The y position of the mouse.
   /// @param button - The button that was pressed.
   /// @param modifiers - Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.
-  void on_mouse_press(double x, double y, int button, int modifiers) const;
+  /// @return Whether the attack was successful or not.
+  [[nodiscard]] auto on_mouse_press(double x, double y, int button, int modifiers) const -> bool;
 
  private:
   /// Get the components for a game object type.
