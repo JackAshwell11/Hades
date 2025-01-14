@@ -85,16 +85,16 @@ void AttackSystem::update(const double delta_time) const {
   }
 }
 
-void AttackSystem::do_attack(const GameObjectID game_object_id, const std::vector<int> &targets) const {
+bool AttackSystem::do_attack(const GameObjectID game_object_id, const std::vector<int> &targets) const {
   // Check if the game object can attack or not
   const auto attack{get_registry()->get_component<Attack>(game_object_id)};
   if (attack->time_since_last_attack < get_registry()->get_component<AttackCooldown>(game_object_id)->get_value()) {
-    return;
+    return false;
   }
 
   // Check if the game object has any attacks to perform
   if (attack->attack_state >= static_cast<int>(attack->attack_algorithms.size())) {
-    return;
+    return false;
   }
 
   // Perform the selected attack on the targets
@@ -114,6 +114,7 @@ void AttackSystem::do_attack(const GameObjectID game_object_id, const std::vecto
           get_registry()->get_component<Damage>(game_object_id)->get_value(),
           get_registry()->get_game_object_type(game_object_id));
   }
+  return true;
 }
 
 void DamageSystem::deal_damage(const GameObjectID game_object_id, const GameObjectID attacker_id) const {
