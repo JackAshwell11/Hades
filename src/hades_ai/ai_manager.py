@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # Builtin
 import random
+from argparse import ArgumentParser, Namespace
 from collections import deque
 from pathlib import Path
 from typing import TYPE_CHECKING, Final, NamedTuple
@@ -12,6 +13,7 @@ from typing import TYPE_CHECKING, Final, NamedTuple
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from gymnasium.utils.env_checker import check_env
 from matplotlib import get_backend
 from torch.nn import Linear, ReLU, Sequential
 from torch.nn.functional import smooth_l1_loss
@@ -78,6 +80,10 @@ TAU: Final[float] = 0.005
 # training steps)
 LR: Final[float] = 0.0001
 
+# The interval at which to record the gameplay (larger values can reduce the number of
+# recordings, but may miss important details)
+RECORDING_INTERVAL: Final[int] = 100
+
 # Check if we're running in interactive mode or not
 if IS_IPYTHON := "inline" in get_backend():
     from IPython import display
@@ -89,6 +95,14 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # Store the total rewards and losses for each episode
 episode_rewards: list[float] = []
 episode_losses: list[float] = []
+
+
+class BuildNamespace(Namespace):
+    """Allows typing of an argparse namespace for the CLI."""
+
+    check: bool
+    run: bool
+    train: bool
 
 
 class Transition(NamedTuple):
@@ -348,17 +362,12 @@ def concat_observation(obs: ObsType) -> torch.Tensor:
     ).unsqueeze(0)
 
 
-def train_dqn(dqn_agent: DQNAgent, dqn_env: HadesEnvironment) -> None:
-    """Train the DQN agent.
-
-    Args:
-        dqn_agent: The DQN agent.
-        dqn_env: The DQN environment.
-    """
+def train_dqn() -> None:
+    """Train the DQN agent in the environment."""
     # Loop over the episodes
     for episode in range(EPISODE_COUNT):
         # Reset the environment
-        state, _ = dqn_env.reset()
+        state, _ = env.reset()
 
         # Ensure the state tensor includes all parts of the observation
         state = concat_observation(state)
@@ -369,25 +378,25 @@ def train_dqn(dqn_agent: DQNAgent, dqn_env: HadesEnvironment) -> None:
         total_step = 0
         for _ in range(MAX_STEP_COUNT):
             # Select an action and perform it then store the reward
-            action = dqn_agent.select_action(state)
-            observation, reward, done, _, _ = dqn_env.step(action.item())
+            action = agent.select_action(state)
+            observation, reward, done, _, _ = env.step(action.item())
             total_reward += reward
 
             # Ensure the reward tensor is on the correct device
-            reward = torch.tensor([reward], device=dqn_agent.device)
+            reward = torch.tensor([reward], device=agent.device)
 
             # Ensure the next state tensor includes all parts of the observation
             next_state = concat_observation(observation) if not done else None
 
             # Store the transition in memory
-            dqn_agent.memory.append(Transition(state, action, next_state, reward))
+            agent.memory.append(Transition(state, action, next_state, reward))
 
             # Move to the next state
             state = next_state
 
             # Optimise the model if we have enough transitions
-            if len(dqn_agent.memory) >= BATCH_SIZE:
-                total_loss += dqn_agent.optimise_model()
+            if len(agent.memory) >= BATCH_SIZE:
+                total_loss += agent.optimise_model()
 
             # If we're done, stop the current episode
             total_step += 1
@@ -407,16 +416,81 @@ def train_dqn(dqn_agent: DQNAgent, dqn_env: HadesEnvironment) -> None:
         plot_graphs()
 
         # Update the target network after the episode
-        dqn_agent.update_target_network()
+        agent.update_target_network()
+
+
+def run_dqn() -> None:
+    """Run the DQN agent in the environment."""
+    # Load the trained model
+    agent.policy_net.load_state_dict(torch.load(OUTPUT_DIR / "dqn.pth"))
+
+    # Reset the environment
+    state, _ = env.reset()
+
+    # Ensure the state tensor includes all parts of the observation
+    state = concat_observation(state)
+
+    # Loop until the episode is done
+    total_reward = 0
+    while True:
+        # Select an action using the policy network
+        with torch.no_grad():
+            action = agent.policy_net(state).argmax(dim=1).view(1, 1).to(agent.device)
+
+        # Perform the action
+        observation, reward, done, _, _ = env.step(action.item())
+        total_reward += reward
+
+        # Ensure the next state tensor includes all parts of the observation
+        state = concat_observation(observation) if not done else None
+
+        # If we're done, stop the current episode
+        if done:
+            break
+
+    # Print the total reward
+    print(f"Total reward: {total_reward}")
 
 
 if __name__ == "__main__":
+    # Create the environment and agent
     env = HadesEnvironment()
     agent = DQNAgent(env.observation_space, env.action_space)
-    train_dqn(agent, env)
-    torch.save(agent.policy_net.state_dict(), "dqn.pth")
-    plot_graphs(show_result=True)
-    input("Training complete. Press any key to exit...")
 
+    # Build the argument parser and start parsing arguments
+    parser = ArgumentParser(
+        description="Manages the reinforcement learning training for the Hades AI"
+        " agent",
+    )
+    build_group = parser.add_mutually_exclusive_group()
+    build_group.add_argument(
+        "-c",
+        "--check",
+        action="store_true",
+        help="Checks if the Hades environment is valid",
+    )
+    build_group.add_argument(
+        "-r",
+        "--run",
+        action="store_true",
+        help="Runs the Hades AI agent using the DQN algorithm",
+    )
+    build_group.add_argument(
+        "-t",
+        "--train",
+        action="store_true",
+        help="Trains the Hades AI agent using the DQN algorithm",
+    )
+    args = parser.parse_args(namespace=BuildNamespace())
 
-# TODO: Use argparse to add checking and running functionality
+    # Determine which argument was selected
+    if args.check:
+        print("*****Checking Environment*****")
+        check_env(env)
+        print("*****Checking Complete*****")
+    elif args.run:
+        run_dqn()
+    elif args.train:
+        train_dqn()
+        torch.save(agent.policy_net.state_dict(), OUTPUT_DIR / "dqn.pth")
+        plot_graphs(show_result=True)
