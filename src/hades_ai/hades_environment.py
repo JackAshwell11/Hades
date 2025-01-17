@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Any, SupportsFloat
+from typing import TYPE_CHECKING, Any, Final, SupportsFloat
 
 # Pip
 import numpy as np
@@ -25,8 +25,12 @@ from hades_extensions.ecs.components import KinematicComponent
 
 if TYPE_CHECKING:
     from gymnasium.core import ActType, ObsType
+    from numpy.typing import NDArray
 
     from hades_extensions.ecs import Space
+
+# The scaling factor for incentivising movement towards the goal
+GOAL_SCALING_FACTOR: Final[float] = 0.025
 
 
 class HadesEnvironment(Env):
@@ -54,19 +58,26 @@ class HadesEnvironment(Env):
         - current_velocity: The current velocity of the player.
         - distance_to_walls: The distances from the player to the walls in each
           direction.
+        - distance_to_goal: The Euclidean distance to the goal.
+        - direction_to_goal: The direction vector from the player to the goal.
         - previous_action: The previous action taken.
 
     Info Space:
         The info space is a dictionary with the following information:
         - wall_positions: The positions of the walls in the environment.
+        - goal_position: The position of the goal in the environment.
 
     Reward Function:
         The reward function is as follows:
+        - The agent is incentivized to move towards the goal based on the dot
+          product of their current velocity and the direction to the goal.
         - The agent is penalised for touching a wall.
+        - The agent is rewarded for reaching the goal.
 
     Done Function:
         The done function is as follows:
         - The agent is done if they touch a wall.
+        - The agent is done if they reach the goal.
     """
 
     __slots__ = (
@@ -77,6 +88,7 @@ class HadesEnvironment(Env):
         "observation_space",
         "previous_action",
         "space",
+        "target_position",
         "window",
     )
 
@@ -114,6 +126,13 @@ class HadesEnvironment(Env):
                     shape=(2,),
                     dtype=np.float32,
                 ),
+                "direction_to_goal": Box(low=-1, high=1, shape=(2,), dtype=np.float32),
+                "distance_to_goal": Box(
+                    low=0,
+                    high=np.inf,
+                    shape=(1,),
+                    dtype=np.float32,
+                ),
                 "distance_to_walls": Box(
                     low=0,
                     high=np.inf,
@@ -131,6 +150,7 @@ class HadesEnvironment(Env):
         self.kinematic_component: KinematicComponent | None = None
         self.previous_action: int = 0
         self.space: Space | None = None
+        self.target_position: NDArray[float] = np.array([0.0, 0.0], dtype=np.float32)
 
     def _get_obs(self: HadesEnvironment) -> ObsType:
         """Returns the current observation.
@@ -157,11 +177,21 @@ class HadesEnvironment(Env):
             dtype=np.float32,
         )
 
+        # Get the Euclidean distance to the goal
+        distance_to_goal = np.linalg.norm(self.target_position - current_position)
+
         # Return the observations
         return {
             "current_position": current_position,
             "current_velocity": np.array(
                 self.kinematic_component.get_velocity(),
+                dtype=np.float32,
+            ),
+            "direction_to_goal": (
+                (self.target_position - current_position) / distance_to_goal
+            ),
+            "distance_to_goal": np.array(
+                [distance_to_goal],
                 dtype=np.float32,
             ),
             "distance_to_walls": np.array(
@@ -201,6 +231,7 @@ class HadesEnvironment(Env):
                 for wall in self.game.sprites
                 if wall.constructor.game_object_type == GameObjectType.Wall
             ],
+            "goal_position": np.array(self.target_position, dtype=np.float32),
         }
 
     def reset(
@@ -229,6 +260,13 @@ class HadesEnvironment(Env):
             KinematicComponent,
         )
         self.space = self.game.registry.get_space()
+        self.target_position = np.array(
+            next(
+                sprite.position
+                for sprite in self.game.sprites
+                if sprite.constructor.game_object_type == GameObjectType.HealthPotion
+            ),
+        )
 
         # Show the game view and render it so that the AI agent can interact with it
         self.window.show_view(self.game)
@@ -272,11 +310,21 @@ class HadesEnvironment(Env):
         observations = self._get_obs()
         self.previous_action = action
 
+        # Incentivize moving towards the goal based on their current velocity
+        reward = (
+            np.dot(observations["direction_to_goal"], observations["current_velocity"])
+            * GOAL_SCALING_FACTOR
+        )
+
         # If we're touching a wall, we're done
-        reward = 0
         done = False
         if min(observations["distance_to_walls"]) <= SPRITE_SIZE / 2:
             reward -= 5
+            done = True
+
+        # If we're at the goal, we're also done
+        if observations["distance_to_goal"] <= SPRITE_SIZE / 2:
+            reward += 5
             done = True
 
         # Return the results of this step
@@ -299,4 +347,5 @@ class HadesEnvironment(Env):
         self.window.close()
 
 
+# TODO: Look at removing goal
 # TODO: Introduce dungeon generation
