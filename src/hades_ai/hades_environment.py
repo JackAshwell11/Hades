@@ -15,10 +15,18 @@ from pyglet import app, clock
 # Custom
 from hades.views.game import Game
 from hades_ai.capture_window import CaptureWindow
+from hades_extensions.ecs import (
+    SPRITE_SIZE,
+    GameObjectType,
+    Vec2d,
+    wall_distances,
+)
 from hades_extensions.ecs.components import KinematicComponent
 
 if TYPE_CHECKING:
     from gymnasium.core import ActType, ObsType
+
+    from hades_extensions.ecs import Space
 
 
 class HadesEnvironment(Env):
@@ -27,6 +35,38 @@ class HadesEnvironment(Env):
     Attributes:
         action_space: The action space of the environment.
         observation_space: The observation space of the environment.
+
+    Action Space:
+        The action space is a discrete space with the following actions:
+        - 0: No action
+        - 1: Move up
+        - 2: Move left
+        - 3: Move down
+        - 4: Move right
+        - 5: Move up-right
+        - 6: Move up-left
+        - 7: Move down-right
+        - 8: Move down-left
+
+    Observation Space:
+        The observation space is a dictionary with the following observations:
+        - current_position: The current position of the player.
+        - current_velocity: The current velocity of the player.
+        - distance_to_walls: The distances from the player to the walls in each
+          direction.
+        - previous_action: The previous action taken.
+
+    Info Space:
+        The info space is a dictionary with the following information:
+        - wall_positions: The positions of the walls in the environment.
+
+    Reward Function:
+        The reward function is as follows:
+        - The agent is penalised for touching a wall.
+
+    Done Function:
+        The done function is as follows:
+        - The agent is done if they touch a wall.
     """
 
     __slots__ = (
@@ -35,6 +75,8 @@ class HadesEnvironment(Env):
         "game",
         "kinematic_component",
         "observation_space",
+        "previous_action",
+        "space",
         "window",
     )
 
@@ -72,13 +114,23 @@ class HadesEnvironment(Env):
                     shape=(2,),
                     dtype=np.float32,
                 ),
+                "distance_to_walls": Box(
+                    low=0,
+                    high=np.inf,
+                    shape=(8,),
+                    dtype=np.float32,
+                ),
+                "previous_action": Discrete(9),  # TODO: Is this needed?
             },
         )
+        # TODO: Maybe add steering force
 
         # Store some variables for the environment
         self.window: CaptureWindow = CaptureWindow()
         self.game: Game | None = None
         self.kinematic_component: KinematicComponent | None = None
+        self.previous_action: int = 0
+        self.space: Space | None = None
 
     def _get_obs(self: HadesEnvironment) -> ObsType:
         """Returns the current observation.
@@ -94,16 +146,37 @@ class HadesEnvironment(Env):
             error = "Kinematic component is not initialised"
             raise ValueError(error)
 
+        # Check if the space is initialised or not
+        if not self.space:
+            error = "Chipmunk2D space is not initialised"
+            raise ValueError(error)
+
+        # Get the current position as a numpy array
+        current_position = np.array(
+            self.kinematic_component.get_position(),
+            dtype=np.float32,
+        )
+
         # Return the observations
         return {
-            "current_position": np.array(
-                self.kinematic_component.get_position(),
-                dtype=np.float32,
-            ),
+            "current_position": current_position,
             "current_velocity": np.array(
                 self.kinematic_component.get_velocity(),
                 dtype=np.float32,
             ),
+            "distance_to_walls": np.array(
+                [
+                    np.linalg.norm(
+                        np.array([wall.x, wall.y], dtype=np.float32) - current_position,
+                    )
+                    for wall in wall_distances(
+                        self.space,
+                        Vec2d(*self.kinematic_component.get_position()),
+                    )
+                ],
+                dtype=np.float32,
+            ),
+            "previous_action": self.previous_action,
         }
 
     def _get_info(self: HadesEnvironment) -> dict[str, Any]:
@@ -120,9 +193,15 @@ class HadesEnvironment(Env):
             error = "Game is not initialised"
             raise ValueError(error)
 
-        # Return information that could be useful for the agent but are not part of the
+        # Return information that could be useful for the agent but is not part of the
         # observation
-        return {}
+        return {
+            "wall_positions": [
+                wall.position
+                for wall in self.game.sprites
+                if wall.constructor.game_object_type == GameObjectType.Wall
+            ],
+        }
 
     def reset(
         self,
@@ -143,11 +222,13 @@ class HadesEnvironment(Env):
         super().reset(seed=seed, options=options)
 
         # Reset the window and store the required variables
+        self.previous_action = 0
         self.game = Game(0)
         self.kinematic_component = self.game.registry.get_component(
             self.game.player,
             KinematicComponent,
         )
+        self.space = self.game.registry.get_space()
 
         # Show the game view and render it so that the AI agent can interact with it
         self.window.show_view(self.game)
@@ -187,8 +268,19 @@ class HadesEnvironment(Env):
         # Update the game and render it
         self.render()
 
+        # Get observations and then save the action
+        observations = self._get_obs()
+        self.previous_action = action
+
+        # If we're touching a wall, we're done
+        reward = 0
+        done = False
+        if min(observations["distance_to_walls"]) <= SPRITE_SIZE / 2:
+            reward -= 5
+            done = True
+
         # Return the results of this step
-        return self._get_obs(), 1, True, False, self._get_info()
+        return observations, reward, done, False, self._get_info()
 
     def render(self: HadesEnvironment) -> None:  # noqa: PLR6301
         """Renders the environment."""
@@ -205,3 +297,6 @@ class HadesEnvironment(Env):
     def close(self: HadesEnvironment) -> None:
         """Closes the environment."""
         self.window.close()
+
+
+# TODO: Introduce dungeon generation
