@@ -177,7 +177,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
         # Store some variables for the environment
         self.window: CaptureWindow = CaptureWindow()
-        self.game: Game | None = None
+        self.game: Game = Game()
         self.previous_action: int = 0
         self.position_history: NDArray[NDArray[float]] = np.zeros(
             (0, 2),
@@ -188,18 +188,9 @@ class HadesEnvironment(Env):  # type:ignore[misc]
     def _get_enemy_positions(self: HadesEnvironment) -> NDArray[NDArray[float]]:
         """Returns the positions of the enemies.
 
-        Raises:
-            RuntimeError: If the game is not initialised.
-
         Returns:
             The positions of the enemies.
         """
-        # Check if the game is initialised or not
-        if not self.game:
-            error = "Game is not initialised."
-            raise RuntimeError(error)
-
-        # Get the enemy positions
         return np.array(
             [
                 self.game.registry.get_component(
@@ -214,17 +205,9 @@ class HadesEnvironment(Env):  # type:ignore[misc]
     def _get_obs(self: HadesEnvironment) -> ObsType:
         """Returns the current observation.
 
-        Raises:
-            RuntimeError: If the game is not initialised.
-
         Returns:
             The current observation.
         """
-        # Check if the game is initialised or not
-        if not self.game:
-            error = "Game is not initialised."
-            raise RuntimeError(error)
-
         # Calculate the distances to the walls
         kinematic_component = self.game.registry.get_component(
             self.game.player,
@@ -291,16 +274,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         }
 
     def _update_player_rotation(self: HadesEnvironment) -> None:
-        """Updates the player's rotation to face the nearest enemy.
-
-        Raises:
-            RuntimeError: If the game is not initialised.
-        """
-        # Check if the game is initialised or not
-        if not self.game:
-            error = "Game is not initialised."
-            raise RuntimeError(error)
-
+        """Updates the player's rotation to face the nearest enemy."""
         # Create a vector towards the nearest enemy and set the player's rotation to it
         player = self.game.registry.get_component(self.game.player, KinematicComponent)
         player_position = player.get_position()
@@ -329,7 +303,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
         # Reset the window and store the required variables
         self.previous_action = 0
-        self.game = Game(0)
+        self.game.setup(0)
         self.game.registry.add_callback(
             EventType.GameObjectCreation,
             self.on_game_object_creation,
@@ -363,17 +337,9 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         Args:
             action: The action to take.
 
-        Raises:
-            RuntimeError: If the game is not initialised.
-
         Returns:
             The observation, reward, done flag, truncated flag, and info.
         """
-        # Check if the game is initialised or not
-        if not self.game:
-            error = "Game is not initialised"
-            raise RuntimeError(error)
-
         # For all directions, send a key_release event to stop previous movement
         for direction in (key.W, key.A, key.S, key.D):
             self.game.game_engine.on_key_release(direction, 0)
@@ -447,16 +413,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         )
 
     def render(self: HadesEnvironment) -> None:
-        """Renders the environment.
-
-        Raises:
-            RuntimeError: If the game is not initialised.
-        """
-        # Check if the game is initialised or not
-        if not self.game:
-            error = "Game is not initialised."
-            raise RuntimeError(error)
-
+        """Renders the environment."""
         # Update the pyglet clock
         clock.tick()
 
@@ -475,16 +432,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
         Args:
             game_object_id: The ID of the game object to add.
-
-        Raises:
-            RuntimeError: If the game is not initialised.
         """
-        # Check if the game is initialised or not
-        if not self.game:
-            error = "Game is not initialised."
-            raise RuntimeError(error)
-
-        # Add the game object to the collection if it represents an enemy
         if (
             self.game.registry.get_game_object_type(game_object_id)
             == GameObjectType.Enemy
@@ -496,16 +444,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
         Args:
             game_object_id: The ID of the game object to remove.
-
-        Raises:
-            RuntimeError: If the game is not initialised.
         """
-        # Check if the game is initialised or not
-        if not self.game:
-            error = "Game is not initialised."
-            raise RuntimeError(error)
-
-        # Remove the game object from the collection if it represents an enemy
         if (
             self.game.registry.get_game_object_type(game_object_id)
             == GameObjectType.Enemy
