@@ -56,17 +56,22 @@ class GameUI:
             text_color=color.BLACK,
         ).with_background(color=UI_BACKGROUND_COLOUR)
         self.progress_bar_groups: list[ProgressBarGroup] = []
+        self.player_ui: UIGridLayout = UIGridLayout(row_count=4)
+        self.status_effect_layout: UIBoxLayout = UIBoxLayout(vertical=False)
+        self.attack_algorithm_label: UILabel = UILabel(
+            "",
+            text_color=color.BLACK,
+        ).with_background(color=UI_BACKGROUND_COLOUR)
 
-        # Initialise the player UI
-        anchor = UIAnchorLayout()
-        self.player_ui: UIGridLayout = anchor.add(
-            UIGridLayout(row_count=4),
-            anchor_x="left",
-            anchor_y="top",
-        )
-        ui.add(anchor)
+    def setup(self: GameUI) -> None:
+        """Set up the game UI."""
+        # Reset the UI's state
+        self.progress_bar_groups.clear()
+        self.player_ui.clear()
+        self.ui.clear()
+        self.set_attack_algorithm(AttackAlgorithm.Ranged)
 
-        # Add the money indicator to the player UI
+        # Add the player UI elements
         money_anchor = UIAnchorLayout()
         money_anchor.add(
             UILabel("Money: 0", text_color=color.BLACK).with_background(
@@ -76,17 +81,11 @@ class GameUI:
             anchor_y="top",
         )
         self.player_ui.add(money_anchor, row_num=1)
-
-        # Add the status effect indicator to the player UI
-        self.status_effect_layout: UIBoxLayout = UIBoxLayout(vertical=False)
         self.player_ui.add(self.status_effect_layout, row_num=2)
-
-        # Add the player attack algorithm indicator to the player UI
-        self.attack_algorithm_label: UILabel = UILabel(
-            f"Attack Algorithm: {AttackAlgorithm.Ranged.name}",
-            text_color=color.BLACK,
-        ).with_background(color=UI_BACKGROUND_COLOUR)
         self.player_ui.add(self.attack_algorithm_label, row_num=3)
+        anchor = UIAnchorLayout()
+        anchor.add(self.player_ui, anchor_x="left", anchor_y="top")
+        self.ui.add(anchor)
 
     def update_progress_bars(self: GameUI, camera: Camera2D) -> None:
         """Update the progress bars on the screen.
@@ -167,6 +166,10 @@ class GameUI:
             attack_algorithm: The player's attack algorithm.
         """
         self.attack_algorithm_label.text = f"Attack Algorithm: {attack_algorithm.name}"
+        self.attack_algorithm_label.fit_content()
+        self.attack_algorithm_label.rect = self.attack_algorithm_label.rect.align_x(
+            self.attack_algorithm_label.rect.width // 2,
+        ).align_y(self.attack_algorithm_label.rect.height // 2)
 
     def on_game_object_death(self: GameUI, game_object_id: int) -> None:
         """Remove a game object from the game.

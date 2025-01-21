@@ -265,24 +265,38 @@ def player_attributes_layout(
 
 
 @pytest.fixture
+def uninitialised_player_view(window: Window) -> PlayerView:  # noqa: ARG001
+    """Create an uninitialised PlayerView for testing.
+
+    Args:
+        window: The window for testing.
+
+    Returns:
+        The uninitialised PlayerView object for testing.
+    """
+    player_view = PlayerView()
+    get_window().show_view(player_view)
+    return player_view
+
+
+@pytest.fixture
 def player_view(
+    uninitialised_player_view: PlayerView,
     mock_registry: Registry,
-    window: Window,  # noqa: ARG001
     component_sprite: int,
 ) -> PlayerView:
     """Create a PlayerView for testing.
 
     Args:
+        uninitialised_player_view: The uninitialised PlayerView object for testing.
         mock_registry: The mock registry for testing.
-        window: The window for testing.
         component_sprite: The game object ID of the HadesSprite object.
 
     Returns:
         The PlayerView object for testing.
     """
-    player_view = PlayerView(mock_registry, component_sprite)
-    get_window().show_view(player_view)
-    return player_view
+    uninitialised_player_view.setup(mock_registry, component_sprite)
+    return uninitialised_player_view
 
 
 @pytest.mark.parametrize(
@@ -977,6 +991,19 @@ def test_player_attributes_layout_on_action(
         player_attributes_layout.children[2]
         == player_attributes_layout.inventory_layout
     )
+
+
+def test_uninitialised_player_view_init(uninitialised_player_view: PlayerView) -> None:
+    """Test that the uninitialised PlayerView does not have any attributes set.
+
+    Args:
+        uninitialised_player_view: The uninitialised PlayerView object for testing.
+    """
+    assert uninitialised_player_view.registry is None
+    assert uninitialised_player_view.game_object_id == -1  # type: ignore[unreachable]
+    assert uninitialised_player_view.inventory is None
+    assert len(uninitialised_player_view.ui_manager.children) == 0
+    assert uninitialised_player_view.player_attributes_layout is None
 
 
 def test_player_view_on_draw(monkeypatch: MonkeyPatch, player_view: PlayerView) -> None:
