@@ -42,8 +42,8 @@ class StartButton(UIFlatButton):
         window: HadesWindow = arcade.get_window()
 
         # Set up the new game
-        new_game = Game(0)
-        window.views["Game"] = new_game
+        new_game = Game()
+        new_game.setup(0)
         logger.info("Initialised game view at level %d", 0)
 
         # Show the new game
