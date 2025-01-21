@@ -191,7 +191,7 @@ class HadesEnvironment(Env):
 
         # Store some variables for the environment
         self.window: CaptureWindow = CaptureWindow()
-        self.game: Game | None = None
+        self.game: Game = Game(0)
         self.previous_action: int = 0
         self.position_history: NDArray[NDArray[float]] = np.zeros(
             (0, 2),
@@ -353,7 +353,7 @@ class HadesEnvironment(Env):
 
         # Reset the window and store the required variables
         self.previous_action = 0
-        self.game = Game(0)
+        self.game.setup()
         self.game.registry.add_callback(
             EventType.GameObjectCreation,
             self.on_game_object_creation,
