@@ -5,7 +5,7 @@ from __future__ import annotations
 # Builtin
 import random
 from collections import deque
-from typing import TYPE_CHECKING, Final, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 # Pip
 import numpy as np
@@ -17,62 +17,7 @@ from torch.optim import AdamW
 if TYPE_CHECKING:
     from gymnasium.core import ActType, ObsType
 
-__all__ = (
-    "BATCH_SIZE",
-    "DQN",
-    "EPS_DECAY",
-    "EPS_END",
-    "EPS_START",
-    "FEATURE_COUNT",
-    "GAMMA",
-    "LR",
-    "REPLAY_MEMORY_SIZE",
-    "TAU",
-    "DQNAgent",
-    "Transition",
-)
-
-# The size of the input and output layers for the neural network (larger values can
-# provide better results but require more computational power and may lead to
-# overfitting)
-FEATURE_COUNT: Final[int] = 256
-
-# The number of transitions to sample from the replay memory for each training step
-# (larger values can provide more stable training but require more memory and
-# computational power)
-BATCH_SIZE: Final[int] = 128
-
-# The discount factor for the Q-learning algorithm which determines the importance of
-# future rewards (larger values prioritise future rewards over immediate rewards)
-GAMMA: Final[float] = 0.99
-
-# The maximum number of transitions to store in the replay memory (larger values can
-# improve training but require more memory)
-REPLAY_MEMORY_SIZE: Final[int] = 100000
-
-# The starting epsilon value for the epsilon-greedy policy which determines the initial
-# exploration rate (higher values mean the agent will explore more at the beginning of
-# training which can help discover better strategies)
-EPS_START: Final[float] = 0.99
-
-# The final epsilon value for the epsilon-greedy policy which determines the minimum
-# exploration rate (lower values mean the agent will exploit its learned policy more as
-# training progresses focusing on the best-known actions)
-EPS_END: Final[float] = 0.05
-
-# The number of steps to decay epsilon from EPS_START to EPS_END (larger values mean the
-# agent will explore more for longer before exploiting its learned policy)
-EPS_DECAY: Final[int] = 1000
-
-# The rate at which the target network's weights are adjusted towards the policy
-# network's weights (smaller values mean the target network will change more slowly
-# providing more stable training)
-TAU: Final[float] = 0.01
-
-# The learning rate for the AdamW optimiser which determines the step size during
-# gradient descent (smaller values can lead to more stable training but may require more
-# training steps)
-LR: Final[float] = 0.0001
+__all__ = ("DQN", "DQNAgent", "Transition")
 
 
 class Transition(NamedTuple):
@@ -100,12 +45,16 @@ class DQN(Sequential):
         self: DQN,
         observation_space: torch.Space[ObsType],
         action_space: torch.Space[ActType],
+        feature_count: int,
+        layer_count: int,
     ) -> None:
         """Initialise the object.
 
         Args:
             observation_space: The observation space.
             action_space: The action space.
+            feature_count: The size of the hidden layers for the neural network.
+            layer_count: The number of hidden layers in the neural network.
         """
         # Determine the input size based on the size of the observation space
         input_size = sum(
@@ -113,29 +62,64 @@ class DQN(Sequential):
             for value in observation_space.values()
         )
 
-        # Initialise the neural network creating two linear layers with ReLU activation
-        # between each layer.
+        # Create the layers dynamically based on the layer count and feature count
+        # ensuring there is ReLU activation between each layer.
         # When doing this, we must be careful of overfitting for both the layer and
         # feature count as this can lead to poor performance when introducing new
         # environments.
-        super().__init__(
-            Linear(input_size, FEATURE_COUNT),
-            ReLU(),
-            Linear(FEATURE_COUNT, FEATURE_COUNT),
-            ReLU(),
-            Linear(FEATURE_COUNT, FEATURE_COUNT),
-            ReLU(),
-            Linear(FEATURE_COUNT, action_space.n),
-        )
+        layers = []
+        for _ in range(layer_count + 1):
+            layers.extend(
+                [
+                    Linear(input_size, feature_count),
+                    ReLU(),
+                ],
+            )
+            input_size = feature_count
+        layers.append(Linear(feature_count, action_space.n))
+        super().__init__(*layers)
 
 
 class DQNAgent:
-    """Represents a deep Q-network agent for reinforcement learning."""
+    """Represents a deep Q-network agent for reinforcement learning.
+
+    The hyperparameters for the network are as follows:
+    - LAYER_COUNT: The number of hidden layers in the neural network (larger values can
+    provide better results but require more computational power and may lead to
+    overfitting).
+    - FEATURE_COUNT: The size of the hidden layers for the neural network (larger
+    values can provide better results but require more computational power and may lead
+    to overfitting).
+    - BATCH_SIZE: The number of transitions to sample from the replay memory for each
+    training step (larger values can provide more stable training but require more memory
+    and computational power).
+    - GAMMA: The discount factor for the Q-learning algorithm which determines the
+    importance of future rewards (larger values prioritise future rewards over immediate
+    rewards).
+    - REPLAY_MEMORY_SIZE: The maximum number of transitions to store in the replay memory
+    (larger values can improve training but require more memory).
+    - EPS_START: The starting epsilon value for the epsilon-greedy policy which
+    determines the initial exploration rate (higher values mean the agent will explore
+    more at the beginning of training which can help discover better strategies).
+    - EPS_END: The final epsilon value for the epsilon-greedy policy which determines the
+    minimum exploration rate (lower values mean the agent will exploit its learned policy
+    more as training progresses focusing on the best-known actions).
+    - EPS_DECAY: The number of steps to decay epsilon from EPS_START to EPS_END (larger
+    values mean the agent will explore more for longer before exploiting its learned
+    policy).
+    - TAU: The rate at which the target network's weights are adjusted towards the policy
+    network's weights (smaller values mean the target network will change more slowly
+    providing more stable training).
+    - LR: The learning rate for the AdamW optimiser which determines the step size during
+    gradient descent (smaller values can lead to more stable training but may require
+    more training steps).
+    """
 
     __slots__ = (
         "action_space",
         "device",
         "epsilon",
+        "hyperparams",
         "memory",
         "optimiser",
         "policy_net",
@@ -147,12 +131,14 @@ class DQNAgent:
         self: DQNAgent,
         observation_space: torch.Space[ObsType],
         action_space: torch.Space[ActType],
+        hyperparams: dict[str, float | int],
     ) -> None:
         """Initialise the object.
 
         Args:
             observation_space: The observation space.
             action_space: The action space.
+            hyperparams: The hyperparameters for the network.
         """
         self.action_space: torch.Space[ActType] = action_space
         self.device: str = (
@@ -160,12 +146,26 @@ class DQNAgent:
             if torch.cuda.is_available()
             else "mps" if torch.backends.mps.is_available() else "cpu"
         )
-        self.memory: deque[Transition] = deque(maxlen=REPLAY_MEMORY_SIZE)
+        self.memory: deque[Transition] = deque(maxlen=hyperparams["REPLAY_MEMORY_SIZE"])
         self.steps_done: int = 0
-        self.policy_net: DQN = DQN(observation_space, action_space).to(self.device)
-        self.target_net: DQN = DQN(observation_space, action_space).to(self.device)
-        self.optimiser: AdamW = AdamW(self.policy_net.parameters(), lr=LR)
-        self.epsilon: float = EPS_START
+        self.policy_net: DQN = DQN(
+            observation_space,
+            action_space,
+            hyperparams["FEATURE_COUNT"],
+            hyperparams["LAYER_COUNT"],
+        ).to(self.device)
+        self.target_net: DQN = DQN(
+            observation_space,
+            action_space,
+            hyperparams["FEATURE_COUNT"],
+            hyperparams["LAYER_COUNT"],
+        ).to(self.device)
+        self.optimiser: AdamW = AdamW(
+            self.policy_net.parameters(),
+            lr=hyperparams["LR"],
+        )
+        self.epsilon: float = hyperparams["EPS_START"]
+        self.hyperparams: dict[str, float | int] = hyperparams
 
     def select_action(
         self: DQNAgent,
@@ -199,7 +199,12 @@ class DQNAgent:
             )
 
         # Decay epsilon after each action selection
-        self.epsilon = max(EPS_END, self.epsilon - (EPS_START - EPS_END) / EPS_DECAY)
+        self.epsilon = max(
+            self.hyperparams["EPS_END"],
+            self.epsilon
+            - (self.hyperparams["EPS_START"] - self.hyperparams["EPS_END"])
+            / self.hyperparams["EPS_DECAY"],
+        )
         return action
 
     def optimise_model(self: DQNAgent) -> float:
@@ -209,7 +214,12 @@ class DQNAgent:
             The loss value.
         """
         # Get a batch of transitions
-        batch = Transition(*zip(*random.sample(self.memory, BATCH_SIZE), strict=False))
+        batch = Transition(
+            *zip(
+                *random.sample(self.memory, self.hyperparams["BATCH_SIZE"]),
+                strict=False,
+            ),
+        )
 
         # Compute mask of non-final states and concatenate the batch elements
         non_final_mask = torch.tensor(
@@ -232,12 +242,17 @@ class DQNAgent:
         )
 
         # Compute V(s_{t+1}) for all next states
-        next_state_values = torch.zeros(BATCH_SIZE, device=self.device)
+        next_state_values = torch.zeros(
+            self.hyperparams["BATCH_SIZE"],
+            device=self.device,
+        )
         with torch.no_grad():
             next_state_values[non_final_mask] = (
                 self.target_net(non_final_next_states).max(1).values
             )
-        expected_state_action_values = (next_state_values * GAMMA) + reward_batch
+        expected_state_action_values = (
+            next_state_values * self.hyperparams["GAMMA"]
+        ) + reward_batch
 
         # Compute loss
         loss = smooth_l1_loss(
@@ -261,7 +276,7 @@ class DQNAgent:
         # Perform a soft update of the target network's weights using the policy
         # network's weights
         for key in policy_net_state_dict:
-            target_net_state_dict[key] = policy_net_state_dict[
-                key
-            ] * TAU + target_net_state_dict[key] * (1 - TAU)
+            target_net_state_dict[key] = policy_net_state_dict[key] * self.hyperparams[
+                "TAU"
+            ] + target_net_state_dict[key] * (1 - self.hyperparams["TAU"])
         self.target_net.load_state_dict(target_net_state_dict)
