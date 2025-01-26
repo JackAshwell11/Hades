@@ -100,6 +100,8 @@ class DQN(Sequential):
         self: DQN,
         observation_space: torch.Space[ObsType],
         action_space: torch.Space[ActType],
+        feature_count: int,
+        hidden_layer_count: int,
     ) -> None:
         """Initialise the object.
 
@@ -118,15 +120,17 @@ class DQN(Sequential):
         # When doing this, we must be careful of overfitting for both the layer and
         # feature count as this can lead to poor performance when introducing new
         # environments.
-        super().__init__(
-            Linear(input_size, FEATURE_COUNT),
-            ReLU(),
-            Linear(FEATURE_COUNT, FEATURE_COUNT),
-            ReLU(),
-            Linear(FEATURE_COUNT, FEATURE_COUNT),
-            ReLU(),
-            Linear(FEATURE_COUNT, action_space.n),
-        )
+        layers = []
+        for _ in range(hidden_layer_count + 1):
+            layers.extend(
+                [
+                    Linear(input_size, feature_count),
+                    ReLU(),
+                ],
+            )
+            input_size = feature_count
+        layers.append(Linear(feature_count, action_space.n))
+        super().__init__(*layers)
 
 
 class DQNAgent:
@@ -147,6 +151,8 @@ class DQNAgent:
         self: DQNAgent,
         observation_space: torch.Space[ObsType],
         action_space: torch.Space[ActType],
+        feature_count: int,
+        hidden_layer_count: int,
     ) -> None:
         """Initialise the object.
 
@@ -162,8 +168,18 @@ class DQNAgent:
         )
         self.memory: deque[Transition] = deque(maxlen=REPLAY_MEMORY_SIZE)
         self.steps_done: int = 0
-        self.policy_net: DQN = DQN(observation_space, action_space).to(self.device)
-        self.target_net: DQN = DQN(observation_space, action_space).to(self.device)
+        self.policy_net: DQN = DQN(
+            observation_space,
+            action_space,
+            feature_count,
+            hidden_layer_count,
+        ).to(self.device)
+        self.target_net: DQN = DQN(
+            observation_space,
+            action_space,
+            feature_count,
+            hidden_layer_count,
+        ).to(self.device)
         self.optimiser: AdamW = AdamW(self.policy_net.parameters(), lr=LR)
         self.epsilon: float = EPS_START
 

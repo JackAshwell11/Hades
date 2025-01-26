@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 # Builtin
-from argparse import ArgumentParser, Namespace
+import csv
+from argparse import Namespace
+from itertools import product
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
 # Pip
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from gymnasium.utils.env_checker import check_env
 from matplotlib import get_backend
+from pyglet import options
 
 # Custom
 from hades_ai.dqn import BATCH_SIZE, DQNAgent, Transition
@@ -23,10 +26,14 @@ if TYPE_CHECKING:
 
 __all__ = ()
 
+# TODO: MAKE SURE TO SET ARCADE_HEADLESS TO TRUE
+options.headless = True
+matplotlib.use("Agg")
+
 
 # The number of episodes to train the agent for (larger values can provide better
 # results but require more time)
-EPISODE_COUNT: Final[int] = 2000
+EPISODE_COUNT: Final[int] = 5
 
 # The number of episodes to average the rewards over for the graph (larger values can
 # show a smoother graph but may hide important details)
@@ -34,7 +41,7 @@ GRAPH_MOVING_AVERAGE: Final[int] = 50
 
 # The maximum number of steps to take in each episode before stopping (larger values can
 # give the agent more time to learn but may take longer to train)
-MAX_STEP_COUNT: Final[int] = 1000
+MAX_STEP_COUNT: Final[int] = 500
 
 # The interval at which to save the gameplay and graphs (larger values can reduce the
 # number of saves, but may miss important details)
@@ -51,7 +58,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 ENV: Final[HadesEnvironment] = HadesEnvironment()
 
 # Create the agent for the AI
-AGENT: Final[DQNAgent] = DQNAgent(ENV.observation_space, ENV.action_space)
+# AGENT: Final[DQNAgent] = DQNAgent(ENV.observation_space, ENV.action_space)
 
 # Check if we're running in interactive mode or not
 if IS_IPYTHON := "inline" in get_backend():
@@ -114,7 +121,7 @@ def plot_graphs(save_dir: Path | None, *results: tuple[str, list[float]]) -> Non
         display.clear_output(wait=True)
 
 
-def concat_observation(obs: ObsType) -> torch.Tensor:
+def concat_observation(agent, obs: ObsType) -> torch.Tensor:
     """Concatenate the observation into a single tensor.
 
     Args:
@@ -132,11 +139,11 @@ def concat_observation(obs: ObsType) -> torch.Tensor:
     return torch.tensor(
         arr,
         dtype=torch.float32,
-        device=AGENT.device,
+        device=agent.device,
     ).unsqueeze(0)
 
 
-def process_episode(*, train: bool = True) -> tuple[float, float, int]:
+def process_episode(agent, *, train: bool = True) -> tuple[float, float, int]:
     """Process an episode of the environment.
 
     Args:
@@ -149,7 +156,7 @@ def process_episode(*, train: bool = True) -> tuple[float, float, int]:
     state, _ = ENV.reset()
 
     # Ensure the state tensor includes all parts of the observation
-    state = concat_observation(state)
+    state = concat_observation(agent, state)
 
     # Run the episode and get the total reward, loss, and step count
     total_reward = 0
@@ -158,20 +165,20 @@ def process_episode(*, train: bool = True) -> tuple[float, float, int]:
     for _ in range(MAX_STEP_COUNT):
         # Select an action based on whether we're training or not then perform it and
         # get the next state
-        action = AGENT.select_action(state, train=train)
+        action = agent.select_action(state, train=train)
         observation, reward, done, truncated, _ = ENV.step(action.item())
         total_reward += reward
         finish = truncated or done
-        next_state = concat_observation(observation) if not finish else None
+        next_state = concat_observation(agent, observation) if not finish else None
 
         # Store the transition in memory
         if train:
-            AGENT.memory.append(
+            agent.memory.append(
                 Transition(
                     state,
                     action,
                     next_state,
-                    torch.tensor([reward], device=AGENT.device),
+                    torch.tensor([reward], device=agent.device),
                 ),
             )
 
@@ -179,8 +186,8 @@ def process_episode(*, train: bool = True) -> tuple[float, float, int]:
         state = next_state
 
         # Optimise the model if we have enough transitions
-        if train and len(AGENT.memory) >= BATCH_SIZE:
-            total_loss += AGENT.optimise_model()
+        if train and len(agent.memory) >= BATCH_SIZE:
+            total_loss += agent.optimise_model()
 
         # If we're done, stop the current episode
         total_step += 1
@@ -189,20 +196,20 @@ def process_episode(*, train: bool = True) -> tuple[float, float, int]:
     return total_reward, total_loss, total_step
 
 
-def train_dqn() -> None:
+def train_dqn(agent, output_dir) -> None:
     """Train the DQN agent in the environment."""
     # Loop over the episodes
     episode_rewards = []
     episode_losses = []
     for episode in range(EPISODE_COUNT):
         # Enable saving if possible
-        episode_dir = OUTPUT_DIR / f"{episode + 1}"
+        episode_dir = output_dir / f"{episode + 1}"
         episode_dir.mkdir(exist_ok=True)
         if episode % SAVE_INTERVAL == 0 or episode == EPISODE_COUNT - 1:
             ENV.window.make_writer(episode_dir / f"episode_{episode}.mp4")
 
         # Loop over the steps
-        total_reward, total_loss, total_step = process_episode()
+        total_reward, total_loss, total_step = process_episode(agent)
 
         # Print the episode results
         print(  # noqa: T201
@@ -221,70 +228,85 @@ def train_dqn() -> None:
         plot_graphs(save_dir, ("Reward", episode_rewards), ("Loss", episode_losses))
         if save_dir:
             ENV.window.save_video()
-            torch.save(AGENT.policy_net.state_dict(), episode_dir / MODEL_NAME)
+            torch.save(agent.policy_net.state_dict(), episode_dir / MODEL_NAME)
 
         # Update the target network after the episode
-        AGENT.update_target_network()
+        agent.update_target_network()
 
     # Save the final model
-    torch.save(AGENT.policy_net.state_dict(), OUTPUT_DIR / MODEL_NAME)
+    torch.save(agent.policy_net.state_dict(), output_dir / MODEL_NAME)
 
 
-def run_dqn() -> None:
-    """Run the DQN agent in the environment."""
-    # Find the most recent model
-    path = (
-        max(
-            (d for d in OUTPUT_DIR.iterdir() if d.is_dir()),
-            key=lambda d: d.stat().st_mtime,
-            default=OUTPUT_DIR,
-        )
-        / MODEL_NAME
-    )
-    if not path.exists():
-        print("No model found, please train the model first")
-        return
+# def run_dqn() -> None:
+#     """Run the DQN agent in the environment."""
+#     # Find the most recent model
+#     path = (
+#         max(
+#             (d for d in OUTPUT_DIR.iterdir() if d.is_dir()),
+#             key=lambda d: d.stat().st_mtime,
+#             default=OUTPUT_DIR,
+#         )
+#         / MODEL_NAME
+#     )
+#     if not path.exists():
+#         print("No model found, please train the model first")
+#         return
+#
+#     # Load the trained model then run the agent
+#     AGENT.policy_net.load_state_dict(torch.load(path, weights_only=True))
+#     total_reward, _, total_step = process_episode(train=False)
+#     print(f"Average reward: {total_reward / total_step}")
 
-    # Load the trained model then run the agent
-    AGENT.policy_net.load_state_dict(torch.load(path, weights_only=True))
-    total_reward, _, total_step = process_episode(train=False)
-    print(f"Average reward: {total_reward / total_step}")
+
+hyperparameters_grid = {
+    "feature_count": [128, 256, 512],
+    "hidden_layer_count": [1, 2, 3],
+}
+
+grid_search_runs = 2
 
 
 if __name__ == "__main__":
-    # Build the argument parser and start parsing arguments
-    parser = ArgumentParser(
-        description="Manages the reinforcement learning training for the Hades AI"
-        " agent",
-    )
-    build_group = parser.add_mutually_exclusive_group()
-    build_group.add_argument(
-        "-c",
-        "--check",
-        action="store_true",
-        help="Checks if the Hades environment is valid",
-    )
-    build_group.add_argument(
-        "-r",
-        "--run",
-        action="store_true",
-        help="Runs the Hades AI agent using the DQN algorithm",
-    )
-    build_group.add_argument(
-        "-t",
-        "--train",
-        action="store_true",
-        help="Trains the Hades AI agent using the DQN algorithm",
-    )
-    args = parser.parse_args(namespace=BuildNamespace())
+    # Prepare the CSV file
+    GRID_SEARCH_CSV = "grid_search.csv"
+    with open(OUTPUT_DIR / GRID_SEARCH_CSV, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Parameters", "Run", "Reward", "Steps"])
 
-    # Determine which argument was selected
-    if args.check:
-        print("*****Checking Environment*****")
-        check_env(ENV)
-        print("*****Checking Complete*****")
-    elif args.run:
-        run_dqn()
-    elif args.train:
-        train_dqn()
+    # Loop over all the hyperparameter combinations
+    combinations = list(product(*hyperparameters_grid.values()))
+    for comb, combination in enumerate(combinations):
+        params = dict(zip(hyperparameters_grid.keys(), combination, strict=False))
+        for run in range(grid_search_runs):
+            # Train the model with the current hyperparameters
+            print(
+                f"Grid Search {comb + 1}/{len(combinations)} - Parameters: {params} - Run: {run + 1}",
+            )
+            grid_agent = DQNAgent(ENV.observation_space, ENV.action_space, **params)
+            param_str = "_".join(f"{value}" for value in params.values())
+            output_dir_grid = OUTPUT_DIR / f"grid_search_{param_str}_{run}"
+            output_dir_grid.mkdir(exist_ok=True)
+            train_dqn(grid_agent, output_dir_grid)
+
+            # Evaluate the trained model and log the results
+            total_reward_evaluate, _, total_steps_evaluate = process_episode(
+                grid_agent,
+                train=False,
+            )
+            with open(OUTPUT_DIR / GRID_SEARCH_CSV, "a", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(
+                    [
+                        param_str,
+                        run + 1,
+                        np.mean(total_reward_evaluate),
+                        total_steps_evaluate,
+                    ],
+                )
+            progress = (
+                (comb * grid_search_runs + run + 1)
+                / (len(combinations) * grid_search_runs)
+                * 100
+            )
+            print(f"Grid Search Progress: {progress:.2f}%")
     ENV.close()
