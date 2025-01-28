@@ -5,10 +5,10 @@ from __future__ import annotations
 # Builtin
 import logging
 import math
-from typing import Final
+from typing import Final, cast
 
 # Pip
-from arcade import MOUSE_BUTTON_LEFT, SpriteList, color, key, schedule
+from arcade import MOUSE_BUTTON_LEFT, SpriteList, color, key, schedule, unschedule
 from arcade.camera.camera_2d import Camera2D
 from arcade.gui import UIView
 from pyglet import app
@@ -47,11 +47,12 @@ class Game(UIView):
     Attributes:
         game_camera: The camera used for moving the viewport around the screen.
         sprites: The list of all sprites in the game.
-        nearest_item: The nearest item to the player.
         game_ui: The UI elements for the game.
         game_engine: The engine for the game which manages the game
         registry: The registry for the game which manages the game objects, components,
         and systems.
+        level: The level to create a game for.
+        nearest_item: The nearest item to the player.
         player: The ID of the player game object.
     """
 
@@ -62,34 +63,46 @@ class Game(UIView):
             level: The level to create a game for.
         """
         super().__init__()
-        # Arcade types
         self.game_camera: Camera2D = Camera2D()
         self.sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
-        self.nearest_item: int = -1
-
-        # Custom types
         self.game_ui: GameUI = GameUI(self.ui)
-        self.game_engine = GameEngine(level)
-        self.registry: Registry = self.game_engine.get_registry()
-        schedule(self.game_engine.generate_enemy, ENEMY_GENERATE_INTERVAL)
+        self.game_engine: GameEngine = cast("GameEngine", None)
+        self.registry: Registry = cast("Registry", None)
+        self.level: int = level
+        self.nearest_item: int = -1
+        self.player: int = -1
 
-        # Create all the game objects for the current map
+        # Initialise the views
+        self.window.views["Game"] = self
+        self.window.views["InventoryView"] = PlayerView()
+
+    def setup(self: Game) -> None:
+        """Set up the game."""
+        # Reset the game's state
+        self.sprites.clear()
+        if self.game_engine:
+            unschedule(self.game_engine.generate_enemy)
+
+        # Create the game engine and add the necessary callbacks
+        self.game_engine = GameEngine(self.level)
+        self.registry = self.game_engine.get_registry()
         self.registry.add_callback(
             EventType.GameObjectCreation,
             self.on_game_object_creation,
         )
         self.registry.add_callback(EventType.GameObjectDeath, self.on_game_object_death)
         self.registry.add_callback(EventType.SpriteRemoval, self.on_sprite_removal)
-        self.game_engine.create_game_objects()
-        self.player: int = self.game_engine.player_id
-
-        # Create the required views for the game
-        inventory_view = PlayerView(self.game_engine.get_registry(), self.player)
         self.registry.add_callback(
             EventType.InventoryUpdate,
-            inventory_view.on_update_inventory,
+            self.window.views["InventoryView"].on_update_inventory,
         )
-        self.window.views["InventoryView"] = inventory_view
+
+        # Set up the UI then finish setting up the rest of the game
+        self.game_ui.setup()
+        self.game_engine.create_game_objects()
+        self.player = self.game_engine.player_id
+        self.window.views["InventoryView"].setup(self.registry, self.player)
+        schedule(self.game_engine.generate_enemy, ENEMY_GENERATE_INTERVAL)
 
     def on_draw_before_ui(self: Game) -> None:
         """Render the screen before the UI elements are drawn."""
@@ -98,17 +111,10 @@ class Game(UIView):
         with self.window.ctx.enabled(self.window.ctx.DEPTH_TEST):
             self.sprites.draw(pixelated=True)
 
-    def on_update(self: Game, delta_time: float) -> None:
-        """Process movement and game logic.
-
-        Args:
-            delta_time: Time interval since the last time the function was called.
-        """
-        # Update the systems and entities
-        self.registry.update(delta_time)
+    def on_update(self: Game, _: float) -> None:
+        """Process movement and game logic."""
+        # Update the entities and the game UI elements
         self.sprites.update()
-
-        # Update the game UI elements
         self.nearest_item = self.registry.get_system(PhysicsSystem).get_nearest_item(
             self.player,
         )
@@ -135,6 +141,14 @@ class Game(UIView):
             self.player,
             KinematicComponent,
         ).get_position()
+
+    def on_fixed_update(self: Game, delta_time: float) -> None:
+        """Process fixed update functionality.
+
+        Args:
+            delta_time: Time interval since the last time the function was called.
+        """
+        self.registry.update(delta_time)
 
     def on_key_press(self: Game, symbol: int, modifiers: int) -> None:
         """Process key press functionality.
@@ -206,7 +220,13 @@ class Game(UIView):
             case key.I:
                 self.window.show_view(self.window.views["InventoryView"])
 
-    def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
+    def on_mouse_press(
+        self: Game,
+        x: int,
+        y: int,
+        button: int,
+        modifiers: int,
+    ) -> bool:
         """Process mouse button functionality.
 
         Args:
@@ -215,6 +235,9 @@ class Game(UIView):
             button: Which button was hit.
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
             during this event.
+
+        Returns:
+            Whether the event was handled or not.
         """
         logger.debug(
             "%r mouse button was pressed at position (%f, %f) with modifiers %r",
@@ -224,7 +247,7 @@ class Game(UIView):
             modifiers,
         )
         if button is MOUSE_BUTTON_LEFT:
-            self.registry.get_system(AttackSystem).do_attack(
+            return self.registry.get_system(AttackSystem).do_attack(
                 self.player,
                 [
                     game_object.game_object_id
@@ -232,6 +255,7 @@ class Game(UIView):
                     if game_object.game_object_type == GameObjectType.Enemy
                 ],
             )
+        return False
 
     def on_mouse_motion(self: Game, x: int, y: int, _: int, __: int) -> None:
         """Process mouse motion functionality.

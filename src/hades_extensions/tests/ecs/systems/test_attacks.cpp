@@ -147,7 +147,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
   create_attack_component({AttackAlgorithm::AreaOfEffect});
   get_attack_system()->update(5);
-  get_attack_system()->do_attack(8, targets);
+  ASSERT_TRUE(get_attack_system()->do_attack(8, targets));
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 60);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
@@ -162,7 +162,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
   create_attack_component({AttackAlgorithm::Melee});
   get_attack_system()->update(5);
-  get_attack_system()->do_attack(8, targets);
+  ASSERT_TRUE(get_attack_system()->do_attack(8, targets));
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
@@ -190,7 +190,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
   create_attack_component({AttackAlgorithm::Ranged});
   registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
-  get_attack_system()->do_attack(8, targets);
+  ASSERT_TRUE(get_attack_system()->do_attack(8, targets));
   ASSERT_EQ(game_object_created, 9);
 }
 
@@ -198,7 +198,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRanged) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackEmptyAttacks) {
   create_attack_component({});
   get_attack_system()->update(5);
-  get_attack_system()->do_attack(8, targets);
+  ASSERT_FALSE(get_attack_system()->do_attack(8, targets));
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 80);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
@@ -212,7 +212,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackEmptyAttacks) {
 /// Test that performing an attack before the cooldown is up doesn't work.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackCooldown) {
   create_attack_component({AttackAlgorithm::Ranged});
-  get_attack_system()->do_attack(8, targets);
+  ASSERT_FALSE(get_attack_system()->do_attack(8, targets));
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.

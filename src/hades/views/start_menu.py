@@ -43,7 +43,7 @@ class StartButton(UIFlatButton):
 
         # Set up the new game
         new_game = Game(0)
-        window.views["Game"] = new_game
+        new_game.setup()
         logger.info("Initialised game view at level %d", 0)
 
         # Show the new game
