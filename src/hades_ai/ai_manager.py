@@ -56,6 +56,8 @@ AGENT: Final[DQNAgent] = DQNAgent(ENV.observation_space, ENV.action_space)
 class BuildNamespace(Namespace):
     """Allows typing of an argparse namespace for the CLI."""
 
+    level: int | None
+    seed: int | None
     check: bool
     run: bool
     train: bool
@@ -247,6 +249,18 @@ if __name__ == "__main__":
         description="Manages the reinforcement learning training for the Hades AI"
         " agent",
     )
+    parser.add_argument(
+        "-l",
+        "--level",
+        type=int,
+        help="The level to play in the game environment",
+    )
+    parser.add_argument(
+        "-s",
+        "--seed",
+        type=int,
+        help="The seed for the game environment",
+    )
     build_group = parser.add_mutually_exclusive_group()
     build_group.add_argument(
         "-c",
@@ -267,6 +281,12 @@ if __name__ == "__main__":
         help="Trains the Hades AI agent using the DQN algorithm",
     )
     args = parser.parse_args(namespace=BuildNamespace())
+
+    # Set the environment's attributes
+    if args.level:
+        ENV.level = args.level
+    if args.seed:
+        ENV.seed = args.seed
 
     # Determine which argument was selected
     if args.check:
