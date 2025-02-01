@@ -55,6 +55,8 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         previous_action: The previous action taken.
         position_history: The history of the player's positions.
         enemy_ids: The IDs of the enemies in the game.
+        level: The level to play in the game environment.
+        seed: The seed for the game engine.
 
     Action Space:
         The action space is a discrete space with the following actions:
@@ -105,9 +107,11 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         "action_space",
         "enemy_ids",
         "game",
+        "level",
         "observation_space",
         "position_history",
         "previous_action",
+        "seed",
         "window",
     )
 
@@ -184,6 +188,8 @@ class HadesEnvironment(Env):  # type:ignore[misc]
             dtype=np.float32,
         )
         self.enemy_ids: set[int] = set()
+        self.level: int = 0
+        self.seed: int | None = None
 
     def _get_enemy_positions(self: HadesEnvironment) -> NDArray[NDArray[float]]:
         """Returns the positions of the enemies.
@@ -303,7 +309,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
         # Reset the window and store the required variables
         self.previous_action = 0
-        self.game.setup(0)
+        self.game.setup(self.level, self.seed)
         self.game.registry.add_callback(
             EventType.GameObjectCreation,
             self.on_game_object_creation,
