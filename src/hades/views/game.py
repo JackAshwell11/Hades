@@ -8,7 +8,7 @@ import math
 from typing import Final
 
 # Pip
-from arcade import MOUSE_BUTTON_LEFT, SpriteList, color, key, schedule
+from arcade import SpriteList, color, key, schedule
 from arcade.camera.camera_2d import Camera2D
 from arcade.gui import UIView
 from pyglet import app
@@ -23,7 +23,6 @@ from hades_extensions import GameEngine
 from hades_extensions.ecs import EventType, GameObjectType, Registry
 from hades_extensions.ecs.components import (
     Attack,
-    KeyboardMovement,
     KinematicComponent,
     Money,
     PythonSprite,
@@ -91,6 +90,11 @@ class Game(UIView):
         )
         self.window.views["InventoryView"] = inventory_view
 
+        # Add the game engine's handlers to the window
+        self.window.push_handlers(self.game_engine.on_key_press)
+        self.window.push_handlers(self.game_engine.on_key_release)
+        self.window.push_handlers(self.game_engine.on_mouse_press)
+
     def on_draw_before_ui(self: Game) -> None:
         """Render the screen before the UI elements are drawn."""
         self.window.background_color = color.BLACK
@@ -136,30 +140,6 @@ class Game(UIView):
             KinematicComponent,
         ).get_position()
 
-    def on_key_press(self: Game, symbol: int, modifiers: int) -> None:
-        """Process key press functionality.
-
-        Args:
-            symbol: The key that was hit.
-            modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
-                during this event.
-        """
-        player_movement = self.registry.get_component(self.player, KeyboardMovement)
-        logger.debug(
-            "Received key press with key %r and modifiers %r",
-            symbol,
-            modifiers,
-        )
-        match symbol:
-            case key.W:
-                player_movement.moving_north = True
-            case key.S:
-                player_movement.moving_south = True
-            case key.A:
-                player_movement.moving_west = True
-            case key.D:
-                player_movement.moving_east = True
-
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.
 
@@ -168,21 +148,12 @@ class Game(UIView):
             modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
                 during this event.
         """
-        player_movement = self.registry.get_component(self.player, KeyboardMovement)
         logger.debug(
             "Received key release with key %r and modifiers %r",
             symbol,
             modifiers,
         )
         match symbol:
-            case key.W:
-                player_movement.moving_north = False
-            case key.S:
-                player_movement.moving_south = False
-            case key.A:
-                player_movement.moving_west = False
-            case key.D:
-                player_movement.moving_east = False
             case key.C:
                 self.registry.get_system(InventorySystem).add_item_to_inventory(
                     self.player,
@@ -205,33 +176,6 @@ class Game(UIView):
                 )
             case key.I:
                 self.window.show_view(self.window.views["InventoryView"])
-
-    def on_mouse_press(self: Game, x: int, y: int, button: int, modifiers: int) -> None:
-        """Process mouse button functionality.
-
-        Args:
-            x: The x position of the mouse.
-            y: The y position of the mouse.
-            button: Which button was hit.
-            modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed
-            during this event.
-        """
-        logger.debug(
-            "%r mouse button was pressed at position (%f, %f) with modifiers %r",
-            button,
-            x,
-            y,
-            modifiers,
-        )
-        if button is MOUSE_BUTTON_LEFT:
-            self.registry.get_system(AttackSystem).do_attack(
-                self.player,
-                [
-                    game_object.game_object_id
-                    for game_object in self.sprites
-                    if game_object.game_object_type == GameObjectType.Enemy
-                ],
-            )
 
     def on_mouse_motion(self: Game, x: int, y: int, _: int, __: int) -> None:
         """Process mouse motion functionality.

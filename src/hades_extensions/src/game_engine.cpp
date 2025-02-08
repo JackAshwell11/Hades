@@ -128,6 +128,53 @@ void GameEngine::generate_enemy(const double /*delta_time*/) {
   }
 }
 
+void GameEngine::on_key_press(const int symbol, const int /*modifiers*/) const {
+  const auto player_movement{registry_->get_component<KeyboardMovement>(player_id_)};
+  switch (symbol) {
+    case KEY_W:
+      player_movement->moving_north = true;
+      break;
+    case KEY_A:
+      player_movement->moving_west = true;
+      break;
+    case KEY_S:
+      player_movement->moving_south = true;
+      break;
+    case KEY_D:
+      player_movement->moving_east = true;
+      break;
+    default:
+      break;
+  }
+}
+
+void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) const {
+  const auto player_movement{registry_->get_component<KeyboardMovement>(player_id_)};
+  switch (symbol) {
+    case KEY_W:
+      player_movement->moving_north = false;
+      break;
+    case KEY_A:
+      player_movement->moving_west = false;
+      break;
+    case KEY_S:
+      player_movement->moving_south = false;
+      break;
+    case KEY_D:
+      player_movement->moving_east = false;
+      break;
+    default:
+      break;
+  }
+}
+
+void GameEngine::on_mouse_press(const double /*x*/, const double /*y*/, const int button,
+                                const int /*modifiers*/) const {
+  if (button == MOUSE_BUTTON_LEFT) {
+    registry_->get_system<AttackSystem>()->do_attack(player_id_, registry_->get_game_object_ids(GameObjectType::Enemy));
+  }
+}
+
 auto GameEngine::get_game_object_components(const GameObjectType game_object_type)
     -> std::vector<std::shared_ptr<ComponentBase>> {
   const auto &factories{get_factories()};

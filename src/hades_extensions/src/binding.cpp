@@ -147,7 +147,25 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def("generate_enemy", &GameEngine::generate_enemy, pybind11::arg("delta_time"),
            "Generate an enemy.\n\n"
            "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.");
+           "    delta_time: The time interval since the last time the function was called.")
+      .def("on_key_press", &GameEngine::on_key_press, pybind11::arg("symbol"), pybind11::arg("modifiers"),
+           "Process key press functionality.\n\n"
+           "Args:\n"
+           "    symbol: The key that was hit.\n"
+           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.")
+      .def("on_key_release", &GameEngine::on_key_release, pybind11::arg("symbol"), pybind11::arg("modifiers"),
+           "Process key release functionality.\n\n"
+           "Args:\n"
+           "    symbol: The key that was released.\n"
+           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.")
+      .def("on_mouse_press", &GameEngine::on_mouse_press, pybind11::arg("x"), pybind11::arg("y"),
+           pybind11::arg("button"), pybind11::arg("modifiers"),
+           "Process mouse press functionality.\n\n"
+           "Args:\n"
+           "    x: The x position of the mouse.\n"
+           "    y: The y position of the mouse.\n"
+           "    button: The button that was pressed.\n"
+           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.");
 
   // Create the generation module
   const pybind11::module generation{
