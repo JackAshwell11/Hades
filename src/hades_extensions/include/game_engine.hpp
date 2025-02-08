@@ -8,6 +8,13 @@
 #include "ecs/registry.hpp"
 #include "generation/map.hpp"
 
+// The keys for interacting with the game engine.
+constexpr int KEY_W{119};
+constexpr int KEY_A{97};
+constexpr int KEY_S{115};
+constexpr int KEY_D{100};
+constexpr int MOUSE_BUTTON_LEFT{1};
+
 /// Manages the interaction between Python and C++.
 class GameEngine {
  public:
@@ -34,6 +41,26 @@ class GameEngine {
   /// @param delta_time - The time interval since the last time the function was called.
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   void generate_enemy(double delta_time = 1.0 / 60.0);
+
+  /// Process key press functionality.
+  ///
+  /// @param symbol - The key that was hit.
+  /// @param modifiers - Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.
+  void on_key_press(int symbol, int modifiers) const;
+
+  /// Process key release functionality.
+  ///
+  /// @param symbol - The key that was released.
+  /// @param modifiers - Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.
+  void on_key_release(int symbol, int modifiers) const;
+
+  /// Process mouse press functionality.
+  ///
+  /// @param x - The x position of the mouse.
+  /// @param y - The y position of the mouse.
+  /// @param button - The button that was pressed.
+  /// @param modifiers - Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.
+  void on_mouse_press(double x, double y, int button, int modifiers) const;
 
  private:
   /// Get the components for a game object type.
