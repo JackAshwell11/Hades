@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Any, Final
+import time
+from typing import TYPE_CHECKING, Any, Final, cast
 
 # Pip
 import numpy as np
@@ -15,10 +16,12 @@ from pyglet import clock
 # Custom
 from hades.views.game import Game
 from hades_ai.capture_window import CaptureWindow
+from hades_extensions import GameEngine
 from hades_extensions.ecs import (
     SPRITE_SIZE,
     EventType,
     GameObjectType,
+    Registry,
     RegistryError,
     Vec2d,
 )
@@ -43,6 +46,9 @@ ENEMY_SAFE_DISTANCE: Final[float] = SPRITE_SIZE * 3
 # The size of the position history
 POSITION_HISTORY_SIZE: Final[int] = 25
 
+# The update rate of the game
+UPDATE_RATE: Final[float] = 1 / 60
+
 
 class HadesEnvironment(Env):  # type:ignore[misc]
     """Represents the reinforcement learning environment for Hades.
@@ -52,9 +58,12 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         observation_space: The observation space of the environment.
         window: The window to capture the game view.
         game: The game view.
+        game_engine: The game engine.
+        registry: The registry for the game engine.
         previous_action: The previous action taken.
         position_history: The history of the player's positions.
         enemy_ids: The IDs of the enemies in the game.
+        last_update_time: The time of the last headless game update.
         level: The level to play in the game environment.
         seed: The seed for the game engine.
 
@@ -107,10 +116,13 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         "action_space",
         "enemy_ids",
         "game",
+        "game_engine",
+        "last_update_time",
         "level",
         "observation_space",
         "position_history",
         "previous_action",
+        "registry",
         "seed",
         "window",
     )
@@ -180,16 +192,42 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         )
 
         # Store some variables for the environment
-        self.window: CaptureWindow = CaptureWindow()
-        self.game: Game = Game()
+        self.window: CaptureWindow | None = None
+        self.game: Game | None = None
+        self.game_engine: GameEngine = cast("GameEngine", None)
+        self.registry: Registry = cast("Registry", None)
         self.previous_action: int = 0
         self.position_history: NDArray[NDArray[float]] = np.zeros(
             (0, 2),
             dtype=np.float32,
         )
         self.enemy_ids: set[int] = set()
+        self.last_update_time: float = time.time()
         self.level: int = 0
         self.seed: int | None = None
+
+    @property
+    def show_window(self: HadesEnvironment) -> bool:
+        """Whether to show the Pyglet window or not.
+
+        Returns:
+            Whether to show the Pyglet window or not.
+        """
+        return self.window is not None
+
+    @show_window.setter
+    def show_window(self: HadesEnvironment, value: bool) -> None:
+        """Set whether to show the Pyglet window or not.
+
+        Args:
+            value: Whether to show the Pyglet window or not.
+        """
+        if value and not self.window:
+            self.window = CaptureWindow()
+            self.game = Game()
+            self.window.show_view(self.game)
+        elif not value:
+            self.window = self.game = None
 
     def _get_enemy_positions(self: HadesEnvironment) -> NDArray[NDArray[float]]:
         """Returns the positions of the enemies.
@@ -199,7 +237,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         """
         return np.array(
             [
-                self.game.registry.get_component(
+                self.registry.get_component(
                     enemy_id,
                     KinematicComponent,
                 ).get_position()
@@ -215,8 +253,8 @@ class HadesEnvironment(Env):  # type:ignore[misc]
             The current observation.
         """
         # Calculate the distances to the walls
-        kinematic_component = self.game.registry.get_component(
-            self.game.player,
+        kinematic_component = self.registry.get_component(
+            self.game_engine.player_id,
             KinematicComponent,
         )
         current_position = np.array(
@@ -227,7 +265,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
             np.array(
                 [
                     wall.pos
-                    for wall in self.game.registry.get_system(
+                    for wall in self.registry.get_system(
                         PhysicsSystem,
                     ).get_wall_distances(Vec2d(*current_position))
                 ],
@@ -261,12 +299,12 @@ class HadesEnvironment(Env):  # type:ignore[misc]
             "time_until_attack": np.array(
                 np.maximum(
                     0.0,
-                    self.game.registry.get_component(
-                        self.game.player,
+                    self.registry.get_component(
+                        self.game_engine.player_id,
                         AttackCooldown,
                     ).get_value()
-                    - self.game.registry.get_component(
-                        self.game.player,
+                    - self.registry.get_component(
+                        self.game_engine.player_id,
                         Attack,
                     ).time_since_last_attack,
                 ),
@@ -282,7 +320,10 @@ class HadesEnvironment(Env):  # type:ignore[misc]
     def _update_player_rotation(self: HadesEnvironment) -> None:
         """Updates the player's rotation to face the nearest enemy."""
         # Create a vector towards the nearest enemy and set the player's rotation to it
-        player = self.game.registry.get_component(self.game.player, KinematicComponent)
+        player = self.registry.get_component(
+            self.game_engine.player_id,
+            KinematicComponent,
+        )
         player_position = player.get_position()
         enemy_positions = self._get_enemy_positions()
         distances = np.linalg.norm(enemy_positions - player_position, axis=1)
@@ -307,14 +348,20 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         # Make sure the seeding is correctly set up
         super().reset(seed=seed, options=options)
 
-        # Reset the window and store the required variables
+        # Reset the environment and store the required variables
         self.previous_action = 0
-        self.game.setup(self.level, self.seed)
-        self.game.registry.add_callback(
+        if self.game:
+            self.game.setup(self.level, self.seed)
+            self.game_engine = self.game.game_engine
+        else:
+            self.game_engine = GameEngine(self.level, self.seed)
+            self.game_engine.create_game_objects()
+        self.registry = self.game_engine.get_registry()
+        self.registry.add_callback(
             EventType.GameObjectCreation,
             self.on_game_object_creation,
         )
-        self.game.registry.add_callback(
+        self.registry.add_callback(
             EventType.GameObjectDeath,
             self.on_game_object_death,
         )
@@ -322,10 +369,9 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         self.enemy_ids.clear()
 
         # Generate the maximum number of enemies and show the new game view
-        _, _, enemy_limit = self.game.game_engine.level_constants
+        _, _, enemy_limit = self.game_engine.level_constants
         for _ in range(enemy_limit):
-            self.game.game_engine.generate_enemy(0)
-        self.window.show_view(self.game)
+            self.game_engine.generate_enemy(0)
 
         # Reset the environment if anything has gone wrong
         if len(self.enemy_ids) < enemy_limit:
@@ -348,21 +394,21 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         """
         # For all directions, send a key_release event to stop previous movement
         for direction in (key.W, key.A, key.S, key.D):
-            self.game.game_engine.on_key_release(direction, 0)
+            self.game_engine.on_key_release(direction, 0)
 
         # Face the nearest enemy and send the current action's press event
         self._update_player_rotation()
         attack_successful = False
         for action_key in self._action_to_key[action]:
             if action_key == MOUSE_BUTTON_LEFT:
-                attack_successful = self.game.game_engine.on_mouse_press(
+                attack_successful = self.game_engine.on_mouse_press(
                     0,
                     0,
                     action_key,
                     0,
                 )
             else:
-                self.game.game_engine.on_key_press(action_key, 0)
+                self.game_engine.on_key_press(action_key, 0)
 
         # Update and render the game to reflect the new action
         try:
@@ -420,18 +466,28 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
     def render(self: HadesEnvironment) -> None:
         """Renders the environment."""
-        # Update the pyglet clock
-        clock.tick()
+        if self.window:
+            # Update the pyglet clock
+            clock.tick()
 
-        # Call the events for the window and render it
-        self.window.switch_to()
-        self.window.dispatch_events()
-        self.window.dispatch_event("on_draw")
-        self.window.flip()
+            # Call the events for the window and render it
+            self.window.switch_to()
+            self.window.dispatch_events()
+            self.window.dispatch_event("on_draw")
+            self.window.flip()
+        else:
+            # Use the elapsed time to update the game to prevent it from
+            # running too fast
+            self.game_engine.generate_enemy(0)
+            current_time = time.time()
+            if (current_time - self.last_update_time) >= UPDATE_RATE:
+                self.registry.update(UPDATE_RATE)
+                self.last_update_time = current_time
 
     def close(self: HadesEnvironment) -> None:
         """Closes the environment."""
-        self.window.close()
+        if self.window:
+            self.window = self.game = None
 
     def on_game_object_creation(self: HadesEnvironment, game_object_id: int) -> None:
         """Add a game object to the game.
@@ -439,10 +495,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         Args:
             game_object_id: The ID of the game object to add.
         """
-        if (
-            self.game.registry.get_game_object_type(game_object_id)
-            == GameObjectType.Enemy
-        ):
+        if self.registry.get_game_object_type(game_object_id) == GameObjectType.Enemy:
             self.enemy_ids.add(game_object_id)
 
     def on_game_object_death(self: HadesEnvironment, game_object_id: int) -> None:
@@ -450,9 +503,12 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
         Args:
             game_object_id: The ID of the game object to remove.
+
+        Raises:
+            RegistryError: If the player has died.
         """
-        if (
-            self.game.registry.get_game_object_type(game_object_id)
-            == GameObjectType.Enemy
-        ):
+        if self.registry.get_game_object_type(game_object_id) == GameObjectType.Enemy:
             self.enemy_ids.remove(game_object_id)
+        elif game_object_id == self.game_engine.player_id:
+            error = "Player has died."
+            raise RegistryError(error)

@@ -56,6 +56,7 @@ AGENT: Final[DQNAgent] = DQNAgent(ENV.observation_space, ENV.action_space)
 class BuildNamespace(Namespace):
     """Allows typing of an argparse namespace for the CLI."""
 
+    window: bool
     level: int | None
     seed: int | None
     check: bool
@@ -102,8 +103,9 @@ def plot_graphs(save_dir: Path | None, *results: tuple[str, list[float]]) -> Non
     for i, result in enumerate(results):
         plot_metric(i, result[1], result[0])
 
-    # Pause a bit so that plots are updated
-    plt.pause(0.01)
+    # Pause a bit if needed so that plots are updated
+    if ENV.show_window:
+        plt.pause(0.01)
 
 
 def concat_observation(obs: ObsType) -> torch.Tensor:
@@ -189,18 +191,19 @@ def train_dqn() -> None:
     for episode in range(EPISODE_COUNT):
         # Enable saving if possible
         episode_dir = OUTPUT_DIR / f"{episode + 1}"
-        if episode % SAVE_INTERVAL == 0 or episode == EPISODE_COUNT - 1:
+        if do_save := episode % SAVE_INTERVAL == 0 or episode == EPISODE_COUNT - 1:
             episode_dir.mkdir(exist_ok=True)
-            ENV.window.make_writer(episode_dir / f"episode_{episode + 1}.mp4")
+            if ENV.window:
+                ENV.window.make_writer(episode_dir / f"episode_{episode + 1}.mp4")
 
         # Loop over the steps
         total_reward, total_loss, total_step = process_episode()
 
         # Print the episode results
         print(  # noqa: T201
-            f"Finished episode {episode + 1} (saving: {ENV.window.writer is not None})"
-            f" after {total_step} steps. Average reward: {total_reward / total_step},"
-            f" average loss: {total_loss / total_step}",
+            f"Finished episode {episode + 1} (saving: {do_save}), after {total_step}"
+            f" steps. Average reward: {total_reward / total_step}, average loss:"
+            f" {total_loss / total_step}",
         )
 
         # Log the rewards and losses for this episode
@@ -209,11 +212,12 @@ def train_dqn() -> None:
 
         # Plot the graphs for the episode and save them, the model, and the video if
         # possible
-        save_dir = episode_dir if ENV.window.writer else None
+        save_dir = episode_dir if do_save else None
         plot_graphs(save_dir, ("Reward", episode_rewards), ("Loss", episode_losses))
         if save_dir:
             torch.save(AGENT.policy_net.state_dict(), episode_dir / MODEL_NAME)
-            ENV.window.save_video()
+            if ENV.window:
+                ENV.window.save_video()
 
         # Update the target network after the episode
         AGENT.update_target_network()
@@ -250,6 +254,12 @@ if __name__ == "__main__":
         " agent",
     )
     parser.add_argument(
+        "-w",
+        "--window",
+        action="store_true",
+        help="Whether to show the window for the game environment or not",
+    )
+    parser.add_argument(
         "-l",
         "--level",
         type=int,
@@ -283,6 +293,9 @@ if __name__ == "__main__":
     args = parser.parse_args(namespace=BuildNamespace())
 
     # Set the environment's attributes
+    ENV.show_window = args.window
+    if not ENV.show_window:
+        plt.switch_backend("Agg")
     if args.level:
         ENV.level = args.level
     if args.seed:
