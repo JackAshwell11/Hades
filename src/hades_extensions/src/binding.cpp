@@ -272,7 +272,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
 
   // Add the registry class
   register_exception<RegistryError>(ecs, "RegistryError");
-  pybind11::class_<Registry>(ecs, "Registry", "Manages game objects, components, and systems that are registered.")
+  pybind11::class_<Registry, std::shared_ptr<Registry>>(
+      ecs, "Registry", "Manages game objects, components, and systems that are registered.")
       .def("create_game_object", &Registry::create_game_object, pybind11::arg("game_object_type"),
            pybind11::arg("position"), pybind11::arg("components"),
            "Create a new game object.\n\n"
