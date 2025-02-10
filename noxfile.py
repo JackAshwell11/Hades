@@ -16,7 +16,7 @@ options.sessions = ["tests"]
 
 
 @session()  # type: ignore[misc]
-def executable(executable_session: Session) -> None:
+def executable(executable_session: Session) -> None:  # type: ignore[misc]
     """Compiles the game into an executable format for portable use.
 
     Args:
@@ -60,7 +60,7 @@ def executable(executable_session: Session) -> None:
 
 
 @session(python=["3.11", "3.12"])  # type: ignore[misc]
-def tests(test_session: Session) -> None:
+def tests(test_session: Session) -> None:  # type: ignore[misc]
     """Run the tests with coverage.
 
     Args:
