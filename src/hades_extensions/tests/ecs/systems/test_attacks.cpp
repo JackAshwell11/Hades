@@ -11,8 +11,11 @@
 /// Implements the fixture for the AttackSystem tests.
 class AttackSystemFixture : public testing::Test {
  protected:
+  /// A random generator for use in testing.
+  std::mt19937 random_generator;
+
   /// The registry that manages the game objects, components, and systems.
-  Registry registry;
+  Registry registry{random_generator};
 
   /// A list of targets for use in testing.
   std::vector<int> targets;
@@ -70,8 +73,11 @@ class AttackSystemFixture : public testing::Test {
 /// Implements the fixture for the DamageSystem tests.
 class DamageSystemFixture : public testing::Test {
  protected:
+  /// A random generator for use in testing.
+  std::mt19937 random_generator;
+
   /// The registry that manages the game objects, components, and systems.
-  Registry registry;
+  Registry registry{random_generator};
 
   /// Set up the fixture for the tests.
   void SetUp() override { registry.add_system<DamageSystem>(); }

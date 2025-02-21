@@ -3,10 +3,8 @@
 
 // Std headers
 #include <numbers>
-#include <random>
 
 // Local headers
-#include "ecs/registry.hpp"
 #include "ecs/systems/physics.hpp"
 
 namespace {
@@ -16,12 +14,9 @@ namespace {
 /// @param steering_movement - The steering movement component of the game object.
 /// @param kinematic_owner - The kinematic component of the game object.
 /// @param kinematic_target - The kinematic component of the target game object.
-auto calculate_steering_force(const Registry *registry, const std::shared_ptr<SteeringMovement> &steering_movement,
+auto calculate_steering_force(Registry *registry, const std::shared_ptr<SteeringMovement> &steering_movement,
                               const cpBody *kinematic_owner, const cpBody *kinematic_target) -> cpVect {
   cpVect steering_force{cpvzero};
-  std::random_device random_device;
-  std::mt19937_64 number_generator{random_device()};
-
   const auto kinematic_owner_position{cpBodyGetPosition(kinematic_owner)};
   const auto kinematic_owner_velocity{cpBodyGetVelocity(kinematic_owner)};
   const auto kinematic_target_position{cpBodyGetPosition(kinematic_target)};
@@ -50,8 +45,9 @@ auto calculate_steering_force(const Registry *registry, const std::shared_ptr<St
         steering_force += seek(kinematic_owner_position, kinematic_target_position);
         break;
       case SteeringBehaviours::Wander:
-        steering_force += wander(kinematic_owner_velocity,
-                                 std::uniform_real_distribution{0.0, std::numbers::pi * 2}(number_generator));
+        steering_force +=
+            wander(kinematic_owner_velocity,
+                   std::uniform_real_distribution{0.0, std::numbers::pi * 2}(registry->get_random_generator()));
         break;
     }
   }

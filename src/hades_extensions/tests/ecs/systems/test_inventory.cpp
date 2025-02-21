@@ -9,8 +9,11 @@
 /// Implements the fixture for the InventorySystem fixture.
 class InventorySystemFixture : public testing::Test {
  protected:
+  /// A random generator for use in testing.
+  std::mt19937 random_generator;
+
   /// The registry that manages the game objects, components, and systems.
-  Registry registry;
+  Registry registry{random_generator};
 
   /// Set up the fixture for the tests.
   void SetUp() override {

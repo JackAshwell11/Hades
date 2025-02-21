@@ -32,7 +32,7 @@ GameEngine::GameEngine(const int level, const std::optional<unsigned int> seed)
     : level_(level),
       random_generator_(seed.has_value() ? seed.value() : std::random_device{}()),
       level_distribution_(level, LEVEL_DISTRIBUTION_DEVIATION),
-      registry_(std::make_shared<Registry>()),
+      registry_(std::make_shared<Registry>(random_generator_)),
       player_id_(-1) {
   if (level < 0) {
     throw std::length_error("Level must be bigger than or equal to 0.");

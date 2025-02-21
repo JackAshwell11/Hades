@@ -19,7 +19,7 @@ auto cpDataPointerToGameObjectID(void *data) -> GameObjectID {
 }
 }  // namespace
 
-Registry::Registry() {
+Registry::Registry(const std::mt19937 &random_generator) : random_generator_{random_generator} {
   // Set the damping to ensure the game objects don't drift
   cpSpaceSetDamping(*space_, DAMPING);
 

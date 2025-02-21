@@ -25,8 +25,11 @@ struct TestStat2 final : Stat {
 /// Implements the fixture for the EffectSystem tests.
 class EffectSystemFixture : public testing::Test {
  protected:
+  /// A random generator for use in testing.
+  std::mt19937 random_generator;
+
   /// The registry that manages the game objects, components, and systems.
-  Registry registry;
+  Registry registry{random_generator};
 
   /// The increase function for an effect.
   const ActionFunction increase_function{[](const int level) { return 5 + std::pow(level, 2); }};

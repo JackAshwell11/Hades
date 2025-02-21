@@ -16,8 +16,11 @@ struct TestStat final : Stat {
 /// Implements the fixture for the UpgradeSystem tests.
 class UpgradeSystemFixture : public testing::Test {
  protected:
+  /// A random generator for use in testing.
+  std::mt19937 random_generator;
+
   /// The registry that manages the game objects, components, and systems.
-  Registry registry;
+  Registry registry{random_generator};
 
   /// Set up the fixture for the tests.
   void SetUp() override { registry.add_system<UpgradeSystem>(); }

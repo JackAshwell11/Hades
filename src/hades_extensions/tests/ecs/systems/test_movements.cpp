@@ -23,8 +23,11 @@ void test_force_double(const cpVect &actual, const double expected_x, const doub
 /// Implements the fixture for the FootprintSystem tests.
 class FootprintSystemFixture : public testing::Test {
  protected:
+  /// A random generator for use in testing.
+  std::mt19937 random_generator;
+
   /// The registry that manages the game objects, components, and systems.
-  Registry registry;
+  Registry registry{random_generator};
 
   /// Set up the fixture for the tests.
   void SetUp() override {
@@ -50,8 +53,11 @@ class FootprintSystemFixture : public testing::Test {
 /// Implements the fixture for the KeyboardMovementSystem tests.
 class KeyboardMovementSystemFixture : public testing::Test {
  protected:
+  /// A random generator for use in testing.
+  std::mt19937 random_generator;
+
   /// The registry that manages the game objects, components, and systems.
-  Registry registry;
+  Registry registry{random_generator};
 
   /// Set up the fixture for the tests.
   void SetUp() override {
@@ -73,8 +79,11 @@ class KeyboardMovementSystemFixture : public testing::Test {
 /// Implements the fixture for the SteeringMovementSystem tests.
 class SteeringMovementSystemFixture : public testing::Test {
  protected:
+  /// A random generator for use in testing.
+  std::mt19937 random_generator;
+
   /// The registry that manages the game objects, components, and systems.
-  Registry registry;
+  Registry registry{random_generator};
 
   /// Set up the fixture for the tests.
   void SetUp() override {
