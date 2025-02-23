@@ -11,6 +11,10 @@ class GameEngineFixture : public testing::Test {  // NOLINT
   /// The game engine object.
   GameEngine game_engine{0, 10};
 
+  /// The level constants.
+  std::tuple<int, int, int> level_constants{30, 20, 5};
+
+  /// Set up the fixture for the tests.
   void SetUp() override {
     load_hitbox(GameObjectType::Player, {{0, 0}});
     load_hitbox(GameObjectType::Enemy, {{0, 0}});
@@ -21,6 +25,7 @@ class GameEngineFixture : public testing::Test {  // NOLINT
 TEST_F(GameEngineFixture, TestGameEngineZeroLevel) {
   ASSERT_NE(game_engine.get_registry(), nullptr);
   ASSERT_EQ(game_engine.get_player_id(), -1);
+  ASSERT_EQ(game_engine.get_level_constants(), level_constants);
 }
 
 /// Test that the game engine throws an exception when given a negative level.
@@ -32,6 +37,7 @@ TEST_F(GameEngineFixture, TestGameEngineNegativeLevel) {
 TEST_F(GameEngineFixture, TestGameEngineCreateGameObjects) {
   game_engine.create_game_objects();
   ASSERT_NE(game_engine.get_player_id(), -1);
+  ASSERT_EQ(game_engine.get_level_constants(), level_constants);
 }
 
 /// Test that the game engine creates game objects correctly given no seed.
@@ -40,6 +46,7 @@ TEST_F(GameEngineFixture, TestGameEngineCreateGameObjectsNoSeed) {
   game_engine.create_game_objects();
   game_engine_no_seed.create_game_objects();
   ASSERT_NE(game_engine.get_player_id(), game_engine_no_seed.get_player_id());
+  ASSERT_EQ(game_engine.get_level_constants(), game_engine_no_seed.get_level_constants());
 }
 
 /// Test that the game engine generates an enemy correctly.
@@ -170,12 +177,12 @@ TEST_F(GameEngineFixture, TestGameEngineOnMousePressLeft) {
   int called{-1};
   game_engine.get_registry()->add_callback<EventType::GameObjectCreation>(
       [&called](const GameObjectID event) { called = event; });
-  game_engine.on_mouse_press(0, 0, MOUSE_BUTTON_LEFT, 0);
+  ASSERT_TRUE(game_engine.on_mouse_press(0, 0, MOUSE_BUTTON_LEFT, 0));
   ASSERT_NE(called, -1);
 }
 
 /// Test that the game engine processes a unknown mouse press correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnMousePressUnknown) {
   game_engine.create_game_objects();
-  game_engine.on_mouse_press(0, 0, -1, 0);
+  ASSERT_FALSE(game_engine.on_mouse_press(0, 0, -1, 0));
 }
