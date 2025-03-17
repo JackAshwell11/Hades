@@ -31,6 +31,11 @@ class GameEngine {
   /// @return The player's game object ID.
   [[nodiscard]] auto get_player_id() const -> GameObjectID { return player_id_; }
 
+  /// Get the level constants.
+  ///
+  /// @return The level constants.
+  [[nodiscard]] auto get_level_constants() -> std::tuple<int, int, int>;
+
   /// Create the game objects from the generator.
   ///
   /// @details If this is called twice, the game objects will be duplicated.
@@ -60,7 +65,8 @@ class GameEngine {
   /// @param y - The y position of the mouse.
   /// @param button - The button that was pressed.
   /// @param modifiers - Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.
-  void on_mouse_press(double x, double y, int button, int modifiers) const;
+  /// @return Whether the attack was successful or not.
+  [[nodiscard]] auto on_mouse_press(double x, double y, int button, int modifiers) const -> bool;
 
  private:
   /// Get the components for a game object type.

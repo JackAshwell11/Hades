@@ -61,6 +61,10 @@ GameEngine::GameEngine(const int level, const std::optional<unsigned int> seed)
   registry_->add_system<UpgradeSystem>();
 }
 
+auto GameEngine::get_level_constants() -> std::tuple<int, int, int> {
+  return {generator_.get_grid().width, generator_.get_grid().height, generator_.get_enemy_limit()};
+}
+
 void GameEngine::create_game_objects() {
   // Create the game objects ignoring empty and obstacle tiles
   const auto &grid{*generator_.get_grid().grid};
@@ -168,11 +172,13 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) const
   }
 }
 
-void GameEngine::on_mouse_press(const double /*x*/, const double /*y*/, const int button,
-                                const int /*modifiers*/) const {
+auto GameEngine::on_mouse_press(const double /*x*/, const double /*y*/, const int button, const int /*modifiers*/) const
+    -> bool {
   if (button == MOUSE_BUTTON_LEFT) {
-    registry_->get_system<AttackSystem>()->do_attack(player_id_, registry_->get_game_object_ids(GameObjectType::Enemy));
+    return registry_->get_system<AttackSystem>()->do_attack(player_id_,
+                                                            registry_->get_game_object_ids(GameObjectType::Enemy));
   }
+  return false;
 }
 
 auto GameEngine::get_game_object_components(const GameObjectType game_object_type)
