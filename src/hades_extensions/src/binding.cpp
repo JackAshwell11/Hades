@@ -135,6 +135,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    level: The level to generate the game engine for.\n"
            "    seed: The seed to use for the random number generator.")
       .def_property_readonly("player_id", &GameEngine::get_player_id)
+      .def_property_readonly("level_constants", &GameEngine::get_level_constants)
       .def("get_registry", &GameEngine::get_registry,
            "Get the registry.\n\n"
            "Returns:\n"
@@ -215,8 +216,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Args:\n"
            "    x: The x value of the vector.\n"
            "    y: The y value of the vector.")
-      .def_readonly("x", &cpVect::x)
-      .def_readonly("y", &cpVect::y)
+      .def_property_readonly("pos", [](const cpVect &vec) { return pybind11::make_tuple(vec.x, vec.y); })
       .def(
           // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           "__iter__", [](const cpVect &vec) { return pybind11::make_iterator(&vec.x, &vec.y + 1); },
@@ -272,7 +272,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
 
   // Add the registry class
   register_exception<RegistryError>(ecs, "RegistryError");
-  pybind11::class_<Registry>(ecs, "Registry", "Manages game objects, components, and systems that are registered.")
+  pybind11::class_<Registry, std::shared_ptr<Registry>>(
+      ecs, "Registry", "Manages game objects, components, and systems that are registered.")
       .def("create_game_object", &Registry::create_game_object, pybind11::arg("game_object_type"),
            pybind11::arg("position"), pybind11::arg("components"),
            "Create a new game object.\n\n"
@@ -449,7 +450,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   pybind11::class_<Attack, ComponentBase, std::shared_ptr<Attack>>(components, "Attack",
                                                                    "Allows a game object to attack other game objects.")
       .def_property_readonly("current_attack",
-                             [](const Attack &attack) { return attack.attack_algorithms[attack.attack_state]; });
+                             [](const Attack &attack) { return attack.attack_algorithms[attack.attack_state]; })
+      .def_readonly("time_since_last_attack", &Attack::time_since_last_attack);
   pybind11::class_<Effect>(components, "Effect", "Represents an effect that can be applied to a game object.")
       .def_readonly("duration", &Effect::duration)
       .def_property_readonly("target_component",
@@ -478,6 +480,15 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "Get the position of the game object.\n\n"
           "Returns:\n"
           "    The position of the game object.")
+      .def(
+          "get_velocity",
+          [](const KinematicComponent &kinematic_component) {
+            const auto [x, y]{cpBodyGetVelocity(*kinematic_component.body)};
+            return pybind11::make_tuple(x, y);
+          },
+          "Get the velocity of the game object.\n\n"
+          "Returns:\n"
+          "    The velocity of the game object.")
       .def(
           "set_rotation",
           [](KinematicComponent &kinematic_component, const double angle) { kinematic_component.rotation = angle; },
@@ -595,7 +606,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Raises:\n"
            "    RegistryError: If the game object does not exist or does not have a kinematic component.\n\n"
            "Returns:\n"
-           "    The ID of the nearest item to the game object.");
+           "    The ID of the nearest item to the game object.")
+      .def("get_wall_distances", &PhysicsSystem::get_wall_distances, pybind11::arg("current_position"),
+           "Calculate the distance to the walls around a game object.\n\n"
+           "Args:\n"
+           "    current_position: The current position of the game object.\n\n"
+           "Returns:\n"
+           "    The distances to the walls around the game object.");
   const pybind11::class_<SteeringMovementSystem, SystemBase, std::shared_ptr<SteeringMovementSystem>>
       steering_movement_system(systems, "SteeringMovementSystem",
                                "Provides facilities to manipulate steering movement components.");
