@@ -15,7 +15,7 @@ jobs:
         with:
           submodules: recursive
       - name: Set up CMake
-        uses: lukka/get-cmake@v3.31.6
+        uses: lukka/get-cmake@v4.0.0
       - name: Configure CMake
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: cmake --preset LinuxDebug
@@ -40,7 +40,7 @@ jobs:
         with:
           submodules: recursive
       - name: Run clang-format
-        uses: jidicula/clang-format-action@v4.14.0
+        uses: jidicula/clang-format-action@v4.15.0
         with:
           check-path: ${{ github.workspace }}/src/hades_extensions
           exclude-regex: build-debug|vcpkg
