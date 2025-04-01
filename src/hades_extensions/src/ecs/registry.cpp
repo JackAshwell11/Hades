@@ -17,6 +17,34 @@ auto cpDataPointerToGameObjectID(void *data) -> GameObjectID {
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   return static_cast<GameObjectID>(reinterpret_cast<uintptr_t>(data));
 }
+
+/// The collision handler for checking if the player is inside a wall.
+///
+/// @param arbiter - The arbiter for the collision.
+/// @param data - The registry.
+/// @return Always true to allow the collision to continue.
+auto player_wall_collision_handler(cpArbiter *arbiter, cpSpace * /*space*/, void *data) -> cpBool {
+  // Get the registry and the shapes that are colliding
+  auto *registry{static_cast<Registry *>(data)};
+  cpShape *shape1{nullptr};
+  cpShape *shape2{nullptr};
+  cpArbiterGetShapes(arbiter, &shape1, &shape2);
+
+  // Register the post-step callback to delete the player if it is inside the wall
+  const auto player_id{cpDataPointerToGameObjectID(cpShapeGetUserData(shape1))};
+  if (const auto wall_position{cpBodyGetPosition(
+          *registry->get_component<KinematicComponent>(cpDataPointerToGameObjectID(cpShapeGetUserData(shape2)))->body)};
+      cpvdist(cpBodyGetPosition(*registry->get_component<KinematicComponent>(player_id)->body), wall_position) <
+      (SPRITE_SIZE / 2)) {
+    cpSpaceAddPostStepCallback(
+        registry->get_space(),
+        [](cpSpace * /*space*/, void *game_object_id, void *registry_ptr) {
+          static_cast<Registry *>(registry_ptr)->delete_game_object(cpDataPointerToGameObjectID(game_object_id));
+        },
+        cpShapeGetUserData(shape1), registry);
+  }
+  return cpTrue;
+}
 }  // namespace
 
 Registry::Registry(const std::mt19937 &random_generator) : random_generator_{random_generator} {
@@ -27,6 +55,12 @@ Registry::Registry(const std::mt19937 &random_generator) : random_generator_{ran
   createCollisionHandlerFunc(GameObjectType::Player, GameObjectType::Bullet);
   createCollisionHandlerFunc(GameObjectType::Enemy, GameObjectType::Bullet);
   createCollisionHandlerFunc(GameObjectType::Wall, GameObjectType::Bullet);
+
+  // Add the collision handler for player<->wall collisions
+  auto *func{cpSpaceAddCollisionHandler(get_space(), static_cast<cpCollisionType>(GameObjectType::Player),
+                                        static_cast<cpCollisionType>(GameObjectType::Wall))};
+  func->userData = this;
+  func->preSolveFunc = player_wall_collision_handler;
 }
 
 auto Registry::create_game_object(const GameObjectType game_object_type, const cpVect &position,
@@ -113,8 +147,8 @@ auto Registry::get_game_object_ids(const GameObjectType game_object_type) -> std
 }
 
 void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameObjectType game_object_two) {
-  auto *func = cpSpaceAddCollisionHandler(get_space(), static_cast<cpCollisionType>(game_object_one),
-                                          static_cast<cpCollisionType>(game_object_two));
+  auto *func{cpSpaceAddCollisionHandler(get_space(), static_cast<cpCollisionType>(game_object_one),
+                                        static_cast<cpCollisionType>(game_object_two))};
   func->userData = this;
   func->beginFunc = [](cpArbiter *arbiter, cpSpace * /*space*/, void *data) -> cpBool {
     // Get the registry and the shapes that are colliding

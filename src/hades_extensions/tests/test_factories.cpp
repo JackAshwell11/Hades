@@ -5,6 +5,7 @@
 /// Implements the fixture for the factories.hpp tests.
 class FactoriesFixture : public testing::Test {  // NOLINT
  protected:
+  /// Tear down the fixture for the tests.
   void TearDown() override { clear_hitboxes(); }
 };
 

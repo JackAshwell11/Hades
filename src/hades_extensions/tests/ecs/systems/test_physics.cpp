@@ -20,13 +20,19 @@ class PhysicsSystemFixture : public testing::Test {
     registry.add_system<PhysicsSystem>();
   }
 
-  /// Create an item at the specified position.
+  /// Create objects at the specified positions.
   ///
-  /// @param position The position to create the item.
-  void create_item(const cpVect &position) {
-    const auto item_id{
-        registry.create_game_object(GameObjectType::HealthPotion, cpvzero, {std::make_shared<KinematicComponent>()})};
-    cpBodySetPosition(*registry.get_component<KinematicComponent>(item_id)->body, position);
+  /// @param type The type of the objects to create.
+  /// @param positions The positions to create the objects.
+  /// @param override Whether to override the game objects' positions.
+  void create_objects(const GameObjectType type, const std::vector<cpVect> &positions, const bool override = true) {
+    for (const auto &position : positions) {
+      const auto object_id{registry.create_game_object(
+          type, position, {std::make_shared<KinematicComponent>(type == GameObjectType::Wall)})};
+      if (override) {
+        cpBodySetPosition(*registry.get_component<KinematicComponent>(object_id)->body, position);
+      }
+    }
   }
 
   /// Get the physics system from the registry.
@@ -166,31 +172,79 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroVelocity) {
 
 /// Test that getting the nearest item doesn't work if the game object is far away.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemFarAway) {
-  create_item({100, 100});
+  create_objects(GameObjectType::HealthPotion, {{.x = 100, .y = 100}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), -1);
 }
 
 /// Test that getting the nearest item doesn't work if the game object is next to the item.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemNextTo) {
-  create_item({65, 32});
+  create_objects(GameObjectType::HealthPotion, {{.x = 65, .y = 32}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), -1);
 }
 
 /// Test that getting the nearest item works if the game object is touching the item.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemTouching) {
-  create_item({64, 32});
+  create_objects(GameObjectType::HealthPotion, {{.x = 64, .y = 32}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), 1);
 }
 
 /// Test that getting the nearest item works if the game object is on top of the item.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemOnTopOf) {
-  create_item({32, 32});
+  create_objects(GameObjectType::HealthPotion, {{.x = 32, .y = 32}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), 1);
 }
 
 /// Test that getting the nearest item works if the game object is touching the item and there are multiple items.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemMultipleItems) {
-  create_item({48, 32});
-  create_item({32, 32});
+  create_objects(GameObjectType::HealthPotion, {{.x = 48, .y = 32}, {.x = 32, .y = 32}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), 2);
+}
+
+/// Test that no raycasts hit when getting the distances to the walls when there are no walls.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesNoWalls) {
+  const std::vector expected_result(8, cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE));
+  ASSERT_EQ(get_physics_system()->get_wall_distances({0, 0}), expected_result);
+}
+
+/// Test that only the bottom three raycasts hit when getting the distances to the walls when there is one wall tile.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesOneWallTile) {
+  create_objects(GameObjectType::Wall, {cpv(1, 0)}, false);
+  const auto result{get_physics_system()->get_wall_distances({96, 96})};
+  const std::vector expected_result{cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE),
+                                    cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE),
+                                    cpv(96, 64),
+                                    cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE),
+                                    cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE),
+                                    cpv(112, 64),
+                                    cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE),
+                                    cpv(80, 64)};
+  for (auto i{0}; i < static_cast<int>(result.size()); i++) {
+    ASSERT_DOUBLE_EQ(result[i].x, expected_result[i].x);
+    ASSERT_DOUBLE_EQ(result[i].y, expected_result[i].y);
+  }
+}
+
+/// Test that all raycasts hit when getting the distances to the walls when there are four wall tiles.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesFourWallTiles) {
+  create_objects(GameObjectType::Wall, {cpv(1, 0), cpv(0, 1), cpv(2, 1), cpv(1, 2)}, false);
+  const auto result{get_physics_system()->get_wall_distances({96, 96})};
+  const std::vector expected_result{cpv(96, 128),  cpv(128, 96), cpv(96, 64),  cpv(64, 96),
+                                    cpv(112, 128), cpv(112, 64), cpv(80, 128), cpv(80, 64)};
+  for (auto i{0}; i < static_cast<int>(result.size()); i++) {
+    ASSERT_DOUBLE_EQ(result[i].x, expected_result[i].x);
+    ASSERT_DOUBLE_EQ(result[i].y, expected_result[i].y);
+  }
+}
+
+/// Test that all raycasts hit when getting the distances to the walls when there are eight wall tiles.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesEightWallTiles) {
+  create_objects(GameObjectType::Wall,
+                 {cpv(0, 0), cpv(1, 0), cpv(2, 0), cpv(0, 1), cpv(2, 1), cpv(0, 2), cpv(1, 2), cpv(2, 2)}, false);
+  const auto result{get_physics_system()->get_wall_distances({96, 96})};
+  const std::vector expected_result{cpv(96, 128),  cpv(128, 96), cpv(96, 64),  cpv(64, 96),
+                                    cpv(112, 128), cpv(112, 64), cpv(80, 128), cpv(80, 64)};
+  for (auto i{0}; i < static_cast<int>(result.size()); i++) {
+    ASSERT_DOUBLE_EQ(result[i].x, expected_result[i].x);
+    ASSERT_DOUBLE_EQ(result[i].y, expected_result[i].y);
+  }
 }
