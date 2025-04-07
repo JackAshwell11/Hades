@@ -22,7 +22,7 @@ jobs:
         with:
           submodules: recursive
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3.28.13
+        uses: github/codeql-action/init@v3.28.14
         with:
           languages: ${{ matrix.language }}
           setup-python-dependencies: false
@@ -34,6 +34,6 @@ jobs:
         working-directory: ${{ github.workspace }}/src/hades_extensions
         run: cmake . --preset LinuxDebug && cmake --build build-debug
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3.28.13
+        uses: github/codeql-action/analyze@v3.28.14
         with:
           category: /language:${{ matrix.language }}
