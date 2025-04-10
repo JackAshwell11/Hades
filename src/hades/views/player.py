@@ -36,7 +36,7 @@ from PIL.ImageFilter import GaussianBlur
 
 # Custom
 from hades.views import UI_BACKGROUND_COLOUR
-from hades_extensions.ecs import SPRITE_SIZE
+from hades_extensions.ecs import SPRITE_SIZE, Registry
 from hades_extensions.ecs.components import (
     Inventory,
     InventorySize,
@@ -51,7 +51,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from hades.sprite import HadesSprite
-    from hades_extensions.ecs import ActionFunction, Registry
+    from hades_extensions.ecs import ActionFunction
 
 __all__ = (
     "InventoryItemButton",
@@ -624,11 +624,14 @@ class PlayerView(View):
     """Creates a player view useful for managing the player and its attributes.
 
     Attributes:
-        background_image: The background image to display.
+        registry: The registry that manages the game objects, components, and
+            systems.
+        game_object_id: The ID of the player game object to manage.
         inventory: The player's inventory.
-        player_attributes_layout: The layout for displaying the player's attributes.
-        stats_layout: The layout for displaying the player or item's stats.
+        background_image: The background image to display.
         ui_manager: Manages all the different UI elements for this view.
+        stats_layout: The layout for displaying the player or item's stats.
+        player_attributes_layout: The layout for displaying the player's attributes.
     """
 
     __slots__ = (
@@ -641,32 +644,37 @@ class PlayerView(View):
         "ui_manager",
     )
 
-    def __init__(self: PlayerView, registry: Registry, game_object_id: int) -> None:
-        """Initialise the object.
+    def __init__(self: PlayerView) -> None:
+        """Initialise the object."""
+        super().__init__()
+        self.registry: Registry = cast("Registry", None)
+        self.game_object_id: int = -1
+        self.inventory: Inventory = cast("Inventory", None)
+        self.background_image: Texture = get_default_texture()
+        self.ui_manager: UIManager = UIManager()
+        self.stats_layout: StatsLayout = StatsLayout()
+        self.player_attributes_layout: PlayerAttributesLayout = cast(
+            "PlayerAttributesLayout",
+            None,
+        )
+
+    def setup(self: PlayerView, registry: Registry, game_object_id: int) -> None:
+        """Set up the player view.
 
         Args:
             registry: The registry that manages the game objects, components, and
                 systems.
             game_object_id: The ID of the player game object to manage.
         """
-        super().__init__()
-        self.registry: Registry = registry
-        self.game_object_id: int = game_object_id
-        self.inventory: Inventory = self.registry.get_component(
-            game_object_id,
-            Inventory,
-        )
-        self.background_image: Texture = get_default_texture()
-        self.ui_manager: UIManager = UIManager()
+        # Reset the player view's state
+        self.clear()
 
-        # Create the UI widgets for the player view
-        self.stats_layout: StatsLayout = StatsLayout()
-        self.player_attributes_layout: PlayerAttributesLayout = PlayerAttributesLayout(
-            self.registry,
-            self.game_object_id,
-        )
-
-        # Make the player view UI
+        # Set up the player view and add the UI elements
+        self.registry = registry
+        self.game_object_id = game_object_id
+        self.inventory = self.registry.get_component(game_object_id, Inventory)
+        self.player_attributes_layout = PlayerAttributesLayout(registry, game_object_id)
+        self.on_update_inventory(game_object_id)
         root_layout = UIBoxLayout(vertical=True, space_between=WIDGET_SPACING)
         root_layout.add(self.stats_layout)
         root_layout.add(self.player_attributes_layout)
@@ -678,9 +686,6 @@ class PlayerView(View):
         )
         root_layout.add(back_button)
         self.ui_manager.add(UIAnchorLayout(children=(root_layout,)))
-
-        # Update the inventory to show the player's items
-        self.on_update_inventory(game_object_id)
 
     def on_draw(self: PlayerView) -> None:
         """Render the screen."""
