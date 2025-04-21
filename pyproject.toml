@@ -20,12 +20,12 @@ Repository = "https://github.com/JackAshwell11/Hades"
 
 [project.optional-dependencies]
 ai = [
-    "gymnasium==0.29.1",
-    "ipython==8.27.0",
-    "matplotlib==3.9.2",
+    "gymnasium==1.1.1",
+    "ipython==9.1.0",
+    "matplotlib==3.10.1",
     "mpld3==0.5.10",
-    "opencv-python==4.10.0.84",
-    "torch==2.4.1",
+    "opencv-python==4.11.0.86",
+    "torch==2.6.0",
 ]
 
 [tool.black]
