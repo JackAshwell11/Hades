@@ -1,14 +1,14 @@
 # Builtin
 from collections.abc import Callable, Iterator
 from enum import Enum
-from typing import Final, Literal, SupportsFloat, TypeAlias, TypeVar, overload
+from typing import Final, Literal, SupportsFloat, TypeVar, overload
 
 # Define some type vars for the registry
 _C = TypeVar("_C")
 _S = TypeVar("_S")
 
 # Define the action function for callables
-ActionFunction: TypeAlias = Callable[[int], float]
+type ActionFunction = Callable[[int], float]
 
 # Define the global variables
 SPRITE_SCALE: Final[int] = ...

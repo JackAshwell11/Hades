@@ -59,7 +59,7 @@ def executable(executable_session: Session) -> None:  # type: ignore[misc]
             zip_file.write(build_file, str(build_file).replace(str(dist_dir), ""))
 
 
-@session(python=["3.11", "3.12"])  # type: ignore[misc]
+@session(python=["3.12", "3.13"])  # type: ignore[misc]
 def tests(test_session: Session) -> None:  # type: ignore[misc]
     """Run the tests with coverage.
 
