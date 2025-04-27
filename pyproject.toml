@@ -1,5 +1,5 @@
 [build-system]
-requires = ["scikit-build-core"]
+requires = ["scikit-build-core", "conan"]
 build-backend = "scikit_build_core.build"
 
 [project]
@@ -180,20 +180,16 @@ select = ["ALL"]
 "src/hades/views/start_menu.py" = [
     "PLR6301",  # Ignore pylint no-self-use rule for the start menu event handlers
 ]
+"src/hades_extensions/conanfile.py" = [
+    "INP001"  # Ignore flake8-no-pep420 implicit namespace package rule
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.scikit-build]
 cmake.source-dir = "src/hades_extensions"
-
-[[tool.scikit-build.overrides]]
-if.platform-system = "^win32"
-cmake.args = ["-GNinja", "-DDO_TESTS=OFF", "--preset WinRelease"]
-
-[[tool.scikit-build.overrides]]
-if.platform-system = "^linux"
-cmake.args = ["-GNinja", "-DDO_TESTS=OFF", "--preset LinuxRelease"]
+cmake.args = ["-GNinja", "-DDO_TESTS=OFF", "--preset Release"]
 
 [tool.uv]
 dev-dependencies = [
