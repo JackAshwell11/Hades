@@ -21,7 +21,7 @@ target_include_directories(${CPP_LIB}
         PRIVATE ${chipmunk_SOURCE_DIR}/include
 )
 target_link_libraries(${CPP_LIB}
-        PRIVATE unofficial::chipmunk::chipmunk
+        PUBLIC chipmunk2d::chipmunk2d
         PRIVATE pybind11::module
 )
 
