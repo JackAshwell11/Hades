@@ -25,7 +25,7 @@ TEST_F(FactoriesFixture, TestGetFactoryNoHitboxRequired) {
 
 /// Test that loading a factory that requires a hitbox works when the hitbox is loaded.
 TEST_F(FactoriesFixture, TestGetFactoryHitboxLoaded) {
-  load_hitbox(GameObjectType::Player, {{0.0, 0.0}});
+  load_hitbox(GameObjectType::Player, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
   ASSERT_NO_THROW(get_factories().at(GameObjectType::Player)(0));
 }
 

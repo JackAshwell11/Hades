@@ -16,8 +16,8 @@ class GameEngineFixture : public testing::Test {  // NOLINT
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    load_hitbox(GameObjectType::Player, {{0, 0}});
-    load_hitbox(GameObjectType::Enemy, {{0, 0}});
+    load_hitbox(GameObjectType::Player, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
+    load_hitbox(GameObjectType::Enemy, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
   }
 };
 

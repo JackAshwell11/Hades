@@ -35,7 +35,11 @@ struct KinematicComponent final : ComponentBase {
   /// @param vertices - The vertices of the shape.
   explicit KinematicComponent(const std::vector<cpVect> &vertices)
       : body(cpBodyNew(1, std::numeric_limits<cpFloat>::infinity())),
-        shape(cpPolyShapeNew(*body, static_cast<int>(vertices.size()), vertices.data(), cpTransformIdentity, 0.0)) {}
+        shape(cpPolyShapeNew(*body, static_cast<int>(vertices.size()), vertices.data(), cpTransformIdentity, 0.0)) {
+    if (vertices.size() < 3) {
+      throw std::invalid_argument("The shape must have at least 3 vertices.");
+    }
+  }
 };
 
 /// Provides facilities to manipulate a game object's physics.

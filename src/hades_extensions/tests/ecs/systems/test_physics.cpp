@@ -16,7 +16,8 @@ class PhysicsSystemFixture : public testing::Test {
   void SetUp() override {
     registry.create_game_object(
         GameObjectType::Player, cpvzero,
-        {std::make_shared<KinematicComponent>(std::vector<cpVect>{}), std::make_shared<MovementForce>(100, -1)});
+        {std::make_shared<KinematicComponent>(std::vector<cpVect>{{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}}),
+         std::make_shared<MovementForce>(100, -1)});
     registry.add_system<PhysicsSystem>();
   }
 
@@ -133,8 +134,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicCompon
 
 /// Test that an exception is thrown if a game object does not have a movement force component.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentMovementForceComponent) {
-  registry.create_game_object(GameObjectType::Player, cpvzero,
-                              {std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<KinematicComponent>()});
   ASSERT_THROW_MESSAGE(get_physics_system()->add_force(1, {0, 0}), RegistryError,
                        "The component `MovementForce` for the game object ID `1` is not registered with the registry.");
 }

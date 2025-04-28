@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 #include <typeindex>
+#include <unordered_set>
 
 // Local headers
 #include "ecs/steering.hpp"
@@ -156,6 +157,12 @@ class Registry {
   /// @return The game object IDs of the game object type.
   [[nodiscard]] auto get_game_object_ids(GameObjectType game_object_type) -> std::vector<GameObjectID>;
 
+  /// Mark a game object for deletion after the next update step
+  ///
+  /// @param game_object_id - The ID of the game object to delete.
+  /// @throws RegistryError if the game object does not exist or does not have a kinematic component.
+  void mark_for_deletion(GameObjectID game_object_id);
+
   /// Find all the game objects that have the required components.
   ///
   /// @tparam Ts - The types of components to find.
@@ -213,11 +220,7 @@ class Registry {
   /// Update all the systems in the registry.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  void update(const double delta_time) const {
-    for (const auto &[_, system] : systems_) {
-      system->update(delta_time);
-    }
-  }
+  void update(double delta_time);
 
   /// Get the Chipmunk2D space.
   ///
@@ -259,9 +262,8 @@ class Registry {
  private:
   /// Create a Chipmunk2D collision handler to deal with bullet collisions.
   ///
-  /// @param game_object_one - The first type of game object to check for collisions.
-  /// @param game_object_two - The second type of game object to check for collisions.
-  void createCollisionHandlerFunc(GameObjectType game_object_one, GameObjectType game_object_two);
+  /// @param game_object_type - The type of game object to create the collision handler for.
+  void createBulletCollisionHandler(GameObjectType game_object_type);
 
   /// The next game object ID to use.
   GameObjectID next_game_object_id_{0};
@@ -274,6 +276,9 @@ class Registry {
 
   /// The game object IDs registered with the registry.
   std::unordered_map<GameObjectType, std::vector<GameObjectID>> game_object_ids_;
+
+  /// The game object IDs to delete.
+  std::unordered_set<GameObjectID> objects_to_delete_;
 
   /// The systems registered with the registry.
   std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_;

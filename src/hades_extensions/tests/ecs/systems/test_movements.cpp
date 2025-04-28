@@ -33,7 +33,7 @@ class FootprintSystemFixture : public testing::Test {
   void SetUp() override {
     registry.create_game_object(
         GameObjectType::Player, cpvzero,
-        {std::make_shared<Footprints>(), std::make_shared<KinematicComponent>(std::vector<cpVect>{}),
+        {std::make_shared<Footprints>(), std::make_shared<KinematicComponent>(),
          std::make_shared<FootprintInterval>(0.2, -1), std::make_shared<FootprintLimit>(10, -1)});
     registry.add_system<FootprintSystem>();
     registry.add_system<SteeringMovementSystem>();
@@ -63,7 +63,7 @@ class KeyboardMovementSystemFixture : public testing::Test {
   void SetUp() override {
     registry.create_game_object(GameObjectType::Player, cpvzero,
                                 {std::make_shared<MovementForce>(100, -1), std::make_shared<KeyboardMovement>(),
-                                 std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
+                                 std::make_shared<KinematicComponent>()});
     registry.add_system<KeyboardMovementSystem>();
     registry.add_system<PhysicsSystem>();
   }
@@ -88,10 +88,9 @@ class SteeringMovementSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     // Create the target game object and add the required systems
-    registry.create_game_object(
-        GameObjectType::Player, cpvzero,
-        {std::make_shared<FootprintInterval>(0.3, -1), std::make_shared<FootprintLimit>(10, -1),
-         std::make_shared<Footprints>(), std::make_shared<KinematicComponent>(std::vector<cpVect>{})});
+    registry.create_game_object(GameObjectType::Player, cpvzero,
+                                {std::make_shared<FootprintInterval>(0.3, -1), std::make_shared<FootprintLimit>(10, -1),
+                                 std::make_shared<Footprints>(), std::make_shared<KinematicComponent>()});
     registry.add_system<FootprintSystem>();
     registry.add_system<PhysicsSystem>();
     registry.add_system<SteeringMovementSystem>();
@@ -106,8 +105,7 @@ class SteeringMovementSystemFixture : public testing::Test {
     const int game_object_id{registry.create_game_object(
         GameObjectType::Player, cpvzero,
         {std::make_shared<MovementForce>(200, -1), std::make_shared<SteeringMovement>(steering_behaviours),
-         std::make_shared<KinematicComponent>(std::vector<cpVect>{}),
-         std::make_shared<ViewDistance>(2 * SPRITE_SIZE, -1)})};
+         std::make_shared<KinematicComponent>(), std::make_shared<ViewDistance>(2 * SPRITE_SIZE, -1)})};
     registry.get_component<SteeringMovement>(game_object_id)->target_id = 0;
     return game_object_id;
   }
@@ -253,9 +251,8 @@ TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateSouthEast)
 
 /// Test that the correct force is not applied if the game object does not have the required components.
 TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateIncompleteComponents) {
-  registry.create_game_object(
-      GameObjectType::Player, cpvzero,
-      {std::make_shared<KinematicComponent>(std::vector<cpVect>{}), std::make_shared<MovementForce>(100, -1)});
+  registry.create_game_object(GameObjectType::Player, cpvzero,
+                              {std::make_shared<KinematicComponent>(), std::make_shared<MovementForce>(100, -1)});
   get_keyboard_movement_system()->update(0);
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -431,9 +428,8 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleSt
 
 /// Test that the correct force is not applied if the game object does not have the required components.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateIncompleteComponents) {
-  registry.create_game_object(
-      GameObjectType::Player, cpvzero,
-      {std::make_shared<KinematicComponent>(std::vector<cpVect>{}), std::make_shared<MovementForce>(100, -1)});
+  registry.create_game_object(GameObjectType::Player, cpvzero,
+                              {std::make_shared<KinematicComponent>(), std::make_shared<MovementForce>(100, -1)});
   get_steering_movement_system()->update(0);
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }

@@ -23,10 +23,10 @@ class AttackSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     auto create_target{[&](const cpVect position) {
-      const int target{registry.create_game_object(
-          GameObjectType::Enemy, cpvzero,
-          {std::make_shared<Armour>(0, -1), std::make_shared<AttackRange>(-1, -1), std::make_shared<Health>(80, -1),
-           std::make_shared<KinematicComponent>(std::vector<cpVect>{})})};
+      const int target{
+          registry.create_game_object(GameObjectType::Enemy, cpvzero,
+                                      {std::make_shared<Armour>(0, -1), std::make_shared<AttackRange>(-1, -1),
+                                       std::make_shared<Health>(80, -1), std::make_shared<KinematicComponent>()})};
       cpBodySetPosition(*registry.get_component<KinematicComponent>(target)->body, position);
       return target;
     }};
@@ -52,7 +52,7 @@ class AttackSystemFixture : public testing::Test {
                                                            std::make_shared<AttackCooldown>(2, -1),
                                                            std::make_shared<AttackRange>(3 * SPRITE_SIZE, -1),
                                                            std::make_shared<Damage>(20, -1),
-                                                           std::make_shared<KinematicComponent>(std::vector<cpVect>{}),
+                                                           std::make_shared<KinematicComponent>(),
                                                            std::make_shared<MeleeAttackSize>(std::numbers::pi / 4, -1)};
     if (steering_movement) {
       components.push_back(std::make_shared<SteeringMovement>(
@@ -313,6 +313,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroArmour) {
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageDeleteGameObject) {
   create_health_and_armour_attributes();
   get_damage_system()->deal_damage(0, create_attacker(500));
+  registry.update(0);
   ASSERT_FALSE(registry.has_component(0, typeid(Health)));
   ASSERT_FALSE(registry.has_component(0, typeid(Armour)));
 }
@@ -322,6 +323,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
   create_health_and_armour_attributes();
   registry.get_component<Health>(0)->set_value(0);
   get_damage_system()->deal_damage(0, create_attacker(0));
+  registry.update(0);
   ASSERT_FALSE(registry.has_component(0, typeid(Health)));
   ASSERT_FALSE(registry.has_component(0, typeid(Armour)));
 }

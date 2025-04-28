@@ -127,6 +127,6 @@ void DamageSystem::deal_damage(const GameObjectID game_object_id, const GameObje
 
   // If the health is now 0, delete the game object
   if (health->get_value() <= 0) {
-    get_registry()->delete_game_object(game_object_id);
+    get_registry()->mark_for_deletion(game_object_id);
   }
 }

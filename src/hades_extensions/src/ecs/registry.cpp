@@ -30,18 +30,13 @@ auto player_wall_collision_handler(cpArbiter *arbiter, cpSpace * /*space*/, void
   cpShape *shape2{nullptr};
   cpArbiterGetShapes(arbiter, &shape1, &shape2);
 
-  // Register the post-step callback to delete the player if it is inside the wall
+  // Delete the player if it is inside the wall
   const auto player_id{cpDataPointerToGameObjectID(cpShapeGetUserData(shape1))};
-  if (const auto wall_position{cpBodyGetPosition(
-          *registry->get_component<KinematicComponent>(cpDataPointerToGameObjectID(cpShapeGetUserData(shape2)))->body)};
-      cpvdist(cpBodyGetPosition(*registry->get_component<KinematicComponent>(player_id)->body), wall_position) <
-      (SPRITE_SIZE / 2)) {
-    cpSpaceAddPostStepCallback(
-        registry->get_space(),
-        [](cpSpace * /*space*/, void *game_object_id, void *registry_ptr) {
-          static_cast<Registry *>(registry_ptr)->delete_game_object(cpDataPointerToGameObjectID(game_object_id));
-        },
-        cpShapeGetUserData(shape1), registry);
+  const auto wall_id{cpDataPointerToGameObjectID(cpShapeGetUserData(shape2))};
+  const auto player_position{cpBodyGetPosition(*registry->get_component<KinematicComponent>(player_id)->body)};
+  if (const auto wall_position{cpBodyGetPosition(*registry->get_component<KinematicComponent>(wall_id)->body)};
+      cpvdist(player_position, wall_position) < (SPRITE_SIZE / 2)) {
+    registry->mark_for_deletion(player_id);
   }
   return cpTrue;
 }
@@ -51,12 +46,12 @@ Registry::Registry(const std::mt19937 &random_generator) : random_generator_{ran
   // Set the damping to ensure the game objects don't drift
   cpSpaceSetDamping(*space_, DAMPING);
 
-  // Add the collision handlers for the bullets
-  createCollisionHandlerFunc(GameObjectType::Player, GameObjectType::Bullet);
-  createCollisionHandlerFunc(GameObjectType::Enemy, GameObjectType::Bullet);
-  createCollisionHandlerFunc(GameObjectType::Wall, GameObjectType::Bullet);
+  // Add the bullet collision handlers
+  createBulletCollisionHandler(GameObjectType::Player);
+  createBulletCollisionHandler(GameObjectType::Enemy);
+  createBulletCollisionHandler(GameObjectType::Wall);
 
-  // Add the collision handler for player<->wall collisions
+  // Add a collision handler to prevent the player from going through walls
   auto *func{cpSpaceAddCollisionHandler(get_space(), static_cast<cpCollisionType>(GameObjectType::Player),
                                         static_cast<cpCollisionType>(GameObjectType::Wall))};
   func->userData = this;
@@ -146,9 +141,24 @@ auto Registry::get_game_object_ids(const GameObjectType game_object_type) -> std
   return ids != game_object_ids_.end() ? ids->second : std::vector<GameObjectID>{};
 }
 
-void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameObjectType game_object_two) {
-  auto *func{cpSpaceAddCollisionHandler(get_space(), static_cast<cpCollisionType>(game_object_one),
-                                        static_cast<cpCollisionType>(game_object_two))};
+void Registry::mark_for_deletion(const GameObjectID game_object_id) { objects_to_delete_.insert(game_object_id); }
+
+void Registry::update(const double delta_time) {
+  // Update all the systems in the registry
+  for (const auto &[_, system] : systems_) {
+    system->update(delta_time);
+  }
+
+  // Delete all marked game objects
+  for (const auto game_object_id : objects_to_delete_) {
+    delete_game_object(game_object_id);
+  }
+  objects_to_delete_.clear();
+}
+
+void Registry::createBulletCollisionHandler(GameObjectType game_object_type) {
+  auto *func{cpSpaceAddCollisionHandler(get_space(), static_cast<cpCollisionType>(game_object_type),
+                                        static_cast<cpCollisionType>(GameObjectType::Bullet))};
   func->userData = this;
   func->beginFunc = [](cpArbiter *arbiter, cpSpace * /*space*/, void *data) -> cpBool {
     // Get the registry and the shapes that are colliding
@@ -158,37 +168,18 @@ void Registry::createCollisionHandlerFunc(GameObjectType game_object_one, GameOb
     cpArbiterGetShapes(arbiter, &shape1, &shape2);
 
     // Get the game object IDs of the shapes
-    auto collision_data{std::make_unique<std::pair<GameObjectID, GameObjectID>>(
-        cpDataPointerToGameObjectID(cpShapeGetUserData(shape1)),
-        cpDataPointerToGameObjectID(cpShapeGetUserData(shape2)))};
+    const auto game_object_one{cpDataPointerToGameObjectID(cpShapeGetUserData(shape1))};
+    const auto game_object_two{cpDataPointerToGameObjectID(cpShapeGetUserData(shape2))};
 
     // Deal damage to the first shape if it is an entity
     if (static_cast<GameObjectType>(cpShapeGetCollisionType(shape1)) != GameObjectType::Wall) {
-      cpSpaceAddPostStepCallback(
-          registry->get_space(),
-          [](cpSpace * /*space*/, void *ids, void *registry_ptr) {
-            const auto *collision_ids{static_cast<std::pair<GameObjectID, GameObjectID> *>(ids)};
-            if (const auto *reg{static_cast<Registry *>(registry_ptr)};
-                reg->has_component(collision_ids->second, typeid(KinematicComponent))) {
-              reg->get_system<DamageSystem>()->deal_damage(collision_ids->first, collision_ids->second);
-            }
-          },
-          collision_data.get(), registry);
+      registry->get_system<DamageSystem>()->deal_damage(game_object_one, game_object_two);
     }
 
-    // Register the post step callback to delete the bullet
-    cpSpaceAddPostStepCallback(
-        registry->get_space(),
-        [](cpSpace * /*space*/, void *bullet_id, void *registry_ptr) {
-          if (auto *reg{static_cast<Registry *>(registry_ptr)};
-              reg->has_component(cpDataPointerToGameObjectID(bullet_id), typeid(KinematicComponent))) {
-            reg->delete_game_object(cpDataPointerToGameObjectID(bullet_id));
-          }
-        },
-        cpShapeGetUserData(shape2), registry);
+    // Delete the bullet
+    registry->mark_for_deletion(game_object_two);
 
-    // Release the collision data so Chipmunk2D can take ownership of it
-    [[maybe_unused]] auto *const ptr{collision_data.release()};
+    // Set the collision to be handled
     return cpFalse;
   };
 }
