@@ -20,6 +20,7 @@ var/
 wheels/
 window.build/
 window.dist/
+src/hades_ai/output/*
 
 # Byte-compiled/optimized/DLL files
 *$py.class

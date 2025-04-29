@@ -110,7 +110,7 @@ const auto player_factory{[](const int /*level*/) {
       std::make_shared<MovementForce>(5000, 5),
       std::make_shared<PythonSprite>(),
       std::make_shared<KinematicComponent>(get_hitboxes().at(GameObjectType::Player)),
-      std::make_shared<StatusEffect>(),
+      std::make_shared<StatusEffects>(),
       std::make_shared<Upgrades>(std::unordered_map<std::type_index, std::pair<ActionFunction, ActionFunction>>{
           {typeid(Health), std::make_pair([](const int level) { return std::pow(2, level) + 10; },
                                           [](const int level) { return level * 10 + 5; })}}),
@@ -122,7 +122,6 @@ const auto player_factory{[](const int /*level*/) {
 /// @return The components for the health potion.
 const auto health_potion_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<EffectLevel>(1, 3),
       std::make_shared<PythonSprite>(),
       std::make_shared<KinematicComponent>(),
   };

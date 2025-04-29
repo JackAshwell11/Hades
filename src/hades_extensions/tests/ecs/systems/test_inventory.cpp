@@ -19,7 +19,7 @@ class InventorySystemFixture : public testing::Test {
   void SetUp() override {
     registry.create_game_object(GameObjectType::Player, cpvzero,
                                 {std::make_shared<Health>(200, -1), std::make_shared<Inventory>(),
-                                 std::make_shared<InventorySize>(8, -1), std::make_shared<StatusEffect>()});
+                                 std::make_shared<InventorySize>(8, -1), std::make_shared<StatusEffects>()});
     registry.add_system<InventorySystem>();
     registry.add_system<EffectSystem>();
   }
@@ -48,12 +48,9 @@ class InventorySystemFixture : public testing::Test {
   ///
   /// @return The game object ID of the status effect item.
   [[nodiscard]] auto create_status_effect_item() -> GameObjectID {
-    return registry.create_game_object(GameObjectType::HealthPotion, cpvzero,
-                                       {std::make_shared<EffectApplier>(
-                                            std::unordered_map<std::type_index, ActionFunction>{
-                                                {typeid(Health), [](const int level) { return (level * 3) + 5; }}},
-                                            std::unordered_map<std::type_index, StatusEffectData>{}),
-                                        std::make_shared<EffectLevel>(1, -1)});
+    const auto effect_applier{std::make_shared<EffectApplier>()};
+    effect_applier->add_instant_effect(10, typeid(Health));
+    return registry.create_game_object(GameObjectType::HealthPotion, cpvzero, {effect_applier});
   }
 };
 
@@ -154,7 +151,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemUseItemStatusEffectValid) {
   registry.get_component<Health>(0)->set_value(50);
   ASSERT_TRUE(get_inventory_system()->add_item_to_inventory(0, item_id));
   ASSERT_TRUE(get_inventory_system()->use_item(0, item_id));
-  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 58);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 60);
   ASSERT_EQ(registry.get_component<Inventory>(0)->items.size(), 0);
 }
 
@@ -180,5 +177,5 @@ TEST_F(InventorySystemFixture, TestInventorySystemUseItemStatusEffectInvalidItem
 TEST_F(InventorySystemFixture, TestInventorySystemUseItemStatusEffectInvalidGameObjectID) {
   const auto item_id{create_status_effect_item()};
   ASSERT_THROW_MESSAGE(get_inventory_system()->use_item(-1, item_id), RegistryError,
-                       "The component `StatusEffect` for the game object ID `-1` is not registered with the registry.")
+                       "The component `StatusEffects` for the game object ID `-1` is not registered with the registry.")
 }

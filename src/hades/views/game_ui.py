@@ -18,8 +18,8 @@ from hades_extensions.ecs.components import PythonSprite
 if TYPE_CHECKING:
     from arcade.camera import Camera2D
 
-    from hades_extensions.ecs import Registry, StatusEffectType
-    from hades_extensions.ecs.components import Effect
+    from hades_extensions.ecs import Registry
+    from hades_extensions.ecs.components import StatusEffect
 
 
 class GameUI:
@@ -130,10 +130,7 @@ class GameUI:
         """
         self.player_ui.children[0].children[0].text = f"Money: {money}"
 
-    def update_status_effects(
-        self: GameUI,
-        status_effects: dict[StatusEffectType, Effect],
-    ) -> None:
+    def update_status_effects(self: GameUI, status_effects: list[StatusEffect]) -> None:
         """Update the status effects indicator on the screen.
 
         Args:
@@ -143,17 +140,17 @@ class GameUI:
             self.status_effect_layout.clear()
 
             # For each status effect, create a vertical box layout with two labels
-            for status_effect_type, effect in status_effects.items():
+            for status_effect in status_effects:
                 layout = UIBoxLayout()
                 layout.add(
                     UILabel(
-                        status_effect_type.name,
+                        status_effect.effect_type.name,
                         text_color=color.BLACK,
                     ).with_background(color=UI_BACKGROUND_COLOUR),
                 )
                 layout.add(
                     UILabel(
-                        f"{effect.duration:.1f}",
+                        f"{status_effect.duration:.1f}",
                         text_color=color.BLACK,
                     ).with_background(color=UI_BACKGROUND_COLOUR),
                 )

@@ -26,7 +26,7 @@ from hades_extensions.ecs.components import (
     KinematicComponent,
     Money,
     PythonSprite,
-    StatusEffect,
+    StatusEffects,
 )
 from hades_extensions.ecs.systems import AttackSystem, InventorySystem, PhysicsSystem
 
@@ -125,7 +125,7 @@ class Game(UIView):
         self.game_ui.update_info_box(self.registry, self.nearest_item)
         self.game_ui.update_money(self.registry.get_component(self.player, Money).money)
         self.game_ui.update_status_effects(
-            self.registry.get_component(self.player, StatusEffect).applied_effects,
+            self.registry.get_component(self.player, StatusEffects).active_effects,
         )
 
         # Check if the player has reached the goal

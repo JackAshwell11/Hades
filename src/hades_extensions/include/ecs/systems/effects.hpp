@@ -9,14 +9,60 @@
 
 /// Stores the different types of status effects available.
 enum class StatusEffectType : std::uint8_t {
-  TEMP,
-  TEMP2,
+  Regeneration,
 };
 
-/// Represents a status effect that can be applied to a game object.
-struct Effect {
-  /// The value that should be applied to the game object temporarily.
+/// Represents the base class for an effect.
+struct BaseEffect {
+  /// The value that should be applied to the game object's stat.
   double value;
+
+  /// The component the effect should be applied to.
+  std::type_index target_component;
+
+  /// Initialise the object.
+  ///
+  /// @param value - The value that should be applied to the game object's stat.
+  /// @param target_component - The component the effect should be applied to.
+  BaseEffect(const double value, const std::type_index target_component)
+      : value(value), target_component(target_component) {}
+
+  /// The virtual destructor.
+  virtual ~BaseEffect() = default;
+
+  /// The copy constructor.
+  BaseEffect(const BaseEffect &) = default;
+
+  /// The move constructor.
+  BaseEffect(BaseEffect &&) = default;
+
+  /// The copy assignment operator.
+  auto operator=(const BaseEffect &) -> BaseEffect & = default;
+
+  /// The move assignment operator.
+  auto operator=(BaseEffect &&) -> BaseEffect & = default;
+
+  /// Apply the effect to the game object.
+  ///
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  /// @param game_object_id - The ID of the game object to apply the effect to.
+  /// @return Whether the effect was applied or not.
+  virtual auto apply(Registry *registry, GameObjectID game_object_id) const -> bool;
+};
+
+/// Represents an effect that can be applied immediately to a game object.
+struct InstantEffect final : BaseEffect {
+  /// Initialise the object.
+  ///
+  /// @param value - The value that should be applied to the game object's stat.
+  /// @param target_component - The component the effect should be applied to.
+  InstantEffect(const double value, const std::type_index target_component) : BaseEffect(value, target_component) {}
+};
+
+/// Represents a status effect that can be applied to a game object over time.
+struct StatusEffect final : BaseEffect {
+  /// The type of status effect.
+  StatusEffectType effect_type;
 
   /// The duration the status effect should be applied for.
   double duration;
@@ -24,83 +70,65 @@ struct Effect {
   /// The interval the status effect should be applied at.
   double interval;
 
-  /// The component the status effect should be applied to.
-  std::type_index target_component;
+  /// The time the status effect has been applied for.
+  double time_elapsed{0.0};
 
-  /// Tracks the time the status effect has been applied for.
-  double time_counter{0.0};
-
-  /// Tracks the time left over from the last interval.
-  double leftover_time{0.0};
+  /// The time left over from the last interval.
+  double interval_accumulator{0.0};
 
   /// Initialise the object.
   ///
-  /// @param value - The value that should be applied to the game object temporarily.
+  /// @param type - The type of status effect.
+  /// @param value - The value that should be applied to the game object's stat.
   /// @param duration - The duration the status effect should be applied for.
   /// @param interval - The interval the status effect should be applied at.
   /// @param target_component - The component the status effect should be applied to.
-  Effect(const double value, const double duration, const double interval, const std::type_index &target_component)
-      : value(value), duration(duration), interval(interval), target_component(target_component) {}
+  StatusEffect(const StatusEffectType type, const double value, const double duration, const double interval,
+               const std::type_index target_component)
+      : BaseEffect(value, target_component), effect_type(type), duration(duration), interval(interval) {}
+
+  /// Apply the status effect to the game object.
+  ///
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  /// @param target - The ID of the game object to apply the status effect to.
+  /// @param delta_time - The time interval since the last time the function was called.
+  /// @return Whether the status effect has expired or not.
+  auto update(Registry *registry, GameObjectID target, double delta_time) -> bool;
 };
 
-/// Represents the data required to apply a status effect.
-struct StatusEffectData {
-  /// The type of status effect.
-  StatusEffectType status_effect_type;
-
-  /// The increase function to apply.
-  ActionFunction increase;
-
-  /// The duration function to apply.
-  ActionFunction duration;
-
-  /// The interval function to apply.
-  ActionFunction interval;
-
-  /// Initialise the object.
-  ///
-  /// @param status_effect_type - The type of status effect.
-  /// @param increase - The increase function to apply.
-  /// @param duration - The duration function to apply.
-  /// @param interval - The interval function to apply.
-  StatusEffectData(const StatusEffectType &status_effect_type, ActionFunction increase, ActionFunction duration,
-                   ActionFunction interval)
-      : status_effect_type(status_effect_type),
-        increase(std::move(increase)),
-        duration(std::move(duration)),
-        interval(std::move(interval)) {}
+/// Allows a game object to have status effects applied to it.
+struct StatusEffects final : ComponentBase {
+  /// The status effects currently applied to the game object.
+  std::vector<std::shared_ptr<StatusEffect>> active_effects;
 };
 
 /// Allows a game object to provide instant or status effects.
 struct EffectApplier final : ComponentBase {
   /// The instant effects the game object provides.
-  std::unordered_map<std::type_index, ActionFunction> instant_effects;
+  std::vector<std::shared_ptr<InstantEffect>> instant_effects;
 
   /// The status effects the game object provides.
-  std::unordered_map<std::type_index, StatusEffectData> status_effects;
+  std::vector<std::shared_ptr<StatusEffect>> status_effects;
 
-  /// Initialise the object.
+  /// Add an instant effect to the game object.
   ///
-  /// @param instant_effects - The instant effects the game object provides.
-  /// @param status_effects - The status effects the game object provides.
-  EffectApplier(const std::unordered_map<std::type_index, ActionFunction> &instant_effects,
-                const std::unordered_map<std::type_index, StatusEffectData> &status_effects)
-      : instant_effects(instant_effects), status_effects(status_effects) {}
-};
+  /// @param value - The value that should be applied to the game object's stat.
+  /// @param target_component - The component the effect should be applied to.
+  void add_instant_effect(double value, std::type_index target_component) {
+    instant_effects.push_back(std::make_shared<InstantEffect>(value, target_component));
+  }
 
-/// Allows a game object to have a level associated with its effects.
-struct EffectLevel final : Stat {
-  /// Initialise the object.
+  /// Add a status effect to the game object.
   ///
-  /// @param value - The initial value of the effect level stat.
-  /// @param maximum_level - The maximum level of the effect level stat.
-  EffectLevel(const double value, const int maximum_level) : Stat(value, maximum_level) {}
-};
-
-/// Allows a game object to have status effects applied to it.
-struct StatusEffect final : ComponentBase {
-  /// The status effects currently applied to the game object.
-  std::unordered_map<StatusEffectType, Effect> applied_effects;
+  /// @param type - The type of status effect.
+  /// @param value - The value that should be applied to the game object's stat.
+  /// @param duration - The duration the status effect should be applied for.
+  /// @param interval - The interval the status effect should be applied at.
+  /// @param target_component - The component the status effect should be applied to.
+  void add_status_effect(const StatusEffectType type, double value, double duration, double interval,
+                         std::type_index target_component) {
+    status_effects.push_back(std::make_shared<StatusEffect>(type, value, duration, interval, target_component));
+  }
 };
 
 /// Provides facilities to manipulate instant and status effects.
@@ -117,9 +145,9 @@ struct EffectSystem final : SystemBase {
 
   /// Apply effects to a game object.
   ///
-  /// @param game_object_id - The ID of the game object to get the effects from.
-  /// @param target_game_object_id - The ID of the game object to apply the effects to.
+  /// @param source - The ID of the game object to get the effects from.
+  /// @param target - The ID of the game object to apply the effects to.
   /// @throws RegistryError - If either game object does not exist or does not have the required components.
   /// @return Whether the effects were applied or not.
-  [[nodiscard]] auto apply_effects(GameObjectID game_object_id, GameObjectID target_game_object_id) const -> bool;
+  [[nodiscard]] auto apply_effects(GameObjectID source, GameObjectID target) const -> bool;
 };

@@ -67,10 +67,10 @@ auto make_system_types()
 auto get_component_types()
     -> const std::unordered_map<pybind11::handle, std::type_index, py_handle_hash, py_handle_equal> & {
   static const auto component_types{
-      make_component_types<Armour, ArmourRegen, Attack, AttackCooldown, AttackRange, Damage, EffectApplier, EffectLevel,
+      make_component_types<Armour, ArmourRegen, Attack, AttackCooldown, AttackRange, Damage, EffectApplier,
                            FootprintInterval, FootprintLimit, Footprints, Health, Inventory, InventorySize,
                            KeyboardMovement, KinematicComponent, MeleeAttackSize, Money, MovementForce, PythonSprite,
-                           StatusEffect, SteeringMovement, Upgrades, ViewDistance>()};
+                           StatusEffects, SteeringMovement, Upgrades, ViewDistance>()};
   return component_types;
 }
 
@@ -247,8 +247,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("HealthPotion", GameObjectType::HealthPotion)
       .value("Chest", GameObjectType::Chest);
   pybind11::enum_<StatusEffectType>(ecs, "StatusEffectType", "Stores the different types of status effects available.")
-      .value("TEMP", StatusEffectType::TEMP)
-      .value("TEMP2", StatusEffectType::TEMP2);
+      .value("Regeneration", StatusEffectType::Regeneration);
   pybind11::enum_<SteeringBehaviours>(ecs, "SteeringBehaviours",
                                       "Stores the different types of steering behaviours available.")
       .value("Arrive", SteeringBehaviours::Arrive)
@@ -429,8 +428,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       components, "ArmourRegen", "Allows a game object to regenerate armour.");
   const pybind11::class_<Damage, Stat, std::shared_ptr<Damage>> damage(
       components, "Damage", "Allows a game object to deal damage to other game objects.");
-  const pybind11::class_<EffectLevel, Stat, std::shared_ptr<EffectLevel>> effect_level(
-      components, "EffectLevel", "Allows a game object to have a level associated with its effects.");
   const pybind11::class_<FootprintInterval, Stat, std::shared_ptr<FootprintInterval>> footprint_interval(
       components, "FootprintInterval", "Allows a game object to determine the time interval between footprints.");
   const pybind11::class_<FootprintLimit, Stat, std::shared_ptr<FootprintLimit>> footprint_limit(
@@ -452,10 +449,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def_property_readonly("current_attack",
                              [](const Attack &attack) { return attack.attack_algorithms[attack.attack_state]; })
       .def_readonly("time_since_last_attack", &Attack::time_since_last_attack);
-  pybind11::class_<Effect>(components, "Effect", "Represents an effect that can be applied to a game object.")
-      .def_readonly("duration", &Effect::duration)
-      .def_property_readonly("target_component",
-                             [](const Effect &effect) { return get_python_type(effect.target_component); });
+  pybind11::class_<StatusEffect>(components, "StatusEffect",
+                                 "Represents a status effect that can be applied to a game object over time.")
+      .def_readonly("effect_type", &StatusEffect::effect_type)
+      .def_readonly("duration", &StatusEffect::duration)
+      .def_property_readonly("target_component", [](const StatusEffect &status_effect) {
+        return get_python_type(status_effect.target_component);
+      });
   const pybind11::class_<EffectApplier, ComponentBase, std::shared_ptr<EffectApplier>> effect_applier(
       components, "EffectApplier", "Allows a game object to provide instant or status effects.");
   const pybind11::class_<Footprints, ComponentBase, std::shared_ptr<Footprints>> footprints(
@@ -499,14 +499,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
       components, "Money", "Allows a game object to record the amount of money it has.")
       .def_readwrite("money", &Money::money);
-  const pybind11::class_<StatusEffectData> status_effect_data(components, "StatusEffectData",
-                                                              "Represents the data required to apply a status effect.");
   pybind11::class_<PythonSprite, ComponentBase, std::shared_ptr<PythonSprite>>(
       components, "PythonSprite", "Allows a game object to hold a reference to the Python sprite object.")
       .def_readwrite("sprite", &PythonSprite::sprite);
-  pybind11::class_<StatusEffect, ComponentBase, std::shared_ptr<StatusEffect>>(
-      components, "StatusEffect", "Allows a game object to have status effects applied to it.")
-      .def_readonly("applied_effects", &StatusEffect::applied_effects);
+  pybind11::class_<StatusEffects, ComponentBase, std::shared_ptr<StatusEffects>>(
+      components, "StatusEffects", "Allows a game object to have status effects applied to it.")
+      .def_readonly("active_effects", &StatusEffects::active_effects);
   pybind11::class_<SteeringMovement, ComponentBase, std::shared_ptr<SteeringMovement>>(
       components, "SteeringMovement", "Allows a game object's movement to be controlled by steering behaviours.")
       .def_readwrite("target_id", &SteeringMovement::target_id);
@@ -559,8 +557,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            pybind11::arg("target_game_object_id"),
            "Apply effects to a game object..\n\n"
            "Args:\n"
-           "    game_object_id: The ID of the game object to get the effects from.\n"
-           "    target_game_object_id: The ID of the game object to apply the effects to.\n\n"
+           "    source: The ID of the game object to get the effects from.\n"
+           "    target: The ID of the game object to apply the effects to.\n\n"
            "Raises:\n"
            "    RegistryError: If either game object does not exist or does not have the required components.\n\n"
            "Returns:\n"

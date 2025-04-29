@@ -5,73 +5,54 @@
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 
+auto BaseEffect::apply(Registry *registry, const GameObjectID game_object_id) const -> bool {
+  const auto component{std::static_pointer_cast<Stat>(registry->get_component(game_object_id, target_component))};
+  if (!component || component->get_value() == component->get_max_value()) {
+    return false;
+  }
+  component->set_value(component->get_value() + value);
+  return true;
+}
+
+auto StatusEffect::update(Registry *registry, const GameObjectID target, const double delta_time) -> bool {
+  interval_accumulator += std::clamp(duration - time_elapsed, 0.0, delta_time);
+  time_elapsed += delta_time;
+  while (interval_accumulator >= interval) {
+    apply(registry, target);
+    interval_accumulator -= interval;
+  }
+  return time_elapsed >= duration;
+}
+
 void EffectSystem::update(const double delta_time) const {
-  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<StatusEffect>()) {
-    // Create a vector to store the expired status effects
-    auto &applied_effects{std::get<0>(component_tuple)->applied_effects};
-    std::vector<StatusEffectType> expired_status_effects;
-
-    // Update the status effects and keep track of the expired ones. Note that in reality, delta_time will be ~0.016
-    // (60 FPS), so big jumps in time where multiple intervals are covered within a single update should never happen.
-    // But if they do, this will accumulate the leftover time and the status effect is applied in subsequent updates
-    for (auto &[status_effect_type, status_effect] : std::get<0>(component_tuple)->applied_effects) {
-      status_effect.time_counter += delta_time;
-      status_effect.leftover_time += delta_time;
-      if (status_effect.time_counter >= status_effect.duration) {
-        expired_status_effects.push_back(status_effect_type);
-      } else if (status_effect.leftover_time >= status_effect.interval) {
-        const auto component{std::static_pointer_cast<Stat>(
-            get_registry()->get_component(game_object_id, status_effect.target_component))};
-        component->set_value(component->get_value() + status_effect.value);
-        status_effect.leftover_time -= status_effect.interval;
-      }
-    }
-
-    // Remove the expired status effects
-    for (auto &status_effect_type : expired_status_effects) {
-      applied_effects.erase(status_effect_type);
-    }
+  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<StatusEffects>()) {
+    // Update and remove expired effects
+    auto &active_effects{std::get<0>(component_tuple)->active_effects};
+    std::erase_if(active_effects, [this, game_object_id, delta_time](auto &effect) {
+      return effect->update(get_registry(), game_object_id, delta_time);
+    });
   }
 }
 
-auto EffectSystem::apply_effects(const GameObjectID game_object_id, const GameObjectID target_game_object_id) const
-    -> bool {
+auto EffectSystem::apply_effects(const GameObjectID source, const GameObjectID target) const -> bool {
   // Get the required components
-  const auto effect_applier{get_registry()->get_component<EffectApplier>(game_object_id)};
-  const auto target_status_effects{get_registry()->get_component<StatusEffect>(target_game_object_id)};
+  const auto effect_applier{get_registry()->get_component<EffectApplier>(source)};
+  const auto target_status_effects{get_registry()->get_component<StatusEffects>(target)};
 
-  // Check if the instant effects can be applied
-  for (const auto &instant_types : std::views::keys(effect_applier->instant_effects)) {
-    if (const auto target_component{
-            std::static_pointer_cast<Stat>(get_registry()->get_component(target_game_object_id, instant_types))};
-        target_component->get_value() == target_component->get_max_value()) {
+  // Apply instant effects
+  for (const auto &effect : effect_applier->instant_effects) {
+    if (!effect->apply(get_registry(), target)) {
       return false;
     }
   }
 
-  // Check if the status effects can be applied
-  for (const auto &status_types : std::views::values(effect_applier->status_effects)) {
-    if (target_status_effects->applied_effects.contains(status_types.status_effect_type)) {
+  // Apply status effects
+  for (const auto &effect : effect_applier->status_effects) {
+    const auto new_effect{std::make_shared<StatusEffect>(*effect)};
+    if (!new_effect->apply(get_registry(), target)) {
       return false;
     }
-  }
-
-  // Apply the instant effects
-  const auto effect_level{static_cast<int>(get_registry()->get_component<EffectLevel>(game_object_id)->get_value())};
-  for (const auto &[component_type, increase_function] : effect_applier->instant_effects) {
-    const auto target_component{
-        std::static_pointer_cast<Stat>(get_registry()->get_component(target_game_object_id, component_type))};
-    target_component->set_value(target_component->get_value() + increase_function(effect_level));
-  }
-
-  // Apply the status effects
-  for (const auto &[component_type, status_effect_data] : effect_applier->status_effects) {
-    const auto target_component{
-        std::static_pointer_cast<Stat>(get_registry()->get_component(target_game_object_id, component_type))};
-    const Effect status_effect{status_effect_data.increase(effect_level), status_effect_data.duration(effect_level),
-                               status_effect_data.interval(effect_level), component_type};
-    target_status_effects->applied_effects.emplace(status_effect_data.status_effect_type, status_effect);
-    target_component->set_value(target_component->get_value() + status_effect.value);
+    target_status_effects->active_effects.push_back(new_effect);
   }
   return true;
 }
