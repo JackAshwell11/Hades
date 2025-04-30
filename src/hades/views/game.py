@@ -68,6 +68,7 @@ class Game(UIView):
         # Initialise the views
         self.window.views["Game"] = self
         self.window.views["InventoryView"] = PlayerView()
+        logger.debug("Initialised game view")
 
     def setup(self: Game, level: int, seed: int | None = None) -> None:
         """Set up the game.
@@ -78,11 +79,14 @@ class Game(UIView):
         """
         # Reset the game's state
         self.sprites.clear()
+        logger.debug("Cleared sprites")
         if self.game_engine:
             unschedule(self.game_engine.generate_enemy)
+            logger.debug("Unscheduling enemy generation")
 
         # Create the game engine and add the necessary callbacks
         self.game_engine = GameEngine(level, seed)
+        logger.debug("Created game engine")
         self.registry = self.game_engine.get_registry()
         self.registry.add_callback(
             EventType.GameObjectCreation,
@@ -94,18 +98,24 @@ class Game(UIView):
             EventType.InventoryUpdate,
             self.window.views["InventoryView"].on_update_inventory,
         )
+        logger.debug("Initialised registry callbacks")
 
         # Set up the UI then finish setting up the rest of the game
         self.game_ui.setup()
+        logger.debug("Set up game UI")
         self.game_engine.create_game_objects()
+        logger.debug("Created game objects")
         self.player = self.game_engine.player_id
         self.window.views["InventoryView"].setup(self.registry, self.player)
+        logger.debug("Set up inventory view")
         schedule(self.game_engine.generate_enemy, ENEMY_GENERATE_INTERVAL)
+        logger.debug("Scheduled enemy generation")
 
         # Add the game engine's handlers to the window
         self.window.push_handlers(self.game_engine.on_key_press)
         self.window.push_handlers(self.game_engine.on_key_release)
         self.window.push_handlers(self.game_engine.on_mouse_press)
+        logger.debug("Added game engine handlers to window")
 
     def on_draw_before_ui(self: Game) -> None:
         """Render the screen before the UI elements are drawn."""
@@ -219,11 +229,17 @@ class Game(UIView):
         Args:
             game_object_id: The ID of the newly created game object.
         """
+        logger.debug("Received game object creation event for %d", game_object_id)
         constructor = game_object_constructors[
             self.registry.get_game_object_type(game_object_id)
         ]
         sprite_class = (
             AnimatedSprite if len(constructor.texture_paths) > 1 else HadesSprite
+        )
+        logger.debug(
+            "Initialising sprite class %s for %d",
+            sprite_class,
+            game_object_id,
         )
         sprite = sprite_class(
             self.game_engine.get_registry(),
@@ -241,10 +257,12 @@ class Game(UIView):
         # Create progress bars if needed
         if constructor.game_object_type == GameObjectType.Player:
             self.game_ui.player_ui.add(ProgressBarGroup(sprite))
+            logger.debug("Created progress bar group for player ID %d", game_object_id)
         elif constructor.game_object_type == GameObjectType.Enemy:
             self.game_ui.progress_bar_groups.append(
                 self.ui.add(ProgressBarGroup(sprite)),
             )
+            logger.debug("Created progress bar group for enemy ID %d", game_object_id)
 
     def on_game_object_death(self: Game, game_object_id: int) -> None:
         """Remove a game object from the game.
@@ -252,11 +270,12 @@ class Game(UIView):
         Args:
             game_object_id: The ID of the game object to remove.
         """
-        # Remove the sprite from the game
+        logger.debug("Received game object death event for %d", game_object_id)
         self.game_ui.on_game_object_death(game_object_id)
         game_object = self.registry.get_component(game_object_id, PythonSprite).sprite
         game_object.remove_from_sprite_lists()
         if game_object.game_object_type == GameObjectType.Player:
+            logger.info("Player has died, exiting game")
             app.exit()
 
     def on_sprite_removal(self: Game, game_object_id: int) -> None:
@@ -265,6 +284,7 @@ class Game(UIView):
         Args:
             game_object_id: The ID of the game object to remove.
         """
+        logger.debug("Received sprite removal event for %d", game_object_id)
         sprite = self.registry.get_component(game_object_id, PythonSprite).sprite
         if sprite.sprite_lists:
             sprite.remove_from_sprite_lists()

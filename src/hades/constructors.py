@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -25,6 +26,9 @@ __all__ = ("GameObjectConstructor", "game_object_constructors", "texture_cache")
 
 # The cache for all Arcade textures
 texture_cache: dict[str, Texture] = {}
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 @dataclass()
@@ -51,13 +55,17 @@ class GameObjectConstructor:
 
     def __post_init__(self: GameObjectConstructor) -> None:
         """Post-initialise the object."""
+        logger.debug("Initialising game object constructor %s", self.name)
         for texture_path in self.texture_paths:
             if texture_path not in texture_cache:
+                logger.debug("Loading texture %s", texture_path)
                 texture_cache[texture_path] = load_texture(texture_path)
+        logger.debug("Loading hitbox for %s", self.name)
         load_hitbox(
             self.game_object_type,
             texture_cache[self.texture_paths[0]].hit_box_points,
         )
+        logger.debug("Initialised game object constructor %s", self.name)
 
 
 def wall_factory() -> GameObjectConstructor:

@@ -48,6 +48,7 @@ class StartButton(UIFlatButton):
 
         # Show the new game
         window.show_view(new_game)
+        logger.debug("Showed game view")
 
     def __repr__(self: StartButton) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
@@ -69,6 +70,7 @@ class QuitButton(UIFlatButton):
     def on_click(self: QuitButton, _: UIOnClickEvent) -> None:
         """Quit the game when the button is clicked."""
         arcade.exit()
+        logger.info("Exiting game")
 
     def __repr__(self: QuitButton) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
@@ -113,10 +115,12 @@ class StartMenu(arcade.View):
     def on_show_view(self: StartMenu) -> None:
         """Process show view functionality."""
         self.ui_manager.enable()
+        logger.debug("Showing start menu view")
 
     def on_hide_view(self: StartMenu) -> None:
         """Process hide view functionality."""
         self.ui_manager.disable()
+        logger.debug("Hiding start menu view")
 
     def __repr__(self: StartMenu) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.

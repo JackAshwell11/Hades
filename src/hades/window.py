@@ -31,40 +31,40 @@ dictConfig(
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "default": {
+            "detailed": {
                 "format": (
-                    "[%(asctime)s %(levelname)s] [%(filename)s:%(funcName)s():%(lineno)"
-                    "d] - %(message)s"
+                    "%(asctime)s [%(levelname)s] %(name)s:%(filename)s:%(funcName)s:%("
+                    "lineno)d - %(message)s"
                 ),
             },
         },
         "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-                "level": "DEBUG",
-                "formatter": "default",
-                "stream": "ext://sys.stdout",
-            },
             "file": {
                 "class": "logging.handlers.RotatingFileHandler",
                 "level": "DEBUG",
-                "formatter": "default",
+                "formatter": "detailed",
                 "filename": (
                     log_dir / f"{datetime.now(tz=UTC).strftime('%Y-%m-%d')}.log"
                 ),
-                "maxBytes": 5242880,  # 5MB
+                "maxBytes": 10485760,  # 10 MB
                 "backupCount": 5,
+                "encoding": "utf8",
+            },
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "ERROR",
+                "formatter": "detailed",
+                "stream": "ext://sys.stderr",
             },
         },
         "loggers": {
             "": {
+                "handlers": ["file", "console"],
                 "level": "WARNING",
-                "handlers": ["console"],
-                "propagate": False,
             },
             GAME_LOGGER: {
+                "handlers": ["file", "console"],
                 "level": "DEBUG",
-                "handlers": ["file"],
                 "propagate": False,
             },
         },
@@ -99,24 +99,20 @@ def main() -> None:
     # Initialise the window
     window = HadesWindow()
     window.center_window()
+    logger.debug("Initialised window")
 
     # Initialise and load the start menu view
     new_view = StartMenu()
     window.views["StartMenu"] = new_view
+    logger.debug("Initialised start menu view")
     window.show_view(new_view)
-    logger.info("Initialised start menu view")
+    logger.debug("Showed start menu view")
 
     # Run the game
-    logger.info("Running game")
+    logger.debug("Running game")
     window.run()
 
 
 # Only make sure the game is run from this file
 if __name__ == "__main__":
     main()
-
-
-# TODO: Maybe move to pygame
-# TODO: Maybe move events to C++
-# TODO: Maybe move physics system to Box2D
-# TODO: Maybe add sanitizers to C++

@@ -173,10 +173,6 @@ select = ["ALL"]
     "D103",  # Ignore pydocstyle method docstring rule
     "PIE796",  # Ignore flake8-pie duplicate enum values rule
 ]
-"src/hades/views/game.py" = [
-    # TODO: Remove this once event handling has been moved to C++
-    "C901",  # Ignore pylint-complexity rule for the game class
-]
 "src/hades/views/start_menu.py" = [
     "PLR6301",  # Ignore pylint no-self-use rule for the start menu event handlers
 ]

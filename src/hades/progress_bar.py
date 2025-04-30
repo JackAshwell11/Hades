@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 # Builtin
+import logging
 import operator
 from typing import TYPE_CHECKING, Final, cast
 
@@ -27,6 +28,9 @@ PROGRESS_BAR_BORDER_SIZE: Final[int] = 4
 PROGRESS_BAR_HEIGHT: Final[int] = 10
 PROGRESS_BAR_DISTANCE: Final[int] = 36
 PROGRESS_BAR_WIDTH: Final[int] = 50
+
+# Get the logger
+logger = logging.getLogger(__name__)
 
 
 class ProgressBar(UIAnchorLayout):
@@ -60,8 +64,19 @@ class ProgressBar(UIAnchorLayout):
         """
         if scale <= 0:
             error = "Scale must be greater than 0"
+            logger.error(
+                "Failed to create progress bar for %s: %s",
+                target_component,
+                error,
+            )
             raise ValueError(error)
 
+        logger.debug(
+            "Initialising progress bar for %s with scale %f and colour %s",
+            target_component,
+            scale,
+            colour,
+        )
         super().__init__(
             width=(PROGRESS_BAR_WIDTH + PROGRESS_BAR_BORDER_SIZE) * scale,
             height=(PROGRESS_BAR_HEIGHT + PROGRESS_BAR_BORDER_SIZE) * scale,
@@ -73,6 +88,7 @@ class ProgressBar(UIAnchorLayout):
         # Add the actual bar to the layout with a small border making sure shrinking
         # happens from the right
         self.add(self.actual_bar, anchor_x="left", anchor_y="top")
+        logger.info("Created progress bar for component: %s", target_component)
 
     def __repr__(self: ProgressBar) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
@@ -94,6 +110,7 @@ class ProgressBarGroup(UIBoxLayout):
         Args:
             sprite: The sprite associated with the progress bars.
         """
+        logger.debug("Initialising progress bar group for %s", sprite)
         super().__init__(space_between=PROGRESS_BAR_BORDER_SIZE)
         self.with_padding(all=PROGRESS_BAR_BORDER_SIZE)
         self.with_background(color=color.BLACK)
@@ -118,6 +135,11 @@ class ProgressBarGroup(UIBoxLayout):
         ]
         for _, progress_bar in sorted(progress_bars, key=operator.itemgetter(0)):
             self.add(progress_bar)
+        logger.info(
+            "Created progress bar group with %d bars for %s",
+            len(progress_bars),
+            sprite,
+        )
 
     def on_update(self: ProgressBarGroup, _: float) -> None:
         """Process progress bar update logic."""
