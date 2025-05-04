@@ -1,5 +1,5 @@
 # Custom
-from hades_extensions.ecs import ComponentBase, SystemBase, Vec2d
+from hades_extensions.ecs import AttackType, ComponentBase, SystemBase, Vec2d
 
 class ArmourRegenSystem(SystemBase): ...
 
@@ -7,17 +7,8 @@ class AttackSystem(SystemBase):
     def do_attack(
         self: AttackSystem,
         game_object_id: int,
-        targets: list[int],
+        attack_type: AttackType,
     ) -> bool: ...
-    def previous_attack(self: AttackSystem, game_object_id: int) -> None: ...
-    def next_attack(self: AttackSystem, game_object_id: int) -> None: ...
-
-class DamageSystem(SystemBase):
-    def deal_damage(
-        self: DamageSystem,
-        game_object_id: int,
-        attacker_id: int,
-    ) -> None: ...
 
 class EffectSystem(SystemBase):
     def apply_effects(self: EffectSystem, source: int, target: int) -> bool: ...

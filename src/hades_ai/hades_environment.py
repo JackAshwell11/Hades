@@ -25,7 +25,7 @@ from hades_extensions.ecs import (
     RegistryError,
     Vec2d,
 )
-from hades_extensions.ecs.components import Attack, AttackCooldown, KinematicComponent
+from hades_extensions.ecs.components import Attack, KinematicComponent
 from hades_extensions.ecs.systems import PhysicsSystem
 
 if TYPE_CHECKING:
@@ -297,17 +297,10 @@ class HadesEnvironment(Env):  # type:ignore[misc]
                 / distance_to_nearest_enemy
             ),
             "time_until_attack": np.array(
-                np.maximum(
-                    0.0,
-                    self.registry.get_component(
-                        self.game_engine.player_id,
-                        AttackCooldown,
-                    ).get_value()
-                    - self.registry.get_component(
-                        self.game_engine.player_id,
-                        Attack,
-                    ).time_since_last_attack,
-                ),
+                self.registry.get_component(
+                    self.game_engine.player_id,
+                    Attack,
+                ).time_until_ranged_attack,
                 dtype=np.float32,
             ),
             "previous_action": self.previous_action,

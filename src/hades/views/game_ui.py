@@ -12,7 +12,7 @@ from arcade.gui import UIAnchorLayout, UIBoxLayout, UIGridLayout, UILabel, UIMan
 # Custom
 from hades.progress_bar import PROGRESS_BAR_DISTANCE, ProgressBarGroup
 from hades.views import UI_BACKGROUND_COLOUR
-from hades_extensions.ecs import AttackAlgorithm, GameObjectType
+from hades_extensions.ecs import GameObjectType
 from hades_extensions.ecs.components import PythonSprite
 
 if TYPE_CHECKING:
@@ -69,7 +69,6 @@ class GameUI:
         self.progress_bar_groups.clear()
         self.player_ui.clear()
         self.ui.clear()
-        self.set_attack_algorithm(AttackAlgorithm.Ranged)
 
         # Add the player UI elements
         money_anchor = UIAnchorLayout()
@@ -155,18 +154,6 @@ class GameUI:
                     ).with_background(color=UI_BACKGROUND_COLOUR),
                 )
                 self.status_effect_layout.add(layout)
-
-    def set_attack_algorithm(self: GameUI, attack_algorithm: AttackAlgorithm) -> None:
-        """Set the player's attack algorithm.
-
-        Args:
-            attack_algorithm: The player's attack algorithm.
-        """
-        self.attack_algorithm_label.text = f"Attack Algorithm: {attack_algorithm.name}"
-        self.attack_algorithm_label.fit_content()
-        self.attack_algorithm_label.rect = self.attack_algorithm_label.rect.align_x(
-            self.attack_algorithm_label.rect.width // 2,
-        ).align_y(self.attack_algorithm_label.rect.height // 2)
 
     def on_game_object_death(self: GameUI, game_object_id: int) -> None:
         """Remove a game object from the game.

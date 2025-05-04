@@ -20,14 +20,10 @@ void PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect> &bullet, const do
                                const GameObjectType source_type) const {
   const auto bullet_id{get_registry()->create_game_object(GameObjectType::Bullet, get<0>(bullet),
                                                           get_factories().at(GameObjectType::Bullet)(0))};
-  const auto damage_component{get_registry()->get_component<Damage>(bullet_id)};
-  const auto kinematic_component{get_registry()->get_component<KinematicComponent>(bullet_id)};
-  damage_component->add_to_max_value(damage - damage_component->get_value());
-  damage_component->set_value(damage);
-  cpShapeSetFilter(*kinematic_component->shape,
-                   {static_cast<cpGroup>(source_type), static_cast<cpBitmask>(GameObjectType::Bullet),
-                    ~static_cast<cpBitmask>(source_type)});
-  cpBodySetVelocity(*kinematic_component->body, get<1>(bullet));
+  const auto bullet_component{get_registry()->get_component<Bullet>(bullet_id)};
+  bullet_component->damage = damage;
+  bullet_component->source_type = source_type;
+  cpBodySetVelocity(*get_registry()->get_component<KinematicComponent>(bullet_id)->body, get<1>(bullet));
 }
 
 auto PhysicsSystem::get_nearest_item(const GameObjectID game_object_id) const -> GameObjectID {

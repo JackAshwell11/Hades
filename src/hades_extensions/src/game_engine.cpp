@@ -175,8 +175,7 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) const
 auto GameEngine::on_mouse_press(const double /*x*/, const double /*y*/, const int button, const int /*modifiers*/) const
     -> bool {
   if (button == MOUSE_BUTTON_LEFT) {
-    return registry_->get_system<AttackSystem>()->do_attack(player_id_,
-                                                            registry_->get_game_object_ids(GameObjectType::Enemy));
+    return registry_->get_system<AttackSystem>()->do_attack(player_id_, AttackType::Ranged);
   }
   return false;
 }

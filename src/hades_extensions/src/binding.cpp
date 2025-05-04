@@ -67,10 +67,9 @@ auto make_system_types()
 auto get_component_types()
     -> const std::unordered_map<pybind11::handle, std::type_index, py_handle_hash, py_handle_equal> & {
   static const auto component_types{
-      make_component_types<Armour, ArmourRegen, Attack, AttackCooldown, AttackRange, Damage, EffectApplier,
-                           FootprintInterval, FootprintLimit, Footprints, Health, Inventory, InventorySize,
-                           KeyboardMovement, KinematicComponent, MeleeAttackSize, Money, MovementForce, PythonSprite,
-                           StatusEffects, SteeringMovement, Upgrades, ViewDistance>()};
+      make_component_types<Armour, ArmourRegen, Attack, EffectApplier, FootprintInterval, FootprintLimit, Footprints,
+                           Health, Inventory, InventorySize, KeyboardMovement, KinematicComponent, Money, MovementForce,
+                           PythonSprite, StatusEffects, SteeringMovement, Upgrades, ViewDistance>()};
   return component_types;
 }
 
@@ -81,7 +80,7 @@ auto get_system_types()
     -> const std::unordered_map<pybind11::handle, std::function<std::shared_ptr<SystemBase>(const Registry &)>,
                                 py_handle_hash, py_handle_equal> & {
   static const auto system_types{
-      make_system_types<ArmourRegenSystem, AttackSystem, DamageSystem, EffectSystem, FootprintSystem, InventorySystem,
+      make_system_types<ArmourRegenSystem, AttackSystem, EffectSystem, FootprintSystem, InventorySystem,
                         KeyboardMovementSystem, PhysicsSystem, SteeringMovementSystem, UpgradeSystem>()};
   return system_types;
 }
@@ -233,10 +232,10 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "    The vector multiplied by the scalar.");
 
   // Add the enums
-  pybind11::enum_<AttackAlgorithm>(ecs, "AttackAlgorithm", "Stores the different types of attack algorithms available.")
-      .value("AreaOfEffect", AttackAlgorithm::AreaOfEffect)
-      .value("Melee", AttackAlgorithm::Melee)
-      .value("Ranged", AttackAlgorithm::Ranged);
+  pybind11::enum_<AttackType>(ecs, "AttackType", "Stores the different types of attacks available in the game.")
+      .value("Ranged", AttackType::Ranged)
+      .value("Melee", AttackType::Melee)
+      .value("Special", AttackType::Special);
   pybind11::enum_<GameObjectType>(ecs, "GameObjectType", "Stores the different types of game objects available.")
       .value("Bullet", GameObjectType::Bullet)
       .value("Enemy", GameObjectType::Enemy)
@@ -418,16 +417,10 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Get the maximum level of the stat.\n\n"
            "Returns:\n"
            "    The maximum level of the stat.");
-  const pybind11::class_<AttackCooldown, Stat, std::shared_ptr<AttackCooldown>> attack_cooldown(
-      components, "AttackCooldown", "Allows a game object to have an attack cooldown.");
-  const pybind11::class_<AttackRange, Stat, std::shared_ptr<AttackRange>> attack_range(
-      components, "AttackRange", "Allows a game object to have an attack range.");
   const pybind11::class_<Armour, Stat, std::shared_ptr<Armour>> armour(components, "Armour",
                                                                        "Allows a game object to have an armour stat.");
   const pybind11::class_<ArmourRegen, Stat, std::shared_ptr<ArmourRegen>> armour_regen(
       components, "ArmourRegen", "Allows a game object to regenerate armour.");
-  const pybind11::class_<Damage, Stat, std::shared_ptr<Damage>> damage(
-      components, "Damage", "Allows a game object to deal damage to other game objects.");
   const pybind11::class_<FootprintInterval, Stat, std::shared_ptr<FootprintInterval>> footprint_interval(
       components, "FootprintInterval", "Allows a game object to determine the time interval between footprints.");
   const pybind11::class_<FootprintLimit, Stat, std::shared_ptr<FootprintLimit>> footprint_limit(
@@ -436,8 +429,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
                                                                        "Allows a game object to have a health stat.");
   const pybind11::class_<InventorySize, Stat, std::shared_ptr<InventorySize>> inventory_size(
       components, "InventorySize", "Allows a game object to change the size of its inventory.");
-  const pybind11::class_<MeleeAttackSize, Stat, std::shared_ptr<MeleeAttackSize>> melee_attack_size(
-      components, "MeleeAttackSize", "Allows a game object to have a melee attack size.");
   const pybind11::class_<MovementForce, Stat, std::shared_ptr<MovementForce>> movement_force(
       components, "MovementForce", "Allows a game object to determine how fast it can move.");
   const pybind11::class_<ViewDistance, Stat, std::shared_ptr<ViewDistance>> view_distance(
@@ -446,9 +437,14 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   // Add the components
   pybind11::class_<Attack, ComponentBase, std::shared_ptr<Attack>>(components, "Attack",
                                                                    "Allows a game object to attack other game objects.")
-      .def_property_readonly("current_attack",
-                             [](const Attack &attack) { return attack.attack_algorithms[attack.attack_state]; })
-      .def_readonly("time_since_last_attack", &Attack::time_since_last_attack);
+      .def_property_readonly("time_until_ranged_attack",
+                             [](const Attack &attack) {
+                               const auto *selected_ranged_attack{attack.get_selected_ranged_attack()};
+                               return std::max(0.0, selected_ranged_attack->cooldown.get_value() -
+                                                        selected_ranged_attack->time_since_last_use);
+                             })
+      .def("previous_ranged_attack", &Attack::previous_ranged_attack, "Switch to the previous ranged attack.")
+      .def("next_ranged_attack", &Attack::next_ranged_attack, "Switch to the next ranged attack.");
   pybind11::class_<StatusEffect>(components, "StatusEffect",
                                  "Represents a status effect that can be applied to a game object over time.")
       .def_readonly("effect_type", &StatusEffect::effect_type)
@@ -523,34 +519,13 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       systems, "ArmourRegenSystem", "Provides facilities to manipulate armour regen components.");
   pybind11::class_<AttackSystem, SystemBase, std::shared_ptr<AttackSystem>>(
       systems, "AttackSystem", "Provides facilities to manipulate attack components.")
-      .def("do_attack", &AttackSystem::do_attack, pybind11::arg("game_object_id"), pybind11::arg("targets"),
-           "Perform the currently selected attack algorithm.\n\n"
+      .def("do_attack", &AttackSystem::do_attack, pybind11::arg("game_object_id"), pybind11::arg("attack_type"),
+           "Perform an attack if possible.\n\n"
            "Args:\n"
            "    game_object_id: The ID of the game object to perform the attack for.\n"
-           "    targets: The targets to attack.\n\n"
+           "    attack_type: The type of attack to perform.\n\n"
            "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an attack or kinematic component.")
-      .def("previous_attack", &AttackSystem::previous_attack, pybind11::arg("game_object_id"),
-           "Select the previous attack algorithm.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to select the previous attack algorithm for.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an attack component.")
-      .def("next_attack", &AttackSystem::next_attack, pybind11::arg("game_object_id"),
-           "Select the next attack algorithm.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to select the next attack algorithm for.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have an attack component.");
-  pybind11::class_<DamageSystem, SystemBase, std::shared_ptr<DamageSystem>>(
-      systems, "DamageSystem", "Provides facilities to damage game objects.")
-      .def("deal_damage", &DamageSystem::deal_damage,
-           "Deal damage to a game object.\n\n"
-           "Args:\n"
-           "    game_object_id: The ID of the game object to deal damage to.\n"
-           "    attacker_id: The game object ID of the attacker.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object does not exist or does not have a health component.");
+           "    RegistryError: If the game object does not exist or does not have an attack or kinematic component.");
   pybind11::class_<EffectSystem, SystemBase, std::shared_ptr<EffectSystem>>(
       systems, "EffectSystem", "Provides facilities to manipulate instant and status effects.")
       .def("apply_effects", &EffectSystem::apply_effects, pybind11::arg("game_object_id"),

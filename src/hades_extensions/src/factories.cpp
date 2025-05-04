@@ -16,6 +16,9 @@
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 namespace {
+// The velocity of the bullet.
+constexpr int BULLET_VELOCITY{1000};
+
 /// Get the hitboxes for the game objects.
 ///
 /// @return The hitboxes for the game objects.
@@ -29,7 +32,7 @@ auto get_hitboxes() -> auto & {
 /// @return The components for the bullet.
 const auto bullet_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<Damage>(10, -1),
+      std::make_shared<Bullet>(),
       std::make_shared<KinematicComponent>(),
       std::make_shared<PythonSprite>(),
   };
@@ -39,12 +42,12 @@ const auto bullet_factory{[](const int /*level*/) {
 ///
 /// @return The components for the enemy.
 const auto enemy_factory{[](const int /*level*/) {
+  const auto attack{std::make_shared<Attack>()};
+  attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(Stat{1, 3}, Stat{10, 3}, Stat{3 * SPRITE_SIZE, 3},
+                                                                 Stat{BULLET_VELOCITY, 1}));
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<Armour>(50, 5),
-      std::make_shared<Attack>(std::vector{AttackAlgorithm::Ranged}),
-      std::make_shared<AttackCooldown>(1, 3),
-      std::make_shared<AttackRange>(3 * SPRITE_SIZE, 3),
-      std::make_shared<Damage>(10, 3),
+      attack,
       std::make_shared<Health>(100, 5),
       std::make_shared<KinematicComponent>(get_hitboxes().at(GameObjectType::Enemy)),
       std::make_shared<MovementForce>(1000, 5),
@@ -91,13 +94,16 @@ const auto goal_factory{[](const int /*level*/) {
 ///
 /// @return The components for the player.
 const auto player_factory{[](const int /*level*/) {
+  const auto attack{std::make_shared<Attack>()};
+  attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(Stat{1, 3}, Stat{20, 3}, Stat{3 * SPRITE_SIZE, 3},
+                                                                 Stat{BULLET_VELOCITY, 1}));
+  attack->add_ranged_attack(std::make_unique<MultiBulletAttack>(Stat{1, 3}, Stat{10, 3}, Stat{3 * SPRITE_SIZE, 3},
+                                                                Stat{BULLET_VELOCITY, 1}, Stat{5, 3}));
+  attack->set_melee_attack({{1, 3}, {20, 3}, {3 * SPRITE_SIZE, 3}, {std::numbers::pi / 4, 3}});
+  attack->set_special_attack({{1, 3}, {20, 3}, {3 * SPRITE_SIZE, 3}});
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<Armour>(100, 5),
-      std::make_shared<Attack>(
-          std::vector{AttackAlgorithm::Ranged, AttackAlgorithm::Melee, AttackAlgorithm::AreaOfEffect}),
-      std::make_shared<AttackCooldown>(1, 3),
-      std::make_shared<AttackRange>(3 * SPRITE_SIZE, 3),
-      std::make_shared<Damage>(20, 3),
+      attack,
       std::make_shared<Footprints>(),
       std::make_shared<FootprintInterval>(0.5, 3),
       std::make_shared<FootprintLimit>(5, 3),
@@ -105,7 +111,6 @@ const auto player_factory{[](const int /*level*/) {
       std::make_shared<Inventory>(),
       std::make_shared<InventorySize>(30, 3),
       std::make_shared<KeyboardMovement>(),
-      std::make_shared<MeleeAttackSize>(std::numbers::pi / 4, 3),
       std::make_shared<Money>(),
       std::make_shared<MovementForce>(5000, 5),
       std::make_shared<PythonSprite>(),

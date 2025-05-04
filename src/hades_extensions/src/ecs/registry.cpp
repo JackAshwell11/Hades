@@ -9,13 +9,13 @@ namespace {
 // The percentage of velocity a game object will retain after a second.
 constexpr double DAMPING = 0.0001;
 
-/// Convert a Chipmunk2D data pointer to a game object ID.
+/// Convert a Chipmunk2D shape to a game object ID.
 ///
-/// @param data - The Chipmunk2D data pointer to convert.
+/// @param shape - The Chipmunk2D shape to convert.
 /// @return The game object ID.
-auto cpDataPointerToGameObjectID(void *data) -> GameObjectID {
+inline auto cpShapeToGameObjectID(cpShape *shape) -> GameObjectID {
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-  return static_cast<GameObjectID>(reinterpret_cast<uintptr_t>(data));
+  return static_cast<GameObjectID>(reinterpret_cast<uintptr_t>(cpShapeGetUserData(shape)));
 }
 
 /// The collision handler for checking if the player is inside a wall.
@@ -31,8 +31,8 @@ auto player_wall_collision_handler(cpArbiter *arbiter, cpSpace * /*space*/, void
   cpArbiterGetShapes(arbiter, &shape1, &shape2);
 
   // Delete the player if it is inside the wall
-  const auto player_id{cpDataPointerToGameObjectID(cpShapeGetUserData(shape1))};
-  const auto wall_id{cpDataPointerToGameObjectID(cpShapeGetUserData(shape2))};
+  const auto player_id{cpShapeToGameObjectID(shape1)};
+  const auto wall_id{cpShapeToGameObjectID(shape2)};
   const auto player_position{cpBodyGetPosition(*registry->get_component<KinematicComponent>(player_id)->body)};
   if (const auto wall_position{cpBodyGetPosition(*registry->get_component<KinematicComponent>(wall_id)->body)};
       cpvdist(player_position, wall_position) < (SPRITE_SIZE / 2)) {
@@ -136,7 +136,7 @@ auto Registry::get_game_object_type(const GameObjectID game_object_id) const -> 
   return game_object_types_.at(game_object_id);
 }
 
-auto Registry::get_game_object_ids(const GameObjectType game_object_type) -> std::vector<GameObjectID> {
+auto Registry::get_game_object_ids(const GameObjectType game_object_type) const -> std::vector<GameObjectID> {
   const auto ids{game_object_ids_.find(game_object_type)};
   return ids != game_object_ids_.end() ? ids->second : std::vector<GameObjectID>{};
 }
@@ -168,12 +168,18 @@ void Registry::createBulletCollisionHandler(GameObjectType game_object_type) {
     cpArbiterGetShapes(arbiter, &shape1, &shape2);
 
     // Get the game object IDs of the shapes
-    const auto game_object_one{cpDataPointerToGameObjectID(cpShapeGetUserData(shape1))};
-    const auto game_object_two{cpDataPointerToGameObjectID(cpShapeGetUserData(shape2))};
+    const auto game_object_one{cpShapeToGameObjectID(shape1)};
+    const auto game_object_two{cpShapeToGameObjectID(shape2)};
+
+    // Check if we should handle this collision or not
+    const auto bullet{registry->get_component<Bullet>(game_object_two)};
+    if (bullet->source_type == registry->get_game_object_type(game_object_one)) {
+      return cpTrue;
+    }
 
     // Deal damage to the first shape if it is an entity
     if (static_cast<GameObjectType>(cpShapeGetCollisionType(shape1)) != GameObjectType::Wall) {
-      registry->get_system<DamageSystem>()->deal_damage(game_object_one, game_object_two);
+      registry->get_system<DamageSystem>()->deal_damage(game_object_one, bullet->damage);
     }
 
     // Delete the bullet

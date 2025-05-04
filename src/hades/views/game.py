@@ -28,7 +28,7 @@ from hades_extensions.ecs.components import (
     PythonSprite,
     StatusEffects,
 )
-from hades_extensions.ecs.systems import AttackSystem, InventorySystem, PhysicsSystem
+from hades_extensions.ecs.systems import InventorySystem, PhysicsSystem
 
 __all__ = ("Game",)
 
@@ -188,15 +188,12 @@ class Game(UIView):
                     self.nearest_item,
                 )
             case key.Z:
-                self.registry.get_system(AttackSystem).previous_attack(self.player)
-                self.game_ui.set_attack_algorithm(
-                    self.registry.get_component(self.player, Attack).current_attack,
-                )
+                self.registry.get_component(
+                    self.player,
+                    Attack,
+                ).previous_ranged_attack()
             case key.X:
-                self.registry.get_system(AttackSystem).next_attack(self.player)
-                self.game_ui.set_attack_algorithm(
-                    self.registry.get_component(self.player, Attack).current_attack,
-                )
+                self.registry.get_component(self.player, Attack).next_ranged_attack()
             case key.I:
                 self.window.show_view(self.window.views["InventoryView"])
 

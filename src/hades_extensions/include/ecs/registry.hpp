@@ -155,7 +155,7 @@ class Registry {
   ///
   /// @param game_object_type - The game object type.
   /// @return The game object IDs of the game object type.
-  [[nodiscard]] auto get_game_object_ids(GameObjectType game_object_type) -> std::vector<GameObjectID>;
+  [[nodiscard]] auto get_game_object_ids(GameObjectType game_object_type) const -> std::vector<GameObjectID>;
 
   /// Mark a game object for deletion after the next update step
   ///
