@@ -14,16 +14,16 @@ namespace {
 constexpr std::array COLLECTIBLE_TYPES{GameObjectType::HealthPotion};
 }  // namespace
 
-auto InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, const GameObjectID item) const -> bool {
+void InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, const GameObjectID item) const {
   // Check if the item is a valid game object or not
   if (!get_registry()->has_game_object(item)) {
-    return false;
+    return;
   }
 
   // Check if the item is a collectible item or not
   if (const auto item_type{get_registry()->get_game_object_type(item)};
       std::ranges::find(COLLECTIBLE_TYPES, item_type) == COLLECTIBLE_TYPES.end()) {
-    return false;
+    return;
   }
 
   // Check if the inventory is full or not
@@ -33,23 +33,19 @@ auto InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, c
     throw std::runtime_error("The inventory is full.");
   }
 
-  // Add the item to the inventory and notify the callbacks
+  // Add the item to the inventory, set the collected flag to prevent collision detection, and notify the callbacks
   inventory->items.push_back(item);
-  get_registry()->notify<EventType::InventoryUpdate>(game_object_id);
-  get_registry()->notify<EventType::SpriteRemoval>(item);
-
-  // If the item has a kinematic component, set the collected flag to true to prevent collision detection
   if (get_registry()->has_component(item, typeid(KinematicComponent))) {
     get_registry()->get_component<KinematicComponent>(item)->collected = true;
   }
-  return true;
+  get_registry()->notify<EventType::InventoryUpdate>(game_object_id);
+  get_registry()->notify<EventType::SpriteRemoval>(item);
 }
 
-auto InventorySystem::remove_item_from_inventory(const GameObjectID game_object_id, const GameObjectID item_id) const
-    -> bool {
+void InventorySystem::remove_item_from_inventory(const GameObjectID game_object_id, const GameObjectID item_id) const {
   // Check if the item is a valid game object or not
   if (!get_registry()->has_game_object(item_id)) {
-    return false;
+    return;
   }
 
   // Check if the inventory is empty or not
@@ -57,7 +53,7 @@ auto InventorySystem::remove_item_from_inventory(const GameObjectID game_object_
   const auto index{std::ranges::find(inventory->items.begin(), inventory->items.end(), item_id) -
                    inventory->items.begin()};
   if (index < 0 || index >= static_cast<int>(inventory->items.size())) {
-    return false;
+    return;
   }
 
   // Remove the item from the inventory, delete the game object, and notify the callbacks
@@ -65,13 +61,12 @@ auto InventorySystem::remove_item_from_inventory(const GameObjectID game_object_
   get_registry()->delete_game_object(item_id);
   get_registry()->notify<EventType::InventoryUpdate>(game_object_id);
   get_registry()->notify<EventType::SpriteRemoval>(item_id);
-  return true;
 }
 
-auto InventorySystem::use_item(const GameObjectID target_id, const GameObjectID item_id) const -> bool {
+void InventorySystem::use_item(const GameObjectID target_id, const GameObjectID item_id) const {
   // Check if the item is a valid game object or not
   if (!get_registry()->has_game_object(item_id)) {
-    return false;
+    return;
   }
 
   // Check whether the item can be used, if so, use it
@@ -82,7 +77,6 @@ auto InventorySystem::use_item(const GameObjectID target_id, const GameObjectID 
 
   // If the item is used, remove it from the inventory and return the result
   if (used) {
-    [[maybe_unused]] const auto item{remove_item_from_inventory(target_id, item_id)};
+    remove_item_from_inventory(target_id, item_id);
   }
-  return used;
 }

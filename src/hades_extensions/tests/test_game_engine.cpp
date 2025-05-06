@@ -1,6 +1,7 @@
 // Local headers
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/movements.hpp"
+#include "ecs/systems/physics.hpp"
 #include "factories.hpp"
 #include "game_engine.hpp"
 #include "macros.hpp"
@@ -84,6 +85,43 @@ TEST_F(GameEngineFixture, TestGameEngineGenerateEnemyLimit) {
   game_engine.get_registry()->add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.generate_enemy();
   ASSERT_EQ(enemy_created, -1);
+}
+
+/// Test that the game engine processes an update correctly when there is no nearest item.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateNoNearestItem) {
+  game_engine.create_game_objects();
+  game_engine.on_update(0);
+  ASSERT_EQ(game_engine.get_nearest_item(), -1);
+}
+
+/// Test that the game engine processes an update correctly when the nearest item is not a goal.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
+  game_engine.create_game_objects();
+  const auto item_id{game_engine.get_registry()->get_game_object_ids(GameObjectType::HealthPotion).front()};
+  const auto item_pos{cpBodyGetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(item_id)->body)};
+  cpBodySetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(game_engine.get_player_id())->body,
+                    item_pos);
+  game_engine.on_update(0);
+  ASSERT_EQ(game_engine.get_nearest_item(), item_id);
+}
+
+/// Test that the game engine processes an update correctly when the nearest item is a goal.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoal) {
+  game_engine.create_game_objects();
+  const auto goal_id{game_engine.get_registry()->get_game_object_ids(GameObjectType::Goal).front()};
+  const auto goal_pos{cpBodyGetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(goal_id)->body)};
+  cpBodySetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(game_engine.get_player_id())->body,
+                    goal_pos);
+  game_engine.on_update(0);
+  ASSERT_FALSE(game_engine.get_registry()->has_game_object(game_engine.get_player_id()));
+}
+
+/// Test that the game engine processes a fixed update correctly.
+TEST_F(GameEngineFixture, TestGameEngineOnFixedUpdateDeletePlayer) {
+  game_engine.create_game_objects();
+  game_engine.get_registry()->mark_for_deletion(game_engine.get_player_id());
+  game_engine.on_fixed_update(0.0);
+  ASSERT_FALSE(game_engine.get_registry()->has_game_object(game_engine.get_player_id()));
 }
 
 /// Test that the game engine processes a 'W' key press correctly.

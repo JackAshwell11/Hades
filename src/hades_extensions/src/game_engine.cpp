@@ -3,6 +3,7 @@
 
 // Std headers
 #include <algorithm>
+#include <utility>
 
 // Local headers
 #include "ecs/systems/armour_regen.hpp"
@@ -68,7 +69,7 @@ auto GameEngine::get_level_constants() -> std::tuple<int, int, int> {
 void GameEngine::create_game_objects() {
   // Create the game objects ignoring empty and obstacle tiles
   const auto &grid{*generator_.get_grid().grid};
-  for (auto i{0}; i < static_cast<int>(grid.size()); i++) {
+  for (auto i{0}; std::cmp_less(i, grid.size()); i++) {
     const auto tile_type{grid[i]};
     if (tile_type == TileType::Empty || tile_type == TileType::Obstacle) {
       continue;
@@ -105,7 +106,7 @@ void GameEngine::generate_enemy(const double /*delta_time*/) {
   // Collect all floor positions and shuffle them
   const auto &grid{*generator_.get_grid().grid};
   std::vector<cpVect> floor_positions;
-  for (auto i{0}; i < static_cast<int>(grid.size()); i++) {
+  for (auto i{0}; std::cmp_less(i, grid.size()); i++) {
     if (grid[i] == TileType::Floor) {
       const auto [x, y]{generator_.get_grid().convert_position(i)};
       floor_positions.push_back(cpv(x, y));
@@ -131,6 +132,15 @@ void GameEngine::generate_enemy(const double /*delta_time*/) {
     return;
   }
 }
+
+void GameEngine::on_update(const double /*delta_time*/) {
+  nearest_item_ = registry_->get_system<PhysicsSystem>()->get_nearest_item(player_id_);
+  if (nearest_item_ != -1 && registry_->get_game_object_type(nearest_item_) == GameObjectType::Goal) {
+    registry_->delete_game_object(player_id_);
+  }
+}
+
+void GameEngine::on_fixed_update(const double delta_time) const { registry_->update(delta_time); }
 
 void GameEngine::on_key_press(const int symbol, const int /*modifiers*/) const {
   const auto player_movement{registry_->get_component<KeyboardMovement>(player_id_)};
@@ -166,6 +176,18 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) const
       break;
     case KEY_D:
       player_movement->moving_east = false;
+      break;
+    case KEY_C:
+      registry_->get_system<InventorySystem>()->add_item_to_inventory(player_id_, nearest_item_);
+      break;
+    case KEY_E:
+      registry_->get_system<InventorySystem>()->use_item(player_id_, nearest_item_);
+      break;
+    case KEY_Z:
+      registry_->get_component<Attack>(player_id_)->previous_ranged_attack();
+      break;
+    case KEY_X:
+      registry_->get_component<Attack>(player_id_)->next_ranged_attack();
       break;
     default:
       break;

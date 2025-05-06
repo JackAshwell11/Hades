@@ -31,20 +31,17 @@ struct InventorySystem final : SystemBase {
   /// @param game_object_id - The ID of the game object to add the item to.
   /// @param item - The item to add to the inventory.
   /// @throws runtime_error - If the inventory is full.
-  /// @return Whether the item was added or not.
-  [[nodiscard]] auto add_item_to_inventory(GameObjectID game_object_id, GameObjectID item) const -> bool;
+  void add_item_to_inventory(GameObjectID game_object_id, GameObjectID item) const;
 
   /// Remove an item from the inventory of a game object.
   ///
   /// @param game_object_id - The ID of the game object to remove the item from.
   /// @param item_id - The ID of the item to remove from the inventory.
-  /// @return Whether the item was removed or not.
-  [[nodiscard]] auto remove_item_from_inventory(GameObjectID game_object_id, GameObjectID item_id) const -> bool;
+  void remove_item_from_inventory(GameObjectID game_object_id, GameObjectID item_id) const;
 
   /// Use an item from the inventory.
   ///
   /// @param target_id - The game object ID of the game object to use the item on.
   /// @param item_id - The game object ID of the item to use.
-  /// @return Whether the item was used or not.
-  [[nodiscard]] auto use_item(GameObjectID target_id, GameObjectID item_id) const -> bool;
+  void use_item(GameObjectID target_id, GameObjectID item_id) const;
 };

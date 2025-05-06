@@ -200,6 +200,13 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemMultipleItems) {
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), 2);
 }
 
+/// Test that getting the nearest item works if the item is already collected.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemCollected) {
+  create_objects(GameObjectType::HealthPotion, {{.x = 32, .y = 32}});
+  registry.get_component<KinematicComponent>(1)->collected = true;
+  ASSERT_EQ(get_physics_system()->get_nearest_item(0), -1);
+}
+
 /// Test that no raycasts hit when getting the distances to the walls when there are no walls.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesNoWalls) {
   const std::vector expected_result(8, cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE));

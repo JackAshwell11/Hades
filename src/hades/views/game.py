@@ -22,13 +22,11 @@ from hades.views.player import PlayerView
 from hades_extensions import GameEngine
 from hades_extensions.ecs import EventType, GameObjectType, Registry
 from hades_extensions.ecs.components import (
-    Attack,
     KinematicComponent,
     Money,
     PythonSprite,
     StatusEffects,
 )
-from hades_extensions.ecs.systems import InventorySystem, PhysicsSystem
 
 __all__ = ("Game",)
 
@@ -50,7 +48,6 @@ class Game(UIView):
         game_engine: The engine for the game which manages the game
         registry: The registry for the game which manages the game objects, components,
         and systems.
-        nearest_item: The nearest item to the player.
         player: The ID of the player game object.
     """
 
@@ -62,7 +59,6 @@ class Game(UIView):
         self.game_ui: GameUI = GameUI(self.ui)
         self.game_engine: GameEngine = cast("GameEngine", None)
         self.registry: Registry = cast("Registry", None)
-        self.nearest_item: int = -1
         self.player: int = -1
 
         # Initialise the views
@@ -112,6 +108,8 @@ class Game(UIView):
         logger.debug("Scheduled enemy generation")
 
         # Add the game engine's handlers to the window
+        self.window.push_handlers(self.game_engine.on_update)
+        self.window.push_handlers(self.game_engine.on_fixed_update)
         self.window.push_handlers(self.game_engine.on_key_press)
         self.window.push_handlers(self.game_engine.on_key_release)
         self.window.push_handlers(self.game_engine.on_mouse_press)
@@ -128,40 +126,18 @@ class Game(UIView):
         """Process movement and game logic."""
         # Update the entities and the game UI elements
         self.sprites.update()
-        self.nearest_item = self.registry.get_system(PhysicsSystem).get_nearest_item(
-            self.player,
-        )
         self.game_ui.update_progress_bars(self.game_camera)
-        self.game_ui.update_info_box(self.registry, self.nearest_item)
+        self.game_ui.update_info_box(self.registry, self.game_engine.nearest_item)
         self.game_ui.update_money(self.registry.get_component(self.player, Money).money)
         self.game_ui.update_status_effects(
             self.registry.get_component(self.player, StatusEffects).active_effects,
         )
-
-        # Check if the player has reached the goal
-        if (
-            self.nearest_item != -1
-            and self.registry.get_component(
-                self.nearest_item,
-                PythonSprite,
-            ).sprite.game_object_type
-            == GameObjectType.Goal
-        ):
-            app.exit()
 
         # Position the camera on the player
         self.game_camera.position = self.registry.get_component(
             self.player,
             KinematicComponent,
         ).get_position()
-
-    def on_fixed_update(self: Game, delta_time: float) -> None:
-        """Process fixed update functionality.
-
-        Args:
-            delta_time: Time interval since the last time the function was called.
-        """
-        self.registry.update(delta_time)
 
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.
@@ -177,23 +153,6 @@ class Game(UIView):
             modifiers,
         )
         match symbol:
-            case key.C:
-                self.registry.get_system(InventorySystem).add_item_to_inventory(
-                    self.player,
-                    self.nearest_item,
-                )
-            case key.E:
-                self.registry.get_system(InventorySystem).use_item(
-                    self.player,
-                    self.nearest_item,
-                )
-            case key.Z:
-                self.registry.get_component(
-                    self.player,
-                    Attack,
-                ).previous_ranged_attack()
-            case key.X:
-                self.registry.get_component(self.player, Attack).next_ranged_attack()
             case key.I:
                 self.window.show_view(self.window.views["InventoryView"])
 

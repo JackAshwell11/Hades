@@ -135,6 +135,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    seed: The seed to use for the random number generator.")
       .def_property_readonly("player_id", &GameEngine::get_player_id)
       .def_property_readonly("level_constants", &GameEngine::get_level_constants)
+      .def_property_readonly("nearest_item", &GameEngine::get_nearest_item)
       .def("get_registry", &GameEngine::get_registry,
            "Get the registry.\n\n"
            "Returns:\n"
@@ -146,6 +147,14 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    The game objects.")
       .def("generate_enemy", &GameEngine::generate_enemy, pybind11::arg("delta_time"),
            "Generate an enemy.\n\n"
+           "Args:\n"
+           "    delta_time: The time interval since the last time the function was called.")
+      .def("on_update", &GameEngine::on_update, pybind11::arg("delta_time"),
+           "Process update logic for the game engine.\n\n"
+           "Args:\n"
+           "    delta_time: The time interval since the last time the function was called.")
+      .def("on_fixed_update", &GameEngine::on_fixed_update, pybind11::arg("delta_time"),
+           "Process fixed update logic for the game engine.\n\n"
            "Args:\n"
            "    delta_time: The time interval since the last time the function was called.")
       .def("on_key_press", &GameEngine::on_key_press, pybind11::arg("symbol"), pybind11::arg("modifiers"),

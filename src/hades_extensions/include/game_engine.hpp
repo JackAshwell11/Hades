@@ -9,16 +9,23 @@
 #include "generation/map.hpp"
 
 // The keys for interacting with the game engine.
-constexpr int KEY_W{119};
 constexpr int KEY_A{97};
-constexpr int KEY_S{115};
+constexpr int KEY_C{99};
 constexpr int KEY_D{100};
+constexpr int KEY_E{101};
+constexpr int KEY_S{115};
+constexpr int KEY_W{119};
+constexpr int KEY_X{120};
+constexpr int KEY_Z{122};
 constexpr int MOUSE_BUTTON_LEFT{1};
 
 /// Manages the interaction between Python and C++.
 class GameEngine {
  public:
   /// Initialise the object.
+  ///
+  /// @param level - The level of the game.
+  /// @param seed - The seed for the random generator.
   explicit GameEngine(int level, std::optional<unsigned int> seed = std::nullopt);
 
   /// Get the registry.
@@ -36,6 +43,11 @@ class GameEngine {
   /// @return The level constants.
   [[nodiscard]] auto get_level_constants() -> std::tuple<int, int, int>;
 
+  /// Get the nearest item to the player.
+  ///
+  /// @return The nearest item to the player.
+  [[nodiscard]] auto get_nearest_item() const -> GameObjectID { return nearest_item_; }
+
   /// Create the game objects from the generator.
   ///
   /// @details If this is called twice, the game objects will be duplicated.
@@ -46,6 +58,16 @@ class GameEngine {
   /// @param delta_time - The time interval since the last time the function was called.
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   void generate_enemy(double delta_time = 1.0 / 60.0);
+
+  /// Process update logic for the game engine.
+  ///
+  /// @param delta_time - The time interval since the last time the function was called.
+  void on_update(double delta_time);
+
+  /// Process fixed update logic for the game engine.
+  ///
+  /// @param delta_time - The time interval since the last time the function was called.
+  void on_fixed_update(double delta_time) const;
 
   /// Process key press functionality.
   ///
@@ -93,4 +115,7 @@ class GameEngine {
 
   /// The player's game object ID.
   GameObjectID player_id_;
+
+  /// The nearest item to the player.
+  GameObjectID nearest_item_{-1};
 };
