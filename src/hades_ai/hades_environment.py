@@ -23,7 +23,6 @@ from hades_extensions.ecs import (
     GameObjectType,
     Registry,
     RegistryError,
-    Vec2d,
 )
 from hades_extensions.ecs.components import Attack, KinematicComponent
 from hades_extensions.ecs.systems import PhysicsSystem
@@ -263,12 +262,9 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         )
         wall_distances = np.linalg.norm(
             np.array(
-                [
-                    wall.pos
-                    for wall in self.registry.get_system(
-                        PhysicsSystem,
-                    ).get_wall_distances(Vec2d(*current_position))
-                ],
+                self.registry.get_system(PhysicsSystem).get_wall_distances(
+                    tuple(current_position),
+                ),
             )
             - current_position,
             axis=1,
@@ -474,7 +470,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
             self.game_engine.generate_enemy(0)
             current_time = time.time()
             if (current_time - self.last_update_time) >= UPDATE_RATE:
-                self.registry.update(UPDATE_RATE)
+                self.game_engine.on_fixed_update(UPDATE_RATE)
                 self.last_update_time = current_time
 
     def close(self: HadesEnvironment) -> None:

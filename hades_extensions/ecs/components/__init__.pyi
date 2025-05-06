@@ -1,10 +1,12 @@
+# Builtin
+from collections.abc import Callable
+
 # Custom
 from hades.sprite import HadesSprite
-from hades_extensions.ecs import (
-    ActionFunction,
-    ComponentBase,
-    StatusEffectType,
-)
+from hades_extensions.ecs import ComponentBase, StatusEffectType
+
+# Define the action function for callables
+type ActionFunction = Callable[[int], float]
 
 class Stat(ComponentBase):
     def get_value(self: Stat) -> float: ...
@@ -24,10 +26,6 @@ class Attack(ComponentBase):
     def previous_ranged_attack(self: Attack) -> None: ...
     def next_ranged_attack(self: Attack) -> None: ...
 
-class EffectApplier(ComponentBase): ...
-class FootprintInterval(Stat): ...
-class FootprintLimit(Stat): ...
-class Footprints(ComponentBase): ...
 class Health(Stat): ...
 
 class Inventory(ComponentBase):
@@ -36,12 +34,6 @@ class Inventory(ComponentBase):
 
 class InventorySize(Stat): ...
 
-class KeyboardMovement(ComponentBase):
-    moving_north: bool
-    moving_east: bool
-    moving_south: bool
-    moving_west: bool
-
 class KinematicComponent(ComponentBase):
     def get_position(self: KinematicComponent) -> tuple[float, float]: ...
     def get_velocity(self: KinematicComponent) -> tuple[float, float]: ...
@@ -49,8 +41,6 @@ class KinematicComponent(ComponentBase):
 
 class Money(ComponentBase):
     money: int
-
-class MovementForce(Stat): ...
 
 class PythonSprite(ComponentBase):
     sprite: HadesSprite
@@ -67,13 +57,8 @@ class StatusEffects(ComponentBase):
     @property
     def active_effects(self: StatusEffects) -> list[StatusEffect]: ...
 
-class SteeringMovement(ComponentBase):
-    target_id: int
-
 class Upgrades(ComponentBase):
     @property
     def upgrades(
         self: Upgrades,
     ) -> dict[type[Stat], tuple[ActionFunction, ActionFunction]]: ...
-
-class ViewDistance(Stat): ...

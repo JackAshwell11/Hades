@@ -1,5 +1,3 @@
-# Create the C++ library which will be used for the tests and the Python module and link
-# it against Chipmunk
 add_library(${CPP_LIB} STATIC
         ${CMAKE_SOURCE_DIR}/src/ecs/registry.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/steering.cpp
@@ -24,13 +22,3 @@ target_link_libraries(${CPP_LIB}
         PUBLIC chipmunk2d::chipmunk2d
         PRIVATE pybind11::module
 )
-
-# Create the Python module
-if (DO_PYTHON)
-    message(STATUS "Python bindings enabled (DO_PYTHON is set)")
-    pybind11_add_module(${PY_MODULE} ${CMAKE_SOURCE_DIR}/src/binding.cpp)
-    target_link_libraries(${PY_MODULE} PRIVATE ${CPP_LIB})
-    install(TARGETS ${PY_MODULE} LIBRARY DESTINATION .)
-else ()
-    message(STATUS "Python bindings disabled (DO_PYTHON is not set)")
-endif ()

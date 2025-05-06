@@ -51,7 +51,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from hades.sprite import HadesSprite
-    from hades_extensions.ecs import ActionFunction
+    from hades_extensions.ecs.components import ActionFunction
 
 __all__ = (
     "InventoryItemButton",

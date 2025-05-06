@@ -1,4 +1,3 @@
-# Create an executable from our test code and link it against GTest and the C++ library
 add_executable(${TEST_MODULE}
         ${CMAKE_SOURCE_DIR}/tests/ecs/test_registry.cpp
         ${CMAKE_SOURCE_DIR}/tests/ecs/test_steering.cpp
@@ -21,6 +20,4 @@ target_link_libraries(${TEST_MODULE}
         PRIVATE ${CPP_LIB}
         PRIVATE GTest::gtest_main
 )
-
-# Add the executable as a test to CTest
 add_test(NAME Tests COMMAND ${TEST_MODULE})
