@@ -13,7 +13,7 @@ constexpr double DAMPING = 0.0001;
 ///
 /// @param shape - The Chipmunk2D shape to convert.
 /// @return The game object ID.
-inline auto cpShapeToGameObjectID(cpShape *shape) -> GameObjectID {
+auto cpShapeToGameObjectID(cpShape *shape) -> GameObjectID {
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   return static_cast<GameObjectID>(reinterpret_cast<uintptr_t>(cpShapeGetUserData(shape)));
 }
