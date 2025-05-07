@@ -10,6 +10,7 @@ set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/conan_pro
 
 # Define custom options
 set(ENABLE_COVERAGE ON CACHE BOOL "Enable coverage reporting for GCC/Clang")
+set(ENABLE_SANITIZERS ON CACHE BOOL "Enable sanitizers for GCC/Clang")
 set(DO_PYTHON ON CACHE BOOL "Enable Python bindings")
 set(DO_TESTS ON CACHE BOOL "Enable testing")
 
@@ -39,13 +40,26 @@ endif ()
 if (ENABLE_COVERAGE)
     if (NOT MSVC)
         message(STATUS "Coverage enabled (compiler is GCC/Clang)")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+        add_compile_options(-fprofile-arcs -ftest-coverage)
+        add_link_options(-fprofile-arcs -ftest-coverage)
     else ()
         message(STATUS "Coverage disabled (compiler is not GCC/Clang)")
     endif ()
 else ()
     message(STATUS "Coverage disabled (ENABLE_COVERAGE is not set)")
+endif ()
+
+# Enable sanitizers if supported by the compiler and enabled by the user
+if (ENABLE_SANITIZERS)
+    if (NOT MSVC)
+        message(STATUS "Sanitizers enabled (compiler is GCC/Clang)")
+        add_compile_options(-fsanitize=address,undefined)
+        add_link_options(-fsanitize=address,undefined)
+    else ()
+        message(STATUS "Sanitizers disabled (compiler is not GCC/Clang)")
+    endif ()
+else ()
+    message(STATUS "Sanitizers disabled (ENABLE_SANITIZERS is not set)")
 endif ()
 
 # Add the subdirectories for the different parts of the project

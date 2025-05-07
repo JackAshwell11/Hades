@@ -18,7 +18,8 @@
       "binaryDir": "${sourceDir}/build-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "ENABLE_COVERAGE": "OFF"
+        "ENABLE_COVERAGE": "OFF",
+        "ENABLE_SANITIZERS": "OFF"
       },
       "description": "Release build",
       "generator": "Ninja",
