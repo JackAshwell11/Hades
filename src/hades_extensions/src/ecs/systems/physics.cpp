@@ -1,9 +1,6 @@
 // Related header
 #include "ecs/systems/physics.hpp"
 
-// Std headers
-#include <algorithm>
-
 // Local headers
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/movements.hpp"

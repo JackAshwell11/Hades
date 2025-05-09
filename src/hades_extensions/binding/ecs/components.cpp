@@ -50,13 +50,6 @@ void bind_components(const pybind11::module_ &module) {
                              })
       .def("previous_ranged_attack", &Attack::previous_ranged_attack, "Switch to the previous ranged attack.")
       .def("next_ranged_attack", &Attack::next_ranged_attack, "Switch to the next ranged attack.");
-  pybind11::class_<StatusEffect>(module, "StatusEffect",
-                                 "Represents a status effect that can be applied to a game object over time.")
-      .def_readonly("effect_type", &StatusEffect::effect_type)
-      .def_readonly("duration", &StatusEffect::duration)
-      .def_property_readonly("target_component", [](const StatusEffect &status_effect) {
-        return get_python_type(status_effect.target_component);
-      });
   pybind11::class_<Inventory, ComponentBase, std::shared_ptr<Inventory>>(
       module, "Inventory", "Allows a game object to have a fixed size inventory.")
       .def_readonly("items", &Inventory::items);
@@ -93,9 +86,6 @@ void bind_components(const pybind11::module_ &module) {
   pybind11::class_<PythonSprite, ComponentBase, std::shared_ptr<PythonSprite>>(
       module, "PythonSprite", "Allows a game object to hold a reference to the Python sprite object.")
       .def_readwrite("sprite", &PythonSprite::sprite);
-  pybind11::class_<StatusEffects, ComponentBase, std::shared_ptr<StatusEffects>>(
-      module, "StatusEffects", "Allows a game object to have status effects applied to it.")
-      .def_readonly("active_effects", &StatusEffects::active_effects);
   pybind11::class_<Upgrades, ComponentBase, std::shared_ptr<Upgrades>>(module, "Upgrades",
                                                                        "Allows a game object to be upgraded.")
       .def_property_readonly("upgrades", [](const Upgrades &upgrades) {

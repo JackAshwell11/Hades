@@ -3,7 +3,7 @@ from collections.abc import Callable
 
 # Custom
 from hades.sprite import HadesSprite
-from hades_extensions.ecs import ComponentBase, StatusEffectType
+from hades_extensions.ecs import ComponentBase
 
 # Define the action function for callables
 type ActionFunction = Callable[[int], float]
@@ -44,18 +44,6 @@ class Money(ComponentBase):
 
 class PythonSprite(ComponentBase):
     sprite: HadesSprite
-
-class StatusEffect:
-    @property
-    def effect_type(self: StatusEffect) -> StatusEffectType: ...
-    @property
-    def duration(self: StatusEffect) -> float: ...
-    @property
-    def target_component(self: StatusEffect) -> type[ComponentBase]: ...
-
-class StatusEffects(ComponentBase):
-    @property
-    def active_effects(self: StatusEffects) -> list[StatusEffect]: ...
 
 class Upgrades(ComponentBase):
     @property
