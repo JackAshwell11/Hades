@@ -2,7 +2,6 @@
 #include "game_engine.hpp"
 
 // Std headers
-#include <algorithm>
 #include <utility>
 
 // Local headers

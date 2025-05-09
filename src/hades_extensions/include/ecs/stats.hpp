@@ -1,6 +1,9 @@
 // Ensure this file is only included once
 #pragma once
 
+// Std headers
+#include <algorithm>
+
 // Local headers
 #include "ecs/types.hpp"
 
@@ -21,7 +24,7 @@ class Stat : public ComponentBase {
   /// Set the value of the stat.
   ///
   /// @param new_value - The new value of the stat.
-  void set_value(const double new_value) { value_ = std::max(std::min(new_value, max_value_), 0.0); }
+  void set_value(const double new_value) { value_ = std::clamp(new_value, 0.0, max_value_); }
 
   /// Get the maximum value of the stat.
   ///

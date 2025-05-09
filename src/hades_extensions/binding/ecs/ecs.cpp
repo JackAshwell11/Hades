@@ -19,7 +19,8 @@ void bind_ecs(const pybind11::module_ &module) {
       .value("GameObjectCreation", EventType::GameObjectCreation)
       .value("GameObjectDeath", EventType::GameObjectDeath)
       .value("InventoryUpdate", EventType::InventoryUpdate)
-      .value("SpriteRemoval", EventType::SpriteRemoval);
+      .value("SpriteRemoval", EventType::SpriteRemoval)
+      .value("StatusEffectUpdate", EventType::StatusEffectUpdate);
   pybind11::enum_<GameObjectType>(module, "GameObjectType", "Stores the different types of game objects available.")
       .value("Bullet", GameObjectType::Bullet)
       .value("Enemy", GameObjectType::Enemy)
@@ -31,7 +32,8 @@ void bind_ecs(const pybind11::module_ &module) {
       .value("Chest", GameObjectType::Chest);
   pybind11::enum_<StatusEffectType>(module, "StatusEffectType",
                                     "Stores the different types of status effects available.")
-      .value("Regeneration", StatusEffectType::Regeneration);
+      .value("Regeneration", StatusEffectType::Regeneration)
+      .value("Poison", StatusEffectType::Poison);
 
   // Add the registry class
   register_exception<RegistryError>(module, "RegistryError");
@@ -112,6 +114,9 @@ void bind_ecs(const pybind11::module_ &module) {
                 break;
               case EventType::SpriteRemoval:
                 registry.add_callback<EventType::SpriteRemoval>(callback);
+                break;
+              case EventType::StatusEffectUpdate:
+                registry.add_callback<EventType::StatusEffectUpdate>(callback);
                 break;
               default:
                 throw std::runtime_error("Unsupported event type.");
