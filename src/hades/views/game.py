@@ -15,18 +15,12 @@ from pyglet import app
 
 # Custom
 from hades.constructors import game_object_constructors
-from hades.progress_bar import ProgressBarGroup
 from hades.sprite import AnimatedSprite, HadesSprite
 from hades.views.game_ui import GameUI
 from hades.views.player import PlayerView
 from hades_extensions import GameEngine
 from hades_extensions.ecs import EventType, GameObjectType, Registry
-from hades_extensions.ecs.components import (
-    KinematicComponent,
-    Money,
-    PythonSprite,
-    StatusEffects,
-)
+from hades_extensions.ecs.components import KinematicComponent, PythonSprite
 
 __all__ = ("Game",)
 
@@ -94,13 +88,28 @@ class Game(UIView):
             EventType.InventoryUpdate,
             self.window.views["InventoryView"].on_update_inventory,
         )
-        logger.debug("Initialised registry callbacks")
+        self.registry.add_callback(
+            EventType.StatusEffectUpdate,
+            self.game_ui.on_status_effect_update,
+        )
+        self.registry.add_callback(
+            EventType.MoneyUpdate,
+            self.game_ui.on_money_update,
+        )
+        self.registry.add_callback(
+            EventType.AttackCooldownUpdate,
+            self.game_ui.on_attack_cooldown_update,
+        )
+        self.registry.add_callback(
+            EventType.RangedAttackSwitch,
+            self.game_ui.on_ranged_attack_switch,
+        )
 
         # Set up the UI then finish setting up the rest of the game
         self.game_ui.setup()
         logger.debug("Set up game UI")
         self.game_engine.create_game_objects()
-        logger.debug("Created game objects")
+        self.game_ui.player_id = self.game_engine.player_id
         self.player = self.game_engine.player_id
         self.window.views["InventoryView"].setup(self.registry, self.player)
         logger.debug("Set up inventory view")
@@ -124,20 +133,17 @@ class Game(UIView):
 
     def on_update(self: Game, _: float) -> None:
         """Process movement and game logic."""
-        # Update the entities and the game UI elements
+        # Update the entities
         self.sprites.update()
-        self.game_ui.update_progress_bars(self.game_camera)
-        self.game_ui.update_info_box(self.registry, self.game_engine.nearest_item)
-        self.game_ui.update_money(self.registry.get_component(self.player, Money).money)
-        self.game_ui.update_status_effects(
-            self.registry.get_component(self.player, StatusEffects).active_effects,
-        )
 
         # Position the camera on the player
         self.game_camera.position = self.registry.get_component(
             self.player,
             KinematicComponent,
         ).get_position()
+
+        # Update the UI elements
+        self.game_ui.update_progress_bars(self.game_camera)
 
     def on_key_release(self: Game, symbol: int, modifiers: int) -> None:
         """Process key release functionality.
@@ -209,16 +215,9 @@ class Game(UIView):
         self.sprites.append(sprite)
         if self.registry.has_component(game_object_id, PythonSprite):
             self.registry.get_component(game_object_id, PythonSprite).sprite = sprite
-
-        # Create progress bars if needed
-        if constructor.game_object_type == GameObjectType.Player:
-            self.game_ui.player_ui.add(ProgressBarGroup(sprite))
-            logger.debug("Created progress bar group for player ID %d", game_object_id)
-        elif constructor.game_object_type == GameObjectType.Enemy:
-            self.game_ui.progress_bar_groups.append(
-                self.ui.add(ProgressBarGroup(sprite)),
-            )
-            logger.debug("Created progress bar group for enemy ID %d", game_object_id)
+        if constructor.progress_bars:
+            self.game_ui.add_progress_bar(sprite)
+            logger.debug("Created progress bar for %d", game_object_id)
 
     def on_game_object_death(self: Game, game_object_id: int) -> None:
         """Remove a game object from the game.

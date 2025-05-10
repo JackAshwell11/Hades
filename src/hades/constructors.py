@@ -5,6 +5,7 @@ from __future__ import annotations
 # Builtin
 import logging
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING
 
 # Pip
@@ -19,9 +20,14 @@ if TYPE_CHECKING:
     from arcade import Texture
     from arcade.types.color import RGBA255
 
-    from hades_extensions.ecs import ComponentBase
+    from hades_extensions.ecs.components import Stat
 
-__all__ = ("GameObjectConstructor", "game_object_constructors", "texture_cache")
+__all__ = (
+    "GameObjectConstructor",
+    "IconType",
+    "game_object_constructors",
+    "texture_cache",
+)
 
 
 # The cache for all Arcade textures
@@ -29,6 +35,33 @@ texture_cache: dict[str, Texture] = {}
 
 # Get the logger
 logger = logging.getLogger(__name__)
+
+
+def cache_texture(texture_path: str) -> Texture:
+    """Cache a texture.
+
+    Args:
+        texture_path: The path to the texture.
+
+    Returns:
+        The cached texture.
+    """
+    if texture_path not in texture_cache:
+        logger.debug("Loading texture %s", texture_path)
+        texture_cache[texture_path] = load_texture(texture_path)
+    return texture_cache[texture_path]
+
+
+class IconType(Enum):
+    """Represents the different types of icons."""
+
+    MONEY = cache_texture(":resources:money.png")
+    SINGLE_BULLET = cache_texture(":resources:health_boost_potion.png")
+    MULTI_BULLET = cache_texture(":resources:enemy_idle.png")
+    MELEE = cache_texture(":resources:shop.png")
+    SPECIAL = cache_texture(":resources:armour_boost_potion.png")
+    REGENERATION = cache_texture(":resources:health_potion.png")
+    POISON = cache_texture(":resources:speed_boost_potion.png")
 
 
 @dataclass()
@@ -49,17 +82,15 @@ class GameObjectConstructor:
     game_object_type: GameObjectType
     depth: int
     texture_paths: list[str]
-    progress_bars: dict[type[ComponentBase], tuple[int, float, RGBA255]] = field(
-        default_factory=dict,
+    progress_bars: list[tuple[type[Stat], tuple[float, float], RGBA255]] = field(
+        default_factory=list,
     )
 
     def __post_init__(self: GameObjectConstructor) -> None:
         """Post-initialise the object."""
         logger.debug("Initialising game object constructor %s", self.name)
         for texture_path in self.texture_paths:
-            if texture_path not in texture_cache:
-                logger.debug("Loading texture %s", texture_path)
-                texture_cache[texture_path] = load_texture(texture_path)
+            cache_texture(texture_path)
         logger.debug("Loading hitbox for %s", self.name)
         load_hitbox(
             self.game_object_type,
@@ -110,10 +141,7 @@ def player_factory() -> GameObjectConstructor:
         GameObjectType.Player,
         3,
         [":resources:player_idle.png"],
-        {
-            Armour: (0, 2, color.SILVER),
-            Health: (1, 2, color.RED),
-        },
+        [(Health, (4, 2), color.RED), (Armour, (4, 2), color.SILVER)],
     )
 
 
@@ -129,10 +157,7 @@ def enemy_factory() -> GameObjectConstructor:
         GameObjectType.Enemy,
         3,
         [":resources:enemy_idle.png"],
-        {
-            Armour: (0, 1, color.SILVER),
-            Health: (1, 1, color.RED),
-        },
+        [(Health, (1, 1), color.RED), (Armour, (1, 1), color.SILVER)],
     )
 
 

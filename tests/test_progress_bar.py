@@ -13,10 +13,10 @@ from arcade import color
 
 # Custom
 from hades.constructors import GameObjectConstructor
-from hades.progress_bar import ProgressBar, ProgressBarGroup
+from hades.progress_bar import ProgressBar
 from hades.sprite import HadesSprite
-from hades_extensions.ecs import ComponentBase, GameObjectType, Registry
-from hades_extensions.ecs.components import Armour, Health
+from hades_extensions.ecs import GameObjectType, Registry
+from hades_extensions.ecs.components import Health
 
 if TYPE_CHECKING:
     from arcade.types.color import RGBA255
@@ -43,15 +43,21 @@ def health() -> Health:
 
 
 @pytest.fixture
-def sprite(health: Health) -> HadesSprite:
+def sprite() -> HadesSprite:
     """Get a sprite for testing.
-
-    Args:
-        health: A health stat for testing.
 
     Returns:
         A sprite for testing.
     """
+    health = Mock(spec=Health)
+    health.get_value.return_value = 100
+    health.get_max_value.return_value = 100
+
+    def set_value(value: int) -> None:
+        health.get_value.return_value = max(0, min(value, health.get_max_value()))
+
+    health.set_value.side_effect = set_value
+
     registry = Mock(spec=Registry)
     registry.get_component.return_value = health
     return HadesSprite(
@@ -64,9 +70,9 @@ def sprite(health: Health) -> HadesSprite:
             GameObjectType.Player,
             0,
             [":resources:floor.png"],
-            {
-                Health: (0, 1, color.GREEN),
-            },
+            [
+                (Health, (1, 1), color.GREEN),
+            ],
         ),
     )
 
@@ -74,37 +80,46 @@ def sprite(health: Health) -> HadesSprite:
 @pytest.mark.parametrize(
     ("init_data", "expected_width", "expected_height"),
     [
-        ((0.5, color.GREEN), 27, 7),
-        ((1, color.YELLOW), 54, 14),
-        ((2, color.GREEN), 108, 28),
+        (((0.5, 0.5), color.GREEN, 0), 29, 9),
+        (((1, 1), color.YELLOW, 0), 58, 18),
+        (((1, 1), color.YELLOW, 1), 58, 18),
+        (((2, 2), color.GREEN, 0), 116, 36),
     ],
 )
 def test_progress_bar_init(
-    health: Health,
-    init_data: tuple[int, RGBA255],
+    sprite: HadesSprite,
+    init_data: tuple[tuple[float, float], RGBA255, int],
     expected_width: int,
     expected_height: int,
 ) -> None:
     """Test that a ProgressBar is initialised correctly.
 
     Args:
-        health: A health stat for testing.
+        sprite: A sprite for testing.
         init_data: The data to initialise the ProgressBar with.
         expected_width: The expected width of the progress bar
         expected_height: The expected height of the progress bar
     """
-    progress_bar = ProgressBar(health, *init_data)
+    progress_bar = ProgressBar((sprite, Health), *init_data)
     assert progress_bar.width == expected_width
     assert progress_bar.height == expected_height
     assert progress_bar.size_hint is None
-    assert progress_bar.target_component == health
+    assert progress_bar.target_sprite == sprite
+    assert (
+        progress_bar.target_component
+        == progress_bar.target_sprite.registry.get_component(
+            sprite.game_object_id,
+            Health,
+        )
+    )
     assert progress_bar.actual_bar.color == init_data[1]
+    assert progress_bar.order == init_data[2]
     assert progress_bar.actual_bar in progress_bar.children
 
 
-@pytest.mark.parametrize("scale", [0, -1])
-def test_progress_bar_init_negative_scale(scale: float) -> None:
-    """Test that a ProgressBar with a negative scale raises an error.
+@pytest.mark.parametrize("scale", [(0, 0), (-1, -1)])
+def test_progress_bar_init_invalid_scale(scale: tuple[float, float]) -> None:
+    """Test that a ProgressBar with an invalid scale raises an error.
 
     Args:
         scale: The scale to initialise the ProgressBar with.
@@ -113,47 +128,16 @@ def test_progress_bar_init_negative_scale(scale: float) -> None:
         expected_exception=ValueError,
         match="Scale must be greater than 0",
     ):
-        ProgressBar(Mock(), scale, color.GREEN)
+        ProgressBar(Mock(), scale, color.GREEN, 0)
 
 
-@pytest.mark.parametrize(
-    "progress_bars",
-    [
-        ({Health: (0, 1, color.GREEN), Armour: (1, 1, color.YELLOW)}),
-        ({Health: (1, 1, color.GREEN), Armour: (0, 1, color.YELLOW)}),
-        ({Armour: (0, 1, color.YELLOW)}),
-    ],
-)
-def test_progress_bar_group_init(
-    sprite: HadesSprite,
-    progress_bars: dict[type[ComponentBase], tuple[int, float, RGBA255]],
-) -> None:
-    """Test that a ProgressBarGroup is initialised correctly.
-
-    Args:
-        sprite: A sprite for testing.
-        progress_bars: The game object's progress bars.
-    """
-    # Set up the mock components
-    mock_health = Mock(spec=Health)
-    mock_health.get_value.return_value = 100
-    mock_health.get_max_value.return_value = 100
-    mock_armour = Mock(spec=Armour)
-    mock_armour.get_value.return_value = 50
-    mock_armour.get_max_value.return_value = 50
-
-    sprite.constructor.progress_bars = progress_bars
-    progress_bar_group = ProgressBarGroup(sprite)
-    assert len(progress_bar_group.children) == len(progress_bars)
-    for component in (mock_health, mock_armour):
-        if type(component) in progress_bars:
-            index = progress_bars[type(component)][0]
-            assert progress_bar_group.children[index].target_component == component
-        else:
-            assert not any(
-                progress_bar.target_component == component
-                for progress_bar in progress_bar_group.children
-            )
+def test_progress_bar_init_invalid_order() -> None:
+    """Test that a ProgressBar with an invalid order raises an error."""
+    with pytest.raises(
+        expected_exception=ValueError,
+        match="Order must be greater than or equal to 0",
+    ):
+        ProgressBar(Mock(), (1, 1), color.GREEN, -1)
 
 
 @pytest.mark.parametrize(
@@ -166,14 +150,14 @@ def test_progress_bar_group_init(
         (200, (1, 1), True),
     ],
 )
-def test_progress_bar_group_on_update(
+def test_progress_bar_on_update(
     sprite: HadesSprite,
     new_value: int,
     expected_size_hint: tuple[float, float],
     *,
     expected_visibility: bool,
 ) -> None:
-    """Test that a ProgressBarGroup is correctly updated.
+    """Test that a ProgressBar is correctly updated.
 
     Args:
         sprite: A sprite for testing.
@@ -181,8 +165,8 @@ def test_progress_bar_group_on_update(
         expected_size_hint: The expected size hint of the actual bar.
         expected_visibility: The expected visibility of the actual bar.
     """
-    progress_bar_group = ProgressBarGroup(sprite)
-    progress_bar_group.children[0].target_component.set_value(new_value)
-    progress_bar_group.on_update(0)
-    assert progress_bar_group.children[0].actual_bar.size_hint == expected_size_hint
-    assert progress_bar_group.children[0].actual_bar.visible == expected_visibility
+    progress_bar = ProgressBar((sprite, Health), (1, 1), color.GREEN, 0)
+    progress_bar.target_component.set_value(new_value)
+    progress_bar.on_update(0)
+    assert progress_bar.actual_bar.size_hint == expected_size_hint
+    assert progress_bar.actual_bar.visible == expected_visibility
