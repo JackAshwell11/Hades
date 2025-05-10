@@ -3,41 +3,115 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 # Pip
-from arcade import color
-from arcade.gui import UIAnchorLayout, UIBoxLayout, UIGridLayout, UILabel, UIManager
+from arcade.gui import (
+    UIAnchorLayout,
+    UIBoxLayout,
+    UIImage,
+    UILabel,
+    UIManager,
+)
 
 # Custom
-from hades.progress_bar import PROGRESS_BAR_DISTANCE, ProgressBarGroup
-from hades.views import UI_BACKGROUND_COLOUR
-from hades_extensions.ecs import GameObjectType
-from hades_extensions.ecs.components import PythonSprite
+from hades import UI_PADDING
+from hades.constructors import IconType
+from hades.progress_bar import (
+    PROGRESS_BAR_HEIGHT,
+    ProgressBar,
+)
+from hades_extensions.ecs import SPRITE_SIZE, GameObjectType, StatusEffectType
 
 if TYPE_CHECKING:
     from arcade.camera import Camera2D
 
-    from hades_extensions.ecs import Registry
-    from hades_extensions.ecs.components import StatusEffect
+    from hades.sprite import HadesSprite
+
+
+# The icon types for the different ranged attack types
+RANGED_ATTACK_ICON_MAP: Final[list[IconType]] = [
+    IconType.SINGLE_BULLET,
+    IconType.MULTI_BULLET,
+]
+
+
+class StateIndicator(UIBoxLayout):
+    """Represents a state indicator with an icon and a label.
+
+    Attributes:
+        icon: The icon widget.
+        label: The text label.
+    """
+
+    __slots__ = ("icon", "label")
+
+    def __init__(
+        self: StateIndicator,
+        icon_type: IconType,
+        *,
+        reverse: bool = False,
+    ) -> None:
+        """Initialise the object.
+
+        Args:
+            icon_type: The icon type to use.
+            reverse: Whether to reverse the icon and label order or not.
+        """
+        super().__init__(vertical=False)
+        self.icon: UIImage = UIImage(
+            texture=icon_type.value,
+            width=SPRITE_SIZE,
+            height=SPRITE_SIZE,
+        )
+        self.label: UILabel = UILabel("0", font_size=22, bold=True)
+
+        # Add components in the requested order
+        if reverse:
+            self.add(self.label)
+            self.add(self.icon)
+        else:
+            self.add(self.icon)
+            self.add(self.label)
+
+    def update_icon(self: StateIndicator, icon_type: IconType) -> None:
+        """Update the icon of the label.
+
+        Args:
+            icon_type: The icon type to set the label to.
+        """
+        self.icon.texture = icon_type.value
+
+    def update_value(self: StateIndicator, value: float) -> None:
+        """Update the value of the label.
+
+        Args:
+            value: The value to set the label to.
+        """
+        self.label.text = str(round(value))
 
 
 class GameUI:
     """Manages and updates the game UI.
 
     Attributes:
-        attack_algorithm_label: The label for the player's attack algorithm.
-        info_box: The information box for the nearest item.
-        progress_bar_groups: The progress bar groups to display on the screen.
+        ui: The UI manager to use.
+        progress_bars: The progress bars to display on the screen.
         player_ui: The UI for the player.
+        money_indicator: The money indicator.
+        attack_type_layout: The layout for the attack types.
         status_effect_layout: The layout for the status effects.
+        effect_indicators: The status effect indicators.
+        player_id: The ID of the player.
     """
 
     __slots__ = (
-        "attack_algorithm_label",
-        "info_box",
+        "attack_type_layout",
+        "effect_indicators",
+        "money_indicator",
+        "player_id",
         "player_ui",
-        "progress_bar_groups",
+        "progress_bars",
         "status_effect_layout",
         "ui",
     )
@@ -49,42 +123,79 @@ class GameUI:
             ui: The UI manager to use.
         """
         self.ui: UIManager = ui
-        self.info_box: UILabel = UILabel(
-            "",
-            x=ui.window.width // 2,
-            y=30,
-            text_color=color.BLACK,
-        ).with_background(color=UI_BACKGROUND_COLOUR)
-        self.progress_bar_groups: list[ProgressBarGroup] = []
-        self.player_ui: UIGridLayout = UIGridLayout(row_count=4)
-        self.status_effect_layout: UIBoxLayout = UIBoxLayout(vertical=False)
-        self.attack_algorithm_label: UILabel = UILabel(
-            "",
-            text_color=color.BLACK,
-        ).with_background(color=UI_BACKGROUND_COLOUR)
+        self.progress_bars: list[ProgressBar] = []
+        self.player_ui: UIBoxLayout = UIBoxLayout(align="left")
+        self.money_indicator: StateIndicator = StateIndicator(IconType.MONEY)
+        self.attack_type_layout: UIBoxLayout = UIBoxLayout(
+            vertical=False,
+            align="right",
+            children=[
+                StateIndicator(IconType.SINGLE_BULLET, reverse=True),
+                StateIndicator(IconType.MELEE, reverse=True),
+                StateIndicator(IconType.SPECIAL, reverse=True),
+            ],
+            space_between=SPRITE_SIZE / 2,
+        )
+        self.status_effect_layout: UIBoxLayout = UIBoxLayout(align="right")
+        self.effect_indicators: dict[StatusEffectType, StateIndicator] = {
+            StatusEffectType.Regeneration: StateIndicator(
+                IconType.REGENERATION,
+                reverse=True,
+            ),
+            StatusEffectType.Poison: StateIndicator(IconType.POISON, reverse=True),
+        }
+        self.player_id: int = -1
 
     def setup(self: GameUI) -> None:
         """Set up the game UI."""
         # Reset the UI's state
-        self.progress_bar_groups.clear()
+        self.progress_bars.clear()
         self.player_ui.clear()
         self.ui.clear()
 
         # Add the player UI elements
-        money_anchor = UIAnchorLayout()
-        money_anchor.add(
-            UILabel("Money: 0", text_color=color.BLACK).with_background(
-                color=UI_BACKGROUND_COLOUR,
+        self.player_ui.add(self.money_indicator)
+        left_anchor = UIAnchorLayout(align="left")
+        left_anchor.add(self.player_ui, anchor_x="left", anchor_y="top")
+        self.ui.add(left_anchor)
+        right_layout = UIBoxLayout(align="right", space_between=SPRITE_SIZE / 2)
+        right_layout.add(
+            self.attack_type_layout.with_padding(
+                top=UI_PADDING * 2,
+                left=UI_PADDING * 2,
             ),
-            anchor_x="left",
-            anchor_y="top",
         )
-        self.player_ui.add(money_anchor, row_num=1)
-        self.player_ui.add(self.status_effect_layout, row_num=2)
-        self.player_ui.add(self.attack_algorithm_label, row_num=3)
-        anchor = UIAnchorLayout()
-        anchor.add(self.player_ui, anchor_x="left", anchor_y="top")
-        self.ui.add(anchor)
+        right_layout.add(
+            self.status_effect_layout.with_padding(
+                top=UI_PADDING * 2,
+                left=UI_PADDING * 2,
+            ),
+        )
+        right_anchor = UIAnchorLayout()
+        right_anchor.add(right_layout, anchor_x="right", anchor_y="top")
+        self.ui.add(right_anchor)
+
+    def add_progress_bar(self: GameUI, sprite: HadesSprite) -> None:
+        """Add progress bars for a game object.
+
+        Args:
+            sprite: The sprite to create progress bars for.
+        """
+        for order, bar_data in enumerate(sprite.constructor.progress_bars):
+            progress_bar = ProgressBar(
+                (sprite, bar_data[0]),
+                bar_data[1],
+                bar_data[2],
+                order,
+            )
+            self.progress_bars.append(progress_bar)
+            if sprite.game_object_type == GameObjectType.Player:
+                self.player_ui.add(
+                    progress_bar.with_padding(top=UI_PADDING, left=UI_PADDING),
+                    index=0,
+                )
+            else:
+                self.ui.add(progress_bar)
 
     def update_progress_bars(self: GameUI, camera: Camera2D) -> None:
         """Update the progress bars on the screen.
@@ -92,68 +203,70 @@ class GameUI:
         Args:
             camera: The camera to project the progress bars onto.
         """
-        for progress_bar_group in self.progress_bar_groups:
-            if progress_bar_group.sprite.game_object_type == GameObjectType.Enemy:
-                screen_pos = camera.project(
-                    progress_bar_group.sprite.position,
-                )
-                ui_x, ui_y, _ = self.ui.camera.unproject(screen_pos)
-                progress_bar_group.rect = progress_bar_group.rect.align_center_x(
-                    ui_x,
-                ).align_bottom(ui_y + PROGRESS_BAR_DISTANCE)
+        for progress_bar in self.progress_bars:
+            screen_pos = camera.project(progress_bar.target_sprite.position)
+            progress_bar.rect = progress_bar.rect.align_center_x(
+                screen_pos.x,
+            ).align_bottom(
+                screen_pos.y
+                + SPRITE_SIZE // 2
+                + progress_bar.order * PROGRESS_BAR_HEIGHT,
+            )
 
-    def update_info_box(self: GameUI, registry: Registry, nearest_item: int) -> None:
-        """Update the info box on the screen.
-
-        Args:
-            registry: The registry that manages the game objects, components, and
-            systems.
-            nearest_item: The nearest item to the player.
-        """
-        if nearest_item != -1 and not self.info_box.visible:
-            sprite = registry.get_component(nearest_item, PythonSprite).sprite
-            self.info_box.text = f"{sprite.game_object_type.name}: Collect (C), Use (E)"
-            self.info_box.fit_content()
-            self.info_box.rect = self.info_box.rect.align_x(self.ui.window.width // 2)
-            self.info_box.visible = True
-            self.ui.add(self.info_box)
-        elif nearest_item == -1 and self.info_box.visible:
-            self.info_box.visible = False
-            self.ui.remove(self.info_box)
-
-    def update_money(self: GameUI, money: int) -> None:
+    def on_money_update(self: GameUI, money: int) -> None:
         """Update the money indicator on the screen.
 
         Args:
-            money: The amount of money the player has.
+            money: The amount of money to display.
         """
-        self.player_ui.children[0].children[0].text = f"Money: {money}"
+        self.money_indicator.update_value(money)
 
-    def update_status_effects(self: GameUI, status_effects: list[StatusEffect]) -> None:
-        """Update the status effects indicator on the screen.
+    def on_attack_cooldown_update(
+        self: GameUI,
+        game_object_id: int,
+        ranged_cooldown: float,
+        melee_cooldown: float,
+        special_cooldown: float,
+    ) -> None:
+        """Update the attack cooldown indicators on the screen.
+
+        Args:
+            game_object_id: The ID of the game object to update.
+            ranged_cooldown: The cooldown time for the ranged attack.
+            melee_cooldown: The cooldown time for the melee attack.
+            special_cooldown: The cooldown time for the special attack.
+        """
+        if game_object_id == self.player_id:
+            self.attack_type_layout.children[0].update_value(ranged_cooldown)
+            self.attack_type_layout.children[1].update_value(melee_cooldown)
+            self.attack_type_layout.children[2].update_value(special_cooldown)
+
+    def on_ranged_attack_switch(self: GameUI, selected_attack: int) -> None:
+        """Update the ranged attack type indicator on the screen.
+
+        Args:
+            selected_attack: The selected attack type.
+        """
+        self.attack_type_layout.children[0].update_icon(
+            RANGED_ATTACK_ICON_MAP[selected_attack],
+        )
+
+    def on_status_effect_update(
+        self: GameUI,
+        status_effects: dict[StatusEffectType, float],
+    ) -> None:
+        """Update the status effects for a game object.
 
         Args:
             status_effects: The status effects to display.
         """
-        if len(status_effects) != len(self.status_effect_layout.children):
-            self.status_effect_layout.clear()
-
-            # For each status effect, create a vertical box layout with two labels
-            for status_effect in status_effects:
-                layout = UIBoxLayout()
-                layout.add(
-                    UILabel(
-                        status_effect.effect_type.name,
-                        text_color=color.BLACK,
-                    ).with_background(color=UI_BACKGROUND_COLOUR),
-                )
-                layout.add(
-                    UILabel(
-                        f"{status_effect.duration:.1f}",
-                        text_color=color.BLACK,
-                    ).with_background(color=UI_BACKGROUND_COLOUR),
-                )
-                self.status_effect_layout.add(layout)
+        for effect_type, indicator in self.effect_indicators.items():
+            if effect_type in status_effects:
+                if indicator not in self.status_effect_layout.children:
+                    self.status_effect_layout.add(indicator)
+                indicator.update_value(status_effects[effect_type])
+            elif indicator in self.status_effect_layout.children:
+                self.status_effect_layout.remove(indicator)
 
     def on_game_object_death(self: GameUI, game_object_id: int) -> None:
         """Remove a game object from the game.
@@ -161,12 +274,7 @@ class GameUI:
         Args:
             game_object_id: The ID of the game object to remove.
         """
-        # Delete all the progress bars for the game object
-        to_remove = [
-            group
-            for group in self.progress_bar_groups
-            if group.sprite.game_object_id == game_object_id
-        ]
-        for group in to_remove:
-            self.ui.remove(group)
-            self.progress_bar_groups.remove(group)
+        for group in self.progress_bars[:]:
+            if group.target_sprite.game_object_id == game_object_id:
+                self.ui.remove(group)
+                self.progress_bars.remove(group)

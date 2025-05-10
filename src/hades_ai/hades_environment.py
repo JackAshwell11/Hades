@@ -24,7 +24,7 @@ from hades_extensions.ecs import (
     Registry,
     RegistryError,
 )
-from hades_extensions.ecs.components import Attack, KinematicComponent
+from hades_extensions.ecs.components import KinematicComponent
 from hades_extensions.ecs.systems import PhysicsSystem
 
 if TYPE_CHECKING:
@@ -62,6 +62,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         previous_action: The previous action taken.
         position_history: The history of the player's positions.
         enemy_ids: The IDs of the enemies in the game.
+        time_until_attack: The time until the player can attack again.
         last_update_time: The time of the last headless game update.
         level: The level to play in the game environment.
         seed: The seed for the game engine.
@@ -123,6 +124,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         "previous_action",
         "registry",
         "seed",
+        "time_until_attack",
         "window",
     )
 
@@ -201,6 +203,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
             dtype=np.float32,
         )
         self.enemy_ids: set[int] = set()
+        self.time_until_attack: float = 0.0
         self.last_update_time: float = time.time()
         self.level: int = 0
         self.seed: int | None = None
@@ -292,13 +295,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
                 (enemy_positions[nearest_enemy_index] - current_position)
                 / distance_to_nearest_enemy
             ),
-            "time_until_attack": np.array(
-                self.registry.get_component(
-                    self.game_engine.player_id,
-                    Attack,
-                ).time_until_ranged_attack,
-                dtype=np.float32,
-            ),
+            "time_until_attack": np.array(self.time_until_attack, dtype=np.float32),
             "previous_action": self.previous_action,
             "is_near_wall": np.float32(np.any(wall_distances <= WALL_SAFE_DISTANCE)),
             "is_near_enemy": np.float32(
@@ -318,6 +315,22 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         distances = np.linalg.norm(enemy_positions - player_position, axis=1)
         dx, dy = enemy_positions[np.argmin(distances)] - player_position
         player.set_rotation(np.arctan2(dy, dx))
+
+    def on_attack_cooldown_update(
+        self: HadesEnvironment,
+        game_object_id: int,
+        ranged_cooldown: float,
+        _: float,
+        __: float,
+    ) -> None:
+        """Update the attack cooldown for the player.
+
+        Args:
+            game_object_id: The ID of the game object.
+            ranged_cooldown: The cooldown time for the ranged attack.
+        """
+        if game_object_id == self.game_engine.player_id:
+            self.time_until_attack = ranged_cooldown
 
     def reset(  # type: ignore[explicit-any]
         self: HadesEnvironment,
@@ -353,6 +366,10 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         self.registry.add_callback(
             EventType.GameObjectDeath,
             self.on_game_object_death,
+        )
+        self.registry.add_callback(
+            EventType.AttackCooldownUpdate,
+            self.on_attack_cooldown_update,
         )
         self.position_history = np.zeros((0, 2), dtype=np.float32)
         self.enemy_ids.clear()
