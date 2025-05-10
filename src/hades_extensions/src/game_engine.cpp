@@ -183,10 +183,10 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) const
       registry_->get_system<InventorySystem>()->use_item(player_id_, nearest_item_);
       break;
     case KEY_Z:
-      registry_->get_component<Attack>(player_id_)->previous_ranged_attack();
+      registry_->get_system<AttackSystem>()->previous_ranged_attack(player_id_);
       break;
     case KEY_X:
-      registry_->get_component<Attack>(player_id_)->next_ranged_attack();
+      registry_->get_system<AttackSystem>()->next_ranged_attack(player_id_);
       break;
     default:
       break;

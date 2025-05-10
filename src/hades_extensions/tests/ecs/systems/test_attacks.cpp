@@ -190,14 +190,14 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingleWrongType) {
 }
 
 /// Test that performing a ranged attack with multiple bullets works correctly.
-TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultiple) {
+TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleBullets) {
   std::vector<GameObjectID> game_objects_created;
   auto game_object_creation_callback{
       [&](const GameObjectID game_object_id) { game_objects_created.push_back(game_object_id); }};
   create_attacker({.ranged{true}});
   registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
-  registry.get_component<Attack>(8)->next_ranged_attack();
+  registry.get_system<AttackSystem>()->next_ranged_attack(8);
   ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Ranged));
   ASSERT_EQ(game_objects_created.size(), 5);
 
@@ -207,7 +207,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultiple) {
                                                  {.x = 0.0, .y = -200},
                                                  {.x = 76.536686473017966, .y = -184.77590650225736},
                                                  {.x = 141.42135623730951, .y = -141.42135623730951}}};
-  for (auto i{0}; i < static_cast<int>(game_objects_created.size()); i++) {
+  for (auto i{0}; std::cmp_less(i, game_objects_created.size()); i++) {
     const auto *bullet{*registry.get_component<KinematicComponent>(game_objects_created[i])->body};
     const auto [vel_x, vel_y]{cpBodyGetVelocity(bullet)};
     ASSERT_NEAR(vel_x, expected_velocities[i].x, 1e-13);
@@ -315,9 +315,9 @@ TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackSingle) {
   create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
   const auto attack{registry.get_component<Attack>(8)};
   ASSERT_EQ(attack->selected_ranged_attack, 0);
-  attack->next_ranged_attack();
+  registry.get_system<AttackSystem>()->next_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 1);
-  attack->previous_ranged_attack();
+  registry.get_system<AttackSystem>()->previous_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 0);
 }
 
@@ -326,29 +326,45 @@ TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackMultiple) {
   create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
   const auto attack{registry.get_component<Attack>(8)};
   ASSERT_EQ(attack->selected_ranged_attack, 0);
-  attack->next_ranged_attack();
+  registry.get_system<AttackSystem>()->next_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 1);
-  attack->next_ranged_attack();
+  registry.get_system<AttackSystem>()->next_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 1);
-  attack->next_ranged_attack();
+  registry.get_system<AttackSystem>()->next_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 1);
-  attack->previous_ranged_attack();
+  registry.get_system<AttackSystem>()->previous_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 0);
-  attack->previous_ranged_attack();
+  registry.get_system<AttackSystem>()->previous_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 0);
-  attack->previous_ranged_attack();
+  registry.get_system<AttackSystem>()->previous_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 0);
 }
 
 /// Test that switching between ranged attacks works correctly when there are no attacks.
-TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextAttackEmptyAttacks) {
+TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackEmptyAttacks) {
   create_attacker({});
   const auto attack{registry.get_component<Attack>(8)};
   ASSERT_EQ(attack->selected_ranged_attack, 0);
-  attack->next_ranged_attack();
+  registry.get_system<AttackSystem>()->next_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 0);
-  attack->previous_ranged_attack();
+  registry.get_system<AttackSystem>()->previous_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 0);
+}
+
+/// Test that switching between ranged attacks calls the correct callback.
+TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackCallback) {
+  std::vector<int> selected_attacks{};
+  auto ranged_attack_callback{[&](const int selected_attack) { selected_attacks.push_back(selected_attack); }};
+  registry.add_callback<EventType::RangedAttackSwitch>(ranged_attack_callback);
+  create_attacker({
+      .ranged{true},
+  });
+  const auto attack{registry.get_component<Attack>(8)};
+  ASSERT_EQ(attack->selected_ranged_attack, 0);
+  registry.get_system<AttackSystem>()->next_ranged_attack(8);
+  registry.get_system<AttackSystem>()->previous_ranged_attack(8);
+  const std::vector expected_attacks{1, 0};
+  ASSERT_EQ(selected_attacks, expected_attacks);
 }
 
 /// Test that damage is dealt when health and armour are lower than damage.
