@@ -20,7 +20,10 @@ void bind_ecs(const pybind11::module_ &module) {
       .value("GameObjectDeath", EventType::GameObjectDeath)
       .value("InventoryUpdate", EventType::InventoryUpdate)
       .value("SpriteRemoval", EventType::SpriteRemoval)
-      .value("StatusEffectUpdate", EventType::StatusEffectUpdate);
+      .value("StatusEffectUpdate", EventType::StatusEffectUpdate)
+      .value("MoneyUpdate", EventType::MoneyUpdate)
+      .value("AttackCooldownUpdate", EventType::AttackCooldownUpdate)
+      .value("RangedAttackSwitch", EventType::RangedAttackSwitch);
   pybind11::enum_<GameObjectType>(module, "GameObjectType", "Stores the different types of game objects available.")
       .value("Bullet", GameObjectType::Bullet)
       .value("Enemy", GameObjectType::Enemy)
@@ -117,6 +120,15 @@ void bind_ecs(const pybind11::module_ &module) {
                 break;
               case EventType::StatusEffectUpdate:
                 registry.add_callback<EventType::StatusEffectUpdate>(callback);
+                break;
+              case EventType::MoneyUpdate:
+                registry.add_callback<EventType::MoneyUpdate>(callback);
+                break;
+              case EventType::AttackCooldownUpdate:
+                registry.add_callback<EventType::AttackCooldownUpdate>(callback);
+                break;
+              case EventType::RangedAttackSwitch:
+                registry.add_callback<EventType::RangedAttackSwitch>(callback);
                 break;
               default:
                 throw std::runtime_error("Unsupported event type.");

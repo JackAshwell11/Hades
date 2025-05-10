@@ -1,5 +1,6 @@
 // Local headers
 #include "ecs/systems/attacks.hpp"
+#include "ecs/systems/inventory.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 #include "factories.hpp"
@@ -19,6 +20,18 @@ class GameEngineFixture : public testing::Test {  // NOLINT
   void SetUp() override {
     load_hitbox(GameObjectType::Player, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
     load_hitbox(GameObjectType::Enemy, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
+  }
+
+  /// Move the player to the position of the nearest item.
+  ///
+  /// @return The game object ID of the item that the player was moved to.
+  GameObjectID move_player_to_nearest_item(const GameObjectType game_object_type = GameObjectType::HealthPotion) {
+    const auto item_id{game_engine.get_registry()->get_game_object_ids(game_object_type).front()};
+    const auto item_pos{
+        cpBodyGetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(item_id)->body)};
+    cpBodySetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(game_engine.get_player_id())->body,
+                      item_pos);
+    return item_id;
   }
 };
 
@@ -97,10 +110,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNoNearestItem) {
 /// Test that the game engine processes an update correctly when the nearest item is not a goal.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
   game_engine.create_game_objects();
-  const auto item_id{game_engine.get_registry()->get_game_object_ids(GameObjectType::HealthPotion).front()};
-  const auto item_pos{cpBodyGetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(item_id)->body)};
-  cpBodySetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(game_engine.get_player_id())->body,
-                    item_pos);
+  const auto item_id{move_player_to_nearest_item()};
   game_engine.on_update(0);
   ASSERT_EQ(game_engine.get_nearest_item(), item_id);
 }
@@ -108,10 +118,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
 /// Test that the game engine processes an update correctly when the nearest item is a goal.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoal) {
   game_engine.create_game_objects();
-  const auto goal_id{game_engine.get_registry()->get_game_object_ids(GameObjectType::Goal).front()};
-  const auto goal_pos{cpBodyGetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(goal_id)->body)};
-  cpBodySetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(game_engine.get_player_id())->body,
-                    goal_pos);
+  move_player_to_nearest_item(GameObjectType::Goal);
   game_engine.on_update(0);
   ASSERT_FALSE(game_engine.get_registry()->has_game_object(game_engine.get_player_id()));
 }
@@ -196,6 +203,45 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseD) {
   game_engine.on_key_release(KEY_D, 0);
   const auto player_movement{game_engine.get_registry()->get_component<KeyboardMovement>(game_engine.get_player_id())};
   ASSERT_FALSE(player_movement->moving_east);
+}
+
+/// Test that the game engine processes a 'C' key release correctly.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseC) {
+  game_engine.create_game_objects();
+  const auto item_id{move_player_to_nearest_item()};
+  game_engine.on_update(0);
+  game_engine.on_key_release(KEY_C, 0);
+  const auto inventory{game_engine.get_registry()->get_component<Inventory>(game_engine.get_player_id())};
+  ASSERT_EQ(inventory->items.front(), item_id);
+}
+
+/// Test that the game engine processes an 'E' key release correctly.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseE) {
+  game_engine.create_game_objects();
+  game_engine.generate_enemy();
+  move_player_to_nearest_item();
+  game_engine.on_update(0);
+  const auto health{game_engine.get_registry()->get_component<Health>(game_engine.get_player_id())};
+  health->set_value(50);
+  game_engine.on_key_release(KEY_E, 0);
+  ASSERT_EQ(health->get_value(), 55);
+}
+
+/// Test that the game engine processes a 'Z' key release correctly.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseZ) {
+  game_engine.create_game_objects();
+  game_engine.generate_enemy();
+  game_engine.on_key_release(KEY_X, 0);
+  game_engine.on_key_release(KEY_Z, 0);
+  ASSERT_EQ(game_engine.get_registry()->get_component<Attack>(game_engine.get_player_id())->selected_ranged_attack, 0);
+}
+
+/// Test that the game engine processes a 'X' key release correctly.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseX) {
+  game_engine.create_game_objects();
+  game_engine.generate_enemy();
+  game_engine.on_key_release(KEY_X, 0);
+  ASSERT_EQ(game_engine.get_registry()->get_component<Attack>(game_engine.get_player_id())->selected_ranged_attack, 1);
 }
 
 /// Test that the game engine processes an unknown key release correctly.

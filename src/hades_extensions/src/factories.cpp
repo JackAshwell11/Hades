@@ -126,9 +126,12 @@ const auto player_factory{[](const int /*level*/) {
 ///
 /// @return The components for the health potion.
 const auto health_potion_factory{[](const int /*level*/) {
+  auto effect_applier{std::make_shared<EffectApplier>()};
+  effect_applier->add_status_effect(StatusEffectType::Regeneration, 5, 10, 1, typeid(Health));
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<PythonSprite>(),
       std::make_shared<KinematicComponent>(),
+      std::move(effect_applier),
   };
 }};
 

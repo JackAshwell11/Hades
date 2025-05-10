@@ -31,6 +31,9 @@ enum class EventType : std::uint8_t {
   InventoryUpdate,
   SpriteRemoval,
   StatusEffectUpdate,
+  MoneyUpdate,
+  AttackCooldownUpdate,
+  RangedAttackSwitch,
 };
 
 /// Stores the different types of status effects available.
@@ -71,6 +74,24 @@ struct EventTraits<EventType::SpriteRemoval> {
 template <>
 struct EventTraits<EventType::StatusEffectUpdate> {
   using EventArgs = std::tuple<std::unordered_map<StatusEffectType, double>>;
+};
+
+/// Provides the argument types for the MoneyUpdate event.
+template <>
+struct EventTraits<EventType::MoneyUpdate> {
+  using EventArgs = std::tuple<int>;
+};
+
+/// Provides the argument types for the AttackCooldownUpdate event.
+template <>
+struct EventTraits<EventType::AttackCooldownUpdate> {
+  using EventArgs = std::tuple<GameObjectID, double, double, double>;
+};
+
+/// Provides the argument types for the RangedAttackSwitch event.
+template <>
+struct EventTraits<EventType::RangedAttackSwitch> {
+  using EventArgs = std::tuple<int>;
 };
 
 /// The base class for all components.

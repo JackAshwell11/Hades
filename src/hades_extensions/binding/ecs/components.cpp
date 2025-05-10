@@ -40,16 +40,6 @@ void bind_components(const pybind11::module_ &module) {
       module, "InventorySize", "Allows a game object to change the size of its inventory.");
 
   // Add the other components
-  pybind11::class_<Attack, ComponentBase, std::shared_ptr<Attack>>(module, "Attack",
-                                                                   "Allows a game object to attack other game objects.")
-      .def_property_readonly("time_until_ranged_attack",
-                             [](const Attack &attack) {
-                               const auto *selected_ranged_attack{attack.get_selected_ranged_attack()};
-                               return std::max(0.0, selected_ranged_attack->cooldown.get_value() -
-                                                        selected_ranged_attack->time_since_last_use);
-                             })
-      .def("previous_ranged_attack", &Attack::previous_ranged_attack, "Switch to the previous ranged attack.")
-      .def("next_ranged_attack", &Attack::next_ranged_attack, "Switch to the next ranged attack.");
   pybind11::class_<Inventory, ComponentBase, std::shared_ptr<Inventory>>(
       module, "Inventory", "Allows a game object to have a fixed size inventory.")
       .def_readonly("items", &Inventory::items);

@@ -49,10 +49,17 @@ struct BaseAttack {
   /// The move assignment operator.
   auto operator=(BaseAttack &&) -> BaseAttack & = default;
 
+  /// Get the time until the attack can be used again.
+  ///
+  /// @return The time until the attack can be used again.
+  [[nodiscard]] auto get_time_until_attack() const -> double {
+    return std::max(0.0, cooldown.get_value() - time_since_last_use);
+  }
+
   /// Check if the attack is ready to be used or not.
   ///
   /// @return True if the attack is ready, false otherwise.
-  [[nodiscard]] auto is_ready() const -> bool { return time_since_last_use >= cooldown.get_value(); }
+  [[nodiscard]] auto is_ready() const -> bool { return get_time_until_attack() <= 0.0; }
 
   /// Update the cooldown timer.
   ///
@@ -204,20 +211,6 @@ struct Attack final : ComponentBase {
   [[nodiscard]] auto get_selected_ranged_attack() const -> RangedAttack * {
     return ranged_attacks[selected_ranged_attack].get();
   }
-
-  /// Switch to the previous ranged attack.
-  void previous_ranged_attack() {
-    if (selected_ranged_attack > 0) {
-      selected_ranged_attack--;
-    }
-  }
-
-  /// Switch to the next ranged attack.
-  void next_ranged_attack() {
-    if (!ranged_attacks.empty() && std::cmp_less(selected_ranged_attack, ranged_attacks.size() - 1)) {
-      selected_ranged_attack++;
-    }
-  }
 };
 
 /// Provides facilities to manipulate attack components.
@@ -231,6 +224,18 @@ struct AttackSystem final : SystemBase {
   ///
   /// @param delta_time - The time interval since the last time the function was called.
   void update(double delta_time) const override;
+
+  /// Switch to the previous ranged attack.
+  ///
+  /// @param game_object_id - The ID of the game object to switch to the previous ranged attack for.
+  /// @throws RegistryError - If the game object does not exist or does not have an attack component.
+  void previous_ranged_attack(GameObjectID game_object_id) const;
+
+  /// Switch to the next ranged attack.
+  ///
+  /// @param game_object_id - The ID of the game object to switch to the next ranged attack for.
+  /// @throws RegistryError - If the game object does not exist or does not have an attack component.
+  void next_ranged_attack(GameObjectID game_object_id) const;
 
   /// Perform an attack if possible.
   ///
