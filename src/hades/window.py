@@ -13,6 +13,7 @@ from typing import Final
 from arcade import View, Window
 
 # Custom
+from hades import ViewType
 from hades.views.start_menu import StartMenu
 
 __all__ = ("HadesWindow",)
@@ -83,7 +84,7 @@ class HadesWindow(Window):
     def __init__(self: HadesWindow) -> None:
         """Initialise the object."""
         super().__init__()
-        self.views: dict[str, View] = {}
+        self.views: dict[ViewType, View] = {}
 
     def __repr__(self: HadesWindow) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
@@ -103,7 +104,7 @@ def main() -> None:
 
     # Initialise and load the start menu view
     new_view = StartMenu()
-    window.views["StartMenu"] = new_view
+    window.views[ViewType.START_MENU] = new_view
     logger.debug("Initialised start menu view")
     window.show_view(new_view)
     logger.debug("Showed start menu view")

@@ -14,7 +14,7 @@ from gymnasium.spaces import Box, Dict, Discrete
 from pyglet import clock
 
 # Custom
-from hades.views.game import Game
+from hades.game import Game
 from hades_ai.capture_window import CaptureWindow
 from hades_extensions import GameEngine
 from hades_extensions.ecs import (
@@ -227,7 +227,6 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         if value and not self.window:
             self.window = CaptureWindow()
             self.game = Game()
-            self.window.show_view(self.game)
         elif not value:
             self.window = self.game = None
 
@@ -352,9 +351,11 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
         # Reset the environment and store the required variables
         self.previous_action = 0
-        if self.game:
+        if self.game and self.window:
             self.game.setup(self.level, self.seed)
-            self.game_engine = self.game.game_engine
+            if self.window.current_view != self.game:
+                self.window.show_view(self.game)
+            self.game_engine = self.game.model.game_engine
         else:
             self.game_engine = GameEngine(self.level, self.seed)
             self.game_engine.create_game_objects()
