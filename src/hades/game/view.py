@@ -1,4 +1,4 @@
-"""Initialises and manages the main game."""
+"""Manages the rendering of game elements on the screen."""
 
 from __future__ import annotations
 
@@ -6,13 +6,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final
 
 # Pip
-from arcade.gui import (
-    UIAnchorLayout,
-    UIBoxLayout,
-    UIImage,
-    UILabel,
-    UIManager,
-)
+from arcade import SpriteList
+from arcade.camera.camera_2d import Camera2D
+from arcade.gui import UIAnchorLayout, UIBoxLayout, UIImage, UILabel, UIManager
 
 # Custom
 from hades import UI_PADDING
@@ -21,13 +17,14 @@ from hades.progress_bar import (
     PROGRESS_BAR_HEIGHT,
     ProgressBar,
 )
+from hades.sprite import HadesSprite
 from hades_extensions.ecs import SPRITE_SIZE, GameObjectType, StatusEffectType
+from hades_extensions.ecs.components import PythonSprite
 
 if TYPE_CHECKING:
-    from arcade.camera import Camera2D
+    from hades.window import HadesWindow
 
-    from hades.sprite import HadesSprite
-
+__all__ = ("GameView", "StateIndicator")
 
 # The icon types for the different ranged attack types
 RANGED_ATTACK_ICON_MAP: Final[list[IconType]] = [
@@ -91,40 +88,46 @@ class StateIndicator(UIBoxLayout):
         self.label.text = str(round(value))
 
 
-class GameUI:
-    """Manages and updates the game UI.
+class GameView:
+    """Manages the rendering of game elements on the screen.
 
     Attributes:
-        ui: The UI manager to use.
+        ui: The UI manager for the game.
+        game_camera: The camera for the game.
+        sprites: The sprites to render.
         progress_bars: The progress bars to display on the screen.
-        player_ui: The UI for the player.
+        left_layout: The layout for the left side of the screen.
         money_indicator: The money indicator.
-        attack_type_layout: The layout for the attack types.
-        status_effect_layout: The layout for the status effects.
+        attack_type_layout: The layout for the attack type indicators.
+        status_effect_layout: The layout for the status effect indicators.
         effect_indicators: The status effect indicators.
-        player_id: The ID of the player.
     """
 
     __slots__ = (
         "attack_type_layout",
         "effect_indicators",
+        "game_camera",
+        "left_layout",
         "money_indicator",
-        "player_id",
-        "player_ui",
         "progress_bars",
+        "sprites",
         "status_effect_layout",
         "ui",
+        "window",
     )
 
-    def __init__(self: GameUI, ui: UIManager) -> None:
+    def __init__(self: GameView, window: HadesWindow) -> None:
         """Initialise the object.
 
         Args:
-            ui: The UI manager to use.
+            window: The window for the game.
         """
-        self.ui: UIManager = ui
+        self.window: HadesWindow = window
+        self.ui: UIManager = UIManager()
+        self.game_camera: Camera2D = Camera2D()
+        self.sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.progress_bars: list[ProgressBar] = []
-        self.player_ui: UIBoxLayout = UIBoxLayout(align="left")
+        self.left_layout: UIBoxLayout = UIBoxLayout(align="left")
         self.money_indicator: StateIndicator = StateIndicator(IconType.MONEY)
         self.attack_type_layout: UIBoxLayout = UIBoxLayout(
             vertical=False,
@@ -144,38 +147,62 @@ class GameUI:
             ),
             StatusEffectType.Poison: StateIndicator(IconType.POISON, reverse=True),
         }
-        self.player_id: int = -1
 
-    def setup(self: GameUI) -> None:
-        """Set up the game UI."""
-        # Reset the UI's state
+    def setup(self: GameView) -> None:
+        """Set up the renderer."""
         self.progress_bars.clear()
-        self.player_ui.clear()
         self.ui.clear()
-
-        # Add the player UI elements
-        self.player_ui.add(self.money_indicator)
-        left_anchor = UIAnchorLayout(align="left")
-        left_anchor.add(self.player_ui, anchor_x="left", anchor_y="top")
-        self.ui.add(left_anchor)
         right_layout = UIBoxLayout(align="right", space_between=SPRITE_SIZE / 2)
-        right_layout.add(
-            self.attack_type_layout.with_padding(
-                top=UI_PADDING * 2,
-                left=UI_PADDING * 2,
-            ),
-        )
-        right_layout.add(
-            self.status_effect_layout.with_padding(
-                top=UI_PADDING * 2,
-                left=UI_PADDING * 2,
-            ),
+        self.left_layout.add(self.money_indicator)
+        right_layout.add(self.attack_type_layout)
+        right_layout.add(self.status_effect_layout)
+        left_anchor = UIAnchorLayout()
+        left_anchor.add(
+            self.left_layout.with_padding(top=UI_PADDING * 2, left=UI_PADDING * 2),
+            anchor_x="left",
+            anchor_y="top",
         )
         right_anchor = UIAnchorLayout()
-        right_anchor.add(right_layout, anchor_x="right", anchor_y="top")
+        right_anchor.add(
+            right_layout.with_padding(top=UI_PADDING * 2, right=UI_PADDING * 2),
+            anchor_x="right",
+            anchor_y="top",
+        )
+        self.ui.add(left_anchor)
         self.ui.add(right_anchor)
 
-    def add_progress_bar(self: GameUI, sprite: HadesSprite) -> None:
+    def draw(self: GameView) -> None:
+        """Draw the game elements."""
+        self.window.clear()
+        self.game_camera.use()
+        with self.window.ctx.enabled(self.window.ctx.DEPTH_TEST):
+            self.sprites.draw(pixelated=True)
+        self.ui.draw()
+
+    def update(self: GameView, player_position: tuple[float, float]) -> None:
+        """Update the game elements.
+
+        Args:
+            player_position: The position of the player.
+        """
+        self.sprites.update()
+        self.game_camera.position = player_position
+        self.update_progress_bars(self.game_camera)
+
+    def add_sprite(self: GameView, sprite: HadesSprite) -> None:
+        """Add a sprite to the game model.
+
+        Args:
+            sprite: The sprite to add.
+        """
+        self.sprites.append(sprite)
+        if sprite.registry.has_component(sprite.game_object_id, PythonSprite):
+            sprite.registry.get_component(
+                sprite.game_object_id,
+                PythonSprite,
+            ).sprite = sprite
+
+    def add_progress_bar(self: GameView, sprite: HadesSprite) -> None:
         """Add progress bars for a game object.
 
         Args:
@@ -190,14 +217,25 @@ class GameUI:
             )
             self.progress_bars.append(progress_bar)
             if sprite.game_object_type == GameObjectType.Player:
-                self.player_ui.add(
+                self.left_layout.add(
                     progress_bar.with_padding(top=UI_PADDING, left=UI_PADDING),
                     index=0,
                 )
             else:
                 self.ui.add(progress_bar)
 
-    def update_progress_bars(self: GameUI, camera: Camera2D) -> None:
+    def remove_progress_bars(self: GameView, game_object_id: int) -> None:
+        """Remove progress bars for a game object.
+
+        Args:
+            game_object_id: ID of the game object to remove progress bars for.
+        """
+        for progress_bar in self.progress_bars[:]:
+            if progress_bar.target_sprite.game_object_id == game_object_id:
+                self.ui.remove(progress_bar)
+                self.progress_bars.remove(progress_bar)
+
+    def update_progress_bars(self: GameView, camera: Camera2D) -> None:
         """Update the progress bars on the screen.
 
         Args:
@@ -213,49 +251,46 @@ class GameUI:
                 + progress_bar.order * PROGRESS_BAR_HEIGHT,
             )
 
-    def on_money_update(self: GameUI, money: int) -> None:
-        """Update the money indicator on the screen.
+    def update_money_display(self: GameView, money: int) -> None:
+        """Update the money indicator.
 
         Args:
-            money: The amount of money to display.
+            money: The updated amount of money.
         """
         self.money_indicator.update_value(money)
 
-    def on_attack_cooldown_update(
-        self: GameUI,
-        game_object_id: int,
+    def update_attack_cooldown_display(
+        self: GameView,
         ranged_cooldown: float,
         melee_cooldown: float,
         special_cooldown: float,
     ) -> None:
-        """Update the attack cooldown indicators on the screen.
+        """Update the attack cooldown indicators.
 
         Args:
-            game_object_id: The ID of the game object to update.
             ranged_cooldown: The cooldown time for the ranged attack.
             melee_cooldown: The cooldown time for the melee attack.
             special_cooldown: The cooldown time for the special attack.
         """
-        if game_object_id == self.player_id:
-            self.attack_type_layout.children[0].update_value(ranged_cooldown)
-            self.attack_type_layout.children[1].update_value(melee_cooldown)
-            self.attack_type_layout.children[2].update_value(special_cooldown)
+        self.attack_type_layout.children[0].update_value(ranged_cooldown)
+        self.attack_type_layout.children[1].update_value(melee_cooldown)
+        self.attack_type_layout.children[2].update_value(special_cooldown)
 
-    def on_ranged_attack_switch(self: GameUI, selected_attack: int) -> None:
-        """Update the ranged attack type indicator on the screen.
+    def update_ranged_attack_icon(self: GameView, selected_attack: int) -> None:
+        """Update the ranged attack type indicator.
 
         Args:
-            selected_attack: The selected attack type.
+            selected_attack: The selected attack type index
         """
         self.attack_type_layout.children[0].update_icon(
             RANGED_ATTACK_ICON_MAP[selected_attack],
         )
 
-    def on_status_effect_update(
-        self: GameUI,
+    def update_status_effects(
+        self: GameView,
         status_effects: dict[StatusEffectType, float],
     ) -> None:
-        """Update the status effects for a game object.
+        """Update the status effects for the player.
 
         Args:
             status_effects: The status effects to display.
@@ -267,14 +302,3 @@ class GameUI:
                 indicator.update_value(status_effects[effect_type])
             elif indicator in self.status_effect_layout.children:
                 self.status_effect_layout.remove(indicator)
-
-    def on_game_object_death(self: GameUI, game_object_id: int) -> None:
-        """Remove a game object from the game.
-
-        Args:
-            game_object_id: The ID of the game object to remove.
-        """
-        for group in self.progress_bars[:]:
-            if group.target_sprite.game_object_id == game_object_id:
-                self.ui.remove(group)
-                self.progress_bars.remove(group)

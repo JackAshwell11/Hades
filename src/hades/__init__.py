@@ -3,15 +3,21 @@
 from __future__ import annotations
 
 # Builtin
+from enum import Enum, auto
 from pathlib import Path
 from typing import Final
 
 # Pip
 import arcade
 
-__author__ = "Aspect1103"
-__license__ = "GNU GPLv3"
-__version__ = "0.1.0"
+
+class ViewType(Enum):
+    """Represents the different views in the game."""
+
+    START_MENU = auto()
+    GAME = auto()
+    PLAYER = auto()
+
 
 # The size of the padding around the UI elements
 UI_PADDING: Final[int] = 4

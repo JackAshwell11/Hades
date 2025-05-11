@@ -16,7 +16,7 @@ from hades_extensions.ecs.components import KinematicComponent
 if TYPE_CHECKING:
     from hades.constructors import GameObjectConstructor
 
-__all__ = ("AnimatedSprite", "HadesSprite")
+__all__ = ("AnimatedSprite", "HadesSprite", "make_sprite")
 
 
 class HadesSprite(BasicSprite):
@@ -28,7 +28,6 @@ class HadesSprite(BasicSprite):
         self: HadesSprite,
         registry: Registry,
         game_object_id: int,
-        position: tuple[float, float],
         constructor: GameObjectConstructor,
     ) -> None:
         """Initialise the object.
@@ -37,13 +36,11 @@ class HadesSprite(BasicSprite):
             registry: The registry that manages the game objects, components, and
                 systems.
             game_object_id: The game object's ID.
-            position: The sprite object's position.
             constructor: The game object's constructor.
         """
         super().__init__(
             texture_cache[constructor.texture_paths[0]],
             SPRITE_SCALE,
-            *position,
         )
         self.registry: Registry = registry
         self.game_object_id: int = game_object_id
@@ -109,7 +106,6 @@ class AnimatedSprite(HadesSprite):
         self: AnimatedSprite,
         registry: Registry,
         game_object_id: int,
-        position: tuple[float, float],
         constructor: GameObjectConstructor,
     ) -> None:
         """Initialise the object.
@@ -118,10 +114,9 @@ class AnimatedSprite(HadesSprite):
             registry: The registry that manages the game objects, components, and
                 systems.
             game_object_id: The game object's ID.
-            position: The sprite object's position.
             constructor: The game object's constructor.
         """
-        super().__init__(registry, game_object_id, position, constructor)
+        super().__init__(registry, game_object_id, constructor)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
             (texture_cache[texture], texture_cache[texture].flip_left_right())
             for texture in constructor.texture_paths
@@ -137,3 +132,23 @@ class AnimatedSprite(HadesSprite):
             f"<AnimatedSprite (Game object ID={self.game_object_id}) (Current"
             f" texture={self.texture})>"
         )
+
+
+def make_sprite(
+    registry: Registry,
+    game_object_id: int,
+    constructor: GameObjectConstructor,
+) -> HadesSprite:
+    """Create a sprite object.
+
+    Args:
+        registry: The registry that manages the game objects, components, and
+            systems.
+        game_object_id: The game object's ID.
+        constructor: The game object's constructor.
+
+    Returns:
+        The sprite object.
+    """
+    sprite_class = AnimatedSprite if len(constructor.texture_paths) > 1 else HadesSprite
+    return sprite_class(registry, game_object_id, constructor)

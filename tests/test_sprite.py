@@ -44,50 +44,39 @@ def constructor(request: pytest.FixtureRequest) -> GameObjectConstructor:
 
 
 @pytest.mark.parametrize(
-    ("constructor", "position", "expected_path"),
+    ("constructor", "expected_path"),
     [
-        (
-            ["floor.png"],
-            (672.0, 1312.0),
-            texture_path / "floor.png",
-        ),
-        (
-            ["floor.png"],
-            (352.0, 672.0),
-            texture_path / "floor.png",
-        ),
-        (
-            ["floor.png"],
-            (32.0, 32.0),
-            texture_path / "floor.png",
-        ),
+        (["floor.png"], texture_path / "floor.png"),
     ],
     indirect=["constructor"],
 )
 def test_hades_sprite_init(
     constructor: GameObjectConstructor,
-    position: tuple[float, float],
     expected_path: Path,
 ) -> None:
     """Test that a HadesSprite object is initialised correctly.
 
     Args:
         constructor: The game object constructor for testing.
-        position: The position of the sprite object.
         expected_path: The expected path of the texture.
     """
-    sprite = HadesSprite(
-        Mock(),
-        0,
-        position,
-        constructor,
-    )
-    assert sprite.position == position
+    sprite = HadesSprite(Mock(), 0, constructor)
+    assert sprite.position == (0, 0)
     assert sprite.texture.file_path == expected_path
     assert sprite.game_object_id == 0
     assert sprite.game_object_type == GameObjectType.Player
     assert sprite.name == "Test constructor"
     assert sprite.description == "Test description"
+
+
+def test_hades_sprite_init_no_texture() -> None:
+    """Test that a HadesSprite object raises an error when no textures are provided."""
+    with pytest.raises(expected_exception=IndexError, match="list index out of range"):
+        HadesSprite(
+            Mock(),
+            0,
+            GameObjectConstructor("Test", "Test", GameObjectType.Player, 0, []),
+        )
 
 
 def test_hades_sprite_update() -> None:
@@ -106,7 +95,7 @@ def test_hades_sprite_update() -> None:
         0,
         [":resources:floor.png"],
     )
-    sprite = HadesSprite(registry, -1, (32.0, 32.0), constructor)
+    sprite = HadesSprite(registry, -1, constructor)
 
     # Update the sprite object and check that the position is correct
     sprite.update()
@@ -114,21 +103,11 @@ def test_hades_sprite_update() -> None:
 
 
 @pytest.mark.parametrize(
-    ("constructor", "position", "expected_paths"),
+    ("constructor", "expected_paths"),
     [
-        (
-            ["floor.png"],
-            (672.0, 1312.0),
-            [texture_path / "floor.png"],
-        ),
-        (
-            ["floor.png"],
-            (352.0, 672.0),
-            [texture_path / "floor.png"],
-        ),
+        (["floor.png"], [texture_path / "floor.png"]),
         (
             ["floor.png", "wall.png"],
-            (32.0, 32.0),
             [texture_path / "floor.png", texture_path / "wall.png"],
         ),
     ],
@@ -136,23 +115,16 @@ def test_hades_sprite_update() -> None:
 )
 def test_animated_sprite_init(
     constructor: GameObjectConstructor,
-    position: tuple[float, float],
     expected_paths: list[Path],
 ) -> None:
     """Test that an AnimatedSprite object is initialised correctly.
 
     Args:
         constructor: The game object constructor for testing.
-        position: The position of the sprite object.
         expected_paths: The expected path of the textures.
     """
-    sprite = AnimatedSprite(
-        Mock(),
-        0,
-        position,
-        constructor,
-    )
-    assert sprite.position == position
+    sprite = AnimatedSprite(Mock(), 0, constructor)
+    assert sprite.position == (0, 0)
     assert sprite.texture.file_path == expected_paths[0]
     assert sprite.game_object_id == 0
     assert sprite.game_object_type == GameObjectType.Player
@@ -162,14 +134,3 @@ def test_animated_sprite_init(
     for i, textures in enumerate(sprite.sprite_textures):
         assert textures[0].file_path == expected_paths[i]
         assert len(sprite.sprite_textures[0]) == 2
-
-
-def test_hades_sprite_no_texture() -> None:
-    """Test that a HadesSprite object raises an error when no textures are provided."""
-    with pytest.raises(expected_exception=IndexError, match="list index out of range"):
-        HadesSprite(
-            Mock(),
-            0,
-            (0, 0),
-            GameObjectConstructor("Test", "Test", GameObjectType.Player, 0, []),
-        )
