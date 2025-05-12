@@ -24,7 +24,7 @@ Repository = "https://github.com/JackAshwell11/Hades"
 ai = [
     "gymnasium==1.1.1",
     "ipython==9.2.0",
-    "matplotlib==3.10.1",
+    "matplotlib==3.10.3",
     "mpld3==0.5.10",
     "opencv-python==4.11.0.86",
     "torch==2.7.0",
