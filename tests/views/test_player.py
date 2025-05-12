@@ -11,6 +11,16 @@ from unittest.mock import Mock
 import pytest
 from arcade import Texture, get_default_texture, get_window
 from arcade.gui import UIOnActionEvent, UITextureButton
+from hades_extensions.ecs import ComponentBase, Registry, RegistryError
+from hades_extensions.ecs.components import (
+    Health,
+    Inventory,
+    InventorySize,
+    Money,
+    PythonSprite,
+    Upgrades,
+)
+from hades_extensions.ecs.systems import InventorySystem, UpgradeSystem
 
 # Custom
 from hades.sprite import HadesSprite
@@ -25,16 +35,6 @@ from hades.views.player import (
     UpgradesItemButton,
     create_divider_line,
 )
-from hades_extensions.ecs import ComponentBase, Registry, RegistryError
-from hades_extensions.ecs.components import (
-    Health,
-    Inventory,
-    InventorySize,
-    Money,
-    PythonSprite,
-    Upgrades,
-)
-from hades_extensions.ecs.systems import InventorySystem, UpgradeSystem
 
 if TYPE_CHECKING:
     from collections.abc import Callable

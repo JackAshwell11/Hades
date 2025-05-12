@@ -1,9 +1,10 @@
 # Builtin
 from collections.abc import Callable
 
+from hades_extensions.ecs import ComponentBase, StatusEffectType
+
 # Custom
 from hades.sprite import HadesSprite
-from hades_extensions.ecs import ComponentBase, StatusEffectType
 
 # Define the action function for callables
 type ActionFunction = Callable[[int], float]

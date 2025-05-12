@@ -13,9 +13,9 @@ from arcade.gui import UIAnchorLayout, UIBoxLayout, UISpace
 
 if TYPE_CHECKING:
     from arcade.types.color import RGBA255
+    from hades_extensions.ecs.components import Stat
 
     from hades.sprite import HadesSprite
-    from hades_extensions.ecs.components import Stat
 
 __all__ = (
     "PROGRESS_BAR_DISTANCE",

@@ -10,13 +10,13 @@ from unittest.mock import Mock
 # Pip
 import pytest
 from arcade import color
+from hades_extensions.ecs import ComponentBase, GameObjectType, Registry
+from hades_extensions.ecs.components import Armour, Health
 
 # Custom
 from hades.constructors import GameObjectConstructor
 from hades.progress_bar import ProgressBar, ProgressBarGroup
 from hades.sprite import HadesSprite
-from hades_extensions.ecs import ComponentBase, GameObjectType, Registry
-from hades_extensions.ecs.components import Armour, Health
 
 if TYPE_CHECKING:
     from arcade.types.color import RGBA255

@@ -32,10 +32,6 @@ from arcade.gui import (
     UIWidget,
 )
 from arcade.types import Color
-from PIL.ImageFilter import GaussianBlur
-
-# Custom
-from hades.views import UI_BACKGROUND_COLOUR
 from hades_extensions.ecs import SPRITE_SIZE, Registry
 from hades_extensions.ecs.components import (
     Inventory,
@@ -46,12 +42,17 @@ from hades_extensions.ecs.components import (
     Upgrades,
 )
 from hades_extensions.ecs.systems import InventorySystem, UpgradeSystem
+from PIL.ImageFilter import GaussianBlur
+
+# Custom
+from hades.views import UI_BACKGROUND_COLOUR
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from hades.sprite import HadesSprite
     from hades_extensions.ecs.components import ActionFunction
+
+    from hades.sprite import HadesSprite
 
 __all__ = (
     "InventoryItemButton",

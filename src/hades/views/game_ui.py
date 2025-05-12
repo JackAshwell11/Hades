@@ -8,16 +8,15 @@ from typing import TYPE_CHECKING
 # Pip
 from arcade import color
 from arcade.gui import UIAnchorLayout, UIBoxLayout, UIGridLayout, UILabel, UIManager
+from hades_extensions.ecs import GameObjectType
+from hades_extensions.ecs.components import PythonSprite
 
 # Custom
 from hades.progress_bar import PROGRESS_BAR_DISTANCE, ProgressBarGroup
 from hades.views import UI_BACKGROUND_COLOUR
-from hades_extensions.ecs import GameObjectType
-from hades_extensions.ecs.components import PythonSprite
 
 if TYPE_CHECKING:
     from arcade.camera import Camera2D
-
     from hades_extensions.ecs import Registry
     from hades_extensions.ecs.components import StatusEffect
 
