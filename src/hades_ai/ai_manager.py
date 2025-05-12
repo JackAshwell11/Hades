@@ -13,11 +13,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from gymnasium.utils.env_checker import check_env
+from hades_extensions.ecs.components import Armour, Health
 
 # Custom
 from hades_ai.dqn import BATCH_SIZE, DQNAgent, Transition
 from hades_ai.hades_environment import HadesEnvironment
-from hades_extensions.ecs.components import Armour, Health
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

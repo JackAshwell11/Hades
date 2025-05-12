@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # Pip
 import pytest
+from hades_extensions.ecs import GameObjectType
 
 # Custom
 from hades.constructors import (
@@ -11,7 +12,6 @@ from hades.constructors import (
     game_object_constructors,
     texture_cache,
 )
-from hades_extensions.ecs import GameObjectType
 
 
 @pytest.mark.parametrize(

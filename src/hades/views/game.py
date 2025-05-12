@@ -11,6 +11,13 @@ from typing import Final, cast
 from arcade import SpriteList, color, key, schedule, unschedule
 from arcade.camera.camera_2d import Camera2D
 from arcade.gui import UIView
+from hades_extensions.ecs import EventType, GameObjectType, Registry
+from hades_extensions.ecs.components import (
+    KinematicComponent,
+    Money,
+    PythonSprite,
+    StatusEffects,
+)
 from pyglet import app
 
 # Custom
@@ -20,13 +27,6 @@ from hades.sprite import AnimatedSprite, HadesSprite
 from hades.views.game_ui import GameUI
 from hades.views.player import PlayerView
 from hades_extensions import GameEngine
-from hades_extensions.ecs import EventType, GameObjectType, Registry
-from hades_extensions.ecs.components import (
-    KinematicComponent,
-    Money,
-    PythonSprite,
-    StatusEffects,
-)
 
 __all__ = ("Game",)
 

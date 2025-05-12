@@ -9,16 +9,15 @@ from typing import TYPE_CHECKING
 
 # Pip
 from arcade import color, load_texture
+from hades_extensions.ecs import GameObjectType
+from hades_extensions.ecs.components import Armour, Health
 
 # Custom
 from hades_extensions import load_hitbox
-from hades_extensions.ecs import GameObjectType
-from hades_extensions.ecs.components import Armour, Health
 
 if TYPE_CHECKING:
     from arcade import Texture
     from arcade.types.color import RGBA255
-
     from hades_extensions.ecs import ComponentBase
 
 __all__ = ("GameObjectConstructor", "game_object_constructors", "texture_cache")

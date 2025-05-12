@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING
 
 # Pip
 from arcade import BasicSprite, Texture
+from hades_extensions.ecs import SPRITE_SCALE, GameObjectType, Registry
+from hades_extensions.ecs.components import KinematicComponent
 
 # Custom
 from hades.constructors import texture_cache
-from hades_extensions.ecs import SPRITE_SCALE, GameObjectType, Registry
-from hades_extensions.ecs.components import KinematicComponent
 
 if TYPE_CHECKING:
     from hades.constructors import GameObjectConstructor

@@ -9,12 +9,12 @@ from unittest.mock import Mock
 
 # Pip
 import pytest
+from hades_extensions.ecs import GameObjectType, Registry
+from hades_extensions.ecs.components import KinematicComponent
 
 # Custom
 from hades.constructors import GameObjectConstructor
 from hades.sprite import AnimatedSprite, HadesSprite
-from hades_extensions.ecs import GameObjectType, Registry
-from hades_extensions.ecs.components import KinematicComponent
 
 __all__ = ()
 

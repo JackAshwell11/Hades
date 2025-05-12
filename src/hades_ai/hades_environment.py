@@ -11,12 +11,6 @@ import numpy as np
 from arcade import MOUSE_BUTTON_LEFT, key
 from gymnasium import Env
 from gymnasium.spaces import Box, Dict, Discrete
-from pyglet import clock
-
-# Custom
-from hades.views.game import Game
-from hades_ai.capture_window import CaptureWindow
-from hades_extensions import GameEngine
 from hades_extensions.ecs import (
     SPRITE_SIZE,
     EventType,
@@ -26,6 +20,12 @@ from hades_extensions.ecs import (
 )
 from hades_extensions.ecs.components import Attack, KinematicComponent
 from hades_extensions.ecs.systems import PhysicsSystem
+from pyglet import clock
+
+# Custom
+from hades.views.game import Game
+from hades_ai.capture_window import CaptureWindow
+from hades_extensions import GameEngine
 
 if TYPE_CHECKING:
     from gymnasium.core import ActType, ObsType
