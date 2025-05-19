@@ -140,7 +140,6 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.ruff]
-extend-exclude = ["src/hades_extensions/vcpkg"]
 output-format = "full"
 preview = true
 show-fixes = true
@@ -156,6 +155,9 @@ extend-ignore = [
     "TD003",  # Allow not having an issue link for each todo
 ]
 select = ["ALL"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["hades", "hades_ai", "hades_extensions"]
 
 [tool.ruff.lint.per-file-ignores]
 "noxfile.py" = [
