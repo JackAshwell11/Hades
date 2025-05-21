@@ -11,15 +11,15 @@ updates:
       - "type: dependency"
       - "status: pending"
     schedule:
-      interval: "weekly"
-  - package-ecosystem: "pip"
+      interval: "daily"
+  - package-ecosystem: "uv"
     directory: "/"
     groups:
-      pip-dependencies:
+      uv-dependencies:
         patterns:
           - "*"  # Update all dependencies
     labels:
       - "type: dependency"
       - "status: pending"
     schedule:
-      interval: "weekly"
+      interval: "daily"
