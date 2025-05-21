@@ -10,7 +10,6 @@ from hades import ViewType
 from hades.game.controller import GameController
 from hades.game.model import GameModel
 from hades.game.view import GameView
-from hades.views.player import PlayerView
 
 __all__ = ("Game",)
 
@@ -32,7 +31,6 @@ class Game(View):
         self.model: GameModel = GameModel()
         self.view: GameView = GameView(self.window)
         self.controller: GameController = GameController(self.model, self.view)
-        self.window.views[ViewType.PLAYER] = PlayerView()
 
     def setup(self: Game, level: int, seed: int | None = None) -> None:
         """Set up the game.

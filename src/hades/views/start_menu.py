@@ -18,7 +18,6 @@ from arcade.gui import (
 
 # Custom
 from hades import ViewType
-from hades.game import Game
 
 if TYPE_CHECKING:
     from hades.window import HadesWindow
@@ -43,9 +42,8 @@ class StartButton(UIFlatButton):
         window: HadesWindow = arcade.get_window()
 
         # Set up the new game
-        new_game = Game()
-        window.views[ViewType.GAME] = new_game
-        new_game.setup(0)
+        new_game = window.views[ViewType.GAME]
+        new_game.setup(0)  # type: ignore[attr-defined]
         logger.info("Initialised game view at level %d", 0)
 
         # Show the new game

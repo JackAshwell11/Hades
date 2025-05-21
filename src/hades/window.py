@@ -10,16 +10,23 @@ from pathlib import Path
 from typing import Final
 
 # Pip
-from arcade import View, Window
+from arcade import Texture, View, Window, get_default_texture, get_image
+from arcade.gui import UIWidget
+from PIL.ImageFilter import GaussianBlur
 
 # Custom
 from hades import ViewType
+from hades.game import Game
+from hades.player import Player
 from hades.views.start_menu import StartMenu
 
 __all__ = ("HadesWindow",)
 
 # Constants
 GAME_LOGGER: Final[str] = "hades"
+
+# The Gaussian blur filter to apply to the background image
+BACKGROUND_BLUR: Final[GaussianBlur] = GaussianBlur(5)
 
 # Create the log directory making sure it exists. Then create the path for the current
 # log file
@@ -79,12 +86,23 @@ class HadesWindow(Window):
 
     Attributes:
         views: Holds all the views used by the game.
+        background_image: The background image of the window.
     """
 
     def __init__(self: HadesWindow) -> None:
         """Initialise the object."""
         super().__init__()
         self.views: dict[ViewType, View] = {}
+        self.background_image: UIWidget = UIWidget(
+            width=self.width,
+            height=self.height,
+        ).with_background(texture=get_default_texture())
+
+    def save_background(self: HadesWindow) -> None:
+        """Save the current background image to a texture."""
+        self.background_image.with_background(
+            texture=Texture(get_image().filter(BACKGROUND_BLUR)),
+        )
 
     def __repr__(self: HadesWindow) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.
@@ -102,12 +120,12 @@ def main() -> None:
     window.center_window()
     logger.debug("Initialised window")
 
-    # Initialise and load the start menu view
-    new_view = StartMenu()
-    window.views[ViewType.START_MENU] = new_view
-    logger.debug("Initialised start menu view")
-    window.show_view(new_view)
-    logger.debug("Showed start menu view")
+    # Initialise the views
+    window.views[ViewType.START_MENU] = StartMenu()
+    window.views[ViewType.GAME] = Game()
+    window.views[ViewType.PLAYER] = Player()
+    window.show_view(window.views[ViewType.START_MENU])
+    logger.debug("Initialised views")
 
     # Run the game
     logger.debug("Running game")
