@@ -64,10 +64,6 @@ class GameController:
         callbacks = [
             (EventType.GameObjectCreation, self.on_game_object_creation),
             (EventType.GameObjectDeath, self.on_game_object_death),
-            (
-                EventType.InventoryUpdate,
-                self.view.window.views[ViewType.PLAYER].on_update_inventory,
-            ),
             (EventType.SpriteRemoval, self.on_sprite_removal),
             (EventType.StatusEffectUpdate, self.on_status_effect_update),
             (EventType.MoneyUpdate, self.on_money_update),
@@ -75,7 +71,10 @@ class GameController:
             (EventType.RangedAttackSwitch, self.on_ranged_attack_switch),
         ]
         for event_type, callback in callbacks:
-            self.model.registry.add_callback(event_type, callback)
+            self.model.registry.add_callback(  # type: ignore[call-overload]
+                event_type,
+                callback,
+            )
         self.model.game_engine.create_game_objects()
         self.model.player_id = self.model.game_engine.player_id
 
@@ -88,6 +87,7 @@ class GameController:
 
     def hide_view(self: GameController) -> None:
         """Process hide view functionality."""
+        self.view.window.save_background()
         self.view.ui.disable()
         self.view.window.remove_handlers(self.model.game_engine)
         unschedule(self.model.game_engine.generate_enemy)
