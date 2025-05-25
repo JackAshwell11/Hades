@@ -12,7 +12,7 @@ import pytest
 from arcade import color
 
 # Custom
-from hades.constructors import GameObjectConstructor
+from hades.constructors import GameObjectConstructor, IconType
 from hades.progress_bar import ProgressBar
 from hades.sprite import HadesSprite
 from hades_extensions.ecs import GameObjectType, Registry
@@ -68,7 +68,7 @@ def sprite() -> HadesSprite:
             "Test description",
             GameObjectType.Player,
             0,
-            [":resources:floor.png"],
+            [IconType.FLOOR],
             [
                 (Health, (1, 1), color.GREEN),
             ],

@@ -220,8 +220,8 @@ class InventoryItemButton(ItemButton):
         if self.sprite_object is None:
             return
         view = cast("Player", get_window().current_view)
-        view.model.registry.get_system(InventorySystem).use_item(
-            view.model.player_id,
+        view.controller.model.registry.get_system(InventorySystem).use_item(
+            view.controller.model.player_id,
             self.sprite_object.game_object_id,
         )
 
@@ -252,11 +252,14 @@ class UpgradesItemButton(ItemButton):
 
         # Get the required components
         view = cast("Player", get_window().current_view)
-        component = view.model.registry.get_component(
-            view.model.player_id,
+        component = view.controller.model.registry.get_component(
+            view.controller.model.player_id,
             self.target_component,
         )
-        money = view.model.registry.get_component(view.model.player_id, Money)
+        money = view.controller.model.registry.get_component(
+            view.controller.model.player_id,
+            Money,
+        )
 
         # Calculate the new values for the description
         new_component_value = component.get_max_value() + self.target_functions[0](
@@ -298,8 +301,8 @@ class UpgradesItemButton(ItemButton):
             error = "No target component or functions set for this item."
             raise ValueError(error)
         view = cast("Player", get_window().current_view)
-        view.model.registry.get_system(UpgradeSystem).upgrade_component(
-            view.model.player_id,
+        view.controller.model.registry.get_system(UpgradeSystem).upgrade_component(
+            view.controller.model.player_id,
             self.target_component,
         )
         view.view.stats_layout.set_info(*self.get_info())
@@ -428,11 +431,7 @@ class StatsLayout(UIBoxLayout):
 
     def __init__(self: StatsLayout) -> None:
         """Initialise the object."""
-        super().__init__(
-            width=get_window().width * 0.3,
-            height=get_window().height * 0.4,
-            space_between=PLAYER_WIDGET_SPACING,
-        )
+        super().__init__(size_hint=(0.3, 0.4), space_between=PLAYER_WIDGET_SPACING)
         self.add(UILabel("Test", text_color=(0, 0, 0)))
         self.add(create_divider_line())
         self.add(UIWidget().with_background(texture=get_default_texture()))
@@ -476,11 +475,7 @@ class PlayerAttributesLayout(UIBoxLayout):
 
     def __init__(self: PlayerAttributesLayout) -> None:
         """Initialise the object."""
-        super().__init__(
-            width=get_window().width * 0.8,
-            height=get_window().height * 0.5,
-            space_between=PLAYER_WIDGET_SPACING,
-        )
+        super().__init__(size_hint=(0.8, 0.5), space_between=PLAYER_WIDGET_SPACING)
         self.inventory_layout: PaginatedGridLayout = PaginatedGridLayout(
             InventoryItemButton,
         )

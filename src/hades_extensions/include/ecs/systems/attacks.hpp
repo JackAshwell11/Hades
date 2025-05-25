@@ -3,10 +3,8 @@
 
 // Std headers
 #include <optional>
-#include <utility>
 
 // Local headers
-#include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 
 /// Stores the different types of attacks available in the game.

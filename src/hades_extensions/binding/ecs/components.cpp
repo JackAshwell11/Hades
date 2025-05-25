@@ -32,8 +32,6 @@ void bind_components(const pybind11::module_ &module) {
            "    The maximum level of the stat.");
   const pybind11::class_<Armour, Stat, std::shared_ptr<Armour>> armour(module, "Armour",
                                                                        "Allows a game object to have an armour stat.");
-  const pybind11::class_<ArmourRegen, Stat, std::shared_ptr<ArmourRegen>> armour_regen(
-      module, "ArmourRegen", "Allows a game object to regenerate armour.");
   const pybind11::class_<Health, Stat, std::shared_ptr<Health>> health(module, "Health",
                                                                        "Allows a game object to have a health stat.");
   const pybind11::class_<InventorySize, Stat, std::shared_ptr<InventorySize>> inventory_size(

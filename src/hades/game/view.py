@@ -57,7 +57,7 @@ class StateIndicator(UIBoxLayout):
         """
         super().__init__(vertical=False)
         self.icon: UIImage = UIImage(
-            texture=icon_type.value,
+            texture=icon_type.get_texture(),
             width=SPRITE_SIZE,
             height=SPRITE_SIZE,
         )
@@ -77,7 +77,7 @@ class StateIndicator(UIBoxLayout):
         Args:
             icon_type: The icon type to set the label to.
         """
-        self.icon.texture = icon_type.value
+        self.icon.texture = icon_type.get_texture()
 
     def update_value(self: StateIndicator, value: float) -> None:
         """Update the value of the label.

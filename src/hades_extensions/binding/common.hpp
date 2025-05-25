@@ -13,11 +13,9 @@
 #endif
 
 // Local headers
-#include "ecs/systems/armour_regen.hpp"
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/effects.hpp"
 #include "ecs/systems/inventory.hpp"
-#include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/sprite.hpp"
 #include "ecs/systems/upgrade.hpp"
@@ -71,8 +69,8 @@ auto make_system_types()
 /// @return The component types mapping.
 inline auto get_component_types()
     -> const std::unordered_map<pybind11::handle, std::type_index, py_handle_hash, py_handle_equal> & {
-  static const auto component_types{make_component_types<Armour, ArmourRegen, Health, Inventory, InventorySize,
-                                                         KinematicComponent, Money, PythonSprite, Upgrades>()};
+  static const auto component_types{make_component_types<Armour, Health, Inventory, InventorySize, KinematicComponent,
+                                                         Money, PythonSprite, Upgrades>()};
   return component_types;
 }
 

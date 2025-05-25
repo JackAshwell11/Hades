@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Final
 
 # Pip
-import arcade
+from arcade.resources import add_resource_handle
 
 
 class ViewType(Enum):
@@ -23,7 +23,4 @@ class ViewType(Enum):
 UI_PADDING: Final[int] = 4
 
 # Add the resources directory to the resource loader
-arcade.resources.add_resource_handle(
-    "resources",
-    Path(__file__).resolve().parent / "resources" / "textures",
-)
+add_resource_handle("resources", Path(__file__).resolve().parent / "resources")

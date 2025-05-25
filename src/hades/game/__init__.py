@@ -8,8 +8,8 @@ from arcade import View
 # Custom
 from hades import ViewType
 from hades.game.controller import GameController
-from hades.game.model import GameModel
 from hades.game.view import GameView
+from hades.model import GameModel
 
 __all__ = ("Game",)
 
@@ -42,10 +42,7 @@ class Game(View):
         self.model.setup(level, seed)
         self.view.setup()
         self.controller.setup()
-        self.window.views[ViewType.PLAYER].setup(
-            self.model.registry,
-            self.model.player_id,
-        )
+        self.window.views[ViewType.PLAYER].setup(self.model)
 
     def on_show_view(self: Game) -> None:
         """Process show view functionality."""

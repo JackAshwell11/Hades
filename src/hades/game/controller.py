@@ -23,8 +23,8 @@ from hades_extensions.ecs import (
 from hades_extensions.ecs.components import KinematicComponent, PythonSprite
 
 if TYPE_CHECKING:
-    from hades.game.model import GameModel
     from hades.game.view import GameView
+    from hades.model import GameModel
 
 __all__ = ("GameController",)
 
@@ -36,12 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 class GameController:
-    """Manages the game flow and registry callbacks.
-
-    Attributes:
-        model: The game model.
-        view: The game renderer.
-    """
+    """Manages the game flow and registry callbacks."""
 
     __slots__ = ("model", "view")
 
@@ -166,11 +161,7 @@ class GameController:
         """
         logger.debug("Received game object death event for %d", game_object_id)
         self.view.remove_progress_bars(game_object_id)
-        game_object = self.model.registry.get_component(
-            game_object_id,
-            PythonSprite,
-        ).sprite
-        game_object.remove_from_sprite_lists()
+        self.on_sprite_removal(game_object_id)
         if (
             self.model.registry.get_game_object_type(game_object_id)
             == GameObjectType.Player

@@ -8,6 +8,7 @@ import pytest
 # Custom
 from hades.constructors import (
     GameObjectConstructor,
+    IconType,
     game_object_constructors,
     texture_cache,
 )
@@ -48,20 +49,8 @@ def test_factory_functions(
     assert constructor.game_object_type == game_object_type
     assert constructor.name == expected_result[0]
     assert constructor.description == expected_result[1]
-    for texture_path in constructor.texture_paths:
-        assert texture_cache[texture_path] is not None
-
-
-def test_nonexistent_texture_path() -> None:
-    """Test that a FileNotFoundError is raised when a texture path does not exist."""
-    with pytest.raises(expected_exception=FileNotFoundError, match=r"non_existent.png"):
-        GameObjectConstructor(
-            "Test non_existent",
-            "Test non_existent description",
-            GameObjectType.Player,
-            0,
-            ["non_existent.png"],
-        )
+    for icon_type in constructor.textures:
+        assert texture_cache[f":resources:textures/{icon_type.value}"] is not None
 
 
 def test_duplicate_texture_paths() -> None:
@@ -71,7 +60,7 @@ def test_duplicate_texture_paths() -> None:
         "Test description",
         GameObjectType.Player,
         0,
-        [":resources:floor.png", ":resources:floor.png"],
+        [IconType.FLOOR, IconType.FLOOR],
     )
-    assert len(constructor.texture_paths) == 2
-    assert texture_cache[":resources:floor.png"] is not None
+    assert len(constructor.textures) == 2
+    assert texture_cache[":resources:textures/floor.png"] is not None

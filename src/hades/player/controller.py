@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 # Pip
 from arcade import get_default_texture
@@ -20,7 +20,7 @@ from hades_extensions.ecs.components import (
 if TYPE_CHECKING:
     from arcade.gui import UIOnClickEvent
 
-    from hades.player.model import PlayerModel
+    from hades.model import GameModel
     from hades.player.view import PlayerView
 
 __all__ = ("PlayerController",)
@@ -30,24 +30,18 @@ class PlayerController:
     """Manages the player flow and registry callbacks.
 
     Attributes:
-        model: The player model.
-        view: The player renderer.
+        model: The model managing the player state.
     """
 
     __slots__ = ("__weakref__", "model", "view")
 
-    def __init__(
-        self: PlayerController,
-        model: PlayerModel,
-        view: PlayerView,
-    ) -> None:
+    def __init__(self: PlayerController, view: PlayerView) -> None:
         """Initialise the object.
 
         Args:
-            model: The model managing the player state.
             view: The renderer for the player.
         """
-        self.model: PlayerModel = model
+        self.model: GameModel = cast("GameModel", None)
         self.view: PlayerView = view
 
     def setup(self: PlayerController) -> None:

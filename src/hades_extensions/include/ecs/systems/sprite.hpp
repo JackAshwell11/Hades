@@ -10,9 +10,6 @@
 #include <pybind11/pytypes.h>
 #endif
 
-// Local headers
-#include "ecs/types.hpp"
-
 /// Allows a game object to hold a reference to the Python sprite object.
 struct PythonSprite final : ComponentBase {
   /// The reference to the Python sprite object.

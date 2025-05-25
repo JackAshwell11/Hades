@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 # Builtin
-import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -33,35 +32,35 @@ __all__ = (
 # The cache for all Arcade textures
 texture_cache: dict[str, Texture] = {}
 
-# Get the logger
-logger = logging.getLogger(__name__)
-
-
-def cache_texture(texture_path: str) -> Texture:
-    """Cache a texture.
-
-    Args:
-        texture_path: The path to the texture.
-
-    Returns:
-        The cached texture.
-    """
-    if texture_path not in texture_cache:
-        logger.debug("Loading texture %s", texture_path)
-        texture_cache[texture_path] = load_texture(texture_path)
-    return texture_cache[texture_path]
-
 
 class IconType(Enum):
     """Represents the different types of icons."""
 
-    MONEY = cache_texture(":resources:money.png")
-    SINGLE_BULLET = cache_texture(":resources:health_boost_potion.png")
-    MULTI_BULLET = cache_texture(":resources:enemy_idle.png")
-    MELEE = cache_texture(":resources:shop.png")
-    SPECIAL = cache_texture(":resources:armour_boost_potion.png")
-    REGENERATION = cache_texture(":resources:health_potion.png")
-    POISON = cache_texture(":resources:speed_boost_potion.png")
+    BULLET = "bullet.png"
+    CHEST = "shop.png"
+    ENEMY_IDLE = "enemy_idle.png"
+    FLOOR = "floor.png"
+    GOAL = "armour_potion.png"
+    HEALTH = "health_potion.png"
+    MELEE = "fire_rate_boost_potion.png"
+    MONEY = "money.png"
+    MULTI_BULLET = "multi_bullet.png"
+    PLAYER_IDLE = "player_idle.png"
+    POISON = "speed_boost_potion.png"
+    REGENERATION = "regeneration.png"
+    SINGLE_BULLET = "health_boost_potion.png"
+    SPECIAL = "armour_boost_potion.png"
+    WALL = "wall.png"
+
+    def get_texture(self) -> Texture:
+        """Get the cached texture for this icon type.
+
+        Returns:
+            The cached texture for this icon type.
+        """
+        if (texture_path := f":resources:textures/{self.value}") not in texture_cache:
+            texture_cache[texture_path] = load_texture(texture_path)
+        return texture_cache[texture_path]
 
 
 @dataclass()
@@ -73,7 +72,7 @@ class GameObjectConstructor:
         description: The game object's description.
         game_object_type: The game object's type.
         depth: The game object's OpenGL rendering depth.
-        texture_paths: The paths to the game object's textures.
+        textures: The game object's textures.
         progress_bars: The game object's progress bars.
     """
 
@@ -81,22 +80,17 @@ class GameObjectConstructor:
     description: str
     game_object_type: GameObjectType
     depth: int
-    texture_paths: list[str]
+    textures: list[IconType]
     progress_bars: list[tuple[type[Stat], tuple[float, float], RGBA255]] = field(
         default_factory=list,
     )
 
     def __post_init__(self: GameObjectConstructor) -> None:
         """Post-initialise the object."""
-        logger.debug("Initialising game object constructor %s", self.name)
-        for texture_path in self.texture_paths:
-            cache_texture(texture_path)
-        logger.debug("Loading hitbox for %s", self.name)
         load_hitbox(
             self.game_object_type,
-            texture_cache[self.texture_paths[0]].hit_box_points,
+            self.textures[0].get_texture().hit_box_points,
         )
-        logger.debug("Initialised game object constructor %s", self.name)
 
 
 def wall_factory() -> GameObjectConstructor:
@@ -110,7 +104,7 @@ def wall_factory() -> GameObjectConstructor:
         "A wall that blocks movement.",
         GameObjectType.Wall,
         0,
-        [":resources:wall.png"],
+        [IconType.WALL],
     )
 
 
@@ -125,7 +119,7 @@ def floor_factory() -> GameObjectConstructor:
         "A floor that allows movement.",
         GameObjectType.Floor,
         0,
-        [":resources:floor.png"],
+        [IconType.FLOOR],
     )
 
 
@@ -140,7 +134,7 @@ def player_factory() -> GameObjectConstructor:
         "The player character.",
         GameObjectType.Player,
         3,
-        [":resources:player_idle.png"],
+        [IconType.PLAYER_IDLE],
         [(Health, (4, 2), color.RED), (Armour, (4, 2), color.SILVER)],
     )
 
@@ -156,7 +150,7 @@ def enemy_factory() -> GameObjectConstructor:
         "An enemy character.",
         GameObjectType.Enemy,
         3,
-        [":resources:enemy_idle.png"],
+        [IconType.ENEMY_IDLE],
         [(Health, (1, 1), color.RED), (Armour, (1, 1), color.SILVER)],
     )
 
@@ -172,7 +166,7 @@ def goal_factory() -> GameObjectConstructor:
         "The goal of the level.",
         GameObjectType.Goal,
         1,
-        [":resources:armour_potion.png"],
+        [IconType.GOAL],
     )
 
 
@@ -187,7 +181,7 @@ def health_potion_factory() -> GameObjectConstructor:
         "A potion that restores health.",
         GameObjectType.HealthPotion,
         1,
-        [":resources:health_potion.png"],
+        [IconType.HEALTH],
     )
 
 
@@ -202,7 +196,7 @@ def chest_factory() -> GameObjectConstructor:
         "A chest that contains loot.",
         GameObjectType.Chest,
         1,
-        [":resources:shop.png"],
+        [IconType.CHEST],
     )
 
 
@@ -217,7 +211,7 @@ def bullet_factory() -> GameObjectConstructor:
         "A bullet that damages other game objects.",
         GameObjectType.Bullet,
         2,
-        [":resources:bullet.png"],
+        [IconType.BULLET],
     )
 
 
@@ -231,6 +225,3 @@ game_object_constructors: dict[GameObjectType, GameObjectConstructor] = {
     GameObjectType.HealthPotion: health_potion_factory(),
     GameObjectType.Chest: chest_factory(),
 }
-
-# TODO: Attack should be modified to accept multiple categories (e.g. ranged,
-#  close, special), so `Default` will change

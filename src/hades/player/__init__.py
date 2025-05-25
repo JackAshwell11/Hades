@@ -10,11 +10,10 @@ from arcade import View
 
 # Custom
 from hades.player.controller import PlayerController
-from hades.player.model import PlayerModel
 from hades.player.view import PlayerView
 
 if TYPE_CHECKING:
-    from hades_extensions.ecs import Registry
+    from hades.model import GameModel
 
 __all__ = ("Player",)
 
@@ -23,29 +22,25 @@ class Player(View):
     """Manages the game and its events.
 
     Attributes:
-        model: The model managing the player state.
         view: The renderer for the player.
         controller: The controller managing the player logic.
     """
 
-    __slots__ = ("controller", "model", "view")
+    __slots__ = ("controller", "view")
 
     def __init__(self: Player) -> None:
         """Initialise the object."""
         super().__init__()
-        self.model: PlayerModel = PlayerModel()
         self.view: PlayerView = PlayerView(self.window)
-        self.controller: PlayerController = PlayerController(self.model, self.view)
+        self.controller: PlayerController = PlayerController(self.view)
 
-    def setup(self: Player, registry: Registry, player_id: int) -> None:
+    def setup(self: Player, model: GameModel) -> None:
         """Set up the player view.
 
         Args:
-            registry: The registry which manages the game objects, components, and
-                systems.
-            player_id: The ID of the player game object.
+            model: The model managing the player state.
         """
-        self.model.setup(registry, player_id)
+        self.controller.model = model
         self.view.setup()
         self.controller.setup()
 

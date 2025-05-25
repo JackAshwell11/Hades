@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from arcade import BasicSprite, Texture
 
 # Custom
-from hades.constructors import texture_cache
 from hades_extensions.ecs import SPRITE_SCALE, GameObjectType, Registry
 from hades_extensions.ecs.components import KinematicComponent
 
@@ -39,7 +38,7 @@ class HadesSprite(BasicSprite):
             constructor: The game object's constructor.
         """
         super().__init__(
-            texture_cache[constructor.texture_paths[0]],
+            constructor.textures[0].get_texture(),
             SPRITE_SCALE,
         )
         self.registry: Registry = registry
@@ -118,8 +117,8 @@ class AnimatedSprite(HadesSprite):
         """
         super().__init__(registry, game_object_id, constructor)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
-            (texture_cache[texture], texture_cache[texture].flip_left_right())
-            for texture in constructor.texture_paths
+            (texture.get_texture(), texture.get_texture().flip_left_right())
+            for texture in constructor.textures
         ]
 
     def __repr__(self: AnimatedSprite) -> str:  # pragma: no cover
@@ -150,5 +149,5 @@ def make_sprite(
     Returns:
         The sprite object.
     """
-    sprite_class = AnimatedSprite if len(constructor.texture_paths) > 1 else HadesSprite
+    sprite_class = AnimatedSprite if len(constructor.textures) > 1 else HadesSprite
     return sprite_class(registry, game_object_id, constructor)

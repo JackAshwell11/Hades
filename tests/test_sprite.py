@@ -11,7 +11,7 @@ from unittest.mock import Mock
 import pytest
 
 # Custom
-from hades.constructors import GameObjectConstructor
+from hades.constructors import GameObjectConstructor, IconType
 from hades.sprite import AnimatedSprite, HadesSprite
 from hades_extensions.ecs import GameObjectType, Registry
 from hades_extensions.ecs.components import KinematicComponent
@@ -39,14 +39,14 @@ def constructor(request: pytest.FixtureRequest) -> GameObjectConstructor:
         "Test description",
         GameObjectType.Player,
         0,
-        [f":resources:{param}" for param in request.param],
+        request.param,
     )
 
 
 @pytest.mark.parametrize(
     ("constructor", "expected_path"),
     [
-        (["floor.png"], texture_path / "floor.png"),
+        ([IconType.FLOOR], texture_path / "floor.png"),
     ],
     indirect=["constructor"],
 )
@@ -93,7 +93,7 @@ def test_hades_sprite_update() -> None:
         "Test description",
         GameObjectType.Player,
         0,
-        [":resources:floor.png"],
+        [IconType.FLOOR],
     )
     sprite = HadesSprite(registry, -1, constructor)
 
@@ -105,9 +105,9 @@ def test_hades_sprite_update() -> None:
 @pytest.mark.parametrize(
     ("constructor", "expected_paths"),
     [
-        (["floor.png"], [texture_path / "floor.png"]),
+        ([IconType.FLOOR], [texture_path / "floor.png"]),
         (
-            ["floor.png", "wall.png"],
+            [IconType.FLOOR, IconType.WALL],
             [texture_path / "floor.png", texture_path / "wall.png"],
         ),
     ],
