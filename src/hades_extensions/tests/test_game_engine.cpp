@@ -22,16 +22,22 @@ class GameEngineFixture : public testing::Test {  // NOLINT
     load_hitbox(GameObjectType::Enemy, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
   }
 
-  /// Move the player to the position of the nearest item.
+  /// Get an item from the game engine's registry.
   ///
-  /// @return The game object ID of the item that the player was moved to.
-  GameObjectID move_player_to_nearest_item(const GameObjectType game_object_type = GameObjectType::HealthPotion) {
-    const auto item_id{game_engine.get_registry()->get_game_object_ids(game_object_type).front()};
+  /// @param game_object_type - The type of the item to find.
+  /// @return The game object ID of the item.
+  auto get_item(const GameObjectType game_object_type) -> GameObjectID {
+    return game_engine.get_registry()->get_game_object_ids(game_object_type).front();
+  }
+
+  /// Move the player to the position of an item.
+  ///
+  /// @param item_id - The ID of the item to move the player to.
+  void move_player_to_item(const GameObjectID item_id) {
     const auto item_pos{
         cpBodyGetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(item_id)->body)};
     cpBodySetPosition(*game_engine.get_registry()->get_component<KinematicComponent>(game_engine.get_player_id())->body,
                       item_pos);
-    return item_id;
   }
 };
 
@@ -110,7 +116,8 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNoNearestItem) {
 /// Test that the game engine processes an update correctly when the nearest item is not a goal.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
   game_engine.create_game_objects();
-  const auto item_id{move_player_to_nearest_item()};
+  const auto item_id{get_item(GameObjectType::HealthPotion)};
+  move_player_to_item(item_id);
   game_engine.on_update(0);
   ASSERT_EQ(game_engine.get_nearest_item(), item_id);
 }
@@ -118,7 +125,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
 /// Test that the game engine processes an update correctly when the nearest item is a goal.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoal) {
   game_engine.create_game_objects();
-  move_player_to_nearest_item(GameObjectType::Goal);
+  move_player_to_item(get_item(GameObjectType::Goal));
   game_engine.on_update(0);
   ASSERT_FALSE(game_engine.get_registry()->has_game_object(game_engine.get_player_id()));
 }
@@ -208,7 +215,8 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseD) {
 /// Test that the game engine processes a 'C' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseC) {
   game_engine.create_game_objects();
-  const auto item_id{move_player_to_nearest_item()};
+  const auto item_id{get_item(GameObjectType::HealthPotion)};
+  move_player_to_item(item_id);
   game_engine.on_update(0);
   game_engine.on_key_release(KEY_C, 0);
   const auto inventory{game_engine.get_registry()->get_component<Inventory>(game_engine.get_player_id())};
@@ -219,12 +227,13 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseC) {
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseE) {
   game_engine.create_game_objects();
   game_engine.generate_enemy();
-  move_player_to_nearest_item();
+  move_player_to_item(get_item(GameObjectType::HealthPotion));
   game_engine.on_update(0);
   const auto health{game_engine.get_registry()->get_component<Health>(game_engine.get_player_id())};
   health->set_value(50);
   game_engine.on_key_release(KEY_E, 0);
   ASSERT_EQ(health->get_value(), 55);
+  ASSERT_FALSE(game_engine.get_registry()->has_game_object(game_engine.get_nearest_item()));
 }
 
 /// Test that the game engine processes a 'Z' key release correctly.
@@ -269,4 +278,50 @@ TEST_F(GameEngineFixture, TestGameEngineOnMousePressLeft) {
 TEST_F(GameEngineFixture, TestGameEngineOnMousePressUnknown) {
   game_engine.create_game_objects();
   ASSERT_FALSE(game_engine.on_mouse_press(0, 0, -1, 0));
+}
+
+/// Test that a game object's effects are applied correctly when an item is used.
+TEST_F(GameEngineFixture, TestGameEngineUseItemEffects) {
+  game_engine.create_game_objects();
+  const auto item_id{get_item(GameObjectType::HealthPotion)};
+  const auto health{game_engine.get_registry()->get_component<Health>(game_engine.get_player_id())};
+  health->set_value(50);
+  game_engine.use_item(game_engine.get_player_id(), item_id);
+  ASSERT_EQ(health->get_value(), 55);
+  ASSERT_FALSE(game_engine.get_registry()->has_game_object(item_id));
+}
+
+/// Test that a game object is removed from the inventory after it is used.
+TEST_F(GameEngineFixture, TestGameEngineUseItemRemoveFromInventory) {
+  game_engine.create_game_objects();
+  const auto item_id{get_item(GameObjectType::HealthPotion)};
+  game_engine.get_registry()->get_system<InventorySystem>()->add_item_to_inventory(game_engine.get_player_id(),
+                                                                                   item_id);
+  game_engine.get_registry()->get_component<Health>(game_engine.get_player_id())->set_value(50);
+  game_engine.use_item(game_engine.get_player_id(), item_id);
+  ASSERT_FALSE(game_engine.get_registry()->has_game_object(item_id));
+  ASSERT_FALSE(game_engine.get_registry()->get_system<InventorySystem>()->has_item_in_inventory(
+      game_engine.get_player_id(), item_id));
+}
+
+/// Test that an item is not used if it doesn't match any of the strategies.
+TEST_F(GameEngineFixture, TestGameEngineUseItemNoEffect) {
+  game_engine.create_game_objects();
+  game_engine.use_item(game_engine.get_player_id(), get_item(GameObjectType::Wall));
+  ASSERT_EQ(game_engine.get_registry()->get_component<Health>(game_engine.get_player_id())->get_value(), 200);
+}
+
+/// Test that nothing happens if the item game object does not exist.
+TEST_F(GameEngineFixture, TestGameEngineUseItemInvalidItemID) {
+  game_engine.create_game_objects();
+  game_engine.use_item(game_engine.get_player_id(), -1);
+  ASSERT_EQ(game_engine.get_registry()->get_component<Health>(game_engine.get_player_id())->get_value(), 200);
+}
+
+/// Test that an exception is thrown if the target game object does not have the required components.
+TEST_F(GameEngineFixture, TestGameEngineUseItemEffectsInvalidTarget) {
+  game_engine.create_game_objects();
+  ASSERT_THROW_MESSAGE(
+      game_engine.use_item(-1, get_item(GameObjectType::HealthPotion)), RegistryError,
+      "The component `StatusEffects` for the game object ID `-1` is not registered with the registry.");
 }

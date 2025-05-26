@@ -180,7 +180,7 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) const
       registry_->get_system<InventorySystem>()->add_item_to_inventory(player_id_, nearest_item_);
       break;
     case KEY_E:
-      registry_->get_system<InventorySystem>()->use_item(player_id_, nearest_item_);
+      use_item(player_id_, nearest_item_);
       break;
     case KEY_Z:
       registry_->get_system<AttackSystem>()->previous_ranged_attack(player_id_);
@@ -199,6 +199,29 @@ auto GameEngine::on_mouse_press(const double /*x*/, const double /*y*/, const in
     return registry_->get_system<AttackSystem>()->do_attack(player_id_, AttackType::Ranged);
   }
   return false;
+}
+
+void GameEngine::use_item(const GameObjectID target_id, const GameObjectID item_id) const {
+  // Check if the item is a valid game object or not
+  if (!registry_->has_game_object(item_id)) {
+    return;
+  }
+
+  // Use the item if it can be used
+  bool used{false};
+  if (registry_->has_component(item_id, typeid(EffectApplier))) {
+    used = registry_->get_system<EffectSystem>()->apply_effects(item_id, target_id);
+  }
+
+  // If the item has been used, remove it from the inventory or the dungeon
+  if (used) {
+    if (const auto inventory_system{registry_->get_system<InventorySystem>()};
+        inventory_system->has_item_in_inventory(target_id, item_id)) {
+      inventory_system->remove_item_from_inventory(target_id, item_id);
+    } else {
+      registry_->delete_game_object(item_id);
+    }
+  }
 }
 
 auto GameEngine::get_game_object_components(const GameObjectType game_object_type)

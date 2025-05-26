@@ -28,7 +28,6 @@ from arcade.types import Color
 from hades import ViewType
 from hades_extensions.ecs import SPRITE_SIZE
 from hades_extensions.ecs.components import Money
-from hades_extensions.ecs.systems import InventorySystem, UpgradeSystem
 
 if TYPE_CHECKING:
     from hades.player import Player
@@ -44,6 +43,7 @@ __all__ = (
     "PlayerView",
     "StatsLayout",
     "UpgradesItemButton",
+    "create_default_layout",
     "create_divider_line",
 )
 
@@ -77,26 +77,31 @@ def create_divider_line(*, vertical: bool = False) -> UISpace:
     )
 
 
+def create_default_layout() -> UISpace:
+    """Create a default layout for the paginated grid layout.
+
+    Returns:
+        The default layout.
+    """
+    return UISpace(
+        color=PLAYER_BACKGROUND_COLOUR,
+        width=SPRITE_SIZE,
+        height=ITEM_BUTTON_HEIGHT,
+    ).with_border(color=color.BLACK)
+
+
 class ItemButton(UIBoxLayout, ABC):
     """Represents an item button.
 
     Attributes:
-        default_layout: The default layout for the item button.
-        sprite_layout: The layout for displaying the item sprite.
         texture_button: The button for displaying the item texture.
     """
 
-    __slots__ = ("default_layout", "item_button", "sprite_layout", "texture_button")
+    __slots__ = ("texture_button", "use_button")
 
     def __init__(self: ItemButton) -> None:
         """Initialise the object."""
-        self.item_button: ItemButton | None = None
-        self.default_layout: UISpace = UISpace(
-            color=PLAYER_BACKGROUND_COLOUR,
-            width=SPRITE_SIZE,
-            height=ITEM_BUTTON_HEIGHT,
-        ).with_border(color=color.BLACK)
-        self.sprite_layout: UIBoxLayout = UIBoxLayout()
+        super().__init__()
         self.texture_button: UITextureButton = UITextureButton(
             width=SPRITE_SIZE,
             height=ITEM_BUTTON_HEIGHT * 2 // 3,
@@ -104,15 +109,16 @@ class ItemButton(UIBoxLayout, ABC):
         self.texture_button.on_click = (  # type: ignore[method-assign]
             self.on_texture_button_click
         )
-        self.sprite_layout.add(self.texture_button.with_border(color=color.BLACK))
-        button = UIFlatButton(
+        self.add(self.texture_button.with_border(color=color.BLACK))
+        self.use_button: UIFlatButton = UIFlatButton(
             text="Use",
             width=SPRITE_SIZE,
             height=ITEM_BUTTON_HEIGHT // 3,
         )
-        button.on_click = self.on_use_button_click  # type: ignore[method-assign]
-        self.sprite_layout.add(button.with_border(color=color.BLACK))
-        super().__init__(children=(self.default_layout,))
+        self.use_button.on_click = (  # type: ignore[method-assign]
+            self.on_use_button_click
+        )
+        self.add(self.use_button.with_border(color=color.BLACK))
 
     @abstractmethod
     def get_info(self: ItemButton) -> tuple[str, str, Texture]:
@@ -126,13 +132,8 @@ class ItemButton(UIBoxLayout, ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def use(self: ItemButton) -> None:
-        """Use the item."""
-        raise NotImplementedError
-
     @property
-    def texture(self: ItemButton) -> Texture | None:
+    def texture(self: ItemButton) -> Texture:
         """Get the texture of the item button.
 
         Returns:
@@ -141,7 +142,7 @@ class ItemButton(UIBoxLayout, ABC):
         return self.texture_button.texture  # type: ignore[no-any-return]
 
     @texture.setter
-    def texture(self: ItemButton, value: Texture | None) -> None:
+    def texture(self: ItemButton, value: Texture) -> None:
         """Set the texture of the item button.
 
         Args:
@@ -150,12 +151,6 @@ class ItemButton(UIBoxLayout, ABC):
         self.texture_button.texture = value
         self.texture_button.texture_hovered = value
         self.texture_button.texture_pressed = value
-        if value and self.default_layout in self.children:
-            self.remove(self.default_layout)
-            self.add(self.sprite_layout)
-        elif self.sprite_layout in self.children:
-            self.remove(self.sprite_layout)
-            self.add(self.default_layout)
 
     @staticmethod
     def on_texture_button_click(event: UIOnClickEvent) -> None:
@@ -179,31 +174,13 @@ class ItemButton(UIBoxLayout, ABC):
 class InventoryItemButton(ItemButton):
     """Represents an inventory item button."""
 
-    __slots__ = ("_sprite_object",)
+    __slots__ = ("sprite_object",)
 
-    def __init__(self: InventoryItemButton) -> None:
+    def __init__(self: InventoryItemButton, sprite_object: HadesSprite) -> None:
         """Initialise the object."""
         super().__init__()
-        self._sprite_object: HadesSprite | None = None
-
-    @property
-    def sprite_object(self: InventoryItemButton) -> HadesSprite | None:
-        """Get the sprite object of the item button.
-
-        Returns:
-            The sprite object of the item button.
-        """
-        return self._sprite_object
-
-    @sprite_object.setter
-    def sprite_object(self: InventoryItemButton, value: HadesSprite | None) -> None:
-        """Set the sprite object of the item button.
-
-        Args:
-            value: The sprite object to set.
-        """
-        self._sprite_object = value
-        self.texture = value.texture if value else None
+        self.sprite_object: HadesSprite = sprite_object
+        self.texture = sprite_object.texture
 
     def get_info(self: InventoryItemButton) -> tuple[str, str, Texture]:
         """Get the information about the item.
@@ -211,19 +188,7 @@ class InventoryItemButton(ItemButton):
         Returns:
             The name, description, and texture of the item.
         """
-        if self.sprite_object is None or self.texture is None:
-            return "", "", get_default_texture()
         return self.sprite_object.name, self.sprite_object.description, self.texture
-
-    def use(self: InventoryItemButton) -> None:
-        """Use the item."""
-        if self.sprite_object is None:
-            return
-        view = cast("Player", get_window().current_view)
-        view.controller.model.registry.get_system(InventorySystem).use_item(
-            view.controller.model.player_id,
-            self.sprite_object.game_object_id,
-        )
 
 
 class UpgradesItemButton(ItemButton):
@@ -231,25 +196,28 @@ class UpgradesItemButton(ItemButton):
 
     __slots__ = ("target_component", "target_functions")
 
-    def __init__(self: UpgradesItemButton) -> None:
-        """Initialise the object."""
+    def __init__(
+        self: UpgradesItemButton,
+        target_component: type[Stat],
+        target_functions: tuple[ActionFunction, ActionFunction],
+    ) -> None:
+        """Initialise the object.
+
+        Args:
+            target_component: The component that this upgrade will affect.
+            target_functions: The functions that will be used to calculate the new
+                values.
+        """
         super().__init__()
-        self.target_component: type[Stat] | None = None
-        self.target_functions: tuple[ActionFunction, ActionFunction] | None = None
+        self.target_component: type[Stat] = target_component
+        self.target_functions: tuple[ActionFunction, ActionFunction] = target_functions
 
     def get_description(self: UpgradesItemButton) -> str:
         """Get the description of the item.
 
-        Raises:
-            ValueError: If no target component or functions are set for this item.
-
         Returns:
             The description of the item.
         """
-        if not self.target_component or not self.target_functions:
-            error = "No target component or functions set for this item."
-            raise ValueError(error)
-
         # Get the required components
         view = cast("Player", get_window().current_view)
         component = view.controller.model.registry.get_component(
@@ -280,64 +248,59 @@ class UpgradesItemButton(ItemButton):
     def get_info(self: UpgradesItemButton) -> tuple[str, str, Texture]:
         """Get the information about the item.
 
-        Raises:
-            ValueError: If no target component is set for this item.
-
         Returns:
             The name, description, and texture of the item.
         """
-        if self.target_component is None or self.texture is None:
-            error = "No target component or functions set for this item."
-            raise ValueError(error)
         return self.target_component.__name__, self.get_description(), self.texture
 
-    def use(self: UpgradesItemButton) -> None:
-        """Use the item.
 
-        Raises:
-            ValueError: If no target component or functions are set for this item.
-        """
-        if not self.target_component:
-            error = "No target component or functions set for this item."
-            raise ValueError(error)
-        view = cast("Player", get_window().current_view)
-        view.controller.model.registry.get_system(UpgradeSystem).upgrade_component(
-            view.controller.model.player_id,
-            self.target_component,
-        )
-        view.view.stats_layout.set_info(*self.get_info())
-
-
-class PaginatedGridLayout(UIBoxLayout):
+class PaginatedGridLayout[T: ItemButton](UIBoxLayout):
     """Represents a paginated grid layout for displaying items.
 
     Attributes:
         button_layout: The button layout to navigate the grid.
         current_row: The current row to display at the top of the grid layout.
         grid_layout: The grid layout to display the items.
-        items: The items to display in the grid layout.
     """
 
     __slots__ = (
+        "_items",
         "button_layout",
-        "button_type",
         "current_row",
         "grid_layout",
-        "items",
     )
 
-    def __init__(self: PaginatedGridLayout, button_type: type[ItemButton]) -> None:
-        """Initialise the object.
+    def _update_grid(self: PaginatedGridLayout[T]) -> None:
+        """Update the grid adding the next row of items to display."""
+        # Update the grid layout with the current items
+        self.grid_layout.clear()
+        start = self.current_row * self.grid_layout.column_count
+        for i, item in enumerate(
+            self._items[
+                start : start
+                + self.grid_layout.column_count * self.grid_layout.row_count
+            ],
+        ):
+            row, column = divmod(i, self.grid_layout.column_count)
+            self.grid_layout.add(item, column=column, row=row)
 
-        Args:
-            button_type: The type of item button to use.
-        """
+        # Fill the rest of the grid with default layouts
+        for i in range(
+            len(self._items),
+            self.grid_layout.column_count * self.grid_layout.row_count,
+        ):
+            row, column = divmod(i, self.grid_layout.column_count)
+            self.grid_layout.add(create_default_layout(), column=column, row=row)
+
+    def __init__(self: PaginatedGridLayout[T]) -> None:
+        """Initialise the object."""
         super().__init__(
             vertical=False,
             space_between=PLAYER_WIDGET_SPACING,
         )
-        self.button_type: type[ItemButton] = button_type
         self.grid_layout: UIGridLayout = UIGridLayout(
+            horizontal_spacing=PLAYER_WIDGET_SPACING,
+            vertical_spacing=PLAYER_WIDGET_SPACING,
             column_count=round(
                 (get_window().width * 0.4) / (SPRITE_SIZE + PLAYER_WIDGET_SPACING),
             ),
@@ -345,8 +308,6 @@ class PaginatedGridLayout(UIBoxLayout):
                 (get_window().height * 0.3)
                 / (ITEM_BUTTON_HEIGHT + PLAYER_WIDGET_SPACING),
             ),
-            horizontal_spacing=PLAYER_WIDGET_SPACING,
-            vertical_spacing=PLAYER_WIDGET_SPACING,
         )
         self.add(self.grid_layout)
         self.button_layout: UIButtonRow = UIButtonRow(
@@ -358,46 +319,39 @@ class PaginatedGridLayout(UIBoxLayout):
         self.button_layout.add_button("Down")
         self.add(self.button_layout)
         self.current_row: int = 0
-        self.items: list[ItemButton] = []
-
-    def _update_grid(self: PaginatedGridLayout) -> None:
-        """Update the grid adding the next row of items to display."""
-        self.grid_layout.clear()
-        start = self.current_row * self.grid_layout.column_count
-        for i, item in enumerate(
-            self.items[
-                start : start
-                + self.grid_layout.column_count * self.grid_layout.row_count
-            ],
-        ):
-            row, column = divmod(i, self.grid_layout.column_count)
-            self.grid_layout.add(item, column, row)
-
-    @property
-    def total_size(self: PaginatedGridLayout) -> int:
-        """Get the total size of the grid layout.
-
-        Returns:
-            The total size of the grid layout.
-        """
-        return len(self.items)
-
-    @total_size.setter
-    def total_size(self: PaginatedGridLayout, value: int) -> None:
-        """Set the total size of the grid layout.
-
-        Args:
-            value: The total size of the grid layout.
-        """
-        self.items = [
-            self.button_type()
-            for _ in range(
-                max(self.grid_layout.column_count * self.grid_layout.row_count, value),
-            )
-        ]
+        self._items: list[T] = []
         self._update_grid()
 
-    def on_action(self: PaginatedGridLayout, event: UIOnActionEvent) -> None:
+    @property
+    def items(self: PaginatedGridLayout[T]) -> list[T]:
+        """Get the items in the grid layout.
+
+        Returns:
+            The list of items in the grid layout.
+        """
+        return self._items
+
+    @items.setter
+    def items(self: PaginatedGridLayout[T], value: list[T]) -> None:
+        """Set the items in the grid layout.
+
+        Args:
+            value: The list of items to set.
+        """
+        self._items = value
+        self.current_row = 0
+        self._update_grid()
+
+    def add_item(self: PaginatedGridLayout[T], item: T) -> None:
+        """Add an item to the grid layout.
+
+        Args:
+            item: The item to add.
+        """
+        self._items.append(item)
+        self._update_grid()
+
+    def on_action(self: PaginatedGridLayout[T], event: UIOnActionEvent) -> None:
         """Handle the button row actions.
 
         Args:
@@ -408,7 +362,7 @@ class PaginatedGridLayout(UIBoxLayout):
         elif event.action == "Down":
             self.navigate_rows(1)
 
-    def navigate_rows(self: PaginatedGridLayout, diff: int) -> None:
+    def navigate_rows(self: PaginatedGridLayout[T], diff: int) -> None:
         """Navigate the rows.
 
         Args:
@@ -418,7 +372,7 @@ class PaginatedGridLayout(UIBoxLayout):
         start_index = new_row * self.grid_layout.column_count
         if (
             new_row >= 0
-            and len(self.items[start_index:]) > self.grid_layout.column_count
+            and len(self._items[start_index:]) > self.grid_layout.column_count
         ):
             self.current_row = new_row
             self._update_grid()
@@ -476,11 +430,11 @@ class PlayerAttributesLayout(UIBoxLayout):
     def __init__(self: PlayerAttributesLayout) -> None:
         """Initialise the object."""
         super().__init__(size_hint=(0.8, 0.5), space_between=PLAYER_WIDGET_SPACING)
-        self.inventory_layout: PaginatedGridLayout = PaginatedGridLayout(
-            InventoryItemButton,
+        self.inventory_layout: PaginatedGridLayout[InventoryItemButton] = (
+            PaginatedGridLayout()
         )
-        self.upgrades_layout: PaginatedGridLayout = PaginatedGridLayout(
-            UpgradesItemButton,
+        self.upgrades_layout: PaginatedGridLayout[UpgradesItemButton] = (
+            PaginatedGridLayout()
         )
 
         # Add the tab menu

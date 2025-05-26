@@ -6,10 +6,10 @@ repos:
     rev: v3.3.7
     hooks:
       - id: pylint
-  - repo: "https://github.com/bwhmather/ssort"
-    rev: 0.14.0
-    hooks:
-      - id: ssort
+#  - repo: "https://github.com/bwhmather/ssort"
+#    rev: 0.14.0
+#    hooks:
+#      - id: ssort
   - repo: "https://github.com/charliermarsh/ruff-pre-commit"
     rev: v0.11.10
     hooks:

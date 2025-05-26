@@ -5,14 +5,24 @@
 #include <array>
 
 // Local headers
-#include "ecs/registry.hpp"
-#include "ecs/systems/effects.hpp"
 #include "ecs/systems/physics.hpp"
 
 namespace {
 // The game objects that can be added to the inventory.
 constexpr std::array COLLECTIBLE_TYPES{GameObjectType::HealthPotion};
 }  // namespace
+
+auto InventorySystem::has_item_in_inventory(const GameObjectID game_object_id, const GameObjectID item_id) const
+    -> bool {
+  // Check if the item is a valid game object or not
+  if (!get_registry()->has_game_object(item_id)) {
+    return false;
+  }
+
+  // Check if the item is in the inventory or not
+  const auto inventory{get_registry()->get_component<Inventory>(game_object_id)};
+  return std::ranges::find(inventory->items.begin(), inventory->items.end(), item_id) != inventory->items.end();
+}
 
 void InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, const GameObjectID item) const {
   // Check if the item is a valid game object or not
@@ -38,7 +48,7 @@ void InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, c
   if (get_registry()->has_component(item, typeid(KinematicComponent))) {
     get_registry()->get_component<KinematicComponent>(item)->collected = true;
   }
-  get_registry()->notify<EventType::InventoryUpdate>(game_object_id);
+  get_registry()->notify<EventType::InventoryUpdate>(inventory->items);
   get_registry()->notify<EventType::SpriteRemoval>(item);
 }
 
@@ -59,24 +69,5 @@ void InventorySystem::remove_item_from_inventory(const GameObjectID game_object_
   // Remove the item from the inventory, delete the game object, and notify the callbacks
   inventory->items.erase(inventory->items.begin() + index);
   get_registry()->delete_game_object(item_id);
-  get_registry()->notify<EventType::InventoryUpdate>(game_object_id);
-  get_registry()->notify<EventType::SpriteRemoval>(item_id);
-}
-
-void InventorySystem::use_item(const GameObjectID target_id, const GameObjectID item_id) const {
-  // Check if the item is a valid game object or not
-  if (!get_registry()->has_game_object(item_id)) {
-    return;
-  }
-
-  // Check whether the item can be used, if so, use it
-  bool used{false};
-  if (auto *const registry{get_registry()}; registry->has_component(item_id, typeid(EffectApplier))) {
-    used = registry->get_system<EffectSystem>()->apply_effects(item_id, target_id);
-  }
-
-  // If the item is used, remove it from the inventory and return the result
-  if (used) {
-    remove_item_from_inventory(target_id, item_id);
-  }
+  get_registry()->notify<EventType::InventoryUpdate>(inventory->items);
 }

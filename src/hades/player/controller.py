@@ -9,13 +9,10 @@ from typing import TYPE_CHECKING, cast
 from arcade import get_default_texture
 
 # Custom
+from hades.player.view import InventoryItemButton, UpgradesItemButton
 from hades_extensions.ecs import EventType
-from hades_extensions.ecs.components import (
-    Inventory,
-    InventorySize,
-    PythonSprite,
-    Upgrades,
-)
+from hades_extensions.ecs.components import PythonSprite, Upgrades
+from hades_extensions.ecs.systems import UpgradeSystem
 
 if TYPE_CHECKING:
     from arcade.gui import UIOnClickEvent
@@ -50,15 +47,6 @@ class PlayerController:
             EventType.InventoryUpdate,
             self.on_update_inventory,
         )
-        self.view.player_attributes_layout.inventory_layout.total_size = int(
-            self.model.registry.get_component(
-                self.model.player_id,
-                InventorySize,
-            ).get_value(),
-        )
-        self.view.player_attributes_layout.upgrades_layout.total_size = len(
-            self.model.registry.get_component(self.model.player_id, Upgrades).upgrades,
-        )
         self.view.window.register_event_type("on_texture_button_callback")
         self.view.window.register_event_type("on_use_button_callback")
         self.view.window.register_event_type("on_inventory_use_item")
@@ -68,13 +56,15 @@ class PlayerController:
             self.model.player_id,
             Upgrades,
         ).upgrades
-        for index, (target_component, target_functions) in enumerate(upgrades.items()):
-            upgrades_item_button = (
-                self.view.player_attributes_layout.upgrades_layout.items[index]
+        for target_component, target_functions in upgrades.items():
+            upgrades_item_button = UpgradesItemButton(
+                target_component,
+                target_functions,
             )
-            upgrades_item_button.target_component = target_component
-            upgrades_item_button.target_functions = target_functions
             upgrades_item_button.texture = get_default_texture()
+            self.view.player_attributes_layout.upgrades_layout.add_item(
+                upgrades_item_button,
+            )
 
     def show_view(self: PlayerController) -> None:
         """Process show view functionality."""
@@ -84,22 +74,18 @@ class PlayerController:
         """Process hide view functionality."""
         self.view.ui.disable()
 
-    def on_update_inventory(self: PlayerController, _: int) -> None:
-        """Update the inventory view."""
-        inventory_items = self.model.registry.get_component(
-            self.model.player_id,
-            Inventory,
-        ).items
-        for index, button in enumerate(
-            self.view.player_attributes_layout.inventory_layout.items,
-        ):
-            if index < len(inventory_items):
-                button.sprite_object = self.model.registry.get_component(
-                    inventory_items[index],
-                    PythonSprite,
-                ).sprite
-            else:
-                button.sprite_object = None
+    def on_update_inventory(self: PlayerController, items: list[int]) -> None:
+        """Handle the inventory update event.
+
+        Args:
+            items: The list of items in the inventory.
+        """
+        self.view.player_attributes_layout.inventory_layout.items = [
+            InventoryItemButton(
+                self.model.registry.get_component(item_id, PythonSprite).sprite,
+            )
+            for item_id in items
+        ]
 
     def on_texture_button_callback(
         self: PlayerController,
@@ -110,7 +96,7 @@ class PlayerController:
         Args:
             event: The event that occurred.
         """
-        self.view.stats_layout.set_info(*event.source.parent.parent.get_info())
+        self.view.stats_layout.set_info(*event.source.parent.get_info())
 
     def on_use_button_callback(self: PlayerController, event: UIOnClickEvent) -> None:
         """Handle the use button callback.
@@ -118,5 +104,15 @@ class PlayerController:
         Args:
             event: The event that occurred.
         """
-        _ = self  # Ignore linting errors
-        event.source.parent.parent.use()
+        item_button = event.source.parent
+        if isinstance(item_button, InventoryItemButton):
+            self.model.game_engine.use_item(
+                self.model.player_id,
+                item_button.sprite_object.game_object_id,
+            )
+        elif isinstance(item_button, UpgradesItemButton):
+            self.model.registry.get_system(UpgradeSystem).upgrade_component(
+                self.model.player_id,
+                item_button.target_component,
+            )
+            self.view.stats_layout.set_info(*item_button.get_info())

@@ -2,15 +2,6 @@
 #include "common.hpp"
 
 void bind_systems(const pybind11::module &module) {
-  pybind11::class_<InventorySystem, SystemBase, std::shared_ptr<InventorySystem>>(
-      module, "InventorySystem", "Provides facilities to manipulate inventory components.")
-      .def("use_item", &InventorySystem::use_item, pybind11::arg("target_id"), pybind11::arg("item_id"),
-           "Use an item from the inventory.\n\n"
-           "Args:\n"
-           "    target_id: The game object ID of the game object to use the item on.\n"
-           "    item_id: The game object ID of the item to use.\n\n"
-           "Returns:\n"
-           "    Whether the item was used or not.");
   pybind11::class_<PhysicsSystem, SystemBase, std::shared_ptr<PhysicsSystem>>(
       module, "PhysicsSystem", "Provides facilities to manipulate a game object's physics.")
       .def(

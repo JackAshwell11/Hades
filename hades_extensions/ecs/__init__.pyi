@@ -74,7 +74,7 @@ class Registry:
     def add_callback(
         self: Registry,
         event_type: Literal[EventType.InventoryUpdate],
-        callback: Callable[[int], None],
+        callback: Callable[[list[int]], None],
     ) -> None: ...
     @overload
     def add_callback(

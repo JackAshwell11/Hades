@@ -1,9 +1,6 @@
 # Custom
 from hades_extensions.ecs import ComponentBase, SystemBase
 
-class InventorySystem(SystemBase):
-    def use_item(self: InventorySystem, target_id: int, item_id: int) -> bool: ...
-
 class PhysicsSystem(SystemBase):
     def get_wall_distances(
         self: PhysicsSystem,

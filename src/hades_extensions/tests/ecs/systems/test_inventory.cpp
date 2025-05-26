@@ -1,7 +1,4 @@
 // Local headers
-#include "ecs/registry.hpp"
-#include "ecs/stats.hpp"
-#include "ecs/systems/effects.hpp"
 #include "ecs/systems/inventory.hpp"
 #include "ecs/systems/physics.hpp"
 #include "macros.hpp"
@@ -17,11 +14,10 @@ class InventorySystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<Health>(200, -1), std::make_shared<Inventory>(),
-                                 std::make_shared<InventorySize>(8, -1), std::make_shared<StatusEffects>()});
+    registry.create_game_object(
+        GameObjectType::Player, cpvzero,
+        {std::make_shared<Health>(200, -1), std::make_shared<Inventory>(), std::make_shared<InventorySize>(8, -1)});
     registry.add_system<InventorySystem>();
-    registry.add_system<EffectSystem>();
   }
 
   /// Create an item with the specified type.
@@ -43,22 +39,53 @@ class InventorySystemFixture : public testing::Test {
   [[nodiscard]] auto get_inventory_system() const -> std::shared_ptr<InventorySystem> {
     return registry.get_system<InventorySystem>();
   }
-
-  /// Create an instant effect item.
-  ///
-  /// @return The game object ID of the instant effect item.
-  [[nodiscard]] auto create_instant_effect_item() -> GameObjectID {
-    const auto effect_applier{std::make_shared<EffectApplier>()};
-    effect_applier->add_instant_effect(10, typeid(Health));
-    return registry.create_game_object(GameObjectType::HealthPotion, cpvzero, {effect_applier});
-  }
 };
+
+/// Test that an item does not exist in the inventory if it has not been added.
+TEST_F(InventorySystemFixture, TestInventorySystemHasItemInInventoryNotAdded) {
+  const auto item_id{create_item(GameObjectType::HealthPotion)};
+  ASSERT_FALSE(get_inventory_system()->has_item_in_inventory(0, item_id));
+}
+
+/// Test that an item exists in the inventory if it has been added.
+TEST_F(InventorySystemFixture, TestInventorySystemHasItemInInventoryAdded) {
+  const auto item_id{create_item(GameObjectType::HealthPotion)};
+  get_inventory_system()->add_item_to_inventory(0, item_id);
+  ASSERT_TRUE(get_inventory_system()->has_item_in_inventory(0, item_id));
+}
+
+/// Test that multiple items exist in the inventory if they have been added.
+TEST_F(InventorySystemFixture, TestInventorySystemHasItemInInventoryMultipleAdded) {
+  const auto item_id_one{create_item(GameObjectType::HealthPotion)};
+  const auto item_id_two{create_item(GameObjectType::HealthPotion)};
+  get_inventory_system()->add_item_to_inventory(0, item_id_one);
+  get_inventory_system()->add_item_to_inventory(0, item_id_two);
+  ASSERT_TRUE(get_inventory_system()->has_item_in_inventory(0, item_id_one));
+  ASSERT_TRUE(get_inventory_system()->has_item_in_inventory(0, item_id_two));
+}
+
+/// Test that an item does not exist in the inventory if it is not a valid game object.
+TEST_F(InventorySystemFixture, TestInventorySystemHasItemInInventoryInvalidItem) {
+  ASSERT_FALSE(get_inventory_system()->has_item_in_inventory(0, -1));
+}
+
+/// Test that an item does not exist in the inventory if it is not a collectible item.
+TEST_F(InventorySystemFixture, TestInventorySystemHasItemInInventoryInvalidType) {
+  const auto item_id{create_item(GameObjectType::Player)};
+  ASSERT_FALSE(get_inventory_system()->has_item_in_inventory(0, item_id));
+}
+
+/// Test that an item does not exist in the inventory if the inventory component is not registered.
+TEST_F(InventorySystemFixture, TestInventorySystemHasItemInInventoryInvalidGameObjectID) {
+  ASSERT_THROW_MESSAGE(get_inventory_system()->has_item_in_inventory(-1, 0), RegistryError,
+                       "The component `Inventory` for the game object ID `-1` is not registered with the registry.");
+}
 
 /// Test that a valid item is added to the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   // Add the callbacks to the registry
-  auto inventory_update{-1};
-  auto inventory_update_callback{[&](const GameObjectID game_object_id) { inventory_update = game_object_id; }};
+  std::vector<GameObjectID> inventory_update;
+  auto inventory_update_callback{[&](const std::vector<GameObjectID> &items) { inventory_update = items; }};
   registry.add_callback<EventType::InventoryUpdate>(inventory_update_callback);
   auto sprite_removal{-1};
   auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
@@ -68,7 +95,8 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   const auto game_object_id{create_item(GameObjectType::HealthPotion)};
   get_inventory_system()->add_item_to_inventory(0, game_object_id);
   ASSERT_EQ(registry.get_component<Inventory>(0)->items, std::vector{game_object_id});
-  ASSERT_EQ(inventory_update, 0);
+  const std::vector expected_items{game_object_id};
+  ASSERT_EQ(inventory_update, expected_items);
   ASSERT_EQ(sprite_removal, game_object_id);
 }
 
@@ -103,8 +131,8 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryZeroSize) {
 /// Test that a valid item is removed from the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
   // Add the callbacks to the registry
-  auto inventory_update{-1};
-  auto inventory_update_callback{[&](const GameObjectID game_object_id) { inventory_update = game_object_id; }};
+  std::vector<GameObjectID> inventory_update;
+  auto inventory_update_callback{[&](const std::vector<GameObjectID> &items) { inventory_update = items; }};
   registry.add_callback<EventType::InventoryUpdate>(inventory_update_callback);
   auto sprite_removal{-1};
   auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
@@ -118,8 +146,9 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) 
   get_inventory_system()->remove_item_from_inventory(0, item_id_one);
   const std::vector result{item_id_two};
   ASSERT_EQ(registry.get_component<Inventory>(0)->items, result);
-  ASSERT_EQ(inventory_update, 0);
-  ASSERT_EQ(sprite_removal, item_id_one);
+  const std::vector expected_items{item_id_two};
+  ASSERT_EQ(inventory_update, expected_items);
+  ASSERT_EQ(sprite_removal, item_id_two);
 }
 
 /// Test that an item is not removed from the inventory if it is not added.
@@ -147,43 +176,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryNonexis
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
-TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryInvalidGameObjectID){
-    ASSERT_THROW_MESSAGE((get_inventory_system()->remove_item_from_inventory(-1, 0)), RegistryError,
-                         "The component `Inventory` for the game object ID `-1` is not registered with the registry.")}
-
-/// Test that an instant effect item is used correctly if the target can be affected.
-TEST_F(InventorySystemFixture, TestInventorySystemUseItemInstantEffectValid) {
-  const auto item_id{create_instant_effect_item()};
-  registry.get_component<Health>(0)->set_value(50);
-  get_inventory_system()->add_item_to_inventory(0, item_id);
-  get_inventory_system()->use_item(0, item_id);
-  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Inventory>(0)->items.size(), 0);
-}
-
-/// Test that an instant effect item is not used if the target cannot be affected.
-TEST_F(InventorySystemFixture, TestInventorySystemUseItemInstantEffectInvalid) {
-  const auto item_id{create_instant_effect_item()};
-  get_inventory_system()->use_item(0, item_id);
-  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 200);
-}
-
-/// Test that an item is not used if it doesn't match any of the strategies.
-TEST_F(InventorySystemFixture, TestInventorySystemUseItemNoEffect) {
-  const auto item_id{registry.create_game_object(GameObjectType::HealthPotion, cpvzero, {})};
-  get_inventory_system()->use_item(0, item_id);
-  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 200);
-}
-
-/// Test that nothing happens if the item game object does not exist.
-TEST_F(InventorySystemFixture, TestInventorySystemUseItemInvalidItemID) {
-  get_inventory_system()->use_item(0, -1);
-  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 200);
-}
-
-/// Test that an exception is thrown if the game object does not have the required components.
-TEST_F(InventorySystemFixture, TestInventorySystemUseItemtInvalidGameObjectID) {
-  const auto item_id{create_instant_effect_item()};
-  ASSERT_THROW_MESSAGE(get_inventory_system()->use_item(-1, item_id), RegistryError,
-                       "The component `StatusEffects` for the game object ID `-1` is not registered with the registry.")
+TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryInvalidGameObjectID) {
+  ASSERT_THROW_MESSAGE((get_inventory_system()->remove_item_from_inventory(-1, 0)), RegistryError,
+                       "The component `Inventory` for the game object ID `-1` is not registered with the registry.")
 }

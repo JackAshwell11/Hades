@@ -34,13 +34,8 @@ void bind_components(const pybind11::module_ &module) {
                                                                        "Allows a game object to have an armour stat.");
   const pybind11::class_<Health, Stat, std::shared_ptr<Health>> health(module, "Health",
                                                                        "Allows a game object to have a health stat.");
-  const pybind11::class_<InventorySize, Stat, std::shared_ptr<InventorySize>> inventory_size(
-      module, "InventorySize", "Allows a game object to change the size of its inventory.");
 
   // Add the other components
-  pybind11::class_<Inventory, ComponentBase, std::shared_ptr<Inventory>>(
-      module, "Inventory", "Allows a game object to have a fixed size inventory.")
-      .def_readonly("items", &Inventory::items);
   pybind11::class_<KinematicComponent, ComponentBase, std::shared_ptr<KinematicComponent>>(
       module, "KinematicComponent", "Allows a game object to interact with the physics system.")
       .def(

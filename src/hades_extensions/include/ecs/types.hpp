@@ -61,7 +61,7 @@ struct EventTraits<EventType::GameObjectDeath> {
 /// Provides the argument types for the InventoryUpdate event.
 template <>
 struct EventTraits<EventType::InventoryUpdate> {
-  using EventArgs = std::tuple<GameObjectID>;
+  using EventArgs = std::tuple<std::vector<GameObjectID>>;
 };
 
 /// Provides the argument types for the SpriteRemoval event.

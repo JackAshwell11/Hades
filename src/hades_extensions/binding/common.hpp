@@ -69,8 +69,8 @@ auto make_system_types()
 /// @return The component types mapping.
 inline auto get_component_types()
     -> const std::unordered_map<pybind11::handle, std::type_index, py_handle_hash, py_handle_equal> & {
-  static const auto component_types{make_component_types<Armour, Health, Inventory, InventorySize, KinematicComponent,
-                                                         Money, PythonSprite, Upgrades>()};
+  static const auto component_types{
+      make_component_types<Armour, Health, KinematicComponent, Money, PythonSprite, Upgrades>()};
   return component_types;
 }
 
@@ -80,7 +80,7 @@ inline auto get_component_types()
 inline auto get_system_types()
     -> const std::unordered_map<pybind11::handle, std::function<std::shared_ptr<SystemBase>(const Registry &)>,
                                 py_handle_hash, py_handle_equal> & {
-  static const auto system_types{make_system_types<InventorySystem, PhysicsSystem, UpgradeSystem>()};
+  static const auto system_types{make_system_types<PhysicsSystem, UpgradeSystem>()};
   return system_types;
 }
 

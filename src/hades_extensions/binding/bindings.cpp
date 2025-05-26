@@ -60,7 +60,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    x: The x position of the mouse.\n"
            "    y: The y position of the mouse.\n"
            "    button: The button that was pressed.\n"
-           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.");
+           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.")
+      .def("use_item", &GameEngine::use_item, pybind11::arg("target_id"), pybind11::arg("item_id"),
+           "Use an item on a target game object.\n\n"
+           "Args:\n"
+           "    target_id: The game object ID of the target.\n"
+           "    item_id: The game object ID of the item to use.\n\n");
 
   // Create the submodules for the ECS
   auto ecs{module.def_submodule(

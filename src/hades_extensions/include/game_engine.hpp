@@ -90,6 +90,12 @@ class GameEngine {
   /// @return Whether the attack was successful or not.
   [[nodiscard]] auto on_mouse_press(double x, double y, int button, int modifiers) const -> bool;
 
+  /// Use an item on a target game object.
+  ///
+  /// @param target_id - The game object ID of the target.
+  /// @param item_id - The game object ID of the item to use.
+  void use_item(GameObjectID target_id, GameObjectID item_id) const;
+
  private:
   /// Get the components for a game object type.
   ///
