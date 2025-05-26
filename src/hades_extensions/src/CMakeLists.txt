@@ -7,7 +7,7 @@ add_library(${CPP_LIB} STATIC
         ${CMAKE_SOURCE_DIR}/src/ecs/systems/inventory.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/systems/movements.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/systems/physics.cpp
-        ${CMAKE_SOURCE_DIR}/src/ecs/systems/upgrade.cpp
+        ${CMAKE_SOURCE_DIR}/src/ecs/systems/shop.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/bsp.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/dijkstra.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/map.cpp
@@ -21,4 +21,5 @@ target_include_directories(${CPP_LIB}
 target_link_libraries(${CPP_LIB}
         PUBLIC chipmunk2d::chipmunk2d
         PRIVATE pybind11::module
+        PUBLIC nlohmann_json::nlohmann_json
 )

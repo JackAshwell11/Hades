@@ -53,6 +53,12 @@ class GameEngine {
   /// @details If this is called twice, the game objects will be duplicated.
   void create_game_objects();
 
+  /// Set up the shop offerings.
+  ///
+  /// @param stream - The input stream containing the JSON data for the shop offerings.
+  /// @throws std::runtime_error if there was an error parsing the JSON file or the offering type is unknown.
+  void setup_shop(std::istream &stream) const;
+
   /// Generate an enemy.
   ///
   /// @param delta_time - The time interval since the last time the function was called.

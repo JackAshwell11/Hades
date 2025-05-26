@@ -11,8 +11,8 @@
 #include "ecs/systems/inventory.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
+#include "ecs/systems/shop.hpp"
 #include "ecs/systems/sprite.hpp"
-#include "ecs/systems/upgrade.hpp"
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 namespace {
@@ -116,9 +116,6 @@ const auto player_factory{[](const int /*level*/) {
       std::make_shared<PythonSprite>(),
       std::make_shared<KinematicComponent>(get_hitboxes().at(GameObjectType::Player)),
       std::make_shared<StatusEffects>(),
-      std::make_shared<Upgrades>(std::unordered_map<std::type_index, std::pair<ActionFunction, ActionFunction>>{
-          {typeid(Health), std::make_pair([](const int level) { return std::pow(2, level) + 10; },
-                                          [](const int level) { return level * 10 + 5; })}}),
   };
 }};
 

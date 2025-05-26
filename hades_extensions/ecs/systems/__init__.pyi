@@ -1,5 +1,5 @@
 # Custom
-from hades_extensions.ecs import ComponentBase, SystemBase
+from hades_extensions.ecs import SystemBase
 
 class PhysicsSystem(SystemBase):
     def get_wall_distances(
@@ -7,9 +7,5 @@ class PhysicsSystem(SystemBase):
         current_position: tuple[float, float],
     ) -> list[tuple[float, float]]: ...
 
-class UpgradeSystem(SystemBase):
-    def upgrade_component(
-        self: UpgradeSystem,
-        game_object_id: int,
-        target_component: type[ComponentBase],
-    ) -> None: ...
+class ShopSystem(SystemBase):
+    def purchase(self: ShopSystem, buyer_id: int, offering_index: int) -> None: ...

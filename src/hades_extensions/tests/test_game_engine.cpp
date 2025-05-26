@@ -1,3 +1,6 @@
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/inventory.hpp"
@@ -67,6 +70,167 @@ TEST_F(GameEngineFixture, TestGameEngineCreateGameObjectsNoSeed) {
   game_engine_no_seed.create_game_objects();
   ASSERT_NE(game_engine.get_player_id(), game_engine_no_seed.get_player_id());
   ASSERT_EQ(game_engine.get_level_constants(), game_engine_no_seed.get_level_constants());
+}
+
+/// Test that setting up the shop with a stat offering works correctly.
+TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidStat) {
+  game_engine.create_game_objects();
+  std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
+  game_engine.get_registry()->add_callback<EventType::ShopItemLoaded>(
+      [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
+                       const int cost) { callback_args = std::make_tuple(offering_index, data, cost); });
+  std::istringstream shop_stream{R"([
+        {
+            "type": "stat",
+            "name": "Health Boost",
+            "description": "Increases health",
+            "icon_type": "health",
+            "base_cost": 100.0,
+            "cost_multiplier": 1.5,
+            "stat_type": "Health",
+            "base_value": 10.0,
+            "value_multiplier": 1.2
+        }
+    ])"};
+  game_engine.setup_shop(shop_stream);
+  ASSERT_EQ(std::get<0>(callback_args), 0);
+  ASSERT_EQ(std::get<1>(callback_args), std::make_tuple("Health Boost", "Increases health", "health"));
+  ASSERT_EQ(std::get<2>(callback_args), 100);
+}
+
+/// Test that setting up the shop with a component offering works correctly.
+TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidComponent) {
+  game_engine.create_game_objects();
+  std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
+  game_engine.get_registry()->add_callback<EventType::ShopItemLoaded>(
+      [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
+                       const int cost) { callback_args = std::make_tuple(offering_index, data, cost); });
+  std::istringstream shop_stream{R"([
+        {
+            "type": "component",
+            "name": "Speed Boost",
+            "description": "Increases speed",
+            "icon_type": "speed",
+            "base_cost": 150.0,
+            "cost_multiplier": 1.2
+        }
+    ])"};
+  game_engine.setup_shop(shop_stream);
+  ASSERT_EQ(std::get<0>(callback_args), 0);
+  ASSERT_EQ(std::get<1>(callback_args), std::make_tuple("Speed Boost", "Increases speed", "speed"));
+  ASSERT_EQ(std::get<2>(callback_args), 150);
+}
+
+/// Test that setting up the shop with an item offering works correctly.
+TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidItem) {
+  game_engine.create_game_objects();
+  std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
+  game_engine.get_registry()->add_callback<EventType::ShopItemLoaded>(
+      [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
+                       const int cost) { callback_args = std::make_tuple(offering_index, data, cost); });
+  std::istringstream shop_stream{R"([
+        {
+            "type": "item",
+            "name": "Mana Potion",
+            "description": "Restores mana",
+            "icon_type": "mana",
+            "base_cost": 50.0,
+            "cost_multiplier": 1.1
+        }
+    ])"};
+  game_engine.setup_shop(shop_stream);
+  ASSERT_EQ(std::get<0>(callback_args), 0);
+  ASSERT_EQ(std::get<1>(callback_args), std::make_tuple("Mana Potion", "Restores mana", "mana"));
+  ASSERT_EQ(std::get<2>(callback_args), 50);
+}
+
+/// Test that setting up the shop with multiple offerings works correctly.
+TEST_F(GameEngineFixture, TestGameEngineSetupShopMultipleValidOfferings) {
+  game_engine.create_game_objects();
+  std::vector<std::tuple<int, std::tuple<std::string, std::string, std::string>, int>> callback_args;
+  game_engine.get_registry()->add_callback<EventType::ShopItemLoaded>(
+      [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
+                       const int cost) { callback_args.emplace_back(offering_index, data, cost); });
+  std::istringstream shop_stream{R"([
+        {
+            "type": "stat",
+            "name": "Health Boost",
+            "description": "Increases health",
+            "icon_type": "health",
+            "base_cost": 100.0,
+            "cost_multiplier": 1.5,
+            "stat_type": "Health",
+            "base_value": 10.0,
+            "value_multiplier": 1.2
+        },
+        {
+            "type": "component",
+            "name": "Speed Boost",
+            "description": "Increases speed",
+            "icon_type": "speed",
+            "base_cost": 150.0,
+            "cost_multiplier": 1.2
+        },
+        {
+            "type": "item",
+            "name": "Mana Potion",
+            "description": "Restores mana",
+            "icon_type": "mana",
+            "base_cost": 50.0,
+            "cost_multiplier": 1.1
+        }
+    ])"};
+  game_engine.setup_shop(shop_stream);
+  ASSERT_EQ(callback_args.size(), 3);
+
+  // Check the stat offering
+  ASSERT_EQ(std::get<0>(callback_args[0]), 0);
+  ASSERT_EQ(std::get<1>(callback_args[0]), std::make_tuple("Health Boost", "Increases health", "health"));
+  ASSERT_EQ(std::get<2>(callback_args[0]), 100);
+
+  // Check the component offering
+  ASSERT_EQ(std::get<0>(callback_args[1]), 1);
+  ASSERT_EQ(std::get<1>(callback_args[1]), std::make_tuple("Speed Boost", "Increases speed", "speed"));
+  ASSERT_EQ(std::get<2>(callback_args[1]), 150);
+
+  // Check the item offering
+  ASSERT_EQ(std::get<0>(callback_args[2]), 2);
+  ASSERT_EQ(std::get<1>(callback_args[2]), std::make_tuple("Mana Potion", "Restores mana", "mana"));
+  ASSERT_EQ(std::get<2>(callback_args[2]), 50);
+}
+
+/// Test that setting up the shop with an unknown type throws an exception.
+TEST_F(GameEngineFixture, TestGameEngineSetupShopUnknownType) {
+  game_engine.create_game_objects();
+  std::istringstream shop_stream{R"([
+        {
+            "type": "unknown",
+            "name": "Mystery Item",
+            "description": "An item of unknown type",
+            "icon_type": "mystery",
+            "base_cost": 100.0,
+            "cost_multiplier": 1.5
+        }
+    ])"};
+  ASSERT_THROW_MESSAGE(game_engine.setup_shop(shop_stream), std::runtime_error, "Unknown offering type: unknown");
+}
+
+/// Test that setting up the shop with an invalid JSON format throws an exception.
+TEST_F(GameEngineFixture, TestGameEngineSetupShopInvalidJSON) {
+  game_engine.create_game_objects();
+  std::istringstream shop_stream{R"([
+        {
+            "type": "stat",
+            "name": "Invalid Item",
+            "description": "This item has an invalid JSON format",
+            "icon_type": "invalid",
+            "base_cost": 100.0,
+            "cost_multiplier": 1.5,
+        }
+    ])"};
+  ASSERT_THROW_MESSAGE(game_engine.setup_shop(shop_stream), nlohmann::json::exception,
+                       "[json.exception.parse_error.101] parse error at line 9, column 9: syntax error while parsing "
+                       "object key - unexpected '}'; expected string literal");
 }
 
 /// Test that the game engine generates an enemy correctly.

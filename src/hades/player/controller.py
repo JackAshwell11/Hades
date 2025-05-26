@@ -3,24 +3,29 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Final, cast
 
 # Pip
-from arcade import get_default_texture
+from arcade.resources import resolve
 
 # Custom
-from hades.player.view import InventoryItemButton, UpgradesItemButton
+from hades.player.view import InventoryItemButton, ShopItemButton
 from hades_extensions.ecs import EventType
-from hades_extensions.ecs.components import PythonSprite, Upgrades
-from hades_extensions.ecs.systems import UpgradeSystem
+from hades_extensions.ecs.components import PythonSprite
+from hades_extensions.ecs.systems import ShopSystem
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from arcade.gui import UIOnClickEvent
 
     from hades.model import GameModel
     from hades.player.view import PlayerView
 
 __all__ = ("PlayerController",)
+
+# The path to the shop offerings JSON file
+SHOP_OFFERINGS: Final[Path] = resolve(":resources:shop_offerings.json")
 
 
 class PlayerController:
@@ -43,28 +48,21 @@ class PlayerController:
 
     def setup(self: PlayerController) -> None:
         """Set up the controller."""
-        self.model.registry.add_callback(
-            EventType.InventoryUpdate,
-            self.on_update_inventory,
-        )
+        callbacks = [
+            (EventType.InventoryUpdate, self.on_update_inventory),
+            (EventType.ShopItemLoaded, self.on_shop_item_loaded),
+            (EventType.ShopItemPurchased, self.on_shop_item_purchased),
+        ]
+        for event_type, callback in callbacks:
+            self.model.registry.add_callback(  # type: ignore[call-overload]
+                event_type,
+                callback,
+            )
+        self.model.game_engine.setup_shop(str(SHOP_OFFERINGS))
         self.view.window.register_event_type("on_texture_button_callback")
         self.view.window.register_event_type("on_use_button_callback")
         self.view.window.register_event_type("on_inventory_use_item")
         self.view.window.push_handlers(self)
-
-        upgrades = self.model.registry.get_component(
-            self.model.player_id,
-            Upgrades,
-        ).upgrades
-        for target_component, target_functions in upgrades.items():
-            upgrades_item_button = UpgradesItemButton(
-                target_component,
-                target_functions,
-            )
-            upgrades_item_button.texture = get_default_texture()
-            self.view.player_attributes_layout.upgrades_layout.add_item(
-                upgrades_item_button,
-            )
 
     def show_view(self: PlayerController) -> None:
         """Process show view functionality."""
@@ -86,6 +84,34 @@ class PlayerController:
             )
             for item_id in items
         ]
+
+    def on_shop_item_loaded(
+        self: PlayerController,
+        index: int,
+        data: tuple[str, str, str],
+        cost: int,
+    ) -> None:
+        """Handle the shop item loaded event.
+
+        Args:
+            index: The index of the item in the shop.
+            data: A tuple containing the name, description, and icon type of the item.
+            cost: The cost of the item.
+        """
+        self.view.player_attributes_layout.shop_layout.add_item(
+            ShopItemButton(index, data, cost),
+        )
+
+    def on_shop_item_purchased(self: PlayerController, index: int, cost: int) -> None:
+        """Handle the shop item purchased event.
+
+        Args:
+            index: The index of the item that was purchased.
+            cost: The cost of the item that was purchased.
+        """
+        shop_item_button = self.view.player_attributes_layout.shop_layout.items[index]
+        shop_item_button.cost = cost
+        self.view.stats_layout.set_info(*shop_item_button.get_info())
 
     def on_texture_button_callback(
         self: PlayerController,
@@ -110,9 +136,8 @@ class PlayerController:
                 self.model.player_id,
                 item_button.sprite_object.game_object_id,
             )
-        elif isinstance(item_button, UpgradesItemButton):
-            self.model.registry.get_system(UpgradeSystem).upgrade_component(
+        elif isinstance(item_button, ShopItemButton):
+            self.model.registry.get_system(ShopSystem).purchase(
                 self.model.player_id,
-                item_button.target_component,
+                item_button.shop_index,
             )
-            self.view.stats_layout.set_info(*item_button.get_info())

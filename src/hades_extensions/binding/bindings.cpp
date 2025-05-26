@@ -1,3 +1,6 @@
+// Std headers
+#include <fstream>
+
 // Local headers
 #include "common.hpp"
 #include "factories.hpp"
@@ -31,6 +34,21 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "If this is called twice, the game objects will be duplicated.\n\n"
            "Returns:\n"
            "    The game objects.")
+      .def(
+          "setup_shop",
+          [](const GameEngine &engine, const std::string &file) {
+            std::ifstream stream{file};
+            if (!stream.is_open()) {
+              throw std::runtime_error("Could not open file: " + file);
+            }
+            engine.setup_shop(stream);
+          },
+          pybind11::arg("file"),
+          "Set up the shop offerings.\n\n"
+          "Args:\n"
+          "    file: The file to load the shop offerings from.\n\n"
+          "Raises:\n"
+          "    RuntimeError: If there was an error parsing the JSON file or the offering type is unknown.")
       .def("generate_enemy", &GameEngine::generate_enemy, pybind11::arg("delta_time"),
            "Generate an enemy.\n\n"
            "Args:\n"

@@ -17,8 +17,8 @@
 #include "ecs/systems/effects.hpp"
 #include "ecs/systems/inventory.hpp"
 #include "ecs/systems/physics.hpp"
+#include "ecs/systems/shop.hpp"
 #include "ecs/systems/sprite.hpp"
-#include "ecs/systems/upgrade.hpp"
 
 // The declarations for the binding functions
 void bind_ecs(const pybind11::module &module);
@@ -69,8 +69,7 @@ auto make_system_types()
 /// @return The component types mapping.
 inline auto get_component_types()
     -> const std::unordered_map<pybind11::handle, std::type_index, py_handle_hash, py_handle_equal> & {
-  static const auto component_types{
-      make_component_types<Armour, Health, KinematicComponent, Money, PythonSprite, Upgrades>()};
+  static const auto component_types{make_component_types<Armour, Health, KinematicComponent, PythonSprite>()};
   return component_types;
 }
 
@@ -80,7 +79,7 @@ inline auto get_component_types()
 inline auto get_system_types()
     -> const std::unordered_map<pybind11::handle, std::function<std::shared_ptr<SystemBase>(const Registry &)>,
                                 py_handle_hash, py_handle_equal> & {
-  static const auto system_types{make_system_types<PhysicsSystem, UpgradeSystem>()};
+  static const auto system_types{make_system_types<PhysicsSystem, ShopSystem>()};
   return system_types;
 }
 

@@ -25,9 +25,10 @@ include(CTest)
 
 # Find the required packages
 find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
-find_package(pybind11 CONFIG REQUIRED)
-find_package(GTest CONFIG REQUIRED)
 find_package(chipmunk2d CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(pybind11 CONFIG REQUIRED)
 
 # Set the warning level for the project
 if (MSVC)

@@ -20,21 +20,15 @@ void bind_systems(const pybind11::module &module) {
           "    current_position: The current position of the game object.\n\n"
           "Returns:\n"
           "    The distances to the walls around the game object.");
-  pybind11::class_<UpgradeSystem, SystemBase, std::shared_ptr<UpgradeSystem>>(
-      module, "UpgradeSystem", "Provides facilities to manipulate game object upgrades.")
-      .def(
-          "upgrade_component",
-          [](const UpgradeSystem &upgrade_system, const GameObjectID game_object_id,
-             const pybind11::object &target_component) {
-            return upgrade_system.upgrade_component(game_object_id, get_type_index(target_component));
-          },
-          pybind11::arg("game_object_id"), pybind11::arg("target_component"),
-          "Upgrade a component to the next level if possible.\n\n"
-          "Args:\n"
-          "    game_object_id: The ID of the game object to upgrade the component for.\n"
-          "    target_component: The type of component to upgrade.\n\n"
-          "Raises:\n"
-          "    RegistryError: If the game object does not exist or does not have the target component.\n\n"
-          "Returns:\n"
-          "    Whether the component upgrade was successful or not.");
+  pybind11::class_<ShopSystem, SystemBase, std::shared_ptr<ShopSystem>>(module, "ShopSystem",
+                                                                        "Provides facilities to manage a shop system.")
+      .def("purchase", &ShopSystem::purchase, pybind11::arg("buyer_id"), pybind11::arg("offering_index"),
+           "Purchase an offering from the shop for a buyer.\n\n"
+           "Args:\n"
+           "    buyer_id: The ID of the buyer.\n"
+           "    offering_index: The index of the offering to purchase.\n\n"
+           "Raises:\n"
+           "    RegistryError: If the game object does not exist or does not have the required components.\n\n"
+           "Returns:\n"
+           "    Whether the purchase was successful or not.");
 }

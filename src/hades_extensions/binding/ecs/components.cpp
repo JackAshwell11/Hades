@@ -16,20 +16,7 @@ void bind_components(const pybind11::module_ &module) {
       .def("get_max_value", &Stat::get_max_value,
            "Get the maximum value of the stat.\n\n"
            "Returns:\n"
-           "    The maximum value of the stat.")
-      .def("add_to_max_value", &Stat::add_to_max_value,
-           "Add a value to the maximum value of the stat.\n\n"
-           "Args:\n"
-           "    value: The value to add to the maximum value of the stat.")
-      .def("get_current_level", &Stat::get_current_level,
-           "Get the current level of the stat.\n\n"
-           "Returns:\n"
-           "    The current level of the stat.")
-      .def("increment_current_level", &Stat::increment_current_level, "Increment the current level of the stat.")
-      .def("get_max_level", &Stat::get_max_level,
-           "Get the maximum level of the stat.\n\n"
-           "Returns:\n"
-           "    The maximum level of the stat.");
+           "    The maximum value of the stat.");
   const pybind11::class_<Armour, Stat, std::shared_ptr<Armour>> armour(module, "Armour",
                                                                        "Allows a game object to have an armour stat.");
   const pybind11::class_<Health, Stat, std::shared_ptr<Health>> health(module, "Health",
@@ -63,19 +50,7 @@ void bind_components(const pybind11::module_ &module) {
           "Set the rotation of the game object.\n\n"
           "Args:\n"
           "    angle: The angle to set the game object to.");
-  pybind11::class_<Money, ComponentBase, std::shared_ptr<Money>>(
-      module, "Money", "Allows a game object to record the amount of money it has.")
-      .def_readwrite("money", &Money::money);
   pybind11::class_<PythonSprite, ComponentBase, std::shared_ptr<PythonSprite>>(
       module, "PythonSprite", "Allows a game object to hold a reference to the Python sprite object.")
       .def_readwrite("sprite", &PythonSprite::sprite);
-  pybind11::class_<Upgrades, ComponentBase, std::shared_ptr<Upgrades>>(module, "Upgrades",
-                                                                       "Allows a game object to be upgraded.")
-      .def_property_readonly("upgrades", [](const Upgrades &upgrades) {
-        pybind11::dict target_upgrades;
-        for (const auto &[type, func] : upgrades.upgrades) {
-          target_upgrades[get_python_type(type)] = func;
-        }
-        return target_upgrades;
-      });
 }

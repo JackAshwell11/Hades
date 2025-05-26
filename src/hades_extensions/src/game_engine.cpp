@@ -1,8 +1,8 @@
 // Related header
 #include "game_engine.hpp"
 
-// Std headers
-#include <utility>
+// External headers
+#include <nlohmann/json.hpp>
 
 // Local headers
 #include "ecs/systems/armour_regen.hpp"
@@ -11,7 +11,7 @@
 #include "ecs/systems/inventory.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
-#include "ecs/systems/upgrade.hpp"
+#include "ecs/systems/shop.hpp"
 #include "factories.hpp"
 
 namespace {
@@ -26,6 +26,20 @@ constexpr int ENEMY_GENERATION_DISTANCE{5};
 
 // How many times an enemy should be attempted to be generated.
 constexpr int ENEMY_RETRY_ATTEMPTS{3};
+
+/// Get a component type from a string.
+///
+/// @param type - The string representation of the component type.
+/// @throws std::runtime_error if the type is not recognised.
+/// @return The type index of the component type.
+auto get_component_type_from_string(const std::string &type) -> std::type_index {
+  static const std::unordered_map<std::string, std::type_index> type_map{{"Health", typeid(Health)},
+                                                                         {"Armour", typeid(Armour)}};
+  if (type_map.contains(type)) {
+    return type_map.at(type);
+  }
+  throw std::runtime_error("Unknown component type: " + type);
+}
 }  // namespace
 
 GameEngine::GameEngine(const int level, const std::optional<unsigned int> seed)
@@ -57,8 +71,8 @@ GameEngine::GameEngine(const int level, const std::optional<unsigned int> seed)
   registry_->add_system<InventorySystem>();
   registry_->add_system<KeyboardMovementSystem>();
   registry_->add_system<PhysicsSystem>();
+  registry_->add_system<ShopSystem>();
   registry_->add_system<SteeringMovementSystem>();
-  registry_->add_system<UpgradeSystem>();
 }
 
 auto GameEngine::get_level_constants() -> std::tuple<int, int, int> {
@@ -94,6 +108,33 @@ void GameEngine::create_game_objects() {
     if (tile_type == TileType::Player) {
       player_id_ = game_object_id;
     }
+  }
+}
+
+void GameEngine::setup_shop(std::istream &stream) const {
+  const auto shop_system{registry_->get_system<ShopSystem>()};
+  nlohmann::json offerings;
+  stream >> offerings;
+  for (int i{0}; std::cmp_less(i, offerings.size()); i++) {
+    const auto &offering{offerings[i]};
+    const auto type{offering["type"].get<std::string>()};
+    const auto name{offering["name"].get<std::string>()};
+    const auto description{offering["description"].get<std::string>()};
+    const auto icon_type{offering["icon_type"].get<std::string>()};
+    const auto base_cost{offering["base_cost"].get<double>()};
+    const auto cost_multiplier{offering["cost_multiplier"].get<double>()};
+    if (type == "stat") {
+      shop_system->add_stat_upgrade(name, description, get_component_type_from_string(offering["stat_type"]), base_cost,
+                                    cost_multiplier, offering["base_value"], offering["value_multiplier"]);
+    } else if (type == "component") {
+      shop_system->add_component_unlock(name, description, base_cost, cost_multiplier);
+    } else if (type == "item") {
+      shop_system->add_item(name, description, base_cost, cost_multiplier);
+    } else {
+      throw std::runtime_error("Unknown offering type: " + type);
+    }
+    registry_->notify<EventType::ShopItemLoaded>(i, std::make_tuple(name, description, icon_type),
+                                                 shop_system->get_offering_cost(i, player_id_));
   }
 }
 

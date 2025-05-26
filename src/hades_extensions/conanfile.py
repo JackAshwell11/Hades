@@ -21,6 +21,7 @@ class HadesExtensions(ConanFile):  # type: ignore[misc]
 
     def requirements(self: ConanFile) -> None:
         """Add the required dependencies to the Conan configuration."""
-        self.requires("pybind11/2.13.6")
-        self.requires("gtest/1.16.0")
         self.requires("chipmunk2d/7.0.3")
+        self.requires("gtest/1.16.0")
+        self.requires("nlohmann_json/3.12.0")
+        self.requires("pybind11/2.13.6")

@@ -4,13 +4,13 @@
 // Std headers
 #include <functional>
 #include <memory>
+#include <string>
 
 // Avoid having to include headers for this
 class Registry;
 
 // Represents unique identifiers for game objects
 using GameObjectID = int;
-using ActionFunction = std::function<double(int)>;
 
 /// Stores the different types of game objects available.
 enum class GameObjectType : std::uint8_t {
@@ -34,6 +34,8 @@ enum class EventType : std::uint8_t {
   MoneyUpdate,
   AttackCooldownUpdate,
   RangedAttackSwitch,
+  ShopItemLoaded,
+  ShopItemPurchased,
 };
 
 /// Stores the different types of status effects available.
@@ -92,6 +94,18 @@ struct EventTraits<EventType::AttackCooldownUpdate> {
 template <>
 struct EventTraits<EventType::RangedAttackSwitch> {
   using EventArgs = std::tuple<int>;
+};
+
+/// Provides the argument types for the ShopItemLoaded event.
+template <>
+struct EventTraits<EventType::ShopItemLoaded> {
+  using EventArgs = std::tuple<int, std::tuple<std::string, std::string, std::string>, int>;
+};
+
+/// Provides the argument types for the ShopItemPurchased event.
+template <>
+struct EventTraits<EventType::ShopItemPurchased> {
+  using EventArgs = std::tuple<int, int>;
 };
 
 /// The base class for all components.

@@ -26,14 +26,12 @@ from arcade.types import Color
 
 # Custom
 from hades import ViewType
+from hades.constructors import IconType
 from hades_extensions.ecs import SPRITE_SIZE
-from hades_extensions.ecs.components import Money
 
 if TYPE_CHECKING:
-    from hades.player import Player
     from hades.sprite import HadesSprite
     from hades.window import HadesWindow
-    from hades_extensions.ecs.components import ActionFunction, Stat
 
 __all__ = (
     "InventoryItemButton",
@@ -41,8 +39,8 @@ __all__ = (
     "PaginatedGridLayout",
     "PlayerAttributesLayout",
     "PlayerView",
+    "ShopItemButton",
     "StatsLayout",
-    "UpgradesItemButton",
     "create_default_layout",
     "create_divider_line",
 )
@@ -191,67 +189,39 @@ class InventoryItemButton(ItemButton):
         return self.sprite_object.name, self.sprite_object.description, self.texture
 
 
-class UpgradesItemButton(ItemButton):
-    """Represents an upgrades item button."""
+class ShopItemButton(ItemButton):
+    """Represents a shop item button."""
 
-    __slots__ = ("target_component", "target_functions")
+    __slots__ = ("cost", "description", "name", "shop_index")
 
     def __init__(
-        self: UpgradesItemButton,
-        target_component: type[Stat],
-        target_functions: tuple[ActionFunction, ActionFunction],
+        self: ShopItemButton,
+        index: int,
+        data: tuple[str, str, str],
+        cost: int,
     ) -> None:
         """Initialise the object.
 
         Args:
-            target_component: The component that this upgrade will affect.
-            target_functions: The functions that will be used to calculate the new
-                values.
+            index: The index of the item in the shop.
+            data: A tuple containing the name, description, and icon type of the item.
+            cost: The cost of the item.
         """
         super().__init__()
-        self.target_component: type[Stat] = target_component
-        self.target_functions: tuple[ActionFunction, ActionFunction] = target_functions
+        self.shop_index: int = index
+        self.name: str = data[0]
+        self.description: str = data[1]
+        self.cost: int = cost
+        self.texture = IconType[data[2].upper()].get_texture()
+        self.use_button.text = "Buy"
 
-    def get_description(self: UpgradesItemButton) -> str:
-        """Get the description of the item.
-
-        Returns:
-            The description of the item.
-        """
-        # Get the required components
-        view = cast("Player", get_window().current_view)
-        component = view.controller.model.registry.get_component(
-            view.controller.model.player_id,
-            self.target_component,
-        )
-        money = view.controller.model.registry.get_component(
-            view.controller.model.player_id,
-            Money,
-        )
-
-        # Calculate the new values for the description
-        new_component_value = component.get_max_value() + self.target_functions[0](
-            component.get_current_level(),
-        )
-        new_money_value = money.money - self.target_functions[1](
-            component.get_current_level(),
-        )
-
-        # Return the description
-        return (
-            f"Max {self.target_component.__name__}:\n"
-            f"  {component.get_max_value()} -> {new_component_value}\n"
-            f"{money.__class__.__name__}:\n"
-            f"  {money.money} -> {new_money_value}"
-        )
-
-    def get_info(self: UpgradesItemButton) -> tuple[str, str, Texture]:
+    def get_info(self: ShopItemButton) -> tuple[str, str, Texture]:
         """Get the information about the item.
 
         Returns:
             The name, description, and texture of the item.
         """
-        return self.target_component.__name__, self.get_description(), self.texture
+        return self.name, f"{self.description}\nCost: {self.cost}", self.texture
 
 
 class PaginatedGridLayout[T: ItemButton](UIBoxLayout):
@@ -422,10 +392,10 @@ class PlayerAttributesLayout(UIBoxLayout):
 
     Attributes:
         inventory_layout: The layout for displaying the player's inventory.
-        upgrades_layout: The layout for displaying the player's upgrades
+        shop_layout: The layout for displaying the shop items.
     """
 
-    __slots__ = ("inventory_layout", "upgrades_layout")
+    __slots__ = ("inventory_layout", "shop_layout")
 
     def __init__(self: PlayerAttributesLayout) -> None:
         """Initialise the object."""
@@ -433,15 +403,13 @@ class PlayerAttributesLayout(UIBoxLayout):
         self.inventory_layout: PaginatedGridLayout[InventoryItemButton] = (
             PaginatedGridLayout()
         )
-        self.upgrades_layout: PaginatedGridLayout[UpgradesItemButton] = (
-            PaginatedGridLayout()
-        )
+        self.shop_layout: PaginatedGridLayout[ShopItemButton] = PaginatedGridLayout()
 
         # Add the tab menu
         tab_menu = UIButtonRow(space_between=PLAYER_WIDGET_SPACING)
         tab_menu.on_action = self.on_action  # type: ignore[method-assign]
         tab_menu.add_button("Inventory")
-        tab_menu.add_button("Upgrades")
+        tab_menu.add_button("Shop")
 
         # Add all the widgets to the layout
         self.add(tab_menu)
@@ -457,12 +425,12 @@ class PlayerAttributesLayout(UIBoxLayout):
         Args:
             event: The event that occurred.
         """
-        if event.action == "Inventory" and self.upgrades_layout in self.children:
-            self.remove(self.upgrades_layout)
+        if event.action == "Inventory" and self.shop_layout in self.children:
+            self.remove(self.shop_layout)
             self.add(self.inventory_layout)
-        elif event.action == "Upgrades" and self.inventory_layout in self.children:
+        elif event.action == "Shop" and self.inventory_layout in self.children:
             self.remove(self.inventory_layout)
-            self.add(self.upgrades_layout)
+            self.add(self.shop_layout)
 
 
 class PlayerView:
