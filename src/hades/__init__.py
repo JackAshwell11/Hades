@@ -4,11 +4,10 @@ from __future__ import annotations
 
 # Builtin
 from enum import Enum, auto
-from pathlib import Path
 from typing import Final
 
 # Pip
-from arcade.resources import add_resource_handle
+import pygame
 
 
 class ViewType(Enum):
@@ -19,8 +18,8 @@ class ViewType(Enum):
     PLAYER = auto()
 
 
+# Initialise pygame
+pygame.init()
+
 # The size of the padding around the UI elements
 UI_PADDING: Final[int] = 4
-
-# Add the resources directory to the resource loader
-add_resource_handle("resources", Path(__file__).resolve().parent / "resources")

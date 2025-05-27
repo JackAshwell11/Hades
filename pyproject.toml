@@ -6,9 +6,7 @@ build-backend = "scikit_build_core.build"
 authors = [
     {name = "JackAshwell11", email = "jack.ashwell1@gmail.com"}
 ]
-dependencies = [
-    "arcade==3.1.0",
-]
+dependencies = ["pygame-ce==2.5.3"]
 description = "A procedurally generated bullet bullet-hell dungeon crawler made in Python."
 license = {file = "LICENSE"}
 name = "hades"

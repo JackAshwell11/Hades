@@ -7,19 +7,16 @@ import logging
 from typing import TYPE_CHECKING
 
 # Pip
-import arcade
-from arcade.gui import (
-    UIAnchorLayout,
-    UIBoxLayout,
-    UIFlatButton,
-    UIManager,
-    UIOnClickEvent,
-)
+import pygame
+from pygame import Color, Rect, Surface, font
 
 # Custom
 from hades import ViewType
+from hades.scene import Scene
 
 if TYPE_CHECKING:
+    from pygame.event import Event
+
     from hades.window import HadesWindow
 
 __all__ = ("StartMenu",)
@@ -27,105 +24,76 @@ __all__ = ("StartMenu",)
 # Get the logger
 logger = logging.getLogger(__name__)
 
+FONT = font.SysFont(None, 40)
 
-class StartButton(UIFlatButton):
-    """Represents a button that starts the game when clicked."""
 
-    def __init__(self: StartButton) -> None:
-        """Initialise the object."""
-        super().__init__(text="Start Game", width=200)
+class Button(Rect):
+    """A simple button class that inherits from pygame's Rect."""
 
-    # pylint: disable=no-self-use
-    def on_click(self: StartButton, _: UIOnClickEvent) -> None:
-        """Create a game instance when the button is clicked."""
-        # Get the current window and view
-        window: HadesWindow = arcade.get_window()
+    def __init__(self: Button, text: str) -> None:
+        """Initialise the button with text and a callback function.
 
-        # Set up the new game
-        new_game = window.views[ViewType.GAME]
-        new_game.setup(0)  # type: ignore[attr-defined]
-        logger.info("Initialised game view at level %d", 0)
-
-        # Show the new game
-        window.show_view(new_game)
-        logger.debug("Showed game view")
-
-    def __repr__(self: StartButton) -> str:  # pragma: no cover
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
+        Args:
+            text: The text to display on the button.
         """
-        return f"<StartButton (Text={self.text})>"
+        super().__init__(0, 0, 200, 50)
+        self.text: Surface = FONT.render(
+            text=text,
+            antialias=True,
+            color=Color(255, 255, 255, 255),
+        )
+        self.colour: Color = Color(44, 62, 80, 255)
 
 
-class QuitButton(UIFlatButton):
-    """Represents a button that quits the game when clicked."""
+class StartMenu(Scene):
+    """Creates a start menu useful for picking the game mode and options."""
 
-    def __init__(self: QuitButton) -> None:
-        """Initialise the object."""
-        super().__init__(text="Quit Game", width=200)
+    def __init__(self: StartMenu, window: HadesWindow) -> None:
+        """Initialise the object.
 
-    # pylint: disable=no-self-use
-    def on_click(self: QuitButton, _: UIOnClickEvent) -> None:
-        """Quit the game when the button is clicked."""
-        arcade.exit()
-        logger.info("Exiting game")
-
-    def __repr__(self: QuitButton) -> str:  # pragma: no cover
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
+        Args:
+            window: The window where the start menu is displayed.
         """
-        return f"<QuitButton (Text={self.text})>"
+        super().__init__(window)
+        screen_width, screen_height = window.size
+        spacing = 20
 
+        self.start_button: Button = Button("Start Game")
+        self.start_button.center = (
+            screen_width // 2,
+            screen_height // 2 - spacing // 2 - self.start_button.height // 2,
+        )
+        self.quit_button: Button = Button("Quit Game")
+        self.quit_button.center = (
+            screen_width // 2,
+            screen_height // 2 + spacing // 2 + self.quit_button.height // 2,
+        )
 
-class StartMenu(arcade.View):
-    """Creates a start menu useful for picking the game mode and options.
+    def handle_events(self: StartMenu, events: list[Event]) -> None:
+        """Handle input events."""
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_pos = pygame.mouse.get_pos()
+                if self.start_button.collidepoint(mouse_pos):
+                    self.window.scenes[ViewType.GAME].setup(0)
+                    self.window.change_scene(ViewType.GAME)
+                elif self.quit_button.collidepoint(mouse_pos):
+                    pygame.quit()
 
-    Attributes:
-        ui_manager: Manages all the different UI elements for this view.
-    """
+    def draw(self: StartMenu, surface: Surface) -> None:
+        """Draw the start menu on the given surface.
 
-    def __init__(self: StartMenu) -> None:
-        """Initialise the object."""
-        super().__init__()
-        self.ui_manager: UIManager = UIManager()
-
-        # Create the buttons
-        vertical_box = UIBoxLayout(space_between=20)
-        vertical_box.add(StartButton())
-        vertical_box.add(QuitButton())
-
-        # Add the vertical box layout to the UI
-        anchor_layout = UIAnchorLayout(anchor_x="center_x", anchor_y="center_y")
-        anchor_layout.add(vertical_box)
-        self.ui_manager.add(anchor_layout)
-
-    def on_draw(self: StartMenu) -> None:
-        """Render the screen."""
-        # Clear the screen
-        self.clear()
-
-        # Draw the background colour and the UI elements
-        self.window.background_color = arcade.color.OCEAN_BOAT_BLUE
-        self.ui_manager.draw()
-
-    def on_show_view(self: StartMenu) -> None:
-        """Process show view functionality."""
-        self.ui_manager.enable()
-        logger.debug("Showing start menu view")
-
-    def on_hide_view(self: StartMenu) -> None:
-        """Process hide view functionality."""
-        self.ui_manager.disable()
-        logger.debug("Hiding start menu view")
-
-    def __repr__(self: StartMenu) -> str:  # pragma: no cover
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
+        Args:
+            surface: The surface to draw the start menu on.
         """
-        return f"<StartMenu (Current window={self.window})>"
+        surface.fill((0, 119, 190))
+        pygame.draw.rect(surface, self.start_button.colour, self.start_button)
+        surface.blit(
+            self.start_button.text,
+            self.start_button.text.get_rect(center=self.start_button.center),
+        )
+        pygame.draw.rect(surface, self.quit_button.colour, self.quit_button)
+        surface.blit(
+            self.quit_button.text,
+            self.quit_button.text.get_rect(center=self.quit_button.center),
+        )

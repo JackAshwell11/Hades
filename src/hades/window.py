@@ -4,21 +4,22 @@ from __future__ import annotations
 
 # Builtin
 from datetime import UTC, datetime
-from logging import getLogger
 from logging.config import dictConfig
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final, cast
 
 # Pip
-from arcade import Texture, View, Window, get_default_texture, get_image
-from arcade.gui import UIWidget
+import pygame
 from PIL.ImageFilter import GaussianBlur
+from pygame import Window
+from pygame.time import Clock
 
 # Custom
 from hades import ViewType
-from hades.game import Game
-from hades.player import Player
 from hades.views.start_menu import StartMenu
+
+if TYPE_CHECKING:
+    from hades.scene import Scene
 
 __all__ = ("HadesWindow",)
 
@@ -78,58 +79,61 @@ dictConfig(
         },
     },
 )
-logger = getLogger(GAME_LOGGER)
 
 
 class HadesWindow(Window):
-    """Manages the window and allows switching between views.
+    """Manages the window and allows switching between scenes.
 
     Attributes:
-        views: Holds all the views used by the game.
-        background_image: The background image of the window.
+        scenes: Holds the different scenes used by the game.
     """
+
+    __slots__ = ("clock", "current_scene", "scenes")
 
     def __init__(self: HadesWindow) -> None:
         """Initialise the object."""
-        super().__init__()
-        self.views: dict[ViewType, View] = {}
-        self.background_image: UIWidget = UIWidget(
-            width=self.width,
-            height=self.height,
-        ).with_background(texture=get_default_texture())
+        super().__init__(title="Hades", size=(1280, 720))
+        self.scenes: dict[ViewType, Scene] = {}
+        self.current_scene: Scene = cast("Scene", None)
+        self.clock: Clock = Clock()
 
-    def save_background(self: HadesWindow) -> None:
-        """Save the current background image to a texture."""
-        self.background_image.with_background(
-            texture=Texture(get_image().filter(BACKGROUND_BLUR)),
-        )
+    def change_scene(self: HadesWindow, scene_type: ViewType) -> None:
+        """Change the current scene to the specified type.
 
-    def __repr__(self: HadesWindow) -> str:  # pragma: no cover
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
+        Args:
+            scene_type: The type of the scene to switch to.
         """
-        return f"<Window (Width={self.width}) (Height={self.height})>"
+        self.current_scene = self.scenes[scene_type]
+
+    def run(self: HadesWindow) -> None:
+        """Run the main game loop."""
+        running = True
+        while running:
+            events = pygame.event.get()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    running = False
+
+            self.current_scene.handle_events(events)
+            self.current_scene.draw(self.get_surface())
+            self.flip()
+            self.clock.tick()
 
 
 def main() -> None:
     """Initialise the game and runs it."""
     # Initialise the window
     window = HadesWindow()
-    window.center_window()
-    logger.debug("Initialised window")
 
     # Initialise the views
-    window.views[ViewType.START_MENU] = StartMenu()
-    window.views[ViewType.GAME] = Game()
-    window.views[ViewType.PLAYER] = Player()
-    window.show_view(window.views[ViewType.START_MENU])
-    logger.debug("Initialised views")
+    window.scenes[ViewType.START_MENU] = StartMenu(window)
+    # window.scenes[ViewType.GAME] = Game()
+    # window.scenes[ViewType.PLAYER] = Player()
+    window.change_scene(ViewType.START_MENU)
 
     # Run the game
-    logger.debug("Running game")
     window.run()
+    pygame.quit()
 
 
 # Only make sure the game is run from this file
