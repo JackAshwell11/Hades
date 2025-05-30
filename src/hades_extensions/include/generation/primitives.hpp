@@ -4,7 +4,6 @@
 // Std headers
 #include <array>
 #include <cmath>
-#include <memory>
 #include <stdexcept>
 #include <vector>
 
@@ -100,7 +99,7 @@ struct Grid {
   int height;
 
   /// The vector which represents the 2D grid.
-  std::unique_ptr<std::vector<TileType>> grid;
+  std::vector<TileType> grid;
 
   /// The offsets for the intercardinal directions.
   static constexpr std::array INTERCARDINAL_OFFSETS{Position{.x = -1, .y = -1},  // North-west
@@ -117,7 +116,7 @@ struct Grid {
   /// @param width - The width of the 2D grid.
   /// @param height - The height of the 2D grid.
   Grid(const int width, const int height)
-      : width(width), height(height), grid(std::make_unique<std::vector<TileType>>(width * height, TileType::Empty)) {}
+      : width(width), height(height), grid(std::vector(width * height, TileType::Empty)) {}
 
   /// Check if a position is within the 2D grid.
   ///
@@ -157,7 +156,7 @@ struct Grid {
   /// @throws std::out_of_range - If the position is not within the 2D grid.
   /// @return The value at the given position.
   [[nodiscard]] auto get_value(const Position &position) const -> TileType {
-    return grid->at(convert_position(position));
+    return grid.at(convert_position(position));
   }
 
   /// Set a value in the 2D grid from a given position.
@@ -165,9 +164,7 @@ struct Grid {
   /// @param position - The position to set.
   /// @param target - The value to set at the given position.
   /// @throws std::out_of_range - If the position is not within the 2D grid.
-  void set_value(const Position &position, const TileType target) const {
-    grid->at(convert_position(position)) = target;
-  }
+  void set_value(const Position &position, const TileType target) { grid.at(convert_position(position)) = target; }
 
   /// Get the neighbours of a given position.
   ///
@@ -186,7 +183,7 @@ struct Grid {
   /// Place a rect in the 2D grid.
   ///
   /// @param rect - The rect to place in the 2D grid.
-  void place_rect(const Rect &rect) const {
+  void place_rect(const Rect &rect) {
     for (int y{std::max(rect.top_left.y, 0)}; y < std::min(rect.bottom_right.y + 1, height); y++) {
       for (int x{std::max(rect.top_left.x, 0)}; x < std::min(rect.bottom_right.x + 1, width); x++) {
         set_value({.x = x, .y = y}, TileType::Floor);

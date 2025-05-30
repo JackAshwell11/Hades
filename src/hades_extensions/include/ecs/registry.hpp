@@ -103,6 +103,11 @@ class Registry {
   /// @throws RegistryError - If the game object is not registered.
   void delete_game_object(GameObjectID game_object_id);
 
+  /// Clear all game objects except those specified.
+  ///
+  /// @param game_object_ids_to_preserve - The game object IDs to preserve.
+  void clear_game_objects(const std::unordered_set<GameObjectID> &game_object_ids_to_preserve = {});
+
   /// Check if a game object is registered or not.
   ///
   /// @param game_object_id - The game object ID.

@@ -127,6 +127,19 @@ void Registry::delete_game_object(const GameObjectID game_object_id) {
   recycled_ids_.push(game_object_id);
 }
 
+void Registry::clear_game_objects(const std::unordered_set<GameObjectID> &game_object_ids_to_preserve) {
+  std::unordered_set<GameObjectID> ids_to_delete;
+  for (const auto game_object_id : game_objects_ | std::views::keys) {
+    if (game_object_ids_to_preserve.contains(game_object_id)) {
+      continue;
+    }
+    ids_to_delete.insert(game_object_id);
+  }
+  for (const auto game_object_id : ids_to_delete) {
+    delete_game_object(game_object_id);
+  }
+}
+
 auto Registry::get_component(const GameObjectID game_object_id, const std::type_index &component_type) const
     -> std::shared_ptr<ComponentBase> {
   // Check if the game object has the component or not

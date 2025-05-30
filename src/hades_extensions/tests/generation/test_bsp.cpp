@@ -12,7 +12,7 @@ class BspFixture : public testing::Test {  // NOLINT
   std::mt19937 random_generator;
 
   /// A 2D grid for use in testing.
-  const Grid grid{20, 20};
+  Grid grid{20, 20};
 
   /// Set up the fixture for the tests.
   void SetUp() override { random_generator.seed(0); }

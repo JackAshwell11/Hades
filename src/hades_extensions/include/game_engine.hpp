@@ -1,32 +1,42 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std headers
-#include <optional>
-
 // Local headers
 #include "ecs/registry.hpp"
 #include "generation/map.hpp"
 
-// The keys for interacting with the game engine.
-constexpr int KEY_A{97};
-constexpr int KEY_C{99};
-constexpr int KEY_D{100};
-constexpr int KEY_E{101};
-constexpr int KEY_S{115};
+/// The W key code.
 constexpr int KEY_W{119};
-constexpr int KEY_X{120};
+
+/// The A key code.
+constexpr int KEY_A{97};
+
+/// The S key code.
+constexpr int KEY_S{115};
+
+/// The D key code.
+constexpr int KEY_D{100};
+
+/// The C key code.
+constexpr int KEY_C{99};
+
+/// The E key code.
+constexpr int KEY_E{101};
+
+/// The Z key code.
 constexpr int KEY_Z{122};
+
+/// The X key code.
+constexpr int KEY_X{120};
+
+/// The left mouse button code.
 constexpr int MOUSE_BUTTON_LEFT{1};
 
 /// Manages the interaction between Python and C++.
 class GameEngine {
  public:
   /// Initialise the object.
-  ///
-  /// @param level - The level of the game.
-  /// @param seed - The seed for the random generator.
-  explicit GameEngine(int level, std::optional<unsigned int> seed = std::nullopt);
+  explicit GameEngine();
 
   /// Get the registry.
   ///
@@ -43,10 +53,12 @@ class GameEngine {
   /// @return The nearest item to the player.
   [[nodiscard]] auto get_nearest_item() const -> GameObjectID { return nearest_item_; }
 
-  /// Create the game objects from the generator.
+  /// Reset the game engine with a new level.
   ///
-  /// @details If this is called twice, the game objects will be duplicated.
-  void create_game_objects();
+  /// @param level - The new level to reset to.
+  /// @param seed - The seed for the random generator.
+  /// @throws std::runtime_error if the level is negative.
+  void reset_level(int level, std::optional<unsigned int> seed = std::nullopt);
 
   /// Set up the shop offerings.
   ///
@@ -92,6 +104,11 @@ class GameEngine {
   void use_item(GameObjectID target_id, GameObjectID item_id);
 
  private:
+  /// Create the game objects from the generator.
+  ///
+  /// @details If this is called twice, the game objects will be duplicated.
+  void create_game_objects();
+
   /// Generate an enemy.
   void generate_enemy();
 
@@ -114,11 +131,8 @@ class GameEngine {
   /// The positions of the floor tiles in the game.
   std::vector<cpVect> floor_positions_;
 
-  /// The map generator responsible for the generation.
-  MapGenerator generator_;
-
   /// The current level of the game.
-  int level_;
+  int level_{-1};
 
   /// The player's game object ID.
   GameObjectID player_id_{-1};

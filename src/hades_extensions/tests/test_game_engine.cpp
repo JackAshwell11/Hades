@@ -14,15 +14,13 @@
 class GameEngineFixture : public testing::Test {  // NOLINT
  protected:
   /// The game engine object.
-  GameEngine game_engine{0, 10};
-
-  /// The level constants.
-  std::tuple<int, int, int> level_constants{30, 20, 5};
+  GameEngine game_engine;
 
   /// Set up the fixture for the tests.
   void SetUp() override {
     load_hitbox(GameObjectType::Player, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
     load_hitbox(GameObjectType::Enemy, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
+    game_engine.reset_level(0, 10);
   }
 
   /// Get an item from the game engine's registry.
@@ -44,31 +42,30 @@ class GameEngineFixture : public testing::Test {  // NOLINT
   }
 };
 
-/// Test that the game engine is created correctly.
-TEST_F(GameEngineFixture, TestGameEngineZeroLevel) { ASSERT_EQ(game_engine.get_player_id(), -1); }
+/// Test that resetting the level with a zero level works correctly.
+TEST_F(GameEngineFixture, TestGameEngineResetLevelZeroLevel) { ASSERT_NE(game_engine.get_player_id(), -1); }
 
-/// Test that the game engine throws an exception when given a negative level.
-TEST_F(GameEngineFixture, TestGameEngineNegativeLevel) {
-  ASSERT_THROW_MESSAGE(GameEngine{-1}, std::length_error, "Level must be bigger than or equal to 0.");
+/// Test that resetting the level with a positive level works correctly.
+TEST_F(GameEngineFixture, TestGameEngineResetLevelPositiveLevel) {
+  const auto player_id{game_engine.get_player_id()};
+  game_engine.reset_level(1, 10);
+  ASSERT_EQ(game_engine.get_player_id(), player_id);
 }
 
-/// Test that the game engine creates game objects correctly.
-TEST_F(GameEngineFixture, TestGameEngineCreateGameObjects) {
-  game_engine.create_game_objects();
-  ASSERT_NE(game_engine.get_player_id(), -1);
+/// Test that resetting the level to a negative value throws an exception.
+TEST_F(GameEngineFixture, TestGameEngineResetLevelNegativeLevel) {
+  ASSERT_THROW_MESSAGE(game_engine.reset_level(-1), std::runtime_error, "Level must be bigger than or equal to 0.");
 }
 
-/// Test that the game engine creates game objects correctly given no seed.
-TEST_F(GameEngineFixture, TestGameEngineCreateGameObjectsNoSeed) {
-  GameEngine game_engine_no_seed{0};
-  game_engine.create_game_objects();
-  game_engine_no_seed.create_game_objects();
+/// Test that resetting the level with no seed works correctly.
+TEST_F(GameEngineFixture, TestGameEngineResetLevelNoSeed) {
+  GameEngine game_engine_no_seed{};
+  game_engine_no_seed.reset_level(0);
   ASSERT_NE(game_engine.get_player_id(), game_engine_no_seed.get_player_id());
 }
 
 /// Test that setting up the shop with a stat offering works correctly.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidStat) {
-  game_engine.create_game_objects();
   std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
   game_engine.get_registry().add_callback<EventType::ShopItemLoaded>(
       [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
@@ -94,7 +91,6 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidStat) {
 
 /// Test that setting up the shop with a component offering works correctly.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidComponent) {
-  game_engine.create_game_objects();
   std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
   game_engine.get_registry().add_callback<EventType::ShopItemLoaded>(
       [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
@@ -117,7 +113,6 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidComponent) {
 
 /// Test that setting up the shop with an item offering works correctly.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidItem) {
-  game_engine.create_game_objects();
   std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
   game_engine.get_registry().add_callback<EventType::ShopItemLoaded>(
       [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
@@ -140,7 +135,6 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidItem) {
 
 /// Test that setting up the shop with multiple offerings works correctly.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopMultipleValidOfferings) {
-  game_engine.create_game_objects();
   std::vector<std::tuple<int, std::tuple<std::string, std::string, std::string>, int>> callback_args;
   game_engine.get_registry().add_callback<EventType::ShopItemLoaded>(
       [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
@@ -195,7 +189,6 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopMultipleValidOfferings) {
 
 /// Test that setting up the shop with an unknown type throws an exception.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopUnknownType) {
-  game_engine.create_game_objects();
   std::istringstream shop_stream{R"([
         {
             "type": "unknown",
@@ -211,7 +204,6 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopUnknownType) {
 
 /// Test that setting up the shop with an invalid JSON format throws an exception.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopInvalidJSON) {
-  game_engine.create_game_objects();
   std::istringstream shop_stream{R"([
         {
             "type": "stat",
@@ -229,14 +221,12 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopInvalidJSON) {
 
 /// Test that the game engine processes an update correctly when there is no nearest item.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNoNearestItem) {
-  game_engine.create_game_objects();
   game_engine.on_update(0);
   ASSERT_EQ(game_engine.get_nearest_item(), -1);
 }
 
 /// Test that the game engine processes an update correctly when the nearest item is not a goal.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
-  game_engine.create_game_objects();
   const auto item_id{get_item(GameObjectType::HealthPotion)};
   move_player_to_item(item_id);
   game_engine.on_update(0);
@@ -245,7 +235,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
 
 /// Test that the game engine processes an update correctly when the nearest item is a goal.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoal) {
-  game_engine.create_game_objects();
   move_player_to_item(get_item(GameObjectType::Goal));
   game_engine.on_update(0);
   ASSERT_FALSE(game_engine.get_registry().has_game_object(game_engine.get_player_id()));
@@ -255,7 +244,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoal) {
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemy) {
   auto enemy_created{-1};
   auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
-  game_engine.create_game_objects();
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.on_update(1);
   ASSERT_NE(enemy_created, -1);
@@ -263,7 +251,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemy) {
 
 /// Test that the game engine throws an exception if the game objects haven't been created yet.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyNoGameObjects) {
-  GameEngine engine{0};
+  GameEngine engine;
   ASSERT_THROW_MESSAGE(
       engine.on_update(1), RegistryError,
       "The component `KinematicComponent` for the game object ID `-1` is not registered with the registry.");
@@ -271,14 +259,12 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyNoGameObjects) {
 
 /// Test that the game engine throws an exception if the player is dead.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyPlayerDead) {
-  game_engine.create_game_objects();
   game_engine.get_registry().delete_game_object(game_engine.get_player_id());
   ASSERT_THROW(game_engine.on_update(1), RegistryError);
 }
 
 /// Test that the game engine doesn't generate an enemy correctly if the enemy limit has been reached.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyLimit) {
-  game_engine.create_game_objects();
   for (auto i{0}; i < 10; i++) {
     game_engine.on_update(1);
   }
@@ -291,7 +277,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyLimit) {
 
 /// Test that the game engine processes a fixed update correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnFixedUpdateDeletePlayer) {
-  game_engine.create_game_objects();
   game_engine.get_registry().mark_for_deletion(game_engine.get_player_id());
   game_engine.on_fixed_update(0.0);
   ASSERT_FALSE(game_engine.get_registry().has_game_object(game_engine.get_player_id()));
@@ -299,7 +284,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnFixedUpdateDeletePlayer) {
 
 /// Test that the game engine processes a 'W' key press correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyPressW) {
-  game_engine.create_game_objects();
   game_engine.on_key_press(KEY_W, 0);
   const auto player_movement{game_engine.get_registry().get_component<KeyboardMovement>(game_engine.get_player_id())};
   ASSERT_TRUE(player_movement->moving_north);
@@ -307,7 +291,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyPressW) {
 
 /// Test that the game engine processes an 'A' key press correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyPressA) {
-  game_engine.create_game_objects();
   game_engine.on_key_press(KEY_A, 0);
   const auto player_movement{game_engine.get_registry().get_component<KeyboardMovement>(game_engine.get_player_id())};
   ASSERT_TRUE(player_movement->moving_west);
@@ -315,7 +298,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyPressA) {
 
 /// Test that the game engine processes an 'S' key press correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyPressS) {
-  game_engine.create_game_objects();
   game_engine.on_key_press(KEY_S, 0);
   const auto player_movement{game_engine.get_registry().get_component<KeyboardMovement>(game_engine.get_player_id())};
   ASSERT_TRUE(player_movement->moving_south);
@@ -323,21 +305,16 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyPressS) {
 
 /// Test that the game engine processes a 'D' key press correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyPressD) {
-  game_engine.create_game_objects();
   game_engine.on_key_press(KEY_D, 0);
   const auto player_movement{game_engine.get_registry().get_component<KeyboardMovement>(game_engine.get_player_id())};
   ASSERT_TRUE(player_movement->moving_east);
 }
 
 /// Test that the game engine processes an unknown key press correctly.
-TEST_F(GameEngineFixture, TestGameEngineOnKeyPressUnknown) {
-  game_engine.create_game_objects();
-  ASSERT_NO_THROW(game_engine.on_key_press(0, 0));
-}
+TEST_F(GameEngineFixture, TestGameEngineOnKeyPressUnknown) { ASSERT_NO_THROW(game_engine.on_key_press(0, 0)); }
 
 /// Test that the game engine processes a 'W' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseW) {
-  game_engine.create_game_objects();
   game_engine.on_key_press(KEY_W, 0);
   game_engine.on_key_release(KEY_W, 0);
   const auto player_movement{game_engine.get_registry().get_component<KeyboardMovement>(game_engine.get_player_id())};
@@ -346,7 +323,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseW) {
 
 /// Test that the game engine processes an 'A' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseA) {
-  game_engine.create_game_objects();
   game_engine.on_key_press(KEY_A, 0);
   game_engine.on_key_release(KEY_A, 0);
   const auto player_movement{game_engine.get_registry().get_component<KeyboardMovement>(game_engine.get_player_id())};
@@ -355,7 +331,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseA) {
 
 /// Test that the game engine processes an 'S' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseS) {
-  game_engine.create_game_objects();
+  game_engine.reset_level(0, 10);
   game_engine.on_key_press(KEY_S, 0);
   game_engine.on_key_release(KEY_S, 0);
   const auto player_movement{game_engine.get_registry().get_component<KeyboardMovement>(game_engine.get_player_id())};
@@ -364,7 +340,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseS) {
 
 /// Test that the game engine processes a 'D' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseD) {
-  game_engine.create_game_objects();
   game_engine.on_key_press(KEY_D, 0);
   game_engine.on_key_release(KEY_D, 0);
   const auto player_movement{game_engine.get_registry().get_component<KeyboardMovement>(game_engine.get_player_id())};
@@ -373,7 +348,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseD) {
 
 /// Test that the game engine processes a 'C' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseC) {
-  game_engine.create_game_objects();
   const auto item_id{get_item(GameObjectType::HealthPotion)};
   move_player_to_item(item_id);
   game_engine.on_update(0);
@@ -384,7 +358,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseC) {
 
 /// Test that the game engine processes an 'E' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseE) {
-  game_engine.create_game_objects();
   game_engine.on_update(1);
   move_player_to_item(get_item(GameObjectType::HealthPotion));
   game_engine.on_update(0);
@@ -397,7 +370,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseE) {
 
 /// Test that the game engine processes a 'Z' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseZ) {
-  game_engine.create_game_objects();
   game_engine.on_update(1);
   game_engine.on_key_release(KEY_X, 0);
   game_engine.on_key_release(KEY_Z, 0);
@@ -406,26 +378,18 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseZ) {
 
 /// Test that the game engine processes a 'X' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseX) {
-  game_engine.create_game_objects();
   game_engine.on_update(1);
   game_engine.on_key_release(KEY_X, 0);
   ASSERT_EQ(game_engine.get_registry().get_component<Attack>(game_engine.get_player_id())->selected_ranged_attack, 1);
 }
 
 /// Test that the game engine processes an unknown key release correctly.
-TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseUnknown) {
-  game_engine.create_game_objects();
-  ASSERT_NO_THROW(game_engine.on_key_release(0, 0));
-}
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseUnknown) { ASSERT_NO_THROW(game_engine.on_key_release(0, 0)); }
 
 /// Test that the game engine processes a left mouse press correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnMousePressLeft) {
-  // Set up the game engine so that the player can attack an enemy
-  game_engine.create_game_objects();
   game_engine.on_update(1);
   game_engine.get_registry().get_system<AttackSystem>()->update(10);
-
-  // Test that processing the left mouse press works correctly
   int called{-1};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
       [&called](const GameObjectID event) { called = event; });
@@ -434,14 +398,10 @@ TEST_F(GameEngineFixture, TestGameEngineOnMousePressLeft) {
 }
 
 /// Test that the game engine processes a unknown mouse press correctly.
-TEST_F(GameEngineFixture, TestGameEngineOnMousePressUnknown) {
-  game_engine.create_game_objects();
-  ASSERT_FALSE(game_engine.on_mouse_press(0, 0, -1, 0));
-}
+TEST_F(GameEngineFixture, TestGameEngineOnMousePressUnknown) { ASSERT_FALSE(game_engine.on_mouse_press(0, 0, -1, 0)); }
 
 /// Test that a game object's effects are applied correctly when an item is used.
 TEST_F(GameEngineFixture, TestGameEngineUseItemEffects) {
-  game_engine.create_game_objects();
   const auto item_id{get_item(GameObjectType::HealthPotion)};
   const auto health{game_engine.get_registry().get_component<Health>(game_engine.get_player_id())};
   health->set_value(50);
@@ -452,7 +412,6 @@ TEST_F(GameEngineFixture, TestGameEngineUseItemEffects) {
 
 /// Test that a game object is removed from the inventory after it is used.
 TEST_F(GameEngineFixture, TestGameEngineUseItemRemoveFromInventory) {
-  game_engine.create_game_objects();
   const auto item_id{get_item(GameObjectType::HealthPotion)};
   game_engine.get_registry().get_system<InventorySystem>()->add_item_to_inventory(game_engine.get_player_id(), item_id);
   game_engine.get_registry().get_component<Health>(game_engine.get_player_id())->set_value(50);
@@ -464,21 +423,18 @@ TEST_F(GameEngineFixture, TestGameEngineUseItemRemoveFromInventory) {
 
 /// Test that an item is not used if it doesn't match any of the strategies.
 TEST_F(GameEngineFixture, TestGameEngineUseItemNoEffect) {
-  game_engine.create_game_objects();
   game_engine.use_item(game_engine.get_player_id(), get_item(GameObjectType::Wall));
   ASSERT_EQ(game_engine.get_registry().get_component<Health>(game_engine.get_player_id())->get_value(), 200);
 }
 
 /// Test that nothing happens if the item game object does not exist.
 TEST_F(GameEngineFixture, TestGameEngineUseItemInvalidItemID) {
-  game_engine.create_game_objects();
   game_engine.use_item(game_engine.get_player_id(), -1);
   ASSERT_EQ(game_engine.get_registry().get_component<Health>(game_engine.get_player_id())->get_value(), 200);
 }
 
 /// Test that an exception is thrown if the target game object does not have the required components.
 TEST_F(GameEngineFixture, TestGameEngineUseItemEffectsInvalidTarget) {
-  game_engine.create_game_objects();
   ASSERT_THROW_MESSAGE(
       game_engine.use_item(-1, get_item(GameObjectType::HealthPotion)), RegistryError,
       "The component `StatusEffects` for the game object ID `-1` is not registered with the registry.");

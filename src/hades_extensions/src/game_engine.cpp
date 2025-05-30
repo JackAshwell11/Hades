@@ -56,25 +56,7 @@ auto get_tile_to_game_object_type() -> const std::unordered_map<TileType, GameOb
 }
 }  // namespace
 
-GameEngine::GameEngine(const int level, const std::optional<unsigned int> seed)
-    : random_generator_(seed.has_value() ? seed.value() : std::random_device{}()),
-      level_distribution_(level, LEVEL_DISTRIBUTION_DEVIATION),
-      level_(level) {
-  if (level < 0) {
-    throw std::length_error("Level must be bigger than or equal to 0.");
-  }
-  generator_ = MapGenerator{level, random_generator_};
-  generator_.generate_rooms()
-      .place_obstacles()
-      .create_connections()
-      .generate_hallways()
-      .cellular_automata(CELLULAR_AUTOMATA_SIMULATIONS)
-      .generate_walls()
-      .place_player()
-      .place_items()
-      .place_goal();
-
-  // Add the systems to the registry
+GameEngine::GameEngine() {
   registry_.add_system<ArmourRegenSystem>();
   registry_.add_system<AttackSystem>();
   registry_.add_system<DamageSystem>();
@@ -87,36 +69,21 @@ GameEngine::GameEngine(const int level, const std::optional<unsigned int> seed)
   registry_.add_system<SteeringMovementSystem>();
 }
 
-void GameEngine::create_game_objects() {
-  // Create the game objects ignoring empty and obstacle tiles
-  const auto &grid{*generator_.get_grid().grid};
-  for (auto i{0}; std::cmp_less(i, grid.size()); i++) {
-    const auto tile_type{grid[i]};
-    if (tile_type == TileType::Empty || tile_type == TileType::Obstacle) {
-      continue;
-    }
-
-    // Get the game object's type and position
-    const auto game_object_type{get_tile_to_game_object_type().at(tile_type)};
-    const auto [x, y]{generator_.get_grid().convert_position(i)};
-    const auto position{cpv(x, y)};
-
-    // Store the floor position for enemy generation
-    if (tile_type != TileType::Wall) {
-      floor_positions_.emplace_back(position);
-      if (tile_type != TileType::Floor) {
-        registry_.create_game_object(GameObjectType::Floor, position,
-                                     get_game_object_components(GameObjectType::Floor));
-      }
-    }
-
-    // Handle game object creation
-    const auto game_object_id{
-        registry_.create_game_object(game_object_type, cpv(x, y), get_game_object_components(game_object_type))};
-    if (tile_type == TileType::Player) {
-      player_id_ = game_object_id;
-    }
+void GameEngine::reset_level(const int level, const std::optional<unsigned int> seed) {
+  if (level < 0) {
+    throw std::runtime_error("Level must be bigger than or equal to 0.");
   }
+  level_ = level;
+  random_generator_.seed(seed.has_value() ? seed.value() : std::random_device{}());
+  level_distribution_ = std::normal_distribution<>(level, LEVEL_DISTRIBUTION_DEVIATION);
+  floor_positions_.clear();
+  if (player_id_ != -1) {
+    const auto inventory{registry_.get_component<Inventory>(player_id_)};
+    std::unordered_set preserved_ids{player_id_};
+    preserved_ids.insert(inventory->items.begin(), inventory->items.end());
+    registry_.clear_game_objects(preserved_ids);
+  }
+  create_game_objects();
 }
 
 void GameEngine::setup_shop(std::istream &stream) const {
@@ -243,9 +210,54 @@ void GameEngine::use_item(const GameObjectID target_id, const GameObjectID item_
   }
 }
 
+void GameEngine::create_game_objects() {
+  MapGenerator generator{level_, random_generator_};
+  generator.generate_rooms()
+      .place_obstacles()
+      .create_connections()
+      .generate_hallways()
+      .cellular_automata(CELLULAR_AUTOMATA_SIMULATIONS)
+      .generate_walls()
+      .place_player()
+      .place_items()
+      .place_goal();
+  const auto &grid{generator.get_grid()};
+  for (auto i{0}; std::cmp_less(i, grid.grid.size()); i++) {
+    const auto tile_type{grid.grid[i]};
+    if (tile_type == TileType::Empty || tile_type == TileType::Obstacle) {
+      continue;
+    }
+
+    // Get the game object's type and position
+    const auto game_object_type{get_tile_to_game_object_type().at(tile_type)};
+    const auto [x, y]{grid.convert_position(i)};
+    const auto position{cpv(x, y)};
+
+    // Store the floor position for enemy generation
+    if (tile_type != TileType::Wall) {
+      floor_positions_.emplace_back(position);
+      if (tile_type != TileType::Floor) {
+        registry_.create_game_object(GameObjectType::Floor, position,
+                                     get_game_object_components(GameObjectType::Floor));
+      }
+    }
+
+    // Handle game object creation
+    if (tile_type == TileType::Player && player_id_ != -1) {
+      cpBodySetPosition(*registry_.get_component<KinematicComponent>(player_id_)->body, grid_pos_to_pixel(position));
+    } else {
+      const auto game_object_id{
+          registry_.create_game_object(game_object_type, position, get_game_object_components(game_object_type))};
+      if (tile_type == TileType::Player) {
+        player_id_ = game_object_id;
+      }
+    }
+  }
+}
+
 void GameEngine::generate_enemy() {
   if (std::cmp_greater_equal(registry_.get_game_object_ids(GameObjectType::Enemy).size(),
-                             generator_.get_enemy_limit())) {
+                             MapGenerator::get_enemy_limit(level_))) {
     return;
   }
 

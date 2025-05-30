@@ -6,7 +6,7 @@
 class PrimitivesFixture : public testing::Test {
  protected:
   /// A 2D grid for use in testing.
-  const Grid grid{5, 5};
+  Grid grid{5, 5};
 
   /// A rect inside the grid for use in testing.
   const Rect rect_one{{.x = 0, .y = 0}, {.x = 2, .y = 3}};
@@ -114,13 +114,13 @@ TEST_F(PrimitivesFixture, TestGridConvertPositionLarger){
 
 /// Test that a position in the middle of the grid can be retrieved correctly.
 TEST_F(PrimitivesFixture, TestGridGetValueMiddle) {
-  (*grid.grid)[13] = TileType::Player;
+  grid.grid[13] = TileType::Player;
   ASSERT_EQ(grid.get_value({3, 2}), TileType::Player);
 }
 
 /// Test that a position on the edge of the grid can be retrieved correctly.
 TEST_F(PrimitivesFixture, TestGridGetValueEdge) {
-  (*grid.grid)[23] = TileType::Player;
+  grid.grid[23] = TileType::Player;
   ASSERT_EQ(grid.get_value({3, 4}), TileType::Player);
 }
 
@@ -135,13 +135,13 @@ TEST_F(PrimitivesFixture, TestGridGetValueLarger){
 /// Test that a position in the middle can be set correctly.
 TEST_F(PrimitivesFixture, TestGridSetValueMiddle) {
   grid.set_value({.x = 1, .y = 3}, TileType::Player);
-  ASSERT_EQ((*grid.grid)[16], TileType::Player);
+  ASSERT_EQ(grid.grid[16], TileType::Player);
 }
 
 /// Test that a position on the edge can be set correctly.
 TEST_F(PrimitivesFixture, TestGridSetValueEdge) {
   grid.set_value({.x = 4, .y = 4}, TileType::Player);
-  ASSERT_EQ((*grid.grid)[24], TileType::Player);
+  ASSERT_EQ(grid.grid[24], TileType::Player);
 }
 
 /// Test that setting a position smaller than the array throws an exception.
@@ -164,7 +164,7 @@ TEST_F(PrimitivesFixture, TestGridPlaceRectZeroSize) {
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
-  ASSERT_EQ(*grid.grid, target_result);
+  ASSERT_EQ(grid.grid, target_result);
 }
 
 /// Test that a rect can be placed correctly in a valid grid.
@@ -177,7 +177,7 @@ TEST_F(PrimitivesFixture, TestGridPlaceRectValidGrid) {
       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
       TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
   };
-  ASSERT_EQ(*grid.grid, target_result);
+  ASSERT_EQ(grid.grid, target_result);
 }
 
 /// Test that placing a rect that doesn't fit in the grid works correctly.
@@ -190,12 +190,12 @@ TEST_F(PrimitivesFixture, TestGridPlaceRectOutsideGrid) {
       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
       TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
   };
-  ASSERT_EQ(*grid.grid, target_result);
+  ASSERT_EQ(grid.grid, target_result);
 }
 
 /// Test that placing a rect in a zero size grid doesn't do anything.
 TEST_F(PrimitivesFixture, TestGridPlaceRectZeroSizeGrid) {
-  const Grid empty_grid{0, 0};
+  Grid empty_grid{0, 0};
   empty_grid.place_rect(rect_one);
-  ASSERT_EQ(*empty_grid.grid, std::vector<TileType>{});
+  ASSERT_EQ(empty_grid.grid, std::vector<TileType>{});
 }

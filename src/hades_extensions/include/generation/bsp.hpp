@@ -39,5 +39,5 @@ struct Leaf {
   /// @param grid - The 2D grid which represents the dungeon.
   /// @param random_generator - The random generator to use.
   /// @param rooms - The vector of rooms to add the new room to.
-  void create_room(const Grid &grid, std::mt19937 &random_generator, std::vector<Position> &rooms);
+  void create_room(Grid &grid, std::mt19937 &random_generator, std::vector<Position> &rooms);
 };
