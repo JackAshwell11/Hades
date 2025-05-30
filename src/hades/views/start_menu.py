@@ -38,17 +38,8 @@ class StartButton(UIFlatButton):
     # pylint: disable=no-self-use
     def on_click(self: StartButton, _: UIOnClickEvent) -> None:
         """Create a game instance when the button is clicked."""
-        # Get the current window and view
         window: HadesWindow = arcade.get_window()
-
-        # Set up the new game
-        new_game = window.views[ViewType.GAME]
-        new_game.setup(0)  # type: ignore[attr-defined]
-        logger.info("Initialised game view at level %d", 0)
-
-        # Show the new game
-        window.show_view(new_game)
-        logger.debug("Showed game view")
+        window.show_view(window.views[ViewType.GAME])
 
     def __repr__(self: StartButton) -> str:  # pragma: no cover
         """Return a human-readable representation of this object.

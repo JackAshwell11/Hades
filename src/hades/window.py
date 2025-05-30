@@ -4,7 +4,6 @@ from __future__ import annotations
 
 # Builtin
 from datetime import UTC, datetime
-from logging import getLogger
 from logging.config import dictConfig
 from pathlib import Path
 from typing import Final
@@ -17,6 +16,7 @@ from PIL.ImageFilter import GaussianBlur
 # Custom
 from hades import ViewType
 from hades.game import Game
+from hades.model import HadesModel
 from hades.player import Player
 from hades.views.start_menu import StartMenu
 
@@ -78,7 +78,6 @@ dictConfig(
         },
     },
 )
-logger = getLogger(GAME_LOGGER)
 
 
 class HadesWindow(Window):
@@ -87,7 +86,10 @@ class HadesWindow(Window):
     Attributes:
         views: Holds all the views used by the game.
         background_image: The background image of the window.
+        model: The model providing access to the game engine and its functionality.
     """
+
+    __slots__ = ("background_image", "model", "views")
 
     def __init__(self: HadesWindow) -> None:
         """Initialise the object."""
@@ -97,6 +99,7 @@ class HadesWindow(Window):
             width=self.width,
             height=self.height,
         ).with_background(texture=get_default_texture())
+        self.model: HadesModel = HadesModel()
 
     def save_background(self: HadesWindow) -> None:
         """Save the current background image to a texture."""
@@ -118,17 +121,18 @@ def main() -> None:
     # Initialise the window
     window = HadesWindow()
     window.center_window()
-    logger.debug("Initialised window")
 
     # Initialise the views
+    game = Game()
+    game.setup()
+    player = Player()
+    player.setup()
     window.views[ViewType.START_MENU] = StartMenu()
-    window.views[ViewType.GAME] = Game()
-    window.views[ViewType.PLAYER] = Player()
+    window.views[ViewType.GAME] = game
+    window.views[ViewType.PLAYER] = player
     window.show_view(window.views[ViewType.START_MENU])
-    logger.debug("Initialised views")
 
     # Run the game
-    logger.debug("Running game")
     window.run()
 
 

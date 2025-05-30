@@ -59,12 +59,6 @@ class GameEngine {
   /// @throws std::runtime_error if there was an error parsing the JSON file or the offering type is unknown.
   void setup_shop(std::istream &stream) const;
 
-  /// Generate an enemy.
-  ///
-  /// @param delta_time - The time interval since the last time the function was called.
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  void generate_enemy(double delta_time = 1.0 / 60.0);
-
   /// Process update logic for the game engine.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
@@ -103,6 +97,9 @@ class GameEngine {
   void use_item(GameObjectID target_id, GameObjectID item_id) const;
 
  private:
+  /// Generate an enemy.
+  void generate_enemy();
+
   /// Get the components for a game object type.
   ///
   /// @param game_object_type - The game object type.
@@ -130,4 +127,7 @@ class GameEngine {
 
   /// The nearest item to the player.
   GameObjectID nearest_item_{-1};
+
+  /// The timer for enemy generation.
+  double enemy_generation_timer_{0.0};
 };

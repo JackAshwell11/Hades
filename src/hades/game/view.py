@@ -190,7 +190,7 @@ class GameView:
         self.update_progress_bars(self.game_camera)
 
     def add_sprite(self: GameView, sprite: HadesSprite) -> None:
-        """Add a sprite to the game model.
+        """Add a sprite to the game.
 
         Args:
             sprite: The sprite to add.

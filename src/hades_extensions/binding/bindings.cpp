@@ -49,10 +49,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           "    file: The file to load the shop offerings from.\n\n"
           "Raises:\n"
           "    RuntimeError: If there was an error parsing the JSON file or the offering type is unknown.")
-      .def("generate_enemy", &GameEngine::generate_enemy, pybind11::arg("delta_time"),
-           "Generate an enemy.\n\n"
-           "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.")
       .def("on_update", &GameEngine::on_update, pybind11::arg("delta_time"),
            "Process update logic for the game engine.\n\n"
            "Args:\n"

@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+# Builtin
+from typing import TYPE_CHECKING
+
 # Pip
 from arcade import View
 
 # Custom
-from hades import ViewType
 from hades.game.controller import GameController
 from hades.game.view import GameView
-from hades.model import GameModel
+
+if TYPE_CHECKING:
+    from hades.model import HadesModel
 
 __all__ = ("Game",)
 
@@ -18,7 +22,7 @@ class Game(View):
     """Manages the game and its events.
 
     Attributes:
-        model: The model managing the game state.
+        model: The model providing access to the game engine and its functionality.
         view: The renderer for the game.
         controller: The controller managing the game logic.
     """
@@ -28,21 +32,14 @@ class Game(View):
     def __init__(self: Game) -> None:
         """Initialise the object."""
         super().__init__()
-        self.model: GameModel = GameModel()
+        self.model: HadesModel = self.window.model
         self.view: GameView = GameView(self.window)
         self.controller: GameController = GameController(self.model, self.view)
 
-    def setup(self: Game, level: int, seed: int | None = None) -> None:
-        """Set up the game.
-
-        Args:
-            level: The level to create a game for.
-            seed: The seed to use for the game engine.
-        """
-        self.model.setup(level, seed)
+    def setup(self: Game) -> None:
+        """Set up the game."""
         self.view.setup()
         self.controller.setup()
-        self.window.views[ViewType.PLAYER].setup(self.model)
 
     def on_show_view(self: Game) -> None:
         """Process show view functionality."""

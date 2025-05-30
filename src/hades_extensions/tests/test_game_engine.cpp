@@ -233,43 +233,6 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopInvalidJSON) {
                        "object key - unexpected '}'; expected string literal");
 }
 
-/// Test that the game engine generates an enemy correctly.
-TEST_F(GameEngineFixture, TestGameEngineGenerateEnemy) {
-  auto enemy_created{-1};
-  auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
-  game_engine.create_game_objects();
-  game_engine.get_registry()->add_callback<EventType::GameObjectCreation>(enemy_creation);
-  game_engine.generate_enemy();
-  ASSERT_NE(enemy_created, -1);
-}
-
-/// Test that the game engine throws an exception if the game objects haven't been created yet.
-TEST_F(GameEngineFixture, TestGameEngineGenerateEnemyNoGameObjects) {
-  ASSERT_THROW_MESSAGE(
-      game_engine.generate_enemy(), RegistryError,
-      "The component `KinematicComponent` for the game object ID `-1` is not registered with the registry.");
-}
-
-/// Test that the game engine throws an exception if the player is dead.
-TEST_F(GameEngineFixture, TestGameEngineGenerateEnemyPlayerDead) {
-  game_engine.create_game_objects();
-  game_engine.get_registry()->delete_game_object(game_engine.get_player_id());
-  ASSERT_THROW(game_engine.generate_enemy(), RegistryError);
-}
-
-/// Test that the game engine doesn't generate an enemy correctly if the enemy limit has been reached.
-TEST_F(GameEngineFixture, TestGameEngineGenerateEnemyLimit) {
-  game_engine.create_game_objects();
-  for (auto i{0}; i < 10; i++) {
-    game_engine.generate_enemy();
-  }
-  auto enemy_created{-1};
-  auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
-  game_engine.get_registry()->add_callback<EventType::GameObjectCreation>(enemy_creation);
-  game_engine.generate_enemy();
-  ASSERT_EQ(enemy_created, -1);
-}
-
 /// Test that the game engine processes an update correctly when there is no nearest item.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNoNearestItem) {
   game_engine.create_game_objects();
@@ -292,6 +255,44 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoal) {
   move_player_to_item(get_item(GameObjectType::Goal));
   game_engine.on_update(0);
   ASSERT_FALSE(game_engine.get_registry()->has_game_object(game_engine.get_player_id()));
+}
+
+/// Test that the game engine generates an enemy correctly.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemy) {
+  auto enemy_created{-1};
+  auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
+  game_engine.create_game_objects();
+  game_engine.get_registry()->add_callback<EventType::GameObjectCreation>(enemy_creation);
+  game_engine.on_update(1);
+  ASSERT_NE(enemy_created, -1);
+}
+
+/// Test that the game engine throws an exception if the game objects haven't been created yet.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyNoGameObjects) {
+  GameEngine engine{0};
+  ASSERT_THROW_MESSAGE(
+      engine.on_update(1), RegistryError,
+      "The component `KinematicComponent` for the game object ID `-1` is not registered with the registry.");
+}
+
+/// Test that the game engine throws an exception if the player is dead.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyPlayerDead) {
+  game_engine.create_game_objects();
+  game_engine.get_registry()->delete_game_object(game_engine.get_player_id());
+  ASSERT_THROW(game_engine.on_update(1), RegistryError);
+}
+
+/// Test that the game engine doesn't generate an enemy correctly if the enemy limit has been reached.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyLimit) {
+  game_engine.create_game_objects();
+  for (auto i{0}; i < 10; i++) {
+    game_engine.on_update(1);
+  }
+  auto enemy_created{-1};
+  auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
+  game_engine.get_registry()->add_callback<EventType::GameObjectCreation>(enemy_creation);
+  game_engine.on_update(1);
+  ASSERT_EQ(enemy_created, -1);
 }
 
 /// Test that the game engine processes a fixed update correctly.
@@ -390,7 +391,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseC) {
 /// Test that the game engine processes an 'E' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseE) {
   game_engine.create_game_objects();
-  game_engine.generate_enemy();
+  game_engine.on_update(1);
   move_player_to_item(get_item(GameObjectType::HealthPotion));
   game_engine.on_update(0);
   const auto health{game_engine.get_registry()->get_component<Health>(game_engine.get_player_id())};
@@ -403,7 +404,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseE) {
 /// Test that the game engine processes a 'Z' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseZ) {
   game_engine.create_game_objects();
-  game_engine.generate_enemy();
+  game_engine.on_update(1);
   game_engine.on_key_release(KEY_X, 0);
   game_engine.on_key_release(KEY_Z, 0);
   ASSERT_EQ(game_engine.get_registry()->get_component<Attack>(game_engine.get_player_id())->selected_ranged_attack, 0);
@@ -412,7 +413,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseZ) {
 /// Test that the game engine processes a 'X' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseX) {
   game_engine.create_game_objects();
-  game_engine.generate_enemy();
+  game_engine.on_update(1);
   game_engine.on_key_release(KEY_X, 0);
   ASSERT_EQ(game_engine.get_registry()->get_component<Attack>(game_engine.get_player_id())->selected_ranged_attack, 1);
 }
@@ -427,7 +428,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseUnknown) {
 TEST_F(GameEngineFixture, TestGameEngineOnMousePressLeft) {
   // Set up the game engine so that the player can attack an enemy
   game_engine.create_game_objects();
-  game_engine.generate_enemy();
+  game_engine.on_update(1);
   game_engine.get_registry()->get_system<AttackSystem>()->update(10);
 
   // Test that processing the left mouse press works correctly

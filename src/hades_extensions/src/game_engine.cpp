@@ -15,17 +15,17 @@
 #include "factories.hpp"
 
 namespace {
-// The deviation of the level distribution.
+/// The deviation of the level distribution.
 constexpr int LEVEL_DISTRIBUTION_DEVIATION{2};
 
-// The number of cellular automata runs to perform.
+/// The number of cellular automata runs to perform.
 constexpr int CELLULAR_AUTOMATA_SIMULATIONS{3};
 
-// The distance from the player to generate an enemy.
-constexpr int ENEMY_GENERATION_DISTANCE{5};
+/// The distance from the player to generate an enemy.
+constexpr double ENEMY_GENERATION_DISTANCE{5 * SPRITE_SIZE};
 
-// How many times an enemy should be attempted to be generated.
-constexpr int ENEMY_RETRY_ATTEMPTS{3};
+/// The interval in seconds between enemy generations.
+constexpr double ENEMY_GENERATION_INTERVAL{1.0};
 
 /// Get a component type from a string.
 ///
@@ -138,45 +138,15 @@ void GameEngine::setup_shop(std::istream &stream) const {
   }
 }
 
-void GameEngine::generate_enemy(const double /*delta_time*/) {
-  if (static_cast<int>(registry_->get_game_object_ids(GameObjectType::Enemy).size()) >= generator_.get_enemy_limit()) {
-    return;
-  }
-
-  // Collect all floor positions and shuffle them
-  const auto &grid{*generator_.get_grid().grid};
-  std::vector<cpVect> floor_positions;
-  for (auto i{0}; std::cmp_less(i, grid.size()); i++) {
-    if (grid[i] == TileType::Floor) {
-      const auto [x, y]{generator_.get_grid().convert_position(i)};
-      floor_positions.push_back(cpv(x, y));
-    }
-  }
-  std::ranges::shuffle(floor_positions, random_generator_);
-
-  // Determine which floor to place the enemy on only trying ENEMY_RETRY_ATTEMPTS times
-  for (auto attempt{0}; attempt < std::min(static_cast<int>(floor_positions.size()), ENEMY_RETRY_ATTEMPTS); attempt++) {
-    const auto position{floor_positions[attempt]};
-    if (const auto player_position{cpBodyGetPosition(*registry_->get_component<KinematicComponent>(player_id_)->body)};
-        cpSpacePointQueryNearest(registry_->get_space(), position, 0.0,
-                                 {CP_NO_GROUP, CP_ALL_CATEGORIES, static_cast<cpBitmask>(GameObjectType::Enemy)},
-                                 nullptr) != nullptr ||
-        cpvdist(position, player_position) < ENEMY_GENERATION_DISTANCE * SPRITE_SIZE) {
-      continue;
-    }
-
-    // Create the enemy and set its required data
-    const auto enemy_id{registry_->create_game_object(GameObjectType::Enemy, position,
-                                                      get_game_object_components(GameObjectType::Enemy))};
-    registry_->get_component<SteeringMovement>(enemy_id)->target_id = player_id_;
-    return;
-  }
-}
-
-void GameEngine::on_update(const double /*delta_time*/) {
+void GameEngine::on_update(const double delta_time) {
   nearest_item_ = registry_->get_system<PhysicsSystem>()->get_nearest_item(player_id_);
   if (nearest_item_ != -1 && registry_->get_game_object_type(nearest_item_) == GameObjectType::Goal) {
     registry_->delete_game_object(player_id_);
+  }
+  enemy_generation_timer_ += delta_time;
+  if (enemy_generation_timer_ >= ENEMY_GENERATION_INTERVAL) {
+    generate_enemy();
+    enemy_generation_timer_ = 0.0;
   }
 }
 
@@ -265,8 +235,41 @@ void GameEngine::use_item(const GameObjectID target_id, const GameObjectID item_
   }
 }
 
+void GameEngine::generate_enemy() {
+  if (std::cmp_greater_equal(registry_->get_game_object_ids(GameObjectType::Enemy).size(),
+                             generator_.get_enemy_limit())) {
+    return;
+  }
+
+  // Collect all floor positions and shuffle them
+  const auto &grid{*generator_.get_grid().grid};
+  std::vector<cpVect> floor_positions;
+  for (auto i{0}; std::cmp_less(i, grid.size()); i++) {
+    if (grid[i] == TileType::Floor) {
+      const auto [x, y]{generator_.get_grid().convert_position(i)};
+      floor_positions.push_back(cpv(x, y));
+    }
+  }
+
+  // Get a random floor position and check if it is valid for enemy generation
+  auto dist{std::uniform_int_distribution<size_t>(0, floor_positions.size() - 1)};
+  const auto position{floor_positions[dist(random_generator_)]};
+  const bool intersecting_enemies{
+      cpSpacePointQueryNearest(registry_->get_space(), position, 0.0,
+                               {CP_NO_GROUP, CP_ALL_CATEGORIES, static_cast<cpBitmask>(GameObjectType::Enemy)},
+                               nullptr) != nullptr};
+  if (const auto player_position{cpBodyGetPosition(*registry_->get_component<KinematicComponent>(player_id_)->body)};
+      intersecting_enemies || cpvdist(position, player_position) < ENEMY_GENERATION_DISTANCE) {
+    return;
+  }
+
+  // Generate the enemy at the position
+  const auto enemy_id{registry_->create_game_object(GameObjectType::Enemy, position,
+                                                    get_game_object_components(GameObjectType::Enemy))};
+  registry_->get_component<SteeringMovement>(enemy_id)->target_id = player_id_;
+}
+
 auto GameEngine::get_game_object_components(const GameObjectType game_object_type)
     -> std::vector<std::shared_ptr<ComponentBase>> {
-  const auto &factories{get_factories()};
-  return factories.at(game_object_type)(std::max(0, static_cast<int>(level_distribution_(random_generator_))));
+  return get_factories().at(game_object_type)(std::max(0, static_cast<int>(level_distribution_(random_generator_))));
 }

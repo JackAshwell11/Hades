@@ -13,7 +13,7 @@ from hades.player.controller import PlayerController
 from hades.player.view import PlayerView
 
 if TYPE_CHECKING:
-    from hades.model import GameModel
+    from hades.model import HadesModel
 
 __all__ = ("Player",)
 
@@ -22,25 +22,22 @@ class Player(View):
     """Manages the game and its events.
 
     Attributes:
+        model: The model providing access to the game engine and its functionality.
         view: The renderer for the player.
         controller: The controller managing the player logic.
     """
 
-    __slots__ = ("controller", "view")
+    __slots__ = ("controller", "model", "view")
 
     def __init__(self: Player) -> None:
         """Initialise the object."""
         super().__init__()
+        self.model: HadesModel = self.window.model
         self.view: PlayerView = PlayerView(self.window)
-        self.controller: PlayerController = PlayerController(self.view)
+        self.controller: PlayerController = PlayerController(self.model, self.view)
 
-    def setup(self: Player, model: GameModel) -> None:
-        """Set up the player view.
-
-        Args:
-            model: The model managing the player state.
-        """
-        self.controller.model = model
+    def setup(self: Player) -> None:
+        """Set up the player view."""
         self.view.setup()
         self.controller.setup()
 

@@ -227,6 +227,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         if value and not self.window:
             self.window = CaptureWindow()
             self.game = Game()
+            self.game.setup()
         elif not value:
             self.window = self.game = None
 
@@ -236,16 +237,13 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         Returns:
             The positions of the enemies.
         """
-        return np.array(
-            [
-                self.registry.get_component(
-                    enemy_id,
-                    KinematicComponent,
-                ).get_position()
-                for enemy_id in self.enemy_ids
-            ],
-            dtype=np.float32,
-        )
+        positions = np.zeros((5, 2), dtype=np.float32)
+        for i, enemy_id in enumerate(self.enemy_ids):
+            positions[i] = self.registry.get_component(
+                enemy_id,
+                KinematicComponent,
+            ).get_position()
+        return positions
 
     def _get_obs(self: HadesEnvironment) -> ObsType:
         """Returns the current observation.
@@ -352,13 +350,11 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         # Reset the environment and store the required variables
         self.previous_action = 0
         if self.game and self.window:
-            self.game.setup(self.level, self.seed)
             if self.window.current_view != self.game:
                 self.window.show_view(self.game)
             self.game_engine = self.game.model.game_engine
         else:
             self.game_engine = GameEngine(self.level, self.seed)
-            self.game_engine.create_game_objects()
         self.registry = self.game_engine.get_registry()
         self.registry.add_callback(
             EventType.GameObjectCreation,
@@ -374,15 +370,6 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         )
         self.position_history = np.zeros((0, 2), dtype=np.float32)
         self.enemy_ids.clear()
-
-        # Generate the maximum number of enemies and show the new game view
-        _, _, enemy_limit = self.game_engine.level_constants
-        for _ in range(enemy_limit):
-            self.game_engine.generate_enemy(0)
-
-        # Reset the environment if anything has gone wrong
-        if len(self.enemy_ids) < enemy_limit:
-            return self.reset(seed=seed, options=options)
 
         # Return the initial observation and information
         return self._get_obs(), {}
@@ -483,9 +470,8 @@ class HadesEnvironment(Env):  # type:ignore[misc]
             self.window.dispatch_event("on_draw")
             self.window.flip()
         else:
-            # Use the elapsed time to update the game to prevent it from
-            # running too fast
-            self.game_engine.generate_enemy(0)
+            # Use the elapsed time to update the game to prevent it from running too
+            # fast
             current_time = time.time()
             if (current_time - self.last_update_time) >= UPDATE_RATE:
                 self.game_engine.on_fixed_update(UPDATE_RATE)

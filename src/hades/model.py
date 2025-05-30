@@ -1,12 +1,10 @@
-"""Manages the game state and its logic."""
+"""Provides access to the game engine and its functionality."""
 
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, cast
-
-# Pip
-from arcade import unschedule
+from functools import cached_property
+from typing import TYPE_CHECKING
 
 # Custom
 from hades_extensions import GameEngine
@@ -14,40 +12,36 @@ from hades_extensions import GameEngine
 if TYPE_CHECKING:
     from hades_extensions.ecs import Registry
 
-__all__ = ("GameModel",)
+__all__ = ("HadesModel",)
 
 
-class GameModel:
-    """Manages the game state and logic.
+class HadesModel:
+    """Provides access to the game engine and its functionality.
 
     Attributes:
         game_engine: The engine which manages the registry and events.
-        player_id: The ID of the player game object.
     """
 
-    __slots__ = ("game_engine", "player_id")
+    __slots__ = ("__dict__", "game_engine")
 
-    def __init__(self: GameModel) -> None:
+    def __init__(self: HadesModel) -> None:
         """Initialise the object."""
-        self.game_engine: GameEngine = cast("GameEngine", None)
-        self.player_id: int = -1
+        self.game_engine: GameEngine = GameEngine(0)
 
-    def setup(self: GameModel, level: int, seed: int | None = None) -> None:
-        """Set up the game model.
-
-        Args:
-            level: The level to create a game for.
-            seed: The seed to use for the game engine.
-        """
-        if self.game_engine:
-            unschedule(self.game_engine.generate_enemy)
-        self.game_engine = GameEngine(level, seed)
-
-    @property
-    def registry(self: GameModel) -> Registry:
+    @cached_property
+    def registry(self: HadesModel) -> Registry:
         """Get the registry which manages the game objects, components, and systems.
 
         Returns:
             The registry which manages the game objects, components, and systems.
         """
         return self.game_engine.get_registry()
+
+    @cached_property
+    def player_id(self: HadesModel) -> int:
+        """Get the ID of the player game object.
+
+        Returns:
+            The ID of the player game object.
+        """
+        return self.game_engine.player_id

@@ -5,10 +5,10 @@ from __future__ import annotations
 # Builtin
 import logging
 import math
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 # Pip
-from arcade import color, key, schedule, unschedule
+from arcade import color, key
 from pyglet import app
 
 # Custom
@@ -24,12 +24,9 @@ from hades_extensions.ecs.components import KinematicComponent, PythonSprite
 
 if TYPE_CHECKING:
     from hades.game.view import GameView
-    from hades.model import GameModel
+    from hades.model import HadesModel
 
 __all__ = ("GameController",)
-
-# The time interval between enemy generation attempts
-ENEMY_GENERATE_INTERVAL: Final[int] = 1
 
 # Get the logger for this module
 logger = logging.getLogger(__name__)
@@ -42,20 +39,20 @@ class GameController:
 
     def __init__(
         self: GameController,
-        model: GameModel,
+        model: HadesModel,
         view: GameView,
     ) -> None:
         """Initialise the object.
 
         Args:
-            model: The model managing the game state.
+            model: The model providing access to the game engine and its functionality.
             view: The renderer for the game.
         """
-        self.model: GameModel = model
+        self.model: HadesModel = model
         self.view: GameView = view
 
     def setup(self: GameController) -> None:
-        """Set up the controller."""
+        """Set up the game controller."""
         callbacks = [
             (EventType.GameObjectCreation, self.on_game_object_creation),
             (EventType.GameObjectDeath, self.on_game_object_death),
@@ -71,21 +68,18 @@ class GameController:
                 callback,
             )
         self.model.game_engine.create_game_objects()
-        self.model.player_id = self.model.game_engine.player_id
 
     def show_view(self: GameController) -> None:
         """Process show view functionality."""
         self.view.window.background_color = color.BLACK
         self.view.ui.enable()
         self.view.window.push_handlers(self.model.game_engine)
-        schedule(self.model.game_engine.generate_enemy, ENEMY_GENERATE_INTERVAL)
 
     def hide_view(self: GameController) -> None:
         """Process hide view functionality."""
         self.view.window.save_background()
         self.view.ui.disable()
         self.view.window.remove_handlers(self.model.game_engine)
-        unschedule(self.model.game_engine.generate_enemy)
 
     def key_release(self: GameController, symbol: int, modifiers: int) -> None:
         """Process key release functionality.

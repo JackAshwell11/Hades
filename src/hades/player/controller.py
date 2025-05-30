@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Final, cast
+from typing import TYPE_CHECKING, Final
 
 # Pip
 from arcade.resources import resolve
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
     from arcade.gui import UIOnClickEvent
 
-    from hades.model import GameModel
+    from hades.model import HadesModel
     from hades.player.view import PlayerView
 
 __all__ = ("PlayerController",)
@@ -29,21 +29,18 @@ SHOP_OFFERINGS: Final[Path] = resolve(":resources:shop_offerings.json")
 
 
 class PlayerController:
-    """Manages the player flow and registry callbacks.
-
-    Attributes:
-        model: The model managing the player state.
-    """
+    """Manages the player flow and registry callbacks."""
 
     __slots__ = ("__weakref__", "model", "view")
 
-    def __init__(self: PlayerController, view: PlayerView) -> None:
+    def __init__(self: PlayerController, model: HadesModel, view: PlayerView) -> None:
         """Initialise the object.
 
         Args:
+            model: The model providing access to the game engine and its functionality.
             view: The renderer for the player.
         """
-        self.model: GameModel = cast("GameModel", None)
+        self.model: HadesModel = model
         self.view: PlayerView = view
 
     def setup(self: PlayerController) -> None:
