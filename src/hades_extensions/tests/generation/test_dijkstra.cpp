@@ -9,7 +9,7 @@
 class DijkstraFixture : public testing::Test {
  protected:
   /// A 2D grid for use in testing.
-  const Grid grid{6, 9};
+  Grid grid{6, 9};
 
   /// A position in the middle of the grid for use in testing.
   const Position position_one{.x = 3, .y = 7};
@@ -23,7 +23,7 @@ class DijkstraFixture : public testing::Test {
   /// Add obstacles to the grid for use in testing.
   ///
   /// @param all - Whether to add obstacles to the entire grid or not.
-  void add_obstacles(const bool all = false) const {
+  void add_obstacles(const bool all = false) {
     const std::unordered_set<Position> obstacles{{.x = 1, .y = 3}, {.x = 2, .y = 7}, {.x = 3, .y = 2}, {.x = 3, .y = 3},
                                                  {.x = 3, .y = 6}, {.x = 4, .y = 3}, {.x = 4, .y = 6}};
     for (int y = 0; y < grid.height; y++) {
@@ -42,7 +42,7 @@ class DijkstraFixture : public testing::Test {
   ///
   /// @param walls - The positions of the walls to add.
   /// @param all - Whether to add walls to the entire grid or not.
-  void add_floors(const std::unordered_set<Position> &walls, const bool all = false) const {
+  void add_floors(const std::unordered_set<Position> &walls, const bool all = false) {
     for (int y = 0; y < grid.height; y++) {
       for (int x = 0; x < grid.width; x++) {
         if (all) {

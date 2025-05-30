@@ -16,19 +16,16 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
              "Returns:\n"
              "    Whether the hitbox was loaded or not.");
   pybind11::class_<GameEngine>(module, "GameEngine", "Manages the game objects and systems.")
-      .def(pybind11::init<int, std::optional<unsigned int>>(), pybind11::arg("level"),
-           pybind11::arg("seed") = pybind11::none(),
-           "Initialise the object.\n\n"
-           "Args:\n"
-           "    level: The level to generate the game engine for.\n"
-           "    seed: The seed to use for the random number generator.")
+      .def(pybind11::init<>(), "Initialise the object.")
       .def_property_readonly("registry", &GameEngine::get_registry)
       .def_property_readonly("player_id", &GameEngine::get_player_id)
-      .def("create_game_objects", &GameEngine::create_game_objects,
-           "Create the game objects.\n\n"
-           "If this is called twice, the game objects will be duplicated.\n\n"
-           "Returns:\n"
-           "    The game objects.")
+      .def("reset_level", &GameEngine::reset_level, pybind11::arg("level"), pybind11::arg("seed") = pybind11::none(),
+           "Reset the game engine with a new level.\n\n"
+           "Args:\n"
+           "    level: The new level to reset to.\n"
+           "    seed: The seed for the random generator.\n\n"
+           "Raises:\n"
+           "    RuntimeError: If the level is negative.")
       .def(
           "setup_shop",
           [](const GameEngine &engine, const std::string &file) {

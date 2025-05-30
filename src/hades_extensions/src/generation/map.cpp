@@ -77,7 +77,7 @@ const auto count_floor_neighbours{[](const Grid &grid, const Position &position)
 /// @param target_tile - The tile to place in the 2D grid.
 /// @param probability - The probability of placing the tile.
 /// @param count - The number of tiles to place.
-void place_tiles(const Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
+void place_tiles(Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
                  const int count = std::numeric_limits<int>::max()) {
   const auto is_next_to_wall{[&grid](const Position &position) {
     return std::ranges::any_of(grid.get_neighbours(position), [&grid](const Position &neighbour) {
@@ -183,10 +183,10 @@ auto MapGenerator::generate_hallways() -> MapGenerator & {
 
 auto MapGenerator::cellular_automata(const int generations) -> MapGenerator & {
   for (int _{0}; _ < generations; _++) {
-    auto temp_grid{std::make_unique<std::vector<TileType>>(*grid_.grid)};
+    auto temp_grid{std::vector(grid_.grid)};
     for (auto i{0}; i < grid_.width * grid_.height; i++) {
       const auto floor_neighbours{count_floor_neighbours(grid_, grid_.convert_position(i))};
-      temp_grid->at(i) = floor_neighbours >= MIN_NEIGHBOUR_DISTANCE ? TileType::Floor : TileType::Empty;
+      temp_grid.at(i) = floor_neighbours >= MIN_NEIGHBOUR_DISTANCE ? TileType::Floor : TileType::Empty;
     }
     grid_.grid = std::move(temp_grid);
   }
@@ -226,10 +226,10 @@ auto MapGenerator::place_items() -> MapGenerator & {
 }
 
 auto MapGenerator::place_goal() -> MapGenerator & {
-  const auto player_iter{std::ranges::find(grid_.grid->begin(), grid_.grid->end(), TileType::Player)};
-  const auto player_index{static_cast<int>(std::distance(grid_.grid->begin(), player_iter))};
+  const auto player_iter{std::ranges::find(grid_.grid.begin(), grid_.grid.end(), TileType::Player)};
+  const auto player_index{static_cast<int>(std::distance(grid_.grid.begin(), player_iter))};
   grid_.set_value(get_furthest_position(grid_, grid_.convert_position(player_index)), TileType::Goal);
   return *this;
 }
 
-auto MapGenerator::get_enemy_limit() const -> int { return ENEMY_LIMIT.generate_value(level_); }
+auto MapGenerator::get_enemy_limit(const int level) -> int { return ENEMY_LIMIT.generate_value(level); }

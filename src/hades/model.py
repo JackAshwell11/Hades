@@ -26,7 +26,7 @@ class HadesModel:
 
     def __init__(self: HadesModel) -> None:
         """Initialise the object."""
-        self.game_engine: GameEngine = GameEngine(0)
+        self.game_engine: GameEngine = GameEngine()
 
     @cached_property
     def registry(self: HadesModel) -> Registry:

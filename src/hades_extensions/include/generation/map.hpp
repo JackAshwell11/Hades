@@ -65,8 +65,9 @@ class MapGenerator {
 
   /// Get the enemy limit.
   ///
+  /// @param level - The level of the dungeon.
   /// @return The enemy limit.
-  [[nodiscard]] auto get_enemy_limit() const -> int;
+  [[nodiscard]] static auto get_enemy_limit(int level) -> int;
 
  private:
   /// The level of the dungeon.

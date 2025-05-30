@@ -206,6 +206,30 @@ TEST_F(RegistryFixture, TestRegistryDeleteGameObjectKinematicComponent) {
   ASSERT_FALSE(cpSpaceContainsShape(registry.get_space(), shape));
 }
 
+/// Test that clearing the registry without any registered game objects works correctly.
+TEST_F(RegistryFixture, TestRegistryClearNoGameObjects) {
+  registry.clear_game_objects();
+  ASSERT_EQ(registry.get_game_object_ids(GameObjectType::Player).size(), 0);
+}
+
+/// Test that clearing the registry with non-preserved game objects works correctly.
+TEST_F(RegistryFixture, TestRegistryClearWithGameObjects) {
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
+  registry.clear_game_objects();
+  ASSERT_EQ(registry.get_game_object_ids(GameObjectType::Player).size(), 0);
+}
+
+/// Test that clearing the registry with preserved game objects works correctly.
+TEST_F(RegistryFixture, TestRegistryClearWithPreservedGameObjects) {
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
+  registry.clear_game_objects({0});
+  ASSERT_EQ(registry.get_game_object_ids(GameObjectType::Player).size(), 1);
+  ASSERT_TRUE(registry.has_game_object(0));
+  ASSERT_FALSE(registry.has_game_object(1));
+}
+
 /// Test that creating a game object notifies the correct event.
 TEST_F(RegistryFixture, TestRegistryGameObjectCreationEvent) {
   int called{-1};
