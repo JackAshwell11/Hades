@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Final
-
-# Pip
-from arcade.resources import resolve
+from typing import TYPE_CHECKING
 
 # Custom
 from hades.player.view import InventoryItemButton, ShopItemButton
@@ -15,17 +12,12 @@ from hades_extensions.ecs.components import PythonSprite
 from hades_extensions.ecs.systems import ShopSystem
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from arcade.gui import UIOnClickEvent
 
     from hades.model import HadesModel
     from hades.player.view import PlayerView
 
 __all__ = ("PlayerController",)
-
-# The path to the shop offerings JSON file
-SHOP_OFFERINGS: Final[Path] = resolve(":resources:shop_offerings.json")
 
 
 class PlayerController:
@@ -55,7 +47,6 @@ class PlayerController:
                 event_type,
                 callback,
             )
-        self.model.game_engine.setup_shop(str(SHOP_OFFERINGS))
         self.view.window.register_event_type("on_texture_button_callback")
         self.view.window.register_event_type("on_use_button_callback")
         self.view.window.register_event_type("on_inventory_use_item")

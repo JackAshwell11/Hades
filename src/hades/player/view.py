@@ -437,7 +437,7 @@ class PlayerView:
     """Manages the rendering of player elements on the screen.
 
     Attributes:
-        ui: The UI manager for the game view.
+        ui: The UI manager for the player view.
         stats_layout: The layout for displaying the player's stats.
         player_attributes_layout: The layout for displaying the player's attributes.
     """
@@ -454,7 +454,7 @@ class PlayerView:
         """Initialise the object.
 
         Args:
-            window: The window for the game.
+            window: The window for the start menu.
         """
         self.window: HadesWindow = window
         self.ui: UIManager = UIManager()

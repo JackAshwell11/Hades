@@ -1,38 +1,28 @@
-"""Contains the functionality that allows the user to play the game."""
+"""Contains the functionality that manages the game and its events."""
 
 from __future__ import annotations
-
-# Builtin
-from typing import TYPE_CHECKING
-
-# Pip
-from arcade import View
 
 # Custom
 from hades.game.controller import GameController
 from hades.game.view import GameView
-
-if TYPE_CHECKING:
-    from hades.model import HadesModel
+from hades.view import BaseView
 
 __all__ = ("Game",)
 
 
-class Game(View):
+class Game(BaseView):
     """Manages the game and its events.
 
     Attributes:
-        model: The model providing access to the game engine and its functionality.
         view: The renderer for the game.
         controller: The controller managing the game logic.
     """
 
-    __slots__ = ("controller", "model", "view")
+    __slots__ = ("controller", "view")
 
     def __init__(self: Game) -> None:
         """Initialise the object."""
         super().__init__()
-        self.model: HadesModel = self.window.model
         self.view: GameView = GameView(self.window)
         self.controller: GameController = GameController(self.model, self.view)
 

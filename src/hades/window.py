@@ -6,11 +6,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from logging.config import dictConfig
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 # Pip
-from arcade import Texture, View, Window, get_default_texture, get_image
+from arcade import Texture, Window, get_default_texture, get_image
 from arcade.gui import UIWidget
+from arcade.resources import resolve
 from PIL.ImageFilter import GaussianBlur
 
 # Custom
@@ -18,7 +19,10 @@ from hades import ViewType
 from hades.game import Game
 from hades.model import HadesModel
 from hades.player import Player
-from hades.views.start_menu import StartMenu
+from hades.start_menu import StartMenu
+
+if TYPE_CHECKING:
+    from hades.view import BaseView
 
 __all__ = ("HadesWindow",)
 
@@ -27,6 +31,9 @@ GAME_LOGGER: Final[str] = "hades"
 
 # The Gaussian blur filter to apply to the background image
 BACKGROUND_BLUR: Final[GaussianBlur] = GaussianBlur(5)
+
+# The path to the shop offerings JSON file
+SHOP_OFFERINGS: Final[Path] = resolve(":resources:shop_offerings.json")
 
 # Create the log directory making sure it exists. Then create the path for the current
 # log file
@@ -94,12 +101,25 @@ class HadesWindow(Window):
     def __init__(self: HadesWindow) -> None:
         """Initialise the object."""
         super().__init__()
-        self.views: dict[ViewType, View] = {}
+        self.model: HadesModel = HadesModel()
+        self.views: dict[ViewType, BaseView] = {
+            ViewType.START_MENU: StartMenu(),
+            ViewType.GAME: Game(),
+            ViewType.PLAYER: Player(),
+        }
         self.background_image: UIWidget = UIWidget(
             width=self.width,
             height=self.height,
         ).with_background(texture=get_default_texture())
-        self.model: HadesModel = HadesModel()
+
+    def setup(self: HadesWindow) -> None:
+        """Set up the window and its views."""
+        self.center_window()
+        for view in self.views.values():
+            view.setup()
+        self.model.game_engine.create_game_objects()
+        self.model.game_engine.setup_shop(str(SHOP_OFFERINGS))
+        self.show_view(self.views[ViewType.START_MENU])
 
     def save_background(self: HadesWindow) -> None:
         """Save the current background image to a texture."""
@@ -107,32 +127,11 @@ class HadesWindow(Window):
             texture=Texture(get_image().filter(BACKGROUND_BLUR)),
         )
 
-    def __repr__(self: HadesWindow) -> str:  # pragma: no cover
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return f"<Window (Width={self.width}) (Height={self.height})>"
-
 
 def main() -> None:
-    """Initialise the game and runs it."""
-    # Initialise the window
+    """Initialise the game and run it."""
     window = HadesWindow()
-    window.center_window()
-
-    # Initialise the views
-    game = Game()
-    game.setup()
-    player = Player()
-    player.setup()
-    window.views[ViewType.START_MENU] = StartMenu()
-    window.views[ViewType.GAME] = game
-    window.views[ViewType.PLAYER] = player
-    window.show_view(window.views[ViewType.START_MENU])
-
-    # Run the game
+    window.setup()
     window.run()
 
 

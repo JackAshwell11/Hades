@@ -8,7 +8,7 @@ import math
 from typing import TYPE_CHECKING
 
 # Pip
-from arcade import color, key
+from arcade import key
 from pyglet import app
 
 # Custom
@@ -67,11 +67,9 @@ class GameController:
                 event_type,
                 callback,
             )
-        self.model.game_engine.create_game_objects()
 
     def show_view(self: GameController) -> None:
         """Process show view functionality."""
-        self.view.window.background_color = color.BLACK
         self.view.ui.enable()
         self.view.window.push_handlers(self.model.game_engine)
 
