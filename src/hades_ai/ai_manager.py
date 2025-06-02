@@ -74,7 +74,7 @@ class BuildNamespace(Namespace):
 
 
 @dataclass
-class EpisodeResults:  # type: ignore[misc]
+class EpisodeResults:
     """Stores the results of an episode.
 
     Attributes:
