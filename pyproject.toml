@@ -7,7 +7,7 @@ authors = [
     {name = "JackAshwell11", email = "jack.ashwell1@gmail.com"}
 ]
 dependencies = [
-    "arcade==3.1.0",
+    "arcade==3.2.0",
 ]
 description = "A procedurally generated bullet bullet-hell dungeon crawler made in Python."
 license = {file = "LICENSE"}
@@ -23,7 +23,7 @@ Repository = "https://github.com/JackAshwell11/Hades"
 [project.optional-dependencies]
 ai = [
     "gymnasium==1.1.1",
-    "ipython==9.2.0",
+    "ipython==9.3.0",
     "matplotlib==3.10.3",
     "mpld3==0.5.10",
     "opencv-python==4.11.0.86",
