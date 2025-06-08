@@ -148,28 +148,32 @@ class GameView:
             StatusEffectType.Poison: StateIndicator(IconType.POISON, reverse=True),
         }
 
-    def setup(self: GameView) -> None:
-        """Set up the renderer."""
-        self.progress_bars.clear()
-        self.ui.clear()
-        right_layout = UIBoxLayout(align="right", space_between=SPRITE_SIZE / 2)
         self.left_layout.add(self.money_indicator)
-        right_layout.add(self.attack_type_layout)
-        right_layout.add(self.status_effect_layout)
         left_anchor = UIAnchorLayout()
         left_anchor.add(
             self.left_layout.with_padding(top=UI_PADDING * 2, left=UI_PADDING * 2),
             anchor_x="left",
             anchor_y="top",
         )
+        self.ui.add(left_anchor)
+        right_layout = UIBoxLayout(align="right", space_between=SPRITE_SIZE / 2)
+        right_layout.add(self.attack_type_layout)
+        right_layout.add(self.status_effect_layout)
         right_anchor = UIAnchorLayout()
         right_anchor.add(
             right_layout.with_padding(top=UI_PADDING * 2, right=UI_PADDING * 2),
             anchor_x="right",
             anchor_y="top",
         )
-        self.ui.add(left_anchor)
         self.ui.add(right_anchor)
+
+    def reset(self: GameView) -> None:
+        """Reset the view to its initial state."""
+        self.remove_progress_bars(clear=True)
+        self.update_money_display(0)
+        self.update_ranged_attack_icon(0)
+        self.update_attack_cooldown_display(0, 0, 0)
+        self.update_status_effects({})
 
     def draw(self: GameView) -> None:
         """Draw the game elements."""
@@ -196,11 +200,11 @@ class GameView:
             sprite: The sprite to add.
         """
         self.sprites.append(sprite)
-        if sprite.registry.has_component(sprite.game_object_id, PythonSprite):
-            sprite.registry.get_component(
-                sprite.game_object_id,
-                PythonSprite,
-            ).sprite = sprite
+        sprite.registry.get_component(sprite.game_object_id, PythonSprite).sprite = (
+            sprite
+        )
+        if sprite.constructor.progress_bars:
+            self.add_progress_bar(sprite)
 
     def add_progress_bar(self: GameView, sprite: HadesSprite) -> None:
         """Add progress bars for a game object.
@@ -224,15 +228,23 @@ class GameView:
             else:
                 self.ui.add(progress_bar)
 
-    def remove_progress_bars(self: GameView, game_object_id: int) -> None:
+    def remove_progress_bars(
+        self: GameView,
+        game_object_id: int = -1,
+        *,
+        clear: bool = False,
+    ) -> None:
         """Remove progress bars for a game object.
 
         Args:
             game_object_id: ID of the game object to remove progress bars for.
+            clear: Whether to clear all the progress bars or not.
         """
         for progress_bar in self.progress_bars[:]:
-            if progress_bar.target_sprite.game_object_id == game_object_id:
+            if clear or progress_bar.target_sprite.game_object_id == game_object_id:
                 self.ui.remove(progress_bar)
+                if progress_bar in self.left_layout.children:
+                    self.left_layout.remove(progress_bar)
                 self.progress_bars.remove(progress_bar)
 
     def update_progress_bars(self: GameView, camera: Camera2D) -> None:

@@ -152,7 +152,7 @@ class ItemButton(UIBoxLayout, ABC):
 
     @staticmethod
     def on_texture_button_click(event: UIOnClickEvent) -> None:
-        """Handle the texture button click.
+        """Process texture button click logic.
 
         Args:
             event: The event that occurred.
@@ -161,7 +161,7 @@ class ItemButton(UIBoxLayout, ABC):
 
     @staticmethod
     def on_use_button_click(event: UIOnClickEvent) -> None:
-        """Handle the use button click.
+        """Process use button click logic.
 
         Args:
             event: The event that occurred.
@@ -322,7 +322,7 @@ class PaginatedGridLayout[T: ItemButton](UIBoxLayout):
         self._update_grid()
 
     def on_action(self: PaginatedGridLayout[T], event: UIOnActionEvent) -> None:
-        """Handle the button row actions.
+        """Process paginated grid layout click logic.
 
         Args:
             event: The event that occurred.
@@ -356,14 +356,15 @@ class StatsLayout(UIBoxLayout):
     def __init__(self: StatsLayout) -> None:
         """Initialise the object."""
         super().__init__(size_hint=(0.3, 0.4), space_between=PLAYER_WIDGET_SPACING)
-        self.add(UILabel("Test", text_color=(0, 0, 0)))
+        self.add(UILabel("", text_color=(0, 0, 0)))
         self.add(create_divider_line())
-        self.add(UIWidget().with_background(texture=get_default_texture()))
+        self.add(UIWidget())
         self.add(create_divider_line())
-        self.add(UILabel(text="Test description", text_color=(0, 0, 0), multiline=True))
+        self.add(UILabel(text="", text_color=(0, 0, 0), multiline=True))
         self.with_background(color=PLAYER_BACKGROUND_COLOUR).with_padding(
             all=PLAYER_WIDGET_SPACING,
         )
+        self.reset()
 
     def set_info(
         self: StatsLayout,
@@ -385,6 +386,10 @@ class StatsLayout(UIBoxLayout):
         description_obj.text = description
         description_obj.fit_content()
         self.children[2].with_background(texture=texture)
+
+    def reset(self: StatsLayout) -> None:
+        """Reset the stats layout to its default state."""
+        self.set_info("Test", "Test description", get_default_texture())
 
 
 class PlayerAttributesLayout(UIBoxLayout):
@@ -420,7 +425,7 @@ class PlayerAttributesLayout(UIBoxLayout):
         )
 
     def on_action(self: PlayerAttributesLayout, event: UIOnActionEvent) -> None:
-        """Handle the button row actions.
+        """Process player attributes layout click logic.
 
         Args:
             event: The event that occurred.
@@ -461,9 +466,6 @@ class PlayerView:
         self.stats_layout: StatsLayout = StatsLayout()
         self.player_attributes_layout: PlayerAttributesLayout = PlayerAttributesLayout()
 
-    def setup(self: PlayerView) -> None:
-        """Set up the renderer."""
-        self.ui.clear()
         self.ui.add(self.window.background_image)
         layout = UIBoxLayout(vertical=True, space_between=PLAYER_WIDGET_SPACING)
         layout.add(self.stats_layout)
@@ -476,6 +478,12 @@ class PlayerView:
         )
         layout.add(back_button)
         self.ui.add(UIAnchorLayout(children=(layout,)))
+
+    def reset(self: PlayerView) -> None:
+        """Reset the view to its initial state."""
+        self.stats_layout.reset()
+        self.player_attributes_layout.inventory_layout.items = []
+        self.player_attributes_layout.shop_layout.items = []
 
     def draw(self: PlayerView) -> None:
         """Draw the player elements."""

@@ -3,6 +3,7 @@
 
 // Std headers
 #include <numbers>
+#include <random>
 
 // Local headers
 #include "ecs/systems/physics.hpp"
@@ -45,9 +46,9 @@ auto calculate_steering_force(Registry *registry, const std::shared_ptr<Steering
         steering_force += seek(kinematic_owner_position, kinematic_target_position);
         break;
       case SteeringBehaviours::Wander:
-        steering_force +=
-            wander(kinematic_owner_velocity,
-                   std::uniform_real_distribution{0.0, std::numbers::pi * 2}(registry->get_random_generator()));
+        std::random_device device;
+        const auto displacement_angle{std::uniform_real_distribution{0.0, std::numbers::pi * 2}(device)};
+        steering_force += wander(kinematic_owner_velocity, displacement_angle);
         break;
     }
   }

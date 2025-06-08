@@ -26,11 +26,8 @@ class AttackSystemFixture : public testing::Test {
     bool steering_movement = false;
   };
 
-  /// A random generator for use in testing.
-  std::mt19937 random_generator;
-
   /// The registry that manages the game objects, components, and systems.
-  Registry registry{random_generator};
+  Registry registry;
 
   /// A list of targets for use in testing.
   std::vector<int> targets;
@@ -93,11 +90,8 @@ class AttackSystemFixture : public testing::Test {
 /// Implements the fixture for the DamageSystem tests.
 class DamageSystemFixture : public testing::Test {
  protected:
-  /// A random generator for use in testing.
-  std::mt19937 random_generator;
-
   /// The registry that manages the game objects, components, and systems.
-  Registry registry{random_generator};
+  Registry registry;
 
   /// Set up the fixture for the tests.
   void SetUp() override { registry.add_system<DamageSystem>(); }

@@ -68,9 +68,6 @@ class StartMenuView:
         self.window: HadesWindow = window
         self.ui: UIManager = UIManager()
 
-    def setup(self: StartMenuView) -> None:
-        """Set up the renderer."""
-        self.ui.clear()
         vertical_box = UIBoxLayout(space_between=START_MENU_WIDGET_SPACING)
         vertical_box.add(StartButton())
         vertical_box.add(QuitButton())

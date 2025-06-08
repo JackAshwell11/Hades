@@ -26,10 +26,9 @@ class Game(BaseView):
         self.view: GameView = GameView(self.window)
         self.controller: GameController = GameController(self.model, self.view)
 
-    def setup(self: Game) -> None:
-        """Set up the game."""
-        self.view.setup()
-        self.controller.setup()
+    def add_callbacks(self: Game) -> None:
+        """Add the callbacks for the game."""
+        self.controller.add_callbacks()
 
     def on_show_view(self: Game) -> None:
         """Process show view functionality."""

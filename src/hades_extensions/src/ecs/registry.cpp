@@ -42,7 +42,7 @@ auto player_wall_collision_handler(cpArbiter *arbiter, cpSpace * /*space*/, void
 }
 }  // namespace
 
-Registry::Registry(const std::mt19937 &random_generator) : random_generator_{random_generator} {
+Registry::Registry() {
   // Set the damping to ensure the game objects don't drift
   cpSpaceSetDamping(*space_, DAMPING);
 

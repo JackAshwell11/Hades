@@ -22,13 +22,8 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "Args:\n"
            "    level: The level to generate the game engine for.\n"
            "    seed: The seed to use for the random number generator.")
+      .def_property_readonly("registry", &GameEngine::get_registry)
       .def_property_readonly("player_id", &GameEngine::get_player_id)
-      .def_property_readonly("level_constants", &GameEngine::get_level_constants)
-      .def_property_readonly("nearest_item", &GameEngine::get_nearest_item)
-      .def("get_registry", &GameEngine::get_registry,
-           "Get the registry.\n\n"
-           "Returns:\n"
-           "    The registry.")
       .def("create_game_objects", &GameEngine::create_game_objects,
            "Create the game objects.\n\n"
            "If this is called twice, the game objects will be duplicated.\n\n"

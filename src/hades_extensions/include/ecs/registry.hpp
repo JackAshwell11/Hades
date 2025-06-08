@@ -6,7 +6,6 @@
 #ifdef __GNUC__
 #include <cxxabi.h>
 #endif
-#include <random>
 #include <ranges>
 #include <stdexcept>
 #include <typeindex>
@@ -86,9 +85,7 @@ class RegistryError final : public std::runtime_error {
 class Registry {
  public:
   /// Initialise the object.
-  ///
-  /// @param random_generator - The random generator for the registry.
-  explicit Registry(const std::mt19937 &random_generator);
+  explicit Registry();
 
   /// Create a new game object.
   ///
@@ -244,19 +241,17 @@ class Registry {
   /// @tparam Args - The types of the arguments to pass to the callbacks.
   /// @param args - The arguments to pass to the callbacks.
   template <EventType E, typename... Args>
-  void notify(Args &&...args) {
+  void notify(Args &&...args) const {
     using ExpectedArgs = typename EventTraits<E>::EventArgs;
     static_assert(std::is_same_v<std::tuple<std::decay_t<Args>...>, ExpectedArgs>);
+    if (!listeners_.contains(E)) {
+      return;
+    }
     const ExpectedArgs tuple_args{std::forward<Args>(args)...};
-    for (const auto &callback : listeners_[E]) {
+    for (const auto &callback : listeners_.at(E)) {
       callback(tuple_args);
     }
   }
-
-  /// Get the random generator for the registry.
-  ///
-  /// @return The random generator for the registry.
-  [[nodiscard]] auto get_random_generator() -> std::mt19937 & { return random_generator_; }
 
  private:
   /// Create a Chipmunk2D collision handler to deal with bullet collisions.
@@ -287,7 +282,4 @@ class Registry {
 
   /// The listeners registered for each event type.
   std::unordered_map<EventType, std::vector<std::function<void(std::any)>>> listeners_;
-
-  /// The random generator for the registry.
-  std::mt19937 random_generator_;
 };

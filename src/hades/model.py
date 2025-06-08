@@ -35,7 +35,7 @@ class HadesModel:
         Returns:
             The registry which manages the game objects, components, and systems.
         """
-        return self.game_engine.get_registry()
+        return self.game_engine.registry
 
     @cached_property
     def player_id(self: HadesModel) -> int:
