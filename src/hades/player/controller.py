@@ -35,8 +35,8 @@ class PlayerController:
         self.model: HadesModel = model
         self.view: PlayerView = view
 
-    def setup(self: PlayerController) -> None:
-        """Set up the controller."""
+    def add_callbacks(self: PlayerController) -> None:
+        """Set up the controller callbacks."""
         callbacks = [
             (EventType.InventoryUpdate, self.on_update_inventory),
             (EventType.ShopItemLoaded, self.on_shop_item_loaded),
@@ -61,7 +61,7 @@ class PlayerController:
         self.view.ui.disable()
 
     def on_update_inventory(self: PlayerController, items: list[int]) -> None:
-        """Handle the inventory update event.
+        """Process inventory update logic.
 
         Args:
             items: The list of items in the inventory.
@@ -79,7 +79,7 @@ class PlayerController:
         data: tuple[str, str, str],
         cost: int,
     ) -> None:
-        """Handle the shop item loaded event.
+        """Process shop item loaded logic.
 
         Args:
             index: The index of the item in the shop.
@@ -91,7 +91,7 @@ class PlayerController:
         )
 
     def on_shop_item_purchased(self: PlayerController, index: int, cost: int) -> None:
-        """Handle the shop item purchased event.
+        """Process shop item purchased logic.
 
         Args:
             index: The index of the item that was purchased.
@@ -105,7 +105,7 @@ class PlayerController:
         self: PlayerController,
         event: UIOnClickEvent,
     ) -> None:
-        """Handle the texture button callback.
+        """Process texture button callback logic.
 
         Args:
             event: The event that occurred.
@@ -113,7 +113,7 @@ class PlayerController:
         self.view.stats_layout.set_info(*event.source.parent.get_info())
 
     def on_use_button_callback(self: PlayerController, event: UIOnClickEvent) -> None:
-        """Handle the use button callback.
+        """Process use button callback logic.
 
         Args:
             event: The event that occurred.

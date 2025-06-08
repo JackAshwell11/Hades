@@ -51,8 +51,8 @@ class GameController:
         self.model: HadesModel = model
         self.view: GameView = view
 
-    def setup(self: GameController) -> None:
-        """Set up the game controller."""
+    def add_callbacks(self: GameController) -> None:
+        """Set up the controller callbacks."""
         callbacks = [
             (EventType.GameObjectCreation, self.on_game_object_creation),
             (EventType.GameObjectDeath, self.on_game_object_death),
@@ -140,10 +140,9 @@ class GameController:
         constructor = game_object_constructors[
             self.model.registry.get_game_object_type(game_object_id)
         ]
-        sprite = make_sprite(self.model.registry, game_object_id, constructor)
-        self.view.add_sprite(sprite)
-        if constructor.progress_bars:
-            self.view.add_progress_bar(sprite)
+        self.view.add_sprite(
+            make_sprite(self.model.registry, game_object_id, constructor),
+        )
 
     def on_game_object_death(self: GameController, game_object_id: int) -> None:
         """Process game object death logic.
@@ -168,9 +167,10 @@ class GameController:
             game_object_id: The ID of the sprite to remove.
         """
         logger.debug("Received sprite removal event for %d", game_object_id)
-        sprite = self.model.registry.get_component(game_object_id, PythonSprite).sprite
-        if sprite.sprite_lists:
-            sprite.remove_from_sprite_lists()
+        self.model.registry.get_component(
+            game_object_id,
+            PythonSprite,
+        ).sprite.remove_from_sprite_lists()
 
     def on_money_update(self: GameController, money: int) -> None:
         """Process money update logic.

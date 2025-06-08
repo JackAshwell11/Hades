@@ -6,11 +6,8 @@
 /// Implements the fixture for the PhysicsSystem tests.
 class PhysicsSystemFixture : public testing::Test {
  protected:
-  /// A random generator for use in testing.
-  std::mt19937 random_generator;
-
   /// The registry that manages the game objects, components, and systems.
-  Registry registry{random_generator};
+  Registry registry;
 
   /// Set up the fixture for the tests.
   void SetUp() override {

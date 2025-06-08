@@ -30,8 +30,8 @@ class BaseView(ABC, View):
         self.model: HadesModel = self.window.model
 
     @abstractmethod
-    def setup(self: BaseView) -> None:
-        """Set up the view.
+    def add_callbacks(self: BaseView) -> None:
+        """Add callbacks for the view.
 
         Raises:
             NotImplementedError: If the method is not implemented in a subclass.

@@ -227,7 +227,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         if value and not self.window:
             self.window = CaptureWindow()
             self.game = Game()
-            self.game.setup()
+            self.game.add_callbacks()
         elif not value:
             self.window = self.game = None
 
@@ -355,7 +355,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
             self.game_engine = self.game.model.game_engine
         else:
             self.game_engine = GameEngine(self.level, self.seed)
-        self.registry = self.game_engine.get_registry()
+        self.registry = self.game_engine.registry
         self.registry.add_callback(
             EventType.GameObjectCreation,
             self.on_game_object_creation,

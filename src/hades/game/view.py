@@ -148,28 +148,31 @@ class GameView:
             StatusEffectType.Poison: StateIndicator(IconType.POISON, reverse=True),
         }
 
-    def setup(self: GameView) -> None:
-        """Set up the renderer."""
-        self.progress_bars.clear()
-        self.ui.clear()
-        right_layout = UIBoxLayout(align="right", space_between=SPRITE_SIZE / 2)
         self.left_layout.add(self.money_indicator)
-        right_layout.add(self.attack_type_layout)
-        right_layout.add(self.status_effect_layout)
         left_anchor = UIAnchorLayout()
         left_anchor.add(
             self.left_layout.with_padding(top=UI_PADDING * 2, left=UI_PADDING * 2),
             anchor_x="left",
             anchor_y="top",
         )
+        self.ui.add(left_anchor)
+        right_layout = UIBoxLayout(align="right", space_between=SPRITE_SIZE / 2)
+        right_layout.add(self.attack_type_layout)
+        right_layout.add(self.status_effect_layout)
         right_anchor = UIAnchorLayout()
         right_anchor.add(
             right_layout.with_padding(top=UI_PADDING * 2, right=UI_PADDING * 2),
             anchor_x="right",
             anchor_y="top",
         )
-        self.ui.add(left_anchor)
         self.ui.add(right_anchor)
+
+    def reset(self: GameView) -> None:
+        """Reset the view to its initial state."""
+        self.update_money_display(0)
+        self.update_ranged_attack_icon(0)
+        self.update_attack_cooldown_display(0, 0, 0)
+        self.update_status_effects({})
 
     def draw(self: GameView) -> None:
         """Draw the game elements."""
@@ -196,11 +199,11 @@ class GameView:
             sprite: The sprite to add.
         """
         self.sprites.append(sprite)
-        if sprite.registry.has_component(sprite.game_object_id, PythonSprite):
-            sprite.registry.get_component(
-                sprite.game_object_id,
-                PythonSprite,
-            ).sprite = sprite
+        sprite.registry.get_component(sprite.game_object_id, PythonSprite).sprite = (
+            sprite
+        )
+        if sprite.constructor.progress_bars:
+            self.add_progress_bar(sprite)
 
     def add_progress_bar(self: GameView, sprite: HadesSprite) -> None:
         """Add progress bars for a game object.

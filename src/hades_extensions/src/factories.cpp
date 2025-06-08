@@ -16,7 +16,7 @@
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 namespace {
-// The velocity of the bullet.
+/// The velocity of the bullet.
 constexpr int BULLET_VELOCITY{1000};
 
 /// Get the hitboxes for the game objects.
@@ -67,7 +67,7 @@ const auto enemy_factory{[](const int /*level*/) {
 const auto wall_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(true),
-
+      std::make_shared<PythonSprite>(),
   };
 }};
 
@@ -77,6 +77,7 @@ const auto wall_factory{[](const int /*level*/) {
 const auto floor_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(),
+      std::make_shared<PythonSprite>(),
   };
 }};
 
@@ -111,10 +112,10 @@ const auto player_factory{[](const int /*level*/) {
       std::make_shared<Inventory>(),
       std::make_shared<InventorySize>(30, 3),
       std::make_shared<KeyboardMovement>(),
+      std::make_shared<KinematicComponent>(get_hitboxes().at(GameObjectType::Player)),
       std::make_shared<Money>(),
       std::make_shared<MovementForce>(5000, 5),
       std::make_shared<PythonSprite>(),
-      std::make_shared<KinematicComponent>(get_hitboxes().at(GameObjectType::Player)),
       std::make_shared<StatusEffects>(),
   };
 }};
@@ -126,9 +127,9 @@ const auto health_potion_factory{[](const int /*level*/) {
   auto effect_applier{std::make_shared<EffectApplier>()};
   effect_applier->add_status_effect(StatusEffectType::Regeneration, 5, 10, 1, typeid(Health));
   return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<PythonSprite>(),
-      std::make_shared<KinematicComponent>(),
       std::move(effect_applier),
+      std::make_shared<KinematicComponent>(),
+      std::make_shared<PythonSprite>(),
   };
 }};
 
@@ -137,8 +138,8 @@ const auto health_potion_factory{[](const int /*level*/) {
 /// @return The components for the chest.
 const auto chest_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<PythonSprite>(),
       std::make_shared<KinematicComponent>(),
+      std::make_shared<PythonSprite>(),
   };
 }};
 }  // namespace

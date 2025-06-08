@@ -26,10 +26,9 @@ class Player(BaseView):
         self.view: PlayerView = PlayerView(self.window)
         self.controller: PlayerController = PlayerController(self.model, self.view)
 
-    def setup(self: Player) -> None:
-        """Set up the player view."""
-        self.view.setup()
-        self.controller.setup()
+    def add_callbacks(self: Player) -> None:
+        """Add the callbacks for the player."""
+        self.controller.add_callbacks()
 
     def on_show_view(self: Player) -> None:
         """Process show view functionality."""

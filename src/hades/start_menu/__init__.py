@@ -29,10 +29,9 @@ class StartMenu(BaseView):
             self.view,
         )
 
-    def setup(self: StartMenu) -> None:
-        """Set up the start menu view."""
-        self.view.setup()
-        self.controller.setup()
+    def add_callbacks(self: StartMenu) -> None:
+        """Add the callbacks for the start menu."""
+        self.controller.add_callbacks()
 
     def on_show_view(self: StartMenu) -> None:
         """Process show view functionality."""

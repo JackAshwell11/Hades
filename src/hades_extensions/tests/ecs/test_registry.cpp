@@ -34,11 +34,8 @@ struct TestSystem final : SystemBase {
 /// Implements the fixture for the ecs/registry.hpp tests.
 class RegistryFixture : public testing::Test {
  protected:
-  /// A random generator for use in testing.
-  std::mt19937 random_generator;
-
   /// The registry that manages the game objects, components, and systems.
-  Registry registry{random_generator};
+  Registry registry;
 };
 
 /// Test that a valid position is converted correctly.

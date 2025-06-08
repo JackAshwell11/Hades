@@ -36,8 +36,8 @@ class StartMenuController:
         self.model: HadesModel = model
         self.view: StartMenuView = view
 
-    def setup(self: StartMenuController) -> None:
-        """Set up the controller."""
+    def add_callbacks(self: StartMenuController) -> None:
+        """Set up the controller callbacks."""
         self.view.window.register_event_type("on_start_game")
         self.view.window.register_event_type("on_quit_game")
         self.view.window.push_handlers(self)

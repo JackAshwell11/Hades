@@ -13,9 +13,6 @@
 #endif
 
 // Local headers
-#include "ecs/systems/attacks.hpp"
-#include "ecs/systems/effects.hpp"
-#include "ecs/systems/inventory.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
 #include "ecs/systems/sprite.hpp"

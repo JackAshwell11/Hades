@@ -102,21 +102,21 @@ class HadesWindow(Window):
         """Initialise the object."""
         super().__init__()
         self.model: HadesModel = HadesModel()
+        self.background_image: UIWidget = UIWidget(
+            width=self.width,
+            height=self.height,
+        ).with_background(texture=get_default_texture())
         self.views: dict[ViewType, BaseView] = {
             ViewType.START_MENU: StartMenu(),
             ViewType.GAME: Game(),
             ViewType.PLAYER: Player(),
         }
-        self.background_image: UIWidget = UIWidget(
-            width=self.width,
-            height=self.height,
-        ).with_background(texture=get_default_texture())
 
     def setup(self: HadesWindow) -> None:
         """Set up the window and its views."""
         self.center_window()
         for view in self.views.values():
-            view.setup()
+            view.add_callbacks()
         self.model.game_engine.create_game_objects()
         self.model.game_engine.setup_shop(str(SHOP_OFFERINGS))
         self.show_view(self.views[ViewType.START_MENU])
