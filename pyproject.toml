@@ -7,7 +7,7 @@ authors = [
     {name = "JackAshwell11", email = "jack.ashwell1@gmail.com"}
 ]
 dependencies = [
-    "arcade==3.2.0",
+    "arcade==3.3.0",
 ]
 description = "A procedurally generated bullet bullet-hell dungeon crawler made in Python."
 license = {file = "LICENSE"}
