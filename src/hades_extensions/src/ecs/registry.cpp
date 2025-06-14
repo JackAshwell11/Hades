@@ -60,14 +60,26 @@ Registry::Registry() {
 
 auto Registry::create_game_object(const GameObjectType game_object_type, const cpVect &position,
                                   const std::vector<std::shared_ptr<ComponentBase>> &&components) -> GameObjectID {
+  // Get the game object ID to use
+  GameObjectID game_object_id;
+  if (!recycled_ids_.empty()) {
+    // Reuse a recycled ID if available
+    game_object_id = recycled_ids_.front();
+    recycled_ids_.pop();
+  } else {
+    // Use the next game object ID
+    game_object_id = next_game_object_id_;
+    next_game_object_id_++;
+  }
+
   // Add the components to the game object
-  game_objects_[next_game_object_id_] = {};
-  game_object_types_[next_game_object_id_] = game_object_type;
-  game_object_ids_[game_object_type].push_back(next_game_object_id_);
+  game_objects_[game_object_id] = {};
+  game_object_types_[game_object_id] = game_object_type;
+  game_object_ids_[game_object_type].push_back(game_object_id);
   for (const auto &component : components) {
     // Check if the component already exists in the registry
     const auto &obj{*component};
-    if (has_component(next_game_object_id_, typeid(obj))) {
+    if (has_component(game_object_id, typeid(obj))) {
       continue;
     }
 
@@ -80,20 +92,19 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
       cpShapeSetCollisionType(shape, static_cast<cpCollisionType>(game_object_type));
       cpShapeSetFilter(shape, {CP_NO_GROUP, static_cast<cpBitmask>(game_object_type), CP_ALL_CATEGORIES});
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-      cpShapeSetUserData(shape, reinterpret_cast<void *>(static_cast<uintptr_t>(next_game_object_id_)));
+      cpShapeSetUserData(shape, reinterpret_cast<void *>(static_cast<uintptr_t>(game_object_id)));
       cpShapeSetBody(shape, body);
       cpSpaceAddBody(*space_, body);
       cpSpaceAddShape(*space_, shape);
     }
 
     // Add the component to the registry
-    game_objects_[next_game_object_id_][typeid(obj)] = component;
+    game_objects_[game_object_id][typeid(obj)] = component;
   }
 
   // Increment the game object ID and return the current game object ID
-  notify<EventType::GameObjectCreation>(next_game_object_id_);
-  next_game_object_id_++;
-  return next_game_object_id_ - 1;
+  notify<EventType::GameObjectCreation>(game_object_id);
+  return game_object_id;
 }
 
 void Registry::delete_game_object(const GameObjectID game_object_id) {
@@ -113,6 +124,7 @@ void Registry::delete_game_object(const GameObjectID game_object_id) {
   std::erase(game_object_ids_[get_game_object_type(game_object_id)], game_object_id);
   game_objects_.erase(game_object_id);
   game_object_types_.erase(game_object_id);
+  recycled_ids_.push(game_object_id);
 }
 
 auto Registry::get_component(const GameObjectID game_object_id, const std::type_index &component_type) const

@@ -154,6 +154,21 @@ TEST_F(RegistryFixture, TestRegistryMultipleGameObjects) {
             0);
 }
 
+/// Test that reusing a game object ID works correctly.
+TEST_F(RegistryFixture, TestRegistryReuseGameObjectID) {
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {});
+  ASSERT_TRUE(registry.has_game_object(0));
+  ASSERT_TRUE(registry.has_game_object(1));
+  ASSERT_TRUE(registry.has_game_object(2));
+  registry.delete_game_object(1);
+  ASSERT_FALSE(registry.has_game_object(1));
+  const auto new_id{registry.create_game_object(GameObjectType::Player, cpvzero, {})};
+  ASSERT_EQ(new_id, 1);
+  ASSERT_TRUE(registry.has_game_object(1));
+}
+
 /// Test that deleting a game object works correctly.
 TEST_F(RegistryFixture, TestRegistryDeleteGameObject) {
   registry.create_game_object(GameObjectType::Player, cpvzero,

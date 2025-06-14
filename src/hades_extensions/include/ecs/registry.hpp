@@ -6,6 +6,7 @@
 #ifdef __GNUC__
 #include <cxxabi.h>
 #endif
+#include <queue>
 #include <ranges>
 #include <stdexcept>
 #include <typeindex>
@@ -261,6 +262,9 @@ class Registry {
 
   /// The next game object ID to use.
   GameObjectID next_game_object_id_{0};
+
+  /// The recycled game object IDs that can be reused.
+  std::queue<GameObjectID> recycled_ids_;
 
   /// The game objects and their components registered with the registry.
   std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::shared_ptr<ComponentBase>>> game_objects_;
