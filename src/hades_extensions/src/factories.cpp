@@ -9,6 +9,7 @@
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/effects.hpp"
 #include "ecs/systems/inventory.hpp"
+#include "ecs/systems/level.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
@@ -115,6 +116,7 @@ const auto player_factory{[](const int /*level*/) {
       std::make_shared<KinematicComponent>(get_hitboxes().at(GameObjectType::Player)),
       std::make_shared<Money>(),
       std::make_shared<MovementForce>(5000, 5),
+      std::make_shared<PlayerLevel>(),
       std::make_shared<PythonSprite>(),
       std::make_shared<StatusEffects>(),
   };

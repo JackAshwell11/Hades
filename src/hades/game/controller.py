@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 
 # Pip
 from arcade import key
-from pyglet import app
 
 # Custom
 from hades import ViewType
@@ -17,7 +16,6 @@ from hades.constructors import game_object_constructors
 from hades.sprite import make_sprite
 from hades_extensions.ecs import (
     EventType,
-    GameObjectType,
     StatusEffectType,
 )
 from hades_extensions.ecs.components import KinematicComponent, PythonSprite
@@ -153,12 +151,6 @@ class GameController:
         logger.debug("Received game object death event for %d", game_object_id)
         self.view.remove_progress_bars(game_object_id)
         self.on_sprite_removal(game_object_id)
-        if (
-            self.model.registry.get_game_object_type(game_object_id)
-            == GameObjectType.Player
-        ):
-            logger.info("Player has died, exiting game")
-            app.exit()
 
     def on_sprite_removal(self: GameController, game_object_id: int) -> None:
         """Process sprite removal logic.

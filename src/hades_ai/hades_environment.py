@@ -355,7 +355,9 @@ class HadesEnvironment(Env):  # type:ignore[misc]
             self.game_engine = self.game.model.game_engine
         else:
             self.game_engine = GameEngine()
-        self.game_engine.reset_level(self.level, self.seed)
+        if self.seed:
+            self.game_engine.set_seed(self.seed)
+        self.game_engine.setup()
         self.registry = self.game_engine.registry
         self.registry.add_callback(
             EventType.GameObjectCreation,

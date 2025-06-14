@@ -20,33 +20,55 @@ class MapGenerator {
   explicit MapGenerator(int level, const std::mt19937 &random_generator);
 
   /// Generate the rooms in the dungeon.
+  ///
+  /// @return A reference to the MapGenerator object.
   auto generate_rooms() -> MapGenerator &;
 
   /// Create connections between the rooms in the dungeon.
+  ///
+  /// @return A reference to the MapGenerator object.
   auto create_connections() -> MapGenerator &;
 
   /// Generate the hallways in the dungeon.
+  ///
+  /// @return A reference to the MapGenerator object.
   auto generate_hallways() -> MapGenerator &;
 
   /// Perform the cellular automata simulation in the dungeon.
   ///
   /// @param generations - The number of generations to simulate.
+  /// @return A reference to the MapGenerator object.
   auto cellular_automata(int generations = 1) -> MapGenerator &;
 
   /// Generate the walls in the dungeon.
+  ///
+  /// @return A reference to the MapGenerator object.
   auto generate_walls() -> MapGenerator &;
 
   /// Place the obstacles in the dungeon.
+  ///
+  /// @return A reference to the MapGenerator object.
   auto place_obstacles() -> MapGenerator &;
 
   /// Place the player in the dungeon.
+  ///
+  /// @return A reference to the MapGenerator object.
   auto place_player() -> MapGenerator &;
 
   /// Place the items in the dungeon.
+  ///
+  /// @return A reference to the MapGenerator object.
   auto place_items() -> MapGenerator &;
 
   /// Place the goal in the dungeon.
+  ///
+  /// @return A reference to the MapGenerator object.
   auto place_goal() -> MapGenerator &;
+
+  /// Place the lobby in the dungeon.
+  ///
+  /// @return A reference to the MapGenerator object.
+  auto place_lobby() -> MapGenerator &;
 
   /// Get the grid.
   ///

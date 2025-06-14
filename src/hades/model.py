@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 # Builtin
-from functools import cached_property
 from typing import TYPE_CHECKING
 
 # Custom
@@ -28,7 +27,7 @@ class HadesModel:
         """Initialise the object."""
         self.game_engine: GameEngine = GameEngine()
 
-    @cached_property
+    @property
     def registry(self: HadesModel) -> Registry:
         """Get the registry which manages the game objects, components, and systems.
 
@@ -37,7 +36,7 @@ class HadesModel:
         """
         return self.game_engine.registry
 
-    @cached_property
+    @property
     def player_id(self: HadesModel) -> int:
         """Get the ID of the player game object.
 

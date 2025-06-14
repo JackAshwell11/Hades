@@ -117,8 +117,7 @@ class HadesWindow(Window):
         self.center_window()
         for view in self.views.values():
             view.add_callbacks()
-        self.model.game_engine.reset_level(0)
-        self.model.game_engine.setup_shop(str(SHOP_OFFERINGS))
+        self.model.game_engine.setup(str(SHOP_OFFERINGS))
         self.show_view(self.views[ViewType.START_MENU])
 
     def save_background(self: HadesWindow) -> None:

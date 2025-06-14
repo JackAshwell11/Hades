@@ -5,6 +5,7 @@
 #include <execution>
 #include <queue>
 #include <unordered_set>
+#include <utility>
 
 // Local headers
 #include "generation/bsp.hpp"
@@ -34,30 +35,42 @@ struct MapGenerationConstant {
 };
 
 namespace {
-// The width of the floor tiles in the hallway.
+/// The width of the floor tiles in the hallway.
 constexpr int HALLWAY_SIZE{3};
 
-// The minimum distance between tiles of the same type.
+/// The minimum distance between tiles of the same type.
 constexpr int MIN_TILE_DISTANCE{5};
 
-// The number of neighbours a tile must have to remain alive.
+/// The number of neighbours a tile must have to remain alive.
 constexpr int MIN_NEIGHBOUR_DISTANCE{4};
 
-// The width of the grid.
+/// The width of the grid.
 constexpr MapGenerationConstant WIDTH{.base_value = 30, .increase = 1.2, .max_value = 150};
 
-// The height of the grid.
+/// The height of the grid.
 constexpr MapGenerationConstant HEIGHT{.base_value = 20, .increase = 1.2, .max_value = 100};
 
-// The number of obstacles to place in the grid.
+/// The number of obstacles to place in the grid.
 constexpr MapGenerationConstant OBSTACLE_COUNT{.base_value = 20, .increase = 1.3, .max_value = 200};
 
-// The total number of enemies that should exist for a given level.
+/// The total number of enemies that should exist for a given level.
 constexpr MapGenerationConstant ENEMY_LIMIT{.base_value = 5, .increase = 1.2, .max_value = 50};
 
-// The chances of placing an item tile in the grid.
+/// The chances of placing an item tile in the grid.
 constexpr std::array<std::pair<TileType, double>, 2> ITEM_CHANCES{
     {{TileType::HealthPotion, 0.75}, {TileType::Chest, 0.25}}};
+
+/// The width of the dungeon lobby.
+constexpr int LOBBY_WIDTH{15};
+
+/// The height of the dungeon lobby.
+constexpr int LOBBY_HEIGHT{11};
+
+/// The position of the player in the dungeon lobby.
+constexpr Position LOBBY_PLAYER_POSITION{.x = 7, .y = 5};
+
+/// The position of the goal in the dungeon lobby.
+constexpr Position LOBBY_GOAL_POSITION{.x = 7, .y = 9};
 
 /// Count the number of floor neighbours for a given position.
 ///
@@ -115,7 +128,7 @@ void place_tiles(Grid &grid, std::mt19937 &random_generator, const TileType targ
 }
 }  // namespace
 
-MapGenerator::MapGenerator() : level_{0}, grid_{0, 0}, random_generator_{std::random_device{}()} {}
+MapGenerator::MapGenerator() : level_{0}, grid_{LOBBY_WIDTH, LOBBY_HEIGHT}, random_generator_{std::random_device{}()} {}
 
 MapGenerator::MapGenerator(const int level, const std::mt19937 &random_generator)
     : level_(level),
@@ -137,7 +150,7 @@ auto MapGenerator::create_connections() -> MapGenerator & {
   std::unordered_set visited{rooms_.front()};
 
   // Add all the rooms to the unexplored queue
-  for (auto i{1}; i < static_cast<int>(rooms_.size()); i++) {
+  for (auto i{1}; std::cmp_less(i, rooms_.size()); i++) {
     unexplored.emplace(rooms_[0].get_distance_to(rooms_[i]), rooms_[0], rooms_[i]);
   }
 
@@ -229,6 +242,14 @@ auto MapGenerator::place_goal() -> MapGenerator & {
   const auto player_iter{std::ranges::find(grid_.grid.begin(), grid_.grid.end(), TileType::Player)};
   const auto player_index{static_cast<int>(std::distance(grid_.grid.begin(), player_iter))};
   grid_.set_value(get_furthest_position(grid_, grid_.convert_position(player_index)), TileType::Goal);
+  return *this;
+}
+
+auto MapGenerator::place_lobby() -> MapGenerator & {
+  grid_.place_rect({{.x = 0, .y = 0}, {.x = LOBBY_WIDTH - 1, .y = LOBBY_HEIGHT - 1}});
+  *this = generate_walls();
+  grid_.set_value(LOBBY_PLAYER_POSITION, TileType::Player);
+  grid_.set_value(LOBBY_GOAL_POSITION, TileType::Goal);
   return *this;
 }
 

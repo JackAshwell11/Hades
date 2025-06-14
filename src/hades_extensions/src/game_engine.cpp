@@ -9,6 +9,7 @@
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/effects.hpp"
 #include "ecs/systems/inventory.hpp"
+#include "ecs/systems/level.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
@@ -26,6 +27,9 @@ constexpr double ENEMY_GENERATION_DISTANCE{5 * SPRITE_SIZE};
 
 /// The interval in seconds between enemy generations.
 constexpr double ENEMY_GENERATION_INTERVAL{1.0};
+
+/// The number of non-boss levels in the game.
+constexpr int LEVEL_COUNT{2};
 
 /// Get a component type from a string.
 ///
@@ -69,21 +73,64 @@ GameEngine::GameEngine() {
   registry_.add_system<SteeringMovementSystem>();
 }
 
-void GameEngine::reset_level(const int level, const std::optional<unsigned int> seed) {
-  if (level < 0) {
-    throw std::runtime_error("Level must be bigger than or equal to 0.");
-  }
-  level_ = level;
-  random_generator_.seed(seed.has_value() ? seed.value() : std::random_device{}());
-  level_distribution_ = std::normal_distribution<>(level, LEVEL_DISTRIBUTION_DEVIATION);
-  floor_positions_.clear();
-  if (player_id_ != -1) {
-    const auto inventory{registry_.get_component<Inventory>(player_id_)};
-    std::unordered_set preserved_ids{player_id_};
-    preserved_ids.insert(inventory->items.begin(), inventory->items.end());
+auto GameEngine::is_player_touching_goal() const -> bool {
+  return get_nearest_item() != -1 && registry_.get_game_object_type(get_nearest_item()) == GameObjectType::Goal;
+}
+
+void GameEngine::set_seed(const unsigned int seed) { game_state_.dungeon_run.random_generator.seed(seed); }
+
+void GameEngine::reset_level(const LevelType level_type) {
+  // Always preserve the player for the current dungeon run
+  if (get_player_id() != -1) {
+    std::unordered_set<GameObjectID> preserved_ids;
+    if (level_type != LevelType::Lobby) {
+      preserved_ids.insert(get_player_id());
+      const auto inventory{registry_.get_component<Inventory>(get_player_id())};
+      preserved_ids.insert(inventory->items.begin(), inventory->items.end());
+    }
     registry_.clear_game_objects(preserved_ids);
   }
-  create_game_objects();
+
+  // Set up the player and game state
+  auto &dungeon_run{game_state_.dungeon_run};
+  game_state_.current_level = {.floor_positions = {},
+                               .is_lobby = (level_type == LevelType::Lobby),
+                               .is_boss_level = (level_type == LevelType::Boss)};
+  if (level_type == LevelType::Lobby) {
+    create_player();
+    dungeon_run = {.player_id = get_player_id(),
+                   .game_level = registry_.get_component<PlayerLevel>(get_player_id())->level,
+                   .level_distribution = {}};
+    dungeon_run.level_distribution = std::normal_distribution<>(get_game_level(), LEVEL_DISTRIBUTION_DEVIATION);
+  }
+  dungeon_run.dungeon_level++;
+
+  // Create the game objects for the level
+  Grid grid(0, 0);
+  if (level_type == LevelType::Lobby) {
+    grid = MapGenerator{}.place_lobby().get_grid();
+  } else {
+    grid = MapGenerator{get_game_level(), dungeon_run.random_generator}
+               .generate_rooms()
+               .place_obstacles()
+               .create_connections()
+               .generate_hallways()
+               .cellular_automata(CELLULAR_AUTOMATA_SIMULATIONS)
+               .generate_walls()
+               .place_player()
+               .place_items()
+               .place_goal()
+               .get_grid();
+  }
+  create_game_objects(grid, level_type != LevelType::Lobby);
+
+  // Notify the registry of the level reset
+  if (level_type == LevelType::Lobby) {
+    registry_.notify<EventType::InventoryUpdate>(std::vector<GameObjectID>{});
+    registry_.notify<EventType::RangedAttackSwitch>(0);
+    registry_.notify<EventType::AttackCooldownUpdate>(get_player_id(), 0.0, 0.0, 0.0);
+    registry_.notify<EventType::StatusEffectUpdate>(std::unordered_map<StatusEffectType, double>{});
+  }
 }
 
 void GameEngine::setup_shop(std::istream &stream) const {
@@ -109,26 +156,39 @@ void GameEngine::setup_shop(std::istream &stream) const {
       throw std::runtime_error("Unknown offering type: " + type);
     }
     registry_.notify<EventType::ShopItemLoaded>(i, std::make_tuple(name, description, icon_type),
-                                                shop_system->get_offering_cost(i, player_id_));
+                                                shop_system->get_offering_cost(i, get_player_id()));
   }
 }
 
 void GameEngine::on_update(const double delta_time) {
-  nearest_item_ = registry_.get_system<PhysicsSystem>()->get_nearest_item(player_id_);
-  if (nearest_item_ != -1 && registry_.get_game_object_type(nearest_item_) == GameObjectType::Goal) {
-    registry_.delete_game_object(player_id_);
+  auto &current_level{game_state_.current_level};
+  current_level.nearest_item = registry_.get_system<PhysicsSystem>()->get_nearest_item(get_player_id());
+  if (is_player_touching_goal() && !current_level.is_lobby) {
+    if (get_dungeon_level() > LEVEL_COUNT) {
+      // Player has completed the game, return to the lobby
+      reset_level(LevelType::Lobby);
+    } else if (get_dungeon_level() == LEVEL_COUNT) {
+      // Player has completed the last level, create a boss level
+      reset_level(LevelType::Boss);
+    } else {
+      // Player has completed a level, reset the level
+      reset_level(LevelType::Normal);
+    }
+    return;
   }
-  enemy_generation_timer_ += delta_time;
-  if (enemy_generation_timer_ >= ENEMY_GENERATION_INTERVAL) {
+  current_level.enemy_generation_timer += delta_time;
+  if (current_level.enemy_generation_timer >= ENEMY_GENERATION_INTERVAL &&
+      std::cmp_less(registry_.get_game_object_ids(GameObjectType::Enemy).size(),
+                    MapGenerator::get_enemy_limit(get_game_level()))) {
     generate_enemy();
-    enemy_generation_timer_ = 0.0;
+    current_level.enemy_generation_timer = 0.0;
   }
 }
 
 void GameEngine::on_fixed_update(const double delta_time) { registry_.update(delta_time); }
 
 void GameEngine::on_key_press(const int symbol, const int /*modifiers*/) const {
-  const auto player_movement{registry_.get_component<KeyboardMovement>(player_id_)};
+  const auto player_movement{registry_.get_component<KeyboardMovement>(get_player_id())};
   switch (symbol) {
     case KEY_W:
       player_movement->moving_north = true;
@@ -148,7 +208,7 @@ void GameEngine::on_key_press(const int symbol, const int /*modifiers*/) const {
 }
 
 void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
-  const auto player_movement{registry_.get_component<KeyboardMovement>(player_id_)};
+  const auto player_movement{registry_.get_component<KeyboardMovement>(get_player_id())};
   switch (symbol) {
     case KEY_W:
       player_movement->moving_north = false;
@@ -163,16 +223,20 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
       player_movement->moving_east = false;
       break;
     case KEY_C:
-      registry_.get_system<InventorySystem>()->add_item_to_inventory(player_id_, nearest_item_);
+      registry_.get_system<InventorySystem>()->add_item_to_inventory(get_player_id(), get_nearest_item());
       break;
     case KEY_E:
-      use_item(player_id_, nearest_item_);
+      if (game_state_.current_level.is_lobby && is_player_touching_goal()) {
+        reset_level(LevelType::Normal);
+      } else {
+        use_item(get_player_id(), get_nearest_item());
+      }
       break;
     case KEY_Z:
-      registry_.get_system<AttackSystem>()->previous_ranged_attack(player_id_);
+      registry_.get_system<AttackSystem>()->previous_ranged_attack(get_player_id());
       break;
     case KEY_X:
-      registry_.get_system<AttackSystem>()->next_ranged_attack(player_id_);
+      registry_.get_system<AttackSystem>()->next_ranged_attack(get_player_id());
       break;
     default:
       break;
@@ -182,7 +246,7 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
 auto GameEngine::on_mouse_press(const double /*x*/, const double /*y*/, const int button, const int /*modifiers*/) const
     -> bool {
   if (button == MOUSE_BUTTON_LEFT) {
-    return registry_.get_system<AttackSystem>()->do_attack(player_id_, AttackType::Ranged);
+    return registry_.get_system<AttackSystem>()->do_attack(get_player_id(), AttackType::Ranged);
   }
   return false;
 }
@@ -210,18 +274,12 @@ void GameEngine::use_item(const GameObjectID target_id, const GameObjectID item_
   }
 }
 
-void GameEngine::create_game_objects() {
-  MapGenerator generator{level_, random_generator_};
-  generator.generate_rooms()
-      .place_obstacles()
-      .create_connections()
-      .generate_hallways()
-      .cellular_automata(CELLULAR_AUTOMATA_SIMULATIONS)
-      .generate_walls()
-      .place_player()
-      .place_items()
-      .place_goal();
-  const auto &grid{generator.get_grid()};
+void GameEngine::create_player() {
+  game_state_.dungeon_run.player_id =
+      registry_.create_game_object(GameObjectType::Player, cpvzero, get_game_object_components(GameObjectType::Player));
+}
+
+void GameEngine::create_game_objects(const Grid &grid, const bool store_floor_positions) {
   for (auto i{0}; std::cmp_less(i, grid.grid.size()); i++) {
     const auto tile_type{grid.grid[i]};
     if (tile_type == TileType::Empty || tile_type == TileType::Obstacle) {
@@ -235,7 +293,9 @@ void GameEngine::create_game_objects() {
 
     // Store the floor position for enemy generation
     if (tile_type != TileType::Wall) {
-      floor_positions_.emplace_back(position);
+      if (store_floor_positions) {
+        game_state_.current_level.floor_positions.emplace_back(position);
+      }
       if (tile_type != TileType::Floor) {
         registry_.create_game_object(GameObjectType::Floor, position,
                                      get_game_object_components(GameObjectType::Floor));
@@ -243,32 +303,29 @@ void GameEngine::create_game_objects() {
     }
 
     // Handle game object creation
-    if (tile_type == TileType::Player && player_id_ != -1) {
-      cpBodySetPosition(*registry_.get_component<KinematicComponent>(player_id_)->body, grid_pos_to_pixel(position));
+    if (tile_type == TileType::Player) {
+      cpBodySetPosition(*registry_.get_component<KinematicComponent>(get_player_id())->body,
+                        grid_pos_to_pixel(position));
     } else {
-      const auto game_object_id{
-          registry_.create_game_object(game_object_type, position, get_game_object_components(game_object_type))};
-      if (tile_type == TileType::Player) {
-        player_id_ = game_object_id;
-      }
+      registry_.create_game_object(game_object_type, position, get_game_object_components(game_object_type));
     }
   }
 }
 
 void GameEngine::generate_enemy() {
-  if (std::cmp_greater_equal(registry_.get_game_object_ids(GameObjectType::Enemy).size(),
-                             MapGenerator::get_enemy_limit(level_))) {
+  // Get a random floor position and check if it is valid for enemy generation
+  const auto &current_level{game_state_.current_level};
+  if (current_level.floor_positions.empty()) {
     return;
   }
-
-  // Get a random floor position and check if it is valid for enemy generation
-  auto dist{std::uniform_int_distribution<size_t>(0, floor_positions_.size() - 1)};
-  const auto position{floor_positions_[dist(random_generator_)]};
+  auto dist{std::uniform_int_distribution<size_t>(0, current_level.floor_positions.size() - 1)};
+  const auto position{current_level.floor_positions.at(dist(game_state_.dungeon_run.random_generator))};
   const bool intersecting_enemies{
       cpSpacePointQueryNearest(registry_.get_space(), position, 0.0,
                                {CP_NO_GROUP, CP_ALL_CATEGORIES, static_cast<cpBitmask>(GameObjectType::Enemy)},
                                nullptr) != nullptr};
-  if (const auto player_position{cpBodyGetPosition(*registry_.get_component<KinematicComponent>(player_id_)->body)};
+  if (const auto player_position{
+          cpBodyGetPosition(*registry_.get_component<KinematicComponent>(get_player_id())->body)};
       intersecting_enemies || cpvdist(position, player_position) < ENEMY_GENERATION_DISTANCE) {
     return;
   }
@@ -276,10 +333,12 @@ void GameEngine::generate_enemy() {
   // Generate the enemy at the position
   const auto enemy_id{
       registry_.create_game_object(GameObjectType::Enemy, position, get_game_object_components(GameObjectType::Enemy))};
-  registry_.get_component<SteeringMovement>(enemy_id)->target_id = player_id_;
+  registry_.get_component<SteeringMovement>(enemy_id)->target_id = get_player_id();
 }
 
 auto GameEngine::get_game_object_components(const GameObjectType game_object_type)
     -> std::vector<std::shared_ptr<ComponentBase>> {
-  return get_factories().at(game_object_type)(std::max(0, static_cast<int>(level_distribution_(random_generator_))));
+  auto &dungeon_run{game_state_.dungeon_run};
+  return get_factories().at(game_object_type)(
+      std::max(0, static_cast<int>(dungeon_run.level_distribution(dungeon_run.random_generator))));
 }
