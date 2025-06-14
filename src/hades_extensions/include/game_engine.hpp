@@ -32,6 +32,9 @@ constexpr int KEY_X{120};
 /// The left mouse button code.
 constexpr int MOUSE_BUTTON_LEFT{1};
 
+/// Stores the different types of levels in the game.
+enum class LevelType : std::uint8_t { Normal, Boss, Lobby };
+
 /// Manages the interaction between Python and C++.
 class GameEngine {
  public:
@@ -46,19 +49,37 @@ class GameEngine {
   /// Get the player's game object ID.
   ///
   /// @return The player's game object ID.
-  [[nodiscard]] auto get_player_id() const -> GameObjectID { return player_id_; }
+  [[nodiscard]] auto get_player_id() const -> GameObjectID { return game_state_.dungeon_run.player_id; }
 
   /// Get the nearest item to the player.
   ///
   /// @return The nearest item to the player.
-  [[nodiscard]] auto get_nearest_item() const -> GameObjectID { return nearest_item_; }
+  [[nodiscard]] auto get_nearest_item() const -> GameObjectID { return game_state_.current_level.nearest_item; }
+
+  /// Get the level of the current dungeon.
+  ///
+  /// @return The level of the current dungeon.
+  [[nodiscard]] auto get_dungeon_level() const -> int { return game_state_.dungeon_run.dungeon_level; }
+
+  /// Get the level of the game objects.
+  ///
+  /// @return The level of the game objects.
+  [[nodiscard]] auto get_game_level() const -> int { return game_state_.dungeon_run.game_level; }
+
+  /// Checks if the player is touching the goal tile or not.
+  ///
+  /// @return True if the player is touching the goal tile, false otherwise.
+  [[nodiscard]] auto is_player_touching_goal() const -> bool;
+
+  /// Set the seed for the random generator.
+  ///
+  /// @param seed - The seed to set for the random generator.
+  void set_seed(unsigned int seed);
 
   /// Reset the game engine with a new level.
   ///
-  /// @param level - The new level to reset to.
-  /// @param seed - The seed for the random generator.
-  /// @throws std::runtime_error if the level is negative.
-  void reset_level(int level, std::optional<unsigned int> seed = std::nullopt);
+  /// @param level_type - The type of level to reset to.
+  void reset_level(LevelType level_type);
 
   /// Set up the shop offerings.
   ///
@@ -104,10 +125,15 @@ class GameEngine {
   void use_item(GameObjectID target_id, GameObjectID item_id);
 
  private:
+  /// Create the player game object.
+  void create_player();
+
   /// Create the game objects from the generator.
   ///
   /// @details If this is called twice, the game objects will be duplicated.
-  void create_game_objects();
+  /// @param grid - The grid to create the game objects from.
+  /// @param store_floor_positions - Whether to store the positions of the floor tiles or not.
+  void create_game_objects(const Grid &grid, bool store_floor_positions = true);
 
   /// Generate an enemy.
   void generate_enemy();
@@ -122,24 +148,45 @@ class GameEngine {
   /// Manages game objects, components, and systems that are registered.
   Registry registry_;
 
-  /// The random generator for the game.
-  std::mt19937 random_generator_;
+  struct GameState {
+    /// Stores state which should persist across the entire game.
+    struct {
+    } game;
 
-  /// The normal distribution to determine the level of the game objects.
-  std::normal_distribution<> level_distribution_;
+    /// Store state which should persist across the entire level.
+    struct {
+      /// The player's game object ID.
+      GameObjectID player_id{-1};
 
-  /// The positions of the floor tiles in the game.
-  std::vector<cpVect> floor_positions_;
+      /// The random generator for the current level.
+      std::mt19937 random_generator{std::random_device{}()};
 
-  /// The current level of the game.
-  int level_{-1};
+      /// The level of the game objects.
+      int game_level{-1};
 
-  /// The player's game object ID.
-  GameObjectID player_id_{-1};
+      /// The normal distribution to determine the level of the game objects.
+      std::normal_distribution<> level_distribution;
 
-  /// The nearest item to the player.
-  GameObjectID nearest_item_{-1};
+      /// The current dungeon level.
+      int dungeon_level{-1};
+    } dungeon_run;
 
-  /// The timer for enemy generation.
-  double enemy_generation_timer_{0.0};
+    /// Stores state about the current dungeon.
+    struct {
+      /// The positions of the floor tiles in the game.
+      std::vector<cpVect> floor_positions;
+
+      /// Whether the player is in the lobby or not.
+      bool is_lobby{false};
+
+      /// Whether the current level is a boss level or not.
+      bool is_boss_level{false};
+
+      /// The nearest item to the player.
+      GameObjectID nearest_item{-1};
+
+      /// The timer for enemy generation.
+      double enemy_generation_timer{0.0};
+    } current_level;
+  } game_state_;
 };

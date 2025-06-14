@@ -479,12 +479,6 @@ class PlayerView:
         layout.add(back_button)
         self.ui.add(UIAnchorLayout(children=(layout,)))
 
-    def reset(self: PlayerView) -> None:
-        """Reset the view to its initial state."""
-        self.stats_layout.reset()
-        self.player_attributes_layout.inventory_layout.items = []
-        self.player_attributes_layout.shop_layout.items = []
-
     def draw(self: PlayerView) -> None:
         """Draw the player elements."""
         self.window.clear()

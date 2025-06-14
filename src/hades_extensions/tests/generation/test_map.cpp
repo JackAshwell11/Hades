@@ -464,6 +464,29 @@ TEST_F(MapFixture, TestMapGeneratorPlaceGoalPlayer) {
   assert_min_distance(grid, TileType::Goal);
 }
 
+/// Test that generating a lobby on an empty grid throws an exception.
+TEST_F(MapFixture, TestMapGeneratorPlaceLobbyEmptyGrid) {
+  ASSERT_THROW_MESSAGE(empty_map.place_lobby(), std::out_of_range, "Position not within the grid.");
+}
+
+/// Test that generating a lobby on a grid smaller than the minimum size throws an exception.
+TEST_F(MapFixture, TestMapGeneratorPlaceLobbySmallGrid) {
+  ASSERT_THROW_MESSAGE(small_map.place_lobby(), std::out_of_range, "Position not within the grid.");
+}
+
+/// Test that generating a lobby on a grid with pre-existing tiles overrides them.
+TEST_F(MapFixture, TestMapGeneratorPlaceLobbyPreExistingTiles) {
+  MapGenerator map{};
+  map.place_obstacles();
+  ASSERT_GT(std::ranges::count(map.get_grid().grid.begin(), map.get_grid().grid.end(), TileType::Obstacle), 0);
+  map.place_lobby();
+  ASSERT_EQ(map.get_grid().width, 15);
+  ASSERT_EQ(map.get_grid().height, 11);
+  ASSERT_EQ(map.get_grid().get_value({.x = 7, .y = 5}), TileType::Player);
+  ASSERT_EQ(map.get_grid().get_value({.x = 7, .y = 9}), TileType::Goal);
+  ASSERT_EQ(std::ranges::count(map.get_grid().grid.begin(), map.get_grid().grid.end(), TileType::Obstacle), 0);
+}
+
 /// Test that getting the enemy limit works correctly for a positive level.
 TEST_F(MapFixture, TestMapGeneratorGetEnemyLimitPositiveLevel) { ASSERT_EQ(MapGenerator::get_enemy_limit(-5), 2); }
 

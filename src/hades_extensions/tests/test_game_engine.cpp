@@ -20,7 +20,9 @@ class GameEngineFixture : public testing::Test {  // NOLINT
   void SetUp() override {
     load_hitbox(GameObjectType::Player, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
     load_hitbox(GameObjectType::Enemy, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
-    game_engine.reset_level(0, 10);
+    game_engine.set_seed(10);
+    game_engine.reset_level(LevelType::Lobby);
+    game_engine.reset_level(LevelType::Normal);
   }
 
   /// Get an item from the game engine's registry.
@@ -34,34 +36,88 @@ class GameEngineFixture : public testing::Test {  // NOLINT
   /// Move the player to the position of an item.
   ///
   /// @param item_id - The ID of the item to move the player to.
-  void move_player_to_item(const GameObjectID item_id) {
+  /// @param update - Whether to update the game engine after moving the player.
+  void move_player_to_item(const GameObjectID item_id, const bool update = true) {
     const auto item_pos{
         cpBodyGetPosition(*game_engine.get_registry().get_component<KinematicComponent>(item_id)->body)};
     cpBodySetPosition(*game_engine.get_registry().get_component<KinematicComponent>(game_engine.get_player_id())->body,
                       item_pos);
+    if (update) {
+      game_engine.on_update(0);
+    }
   }
 };
 
-/// Test that resetting the level with a zero level works correctly.
-TEST_F(GameEngineFixture, TestGameEngineResetLevelZeroLevel) { ASSERT_NE(game_engine.get_player_id(), -1); }
-
-/// Test that resetting the level with a positive level works correctly.
-TEST_F(GameEngineFixture, TestGameEngineResetLevelPositiveLevel) {
-  const auto player_id{game_engine.get_player_id()};
-  game_engine.reset_level(1, 10);
-  ASSERT_EQ(game_engine.get_player_id(), player_id);
+/// Test that the player is not touching the goal when there is no nearest item.
+TEST_F(GameEngineFixture, TestGameEngineIsPlayerTouchingGoalNoNearest) {
+  ASSERT_FALSE(game_engine.is_player_touching_goal());
 }
 
-/// Test that resetting the level to a negative value throws an exception.
-TEST_F(GameEngineFixture, TestGameEngineResetLevelNegativeLevel) {
-  ASSERT_THROW_MESSAGE(game_engine.reset_level(-1), std::runtime_error, "Level must be bigger than or equal to 0.");
+/// Test that the player is not touching the goal when the nearest item is not a goal.
+TEST_F(GameEngineFixture, TestGameEngineIsPlayerTouchingGoalNearestNotGoal) {
+  const auto item_id{get_item(GameObjectType::HealthPotion)};
+  move_player_to_item(item_id);
+  ASSERT_FALSE(game_engine.is_player_touching_goal());
 }
 
-/// Test that resetting the level with no seed works correctly.
-TEST_F(GameEngineFixture, TestGameEngineResetLevelNoSeed) {
-  GameEngine game_engine_no_seed{};
-  game_engine_no_seed.reset_level(0);
-  ASSERT_NE(game_engine.get_player_id(), game_engine_no_seed.get_player_id());
+/// Test that the player is touching the goal when the nearest item is a goal.
+TEST_F(GameEngineFixture, TestGameEngineIsPlayerTouchingGoalNearestIsGoal) {
+  game_engine.reset_level(LevelType::Lobby);
+  move_player_to_item(get_item(GameObjectType::Goal));
+  ASSERT_TRUE(game_engine.is_player_touching_goal());
+}
+
+/// Test that resetting to a lobby clears all game objects and creates the lobby game objects.
+TEST_F(GameEngineFixture, TestGameEngineResetLevelLobby) {
+  game_engine.reset_level(LevelType::Lobby);
+  ASSERT_EQ(game_engine.get_dungeon_level(), 0);
+  ASSERT_EQ(game_engine.get_nearest_item(), -1);
+  ASSERT_TRUE(game_engine.get_registry().get_game_object_ids(GameObjectType::Enemy).empty());
+  ASSERT_TRUE(game_engine.get_registry().get_game_object_ids(GameObjectType::HealthPotion).empty());
+}
+
+/// Test that resetting to a normal level clears all game objects except the player and their inventory.
+TEST_F(GameEngineFixture, TestGameEngineResetLevelNormal) {
+  const auto item_id{get_item(GameObjectType::HealthPotion)};
+  game_engine.get_registry().get_system<InventorySystem>()->add_item_to_inventory(game_engine.get_player_id(), item_id);
+  game_engine.reset_level(LevelType::Normal);
+  ASSERT_EQ(game_engine.get_dungeon_level(), 2);
+  ASSERT_EQ(game_engine.get_nearest_item(), -1);
+  ASSERT_TRUE(game_engine.get_registry().get_game_object_ids(GameObjectType::Enemy).empty());
+  const auto health_potion_ids{game_engine.get_registry().get_game_object_ids(GameObjectType::HealthPotion)};
+  ASSERT_TRUE(std::ranges::find(health_potion_ids.begin(), health_potion_ids.end(), item_id) !=
+              health_potion_ids.end());
+}
+
+/// Test that resetting the level to a lobby calls the correct callbacks.
+TEST_F(GameEngineFixture, TestGameEngineResetLevelLobbyCallbacks) {
+  auto inventory_update{false};
+  auto ranged_attack_switch{false};
+  auto attack_cooldown_update{false};
+  auto status_effect_update{false};
+  game_engine.get_registry().add_callback<EventType::InventoryUpdate>(
+      [&inventory_update](const std::vector<GameObjectID> &) { inventory_update = true; });
+  game_engine.get_registry().add_callback<EventType::RangedAttackSwitch>(
+      [&ranged_attack_switch](const int) { ranged_attack_switch = true; });
+  game_engine.get_registry().add_callback<EventType::AttackCooldownUpdate>(
+      [&attack_cooldown_update](const GameObjectID, const double, const double, const double) {
+        attack_cooldown_update = true;
+      });
+  game_engine.get_registry().add_callback<EventType::StatusEffectUpdate>(
+      [&status_effect_update](const std::unordered_map<StatusEffectType, double> &) { status_effect_update = true; });
+  game_engine.reset_level(LevelType::Lobby);
+  ASSERT_TRUE(inventory_update);
+  ASSERT_TRUE(ranged_attack_switch);
+  ASSERT_TRUE(attack_cooldown_update);
+  ASSERT_TRUE(status_effect_update);
+}
+
+/// Test that resetting the level to a normal level when it hasn't been reset to the lobby throws an exception.
+TEST_F(GameEngineFixture, TestGameEngineResetLevelNormalWithoutLobby) {
+  GameEngine game_engine_no_lobby{};
+  ASSERT_THROW_MESSAGE(
+      game_engine_no_lobby.reset_level(LevelType::Normal), RegistryError,
+      "The component `KinematicComponent` for the game object ID `-1` is not registered with the registry.");
 }
 
 /// Test that setting up the shop with a stat offering works correctly.
@@ -219,6 +275,22 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopInvalidJSON) {
                        "object key - unexpected '}'; expected string literal");
 }
 
+/// Test that the game engine throws an exception if no game objects are registered.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateNoGameObjects) {
+  GameEngine engine;
+  ASSERT_THROW_MESSAGE(
+      engine.on_update(1), RegistryError,
+      "The component `KinematicComponent` for the game object ID `-1` is not registered with the registry.");
+}
+
+/// Test that the game engine processes an update correctly when there is no player.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateNoPlayer) {
+  game_engine.get_registry().delete_game_object(game_engine.get_player_id());
+  ASSERT_THROW_MESSAGE(
+      game_engine.on_update(0), RegistryError,
+      "The component `KinematicComponent` for the game object ID `0` is not registered with the registry.");
+}
+
 /// Test that the game engine processes an update correctly when there is no nearest item.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNoNearestItem) {
   game_engine.on_update(0);
@@ -229,19 +301,59 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNoNearestItem) {
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
   const auto item_id{get_item(GameObjectType::HealthPotion)};
   move_player_to_item(item_id);
-  game_engine.on_update(0);
   ASSERT_EQ(game_engine.get_nearest_item(), item_id);
 }
 
-/// Test that the game engine processes an update correctly when the nearest item is a goal.
-TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoal) {
+/// Test that the game engine processes an update correctly when the nearest item is a goal and the player is in the
+/// lobby.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalInLobby) {
+  game_engine.reset_level(LevelType::Lobby);
+  auto called{-1};
+  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+      [&](const GameObjectID event) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
-  game_engine.on_update(0);
-  ASSERT_FALSE(game_engine.get_registry().has_game_object(game_engine.get_player_id()));
+  ASSERT_EQ(called, -1);
+  ASSERT_EQ(game_engine.get_dungeon_level(), 0);
+}
+
+/// Test that the game engine processes an update correctly when the nearest item is a goal and the player hasn't
+/// completed any levels.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalFirstLevel) {
+  auto called{-1};
+  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+      [&](const GameObjectID event) { called = event; });
+  move_player_to_item(get_item(GameObjectType::Goal));
+  ASSERT_NE(called, -1);
+  ASSERT_EQ(game_engine.get_dungeon_level(), 2);
+}
+
+/// Test that the game engine processes an update correctly when the nearest item is a goal and the player has completed
+/// all normal levels.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedNormalLevels) {
+  game_engine.reset_level(LevelType::Normal);
+  auto called{-1};
+  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+      [&](const GameObjectID event) { called = event; });
+  move_player_to_item(get_item(GameObjectType::Goal));
+  ASSERT_NE(called, -1);
+  ASSERT_EQ(game_engine.get_dungeon_level(), 3);
+}
+
+/// Test that the game engine processes an update correctly when the nearest item is a goal and the player has completed
+/// the last level.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedLastLevel) {
+  game_engine.reset_level(LevelType::Normal);
+  game_engine.reset_level(LevelType::Boss);
+  auto called{-1};
+  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+      [&](const GameObjectID event) { called = event; });
+  move_player_to_item(get_item(GameObjectType::Goal));
+  ASSERT_NE(called, -1);
+  ASSERT_EQ(game_engine.get_dungeon_level(), 0);
 }
 
 /// Test that the game engine generates an enemy correctly.
-TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemy) {
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyValid) {
   auto enemy_created{-1};
   auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(enemy_creation);
@@ -249,18 +361,13 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemy) {
   ASSERT_NE(enemy_created, -1);
 }
 
-/// Test that the game engine throws an exception if the game objects haven't been created yet.
-TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyNoGameObjects) {
-  GameEngine engine;
-  ASSERT_THROW_MESSAGE(
-      engine.on_update(1), RegistryError,
-      "The component `KinematicComponent` for the game object ID `-1` is not registered with the registry.");
-}
-
-/// Test that the game engine throws an exception if the player is dead.
-TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyPlayerDead) {
-  game_engine.get_registry().delete_game_object(game_engine.get_player_id());
-  ASSERT_THROW(game_engine.on_update(1), RegistryError);
+/// Test that the game engine can't generate an enemy if the timer is not reached.
+TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyTimerNotReached) {
+  auto enemy_created{-1};
+  auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
+  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(enemy_creation);
+  game_engine.on_update(0.5);
+  ASSERT_EQ(enemy_created, -1);
 }
 
 /// Test that the game engine doesn't generate an enemy correctly if the enemy limit has been reached.
@@ -331,7 +438,6 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseA) {
 
 /// Test that the game engine processes an 'S' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseS) {
-  game_engine.reset_level(0, 10);
   game_engine.on_key_press(KEY_S, 0);
   game_engine.on_key_release(KEY_S, 0);
   const auto player_movement{game_engine.get_registry().get_component<KeyboardMovement>(game_engine.get_player_id())};
@@ -350,17 +456,51 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseD) {
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseC) {
   const auto item_id{get_item(GameObjectType::HealthPotion)};
   move_player_to_item(item_id);
-  game_engine.on_update(0);
   game_engine.on_key_release(KEY_C, 0);
   const auto inventory{game_engine.get_registry().get_component<Inventory>(game_engine.get_player_id())};
   ASSERT_EQ(inventory->items.front(), item_id);
 }
 
-/// Test that the game engine processes an 'E' key release correctly.
-TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseE) {
+/// Test that the game engine processes a 'E' key release correctly when the player is in the lobby and is touching the
+/// goal.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseEInLobbyTouchingGoal) {
+  game_engine.reset_level(LevelType::Lobby);
+  int called{-1};
+  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+      [&called](const GameObjectID event) { called = event; });
+  move_player_to_item(get_item(GameObjectType::Goal));
+  game_engine.on_key_release(KEY_E, 0);
+  ASSERT_NE(called, -1);
+  ASSERT_FALSE(game_engine.get_registry().get_game_object_ids(GameObjectType::HealthPotion).empty());
+}
+
+/// Test that the game engine processes a 'E' key release correctly when the player is not in the lobby and is touching
+/// the goal.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseENotInLobbyTouchingGoal) {
+  int called{-1};
+  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+      [&called](const GameObjectID event) { called = event; });
+  move_player_to_item(get_item(GameObjectType::Goal), false);
+  game_engine.on_key_release(KEY_E, 0);
+  ASSERT_EQ(called, -1);
+}
+
+/// Test that the game engine processes a 'E' key release correctly when the player is in the lobby not touching the
+/// goal.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseEInLobbyNotTouchingGoal) {
+  game_engine.reset_level(LevelType::Lobby);
+  int called{-1};
+  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+      [&called](const GameObjectID event) { called = event; });
+  game_engine.on_key_release(KEY_E, 0);
+  ASSERT_EQ(called, -1);
+}
+
+/// Test that the game engine processes an 'E' key release correctly when the player is touching a health potion and not
+/// in the lobby.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseETouchingHealthPotionNotInLobby) {
   game_engine.on_update(1);
   move_player_to_item(get_item(GameObjectType::HealthPotion));
-  game_engine.on_update(0);
   const auto health{game_engine.get_registry().get_component<Health>(game_engine.get_player_id())};
   health->set_value(50);
   game_engine.on_key_release(KEY_E, 0);

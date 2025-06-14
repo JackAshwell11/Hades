@@ -167,14 +167,6 @@ class GameView:
         )
         self.ui.add(right_anchor)
 
-    def reset(self: GameView) -> None:
-        """Reset the view to its initial state."""
-        self.remove_progress_bars(clear=True)
-        self.update_money_display(0)
-        self.update_ranged_attack_icon(0)
-        self.update_attack_cooldown_display(0, 0, 0)
-        self.update_status_effects({})
-
     def draw(self: GameView) -> None:
         """Draw the game elements."""
         self.window.clear()
@@ -228,20 +220,14 @@ class GameView:
             else:
                 self.ui.add(progress_bar)
 
-    def remove_progress_bars(
-        self: GameView,
-        game_object_id: int = -1,
-        *,
-        clear: bool = False,
-    ) -> None:
+    def remove_progress_bars(self: GameView, game_object_id: int = -1) -> None:
         """Remove progress bars for a game object.
 
         Args:
             game_object_id: ID of the game object to remove progress bars for.
-            clear: Whether to clear all the progress bars or not.
         """
         for progress_bar in self.progress_bars[:]:
-            if clear or progress_bar.target_sprite.game_object_id == game_object_id:
+            if progress_bar.target_sprite.game_object_id == game_object_id:
                 self.ui.remove(progress_bar)
                 if progress_bar in self.left_layout.children:
                     self.left_layout.remove(progress_bar)

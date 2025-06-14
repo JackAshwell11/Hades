@@ -19,24 +19,20 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def(pybind11::init<>(), "Initialise the object.")
       .def_property_readonly("registry", &GameEngine::get_registry)
       .def_property_readonly("player_id", &GameEngine::get_player_id)
-      .def("reset_level", &GameEngine::reset_level, pybind11::arg("level"), pybind11::arg("seed") = pybind11::none(),
-           "Reset the game engine with a new level.\n\n"
+      .def("set_seed", &GameEngine::set_seed, pybind11::arg("seed"),
+           "Set the seed for the random generator.\n\n"
            "Args:\n"
-           "    level: The new level to reset to.\n"
-           "    seed: The seed for the random generator.\n\n"
-           "Raises:\n"
-           "    RuntimeError: If the level is negative.")
+           "    seed: The seed to set for the random generator.")
       .def(
-          "setup_shop",
-          [](const GameEngine &engine, const std::string &file) {
-            std::ifstream stream{file};
-            if (!stream.is_open()) {
-              throw std::runtime_error("Could not open file: " + file);
+          "setup",
+          [](GameEngine &engine, const std::string &file) {
+            engine.reset_level(LevelType::Lobby);
+            if (std::ifstream stream{file}; stream.is_open()) {
+              engine.setup_shop(stream);
             }
-            engine.setup_shop(stream);
           },
-          pybind11::arg("file"),
-          "Set up the shop offerings.\n\n"
+          pybind11::arg("file") = "",
+          "Set up the game engine.\n\n"
           "Args:\n"
           "    file: The file to load the shop offerings from.\n\n"
           "Raises:\n"
