@@ -68,7 +68,7 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
   // Explore the grid using the A* algorithm with the Chebyshev distance heuristic and then check if we've reached the
   // end
   const auto obstacle_check{
-      [&grid](const Position &neighbour) { return grid.get_value(neighbour) == TileType::Obstacle; }};
+      [&grid](const Position &neighbour) { return grid.get_value(neighbour) == GameObjectType::Obstacle; }};
   const auto chebyshev_heuristic{
       [&end](const Position &neighbour, const int cost) { return cost + neighbour.get_distance_to(end); }};
   const auto result{pathfind(grid, start, end, obstacle_check, chebyshev_heuristic)};
@@ -91,7 +91,8 @@ auto get_furthest_position(const Grid &grid, const Position &start) -> Position 
   int max_distance{-1};
 
   // Explore the grid using the Dijkstra algorithm to find the furthest position from the start
-  const auto floor_check{[&grid](const Position &neighbour) { return grid.get_value(neighbour) != TileType::Floor; }};
+  const auto floor_check{
+      [&grid](const Position &neighbour) { return grid.get_value(neighbour) != GameObjectType::Floor; }};
   const auto dijkstra_heuristic{[&max_distance, &furthest_position](const Position &neighbour, const int cost) {
     if (cost > max_distance) {
       max_distance = cost;

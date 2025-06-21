@@ -30,9 +30,9 @@ class DijkstraFixture : public testing::Test {
       for (int x = 0; x < grid.width; x++) {
         const Position position{.x = x, .y = y};
         if (all) {
-          grid.set_value(position, TileType::Obstacle);
+          grid.set_value(position, GameObjectType::Obstacle);
         } else {
-          grid.set_value(position, !obstacles.contains(position) ? TileType::Floor : TileType::Obstacle);
+          grid.set_value(position, !obstacles.contains(position) ? GameObjectType::Floor : GameObjectType::Obstacle);
         }
       }
     }
@@ -46,9 +46,10 @@ class DijkstraFixture : public testing::Test {
     for (int y = 0; y < grid.height; y++) {
       for (int x = 0; x < grid.width; x++) {
         if (all) {
-          grid.set_value({.x = x, .y = y}, TileType::Wall);
+          grid.set_value({.x = x, .y = y}, GameObjectType::Wall);
         } else {
-          grid.set_value({.x = x, .y = y}, !walls.contains({.x = x, .y = y}) ? TileType::Floor : TileType::Wall);
+          grid.set_value({.x = x, .y = y},
+                         !walls.contains({.x = x, .y = y}) ? GameObjectType::Floor : GameObjectType::Wall);
         }
       }
     }

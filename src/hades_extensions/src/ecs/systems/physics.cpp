@@ -2,10 +2,12 @@
 #include "ecs/systems/physics.hpp"
 
 // Local headers
+#include "ecs/registry.hpp"
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/movements.hpp"
-#include "ecs/systems/sprite.hpp"
 #include "factories.hpp"
+
+void PhysicsSystem::update(const double delta_time) const { cpSpaceStep(get_registry()->get_space(), delta_time); }
 
 void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect &force) const {
   cpBodyApplyForceAtLocalPoint(

@@ -38,7 +38,7 @@ class MapGenerator {
   ///
   /// @param generations - The number of generations to simulate.
   /// @return A reference to the MapGenerator object.
-  auto cellular_automata(int generations = 1) -> MapGenerator &;
+  auto cellular_automata(int generations) -> MapGenerator &;
 
   /// Generate the walls in the dungeon.
   ///

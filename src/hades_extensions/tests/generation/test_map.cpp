@@ -39,12 +39,12 @@ namespace {
 ///
 /// @param grid - The grid to check for adjacent walls.
 /// @param tile_type - The tile type to check for adjacent walls.
-void assert_no_adjacent_walls(const Grid &grid, const TileType tile_type) {
+void assert_no_adjacent_walls(const Grid &grid, const GameObjectType tile_type) {
   for (int i{0}; i < grid.width * grid.height; i++) {
     if (const Position pos{grid.convert_position(i)}; grid.get_value(pos) == tile_type) {
       const auto neighbours{grid.get_neighbours(pos)};
       ASSERT_EQ(std::ranges::count_if(neighbours.begin(), neighbours.end(),
-                                      [&grid](const auto &pos) { return grid.get_value(pos) == TileType::Wall; }),
+                                      [&grid](const auto &pos) { return grid.get_value(pos) == GameObjectType::Wall; }),
                 0);
     }
   }
@@ -54,7 +54,7 @@ void assert_no_adjacent_walls(const Grid &grid, const TileType tile_type) {
 ///
 /// @param grid - The grid to check for minimum distances.
 /// @param tile_type - The tile type to check for minimum distances.
-void assert_min_distance(const Grid &grid, const TileType tile_type) {
+void assert_min_distance(const Grid &grid, const GameObjectType tile_type) {
   // Collect all positions of the specified tile type
   std::vector<Position> positions;
   for (int i{0}; i < grid.width * grid.height; i++) {
@@ -136,22 +136,26 @@ TEST_F(MapFixture, TestMapGenerateHallwaysSingleConnection) {
       Connection{.cost = 0, .source = rect_one.centre, .destination = rect_two.centre});
   small_map.generate_hallways();
   const std::vector single_connection_result{
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty,
-      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty,
-      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Empty,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty,
   };
   ASSERT_EQ(small_map.get_grid().grid, single_connection_result);
 }
@@ -159,7 +163,7 @@ TEST_F(MapFixture, TestMapGenerateHallwaysSingleConnection) {
 /// Test that generating hallways with no connections doesn't do anything.
 TEST_F(MapFixture, TestMapGenerateHallwaysNoConnections) {
   small_map.generate_hallways();
-  const std::vector no_connections_result{96, TileType::Empty};
+  const std::vector no_connections_result{96, GameObjectType::Empty};
   ASSERT_EQ(small_map.get_grid().grid, no_connections_result);
 }
 
@@ -168,92 +172,100 @@ TEST_F(MapFixture, TestMapGenerateHallwaysEmptyMap) {
   empty_map.get_connections().emplace_back(
       Connection{.cost = 0, .source = rect_one.centre, .destination = rect_two.centre});
   empty_map.generate_hallways();
-  const std::vector empty_map_result{0, TileType::Empty};
+  const std::vector empty_map_result{0, GameObjectType::Empty};
   ASSERT_EQ(empty_map.get_grid().grid, empty_map_result);
 }
 
 /// Test that running cellular automata on a grid with mixed floor and wall tiles works correctly.
 TEST_F(MapFixture, TestMapGeneratorCellularAutomataMixedFloors) {
   auto &grid{small_map.get_grid()};
-  grid.set_value({.x = 1, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 1, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 1, .y = 3}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 3}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 3}, TileType::Floor);
-  small_map.cellular_automata();
+  grid.set_value({.x = 1, .y = 1}, GameObjectType::Floor);
+  grid.set_value({.x = 2, .y = 1}, GameObjectType::Floor);
+  grid.set_value({.x = 3, .y = 1}, GameObjectType::Floor);
+  grid.set_value({.x = 1, .y = 2}, GameObjectType::Floor);
+  grid.set_value({.x = 3, .y = 2}, GameObjectType::Floor);
+  grid.set_value({.x = 1, .y = 3}, GameObjectType::Floor);
+  grid.set_value({.x = 2, .y = 3}, GameObjectType::Floor);
+  grid.set_value({.x = 3, .y = 3}, GameObjectType::Floor);
+  small_map.cellular_automata(1);
   const std::vector mixed_floor_result{
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty};
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Floor,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Floor, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty};
   ASSERT_EQ(grid.grid, mixed_floor_result);
 }
 
 /// Test that running multiple cellular automata simulations works correctly.
 TEST_F(MapFixture, TestMapGeneratorCellularAutomataMultipleSimulations) {
   auto &grid{small_map.get_grid()};
-  grid.set_value({.x = 1, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 1, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 1, .y = 3}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 3}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 3}, TileType::Floor);
+  grid.set_value({.x = 1, .y = 1}, GameObjectType::Floor);
+  grid.set_value({.x = 2, .y = 1}, GameObjectType::Floor);
+  grid.set_value({.x = 3, .y = 1}, GameObjectType::Floor);
+  grid.set_value({.x = 1, .y = 2}, GameObjectType::Floor);
+  grid.set_value({.x = 3, .y = 2}, GameObjectType::Floor);
+  grid.set_value({.x = 1, .y = 3}, GameObjectType::Floor);
+  grid.set_value({.x = 2, .y = 3}, GameObjectType::Floor);
+  grid.set_value({.x = 3, .y = 3}, GameObjectType::Floor);
   small_map.cellular_automata(2);
   const std::vector multiple_simulation_result{
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty,
   };
   ASSERT_EQ(grid.grid, multiple_simulation_result);
 }
 
 /// Test that running cellular automata on an empty grid doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorCellularAutomataEmptyGrid) {
-  empty_map.cellular_automata();
-  ASSERT_EQ(empty_map.get_grid().grid, std::vector<TileType>{});
+  empty_map.cellular_automata(1);
+  ASSERT_EQ(empty_map.get_grid().grid, std::vector<GameObjectType>{});
 }
 
 /// Test that placing walls in an empty grid doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorGenerateWallsEmptyGrid) {
   empty_map.generate_walls();
-  ASSERT_EQ(empty_map.get_grid().grid, std::vector<TileType>{});
+  ASSERT_EQ(empty_map.get_grid().grid, std::vector<GameObjectType>{});
 }
 
 /// Test that placing walls in a grid with all empty tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllEmpty) {
   auto &grid{empty_map.get_grid()};
   empty_map.generate_walls();
-  ASSERT_EQ(grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Empty));
+  ASSERT_EQ(grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), GameObjectType::Empty));
 }
 
 /// Test that placing walls in a grid with all wall tiles sets all tiles to walls.
@@ -261,11 +273,11 @@ TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllWalls) {
   auto &grid{small_map.get_grid()};
   for (int y = 0; y < grid.height; y++) {
     for (int x = 0; x < grid.width; x++) {
-      grid.set_value({.x = x, .y = y}, TileType::Wall);
+      grid.set_value({.x = x, .y = y}, GameObjectType::Wall);
     }
   }
   small_map.generate_walls();
-  ASSERT_EQ(grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Wall));
+  ASSERT_EQ(grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), GameObjectType::Wall));
 }
 
 /// Test that placing walls in a grid with all floor tiles sets the edges to walls.
@@ -273,27 +285,31 @@ TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllFloors) {
   auto &grid{small_map.get_grid()};
   for (int y = 0; y < grid.height; y++) {
     for (int x = 0; x < grid.width; x++) {
-      grid.set_value({.x = x, .y = y}, TileType::Floor);
+      grid.set_value({.x = x, .y = y}, GameObjectType::Floor);
     }
   }
   small_map.generate_walls();
   const std::vector all_floor_result{
-      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
-      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
-      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,
-      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
-      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,
+      GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,
+      GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,
+      GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Wall,  GameObjectType::Wall,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Wall,
+      GameObjectType::Wall,  GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Wall,  GameObjectType::Wall,
+      GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,
+      GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,
+      GameObjectType::Wall,
   };
   ASSERT_EQ(grid.grid, all_floor_result);
 }
@@ -301,31 +317,35 @@ TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllFloors) {
 /// Test that placing walls in a grid with a non-uniform floor pattern works correctly.
 TEST_F(MapFixture, TestMapGeneratorGenerateWallsMixedFloors) {
   auto &grid{small_map.get_grid()};
-  grid.set_value({.x = 1, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 1}, TileType::Floor);
-  grid.set_value({.x = 1, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 3, .y = 2}, TileType::Floor);
-  grid.set_value({.x = 2, .y = 3}, TileType::Floor);
+  grid.set_value({.x = 1, .y = 1}, GameObjectType::Floor);
+  grid.set_value({.x = 2, .y = 1}, GameObjectType::Floor);
+  grid.set_value({.x = 3, .y = 1}, GameObjectType::Floor);
+  grid.set_value({.x = 1, .y = 2}, GameObjectType::Floor);
+  grid.set_value({.x = 2, .y = 2}, GameObjectType::Floor);
+  grid.set_value({.x = 3, .y = 2}, GameObjectType::Floor);
+  grid.set_value({.x = 2, .y = 3}, GameObjectType::Floor);
   small_map.generate_walls();
   const std::vector mixed_floor_result{
-      TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,  TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Wall,  TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall,  TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Wall,  TileType::Wall,  TileType::Floor, TileType::Wall,  TileType::Wall,  TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Wall,  TileType::Wall,  TileType::Wall,  TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Wall,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Wall,  GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Wall,  GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Wall,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Wall,  GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Floor, GameObjectType::Wall,
+      GameObjectType::Wall,  GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Wall,
+      GameObjectType::Wall,  GameObjectType::Wall,  GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty,
   };
   ASSERT_EQ(grid.grid, mixed_floor_result);
 }
@@ -333,106 +353,108 @@ TEST_F(MapFixture, TestMapGeneratorGenerateWallsMixedFloors) {
 /// Test that placing obstacles in an empty grid doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesEmptyGrid) {
   empty_map.place_obstacles();
-  ASSERT_EQ(empty_map.get_grid().grid, std::vector<TileType>{});
+  ASSERT_EQ(empty_map.get_grid().grid, std::vector<GameObjectType>{});
 }
 
 /// Test that placing obstacles in a grid with all empty tiles works correctly.
 TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllEmpty) {
   small_map.place_obstacles();
-  ASSERT_EQ(std::ranges::count(small_map.get_grid().grid.begin(), small_map.get_grid().grid.end(), TileType::Obstacle),
-            2);
-  assert_min_distance(small_map.get_grid(), TileType::Obstacle);
+  ASSERT_EQ(
+      std::ranges::count(small_map.get_grid().grid.begin(), small_map.get_grid().grid.end(), GameObjectType::Obstacle),
+      2);
+  assert_min_distance(small_map.get_grid(), GameObjectType::Obstacle);
 }
 
 /// Test that placing obstacles in a grid with all floor tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllFloors) {
   auto &grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
-    grid.set_value(grid.convert_position(i), TileType::Floor);
+    grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }
   small_map.place_obstacles();
-  ASSERT_EQ(grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Floor));
+  ASSERT_EQ(grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), GameObjectType::Floor));
 }
 
 /// Test that placing obstacles in a grid with all wall tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllWalls) {
   auto &grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
-    grid.set_value(grid.convert_position(i), TileType::Wall);
+    grid.set_value(grid.convert_position(i), GameObjectType::Wall);
   }
   small_map.place_obstacles();
-  ASSERT_EQ(grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), TileType::Wall));
+  ASSERT_EQ(grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), GameObjectType::Wall));
 }
 
 /// Test that placing a player in an empty grid doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlacePlayerEmptyGrid) {
   empty_map.place_player();
-  ASSERT_EQ(empty_map.get_grid().grid, std::vector<TileType>{});
+  ASSERT_EQ(empty_map.get_grid().grid, std::vector<GameObjectType>{});
 }
 
 /// Test that placing a player in a grid with all empty tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllEmpty) {
   small_map.place_player();
-  ASSERT_EQ(std::ranges::count(small_map.get_grid().grid.begin(), small_map.get_grid().grid.end(), TileType::Player),
-            0);
+  ASSERT_EQ(
+      std::ranges::count(small_map.get_grid().grid.begin(), small_map.get_grid().grid.end(), GameObjectType::Player),
+      0);
 }
 
 /// Test that placing a player in a grid with all floor tiles works correctly.
 TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllFloors) {
   auto &grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
-    grid.set_value(grid.convert_position(i), TileType::Floor);
+    grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }
   small_map.place_player();
-  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), TileType::Player), 1);
-  assert_no_adjacent_walls(grid, TileType::Player);
-  assert_min_distance(grid, TileType::Player);
+  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), GameObjectType::Player), 1);
+  assert_no_adjacent_walls(grid, GameObjectType::Player);
+  assert_min_distance(grid, GameObjectType::Player);
 }
 
 /// Test that placing a player in a grid with all wall tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllWalls) {
   auto &grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
-    grid.set_value(grid.convert_position(i), TileType::Wall);
+    grid.set_value(grid.convert_position(i), GameObjectType::Wall);
   }
   small_map.place_player();
-  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), TileType::Player), 0);
+  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), GameObjectType::Player), 0);
 }
 
 /// Test that placing items in an empty grid doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlaceItemsEmptyGrid) {
   empty_map.place_items();
-  ASSERT_EQ(empty_map.get_grid().grid, std::vector<TileType>{});
+  ASSERT_EQ(empty_map.get_grid().grid, std::vector<GameObjectType>{});
 }
 
 /// Test that placing items in a grid with all empty tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllEmpty) {
   small_map.place_items();
-  ASSERT_EQ(
-      std::ranges::count(small_map.get_grid().grid.begin(), small_map.get_grid().grid.end(), TileType::HealthPotion),
-      0);
+  ASSERT_EQ(std::ranges::count(small_map.get_grid().grid.begin(), small_map.get_grid().grid.end(),
+                               GameObjectType::HealthPotion),
+            0);
 }
 
 /// Test that placing items in a grid with all floor tiles works correctly.
 TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllFloors) {
   auto &grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
-    grid.set_value(grid.convert_position(i), TileType::Floor);
+    grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }
   small_map.place_items();
-  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), TileType::HealthPotion), 2);
-  assert_no_adjacent_walls(grid, TileType::HealthPotion);
-  assert_min_distance(grid, TileType::HealthPotion);
+  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), GameObjectType::HealthPotion), 2);
+  assert_no_adjacent_walls(grid, GameObjectType::HealthPotion);
+  assert_min_distance(grid, GameObjectType::HealthPotion);
 }
 
 /// Test that placing items in a grid with all wall tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllWalls) {
   auto &grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
-    grid.set_value(grid.convert_position(i), TileType::Wall);
+    grid.set_value(grid.convert_position(i), GameObjectType::Wall);
   }
   small_map.place_items();
-  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), TileType::HealthPotion), 0);
+  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), GameObjectType::HealthPotion), 0);
 }
 
 /// Test that generating a goal on an empty grid throws an exception.
@@ -447,7 +469,7 @@ TEST_F(MapFixture, TestMapGeneratorPlaceGoalAllEmpty){
 TEST_F(MapFixture, TestMapGeneratorPlaceGoalNoPlayer) {
   auto &grid{small_map.get_grid()};
   for (auto i{0}; i < grid.width * grid.height; i++) {
-    grid.set_value(grid.convert_position(i), TileType::Floor);
+    grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }
   ASSERT_THROW_MESSAGE(small_map.place_goal(), std::out_of_range, "Position not within the grid.")
 }
@@ -456,12 +478,12 @@ TEST_F(MapFixture, TestMapGeneratorPlaceGoalNoPlayer) {
 TEST_F(MapFixture, TestMapGeneratorPlaceGoalPlayer) {
   auto &grid{small_map.get_grid()};
   for (auto i{0}; i < grid.width * grid.height; i++) {
-    grid.set_value(grid.convert_position(i), TileType::Floor);
+    grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }
-  grid.set_value({.x = 0, .y = 0}, TileType::Player);
+  grid.set_value({.x = 0, .y = 0}, GameObjectType::Player);
   small_map.place_goal();
-  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), TileType::Goal), 1);
-  assert_min_distance(grid, TileType::Goal);
+  ASSERT_EQ(std::ranges::count(grid.grid.begin(), grid.grid.end(), GameObjectType::Goal), 1);
+  assert_min_distance(grid, GameObjectType::Goal);
 }
 
 /// Test that generating a lobby on an empty grid throws an exception.
@@ -478,13 +500,13 @@ TEST_F(MapFixture, TestMapGeneratorPlaceLobbySmallGrid) {
 TEST_F(MapFixture, TestMapGeneratorPlaceLobbyPreExistingTiles) {
   MapGenerator map{};
   map.place_obstacles();
-  ASSERT_GT(std::ranges::count(map.get_grid().grid.begin(), map.get_grid().grid.end(), TileType::Obstacle), 0);
+  ASSERT_GT(std::ranges::count(map.get_grid().grid.begin(), map.get_grid().grid.end(), GameObjectType::Obstacle), 0);
   map.place_lobby();
   ASSERT_EQ(map.get_grid().width, 15);
   ASSERT_EQ(map.get_grid().height, 11);
-  ASSERT_EQ(map.get_grid().get_value({.x = 7, .y = 5}), TileType::Player);
-  ASSERT_EQ(map.get_grid().get_value({.x = 7, .y = 9}), TileType::Goal);
-  ASSERT_EQ(std::ranges::count(map.get_grid().grid.begin(), map.get_grid().grid.end(), TileType::Obstacle), 0);
+  ASSERT_EQ(map.get_grid().get_value({.x = 7, .y = 5}), GameObjectType::Player);
+  ASSERT_EQ(map.get_grid().get_value({.x = 7, .y = 9}), GameObjectType::Goal);
+  ASSERT_EQ(std::ranges::count(map.get_grid().grid.begin(), map.get_grid().grid.end(), GameObjectType::Obstacle), 0);
 }
 
 /// Test that getting the enemy limit works correctly for a positive level.

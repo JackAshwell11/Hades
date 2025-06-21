@@ -3,18 +3,16 @@
 
 // Std headers
 #include <any>
-#ifdef __GNUC__
-#include <cxxabi.h>
-#endif
+#include <functional>
 #include <queue>
 #include <ranges>
-#include <stdexcept>
 #include <typeindex>
 #include <unordered_set>
 
 // Local headers
-#include "ecs/steering.hpp"
-#include "ecs/types.hpp"
+#include "ecs/bases.hpp"
+#include "ecs/chipmunk.hpp"
+#include "ecs/events.hpp"
 
 /// Calculate the screen position based on a grid position.
 ///
@@ -27,25 +25,6 @@ inline auto grid_pos_to_pixel(const cpVect &position) -> cpVect {
   }
   return position * SPRITE_SIZE + SPRITE_SIZE / 2;
 }
-
-#ifdef __GNUC__
-/// Demangle the type name.
-///
-/// @param type - The type to demangle.
-/// @return The demangled type name.
-static auto demangle(const std::type_index &type) -> std::string {
-  int status;
-  const std::unique_ptr<char, void (*)(void *)> res{abi::__cxa_demangle(type.name(), nullptr, nullptr, &status),
-                                                    std::free};
-  return (status == 0) ? res.get() : type.name();
-}
-#else
-/// Demangle the type name.
-///
-/// @param type - The type to demangle.
-/// @return The demangled type name.
-static auto demangle(const std::type_index &type) -> std::string { return std::string(type.name()).substr(7); }
-#endif
 
 /// Raised when an error occurs with the registry.
 class RegistryError final : public std::runtime_error {
@@ -73,13 +52,13 @@ class RegistryError final : public std::runtime_error {
   ///
   /// @param value - The value to convert to a string.
   /// @return The value as a string.
-  static auto to_string(const std::type_index &value) -> std::string { return demangle(value); }
+  static auto to_string(const std::type_index &value) -> std::string;
 
   /// Convert a value to a string.
   ///
   /// @param value - The value to convert to a string.
   /// @return The value as a string.
-  static auto to_string(const GameObjectID value) -> std::string { return std::to_string(value); }
+  static auto to_string(GameObjectID value) -> std::string;
 };
 
 /// Manages game objects, components, and systems that are registered.
@@ -112,19 +91,14 @@ class Registry {
   ///
   /// @param game_object_id - The game object ID.
   /// @return Whether the game object is registered or not.
-  [[nodiscard]] auto has_game_object(const GameObjectID game_object_id) const -> bool {
-    return game_objects_.contains(game_object_id);
-  }
+  [[nodiscard]] auto has_game_object(GameObjectID game_object_id) const -> bool;
 
   /// Checks if a game object has a given component or not.
   ///
   /// @param game_object_id - The game object ID.
   /// @param component_type - The type of component to check for.
   /// @return Whether the game object has the component or not.
-  [[nodiscard]] auto has_component(const GameObjectID game_object_id, const std::type_index &component_type) const
-      -> bool {
-    return has_game_object(game_object_id) && game_objects_.at(game_object_id).contains(component_type);
-  }
+  [[nodiscard]] auto has_component(GameObjectID game_object_id, const std::type_index &component_type) const -> bool;
 
   /// Get a component from the registry.
   ///

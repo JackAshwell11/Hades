@@ -1,10 +1,16 @@
 // Ensure this file is only included once
 #pragma once
 
-// Local headers
-#include "ecs/registry.hpp"
+// Std headers
+#include <stdexcept>
+#include <vector>
 
-// The maximum distance to raycast for walls.
+// Local headers
+#include "ecs/bases.hpp"
+#include "ecs/chipmunk.hpp"
+#include "game_object.hpp"
+
+/// The maximum distance to raycast for walls.
 constexpr double MAX_WALL_DISTANCE{30 * SPRITE_SIZE};
 
 /// Allows a game object to interact with the physics system.
@@ -52,7 +58,7 @@ struct PhysicsSystem final : SystemBase {
   /// Process update logic for the physics system.
   ///
   /// @param delta_time - The time interval since the last time the function was called.
-  void update(const double delta_time) const override { cpSpaceStep(get_registry()->get_space(), delta_time); }
+  void update(double delta_time) const override;
 
   /// Add a force to a game object.
   ///

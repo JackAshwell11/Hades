@@ -6,6 +6,7 @@
 
 // Local headers
 #include "ecs/registry.hpp"
+#include "ecs/stats.hpp"
 
 namespace {
 /// Calculate an exponential value based on the base, level, and multiplier values.

@@ -44,21 +44,6 @@ auto get_component_type_from_string(const std::string &type) -> std::type_index 
   }
   throw std::runtime_error("Unknown component type: " + type);
 }
-
-/// Get a mapping from tile types to game object types.
-///
-/// @return A constant reference to the mapping.
-auto get_tile_to_game_object_type() -> const std::unordered_map<TileType, GameObjectType> & {
-  static const std::unordered_map<TileType, GameObjectType> mapping{
-      {TileType::Floor, GameObjectType::Floor},
-      {TileType::Wall, GameObjectType::Wall},
-      {TileType::Goal, GameObjectType::Goal},
-      {TileType::Player, GameObjectType::Player},
-      {TileType::HealthPotion, GameObjectType::HealthPotion},
-      {TileType::Chest, GameObjectType::Chest},
-      {TileType::Shop, GameObjectType::Shop}};
-  return mapping;
-}
 }  // namespace
 
 GameEngine::GameEngine() {
@@ -286,29 +271,28 @@ void GameEngine::create_player() {
 
 void GameEngine::create_game_objects(const Grid &grid, const bool store_floor_positions) {
   for (auto i{0}; std::cmp_less(i, grid.grid.size()); i++) {
-    const auto tile_type{grid.grid[i]};
-    if (tile_type == TileType::Empty || tile_type == TileType::Obstacle) {
+    const auto game_object_type{grid.grid[i]};
+    if (game_object_type == GameObjectType::Empty || game_object_type == GameObjectType::Obstacle) {
       continue;
     }
 
-    // Get the game object's type and position
-    const auto game_object_type{get_tile_to_game_object_type().at(tile_type)};
+    // Get the game object's position
     const auto [x, y]{grid.convert_position(i)};
     const auto position{cpv(x, y)};
 
     // Store the floor position for enemy generation
-    if (tile_type != TileType::Wall) {
+    if (game_object_type != GameObjectType::Wall) {
       if (store_floor_positions) {
         game_state_.current_level.floor_positions.emplace_back(position);
       }
-      if (tile_type != TileType::Floor) {
+      if (game_object_type != GameObjectType::Floor) {
         registry_.create_game_object(GameObjectType::Floor, position,
                                      get_game_object_components(GameObjectType::Floor));
       }
     }
 
     // Handle game object creation
-    if (tile_type == TileType::Player) {
+    if (game_object_type == GameObjectType::Player) {
       cpBodySetPosition(*registry_.get_component<KinematicComponent>(get_player_id())->body,
                         grid_pos_to_pixel(position));
     } else {

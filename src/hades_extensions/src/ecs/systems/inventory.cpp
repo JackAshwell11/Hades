@@ -1,14 +1,12 @@
 // Related header
 #include "ecs/systems/inventory.hpp"
 
-// Std headers
-#include <array>
-
 // Local headers
+#include "ecs/registry.hpp"
 #include "ecs/systems/physics.hpp"
 
 namespace {
-// The game objects that can be added to the inventory.
+/// The game objects that can be added to the inventory.
 constexpr std::array COLLECTIBLE_TYPES{GameObjectType::HealthPotion};
 }  // namespace
 

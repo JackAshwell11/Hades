@@ -2,10 +2,13 @@
 #pragma once
 
 // Std headers
+#include <memory>
 #include <optional>
+#include <vector>
 
 // Local headers
 #include "ecs/stats.hpp"
+#include "game_object.hpp"
 
 /// Stores the different types of attacks available in the game.
 enum class AttackType : std::uint8_t { Ranged, Melee, Special };
@@ -168,10 +171,10 @@ struct AreaOfEffectAttack final : BaseAttack {
 /// Allows a game object to act as a projectile that deals damage on impact.
 struct Bullet final : ComponentBase {
   /// The damage dealt by this bullet.
-  double damage{0};
+  double damage;
 
   /// The type of the game object that created this bullet.
-  GameObjectType source_type{GameObjectType::Player};
+  GameObjectType source_type;
 };
 
 /// Allows a game object to attack other game objects.

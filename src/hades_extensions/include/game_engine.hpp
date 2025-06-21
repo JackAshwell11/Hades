@@ -133,7 +133,7 @@ class GameEngine {
   ///
   /// @details If this is called twice, the game objects will be duplicated.
   /// @param grid - The grid to create the game objects from.
-  /// @param store_floor_positions - Whether to store the positions of the floor tiles or not.
+  /// @param store_floor_positions - Whether to store the positions of the floor game objects or not.
   void create_game_objects(const Grid &grid, bool store_floor_positions = true);
 
   /// Generate an enemy.
@@ -174,7 +174,7 @@ class GameEngine {
 
     /// Stores state about the current dungeon.
     struct {
-      /// The positions of the floor tiles in the game.
+      /// The positions of the floor game objects in the game.
       std::vector<cpVect> floor_positions;
 
       /// Whether the player is in the lobby or not.

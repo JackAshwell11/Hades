@@ -1,6 +1,7 @@
 // Local headers
 #include "common.hpp"
 #include "ecs/systems/attacks.hpp"
+#include "ecs/systems/effects.hpp"
 
 void bind_ecs(const pybind11::module_ &module) {
   // Add the global constants, functions, and base classes

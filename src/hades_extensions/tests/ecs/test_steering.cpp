@@ -3,7 +3,7 @@
 
 // Local headers
 #include "ecs/steering.hpp"
-#include "ecs/types.hpp"
+#include "game_object.hpp"
 #include "macros.hpp"
 
 /// Implements the fixture for the obstacle_avoidance() tests.

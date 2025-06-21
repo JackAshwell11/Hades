@@ -1,5 +1,6 @@
 // Local headers
 #include "ecs/registry.hpp"
+#include "ecs/stats.hpp"
 #include "ecs/systems/effects.hpp"
 #include "macros.hpp"
 

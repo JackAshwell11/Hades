@@ -6,28 +6,28 @@
 #include <stdexcept>
 
 // Local headers
-#include "ecs/types.hpp"
+#include "game_object.hpp"
 
-// The value of PI in radians.
+/// The value of PI in radians.
 #define PI_RADIANS (std::numbers::pi / 180)
 
 namespace {
-// The maximum distance the game object can see ahead.
+/// The maximum distance the game object can see ahead.
 constexpr double MAX_SEE_AHEAD{2 * SPRITE_SIZE};
 
-// The angle in which the game object can avoid obstacles.
+/// The angle in which the game object can avoid obstacles.
 constexpr double OBSTACLE_AVOIDANCE_ANGLE{60 * PI_RADIANS};
 
-// The radius of the path position.
+/// The radius of the path position.
 constexpr double PATH_POSITION_RADIUS{1 * SPRITE_SIZE};
 
-// The distance of when the game object should start slowing down.
+/// The distance of when the game object should start slowing down.
 constexpr double SLOWING_RADIUS{3 * SPRITE_SIZE};
 
-// The distance of the wander circle from the game object.
+/// The distance of the wander circle from the game object.
 constexpr int WANDER_CIRCLE_DISTANCE{50};
 
-// The radius of the wander circle.
+/// The radius of the wander circle.
 constexpr int WANDER_CIRCLE_RADIUS{25};
 }  // namespace
 

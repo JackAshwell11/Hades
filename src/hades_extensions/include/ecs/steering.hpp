@@ -4,27 +4,8 @@
 // Std headers
 #include <vector>
 
-// External headers
-#include <chipmunk/chipmunk.h>
-
-// The scale factor for the sprite.
-constexpr double SPRITE_SCALE{0.5};
-
-// The pixel size of the sprite.
-constexpr double SPRITE_SIZE{128 * SPRITE_SCALE};
-
-/// The != operator.
-inline auto operator!=(const cpVect &lhs, const cpVect &rhs) -> bool { return lhs.x != rhs.x || lhs.y != rhs.y; }
-
-/// The + operator.
-inline auto operator+(const cpVect &lhs, const float val) -> cpVect { return {lhs.x + val, lhs.y + val}; }
-
-/// The += operator.
-inline auto operator+=(cpVect &lhs, const cpVect &rhs) -> cpVect {
-  lhs.x += rhs.x;
-  lhs.y += rhs.y;
-  return lhs;
-}
+// Local headers
+#include "chipmunk.hpp"
 
 /// Allow a game object to move towards another game object and stand still.
 ///

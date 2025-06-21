@@ -3,12 +3,13 @@
 
 // Std headers
 #include <deque>
-
-// External headers
-#include <chipmunk/chipmunk.h>
+#include <unordered_map>
+#include <vector>
 
 // Local headers
+#include "ecs/chipmunk.hpp"
 #include "ecs/stats.hpp"
+#include "game_object.hpp"
 
 /// Stores the different types of steering behaviours available.
 enum class SteeringBehaviours : std::uint8_t {

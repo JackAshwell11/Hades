@@ -5,7 +5,7 @@
 #include "ecs/registry.hpp"
 
 namespace {
-// The amount of armour to regenerate each time.
+/// The amount of armour to regenerate each time.
 constexpr int ARMOUR_REGEN_AMOUNT{1};
 }  // namespace
 

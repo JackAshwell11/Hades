@@ -5,7 +5,7 @@
 #include <memory>
 #include <random>
 
-// Avoid having to include headers for these
+// Forward declarations
 struct Position;
 struct Rect;
 struct Grid;

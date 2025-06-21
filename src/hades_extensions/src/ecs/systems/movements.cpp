@@ -6,6 +6,8 @@
 #include <random>
 
 // Local headers
+#include "ecs/registry.hpp"
+#include "ecs/steering.hpp"
 #include "ecs/systems/physics.hpp"
 
 namespace {

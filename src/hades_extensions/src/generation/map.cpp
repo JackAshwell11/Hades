@@ -2,10 +2,10 @@
 #include "generation/map.hpp"
 
 // Std headers
+#include <array>
 #include <execution>
 #include <queue>
 #include <unordered_set>
-#include <utility>
 
 // Local headers
 #include "generation/bsp.hpp"
@@ -57,8 +57,8 @@ constexpr MapGenerationConstant OBSTACLE_COUNT{.base_value = 20, .increase = 1.3
 constexpr MapGenerationConstant ENEMY_LIMIT{.base_value = 5, .increase = 1.2, .max_value = 50};
 
 /// The chances of placing an item tile in the grid.
-constexpr std::array<std::pair<TileType, double>, 2> ITEM_CHANCES{
-    {{TileType::HealthPotion, 0.75}, {TileType::Chest, 0.25}}};
+constexpr std::array<std::pair<GameObjectType, double>, 2> ITEM_CHANCES{
+    {{GameObjectType::HealthPotion, 0.75}, {GameObjectType::Chest, 0.25}}};
 
 /// The width of the dungeon lobby.
 constexpr int LOBBY_WIDTH{15};
@@ -82,7 +82,7 @@ constexpr Position LOBBY_SHOP_POSITION{.x = 7, .y = 1};
 /// @return The number of floor neighbours.
 const auto count_floor_neighbours{[](const Grid &grid, const Position &position) {
   return std::ranges::count_if(grid.get_neighbours(position), [&grid](const Position &neighbour) {
-    return grid.get_value(neighbour) == TileType::Floor;
+    return grid.get_value(neighbour) == GameObjectType::Floor;
   });
 }};
 
@@ -93,11 +93,11 @@ const auto count_floor_neighbours{[](const Grid &grid, const Position &position)
 /// @param target_tile - The tile to place in the 2D grid.
 /// @param probability - The probability of placing the tile.
 /// @param count - The number of tiles to place.
-void place_tiles(Grid &grid, std::mt19937 &random_generator, const TileType target_tile, const double probability,
+void place_tiles(Grid &grid, std::mt19937 &random_generator, const GameObjectType target_tile, const double probability,
                  const int count = std::numeric_limits<int>::max()) {
   const auto is_next_to_wall{[&grid](const Position &position) {
     return std::ranges::any_of(grid.get_neighbours(position), [&grid](const Position &neighbour) {
-      return grid.get_value(neighbour) == TileType::Wall;
+      return grid.get_value(neighbour) == GameObjectType::Wall;
     });
   }};
 
@@ -105,11 +105,11 @@ void place_tiles(Grid &grid, std::mt19937 &random_generator, const TileType targ
   std::vector<Position> valid_positions;
   for (auto i{0}; i < grid.width * grid.height; i++) {
     const Position position{grid.convert_position(i)};
-    if (target_tile != TileType::Obstacle) {
-      if (grid.get_value(position) == TileType::Floor && !is_next_to_wall(position)) {
+    if (target_tile != GameObjectType::Obstacle) {
+      if (grid.get_value(position) == GameObjectType::Floor && !is_next_to_wall(position)) {
         valid_positions.push_back(position);
       }
-    } else if (grid.get_value(position) == TileType::Empty) {
+    } else if (grid.get_value(position) == GameObjectType::Empty) {
       valid_positions.push_back(position);
     }
   }
@@ -202,7 +202,7 @@ auto MapGenerator::cellular_automata(const int generations) -> MapGenerator & {
     auto temp_grid{std::vector(grid_.grid)};
     for (auto i{0}; i < grid_.width * grid_.height; i++) {
       const auto floor_neighbours{count_floor_neighbours(grid_, grid_.convert_position(i))};
-      temp_grid.at(i) = floor_neighbours >= MIN_NEIGHBOUR_DISTANCE ? TileType::Floor : TileType::Empty;
+      temp_grid.at(i) = floor_neighbours >= MIN_NEIGHBOUR_DISTANCE ? GameObjectType::Floor : GameObjectType::Empty;
     }
     grid_.grid = std::move(temp_grid);
   }
@@ -212,25 +212,25 @@ auto MapGenerator::cellular_automata(const int generations) -> MapGenerator & {
 auto MapGenerator::generate_walls() -> MapGenerator & {
   auto is_edge_or_non_floor{[this](const Position &position) {
     return position.x == 0 || position.y == 0 || position.x == grid_.width - 1 || position.y == grid_.height - 1 ||
-           grid_.get_value(position) != TileType::Floor;
+           grid_.get_value(position) != GameObjectType::Floor;
   }};
 
   for (auto i{0}; i < grid_.width * grid_.height; i++) {
     if (const Position position{grid_.convert_position(i)};
         is_edge_or_non_floor(position) && count_floor_neighbours(grid_, position) > 0) {
-      grid_.set_value(position, TileType::Wall);
+      grid_.set_value(position, GameObjectType::Wall);
     }
   }
   return *this;
 }
 
 auto MapGenerator::place_obstacles() -> MapGenerator & {
-  place_tiles(grid_, random_generator_, TileType::Obstacle, 1.0, OBSTACLE_COUNT.generate_value(level_));
+  place_tiles(grid_, random_generator_, GameObjectType::Obstacle, 1.0, OBSTACLE_COUNT.generate_value(level_));
   return *this;
 }
 
 auto MapGenerator::place_player() -> MapGenerator & {
-  place_tiles(grid_, random_generator_, TileType::Player, 1.0, 1);
+  place_tiles(grid_, random_generator_, GameObjectType::Player, 1.0, 1);
   return *this;
 }
 
@@ -242,18 +242,18 @@ auto MapGenerator::place_items() -> MapGenerator & {
 }
 
 auto MapGenerator::place_goal() -> MapGenerator & {
-  const auto player_iter{std::ranges::find(grid_.grid.begin(), grid_.grid.end(), TileType::Player)};
+  const auto player_iter{std::ranges::find(grid_.grid.begin(), grid_.grid.end(), GameObjectType::Player)};
   const auto player_index{static_cast<int>(std::distance(grid_.grid.begin(), player_iter))};
-  grid_.set_value(get_furthest_position(grid_, grid_.convert_position(player_index)), TileType::Goal);
+  grid_.set_value(get_furthest_position(grid_, grid_.convert_position(player_index)), GameObjectType::Goal);
   return *this;
 }
 
 auto MapGenerator::place_lobby() -> MapGenerator & {
   grid_.place_rect({{.x = 0, .y = 0}, {.x = LOBBY_WIDTH - 1, .y = LOBBY_HEIGHT - 1}});
   *this = generate_walls();
-  grid_.set_value(LOBBY_PLAYER_POSITION, TileType::Player);
-  grid_.set_value(LOBBY_GOAL_POSITION, TileType::Goal);
-  grid_.set_value(LOBBY_SHOP_POSITION, TileType::Shop);
+  grid_.set_value(LOBBY_PLAYER_POSITION, GameObjectType::Player);
+  grid_.set_value(LOBBY_GOAL_POSITION, GameObjectType::Goal);
+  grid_.set_value(LOBBY_SHOP_POSITION, GameObjectType::Shop);
   return *this;
 }
 

@@ -1,13 +1,19 @@
 // Related header
 #include "ecs/registry.hpp"
 
+// Std headers
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif
+#include <string>
+
 // Custom headers
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/physics.hpp"
 
 namespace {
-// The percentage of velocity a game object will retain after a second.
-constexpr double DAMPING = 0.0001;
+/// The percentage of velocity a game object will retain after a second.
+constexpr double DAMPING{0.0001};
 
 /// Convert a Chipmunk2D shape to a game object ID.
 ///
@@ -38,9 +44,32 @@ auto player_wall_collision_handler(cpArbiter *arbiter, cpSpace * /*space*/, void
       cpvdist(player_position, wall_position) < (SPRITE_SIZE / 2)) {
     registry->mark_for_deletion(player_id);
   }
-  return cpTrue;
+  return true;
 }
 }  // namespace
+
+#ifdef __GNUC__
+/// Demangle the type name.
+///
+/// @param type - The type to demangle.
+/// @return The demangled type name.
+auto demangle(const std::type_index &type) -> std::string {
+  int status;
+  const std::unique_ptr<char, void (*)(void *)> res{abi::__cxa_demangle(type.name(), nullptr, nullptr, &status),
+                                                    std::free};
+  return (status == 0) ? res.get() : type.name();
+}
+#else
+/// Demangle the type name.
+///
+/// @param type - The type to demangle.
+/// @return The demangled type name.
+auto demangle(const std::type_index &type) -> std::string { return std::string(type.name()).substr(7); }
+#endif
+
+auto RegistryError::to_string(const std::type_index &value) -> std::string { return demangle(value); }
+
+auto RegistryError::to_string(const GameObjectID value) -> std::string { return std::to_string(value); }
 
 Registry::Registry() {
   // Set the damping to ensure the game objects don't drift
@@ -85,9 +114,9 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
 
     // Check if the component is a kinematic component. If so, add the body and shape to the space
     if (typeid(obj) == typeid(KinematicComponent)) {
-      const auto kinematic_component = std::static_pointer_cast<KinematicComponent>(component);
-      auto *const body = *kinematic_component->body;
-      auto *const shape = *kinematic_component->shape;
+      const auto kinematic_component{std::static_pointer_cast<KinematicComponent>(component)};
+      auto *const body{*kinematic_component->body};
+      auto *const shape{*kinematic_component->shape};
       cpBodySetPosition(body, game_object_type == GameObjectType::Bullet ? position : grid_pos_to_pixel(position));
       cpShapeSetCollisionType(shape, static_cast<cpCollisionType>(game_object_type));
       cpShapeSetFilter(shape, {CP_NO_GROUP, static_cast<cpBitmask>(game_object_type), CP_ALL_CATEGORIES});
@@ -138,6 +167,20 @@ void Registry::clear_game_objects(const std::unordered_set<GameObjectID> &game_o
   for (const auto game_object_id : ids_to_delete) {
     delete_game_object(game_object_id);
   }
+}
+
+auto Registry::has_game_object(const GameObjectID game_object_id) const -> bool {
+  return game_objects_.contains(game_object_id);
+}
+
+auto Registry::has_component(const GameObjectID game_object_id, const std::type_index &component_type) const -> bool {
+  // Check if the game object is registered or not
+  if (!has_game_object(game_object_id)) {
+    return false;
+  }
+
+  // Check if the game object has the component or not
+  return game_objects_.at(game_object_id).contains(component_type);
 }
 
 auto Registry::get_component(const GameObjectID game_object_id, const std::type_index &component_type) const
@@ -199,7 +242,7 @@ void Registry::createBulletCollisionHandler(GameObjectType game_object_type) {
     // Check if we should handle this collision or not
     const auto bullet{registry->get_component<Bullet>(game_object_two)};
     if (bullet->source_type == registry->get_game_object_type(game_object_one)) {
-      return cpTrue;
+      return true;
     }
 
     // Deal damage to the first shape if it is an entity
@@ -211,6 +254,6 @@ void Registry::createBulletCollisionHandler(GameObjectType game_object_type) {
     registry->mark_for_deletion(game_object_two);
 
     // Set the collision to be handled
-    return cpFalse;
+    return false;
   };
 }

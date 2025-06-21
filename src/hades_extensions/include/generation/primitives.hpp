@@ -2,32 +2,16 @@
 #pragma once
 
 // Std headers
-#include <array>
 #include <cmath>
-#include <cstdint>
-#include <stdexcept>
 #include <vector>
 
-/// Stores the different types of tiles in the game map.
-enum struct TileType : std::uint8_t {
-  Empty,
-  Floor,
-  Wall,
-  Obstacle,
-  Goal,
-  Player,
-  HealthPotion,
-  Chest,
-  Shop,
-};
+// Local headers
+#include "game_object.hpp"
 
 /// Represents a 2D position.
 struct Position {
   /// The equality operator.
   auto operator==(const Position &position) const -> bool { return x == position.x && y == position.y; }
-
-  /// The inequality operator.
-  auto operator!=(const Position &position) const -> bool { return x != position.x || y != position.y; }
 
   /// The addition operator.
   auto operator+(const Position &position) const -> Position { return {.x = x + position.x, .y = y + position.y}; }
@@ -47,20 +31,18 @@ struct Position {
   ///
   /// @param other - The other position to find the distance to.
   /// @return The Chebyshev distance between this position and the other position.
-  [[nodiscard]] auto get_distance_to(const Position &other) const -> int {
-    return std::max(abs(x - other.x), abs(y - other.y));
-  }
+  [[nodiscard]] auto get_distance_to(const Position &other) const -> int;
 };
 
 /// Represents a rectangle in 2D space.
 struct Rect {
+  /// The == operator.
   auto operator==(const Rect &rect) const -> bool {
     return top_left == rect.top_left && bottom_right == rect.bottom_right;
   }
 
-  auto operator!=(const Rect &rect) const -> bool {
-    return top_left != rect.top_left || bottom_right != rect.bottom_right;
-  }
+  /// The != operator.
+  auto operator!=(const Rect &rect) const -> bool { return !(*this == rect); }
 
   /// The top left position of the rect.
   Position top_left;
@@ -81,15 +63,7 @@ struct Rect {
   ///
   /// @param top_left - The top left position of the rect.
   /// @param bottom_right - The bottom right position of the rect.
-  Rect(const Position &top_left, const Position &bottom_right)
-      : top_left(top_left),
-        bottom_right(bottom_right),
-        // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        centre({.x = static_cast<int>(std::round((top_left + bottom_right).x / 2.0)),
-                .y = static_cast<int>(std::round((top_left + bottom_right).y / 2.0))}),
-        // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        width((top_left - bottom_right).x),
-        height((top_left - bottom_right).y) {}
+  Rect(const Position &top_left, const Position &bottom_right);
 };
 
 /// Represents a 2D grid with a set width and height through a 1D vector.
@@ -101,116 +75,63 @@ struct Grid {
   int height;
 
   /// The vector which represents the 2D grid.
-  std::vector<TileType> grid;
-
-  /// The offsets for the intercardinal directions.
-  static constexpr std::array INTERCARDINAL_OFFSETS{Position{.x = -1, .y = -1},  // North-west
-                                                    Position{.x = 0, .y = -1},   // North
-                                                    Position{.x = 1, .y = -1},   // North-east
-                                                    Position{.x = -1, .y = 0},   // West
-                                                    Position{.x = 1, .y = 0},    // East
-                                                    Position{.x = -1, .y = 1},   // South-west
-                                                    Position{.x = 0, .y = 1},    // South
-                                                    Position{.x = 1, .y = 1}};   // South-east
+  std::vector<GameObjectType> grid;
 
   /// Initialise the object.
   ///
   /// @param width - The width of the 2D grid.
   /// @param height - The height of the 2D grid.
-  Grid(const int width, const int height)
-      : width(width), height(height), grid(std::vector(width * height, TileType::Empty)) {}
+  Grid(int width, int height);
 
   /// Check if a position is within the 2D grid.
   ///
   /// @param position - The position to check for.
   /// @return Whether the position is within the 2D grid or not.
-  [[nodiscard]] auto is_position_within(const Position &position) const -> bool {
-    return position.x >= 0 && position.x < width && position.y >= 0 && position.y < height;
-  }
+  [[nodiscard]] auto is_position_within(const Position &position) const -> bool;
 
   /// Convert a 1D grid position to a 2D grid position.
   ///
   /// @param position - The position to convert.
   /// @throws std::out_of_range - If the position is not within the 2D grid.
   /// @return The 2D grid position.
-  [[nodiscard]] auto convert_position(const int position) const -> Position {
-    if (position < 0 || position >= width * height) {
-      throw std::out_of_range("Position not within the grid.");
-    }
-    return {.x = position % width, .y = position / width};
-  }
+  [[nodiscard]] auto convert_position(int position) const -> Position;
 
   /// Convert a 2D grid position to a 1D grid position.
   ///
   /// @param position - The position to convert.
   /// @throws std::out_of_range - If the position is not within the 2D grid.
   /// @return The 1D grid position.
-  [[nodiscard]] auto convert_position(const Position &position) const -> int {
-    if (!is_position_within(position)) {
-      throw std::out_of_range("Position not within the grid.");
-    }
-    return (width * position.y) + position.x;
-  }
+  [[nodiscard]] auto convert_position(const Position &position) const -> int;
 
   /// Get a value in the 2D grid from a given position.
   ///
   /// @param position - The position to get the value for.
   /// @throws std::out_of_range - If the position is not within the 2D grid.
   /// @return The value at the given position.
-  [[nodiscard]] auto get_value(const Position &position) const -> TileType {
-    return grid.at(convert_position(position));
-  }
+  [[nodiscard]] auto get_value(const Position &position) const -> GameObjectType;
 
   /// Set a value in the 2D grid from a given position.
   ///
   /// @param position - The position to set.
   /// @param target - The value to set at the given position.
   /// @throws std::out_of_range - If the position is not within the 2D grid.
-  void set_value(const Position &position, const TileType target) { grid.at(convert_position(position)) = target; }
+  void set_value(const Position &position, GameObjectType target);
 
   /// Get the neighbours of a given position.
   ///
   /// @param position - The position to get the neighbours for.
   /// @return The neighbours of the given position.
-  [[nodiscard]] auto get_neighbours(const Position &position) const -> std::vector<Position> {
-    std::vector<Position> neighbours;
-    for (const Position &offset : INTERCARDINAL_OFFSETS) {
-      if (const Position neighbour{position + offset}; is_position_within(neighbour)) {
-        neighbours.emplace_back(neighbour);
-      }
-    }
-    return neighbours;
-  }
+  [[nodiscard]] auto get_neighbours(const Position &position) const -> std::vector<Position>;
 
   /// Place a rect in the 2D grid.
   ///
   /// @param rect - The rect to place in the 2D grid.
-  void place_rect(const Rect &rect) {
-    for (int y{std::max(rect.top_left.y, 0)}; y < std::min(rect.bottom_right.y + 1, height); y++) {
-      for (int x{std::max(rect.top_left.x, 0)}; x < std::min(rect.bottom_right.x + 1, width); x++) {
-        set_value({.x = x, .y = y}, TileType::Floor);
-      }
-    }
-  }
+  void place_rect(const Rect &rect);
 };
-
-/// Allows multiple hashes to be combined for a struct
-///
-/// @tparam T - The type of the value to hash.
-/// @param seed - The seed for initialising the hasher.
-/// @param value - The value to hash.
-template <typename T>
-void hash_combine(std::size_t &seed, const T &value) {
-  const std::hash<T> hasher;
-  seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);  // NOLINT
-}
 
 template <>
 struct std::hash<Position> {
-  auto operator()(const Position &position) const noexcept -> std::size_t {
-    std::size_t res{0};
-    hash_combine(res, position.x);
-    hash_combine(res, position.y);
-    return res;
+  auto operator()(const Position &pos) const noexcept -> std::size_t {
+    return std::hash<int>{}(pos.x) ^ (std::hash<int>{}(pos.y) << 1);
   }
 };

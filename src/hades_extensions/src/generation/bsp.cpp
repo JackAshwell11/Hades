@@ -5,16 +5,16 @@
 #include "generation/primitives.hpp"
 
 namespace {
-// The maximum width to height ratio that is allowed.
+/// The maximum width to height ratio that is allowed.
 constexpr double CONTAINER_RATIO{1.25};
 
-// The minimum size a container can be.
+/// The minimum size a container can be.
 constexpr int MIN_CONTAINER_SIZE{5};
 
-// The minimum size a room can be.
+/// The minimum size a room can be.
 constexpr int MIN_ROOM_SIZE{4};
 
-// The minimum width to height ratio that is allowed for a room.
+/// The minimum width to height ratio that is allowed for a room.
 constexpr double ROOM_RATIO{0.625};
 }  // namespace
 

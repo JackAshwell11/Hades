@@ -2,15 +2,12 @@
 #pragma once
 
 // Std headers
+#include <functional>
 #include <memory>
-#include <unordered_map>
-#include <vector>
 
 // Local headers
-#include "ecs/types.hpp"
-
-// Avoid having to include headers for this
-struct cpVect;
+#include "ecs/bases.hpp"
+#include "game_object.hpp"
 
 /// Alias for a factory function that creates components for a game object with a given level.
 using ComponentFactory = std::function<std::vector<std::shared_ptr<ComponentBase>>(int)>;

@@ -2,6 +2,7 @@
 #include <numbers>
 
 // Local headers
+#include "ecs/registry.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 #include "macros.hpp"

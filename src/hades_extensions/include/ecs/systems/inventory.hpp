@@ -1,8 +1,12 @@
 // Ensure this file is only included once
 #pragma once
 
+// Std headers
+#include <vector>
+
 // Local headers
 #include "ecs/stats.hpp"
+#include "game_object.hpp"
 
 /// Allows a game object to have a fixed size inventory.
 struct Inventory final : ComponentBase {

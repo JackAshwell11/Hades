@@ -1,4 +1,5 @@
 // Local headers
+#include "ecs/registry.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 #include "macros.hpp"
@@ -210,8 +211,9 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesNoWalls) {
   ASSERT_EQ(get_physics_system()->get_wall_distances({0, 0}), expected_result);
 }
 
-/// Test that only the bottom three raycasts hit when getting the distances to the walls when there is one wall tile.
-TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesOneWallTile) {
+/// Test that only the bottom three raycasts hit when getting the distances to the walls when there is one wall game
+/// object.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesOneWallGameObject) {
   create_objects(GameObjectType::Wall, {cpv(1, 0)}, false);
   const auto result{get_physics_system()->get_wall_distances({96, 96})};
   const std::vector expected_result{cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE),
@@ -228,8 +230,8 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesOneWallTile) {
   }
 }
 
-/// Test that all raycasts hit when getting the distances to the walls when there are four wall tiles.
-TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesFourWallTiles) {
+/// Test that all raycasts hit when getting the distances to the walls when there are four wall game objects.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesFourWallGameObjects) {
   create_objects(GameObjectType::Wall, {cpv(1, 0), cpv(0, 1), cpv(2, 1), cpv(1, 2)}, false);
   const auto result{get_physics_system()->get_wall_distances({96, 96})};
   const std::vector expected_result{cpv(96, 128),  cpv(128, 96), cpv(96, 64),  cpv(64, 96),
@@ -240,8 +242,8 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesFourWallTiles) {
   }
 }
 
-/// Test that all raycasts hit when getting the distances to the walls when there are eight wall tiles.
-TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesEightWallTiles) {
+/// Test that all raycasts hit when getting the distances to the walls when there are eight wall game objects.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesEightWallGameObjects) {
   create_objects(GameObjectType::Wall,
                  {cpv(0, 0), cpv(1, 0), cpv(2, 0), cpv(0, 1), cpv(2, 1), cpv(0, 2), cpv(1, 2), cpv(2, 2)}, false);
   const auto result{get_physics_system()->get_wall_distances({96, 96})};

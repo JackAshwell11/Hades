@@ -1,4 +1,5 @@
 // Local headers
+#include "ecs/registry.hpp"
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/physics.hpp"
 #include "macros.hpp"

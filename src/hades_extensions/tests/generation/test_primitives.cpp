@@ -114,14 +114,14 @@ TEST_F(PrimitivesFixture, TestGridConvertPositionLarger){
 
 /// Test that a position in the middle of the grid can be retrieved correctly.
 TEST_F(PrimitivesFixture, TestGridGetValueMiddle) {
-  grid.grid[13] = TileType::Player;
-  ASSERT_EQ(grid.get_value({3, 2}), TileType::Player);
+  grid.grid[13] = GameObjectType::Player;
+  ASSERT_EQ(grid.get_value({3, 2}), GameObjectType::Player);
 }
 
 /// Test that a position on the edge of the grid can be retrieved correctly.
 TEST_F(PrimitivesFixture, TestGridGetValueEdge) {
-  grid.grid[23] = TileType::Player;
-  ASSERT_EQ(grid.get_value({3, 4}), TileType::Player);
+  grid.grid[23] = GameObjectType::Player;
+  ASSERT_EQ(grid.get_value({3, 4}), GameObjectType::Player);
 }
 
 /// Test that getting a position smaller than the array throws an exception.
@@ -134,35 +134,35 @@ TEST_F(PrimitivesFixture, TestGridGetValueLarger){
 
 /// Test that a position in the middle can be set correctly.
 TEST_F(PrimitivesFixture, TestGridSetValueMiddle) {
-  grid.set_value({.x = 1, .y = 3}, TileType::Player);
-  ASSERT_EQ(grid.grid[16], TileType::Player);
+  grid.set_value({.x = 1, .y = 3}, GameObjectType::Player);
+  ASSERT_EQ(grid.grid[16], GameObjectType::Player);
 }
 
 /// Test that a position on the edge can be set correctly.
 TEST_F(PrimitivesFixture, TestGridSetValueEdge) {
-  grid.set_value({.x = 4, .y = 4}, TileType::Player);
-  ASSERT_EQ(grid.grid[24], TileType::Player);
+  grid.set_value({.x = 4, .y = 4}, GameObjectType::Player);
+  ASSERT_EQ(grid.grid[24], GameObjectType::Player);
 }
 
 /// Test that setting a position smaller than the array throws an exception.
 TEST_F(PrimitivesFixture,
-       TestGridSetValueSmaller){ASSERT_THROW_MESSAGE((grid.set_value({-1, -1}, TileType::Player)), std::out_of_range,
-                                                     "Position not within the grid.")}
+       TestGridSetValueSmaller){ASSERT_THROW_MESSAGE((grid.set_value({-1, -1}, GameObjectType::Player)),
+                                                     std::out_of_range, "Position not within the grid.")}
 
 /// Test that setting a position larger than the array throws an exception.
 TEST_F(PrimitivesFixture,
-       TestGridSetValueLarger){ASSERT_THROW_MESSAGE((grid.set_value({10, 10}, TileType::Player)), std::out_of_range,
-                                                    "Position not within the grid.")}
+       TestGridSetValueLarger){ASSERT_THROW_MESSAGE((grid.set_value({10, 10}, GameObjectType::Player)),
+                                                    std::out_of_range, "Position not within the grid.")}
 
 /// Test that a zero size rect can be placed correctly in a valid grid.
 TEST_F(PrimitivesFixture, TestGridPlaceRectZeroSize) {
   grid.place_rect({{.x = 0, .y = 0}, {.x = 0, .y = 0}});
   const std::vector target_result{
-      TileType::Floor, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
   };
   ASSERT_EQ(grid.grid, target_result);
 }
@@ -171,11 +171,11 @@ TEST_F(PrimitivesFixture, TestGridPlaceRectZeroSize) {
 TEST_F(PrimitivesFixture, TestGridPlaceRectValidGrid) {
   grid.place_rect(rect_one);
   const std::vector target_result{
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Empty, TileType::Empty,
-      TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Empty, GameObjectType::Empty,
+      GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty, GameObjectType::Empty,
   };
   ASSERT_EQ(grid.grid, target_result);
 }
@@ -184,11 +184,11 @@ TEST_F(PrimitivesFixture, TestGridPlaceRectValidGrid) {
 TEST_F(PrimitivesFixture, TestGridPlaceRectOutsideGrid) {
   grid.place_rect({{.x = 0, .y = 0}, {.x = 10, .y = 10}});
   const std::vector target_result{
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
-      TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
+      GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor, GameObjectType::Floor,
   };
   ASSERT_EQ(grid.grid, target_result);
 }
@@ -197,5 +197,5 @@ TEST_F(PrimitivesFixture, TestGridPlaceRectOutsideGrid) {
 TEST_F(PrimitivesFixture, TestGridPlaceRectZeroSizeGrid) {
   Grid empty_grid{0, 0};
   empty_grid.place_rect(rect_one);
-  ASSERT_EQ(empty_grid.grid, std::vector<TileType>{});
+  ASSERT_EQ(empty_grid.grid, std::vector<GameObjectType>{});
 }

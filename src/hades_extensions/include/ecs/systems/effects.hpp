@@ -3,9 +3,18 @@
 
 // Std headers
 #include <typeindex>
+#include <unordered_map>
+#include <vector>
 
 // Local headers
-#include "ecs/stats.hpp"
+#include "ecs/bases.hpp"
+#include "game_object.hpp"
+
+/// Stores the different types of status effects available.
+enum class StatusEffectType : std::uint8_t {
+  Regeneration,
+  Poison,
+};
 
 /// Represents the base class for an effect.
 struct BaseEffect {

@@ -13,6 +13,8 @@
 #endif
 
 // Local headers
+#include "ecs/registry.hpp"
+#include "ecs/stats.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
 #include "ecs/systems/sprite.hpp"

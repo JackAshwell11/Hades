@@ -2,10 +2,14 @@
 #pragma once
 
 // Std headers
+#include <memory>
+#include <string>
 #include <typeindex>
+#include <vector>
 
 // Local headers
-#include "ecs/stats.hpp"
+#include "ecs/bases.hpp"
+#include "game_object.hpp"
 
 /// Represents an offering in the shop.
 struct ShopOffering {

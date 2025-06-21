@@ -2,7 +2,7 @@
 #pragma once
 
 // Local headers
-#include "ecs/types.hpp"
+#include "ecs/bases.hpp"
 
 /// Allows a game object to have a level with experience.
 struct PlayerLevel final : ComponentBase {
