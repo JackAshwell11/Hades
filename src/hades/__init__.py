@@ -9,6 +9,9 @@ from typing import Final
 
 # Pip
 from arcade.resources import add_resource_handle
+from arcade.types import Color
+
+__all__ = ("UI_BACKGROUND_COLOUR", "UI_PADDING", "ViewType")
 
 
 class ViewType(Enum):
@@ -17,10 +20,14 @@ class ViewType(Enum):
     START_MENU = auto()
     GAME = auto()
     PLAYER = auto()
+    SHOP = auto()
 
 
 # The size of the padding around the UI elements
 UI_PADDING: Final[int] = 4
+
+# The background colour of the UI
+UI_BACKGROUND_COLOUR: Final[Color] = Color(198, 198, 198)
 
 # Add the resources directory to the resource loader
 add_resource_handle("resources", Path(__file__).resolve().parent / "resources")

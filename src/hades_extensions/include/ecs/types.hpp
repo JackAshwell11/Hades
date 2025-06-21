@@ -13,7 +13,7 @@ class Registry;
 using GameObjectID = int;
 
 /// Stores the different types of game objects available.
-enum class GameObjectType : std::uint8_t {
+enum class GameObjectType : std::uint16_t {
   Bullet = 1U << 0U,        // 1
   Enemy = 1U << 1U,         // 2
   Floor = 1U << 2U,         // 4
@@ -22,6 +22,7 @@ enum class GameObjectType : std::uint8_t {
   Goal = 1U << 5U,          // 32
   HealthPotion = 1U << 6U,  // 64
   Chest = 1U << 7U,         // 128
+  Shop = 1U << 8U,          // 256
 };
 
 /// Stores the different types of events that can occur.
@@ -36,6 +37,7 @@ enum class EventType : std::uint8_t {
   RangedAttackSwitch,
   ShopItemLoaded,
   ShopItemPurchased,
+  ShopOpen,
 };
 
 /// Stores the different types of status effects available.
@@ -106,6 +108,12 @@ struct EventTraits<EventType::ShopItemLoaded> {
 template <>
 struct EventTraits<EventType::ShopItemPurchased> {
   using EventArgs = std::tuple<int, int>;
+};
+
+/// Provides the argument types for the ShopOpen event.
+template <>
+struct EventTraits<EventType::ShopOpen> {
+  using EventArgs = std::tuple<>;
 };
 
 /// The base class for all components.

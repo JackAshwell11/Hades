@@ -4,6 +4,7 @@
 // Std headers
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <stdexcept>
 #include <vector>
 
@@ -17,6 +18,7 @@ enum struct TileType : std::uint8_t {
   Player,
   HealthPotion,
   Chest,
+  Shop,
 };
 
 /// Represents a 2D position.

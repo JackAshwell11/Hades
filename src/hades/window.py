@@ -19,6 +19,7 @@ from hades import ViewType
 from hades.game import Game
 from hades.model import HadesModel
 from hades.player import Player
+from hades.shop import Shop
 from hades.start_menu import StartMenu
 
 if TYPE_CHECKING:
@@ -110,6 +111,7 @@ class HadesWindow(Window):
             ViewType.START_MENU: StartMenu(),
             ViewType.GAME: Game(),
             ViewType.PLAYER: Player(),
+            ViewType.SHOP: Shop(),
         }
 
     def setup(self: HadesWindow) -> None:

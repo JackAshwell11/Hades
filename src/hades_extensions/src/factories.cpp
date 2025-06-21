@@ -144,6 +144,16 @@ const auto chest_factory{[](const int /*level*/) {
       std::make_shared<PythonSprite>(),
   };
 }};
+
+/// The shop factory.
+///
+/// @return The components for the shop.
+const auto shop_factory{[](const int /*level*/) {
+  return std::vector<std::shared_ptr<ComponentBase>>{
+      std::make_shared<KinematicComponent>(),
+      std::make_shared<PythonSprite>(),
+  };
+}};
 }  // namespace
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
@@ -172,6 +182,7 @@ auto get_factories() -> const std::unordered_map<GameObjectType, ComponentFactor
       {GameObjectType::Goal, goal_factory},
       {GameObjectType::HealthPotion, health_potion_factory},
       {GameObjectType::Chest, chest_factory},
+      {GameObjectType::Shop, shop_factory},
   };
   return factories;
 }

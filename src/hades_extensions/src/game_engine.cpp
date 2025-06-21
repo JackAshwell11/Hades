@@ -55,7 +55,8 @@ auto get_tile_to_game_object_type() -> const std::unordered_map<TileType, GameOb
       {TileType::Goal, GameObjectType::Goal},
       {TileType::Player, GameObjectType::Player},
       {TileType::HealthPotion, GameObjectType::HealthPotion},
-      {TileType::Chest, GameObjectType::Chest}};
+      {TileType::Chest, GameObjectType::Chest},
+      {TileType::Shop, GameObjectType::Shop}};
   return mapping;
 }
 }  // namespace
@@ -73,8 +74,8 @@ GameEngine::GameEngine() {
   registry_.add_system<SteeringMovementSystem>();
 }
 
-auto GameEngine::is_player_touching_goal() const -> bool {
-  return get_nearest_item() != -1 && registry_.get_game_object_type(get_nearest_item()) == GameObjectType::Goal;
+auto GameEngine::is_player_touching_type(const GameObjectType game_object_type) const -> bool {
+  return get_nearest_item() != -1 && registry_.get_game_object_type(get_nearest_item()) == game_object_type;
 }
 
 void GameEngine::set_seed(const unsigned int seed) { game_state_.dungeon_run.random_generator.seed(seed); }
@@ -163,7 +164,7 @@ void GameEngine::setup_shop(std::istream &stream) const {
 void GameEngine::on_update(const double delta_time) {
   auto &current_level{game_state_.current_level};
   current_level.nearest_item = registry_.get_system<PhysicsSystem>()->get_nearest_item(get_player_id());
-  if (is_player_touching_goal() && !current_level.is_lobby) {
+  if (is_player_touching_type(GameObjectType::Goal) && !current_level.is_lobby) {
     if (get_dungeon_level() > LEVEL_COUNT) {
       // Player has completed the game, return to the lobby
       reset_level(LevelType::Lobby);
@@ -226,8 +227,12 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
       registry_.get_system<InventorySystem>()->add_item_to_inventory(get_player_id(), get_nearest_item());
       break;
     case KEY_E:
-      if (game_state_.current_level.is_lobby && is_player_touching_goal()) {
-        reset_level(LevelType::Normal);
+      if (game_state_.current_level.is_lobby) {
+        if (is_player_touching_type(GameObjectType::Goal)) {
+          reset_level(LevelType::Normal);
+        } else if (is_player_touching_type(GameObjectType::Shop)) {
+          registry_.notify<EventType::ShopOpen>();
+        }
       } else {
         use_item(get_player_id(), get_nearest_item());
       }
