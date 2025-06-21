@@ -72,6 +72,9 @@ constexpr Position LOBBY_PLAYER_POSITION{.x = 7, .y = 5};
 /// The position of the goal in the dungeon lobby.
 constexpr Position LOBBY_GOAL_POSITION{.x = 7, .y = 9};
 
+/// The position of the shop in the dungeon lobby.
+constexpr Position LOBBY_SHOP_POSITION{.x = 7, .y = 1};
+
 /// Count the number of floor neighbours for a given position.
 ///
 /// @param grid - The 2D grid which represents the dungeon.
@@ -250,6 +253,7 @@ auto MapGenerator::place_lobby() -> MapGenerator & {
   *this = generate_walls();
   grid_.set_value(LOBBY_PLAYER_POSITION, TileType::Player);
   grid_.set_value(LOBBY_GOAL_POSITION, TileType::Goal);
+  grid_.set_value(LOBBY_SHOP_POSITION, TileType::Shop);
   return *this;
 }
 

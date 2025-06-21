@@ -48,23 +48,23 @@ class GameEngineFixture : public testing::Test {  // NOLINT
   }
 };
 
-/// Test that the player is not touching the goal when there is no nearest item.
-TEST_F(GameEngineFixture, TestGameEngineIsPlayerTouchingGoalNoNearest) {
-  ASSERT_FALSE(game_engine.is_player_touching_goal());
+/// Test that the player is not touching a game object type when there is no nearest item.
+TEST_F(GameEngineFixture, TestGameEngineIsPlayerTouchingTypeNoNearest) {
+  ASSERT_FALSE(game_engine.is_player_touching_type(GameObjectType::Goal));
 }
 
-/// Test that the player is not touching the goal when the nearest item is not a goal.
-TEST_F(GameEngineFixture, TestGameEngineIsPlayerTouchingGoalNearestNotGoal) {
+/// Test that the player is not touching a game object type when the nearest item is not the specified type.
+TEST_F(GameEngineFixture, TestGameEngineIsPlayerTouchingTypeNotSpecifiedType) {
   const auto item_id{get_item(GameObjectType::HealthPotion)};
   move_player_to_item(item_id);
-  ASSERT_FALSE(game_engine.is_player_touching_goal());
+  ASSERT_FALSE(game_engine.is_player_touching_type(GameObjectType::Goal));
 }
 
-/// Test that the player is touching the goal when the nearest item is a goal.
-TEST_F(GameEngineFixture, TestGameEngineIsPlayerTouchingGoalNearestIsGoal) {
+/// Test that the player is touching a game object type when the nearest item is the specified type.
+TEST_F(GameEngineFixture, TestGameEngineIsPlayerTouchingTypeIsSpecifiedType) {
   game_engine.reset_level(LevelType::Lobby);
   move_player_to_item(get_item(GameObjectType::Goal));
-  ASSERT_TRUE(game_engine.is_player_touching_goal());
+  ASSERT_TRUE(game_engine.is_player_touching_type(GameObjectType::Goal));
 }
 
 /// Test that resetting to a lobby clears all game objects and creates the lobby game objects.
@@ -506,6 +506,17 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseETouchingHealthPotionNotInLo
   game_engine.on_key_release(KEY_E, 0);
   ASSERT_EQ(health->get_value(), 55);
   ASSERT_FALSE(game_engine.get_registry().has_game_object(game_engine.get_nearest_item()));
+}
+
+/// Test that the game engine processes a 'E' key release correctly when the player is in the lobby and touching the
+/// shop.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseETouchingShopInLobby) {
+  game_engine.reset_level(LevelType::Lobby);
+  auto called{false};
+  game_engine.get_registry().add_callback<EventType::ShopOpen>([&called] { called = true; });
+  move_player_to_item(get_item(GameObjectType::Shop));
+  game_engine.on_key_release(KEY_E, 0);
+  ASSERT_TRUE(called);
 }
 
 /// Test that the game engine processes a 'Z' key release correctly.

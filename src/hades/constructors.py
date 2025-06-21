@@ -37,7 +37,7 @@ class IconType(Enum):
     """Represents the different types of icons."""
 
     BULLET = "bullet.png"
-    CHEST = "shop.png"
+    CHEST = "chest.png"
     ENEMY_IDLE = "enemy_idle.png"
     FLOOR = "floor.png"
     GOAL = "armour_potion.png"
@@ -48,6 +48,7 @@ class IconType(Enum):
     PLAYER_IDLE = "player_idle.png"
     POISON = "speed_boost_potion.png"
     REGENERATION = "regeneration.png"
+    SHOP = "shop.png"
     SINGLE_BULLET = "health_boost_potion.png"
     SPECIAL = "armour_boost_potion.png"
     WALL = "wall.png"
@@ -215,6 +216,21 @@ def bullet_factory() -> GameObjectConstructor:
     )
 
 
+def shop_factory() -> GameObjectConstructor:
+    """Create a shop game object constructor.
+
+    Returns:
+        A shop game object constructor.
+    """
+    return GameObjectConstructor(
+        "Shop",
+        "A shop that sells items.",
+        GameObjectType.Shop,
+        1,
+        [IconType.CHEST],
+    )
+
+
 game_object_constructors: dict[GameObjectType, GameObjectConstructor] = {
     GameObjectType.Bullet: bullet_factory(),
     GameObjectType.Enemy: enemy_factory(),
@@ -224,4 +240,5 @@ game_object_constructors: dict[GameObjectType, GameObjectConstructor] = {
     GameObjectType.Wall: wall_factory(),
     GameObjectType.HealthPotion: health_potion_factory(),
     GameObjectType.Chest: chest_factory(),
+    GameObjectType.Shop: shop_factory(),
 }

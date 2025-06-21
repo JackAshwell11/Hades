@@ -66,10 +66,11 @@ class GameEngine {
   /// @return The level of the game objects.
   [[nodiscard]] auto get_game_level() const -> int { return game_state_.dungeon_run.game_level; }
 
-  /// Checks if the player is touching the goal tile or not.
+  /// Checks if the player is touching the specified game object type.
   ///
-  /// @return True if the player is touching the goal tile, false otherwise.
-  [[nodiscard]] auto is_player_touching_goal() const -> bool;
+  /// @param game_object_type - The type of game object to check for.
+  /// @return True if the player is touching the game object type, false otherwise.
+  [[nodiscard]] auto is_player_touching_type(GameObjectType game_object_type) const -> bool;
 
   /// Set the seed for the random generator.
   ///
