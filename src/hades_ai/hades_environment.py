@@ -14,7 +14,7 @@ from gymnasium.spaces import Box, Dict, Discrete
 from pyglet import clock
 
 # Custom
-from hades.game import Game
+from hades.scenes.game import GameScene
 from hades_ai.capture_window import CaptureWindow
 from hades_extensions import GameEngine
 from hades_extensions.ecs import (
@@ -56,7 +56,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         action_space: The action space of the environment.
         observation_space: The observation space of the environment.
         window: The window to capture the game view.
-        game: The game view.
+        game_scene: The game scene.
         game_engine: The game engine.
         registry: The registry for the game engine.
         previous_action: The previous action taken.
@@ -115,8 +115,8 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         "_action_to_key",
         "action_space",
         "enemy_ids",
-        "game",
         "game_engine",
+        "game_scene",
         "last_update_time",
         "level",
         "observation_space",
@@ -194,7 +194,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
         # Store some variables for the environment
         self.window: CaptureWindow | None = None
-        self.game: Game | None = None
+        self.game_scene: GameScene | None = None
         self.game_engine: GameEngine = cast("GameEngine", None)
         self.registry: Registry = cast("Registry", None)
         self.previous_action: int = 0
@@ -226,10 +226,10 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         """
         if value and not self.window:
             self.window = CaptureWindow()
-            self.game = Game()
-            self.game.add_callbacks()
+            self.game_scene = GameScene()
+            self.game_scene.add_callbacks()
         elif not value:
-            self.window = self.game = None
+            self.window = self.game_scene = None
 
     def _get_enemy_positions(self: HadesEnvironment) -> NDArray[NDArray[float]]:
         """Returns the positions of the enemies.
@@ -349,10 +349,10 @@ class HadesEnvironment(Env):  # type:ignore[misc]
 
         # Reset the environment and store the required variables
         self.previous_action = 0
-        if self.game and self.window:
-            if self.window.current_view != self.game:
-                self.window.show_view(self.game)
-            self.game_engine = self.game.model.game_engine
+        if self.game_scene and self.window:
+            if self.window.current_view != self.game_scene:
+                self.window.show_view(self.game_scene)
+            self.game_engine = self.game_scene.model.game_engine
         else:
             self.game_engine = GameEngine()
         if self.seed:
@@ -483,7 +483,7 @@ class HadesEnvironment(Env):  # type:ignore[misc]
     def close(self: HadesEnvironment) -> None:
         """Closes the environment."""
         if self.window:
-            self.window = self.game = None
+            self.window = self.game_scene = None
 
     def on_game_object_creation(self: HadesEnvironment, game_object_id: int) -> None:
         """Add a game object to the game.

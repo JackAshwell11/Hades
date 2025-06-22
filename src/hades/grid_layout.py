@@ -1,14 +1,15 @@
-"""Manages the rendering of player elements on the screen."""
+"""Contains the functionality for displaying a interactive paginated grid layout."""
 
 from __future__ import annotations
 
 # Builtin
 from abc import ABC, abstractmethod
-from typing import Final, cast
+from typing import TYPE_CHECKING, Final, cast
 
 # Pip
 from arcade import Texture, color, get_default_texture, get_window
 from arcade.gui import (
+    UIAnchorLayout,
     UIBoxLayout,
     UIButtonRow,
     UIFlatButton,
@@ -23,10 +24,15 @@ from arcade.gui import (
 from arcade.types import Color
 
 # Custom
-from hades import UI_BACKGROUND_COLOUR, UI_PADDING
+from hades import UI_BACKGROUND_COLOUR, UI_PADDING, SceneType
+from hades.scenes.base.view import BaseView
 from hades_extensions.ecs import SPRITE_SIZE
 
+if TYPE_CHECKING:
+    from hades.window import HadesWindow
+
 __all__ = (
+    "GridView",
     "ItemButton",
     "PaginatedGridLayout",
     "StatsLayout",
@@ -313,3 +319,32 @@ class PaginatedGridLayout[T: ItemButton](UIBoxLayout):
         ):
             self.current_row = new_row
             self._update_grid()
+
+
+class GridView[T: ItemButton](BaseView):
+    """Manages the rendering of the paginated grid layout on the screen."""
+
+    __slots__ = ("grid_layout",)
+
+    def _setup_layout(self: GridView[T]) -> None:
+        """Set up the layout for the inventory view."""
+        self.ui.add(self.window.background_image)
+        layout = UIBoxLayout(vertical=True, space_between=UI_PADDING)
+        layout.add(self.grid_layout)
+        back_button = UIFlatButton(text="Back")
+        back_button.on_click = (  # type: ignore[method-assign]
+            lambda _: self.window.show_view(  # type: ignore[assignment]
+                self.window.scenes[SceneType.GAME],
+            )
+        )
+        layout.add(back_button)
+        self.ui.add(UIAnchorLayout(children=(layout,)))
+
+    def __init__(self: GridView[T], window: HadesWindow) -> None:
+        """Initialise the object.
+
+        Args:
+            window: The window for the grid view.
+        """
+        self.grid_layout: PaginatedGridLayout[T] = PaginatedGridLayout()
+        super().__init__(window)

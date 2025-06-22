@@ -11,15 +11,15 @@ from typing import Final
 from arcade.resources import add_resource_handle
 from arcade.types import Color
 
-__all__ = ("UI_BACKGROUND_COLOUR", "UI_PADDING", "ViewType")
+__all__ = ("UI_BACKGROUND_COLOUR", "UI_PADDING", "SceneType")
 
 
-class ViewType(Enum):
-    """Represents the different views in the game."""
+class SceneType(Enum):
+    """Represents the different scenes in the game."""
 
     START_MENU = auto()
     GAME = auto()
-    PLAYER = auto()
+    INVENTORY = auto()
     SHOP = auto()
 
 

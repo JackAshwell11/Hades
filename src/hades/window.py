@@ -6,28 +6,25 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from logging.config import dictConfig
 from pathlib import Path
-from typing import TYPE_CHECKING, Final
+from typing import Final
 
 # Pip
 from arcade import Texture, Window, get_default_texture, get_image
-from arcade.gui import UIWidget
+from arcade.gui import UIImage
 from arcade.resources import resolve
 from PIL.ImageFilter import GaussianBlur
 
 # Custom
-from hades import ViewType
-from hades.game import Game
+from hades import SceneType
 from hades.model import HadesModel
-from hades.player import Player
-from hades.shop import Shop
-from hades.start_menu import StartMenu
-
-if TYPE_CHECKING:
-    from hades.view import BaseView
+from hades.scenes.game import GameScene
+from hades.scenes.inventory import InventoryScene
+from hades.scenes.shop import ShopScene
+from hades.scenes.start_menu import StartMenuScene
 
 __all__ = ("HadesWindow",)
 
-# Constants
+# The name of the logger used for the game
 GAME_LOGGER: Final[str] = "hades"
 
 # The Gaussian blur filter to apply to the background image
@@ -89,44 +86,46 @@ dictConfig(
 
 
 class HadesWindow(Window):
-    """Manages the window and allows switching between views.
+    """Manages the window and allows switching between scenes.
 
     Attributes:
-        views: Holds all the views used by the game.
+        scenes: Holds all the scenes used by the game.
         background_image: The background image of the window.
         model: The model providing access to the game engine and its functionality.
     """
 
-    __slots__ = ("background_image", "model", "views")
+    __slots__ = ("background_image", "model", "scenes")
 
     def __init__(self: HadesWindow) -> None:
         """Initialise the object."""
         super().__init__()
         self.model: HadesModel = HadesModel()
-        self.background_image: UIWidget = UIWidget(
+        self.background_image: UIImage = UIImage(
+            texture=get_default_texture(),
             width=self.width,
             height=self.height,
-        ).with_background(texture=get_default_texture())
-        self.views: dict[ViewType, BaseView] = {
-            ViewType.START_MENU: StartMenu(),
-            ViewType.GAME: Game(),
-            ViewType.PLAYER: Player(),
-            ViewType.SHOP: Shop(),
+        )
+        self.scenes: dict[
+            SceneType,
+            StartMenuScene | GameScene | InventoryScene | ShopScene,
+        ] = {
+            SceneType.START_MENU: StartMenuScene(),
+            SceneType.GAME: GameScene(),
+            SceneType.INVENTORY: InventoryScene(),
+            SceneType.SHOP: ShopScene(),
         }
 
     def setup(self: HadesWindow) -> None:
-        """Set up the window and its views."""
+        """Set up the window and its scenes."""
         self.center_window()
-        for view in self.views.values():
+        for view in self.scenes.values():
             view.add_callbacks()
         self.model.game_engine.setup(str(SHOP_OFFERINGS))
-        self.show_view(self.views[ViewType.START_MENU])
+        self.show_view(self.scenes[SceneType.START_MENU])
 
     def save_background(self: HadesWindow) -> None:
         """Save the current background image to a texture."""
-        self.background_image.with_background(
-            texture=Texture(get_image().filter(BACKGROUND_BLUR)),
-        )
+        self.background_image.texture = Texture(get_image().filter(BACKGROUND_BLUR))
 
 
 def main() -> None:

@@ -1,4 +1,4 @@
-"""Manages the shop flow and registry callbacks."""
+"""Contains the functionality that manages the shop menu and its events."""
 
 from __future__ import annotations
 
@@ -6,36 +6,26 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Custom
-from hades import ViewType
-from hades.shop.view import ShopItemButton
+from hades.scenes.base import BaseScene
+from hades.scenes.shop.view import ShopItemButton, ShopView
 from hades_extensions.ecs import EventType
 from hades_extensions.ecs.systems import ShopSystem
 
 if TYPE_CHECKING:
+    from typing import ClassVar
+
     from arcade.gui import UIOnClickEvent
 
-    from hades.model import HadesModel
-    from hades.shop.view import ShopView
-
-__all__ = ("ShopController",)
+__all__ = ("ShopScene",)
 
 
-class ShopController:
-    """Manages the shop flow and registry callbacks."""
+class ShopScene(BaseScene[ShopView]):
+    """Manages the shop menu and its events."""
 
-    __slots__ = ("__weakref__", "model", "view")
+    # The view type for the scene
+    _view_type: ClassVar[type[ShopView]] = ShopView
 
-    def __init__(self: ShopController, model: HadesModel, view: ShopView) -> None:
-        """Initialise the object.
-
-        Args:
-            model: The model providing access to the game engine and its functionality.
-            view: The renderer for the shop.
-        """
-        self.model: HadesModel = model
-        self.view: ShopView = view
-
-    def add_callbacks(self: ShopController) -> None:
+    def add_callbacks(self: ShopScene) -> None:
         """Set up the controller callbacks."""
         callbacks = [
             (EventType.ShopItemLoaded, self.on_shop_item_loaded),
@@ -50,19 +40,13 @@ class ShopController:
         self.view.window.register_event_type("on_texture_button_callback")
         self.view.window.register_event_type("on_use_button_callback")
 
-    def show_view(self: ShopController) -> None:
-        """Process show view functionality."""
-        self.view.ui.enable()
-        self.view.window.push_handlers(self)
-
-    def hide_view(self: ShopController) -> None:
+    def on_hide_view(self: ShopScene) -> None:
         """Process hide view functionality."""
-        self.view.ui.disable()
+        super().on_hide_view()
         self.view.grid_layout.stats_layout.reset()
-        self.view.window.remove_handlers(self)
 
     def on_shop_item_loaded(
-        self: ShopController,
+        self: ShopScene,
         index: int,
         data: tuple[str, str, str],
         cost: int,
@@ -76,7 +60,7 @@ class ShopController:
         """
         self.view.grid_layout.add_item(ShopItemButton(index, data, cost))
 
-    def on_shop_item_purchased(self: ShopController, index: int, cost: int) -> None:
+    def on_shop_item_purchased(self: ShopScene, index: int, cost: int) -> None:
         """Process shop item purchased logic.
 
         Args:
@@ -87,10 +71,7 @@ class ShopController:
         shop_item_button.cost = cost
         self.view.grid_layout.stats_layout.set_info(*shop_item_button.get_info())
 
-    def on_texture_button_callback(
-        self: ShopController,
-        event: UIOnClickEvent,
-    ) -> None:
+    def on_texture_button_callback(self: ShopScene, event: UIOnClickEvent) -> None:
         """Process texture button callback logic.
 
         Args:
@@ -98,7 +79,7 @@ class ShopController:
         """
         self.view.grid_layout.stats_layout.set_info(*event.source.parent.get_info())
 
-    def on_use_button_callback(self: ShopController, event: UIOnClickEvent) -> None:
+    def on_use_button_callback(self: ShopScene, event: UIOnClickEvent) -> None:
         """Process use button callback logic.
 
         Args:
@@ -109,6 +90,6 @@ class ShopController:
             event.source.parent.shop_index,
         )
 
-    def on_shop_open(self: ShopController) -> None:
+    def on_shop_open(self: ShopScene) -> None:
         """Process shop open logic."""
-        self.view.window.show_view(self.view.window.views[ViewType.SHOP])
+        self.view.window.show_view(self)

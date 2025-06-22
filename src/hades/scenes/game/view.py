@@ -8,15 +8,13 @@ from typing import TYPE_CHECKING, Final
 # Pip
 from arcade import SpriteList
 from arcade.camera.camera_2d import Camera2D
-from arcade.gui import UIAnchorLayout, UIBoxLayout, UIImage, UILabel, UIManager
+from arcade.gui import UIAnchorLayout, UIBoxLayout, UIImage, UILabel
 
 # Custom
 from hades import UI_PADDING
 from hades.constructors import IconType
-from hades.progress_bar import (
-    PROGRESS_BAR_HEIGHT,
-    ProgressBar,
-)
+from hades.progress_bar import PROGRESS_BAR_HEIGHT, ProgressBar
+from hades.scenes.base.view import BaseView
 from hades.sprite import HadesSprite
 from hades_extensions.ecs import SPRITE_SIZE, GameObjectType, StatusEffectType
 from hades_extensions.ecs.components import PythonSprite
@@ -88,11 +86,10 @@ class StateIndicator(UIBoxLayout):
         self.label.text = str(round(value))
 
 
-class GameView:
+class GameView(BaseView):
     """Manages the rendering of game elements on the screen.
 
     Attributes:
-        ui: The UI manager for the game.
         game_camera: The camera for the game.
         sprites: The sprites to render.
         progress_bars: The progress bars to display on the screen.
@@ -112,9 +109,28 @@ class GameView:
         "progress_bars",
         "sprites",
         "status_effect_layout",
-        "ui",
-        "window",
     )
+
+    def _setup_layout(self: GameView) -> None:
+        """Set up the layout for the game view."""
+        self.left_layout.add(self.money_indicator)
+        left_anchor = UIAnchorLayout()
+        left_anchor.add(
+            self.left_layout.with_padding(top=UI_PADDING * 2, left=UI_PADDING * 2),
+            anchor_x="left",
+            anchor_y="top",
+        )
+        self.ui.add(left_anchor)
+        right_layout = UIBoxLayout(align="right", space_between=SPRITE_SIZE / 2)
+        right_layout.add(self.attack_type_layout)
+        right_layout.add(self.status_effect_layout)
+        right_anchor = UIAnchorLayout()
+        right_anchor.add(
+            right_layout.with_padding(top=UI_PADDING * 2, right=UI_PADDING * 2),
+            anchor_x="right",
+            anchor_y="top",
+        )
+        self.ui.add(right_anchor)
 
     def __init__(self: GameView, window: HadesWindow) -> None:
         """Initialise the object.
@@ -122,8 +138,6 @@ class GameView:
         Args:
             window: The window for the game.
         """
-        self.window: HadesWindow = window
-        self.ui: UIManager = UIManager()
         self.game_camera: Camera2D = Camera2D()
         self.sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
         self.progress_bars: list[ProgressBar] = []
@@ -147,25 +161,7 @@ class GameView:
             ),
             StatusEffectType.Poison: StateIndicator(IconType.POISON, reverse=True),
         }
-
-        self.left_layout.add(self.money_indicator)
-        left_anchor = UIAnchorLayout()
-        left_anchor.add(
-            self.left_layout.with_padding(top=UI_PADDING * 2, left=UI_PADDING * 2),
-            anchor_x="left",
-            anchor_y="top",
-        )
-        self.ui.add(left_anchor)
-        right_layout = UIBoxLayout(align="right", space_between=SPRITE_SIZE / 2)
-        right_layout.add(self.attack_type_layout)
-        right_layout.add(self.status_effect_layout)
-        right_anchor = UIAnchorLayout()
-        right_anchor.add(
-            right_layout.with_padding(top=UI_PADDING * 2, right=UI_PADDING * 2),
-            anchor_x="right",
-            anchor_y="top",
-        )
-        self.ui.add(right_anchor)
+        super().__init__(window)
 
     def draw(self: GameView) -> None:
         """Draw the game elements."""

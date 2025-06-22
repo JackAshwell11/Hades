@@ -534,6 +534,14 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseX) {
   ASSERT_EQ(game_engine.get_registry().get_component<Attack>(game_engine.get_player_id())->selected_ranged_attack, 1);
 }
 
+/// Test that the game engine processes a 'I' key release correctly.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseI) {
+  auto called{false};
+  game_engine.get_registry().add_callback<EventType::InventoryOpen>([&called] { called = true; });
+  game_engine.on_key_release(KEY_I, 0);
+  ASSERT_TRUE(called);
+}
+
 /// Test that the game engine processes an unknown key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseUnknown) { ASSERT_NO_THROW(game_engine.on_key_release(0, 0)); }
 

@@ -20,6 +20,7 @@ enum class EventType : std::uint8_t {
   ShopItemLoaded,
   ShopItemPurchased,
   ShopOpen,
+  InventoryOpen,
 };
 
 /// A helper struct to provide the argument types for each event type.
@@ -89,5 +90,11 @@ struct EventTraits<EventType::ShopItemPurchased> {
 /// Provides the argument types for the ShopOpen event.
 template <>
 struct EventTraits<EventType::ShopOpen> {
+  using EventArgs = std::tuple<>;
+};
+
+/// Provides the argument types for the InventoryOpen event.
+template <>
+struct EventTraits<EventType::InventoryOpen> {
   using EventArgs = std::tuple<>;
 };

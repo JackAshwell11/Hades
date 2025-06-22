@@ -29,6 +29,9 @@ constexpr int KEY_Z{122};
 /// The X key code.
 constexpr int KEY_X{120};
 
+/// The I key code.
+constexpr int KEY_I{105};
+
 /// The left mouse button code.
 constexpr int MOUSE_BUTTON_LEFT{1};
 

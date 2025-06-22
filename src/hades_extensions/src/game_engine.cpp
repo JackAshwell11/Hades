@@ -228,6 +228,8 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
     case KEY_X:
       registry_.get_system<AttackSystem>()->next_ranged_attack(get_player_id());
       break;
+    case KEY_I:
+      registry_.notify<EventType::InventoryOpen>();
     default:
       break;
   }

@@ -1,4 +1,4 @@
-"""Manages the game flow and registry callbacks."""
+"""Contains the functionality that manages the game and its events."""
 
 from __future__ import annotations
 
@@ -7,49 +7,30 @@ import logging
 import math
 from typing import TYPE_CHECKING
 
-# Pip
-from arcade import key
-
 # Custom
-from hades import ViewType
 from hades.constructors import game_object_constructors
+from hades.scenes.base import BaseScene
+from hades.scenes.game.view import GameView
 from hades.sprite import make_sprite
-from hades_extensions.ecs import (
-    EventType,
-    StatusEffectType,
-)
+from hades_extensions.ecs import EventType, StatusEffectType
 from hades_extensions.ecs.components import KinematicComponent, PythonSprite
 
 if TYPE_CHECKING:
-    from hades.game.view import GameView
-    from hades.model import HadesModel
+    from typing import ClassVar
 
-__all__ = ("GameController",)
+__all__ = ("GameScene",)
 
 # Get the logger for this module
 logger = logging.getLogger(__name__)
 
 
-class GameController:
-    """Manages the game flow and registry callbacks."""
+class GameScene(BaseScene[GameView]):
+    """Manages the game and its events."""
 
-    __slots__ = ("model", "view")
+    # The view type for the scene
+    _view_type: ClassVar[type[GameView]] = GameView
 
-    def __init__(
-        self: GameController,
-        model: HadesModel,
-        view: GameView,
-    ) -> None:
-        """Initialise the object.
-
-        Args:
-            model: The model providing access to the game engine and its functionality.
-            view: The renderer for the game.
-        """
-        self.model: HadesModel = model
-        self.view: GameView = view
-
-    def add_callbacks(self: GameController) -> None:
+    def add_callbacks(self: GameScene) -> None:
         """Set up the controller callbacks."""
         callbacks = [
             (EventType.GameObjectCreation, self.on_game_object_creation),
@@ -66,35 +47,26 @@ class GameController:
                 callback,
             )
 
-    def show_view(self: GameController) -> None:
+    def on_show_view(self: GameScene) -> None:
         """Process show view functionality."""
-        self.view.ui.enable()
+        super().on_show_view()
         self.view.window.push_handlers(self.model.game_engine)
 
-    def hide_view(self: GameController) -> None:
+    def on_hide_view(self: GameScene) -> None:
         """Process hide view functionality."""
-        self.view.window.save_background()
-        self.view.ui.disable()
+        super().on_hide_view()
         self.view.window.remove_handlers(self.model.game_engine)
 
-    def key_release(self: GameController, symbol: int, modifiers: int) -> None:
-        """Process key release functionality.
-
-        Args:
-            symbol: The key that was hit.
-            modifiers: The bitwise AND of all modifiers (shift, ctrl, num lock) pressed
-                during this event.
-        """
-        logger.debug(
-            "Received key release with key %r and modifiers %r",
-            symbol,
-            modifiers,
+    def on_update(self: GameScene, _: float) -> None:
+        """Process game logic."""
+        self.view.update(
+            self.model.registry.get_component(
+                self.model.player_id,
+                KinematicComponent,
+            ).get_position(),
         )
-        match symbol:
-            case key.I:
-                self.view.window.show_view(self.view.window.views[ViewType.PLAYER])
 
-    def mouse_motion(self: GameController, x: int, y: int, _: int, __: int) -> None:
+    def on_mouse_motion(self: GameScene, x: int, y: int, _: int, __: int) -> None:
         """Process mouse motion functionality.
 
         Args:
@@ -119,16 +91,7 @@ class GameController:
             ),
         )
 
-    def update(self: GameController, _: float) -> None:
-        """Process game logic."""
-        self.view.update(
-            self.model.registry.get_component(
-                self.model.player_id,
-                KinematicComponent,
-            ).get_position(),
-        )
-
-    def on_game_object_creation(self: GameController, game_object_id: int) -> None:
+    def on_game_object_creation(self: GameScene, game_object_id: int) -> None:
         """Process game object creation logic.
 
         Args:
@@ -142,7 +105,7 @@ class GameController:
             make_sprite(self.model.registry, game_object_id, constructor),
         )
 
-    def on_game_object_death(self: GameController, game_object_id: int) -> None:
+    def on_game_object_death(self: GameScene, game_object_id: int) -> None:
         """Process game object death logic.
 
         Args:
@@ -152,7 +115,7 @@ class GameController:
         self.view.remove_progress_bars(game_object_id)
         self.on_sprite_removal(game_object_id)
 
-    def on_sprite_removal(self: GameController, game_object_id: int) -> None:
+    def on_sprite_removal(self: GameScene, game_object_id: int) -> None:
         """Process sprite removal logic.
 
         Args:
@@ -164,7 +127,7 @@ class GameController:
             PythonSprite,
         ).sprite.remove_from_sprite_lists()
 
-    def on_money_update(self: GameController, money: int) -> None:
+    def on_money_update(self: GameScene, money: int) -> None:
         """Process money update logic.
 
         Args:
@@ -173,7 +136,7 @@ class GameController:
         self.view.update_money_display(money)
 
     def on_attack_cooldown_update(
-        self: GameController,
+        self: GameScene,
         game_object_id: int,
         ranged_cooldown: float,
         melee_cooldown: float,
@@ -194,7 +157,7 @@ class GameController:
                 special_cooldown,
             )
 
-    def on_ranged_attack_switch(self: GameController, selected_attack: int) -> None:
+    def on_ranged_attack_switch(self: GameScene, selected_attack: int) -> None:
         """Process ranged attack switch logic.
 
         Args:
@@ -203,7 +166,7 @@ class GameController:
         self.view.update_ranged_attack_icon(selected_attack)
 
     def on_status_effect_update(
-        self: GameController,
+        self: GameScene,
         status_effects: dict[StatusEffectType, float],
     ) -> None:
         """Process status effect update logic.

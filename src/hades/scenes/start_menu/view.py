@@ -4,14 +4,14 @@ from __future__ import annotations
 
 # Builtin
 from functools import partial
-from typing import TYPE_CHECKING, Final
+from typing import Final
 
 # Pip
 from arcade import get_window
-from arcade.gui import UIAnchorLayout, UIBoxLayout, UIFlatButton, UIManager
+from arcade.gui import UIAnchorLayout, UIBoxLayout, UIFlatButton
 
-if TYPE_CHECKING:
-    from hades.window import HadesWindow
+# Custom
+from hades.scenes.base.view import BaseView
 
 __all__ = (
     "QuitButton",
@@ -50,30 +50,12 @@ class QuitButton(UIFlatButton):
         )
 
 
-class StartMenuView:
-    """Manages the rendering of start menu elements on the screen.
+class StartMenuView(BaseView):
+    """Manages the rendering of start menu elements on the screen."""
 
-    Attributes:
-        ui: The UI manager for the start menu view.
-    """
-
-    __slots__ = ("ui", "window")
-
-    def __init__(self: StartMenuView, window: HadesWindow) -> None:
-        """Initialise the object.
-
-        Args:
-            window: The window for the start menu.
-        """
-        self.window: HadesWindow = window
-        self.ui: UIManager = UIManager()
-
+    def _setup_layout(self: BaseView) -> None:
+        """Set up the layout for the start menu view."""
         vertical_box = UIBoxLayout(space_between=START_MENU_WIDGET_SPACING)
         vertical_box.add(StartButton())
         vertical_box.add(QuitButton())
         self.ui.add(UIAnchorLayout(children=(vertical_box,)))
-
-    def draw(self: StartMenuView) -> None:
-        """Draw the start menu elements."""
-        self.window.clear()
-        self.ui.draw()
