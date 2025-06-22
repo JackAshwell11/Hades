@@ -310,7 +310,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalInLobby) {
   game_engine.reset_level(LevelType::Lobby);
   auto called{-1};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
-      [&](const GameObjectID event) { called = event; });
+      [&](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   ASSERT_EQ(called, -1);
   ASSERT_EQ(game_engine.get_dungeon_level(), 0);
@@ -321,7 +321,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalInLobby) {
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalFirstLevel) {
   auto called{-1};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
-      [&](const GameObjectID event) { called = event; });
+      [&](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   ASSERT_NE(called, -1);
   ASSERT_EQ(game_engine.get_dungeon_level(), 2);
@@ -333,7 +333,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedNormal
   game_engine.reset_level(LevelType::Normal);
   auto called{-1};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
-      [&](const GameObjectID event) { called = event; });
+      [&](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   ASSERT_NE(called, -1);
   ASSERT_EQ(game_engine.get_dungeon_level(), 3);
@@ -346,7 +346,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedLastLe
   game_engine.reset_level(LevelType::Boss);
   auto called{-1};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
-      [&](const GameObjectID event) { called = event; });
+      [&](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   ASSERT_NE(called, -1);
   ASSERT_EQ(game_engine.get_dungeon_level(), 0);
@@ -355,7 +355,8 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedLastLe
 /// Test that the game engine generates an enemy correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyValid) {
   auto enemy_created{-1};
-  auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
+  auto enemy_creation{
+      [&](const GameObjectID enemy_id, const std::pair<double, double> &) { enemy_created = enemy_id; }};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.on_update(1);
   ASSERT_NE(enemy_created, -1);
@@ -364,7 +365,8 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyValid) {
 /// Test that the game engine can't generate an enemy if the timer is not reached.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyTimerNotReached) {
   auto enemy_created{-1};
-  auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
+  auto enemy_creation{
+      [&](const GameObjectID enemy_id, const std::pair<double, double> &) { enemy_created = enemy_id; }};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.on_update(0.5);
   ASSERT_EQ(enemy_created, -1);
@@ -376,7 +378,8 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyLimit) {
     game_engine.on_update(1);
   }
   auto enemy_created{-1};
-  auto enemy_creation{[&](const GameObjectID enemy_id) { enemy_created = enemy_id; }};
+  auto enemy_creation{
+      [&](const GameObjectID enemy_id, const std::pair<double, double> &) { enemy_created = enemy_id; }};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.on_update(1);
   ASSERT_EQ(enemy_created, -1);
@@ -467,7 +470,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseEInLobbyTouchingGoal) {
   game_engine.reset_level(LevelType::Lobby);
   int called{-1};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event) { called = event; });
+      [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   game_engine.on_key_release(KEY_E, 0);
   ASSERT_NE(called, -1);
@@ -479,7 +482,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseEInLobbyTouchingGoal) {
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseENotInLobbyTouchingGoal) {
   int called{-1};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event) { called = event; });
+      [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal), false);
   game_engine.on_key_release(KEY_E, 0);
   ASSERT_EQ(called, -1);
@@ -491,7 +494,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseEInLobbyNotTouchingGoal) {
   game_engine.reset_level(LevelType::Lobby);
   int called{-1};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event) { called = event; });
+      [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   game_engine.on_key_release(KEY_E, 0);
   ASSERT_EQ(called, -1);
 }
@@ -551,7 +554,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnMousePressLeft) {
   game_engine.get_registry().get_system<AttackSystem>()->update(10);
   int called{-1};
   game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event) { called = event; });
+      [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   ASSERT_TRUE(game_engine.on_mouse_press(0, 0, MOUSE_BUTTON_LEFT, 0));
   ASSERT_NE(called, -1);
 }

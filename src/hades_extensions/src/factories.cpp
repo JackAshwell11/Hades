@@ -77,7 +77,6 @@ const auto wall_factory{[](const int /*level*/) {
 /// @return The components for the floor.
 const auto floor_factory{[](const int /*level*/) {
   return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<KinematicComponent>(),
       std::make_shared<PythonSprite>(),
   };
 }};

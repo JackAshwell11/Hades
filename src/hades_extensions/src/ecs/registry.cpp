@@ -105,6 +105,7 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
   game_objects_[game_object_id] = {};
   game_object_types_[game_object_id] = game_object_type;
   game_object_ids_[game_object_type].push_back(game_object_id);
+  auto game_object_position{game_object_type == GameObjectType::Bullet ? position : grid_pos_to_pixel(position)};
   for (const auto &component : components) {
     // Check if the component already exists in the registry
     const auto &obj{*component};
@@ -117,7 +118,7 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
       const auto kinematic_component{std::static_pointer_cast<KinematicComponent>(component)};
       auto *const body{*kinematic_component->body};
       auto *const shape{*kinematic_component->shape};
-      cpBodySetPosition(body, game_object_type == GameObjectType::Bullet ? position : grid_pos_to_pixel(position));
+      cpBodySetPosition(body, game_object_position);
       cpShapeSetCollisionType(shape, static_cast<cpCollisionType>(game_object_type));
       cpShapeSetFilter(shape, {CP_NO_GROUP, static_cast<cpBitmask>(game_object_type), CP_ALL_CATEGORIES});
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -132,7 +133,7 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
   }
 
   // Increment the game object ID and return the current game object ID
-  notify<EventType::GameObjectCreation>(game_object_id);
+  notify<EventType::GameObjectCreation>(game_object_id, std::pair{game_object_position.x, game_object_position.y});
   return game_object_id;
 }
 

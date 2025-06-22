@@ -127,7 +127,9 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateNonZeroDeltaTime) {
 /// Test that the attack system does not do an automated attack if the cooldown is not up.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementZeroDeltaTime) {
   auto game_object_created{-1};
-  auto game_object_creation_callback{[&](const GameObjectID game_object_id) { game_object_created = game_object_id; }};
+  auto game_object_creation_callback{[&](const GameObjectID game_object_id, const std::pair<double, double> &) {
+    game_object_created = game_object_id;
+  }};
   create_attacker({.ranged{true}, .steering_movement{true}});
   registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(0);
@@ -137,7 +139,9 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementZeroDeltaTime)
 /// Test that the attack system does not do an automated attack if the steering movement is not in the target state.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementNotTarget) {
   auto game_object_created{-1};
-  auto game_object_creation_callback{[&](const GameObjectID game_object_id) { game_object_created = game_object_id; }};
+  auto game_object_creation_callback{[&](const GameObjectID game_object_id, const std::pair<double, double> &) {
+    game_object_created = game_object_id;
+  }};
   create_attacker({.ranged{true}, .steering_movement{true}});
   registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
@@ -147,7 +151,9 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementNotTarget) {
 /// Test that the attack system does an automated attack correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
   auto game_object_created{-1};
-  auto game_object_creation_callback{[&](const GameObjectID game_object_id) { game_object_created = game_object_id; }};
+  auto game_object_creation_callback{[&](const GameObjectID game_object_id, const std::pair<double, double> &) {
+    game_object_created = game_object_id;
+  }};
   create_attacker({.ranged{true}, .steering_movement{true}});
   registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   registry.get_component<SteeringMovement>(8)->movement_state = SteeringMovementState::Target;
@@ -158,7 +164,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
 /// Test that performing a ranged attack with a single bullet works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingle) {
   auto game_object_created{-1};
-  auto game_object_creation_callback{[&](const GameObjectID game_object_id) {
+  auto game_object_creation_callback{[&](const GameObjectID game_object_id, const std::pair<double, double> &) {
     // The velocity for the bullet is set after the game object is created
     const auto *bullet{*registry.get_component<KinematicComponent>(game_object_id)->body};
     const auto [pos_x, pos_y]{cpBodyGetPosition(bullet)};
@@ -186,8 +192,9 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingleWrongType) {
 /// Test that performing a ranged attack with multiple bullets works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleBullets) {
   std::vector<GameObjectID> game_objects_created;
-  auto game_object_creation_callback{
-      [&](const GameObjectID game_object_id) { game_objects_created.push_back(game_object_id); }};
+  auto game_object_creation_callback{[&](const GameObjectID game_object_id, const std::pair<double, double> &) {
+    game_objects_created.push_back(game_object_id);
+  }};
   create_attacker({.ranged{true}});
   registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);

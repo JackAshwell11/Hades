@@ -27,6 +27,7 @@ class HadesSprite(BasicSprite):
         self: HadesSprite,
         registry: Registry,
         game_object_id: int,
+        position: tuple[float, float],
         constructor: GameObjectConstructor,
     ) -> None:
         """Initialise the object.
@@ -35,11 +36,14 @@ class HadesSprite(BasicSprite):
             registry: The registry that manages the game objects, components, and
                 systems.
             game_object_id: The game object's ID.
+            position: The sprite's initial position.
             constructor: The game object's constructor.
         """
         super().__init__(
             constructor.textures[0].get_texture(),
             SPRITE_SCALE,
+            position[0],
+            position[1],
         )
         self.registry: Registry = registry
         self.game_object_id: int = game_object_id
@@ -73,24 +77,6 @@ class HadesSprite(BasicSprite):
         """
         return self.constructor.description
 
-    def update(self: HadesSprite, *_: tuple[float]) -> None:
-        """Update the sprite object."""
-        self.position = self.registry.get_component(
-            self.game_object_id,
-            KinematicComponent,
-        ).get_position()
-
-    def __repr__(self: HadesSprite) -> str:  # pragma: no cover
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return (
-            f"<HadesSprite (Game object ID={self.game_object_id}) (Current"
-            f" texture={self.texture})>"
-        )
-
 
 class AnimatedSprite(HadesSprite):
     """Represents an animated sprite object in the game.
@@ -105,6 +91,7 @@ class AnimatedSprite(HadesSprite):
         self: AnimatedSprite,
         registry: Registry,
         game_object_id: int,
+        position: tuple[float, float],
         constructor: GameObjectConstructor,
     ) -> None:
         """Initialise the object.
@@ -113,41 +100,39 @@ class AnimatedSprite(HadesSprite):
             registry: The registry that manages the game objects, components, and
                 systems.
             game_object_id: The game object's ID.
+            position: The sprite's initial position.
             constructor: The game object's constructor.
         """
-        super().__init__(registry, game_object_id, constructor)
+        super().__init__(registry, game_object_id, position, constructor)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
             (texture.get_texture(), texture.get_texture().flip_left_right())
             for texture in constructor.textures
         ]
 
-    def __repr__(self: AnimatedSprite) -> str:  # pragma: no cover
-        """Return a human-readable representation of this object.
-
-        Returns:
-            The human-readable representation of this object.
-        """
-        return (
-            f"<AnimatedSprite (Game object ID={self.game_object_id}) (Current"
-            f" texture={self.texture})>"
-        )
+    def update(self: AnimatedSprite, *_: tuple[float]) -> None:
+        """Update the sprite object."""
+        self.position = self.registry.get_component(
+            self.game_object_id,
+            KinematicComponent,
+        ).get_position()
 
 
 def make_sprite(
     registry: Registry,
     game_object_id: int,
+    position: tuple[float, float],
     constructor: GameObjectConstructor,
 ) -> HadesSprite:
     """Create a sprite object.
 
     Args:
-        registry: The registry that manages the game objects, components, and
-            systems.
+        registry: The registry that manages the game objects, components, and systems.
         game_object_id: The game object's ID.
+        position: The sprite's initial position.
         constructor: The game object's constructor.
 
     Returns:
         The sprite object.
     """
     sprite_class = AnimatedSprite if len(constructor.textures) > 1 else HadesSprite
-    return sprite_class(registry, game_object_id, constructor)
+    return sprite_class(registry, game_object_id, position, constructor)

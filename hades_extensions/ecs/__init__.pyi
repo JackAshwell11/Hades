@@ -67,7 +67,7 @@ class Registry:
     def add_callback(
         self: Registry,
         event_type: Literal[EventType.GameObjectCreation],
-        callback: Callable[[int], None],
+        callback: Callable[[int, tuple[float, float]], None],
     ) -> None: ...
     @overload
     def add_callback(

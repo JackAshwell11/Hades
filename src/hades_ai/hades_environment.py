@@ -485,7 +485,11 @@ class HadesEnvironment(Env):  # type:ignore[misc]
         if self.window:
             self.window = self.game_scene = None
 
-    def on_game_object_creation(self: HadesEnvironment, game_object_id: int) -> None:
+    def on_game_object_creation(
+        self: HadesEnvironment,
+        game_object_id: int,
+        _: tuple[float, float],
+    ) -> None:
         """Add a game object to the game.
 
         Args:

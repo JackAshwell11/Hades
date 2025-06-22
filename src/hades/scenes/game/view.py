@@ -17,7 +17,6 @@ from hades.progress_bar import PROGRESS_BAR_HEIGHT, ProgressBar
 from hades.scenes.base.view import BaseView
 from hades.sprite import HadesSprite
 from hades_extensions.ecs import SPRITE_SIZE, GameObjectType, StatusEffectType
-from hades_extensions.ecs.components import PythonSprite
 
 if TYPE_CHECKING:
     from hades.window import HadesWindow
@@ -188,9 +187,6 @@ class GameView(BaseView):
             sprite: The sprite to add.
         """
         self.sprites.append(sprite)
-        sprite.registry.get_component(sprite.game_object_id, PythonSprite).sprite = (
-            sprite
-        )
         if sprite.constructor.progress_bars:
             self.add_progress_bar(sprite)
 

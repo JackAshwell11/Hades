@@ -91,19 +91,24 @@ class GameScene(BaseScene[GameView]):
             ),
         )
 
-    def on_game_object_creation(self: GameScene, game_object_id: int) -> None:
+    def on_game_object_creation(
+        self: GameScene,
+        game_object_id: int,
+        position: tuple[float, float],
+    ) -> None:
         """Process game object creation logic.
 
         Args:
             game_object_id: The ID of the newly created game object.
+            position: The position of the newly created game object.
         """
         logger.debug("Received game object creation event for %d", game_object_id)
         constructor = game_object_constructors[
             self.model.registry.get_game_object_type(game_object_id)
         ]
-        self.view.add_sprite(
-            make_sprite(self.model.registry, game_object_id, constructor),
-        )
+        sprite = make_sprite(self.model.registry, game_object_id, position, constructor)
+        self.model.registry.get_component(game_object_id, PythonSprite).sprite = sprite
+        self.view.add_sprite(sprite)
 
     def on_game_object_death(self: GameScene, game_object_id: int) -> None:
         """Process game object death logic.

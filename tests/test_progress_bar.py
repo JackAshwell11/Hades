@@ -63,6 +63,7 @@ def sprite() -> HadesSprite:
     return HadesSprite(
         registry,
         0,
+        (0, 0),
         GameObjectConstructor(
             "Test sprite",
             "Test description",

@@ -233,15 +233,16 @@ TEST_F(RegistryFixture, TestRegistryClearWithPreservedGameObjects) {
 
 /// Test that creating a game object notifies the correct event.
 TEST_F(RegistryFixture, TestRegistryGameObjectCreationEvent) {
-  int called{-1};
-  registry.add_callback<EventType::GameObjectCreation>([&called](const GameObjectID event) { called = event; });
+  auto called{-1};
+  registry.add_callback<EventType::GameObjectCreation>(
+      [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
   ASSERT_EQ(called, 0);
 }
 
 /// Test that deleting a game object notifies the correct event.
 TEST_F(RegistryFixture, TestRegistryGameObjectDeathEvent) {
-  int called{-1};
+  auto called{-1};
   registry.add_callback<EventType::GameObjectDeath>([&called](const GameObjectID event) { called = event; });
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
   ASSERT_EQ(called, -1);
@@ -383,7 +384,8 @@ TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksAdded) {
 /// Test that an event is not notified if there are no callbacks listening for that event.
 TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksListening) {
   auto called{-1};
-  registry.add_callback<EventType::GameObjectCreation>([&called](const auto event) { called = event; });
+  registry.add_callback<EventType::GameObjectCreation>(
+      [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   registry.notify<EventType::GameObjectDeath>(0);
   ASSERT_EQ(called, -1);
 }

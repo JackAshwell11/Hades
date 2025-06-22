@@ -135,7 +135,7 @@ def player_factory() -> GameObjectConstructor:
         "The player character.",
         GameObjectType.Player,
         3,
-        [IconType.PLAYER_IDLE],
+        [IconType.PLAYER_IDLE, IconType.PLAYER_IDLE],
         [(Health, (4, 2), color.RED), (Armour, (4, 2), color.SILVER)],
     )
 
@@ -151,7 +151,7 @@ def enemy_factory() -> GameObjectConstructor:
         "An enemy character.",
         GameObjectType.Enemy,
         3,
-        [IconType.ENEMY_IDLE],
+        [IconType.ENEMY_IDLE, IconType.ENEMY_IDLE],
         [(Health, (1, 1), color.RED), (Armour, (1, 1), color.SILVER)],
     )
 
