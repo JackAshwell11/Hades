@@ -22,7 +22,7 @@ Repository = "https://github.com/JackAshwell11/Hades"
 
 [project.optional-dependencies]
 ai = [
-    "gymnasium==1.1.1",
+    "gymnasium==1.2.0",
     "ipython==9.3.0",
     "matplotlib==3.10.3",
     "mpld3==0.5.10",
