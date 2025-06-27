@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 # Builtin
-import logging
 import math
 from typing import TYPE_CHECKING
 
@@ -19,9 +18,6 @@ if TYPE_CHECKING:
     from typing import ClassVar
 
 __all__ = ("GameScene",)
-
-# Get the logger for this module
-logger = logging.getLogger(__name__)
 
 
 class GameScene(BaseScene[GameView]):
@@ -102,7 +98,6 @@ class GameScene(BaseScene[GameView]):
             game_object_id: The ID of the newly created game object.
             position: The position of the newly created game object.
         """
-        logger.debug("Received game object creation event for %d", game_object_id)
         constructor = game_object_constructors[
             self.model.registry.get_game_object_type(game_object_id)
         ]
@@ -116,7 +111,6 @@ class GameScene(BaseScene[GameView]):
         Args:
             game_object_id: The ID of the game object to remove.
         """
-        logger.debug("Received game object death event for %d", game_object_id)
         self.view.remove_progress_bars(game_object_id)
         self.on_sprite_removal(game_object_id)
 
@@ -126,7 +120,6 @@ class GameScene(BaseScene[GameView]):
         Args:
             game_object_id: The ID of the sprite to remove.
         """
-        logger.debug("Received sprite removal event for %d", game_object_id)
         self.model.registry.get_component(
             game_object_id,
             PythonSprite,

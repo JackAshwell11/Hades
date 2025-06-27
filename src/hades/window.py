@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 # Builtin
-from datetime import UTC, datetime
-from logging.config import dictConfig
-from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 # Pip
 from arcade import Texture, Window, get_default_texture, get_image
@@ -22,67 +19,16 @@ from hades.scenes.inventory import InventoryScene
 from hades.scenes.shop import ShopScene
 from hades.scenes.start_menu import StartMenuScene
 
-__all__ = ("HadesWindow",)
+if TYPE_CHECKING:
+    from pathlib import Path
 
-# The name of the logger used for the game
-GAME_LOGGER: Final[str] = "hades"
+__all__ = ("HadesWindow",)
 
 # The Gaussian blur filter to apply to the background image
 BACKGROUND_BLUR: Final[GaussianBlur] = GaussianBlur(5)
 
 # The path to the shop offerings JSON file
 SHOP_OFFERINGS: Final[Path] = resolve(":resources:shop_offerings.json")
-
-# Create the log directory making sure it exists. Then create the path for the current
-# log file
-log_dir = Path(__file__).resolve().parent.parent / "logs"
-log_dir.mkdir(parents=True, exist_ok=True)
-
-# Initialise logging and get the game logger
-dictConfig(
-    {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "detailed": {
-                "format": (
-                    "%(asctime)s [%(levelname)s] %(name)s:%(filename)s:%(funcName)s:%("
-                    "lineno)d - %(message)s"
-                ),
-            },
-        },
-        "handlers": {
-            "file": {
-                "class": "logging.handlers.RotatingFileHandler",
-                "level": "DEBUG",
-                "formatter": "detailed",
-                "filename": (
-                    log_dir / f"{datetime.now(tz=UTC).strftime('%Y-%m-%d')}.log"
-                ),
-                "maxBytes": 10485760,  # 10 MB
-                "backupCount": 5,
-                "encoding": "utf8",
-            },
-            "console": {
-                "class": "logging.StreamHandler",
-                "level": "ERROR",
-                "formatter": "detailed",
-                "stream": "ext://sys.stderr",
-            },
-        },
-        "loggers": {
-            "": {
-                "handlers": ["file", "console"],
-                "level": "WARNING",
-            },
-            GAME_LOGGER: {
-                "handlers": ["file", "console"],
-                "level": "DEBUG",
-                "propagate": False,
-            },
-        },
-    },
-)
 
 
 class HadesWindow(Window):
