@@ -22,13 +22,16 @@ from hades.scenes.start_menu import StartMenuScene
 if TYPE_CHECKING:
     from pathlib import Path
 
-__all__ = ("HadesWindow",)
+__all__ = ("HadesWindow", "main")
 
 # The Gaussian blur filter to apply to the background image
 BACKGROUND_BLUR: Final[GaussianBlur] = GaussianBlur(5)
 
 # The path to the shop offerings JSON file
 SHOP_OFFERINGS: Final[Path] = resolve(":resources:shop_offerings.json")
+
+# The event types to register for the window
+EVENT_TYPES: Final[list[str]] = ["on_texture_button_callback", "on_use_button_callback"]
 
 
 class HadesWindow(Window):
@@ -60,6 +63,8 @@ class HadesWindow(Window):
             SceneType.INVENTORY: InventoryScene(),
             SceneType.SHOP: ShopScene(),
         }
+        for event_type in EVENT_TYPES:
+            self.register_event_type(event_type)
 
     def setup(self: HadesWindow) -> None:
         """Set up the window and its scenes."""

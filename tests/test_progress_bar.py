@@ -92,11 +92,11 @@ def test_progress_bar_init(
     expected_width: int,
     expected_height: int,
 ) -> None:
-    """Test that a ProgressBar is initialised correctly.
+    """Test that a progress bar initialises correctly.
 
     Args:
         sprite: A sprite for testing.
-        init_data: The data to initialise the ProgressBar with.
+        init_data: The data to initialise the progress bar with.
         expected_width: The expected width of the progress bar
         expected_height: The expected height of the progress bar
     """
@@ -119,10 +119,10 @@ def test_progress_bar_init(
 
 @pytest.mark.parametrize("scale", [(0, 0), (-1, -1)])
 def test_progress_bar_init_invalid_scale(scale: tuple[float, float]) -> None:
-    """Test that a ProgressBar with an invalid scale raises an error.
+    """Test that a progress bar with an invalid scale raises an error.
 
     Args:
-        scale: The scale to initialise the ProgressBar with.
+        scale: The scale to initialise the progress bar with.
     """
     with pytest.raises(
         expected_exception=ValueError,
@@ -132,7 +132,7 @@ def test_progress_bar_init_invalid_scale(scale: tuple[float, float]) -> None:
 
 
 def test_progress_bar_init_invalid_order() -> None:
-    """Test that a ProgressBar with an invalid order raises an error."""
+    """Test that a progress bar with an invalid order raises an error."""
     with pytest.raises(
         expected_exception=ValueError,
         match="Order must be greater than or equal to 0",
@@ -157,7 +157,7 @@ def test_progress_bar_on_update(
     *,
     expected_visibility: bool,
 ) -> None:
-    """Test that a ProgressBar is correctly updated.
+    """Test that a progress bar is correctly updated.
 
     Args:
         sprite: A sprite for testing.

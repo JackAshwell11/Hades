@@ -243,6 +243,24 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopMultipleValidOfferings) {
   ASSERT_EQ(std::get<2>(callback_args[2]), 50);
 }
 
+/// Test that setting up the shop with an invalid stat type throws an exception.
+TEST_F(GameEngineFixture, TestGameEngineSetupShopInvalidStatType) {
+  std::istringstream shop_stream{R"([
+        {
+            "type": "stat",
+            "name": "Invalid Stat",
+            "description": "An item with an invalid stat type",
+            "icon_type": "invalid",
+            "base_cost": 100.0,
+            "cost_multiplier": 1.5,
+            "stat_type": "InvalidStat",
+            "base_value": 10.0,
+            "value_multiplier": 1.2
+        }
+    ])"};
+  ASSERT_THROW_MESSAGE(game_engine.setup_shop(shop_stream), std::runtime_error, "Unknown component type: InvalidStat");
+}
+
 /// Test that setting up the shop with an unknown type throws an exception.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopUnknownType) {
   std::istringstream shop_stream{R"([
@@ -273,6 +291,14 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopInvalidJSON) {
   ASSERT_THROW_MESSAGE(game_engine.setup_shop(shop_stream), nlohmann::json::exception,
                        "[json.exception.parse_error.101] parse error at line 9, column 9: syntax error while parsing "
                        "object key - unexpected '}'; expected string literal");
+}
+
+/// Test that setting up the shop with an empty stream throws an exception.
+TEST_F(GameEngineFixture, TestGameEngineSetupShopEmptyStream) {
+  std::istringstream shop_stream{""};
+  ASSERT_THROW_MESSAGE(game_engine.setup_shop(shop_stream), nlohmann::json::exception,
+                       "[json.exception.parse_error.101] parse error at line 1, column 1: attempting to parse an empty "
+                       "input; check that your input string or stream contains the expected JSON");
 }
 
 /// Test that the game engine throws an exception if no game objects are registered.

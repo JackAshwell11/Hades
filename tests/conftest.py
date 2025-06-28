@@ -9,8 +9,11 @@ from typing import TYPE_CHECKING
 
 # Pip
 import pytest
-from arcade import Window
+from arcade import get_default_texture
 from arcade.texture import default_texture_cache
+
+# Custom
+from hades.window import HadesWindow
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -21,26 +24,26 @@ __all__ = ()
 
 
 @pytest.fixture(scope="session")
-def session_window() -> Generator[Window]:
+def session_window() -> Generator[HadesWindow]:
     """Create a window for the session.
 
     Yields:
-        The window for the session.
+        The hades window for the session.
     """
-    window = Window()
-    yield window
-    window.close()
+    hades_window = HadesWindow()
+    yield hades_window
+    hades_window.close()
 
 
 @pytest.fixture
-def window(session_window: Window) -> Window:
-    """Create a window for testing.
+def hades_window(session_window: HadesWindow) -> HadesWindow:
+    """Create a hades window for testing.
 
     Args:
-        session_window: The window for the session.
+        session_window: The hades window for the session.
 
     Returns:
-        The window for testing.
+        The hades window for testing.
     """
     # Reset the window before running the test
     default_texture_cache.flush()
@@ -50,6 +53,7 @@ def window(session_window: Window) -> Window:
     session_window.flip()
     session_window.clear()
     session_window.default_camera.use()
+    session_window.background_image.texture = get_default_texture()
 
     # Reset the context and run the garbage collector
     ctx = session_window.ctx
@@ -64,20 +68,20 @@ def window(session_window: Window) -> Window:
 def sized_window(
     monkeypatch: MonkeyPatch,
     request: pytest.FixtureRequest,
-    window: Window,
-) -> Window:
+    hades_window: HadesWindow,
+) -> HadesWindow:
     """Create a window with a custom size for testing.
 
     Args:
         monkeypatch: The monkeypatch fixture for mocking.
         request: The fixture request object.
-        window: The window for testing.
+        hades_window: The hades window for testing.
 
     Returns:
         A window with a tom size for testing.
     """
     # We need to set these attributes since `set_size()` doesn't work in
     # headless mode
-    monkeypatch.setattr(window, "_width", request.param[0])
-    monkeypatch.setattr(window, "_height", request.param[1])
-    return window
+    monkeypatch.setattr(hades_window, "_width", request.param[0])
+    monkeypatch.setattr(hades_window, "_height", request.param[1])
+    return hades_window

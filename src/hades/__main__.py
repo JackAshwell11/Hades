@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Custom
-from hades import window
+from hades.window import main
 
 if __name__ == "__main__":
-    window.main()
+    main()

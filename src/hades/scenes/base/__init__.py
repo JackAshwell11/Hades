@@ -20,6 +20,7 @@ class BaseScene[V: BaseView](ABC, View):
     """The base class for all scenes in the game.
 
     Attributes:
+        model: The model providing access to the game engine and its functionality.
         view: The renderer for the scene.
     """
 

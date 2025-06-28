@@ -12,7 +12,7 @@ import pytest
 
 # Custom
 from hades.constructors import GameObjectConstructor, IconType
-from hades.sprite import AnimatedSprite, HadesSprite
+from hades.sprite import AnimatedSprite, HadesSprite, make_sprite
 from hades_extensions.ecs import GameObjectType, Registry
 from hades_extensions.ecs.components import KinematicComponent
 
@@ -54,7 +54,7 @@ def test_hades_sprite_init(
     constructor: GameObjectConstructor,
     expected_path: Path,
 ) -> None:
-    """Test that a HadesSprite object is initialised correctly.
+    """Test that a hades sprite object initialises correctly.
 
     Args:
         constructor: The game object constructor for testing.
@@ -70,7 +70,7 @@ def test_hades_sprite_init(
 
 
 def test_hades_sprite_init_no_texture() -> None:
-    """Test that a HadesSprite object raises an error when no textures are provided."""
+    """Test that a hades sprite object raises an error when no textures are provided."""
     with pytest.raises(expected_exception=IndexError, match="list index out of range"):
         HadesSprite(
             Mock(),
@@ -80,8 +80,42 @@ def test_hades_sprite_init_no_texture() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("constructor", "expected_paths"),
+    [
+        ([IconType.FLOOR], [texture_path / "floor.png"]),
+        (
+            [IconType.FLOOR, IconType.WALL],
+            [texture_path / "floor.png", texture_path / "wall.png"],
+        ),
+    ],
+    indirect=["constructor"],
+)
+def test_animated_sprite_init(
+    constructor: GameObjectConstructor,
+    expected_paths: list[Path],
+) -> None:
+    """Test that an animated sprite object initialises correctly.
+
+    Args:
+        constructor: The game object constructor for testing.
+        expected_paths: The expected path of the textures.
+    """
+    sprite = AnimatedSprite(Mock(), 0, (0, 0), constructor)
+    assert sprite.position == (0, 0)
+    assert sprite.texture.file_path == expected_paths[0]
+    assert sprite.game_object_id == 0
+    assert sprite.game_object_type == GameObjectType.Player
+    assert sprite.name == "Test constructor"
+    assert sprite.description == "Test description"
+    assert len(sprite.sprite_textures) == len(expected_paths)
+    for i, textures in enumerate(sprite.sprite_textures):
+        assert textures[0].file_path == expected_paths[i]
+        assert len(sprite.sprite_textures[0]) == 2
+
+
 def test_animated_sprite_update() -> None:
-    """Test that an AnimatedSprite object is updated correctly."""
+    """Test that an animated sprite object is updated correctly."""
     # Set up the mocks for the test
     registry = Mock(spec=Registry)
     kinematic_component = Mock(spec=KinematicComponent)
@@ -105,34 +139,22 @@ def test_animated_sprite_update() -> None:
 
 
 @pytest.mark.parametrize(
-    ("constructor", "expected_paths"),
+    ("constructor", "expected_sprite_type"),
     [
-        ([IconType.FLOOR], [texture_path / "floor.png"]),
-        (
-            [IconType.FLOOR, IconType.WALL],
-            [texture_path / "floor.png", texture_path / "wall.png"],
-        ),
+        ([IconType.FLOOR], HadesSprite),
+        ([IconType.FLOOR, IconType.WALL], AnimatedSprite),
     ],
     indirect=["constructor"],
 )
-def test_animated_sprite_init(
+def test_make_sprite(
     constructor: GameObjectConstructor,
-    expected_paths: list[Path],
+    expected_sprite_type: type[HadesSprite | AnimatedSprite],
 ) -> None:
-    """Test that an AnimatedSprite object is initialised correctly.
+    """Test that the make_sprite function creates the correct sprite object.
 
     Args:
         constructor: The game object constructor for testing.
-        expected_paths: The expected path of the textures.
+        expected_sprite_type: The expected type of the sprite object.
     """
-    sprite = AnimatedSprite(Mock(), 0, (0, 0), constructor)
-    assert sprite.position == (0, 0)
-    assert sprite.texture.file_path == expected_paths[0]
-    assert sprite.game_object_id == 0
-    assert sprite.game_object_type == GameObjectType.Player
-    assert sprite.name == "Test constructor"
-    assert sprite.description == "Test description"
-    assert len(sprite.sprite_textures) == len(expected_paths)
-    for i, textures in enumerate(sprite.sprite_textures):
-        assert textures[0].file_path == expected_paths[i]
-        assert len(sprite.sprite_textures[0]) == 2
+    sprite = make_sprite(Mock(spec=Registry), 0, (0, 0), constructor)
+    assert isinstance(sprite, expected_sprite_type)

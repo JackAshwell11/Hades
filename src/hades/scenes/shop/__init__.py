@@ -37,8 +37,6 @@ class ShopScene(BaseScene[ShopView]):
                 event_type,
                 callback,
             )
-        self.view.window.register_event_type("on_texture_button_callback")
-        self.view.window.register_event_type("on_use_button_callback")
 
     def on_hide_view(self: ShopScene) -> None:
         """Process hide view functionality."""

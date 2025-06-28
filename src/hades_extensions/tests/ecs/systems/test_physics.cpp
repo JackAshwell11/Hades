@@ -42,6 +42,14 @@ class PhysicsSystemFixture : public testing::Test {
   }
 };
 
+/// Test that providing an invalid number of vertices throws an exception.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemKinematicComponentInvalidVertices) {
+  ASSERT_THROW_MESSAGE(
+      registry.create_game_object(GameObjectType::Player, cpvzero,
+                                  {std::make_shared<KinematicComponent>(std::vector<cpVect>{{0.0, 1.0}})}),
+      std::invalid_argument, "The shape must have at least 3 vertices.");
+}
+
 /// Test updating the physics system with a game object that has no velocity and no force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityNoForce) {
   get_physics_system()->update(1.0);
