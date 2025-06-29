@@ -19,6 +19,7 @@ class SceneType(Enum):
 
     START_MENU = auto()
     GAME = auto()
+    GAME_OPTIONS = auto()
     INVENTORY = auto()
     SHOP = auto()
 

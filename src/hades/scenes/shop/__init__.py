@@ -26,7 +26,7 @@ class ShopScene(BaseScene[ShopView]):
     _view_type: ClassVar[type[ShopView]] = ShopView
 
     def add_callbacks(self: ShopScene) -> None:
-        """Set up the controller callbacks."""
+        """Add callbacks for the scene."""
         callbacks = [
             (EventType.ShopItemLoaded, self.on_shop_item_loaded),
             (EventType.ShopItemPurchased, self.on_shop_item_purchased),

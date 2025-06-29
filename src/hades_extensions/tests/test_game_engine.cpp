@@ -20,7 +20,7 @@ class GameEngineFixture : public testing::Test {  // NOLINT
   void SetUp() override {
     load_hitbox(GameObjectType::Player, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
     load_hitbox(GameObjectType::Enemy, {{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}});
-    game_engine.set_seed(10);
+    game_engine.set_seed("Test Seed");
     game_engine.reset_level(LevelType::Lobby);
     game_engine.reset_level(LevelType::Normal);
   }
@@ -548,6 +548,23 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseETouchingShopInLobby) {
   ASSERT_TRUE(called);
 }
 
+/// Test that the game engine processes a 'Q` key release correctly if the player is in the lobby.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseQInLobby) {
+  game_engine.reset_level(LevelType::Lobby);
+  auto called{false};
+  game_engine.get_registry().add_callback<EventType::GameOptionsOpen>([&called] { called = true; });
+  game_engine.on_key_release(KEY_Q, 0);
+  ASSERT_TRUE(called);
+}
+
+/// Test that the game engine processes a 'Q` key release correctly if the player is not in the lobby.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseQNotInLobby) {
+  auto called{false};
+  game_engine.get_registry().add_callback<EventType::GameOptionsOpen>([&called] { called = true; });
+  game_engine.on_key_release(KEY_Q, 0);
+  ASSERT_FALSE(called);
+}
+
 /// Test that the game engine processes a 'Z' key release correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseZ) {
   game_engine.on_update(1);
@@ -563,8 +580,17 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseX) {
   ASSERT_EQ(game_engine.get_registry().get_component<Attack>(game_engine.get_player_id())->selected_ranged_attack, 1);
 }
 
-/// Test that the game engine processes a 'I' key release correctly.
-TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseI) {
+/// Test that the game engine processes a 'I' key release correctly if the player is in the lobby.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseIInLobby) {
+  game_engine.reset_level(LevelType::Lobby);
+  auto called{false};
+  game_engine.get_registry().add_callback<EventType::InventoryOpen>([&called] { called = true; });
+  game_engine.on_key_release(KEY_I, 0);
+  ASSERT_FALSE(called);
+}
+
+/// Test that the game engine processes a 'I' key release correctly if the player is not in the lobby.
+TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseINotInLobby) {
   auto called{false};
   game_engine.get_registry().add_callback<EventType::InventoryOpen>([&called] { called = true; });
   game_engine.on_key_release(KEY_I, 0);

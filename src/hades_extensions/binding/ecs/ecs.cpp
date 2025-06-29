@@ -29,7 +29,8 @@ void bind_ecs(const pybind11::module_ &module) {
       .value("ShopItemLoaded", EventType::ShopItemLoaded)
       .value("ShopItemPurchased", EventType::ShopItemPurchased)
       .value("ShopOpen", EventType::ShopOpen)
-      .value("InventoryOpen", EventType::InventoryOpen);
+      .value("InventoryOpen", EventType::InventoryOpen)
+      .value("GameOptionsOpen", EventType::GameOptionsOpen);
   pybind11::enum_<GameObjectType>(module, "GameObjectType", "Stores the different types of game objects available.")
       .value("Bullet", GameObjectType::Bullet)
       .value("Enemy", GameObjectType::Enemy)
@@ -148,6 +149,9 @@ void bind_ecs(const pybind11::module_ &module) {
                 break;
               case EventType::InventoryOpen:
                 registry.add_callback<EventType::InventoryOpen>(callback);
+                break;
+              case EventType::GameOptionsOpen:
+                registry.add_callback<EventType::GameOptionsOpen>(callback);
                 break;
               default:
                 throw std::runtime_error("Unsupported event type.");

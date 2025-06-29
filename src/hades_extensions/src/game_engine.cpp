@@ -63,7 +63,10 @@ auto GameEngine::is_player_touching_type(const GameObjectType game_object_type) 
   return get_nearest_item() != -1 && registry_.get_game_object_type(get_nearest_item()) == game_object_type;
 }
 
-void GameEngine::set_seed(const unsigned int seed) { game_state_.dungeon_run.random_generator.seed(seed); }
+void GameEngine::set_seed(const std::string &seed) {
+  constexpr std::hash<std::string> hasher;
+  game_state_.dungeon_run.random_generator.seed(static_cast<unsigned int>(hasher(seed)));
+}
 
 void GameEngine::reset_level(const LevelType level_type) {
   // Always preserve the player for the current dungeon run
@@ -222,6 +225,11 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
         use_item(get_player_id(), get_nearest_item());
       }
       break;
+    case KEY_Q:
+      if (game_state_.current_level.is_lobby) {
+        registry_.notify<EventType::GameOptionsOpen>();
+      }
+      break;
     case KEY_Z:
       registry_.get_system<AttackSystem>()->previous_ranged_attack(get_player_id());
       break;
@@ -229,7 +237,9 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
       registry_.get_system<AttackSystem>()->next_ranged_attack(get_player_id());
       break;
     case KEY_I:
-      registry_.notify<EventType::InventoryOpen>();
+      if (!game_state_.current_level.is_lobby) {
+        registry_.notify<EventType::InventoryOpen>();
+      }
     default:
       break;
   }

@@ -23,6 +23,9 @@ constexpr int KEY_C{99};
 /// The E key code.
 constexpr int KEY_E{101};
 
+/// The Q key code.
+constexpr int KEY_Q{113};
+
 /// The Z key code.
 constexpr int KEY_Z{122};
 
@@ -78,7 +81,7 @@ class GameEngine {
   /// Set the seed for the random generator.
   ///
   /// @param seed - The seed to set for the random generator.
-  void set_seed(unsigned int seed);
+  void set_seed(const std::string &seed);
 
   /// Reset the game engine with a new level.
   ///

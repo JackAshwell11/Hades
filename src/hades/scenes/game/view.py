@@ -111,7 +111,7 @@ class GameView(BaseView):
     )
 
     def _setup_layout(self: GameView) -> None:
-        """Set up the layout for the game view."""
+        """Set up the layout for the view."""
         self.left_layout.add(self.money_indicator)
         left_anchor = UIAnchorLayout()
         left_anchor.add(

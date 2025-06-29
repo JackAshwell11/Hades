@@ -15,6 +15,7 @@ from PIL.ImageFilter import GaussianBlur
 from hades import SceneType
 from hades.model import HadesModel
 from hades.scenes.game import GameScene
+from hades.scenes.game_options import GameOptionsScene
 from hades.scenes.inventory import InventoryScene
 from hades.scenes.shop import ShopScene
 from hades.scenes.start_menu import StartMenuScene
@@ -31,7 +32,13 @@ BACKGROUND_BLUR: Final[GaussianBlur] = GaussianBlur(5)
 SHOP_OFFERINGS: Final[Path] = resolve(":resources:shop_offerings.json")
 
 # The event types to register for the window
-EVENT_TYPES: Final[list[str]] = ["on_texture_button_callback", "on_use_button_callback"]
+EVENT_TYPES: Final[list[str]] = [
+    "on_texture_button_callback",
+    "on_use_button_callback",
+    "on_start_game",
+    "on_optioned_start_game",
+    "on_quit_game",
+]
 
 
 class HadesWindow(Window):
@@ -56,10 +63,11 @@ class HadesWindow(Window):
         )
         self.scenes: dict[
             SceneType,
-            StartMenuScene | GameScene | InventoryScene | ShopScene,
+            StartMenuScene | GameScene | GameOptionsScene | InventoryScene | ShopScene,
         ] = {
             SceneType.START_MENU: StartMenuScene(),
             SceneType.GAME: GameScene(),
+            SceneType.GAME_OPTIONS: GameOptionsScene(),
             SceneType.INVENTORY: InventoryScene(),
             SceneType.SHOP: ShopScene(),
         }

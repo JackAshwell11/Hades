@@ -25,9 +25,7 @@ class StartMenuScene(BaseScene[StartMenuView]):
     _view_type: ClassVar[type[StartMenuView]] = StartMenuView
 
     def add_callbacks(self: StartMenuScene) -> None:
-        """Set up the controller callbacks."""
-        self.view.window.register_event_type("on_start_game")
-        self.view.window.register_event_type("on_quit_game")
+        """Add callbacks for the scene."""
 
     def on_start_game(self: StartMenuScene, _: UIOnClickEvent) -> None:
         """Process start game functionality."""

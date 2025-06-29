@@ -54,7 +54,7 @@ class StartMenuView(BaseView):
     """Manages the rendering of start menu elements on the screen."""
 
     def _setup_layout(self: BaseView) -> None:
-        """Set up the layout for the start menu view."""
+        """Set up the layout for the view."""
         vertical_box = UIBoxLayout(space_between=START_MENU_WIDGET_SPACING)
         vertical_box.add(StartButton())
         vertical_box.add(QuitButton())

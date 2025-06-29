@@ -26,7 +26,7 @@ class InventoryScene(BaseScene[InventoryView]):
     _view_type: ClassVar[type[InventoryView]] = InventoryView
 
     def add_callbacks(self: InventoryScene) -> None:
-        """Set up the controller callbacks."""
+        """Add callbacks for the scene."""
         callbacks = [
             (EventType.InventoryUpdate, self.on_update_inventory),
             (EventType.InventoryOpen, self.on_inventory_open),

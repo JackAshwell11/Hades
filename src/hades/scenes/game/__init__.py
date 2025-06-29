@@ -27,7 +27,7 @@ class GameScene(BaseScene[GameView]):
     _view_type: ClassVar[type[GameView]] = GameView
 
     def add_callbacks(self: GameScene) -> None:
-        """Set up the controller callbacks."""
+        """Add callbacks for the scene."""
         callbacks = [
             (EventType.GameObjectCreation, self.on_game_object_creation),
             (EventType.GameObjectDeath, self.on_game_object_death),

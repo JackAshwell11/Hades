@@ -327,7 +327,7 @@ class GridView[T: ItemButton](BaseView):
     __slots__ = ("grid_layout",)
 
     def _setup_layout(self: GridView[T]) -> None:
-        """Set up the layout for the inventory view."""
+        """Set up the layout for the view."""
         self.ui.add(self.window.background_image)
         layout = UIBoxLayout(vertical=True, space_between=UI_PADDING)
         layout.add(self.grid_layout)
