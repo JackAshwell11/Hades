@@ -12,7 +12,7 @@ prerelease-mode = "allow"
 
 [[package]]
 name = "arcade"
-version = "3.3.1"
+version = "3.3.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pillow" },
@@ -20,9 +20,9 @@ dependencies = [
     { name = "pymunk" },
     { name = "pytiled-parser" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a0/8d/7b099a054fdfe5a440d63554254052722e5c4643a8a4f6473784aa729f17/arcade-3.3.1.tar.gz", hash = "sha256:778411184839b7e08e5880215cf260ba65db92a6161325b68aac61486926f4f6", size = 41953472, upload-time = "2025-06-25T14:13:39.86Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/b2/18e3b0e08a137ea0efb241effbf67c94367b843bc4ead3bda7648bec93f7/arcade-3.3.2.tar.gz", hash = "sha256:8dcbcc56c7f4dd885907da8e7acbb395673e7c9acf9ff308035b69a2a6279a9d", size = 41952828, upload-time = "2025-07-04T01:09:37.066Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4c/67/f80205d3dafa51ca06fce640928075ed4f9994f84795e85b95a0f60114ac/arcade-3.3.1-py3-none-any.whl", hash = "sha256:40ff2e0aeca9f6a2886860329f35d583929db4192ec6b0fd6ca9ad9efb9cc5a7", size = 42666650, upload-time = "2025-06-25T14:13:34.773Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/49/9b457f3844541aaa28525d9f8ce6d00f5c6305b1e7a6c46ce1370203702e/arcade-3.3.2-py3-none-any.whl", hash = "sha256:d6703fb22779376fe698661323e09f250bdcdefa0ae9511e1aee224e51d56a7d", size = 42668054, upload-time = "2025-07-04T01:09:33.17Z" },
 ]
 
 [[package]]
@@ -411,7 +411,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "arcade", specifier = "==3.3.1" },
+    { name = "arcade", specifier = "==3.3.2" },
     { name = "gymnasium", marker = "extra == 'ai'", specifier = "==1.2.0" },
     { name = "ipython", marker = "extra == 'ai'", specifier = "==9.4.0" },
     { name = "matplotlib", marker = "extra == 'ai'", specifier = "==3.10.3" },
