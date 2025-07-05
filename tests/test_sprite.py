@@ -12,7 +12,7 @@ import pytest
 
 # Custom
 from hades.constructors import GameObjectConstructor, IconType
-from hades.sprite import AnimatedSprite, HadesSprite, make_sprite
+from hades.sprite import AnimatedSprite, DynamicSprite, HadesSprite, make_sprite
 from hades_extensions.ecs import GameObjectType, Registry
 from hades_extensions.ecs.components import KinematicComponent
 
@@ -60,7 +60,7 @@ def test_hades_sprite_init(
         constructor: The game object constructor for testing.
         expected_path: The expected path of the texture.
     """
-    sprite = HadesSprite(Mock(), 0, (0, 0), constructor)
+    sprite = HadesSprite(Mock(spec=Registry), 0, (0, 0), constructor)
     assert sprite.position == (0, 0)
     assert sprite.texture.file_path == expected_path
     assert sprite.game_object_id == 0
@@ -78,6 +78,43 @@ def test_hades_sprite_init_no_texture() -> None:
             (0, 0),
             GameObjectConstructor("Test", "Test", GameObjectType.Player, 0, []),
         )
+
+
+def test_dynamic_sprite_init() -> None:
+    """Test that a dynamic sprite object initialises correctly."""
+    constructor = GameObjectConstructor(
+        "Test constructor",
+        "Test description",
+        GameObjectType.Player,
+        0,
+        [IconType.FLOOR],
+    )
+    sprite = DynamicSprite(Mock(spec=Registry), 0, (0, 0), constructor)
+    assert sprite.position == (0, 0)
+
+
+def test_dynamic_sprite_update() -> None:
+    """Test that a dynamic sprite object is updated correctly."""
+    # Set up the mocks for the test
+    registry = Mock(spec=Registry)
+    kinematic_component = Mock(spec=KinematicComponent)
+    kinematic_component.get_position.return_value = (64.0, 64.0)
+    registry.get_component.return_value = kinematic_component
+
+    # Create the sprite object and check that the position is correct
+    constructor = GameObjectConstructor(
+        "Test",
+        "Test description",
+        GameObjectType.Player,
+        0,
+        [IconType.FLOOR],
+    )
+    sprite = DynamicSprite(registry, -1, (0, 0), constructor)
+
+    # Update the sprite object and check that the position is correct
+    assert sprite.position == (0, 0)
+    sprite.update()
+    assert sprite.position == (64.0, 64.0)
 
 
 @pytest.mark.parametrize(
@@ -112,30 +149,6 @@ def test_animated_sprite_init(
     for i, textures in enumerate(sprite.sprite_textures):
         assert textures[0].file_path == expected_paths[i]
         assert len(sprite.sprite_textures[0]) == 2
-
-
-def test_animated_sprite_update() -> None:
-    """Test that an animated sprite object is updated correctly."""
-    # Set up the mocks for the test
-    registry = Mock(spec=Registry)
-    kinematic_component = Mock(spec=KinematicComponent)
-    kinematic_component.get_position.return_value = (64.0, 64.0)
-    registry.get_component.return_value = kinematic_component
-
-    # Create the sprite object and check that the position is correct
-    constructor = GameObjectConstructor(
-        "Test",
-        "Test description",
-        GameObjectType.Player,
-        0,
-        [IconType.FLOOR],
-    )
-    sprite = AnimatedSprite(registry, -1, (0, 0), constructor)
-
-    # Update the sprite object and check that the position is correct
-    assert sprite.position == (0, 0)
-    sprite.update()
-    assert sprite.position == (64.0, 64.0)
 
 
 @pytest.mark.parametrize(
