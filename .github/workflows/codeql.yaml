@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3.29.5
+        uses: github/codeql-action/init@v3.29.8
         with:
           languages: ${{ matrix.language }}
           setup-python-dependencies: false
@@ -35,6 +35,6 @@ jobs:
           cmake . --preset Debug
           cmake --build build-debug
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3.29.5
+        uses: github/codeql-action/analyze@v3.29.8
         with:
           category: /language:${{ matrix.language }}
