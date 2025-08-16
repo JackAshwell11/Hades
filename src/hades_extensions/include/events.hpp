@@ -10,7 +10,7 @@
 #include "game_object.hpp"
 
 // Forward declarations
-enum class StatusEffectType : std::uint8_t;
+enum class EffectType : std::uint8_t;
 
 /// Stores the different types of events that can occur.
 enum class EventType : std::uint8_t {
@@ -60,7 +60,7 @@ struct EventTraits<EventType::SpriteRemoval> {
 /// Provides the argument types for the StatusEffectUpdate event.
 template <>
 struct EventTraits<EventType::StatusEffectUpdate> {
-  using EventArgs = std::tuple<std::unordered_map<StatusEffectType, double>>;
+  using EventArgs = std::tuple<std::unordered_map<EffectType, double>>;
 };
 
 /// Provides the argument types for the MoneyUpdate event.

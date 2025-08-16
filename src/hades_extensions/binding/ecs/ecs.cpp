@@ -27,10 +27,9 @@ void bind_ecs(const pybind11::module_ &module) {
       .value("HealthPotion", GameObjectType::HealthPotion)
       .value("Chest", GameObjectType::Chest)
       .value("Shop", GameObjectType::Shop);
-  pybind11::enum_<StatusEffectType>(module, "StatusEffectType",
-                                    "Stores the different types of status effects available.")
-      .value("Regeneration", StatusEffectType::Regeneration)
-      .value("Poison", StatusEffectType::Poison);
+  pybind11::enum_<EffectType>(module, "EffectType", "Stores the different types of effects available.")
+      .value("Regeneration", EffectType::Regeneration)
+      .value("Poison", EffectType::Poison);
 
   // Add the registry class
   register_exception<RegistryError>(module, "RegistryError");

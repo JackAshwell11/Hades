@@ -4,6 +4,9 @@
 // Std headers
 #include <utility>
 
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
@@ -20,6 +23,10 @@ auto calculate_exponential(const double base, const int level, const double mult
   return base + std::pow(level, multiplier);
 }
 }  // namespace
+
+void Money::to_file(nlohmann::json &json) const { json["money"] = money; }
+
+void Money::from_file(const nlohmann::json &json) { money = json.at("money").get<int>(); }
 
 auto ShopOffering::get_cost(const Registry * /*registry*/, const GameObjectID /*buyer_id*/) const -> double {
   return calculate_exponential(base_cost, 0, cost_multiplier);

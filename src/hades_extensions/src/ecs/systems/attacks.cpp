@@ -5,6 +5,9 @@
 #include <numbers>
 #include <utility>
 
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/systems/movements.hpp"
@@ -51,6 +54,10 @@ void create_bullet_cone(const Registry *registry, const GameObjectID game_object
 }
 }  // namespace
 
+void AttackStat::to_file(nlohmann::json &json) const { to_file_base(json); }
+
+void AttackStat::from_file(const nlohmann::json &json) { from_file_base(json); }
+
 void SingleBulletAttack::perform_attack(const Registry *registry, const GameObjectID game_object_id) const {
   create_bullet_cone(registry, game_object_id, 1, velocity.get_value(), damage.get_value());
 }
@@ -85,6 +92,60 @@ void AreaOfEffectAttack::perform_attack(const Registry *registry, const GameObje
                 cpBodyGetPosition(*registry->get_component<KinematicComponent>(target)->body)) <= range.get_value()) {
       registry->get_system<DamageSystem>()->deal_damage(target, damage.get_value());
     }
+  }
+}
+
+void Attack::reset() { selected_ranged_attack = 0; }
+
+void Attack::to_file(nlohmann::json &json) const {
+  json["selected_ranged_attack"] = selected_ranged_attack;
+  json["ranged_attack"] = nlohmann::json::array();
+  for (const auto &ranged_attack : ranged_attacks) {
+    nlohmann::json ranged_json;
+    ranged_attack->cooldown.to_file(ranged_json["cooldown"]);
+    ranged_attack->damage.to_file(ranged_json["damage"]);
+    ranged_attack->range.to_file(ranged_json["range"]);
+    ranged_attack->velocity.to_file(ranged_json["velocity"]);
+    json["ranged_attack"].push_back(ranged_json);
+  }
+  if (melee_attack) {
+    nlohmann::json melee_json;
+    melee_attack->cooldown.to_file(melee_json["cooldown"]);
+    melee_attack->damage.to_file(melee_json["damage"]);
+    melee_attack->range.to_file(melee_json["range"]);
+    melee_attack->size.to_file(melee_json["size"]);
+    json["melee_attack"] = melee_json;
+  }
+  if (special_attack) {
+    nlohmann::json special_json;
+    special_attack->cooldown.to_file(special_json["cooldown"]);
+    special_attack->damage.to_file(special_json["damage"]);
+    special_attack->range.to_file(special_json["range"]);
+    json["special_attack"] = special_json;
+  }
+}
+
+void Attack::from_file(const nlohmann::json &json) {
+  selected_ranged_attack = json.at("selected_ranged_attack").get<int>();
+  for (auto i{0}; std::cmp_less(i, json.at("ranged_attack").size()); i++) {
+    const nlohmann::json &ranged_json{json.at("ranged_attack")[i]};
+    ranged_attacks.at(i)->cooldown.from_file(ranged_json.at("cooldown"));
+    ranged_attacks.at(i)->damage.from_file(ranged_json.at("damage"));
+    ranged_attacks.at(i)->range.from_file(ranged_json.at("range"));
+    ranged_attacks.at(i)->velocity.from_file(ranged_json.at("velocity"));
+  }
+  if (json.contains("melee_attack")) {
+    const nlohmann::json &json_melee{json.at("melee_attack")};
+    melee_attack->cooldown.from_file(json_melee.at("cooldown"));
+    melee_attack->damage.from_file(json_melee.at("damage"));
+    melee_attack->range.from_file(json_melee.at("range"));
+    melee_attack->size.from_file(json_melee.at("size"));
+  }
+  if (json.contains("special_attack")) {
+    const nlohmann::json &json_special{json.at("special_attack")};
+    special_attack->cooldown.from_file(json_special.at("cooldown"));
+    special_attack->damage.from_file(json_special.at("damage"));
+    special_attack->range.from_file(json_special.at("range"));
   }
 }
 

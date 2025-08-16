@@ -158,6 +158,16 @@ struct ItemOffering final : ShopOffering {
 struct Money final : ComponentBase {
   /// The amount of money the game object has.
   int money;
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };
 
 /// Provides facilities to manage a shop system.

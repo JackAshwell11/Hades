@@ -1,6 +1,9 @@
 // Std headers
 #include <numbers>
 
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/systems/movements.hpp"
@@ -109,6 +112,101 @@ class SteeringMovementSystemFixture : public testing::Test {
     return registry.get_system<SteeringMovementSystem>();
   }
 };
+
+/// Test that the footprint interval component is serialised to a file correctly.
+TEST_F(FootprintSystemFixture, TestFootprintIntervalToFile) {
+  nlohmann::json json;
+  registry.get_component<FootprintInterval>(0)->to_file(json);
+  ASSERT_EQ(json, nlohmann::json::parse(
+                      R"({"footprint_interval":{"value":0.2,"max_level":-1,"max_value":0.2,"current_level":0}})"));
+}
+
+/// Test that the footprint interval component is deserialised from a file correctly.
+TEST_F(FootprintSystemFixture, TestFootprintIntervalFromFile) {
+  const nlohmann::json json(nlohmann::json::parse(
+      R"({"footprint_interval":{"value":0.5,"max_level":-1,"max_value":0.5,"current_level":0}})"));
+  const auto footprint_interval{std::make_shared<FootprintInterval>(1.0, -1)};
+  footprint_interval->from_file(json);
+  ASSERT_EQ(footprint_interval->get_value(), 0.5);
+  ASSERT_EQ(footprint_interval->get_max_value(), 0.5);
+  ASSERT_EQ(footprint_interval->get_max_level(), -1);
+  ASSERT_EQ(footprint_interval->get_current_level(), 0);
+}
+
+/// Test that the footprint limit component is serialised to a file correctly.
+TEST_F(FootprintSystemFixture, TestFootprintLimitToFile) {
+  nlohmann::json json;
+  registry.get_component<FootprintLimit>(0)->to_file(json);
+  ASSERT_EQ(json, nlohmann::json::parse(
+                      R"({"footprint_limit":{"value":10,"max_level":-1,"max_value":10,"current_level":0}})"));
+}
+
+/// Test that the footprint limit component is deserialised from a file correctly.
+TEST_F(FootprintSystemFixture, TestFootprintLimitFromFile) {
+  const nlohmann::json json(
+      nlohmann::json::parse(R"({"footprint_limit":{"value":5,"max_level":-1,"max_value":5,"current_level":0}})"));
+  const auto footprint_limit{std::make_shared<FootprintLimit>(10, -1)};
+  footprint_limit->from_file(json);
+  ASSERT_EQ(footprint_limit->get_value(), 5);
+  ASSERT_EQ(footprint_limit->get_max_value(), 5);
+  ASSERT_EQ(footprint_limit->get_max_level(), -1);
+  ASSERT_EQ(footprint_limit->get_current_level(), 0);
+}
+
+/// Test that the keyboard movement component is reset correctly.
+TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementReset) {
+  const auto keyboard_movement{registry.get_component<KeyboardMovement>(0)};
+  keyboard_movement->moving_north = true;
+  keyboard_movement->moving_south = true;
+  keyboard_movement->moving_east = true;
+  keyboard_movement->reset();
+  ASSERT_FALSE(keyboard_movement->moving_north);
+  ASSERT_FALSE(keyboard_movement->moving_south);
+  ASSERT_FALSE(keyboard_movement->moving_east);
+  ASSERT_FALSE(keyboard_movement->moving_west);
+}
+
+/// Test that the movement force component is serialised to a file correctly.
+TEST_F(KeyboardMovementSystemFixture, TestMovementForceToFile) {
+  nlohmann::json json;
+  registry.get_component<MovementForce>(0)->to_file(json);
+  ASSERT_EQ(json, nlohmann::json::parse(
+                      R"({"movement_force":{"value":100,"max_level":-1,"max_value":100,"current_level":0}})"));
+}
+
+/// Test that the movement force component is deserialised from a file correctly.
+TEST_F(KeyboardMovementSystemFixture, TestMovementForceFromFile) {
+  const nlohmann::json json(
+      nlohmann::json::parse(R"({"movement_force":{"value":150,"max_level":-1,"max_value":150,"current_level":0}})"));
+  const auto movement_force{std::make_shared<MovementForce>(100, -1)};
+  movement_force->from_file(json);
+  ASSERT_EQ(movement_force->get_value(), 150);
+  ASSERT_EQ(movement_force->get_max_value(), 150);
+  ASSERT_EQ(movement_force->get_max_level(), -1);
+  ASSERT_EQ(movement_force->get_current_level(), 0);
+}
+
+/// Test that the view distance component is serialised to a file correctly.
+TEST_F(SteeringMovementSystemFixture, TestViewDistanceToFile) {
+  nlohmann::json json;
+  const auto game_object_id{
+      registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<ViewDistance>(64, -1)})};
+  registry.get_component<ViewDistance>(game_object_id)->to_file(json);
+  ASSERT_EQ(json,
+            nlohmann::json::parse(R"({"view_distance":{"value":64,"max_level":-1,"max_value":64,"current_level":0}})"));
+}
+
+/// Test that the view distance component is deserialised from a file correctly.
+TEST_F(SteeringMovementSystemFixture, TestViewDistanceFromFile) {
+  const nlohmann::json json(
+      nlohmann::json::parse(R"({"view_distance":{"value":128,"max_level":-1,"max_value":128,"current_level":0}})"));
+  const auto view_distance{std::make_shared<ViewDistance>(64, -1)};
+  view_distance->from_file(json);
+  ASSERT_EQ(view_distance->get_value(), 128);
+  ASSERT_EQ(view_distance->get_max_value(), 128);
+  ASSERT_EQ(view_distance->get_max_level(), -1);
+  ASSERT_EQ(view_distance->get_current_level(), 0);
+}
 
 /// Test that the footprint systems is updated with a small delta time.
 TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateSmallDeltaTime) {

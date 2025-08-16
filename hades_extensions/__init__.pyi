@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Literal, overload
 
 # Custom
-from hades_extensions.ecs import GameObjectType, Registry, StatusEffectType
+from hades_extensions.ecs import EffectType, GameObjectType, Registry
 
 class EventType(Enum):
     GameObjectCreation = ...
@@ -69,7 +69,7 @@ def add_callback(
 @overload
 def add_callback(
     event_type: Literal[EventType.StatusEffectUpdate],
-    callback: Callable[[dict[StatusEffectType, float]], None],
+    callback: Callable[[dict[EffectType, float]], None],
 ) -> None: ...
 @overload
 def add_callback(

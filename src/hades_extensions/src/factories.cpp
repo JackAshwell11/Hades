@@ -44,8 +44,8 @@ const auto bullet_factory{[](const int /*level*/) {
 /// @return The components for the enemy.
 const auto enemy_factory{[](const int /*level*/) {
   const auto attack{std::make_shared<Attack>()};
-  attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(Stat{1, 3}, Stat{10, 3}, Stat{3 * SPRITE_SIZE, 3},
-                                                                 Stat{BULLET_VELOCITY, 1}));
+  attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
+      AttackStat{1, 3}, AttackStat{10, 3}, AttackStat{3 * SPRITE_SIZE, 3}, AttackStat{BULLET_VELOCITY, 1}));
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<Armour>(50, 5),
       attack,
@@ -96,10 +96,11 @@ const auto goal_factory{[](const int /*level*/) {
 /// @return The components for the player.
 const auto player_factory{[](const int /*level*/) {
   const auto attack{std::make_shared<Attack>()};
-  attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(Stat{1, 3}, Stat{20, 3}, Stat{3 * SPRITE_SIZE, 3},
-                                                                 Stat{BULLET_VELOCITY, 1}));
-  attack->add_ranged_attack(std::make_unique<MultiBulletAttack>(Stat{1, 3}, Stat{10, 3}, Stat{3 * SPRITE_SIZE, 3},
-                                                                Stat{BULLET_VELOCITY, 1}, Stat{5, 3}));
+  attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
+      AttackStat{1, 3}, AttackStat{20, 3}, AttackStat{3 * SPRITE_SIZE, 3}, AttackStat{BULLET_VELOCITY, 1}));
+  attack->add_ranged_attack(std::make_unique<MultiBulletAttack>(AttackStat{1, 3}, AttackStat{10, 3},
+                                                                AttackStat{3 * SPRITE_SIZE, 3},
+                                                                AttackStat{BULLET_VELOCITY, 1}, AttackStat{5, 3}));
   attack->set_melee_attack({{1, 3}, {20, 3}, {3 * SPRITE_SIZE, 3}, {std::numbers::pi / 4, 3}});
   attack->set_special_attack({{1, 3}, {20, 3}, {3 * SPRITE_SIZE, 3}});
   return std::vector<std::shared_ptr<ComponentBase>>{
@@ -126,7 +127,7 @@ const auto player_factory{[](const int /*level*/) {
 /// @return The components for the health potion.
 const auto health_potion_factory{[](const int /*level*/) {
   auto effect_applier{std::make_shared<EffectApplier>()};
-  effect_applier->add_status_effect(StatusEffectType::Regeneration, 5, 10, 1, typeid(Health));
+  effect_applier->add_status_effect(EffectType::Regeneration, 5, 10, 1);
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::move(effect_applier),
       std::make_shared<KinematicComponent>(),

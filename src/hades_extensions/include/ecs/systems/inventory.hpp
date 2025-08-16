@@ -1,9 +1,6 @@
 // Ensure this file is only included once
 #pragma once
 
-// Std headers
-#include <vector>
-
 // Local headers
 #include "ecs/stats.hpp"
 #include "game_object.hpp"
@@ -12,6 +9,21 @@
 struct Inventory final : ComponentBase {
   /// The game object's inventory.
   std::vector<GameObjectID> items;
+
+  /// Reset the component to its default state.
+  void reset() override;
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  void to_file(nlohmann::json &json, const Registry *registry) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  void from_file(const nlohmann::json &json, Registry *registry) override;
 };
 
 /// Allows a game object to change the size of its inventory.
@@ -21,6 +33,16 @@ struct InventorySize final : Stat {
   /// @param value - The initial and maximum value of the inventory size stat.
   /// @param maximum_level - The maximum level of the inventory size stat.
   InventorySize(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };
 
 /// Provides facilities to manipulate inventory components.

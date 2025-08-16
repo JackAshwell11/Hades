@@ -119,7 +119,7 @@ void GameEngine::reset_level(const LevelType level_type) {
     notify<EventType::InventoryUpdate>(std::vector<GameObjectID>{});
     notify<EventType::RangedAttackSwitch>(0);
     notify<EventType::AttackCooldownUpdate>(get_player_id(), 0.0, 0.0, 0.0);
-    notify<EventType::StatusEffectUpdate>(std::unordered_map<StatusEffectType, double>{});
+    notify<EventType::StatusEffectUpdate>(std::unordered_map<EffectType, double>{});
   }
 }
 

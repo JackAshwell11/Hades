@@ -14,6 +14,16 @@ struct ArmourRegen final : Stat {
   /// @param value - The initial and maximum value of the armour regen stat.
   /// @param maximum_level - The maximum level of the armour regen stat.
   ArmourRegen(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };
 
 /// Provides facilities to manipulate armour regen components.

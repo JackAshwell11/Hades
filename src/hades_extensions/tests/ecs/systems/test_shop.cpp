@@ -5,12 +5,6 @@
 #include "events.hpp"
 #include "macros.hpp"
 
-/// Represents a test stat useful for testing the shop system.
-struct TestShopStat final : Stat {
-  /// Initialise the object.
-  TestShopStat() : Stat(200, 5) {}
-};
-
 /// Implements the fixture for the ShopSystem tests.
 class ShopSystemFixture : public testing::Test {
  protected:
@@ -21,7 +15,7 @@ class ShopSystemFixture : public testing::Test {
   void SetUp() override {
     registry.add_system<ShopSystem>();
     registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<Money>(), std::make_shared<TestShopStat>()});
+                                {std::make_shared<Money>(), std::make_shared<Health>(200, 5)});
   }
 
   /// Tear down the fixture after the tests.
@@ -29,8 +23,8 @@ class ShopSystemFixture : public testing::Test {
 
   /// Add a stat upgrade offering to the shop system.
   void add_stat_upgrade() const {
-    get_shop_system()->add_stat_upgrade("Test Stat Upgrade", "A test stat upgrade offering", typeid(TestShopStat), 100,
-                                        1.5, 200, 1.2);
+    get_shop_system()->add_stat_upgrade("Test Stat Upgrade", "A test stat upgrade offering", typeid(Health), 100, 1.5,
+                                        200, 1.2);
   }
 
   /// Add a component unlock offering to the shop system.
@@ -59,8 +53,8 @@ TEST_F(ShopSystemFixture, TestShopSystemAddStatUpgradeSingle) {
 /// Test that adding multiple stat upgrade offerings to the shop works correctly.
 TEST_F(ShopSystemFixture, TestShopSystemAddStatUpgradeMultiple) {
   add_stat_upgrade();
-  get_shop_system()->add_stat_upgrade("Test Stat Upgrade 2", "A test stat upgrade offering 2", typeid(TestShopStat),
-                                      150, 1.8, 250, 1.5);
+  get_shop_system()->add_stat_upgrade("Test Stat Upgrade 2", "A test stat upgrade offering 2", typeid(Health), 150, 1.8,
+                                      250, 1.5);
   ASSERT_EQ(get_shop_system()->get_offering(0)->name, "Test Stat Upgrade");
   ASSERT_EQ(get_shop_system()->get_offering(1)->name, "Test Stat Upgrade 2");
   ASSERT_EQ(get_shop_system()->get_offering(2), nullptr);
@@ -112,7 +106,7 @@ TEST_F(ShopSystemFixture, TestShopSystemGetStatUpgradeOfferingCost) {
 /// Test that getting the cost of a levelled stat upgrade offering works correctly.
 TEST_F(ShopSystemFixture, TestShopSystemGetLevelledStatUpgradeOfferingCost) {
   add_stat_upgrade();
-  registry.get_component<TestShopStat>(0)->increment_current_level();
+  registry.get_component<Health>(0)->increment_current_level();
   ASSERT_EQ(get_shop_system()->get_offering_cost(0, 0), 101);
 }
 
@@ -133,21 +127,21 @@ TEST_F(ShopSystemFixture, TestShopSystemPurchaseStatUpgradeSufficientMoney) {
   add_stat_upgrade();
   registry.get_component<Money>(0)->money = 500;
   ASSERT_TRUE(get_shop_system()->purchase(0, 0));
-  ASSERT_EQ(registry.get_component<TestShopStat>(0)->get_value(), 400);
-  ASSERT_EQ(registry.get_component<TestShopStat>(0)->get_max_value(), 400);
-  ASSERT_EQ(registry.get_component<TestShopStat>(0)->get_current_level(), 1);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 400);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_max_value(), 400);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_current_level(), 1);
   ASSERT_EQ(registry.get_component<Money>(0)->money, 400);
 }
 
 /// Test that purchasing a stat upgrade offering works correctly if the stat is not at the maximum value.
 TEST_F(ShopSystemFixture, TestShopSystemPurchaseStatUpgradeNotMaxValue) {
   add_stat_upgrade();
-  registry.get_component<TestShopStat>(0)->set_value(100);
+  registry.get_component<Health>(0)->set_value(100);
   registry.get_component<Money>(0)->money = 500;
   ASSERT_TRUE(get_shop_system()->purchase(0, 0));
-  ASSERT_EQ(registry.get_component<TestShopStat>(0)->get_value(), 300);
-  ASSERT_EQ(registry.get_component<TestShopStat>(0)->get_max_value(), 400);
-  ASSERT_EQ(registry.get_component<TestShopStat>(0)->get_current_level(), 1);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 300);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_max_value(), 400);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_current_level(), 1);
   ASSERT_EQ(registry.get_component<Money>(0)->money, 400);
 }
 
@@ -157,9 +151,9 @@ TEST_F(ShopSystemFixture, TestShopSystemPurchaseStatUpgradeMultipleTimes) {
   registry.get_component<Money>(0)->money = 500;
   ASSERT_TRUE(get_shop_system()->purchase(0, 0));
   ASSERT_TRUE(get_shop_system()->purchase(0, 0));
-  ASSERT_EQ(registry.get_component<TestShopStat>(0)->get_value(), 601);
-  ASSERT_EQ(registry.get_component<TestShopStat>(0)->get_max_value(), 601);
-  ASSERT_EQ(registry.get_component<TestShopStat>(0)->get_current_level(), 2);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_value(), 601);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_max_value(), 601);
+  ASSERT_EQ(registry.get_component<Health>(0)->get_current_level(), 2);
   ASSERT_EQ(registry.get_component<Money>(0)->money, 299);
 }
 
@@ -174,7 +168,7 @@ TEST_F(ShopSystemFixture, TestShopSystemPurchaseStatUpgradeMaxLevel) {
   add_stat_upgrade();
   registry.get_component<Money>(0)->money = 500;
   for (int i{0}; i < 5; i++) {
-    registry.get_component<TestShopStat>(0)->increment_current_level();
+    registry.get_component<Health>(0)->increment_current_level();
   }
   ASSERT_FALSE(get_shop_system()->purchase(0, 0));
 }
@@ -185,7 +179,7 @@ TEST_F(ShopSystemFixture, TestShopSystemPurchaseStatUpgradeNoComponent) {
   registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<Money>()});
   add_stat_upgrade();
   ASSERT_THROW_MESSAGE(get_shop_system()->purchase(1, 0), RegistryError,
-                       "The component `TestShopStat` for the game object ID `1` is not registered with the registry.");
+                       "The component `Health` for the game object ID `1` is not registered with the registry.");
 }
 
 /// Test that purchasing a component unlock offering works correctly if the player has enough money.
@@ -252,7 +246,7 @@ TEST_F(ShopSystemFixture, TestShopSystemPurchaseInvalidOfferingIndex) {
 
 /// Test that an exception is thrown if the game object does not have a money component.
 TEST_F(ShopSystemFixture, TestShopSystemPurchaseNoMoneyComponent) {
-  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<TestShopStat>()});
+  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<Health>(0, -1)});
   add_stat_upgrade();
   ASSERT_THROW_MESSAGE(get_shop_system()->purchase(1, 0), RegistryError,
                        "The component `Money` for the game object ID `1` is not registered with the registry.");

@@ -4,7 +4,6 @@
 // Std headers
 #include <deque>
 #include <unordered_map>
-#include <vector>
 
 // Local headers
 #include "ecs/chipmunk.hpp"
@@ -37,6 +36,16 @@ struct FootprintInterval final : Stat {
   /// @param value - The initial and maximum value of the footprint interval stat.
   /// @param maximum_level - The maximum level of the footprint interval stat.
   FootprintInterval(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };
 
 /// Allows a game object to determine the maximum number of footprints it can leave.
@@ -46,6 +55,16 @@ struct FootprintLimit final : Stat {
   /// @param value - The initial and maximum value of the footprint limit stat.
   /// @param maximum_level - The maximum level of the footprint limit stat.
   FootprintLimit(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };
 
 /// Allows a game object to periodically leave footprints around the game map.
@@ -70,6 +89,9 @@ struct KeyboardMovement final : ComponentBase {
 
   /// Whether the game object is moving west or not.
   bool moving_west{false};
+
+  /// Reset the component to its default state.
+  void reset() override;
 };
 
 /// Allows a game object to determine how fast it can move.
@@ -79,6 +101,16 @@ struct MovementForce final : Stat {
   /// @param value - The initial and maximum value of the movement force stat.
   /// @param maximum_level - The maximum level of the movement force stat.
   MovementForce(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };
 
 /// Allows a game object to determine how far it can see.
@@ -88,6 +120,16 @@ struct ViewDistance final : Stat {
   /// @param value - The initial and maximum value of the view distance stat.
   /// @param maximum_level - The maximum level of the view distance stat.
   ViewDistance(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };
 
 /// Allows a game object's movement to be controlled by steering behaviours.

@@ -42,6 +42,16 @@ class PhysicsSystemFixture : public testing::Test {
   }
 };
 
+/// Test that the kinematic component is reset correctly.
+TEST_F(PhysicsSystemFixture, TestKinematicComponentReset) {
+  const auto kinematic_component{registry.get_component<KinematicComponent>(0)};
+  cpBodySetPosition(*kinematic_component->body, cpv(10, 10));
+  cpBodySetVelocity(*kinematic_component->body, cpv(5, 5));
+  kinematic_component->reset();
+  ASSERT_EQ(cpBodyGetPosition(*kinematic_component->body), cpvzero);
+  ASSERT_EQ(cpBodyGetVelocity(*kinematic_component->body), cpvzero);
+}
+
 /// Test that providing an invalid number of vertices throws an exception.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemKinematicComponentInvalidVertices) {
   ASSERT_THROW_MESSAGE(

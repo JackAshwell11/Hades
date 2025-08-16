@@ -107,7 +107,7 @@ TEST_F(GameEngineFixture, TestGameEngineResetLevelLobbyCallbacks) {
         attack_cooldown_update = true;
       });
   add_callback<EventType::StatusEffectUpdate>(
-      [&status_effect_update](const std::unordered_map<StatusEffectType, double> &) { status_effect_update = true; });
+      [&status_effect_update](const std::unordered_map<EffectType, double> &) { status_effect_update = true; });
   game_engine.reset_level(LevelType::Lobby);
   ASSERT_TRUE(inventory_update);
   ASSERT_TRUE(ranged_attack_switch);

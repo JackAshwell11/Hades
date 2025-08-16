@@ -5,6 +5,9 @@
 #include <numbers>
 #include <random>
 
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/steering.hpp"
@@ -57,6 +60,29 @@ auto calculate_steering_force(Registry *registry, const std::shared_ptr<Steering
   return steering_force;
 }
 }  // namespace
+
+void FootprintInterval::to_file(nlohmann::json &json) const { to_file_base(json["footprint_interval"]); }
+
+void FootprintInterval::from_file(const nlohmann::json &json) { from_file_base(json.at("footprint_interval")); }
+
+void FootprintLimit::to_file(nlohmann::json &json) const { to_file_base(json["footprint_limit"]); }
+
+void FootprintLimit::from_file(const nlohmann::json &json) { from_file_base(json.at("footprint_limit")); }
+
+void KeyboardMovement::reset() {
+  moving_north = false;
+  moving_south = false;
+  moving_east = false;
+  moving_west = false;
+}
+
+void MovementForce::to_file(nlohmann::json &json) const { to_file_base(json["movement_force"]); }
+
+void MovementForce::from_file(const nlohmann::json &json) { from_file_base(json.at("movement_force")); }
+
+void ViewDistance::to_file(nlohmann::json &json) const { to_file_base(json["view_distance"]); }
+
+void ViewDistance::from_file(const nlohmann::json &json) { from_file_base(json.at("view_distance")); }
 
 void FootprintSystem::update(const double delta_time) const {
   // Update the time since the last footprint then check if a new footprint should be created

@@ -46,6 +46,9 @@ struct KinematicComponent final : ComponentBase {
       throw std::invalid_argument("The shape must have at least 3 vertices.");
     }
   }
+
+  /// Reset the component to its default state.
+  void reset() override;
 };
 
 /// Provides facilities to manipulate a game object's physics.

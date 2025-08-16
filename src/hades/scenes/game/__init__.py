@@ -17,7 +17,7 @@ from hades_extensions.ecs.components import KinematicComponent, PythonSprite
 if TYPE_CHECKING:
     from typing import ClassVar
 
-    from hades_extensions.ecs import StatusEffectType
+    from hades_extensions.ecs import EffectType
 
 __all__ = ("GameScene",)
 
@@ -164,7 +164,7 @@ class GameScene(BaseScene[GameView]):
 
     def on_status_effect_update(
         self: GameScene,
-        status_effects: dict[StatusEffectType, float],
+        status_effects: dict[EffectType, float],
     ) -> None:
         """Process status effect update logic.
 
