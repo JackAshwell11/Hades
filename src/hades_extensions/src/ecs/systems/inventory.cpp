@@ -30,7 +30,7 @@ void Inventory::from_file(const nlohmann::json &json, Registry *registry) {
   for (const auto &item_type : json.at("items").items()) {
     const auto game_object_type{static_cast<GameObjectType>(item_type.value())};
     const auto game_object_id{
-        registry->create_game_object(game_object_type, cpvzero, get_factories().at(game_object_type)(0))};
+        registry->create_game_object(game_object_type, cpvzero, get_game_object_components(game_object_type))};
     registry->get_system<InventorySystem>()->add_item_to_inventory(player_id, game_object_id);
   }
 }
@@ -97,4 +97,26 @@ void InventorySystem::remove_item_from_inventory(const GameObjectID game_object_
   inventory->items.erase(inventory->items.begin() + index);
   get_registry()->delete_game_object(item_id);
   notify<EventType::InventoryUpdate>(inventory->items);
+}
+
+void InventorySystem::use_item(const GameObjectID target_id, const GameObjectID item_id) const {
+  // Check if the item is a valid game object or not
+  if (!get_registry()->has_game_object(target_id) || !get_registry()->has_game_object(item_id)) {
+    return;
+  }
+
+  // Use the item if it can be used
+  bool used{false};
+  if (get_registry()->has_component(item_id, typeid(EffectApplier))) {
+    used = get_registry()->get_system<EffectSystem>()->apply_effects(item_id, target_id);
+  }
+
+  // If the item has been used, remove it from the inventory or the dungeon
+  if (used) {
+    if (has_item_in_inventory(target_id, item_id)) {
+      remove_item_from_inventory(target_id, item_id);
+    } else {
+      get_registry()->delete_game_object(item_id);
+    }
+  }
 }

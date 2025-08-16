@@ -44,7 +44,7 @@ class OptionsPanel(UIBoxLayout):
         start_button = UIFlatButton(text="Start Game")
         start_button.on_click = (  # type: ignore[method-assign]
             lambda _: get_window().dispatch_event(  # type: ignore[assignment]
-                "on_optioned_start_game",
+                "on_optioned_start_level",
                 seed_input.text,
             )
         )

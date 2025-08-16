@@ -19,7 +19,7 @@ repos:
     rev: v1.17.1
     hooks:
       - id: mypy
-        additional_dependencies: ["arcade==3.0.0.dev30", "pytest==8.2.2"]
+        additional_dependencies: ["arcade==3.0.0.dev30", "pytest==8.2.2", "types-python-dateutil==2.9.0.20250809"]
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
     rev: v6.0.0
     hooks:

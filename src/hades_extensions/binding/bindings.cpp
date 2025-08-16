@@ -6,6 +6,7 @@
 #include "events.hpp"
 #include "factories.hpp"
 #include "game_engine.hpp"
+#include "save_manager.hpp"
 
 PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   module.doc() = "Manages the various C++ extension modules for the game.";
@@ -59,6 +60,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           case EventType::GameOptionsOpen:
             add_callback<EventType::GameOptionsOpen>(callback);
             break;
+          case EventType::SaveFilesUpdated:
+            add_callback<EventType::SaveFilesUpdated>(callback);
+            break;
+          case EventType::GameOpen:
+            add_callback<EventType::GameOpen>(callback);
+            break;
           default:
             throw std::runtime_error("Unsupported event type.");
         }
@@ -83,30 +90,76 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("ShopItemPurchased", EventType::ShopItemPurchased)
       .value("ShopOpen", EventType::ShopOpen)
       .value("InventoryOpen", EventType::InventoryOpen)
-      .value("GameOptionsOpen", EventType::GameOptionsOpen);
+      .value("GameOptionsOpen", EventType::GameOptionsOpen)
+      .value("SaveFilesUpdated", EventType::SaveFilesUpdated)
+      .value("GameOpen", EventType::GameOpen);
 
-  pybind11::class_<GameEngine>(module, "GameEngine", "Manages the game objects and systems.")
-      .def(pybind11::init<>(), "Initialise the object.")
-      .def_property_readonly("registry", &GameEngine::get_registry)
-      .def_property_readonly("player_id", &GameEngine::get_player_id)
-      .def("set_seed", &GameEngine::set_seed, pybind11::arg("seed"),
+  pybind11::class_<SaveFileInfo>(module, "SaveFileInfo", "Represents information about a save file.")
+      .def_readonly("name", &SaveFileInfo::name)
+      .def_readonly("last_modified", &SaveFileInfo::last_modified)
+      .def_readonly("player_level", &SaveFileInfo::player_level);
+
+  pybind11::class_<GameState, std::shared_ptr<GameState>>(module, "GameState", "Stores the state of the game.")
+      .def_property_readonly("player_id", &GameState::get_player_id)
+      .def("set_seed", &GameState::set_seed, pybind11::arg("seed"),
            "Set the seed for the random generator.\n\n"
            "Args:\n"
-           "    seed: The seed to set for the random generator.")
+           "    seed: The seed to set for the random generator.");
+
+  pybind11::class_<InputHandler, std::shared_ptr<InputHandler>>(
+      module, "InputHandler", "Handles input events such as key presses, releases, and mouse clicks.")
+      .def("on_key_press", &InputHandler::on_key_press, pybind11::arg("symbol"), pybind11::arg("modifiers"),
+           "Process key press functionality.\n\n"
+           "Args:\n"
+           "    symbol: The key that was hit.\n"
+           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.")
+      .def("on_key_release", &InputHandler::on_key_release, pybind11::arg("symbol"), pybind11::arg("modifiers"),
+           "Process key release functionality.\n\n"
+           "Args:\n"
+           "    symbol: The key that was released.\n"
+           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.")
+      .def("on_mouse_press", &InputHandler::on_mouse_press, pybind11::arg("x"), pybind11::arg("y"),
+           pybind11::arg("button"), pybind11::arg("modifiers"),
+           "Process mouse press functionality.\n\n"
+           "Args:\n"
+           "    x: The x position of the mouse.\n"
+           "    y: The y position of the mouse.\n"
+           "    button: The button that was pressed.\n"
+           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.");
+
+  pybind11::class_<SaveManager, std::shared_ptr<SaveManager>>(module, "SaveManager",
+                                                              "Manages the saving and loading of game states.")
+      .def("new_game", &SaveManager::new_game, "Create a new game.")
+      .def("load_save", &SaveManager::load_save, pybind11::arg("save_index"),
+           "Load a save from a file.\n\n"
+           "Args:\n"
+           "    save_index: The index of the save file to load.\n\n")
+      .def("save_game", &SaveManager::save_game, "Save the current game state to a file.")
+      .def("delete_save", &SaveManager::delete_save, pybind11::arg("save_index"),
+           "Delete a save file.\n\n"
+           "Args:\n"
+           "    save_index: The index of the save file to delete.\n\n");
+
+  pybind11::class_<GameEngine, std::shared_ptr<GameEngine>>(module, "GameEngine",
+                                                            "Manages the game objects and systems.")
+      .def(pybind11::init<>(), "Initialise the object.")
+      .def_property_readonly("registry", &GameEngine::get_registry)
+      .def_property_readonly("game_state", &GameEngine::get_game_state)
+      .def_property_readonly("input_handler", &GameEngine::get_input_handler)
+      .def_property_readonly("save_manager", &GameEngine::get_save_manager)
       .def(
           "setup",
-          [](GameEngine &engine, const std::string &file) {
-            engine.reset_level(LevelType::Lobby);
-            if (std::ifstream stream{file}; stream.is_open()) {
-              engine.setup_shop(stream);
-            }
+          [](GameEngine &engine, const std::string &shop_file_path, const std::string &save_directory_path) {
+            std::ifstream shop_stream{shop_file_path};
+            engine.get_registry()->get_system<ShopSystem>()->add_offerings(shop_stream,
+                                                                           engine.get_game_state()->get_player_id());
+            engine.get_save_manager()->set_save_path(save_directory_path);
           },
-          pybind11::arg("file") = "",
+          pybind11::arg("shop_file_path") = "", pybind11::arg("save_directory_path") = "",
           "Set up the game engine.\n\n"
           "Args:\n"
-          "    file: The file to load the shop offerings from.\n\n"
-          "Raises:\n"
-          "    RuntimeError: If there was an error parsing the JSON file or the offering type is unknown.")
+          "    shop_file_path: The path to the shop file.\n"
+          "    save_directory_path: The path to the save directory.")
       .def("on_update", &GameEngine::on_update, pybind11::arg("delta_time"),
            "Process update logic for the game engine.\n\n"
            "Args:\n"
@@ -114,30 +167,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def("on_fixed_update", &GameEngine::on_fixed_update, pybind11::arg("delta_time"),
            "Process fixed update logic for the game engine.\n\n"
            "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.")
-      .def("on_key_press", &GameEngine::on_key_press, pybind11::arg("symbol"), pybind11::arg("modifiers"),
-           "Process key press functionality.\n\n"
-           "Args:\n"
-           "    symbol: The key that was hit.\n"
-           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.")
-      .def("on_key_release", &GameEngine::on_key_release, pybind11::arg("symbol"), pybind11::arg("modifiers"),
-           "Process key release functionality.\n\n"
-           "Args:\n"
-           "    symbol: The key that was released.\n"
-           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.")
-      .def("on_mouse_press", &GameEngine::on_mouse_press, pybind11::arg("x"), pybind11::arg("y"),
-           pybind11::arg("button"), pybind11::arg("modifiers"),
-           "Process mouse press functionality.\n\n"
-           "Args:\n"
-           "    x: The x position of the mouse.\n"
-           "    y: The y position of the mouse.\n"
-           "    button: The button that was pressed.\n"
-           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.")
-      .def("use_item", &GameEngine::use_item, pybind11::arg("target_id"), pybind11::arg("item_id"),
-           "Use an item on a target game object.\n\n"
-           "Args:\n"
-           "    target_id: The game object ID of the target.\n"
-           "    item_id: The game object ID of the item to use.\n\n");
+           "    delta_time: The time interval since the last time the function was called.");
 
   // Create the submodules for the ECS
   auto ecs{module.def_submodule(

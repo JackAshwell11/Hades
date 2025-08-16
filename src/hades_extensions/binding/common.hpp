@@ -15,6 +15,7 @@
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
+#include "ecs/systems/inventory.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
 #include "ecs/systems/sprite.hpp"
@@ -78,7 +79,7 @@ inline auto get_component_types()
 inline auto get_system_types()
     -> const std::unordered_map<pybind11::handle, std::function<std::shared_ptr<SystemBase>(const Registry &)>,
                                 py_handle_hash, py_handle_equal> & {
-  static const auto system_types{make_system_types<PhysicsSystem, ShopSystem>()};
+  static const auto system_types{make_system_types<PhysicsSystem, InventorySystem, ShopSystem>()};
   return system_types;
 }
 

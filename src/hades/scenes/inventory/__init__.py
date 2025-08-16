@@ -10,6 +10,7 @@ from hades.scenes.base import BaseScene
 from hades.scenes.inventory.view import InventoryItemButton, InventoryView
 from hades_extensions import EventType, add_callback
 from hades_extensions.ecs.components import PythonSprite
+from hades_extensions.ecs.systems import InventorySystem
 
 if TYPE_CHECKING:
     from typing import ClassVar
@@ -66,7 +67,7 @@ class InventoryScene(BaseScene[InventoryView]):
         Args:
             event: The event that occurred.
         """
-        self.model.game_engine.use_item(
+        self.model.registry.get_system(InventorySystem).use_item(
             self.model.player_id,
             event.source.parent.sprite_object.game_object_id,
         )

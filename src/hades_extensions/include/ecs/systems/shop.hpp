@@ -2,10 +2,7 @@
 #pragma once
 
 // Std headers
-#include <memory>
-#include <string>
 #include <typeindex>
-#include <vector>
 
 // Local headers
 #include "ecs/bases.hpp"
@@ -178,34 +175,12 @@ class ShopSystem final : public SystemBase {
   /// @param registry - The registry that manages the game objects, components, and systems.
   explicit ShopSystem(Registry *registry) : SystemBase(registry) {}
 
-  /// Add a new upgradable stat offering to the shop.
+  /// Add offerings to the shop from a stream.
   ///
-  /// @param name - The name of the offering.
-  /// @param description - The description of the offering.
-  /// @param component_type - The type of the component to upgrade.
-  /// @param base_cost - The base cost of the offering.
-  /// @param cost_multiplier - The cost multiplier of the offering.
-  /// @param base_value - The base value of the offering.
-  /// @param value_multiplier - The value multiplier of the offering.
-  void add_stat_upgrade(const std::string &name, const std::string &description, std::type_index component_type,
-                        double base_cost, double cost_multiplier, double base_value, double value_multiplier);
-
-  /// Add a new one-time component unlock offering to the shop.
-  ///
-  /// @param name - The name of the offering.
-  /// @param description - The description of the offering.
-  /// @param base_cost - The base cost of the offering.
-  /// @param cost_multiplier - The cost multiplier of the offering.
-  void add_component_unlock(const std::string &name, const std::string &description, double base_cost,
-                            double cost_multiplier);
-
-  /// Add a new repeatable item offering to the shop.
-  ///
-  /// @param name - The name of the offering.
-  /// @param description - The description of the offering.
-  /// @param base_cost - The base cost of the offering.
-  /// @param cost_multiplier - The cost multiplier of the offering.
-  void add_item(const std::string &name, const std::string &description, double base_cost, double cost_multiplier);
+  /// @param stream - The input stream containing the JSON data for the shop offerings.
+  /// @param player_id - The game object ID of the player.
+  /// @throws std::runtime_error if there was an error parsing the JSON file or the offering type is unknown.
+  void add_offerings(std::istream &stream, GameObjectID player_id);
 
   /// Get an offering by its index.
   ///

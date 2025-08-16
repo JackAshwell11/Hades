@@ -132,6 +132,14 @@ class Registry {
   /// @return The game object IDs of the game object type.
   [[nodiscard]] auto get_game_object_ids(GameObjectType game_object_type) const -> std::vector<GameObjectID>;
 
+  /// Get the components of a game object.
+  ///
+  /// @param game_object_id - The game object ID.
+  /// @throws RegistryError - If the game object is not registered.
+  /// @return The components of the game object.
+  [[nodiscard]] auto get_game_object_components(GameObjectID game_object_id) const
+      -> std::vector<std::shared_ptr<ComponentBase>>;
+
   /// Mark a game object for deletion after the next update step
   ///
   /// @param game_object_id - The ID of the game object to delete.

@@ -22,6 +22,20 @@ namespace {
 auto calculate_exponential(const double base, const int level, const double multiplier) -> double {
   return base + std::pow(level, multiplier);
 }
+
+/// Get a component type from a string.
+///
+/// @param type - The string representation of the component type.
+/// @throws std::runtime_error if the type is not recognised.
+/// @return The type index of the component type.
+auto get_component_type_from_string(const std::string &type) -> std::type_index {
+  static const std::unordered_map<std::string, std::type_index> type_map{{"Health", typeid(Health)},
+                                                                         {"Armour", typeid(Armour)}};
+  if (type_map.contains(type)) {
+    return type_map.at(type);
+  }
+  throw std::runtime_error("Unknown component type: " + type);
+}
 }  // namespace
 
 void Money::to_file(nlohmann::json &json) const { json["money"] = money; }
@@ -55,22 +69,33 @@ auto ComponentUnlockOffering::apply(const Registry * /*registry*/, const GameObj
 
 auto ItemOffering::apply(const Registry * /*registry*/, const GameObjectID /*buyer_id*/) const -> bool { return true; }
 
-void ShopSystem::add_stat_upgrade(const std::string &name, const std::string &description,
-                                  const std::type_index component_type, const double base_cost,
-                                  const double cost_multiplier, const double base_value,
-                                  const double value_multiplier) {
-  offerings_.push_back(std::make_unique<StatUpgradeOffering>(name, description, component_type, base_cost,
-                                                             cost_multiplier, base_value, value_multiplier));
-}
-
-void ShopSystem::add_component_unlock(const std::string &name, const std::string &description, const double base_cost,
-                                      const double cost_multiplier) {
-  offerings_.push_back(std::make_unique<ComponentUnlockOffering>(name, description, base_cost, cost_multiplier));
-}
-
-void ShopSystem::add_item(const std::string &name, const std::string &description, const double base_cost,
-                          const double cost_multiplier) {
-  offerings_.push_back(std::make_unique<ItemOffering>(name, description, base_cost, cost_multiplier));
+void ShopSystem::add_offerings(std::istream &stream, const GameObjectID player_id) {
+  nlohmann::json offerings;
+  stream >> offerings;
+  for (int i{0}; std::cmp_less(i, offerings.size()); i++) {
+    const auto &offering{offerings.at(i)};
+    const auto type{offering.at("type").get<std::string>()};
+    const auto name{offering.at("name").get<std::string>()};
+    const auto description{offering.at("description").get<std::string>()};
+    const auto icon_type{offering.at("icon_type").get<std::string>()};
+    const auto base_cost{offering.at("base_cost").get<double>()};
+    const auto cost_multiplier{offering.at("cost_multiplier").get<double>()};
+    if (type == "stat") {
+      const auto component_type{get_component_type_from_string(offering.at("stat_type").get<std::string>())};
+      const auto base_value{offering.at("base_value").get<double>()};
+      const auto value_multiplier{offering.at("value_multiplier").get<double>()};
+      offerings_.push_back(std::make_unique<StatUpgradeOffering>(name, description, component_type, base_cost,
+                                                                 cost_multiplier, base_value, value_multiplier));
+    } else if (type == "component") {
+      offerings_.push_back(std::make_unique<ComponentUnlockOffering>(name, description, base_cost, cost_multiplier));
+    } else if (type == "item") {
+      offerings_.push_back(std::make_unique<ItemOffering>(name, description, base_cost, cost_multiplier));
+    } else {
+      throw std::runtime_error("Unknown offering type: " + type);
+    }
+    notify<EventType::ShopItemLoaded>(i, std::make_tuple(name, description, icon_type),
+                                      get_offering_cost(i, player_id));
+  }
 }
 
 auto ShopSystem::get_offering(const int offering_index) const -> const ShopOffering * {

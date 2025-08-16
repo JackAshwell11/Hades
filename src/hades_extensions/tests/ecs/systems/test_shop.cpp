@@ -1,3 +1,6 @@
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
@@ -23,17 +26,48 @@ class ShopSystemFixture : public testing::Test {
 
   /// Add a stat upgrade offering to the shop system.
   void add_stat_upgrade() const {
-    get_shop_system()->add_stat_upgrade("Test Stat Upgrade", "A test stat upgrade offering", typeid(Health), 100, 1.5,
-                                        200, 1.2);
+    std::istringstream json_stream(R"([
+    {
+      "type": "stat",
+      "name": "Test Stat Upgrade",
+      "description": "A test stat upgrade offering",
+      "icon_type": "StatTest",
+      "base_cost": 100,
+      "cost_multiplier": 1.5,
+      "stat_type": "Health",
+      "base_value": 200,
+      "value_multiplier": 1.2
+    }])");
+    get_shop_system()->add_offerings(json_stream, 0);
   }
 
   /// Add a component unlock offering to the shop system.
   void add_component_unlock() const {
-    get_shop_system()->add_component_unlock("Test Component Unlock", "A test component unlock offering", 100, 1.5);
+    std::istringstream json_stream(R"([
+    {
+      "type": "component",
+      "name": "Test Component Unlock",
+      "description": "A test component unlock offering",
+      "icon_type": "TestComponent",
+      "base_cost": 100,
+      "cost_multiplier": 1.5
+    }])");
+    get_shop_system()->add_offerings(json_stream, 0);
   }
 
   /// Add an item offering to the shop system.
-  void add_item() const { get_shop_system()->add_item("Test Item Offering", "A test item offering", 100, 1.5); }
+  void add_item() const {
+    std::istringstream json_stream(R"([
+    {
+      "type": "item",
+      "name": "Test Item Offering",
+      "description": "A test item offering",
+      "icon_type": "TestItem",
+      "base_cost": 100,
+      "cost_multiplier": 1.5
+    }])");
+    get_shop_system()->add_offerings(json_stream, 0);
+  }
 
   /// Get the shop system from the registry.
   ///
@@ -44,52 +78,176 @@ class ShopSystemFixture : public testing::Test {
 };
 
 /// Test that adding a stat upgrade offering to the shop works correctly.
-TEST_F(ShopSystemFixture, TestShopSystemAddStatUpgradeSingle) {
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsStatSingle) {
   add_stat_upgrade();
   ASSERT_EQ(get_shop_system()->get_offering(0)->name, "Test Stat Upgrade");
   ASSERT_EQ(get_shop_system()->get_offering(1), nullptr);
 }
 
 /// Test that adding multiple stat upgrade offerings to the shop works correctly.
-TEST_F(ShopSystemFixture, TestShopSystemAddStatUpgradeMultiple) {
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsStatMultiple) {
+  std::istringstream json_stream(R"([
+  {
+    "type": "stat",
+    "name": "Test Stat Upgrade 2",
+    "description": "A test stat upgrade offering 2",
+    "icon_type": "StatTest2",
+    "base_cost": 150,
+    "cost_multiplier": 1.8,
+    "stat_type": "Health",
+    "base_value": 250,
+    "value_multiplier": 1.5
+  }])");
   add_stat_upgrade();
-  get_shop_system()->add_stat_upgrade("Test Stat Upgrade 2", "A test stat upgrade offering 2", typeid(Health), 150, 1.8,
-                                      250, 1.5);
+  get_shop_system()->add_offerings(json_stream, 0);
   ASSERT_EQ(get_shop_system()->get_offering(0)->name, "Test Stat Upgrade");
   ASSERT_EQ(get_shop_system()->get_offering(1)->name, "Test Stat Upgrade 2");
   ASSERT_EQ(get_shop_system()->get_offering(2), nullptr);
 }
 
 /// Test that adding a component unlock offering to the shop works correctly.
-TEST_F(ShopSystemFixture, TestShopSystemAddComponentUnlockSingle) {
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsComponentSingle) {
   add_component_unlock();
   ASSERT_EQ(get_shop_system()->get_offering(0)->name, "Test Component Unlock");
   ASSERT_EQ(get_shop_system()->get_offering(1), nullptr);
 }
 
 /// Test that adding multiple component unlock offerings to the shop works correctly.
-TEST_F(ShopSystemFixture, TestShopSystemAddComponentUnlockMultiple) {
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsComponentMultiple) {
+  std::istringstream json_stream(R"([
+  {
+    "type": "component",
+    "name": "Test Component Unlock 2",
+    "description": "A test component unlock offering 2",
+    "icon_type": "TestComponent",
+    "base_cost": 150,
+    "cost_multiplier": 1.8
+  }])");
   add_component_unlock();
-  get_shop_system()->add_component_unlock("Test Component Unlock 2", "A test component unlock offering 2", 150, 1.8);
+  get_shop_system()->add_offerings(json_stream, 0);
   ASSERT_EQ(get_shop_system()->get_offering(0)->name, "Test Component Unlock");
   ASSERT_EQ(get_shop_system()->get_offering(1)->name, "Test Component Unlock 2");
   ASSERT_EQ(get_shop_system()->get_offering(2), nullptr);
 }
 
 /// Test that adding an item offering to the shop works correctly.
-TEST_F(ShopSystemFixture, TestShopSystemAddItemOfferingSingle) {
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsItemSingle) {
   add_item();
   ASSERT_EQ(get_shop_system()->get_offering(0)->name, "Test Item Offering");
   ASSERT_EQ(get_shop_system()->get_offering(1), nullptr);
 }
 
 /// Test that adding multiple item offerings to the shop works correctly.
-TEST_F(ShopSystemFixture, TestShopSystemAddItemOfferingMultiple) {
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsItemMultiple) {
+  std::istringstream json_stream(R"([
+  {
+    "type": "item",
+    "name": "Test Item Offering 2",
+    "description": "A test item offering 2",
+    "icon_type": "TestItem",
+    "base_cost": 150,
+    "cost_multiplier": 1.8
+  }])");
   add_item();
-  get_shop_system()->add_item("Test Item Offering 2", "A test item offering 2", 150, 1.8);
+  get_shop_system()->add_offerings(json_stream, 0);
   ASSERT_EQ(get_shop_system()->get_offering(0)->name, "Test Item Offering");
   ASSERT_EQ(get_shop_system()->get_offering(1)->name, "Test Item Offering 2");
   ASSERT_EQ(get_shop_system()->get_offering(2), nullptr);
+}
+
+/// Test that adding multiple different offerings to the shop works correctly.
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsMultipleTypes) {
+  add_stat_upgrade();
+  add_component_unlock();
+  add_item();
+
+  // Check the stat upgrade offering
+  const auto stat_offering{get_shop_system()->get_offering(0)};
+  ASSERT_EQ(stat_offering->name, "Test Stat Upgrade");
+  ASSERT_EQ(stat_offering->get_cost(&registry, 0), 100);
+
+  // Check the component unlock offering
+  const auto component_offering{get_shop_system()->get_offering(1)};
+  ASSERT_EQ(component_offering->name, "Test Component Unlock");
+  ASSERT_EQ(component_offering->get_cost(&registry, 0), 100);
+
+  // Check the item offering
+  const auto item_offering{get_shop_system()->get_offering(2)};
+  ASSERT_EQ(item_offering->name, "Test Item Offering");
+  ASSERT_EQ(item_offering->get_cost(&registry, 0), 100);
+
+  // Ensure there are no more offerings
+  ASSERT_EQ(get_shop_system()->get_offering(3), nullptr);
+}
+
+/// Test that the shop item loaded callback is called correctly.
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsItemLoadedCallback) {
+  std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
+  add_callback<EventType::ShopItemLoaded>(
+      [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
+                       const int cost) { callback_args = std::make_tuple(offering_index, data, cost); });
+  add_stat_upgrade();
+  ASSERT_EQ(std::get<0>(callback_args), 0);
+  ASSERT_EQ(std::get<1>(callback_args),
+            std::make_tuple("Test Stat Upgrade", "A test stat upgrade offering", "StatTest"));
+  ASSERT_EQ(std::get<2>(callback_args), 100);
+}
+
+/// Test that adding a stat upgrade offering with an invalid stat type throws an exception.
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsStatInvalidType) {
+  std::istringstream json_stream(R"([
+  {
+    "type": "stat",
+    "name": "Invalid Stat Upgrade",
+    "description": "An invalid stat upgrade offering",
+    "icon_type": "StatInvalid",
+    "base_cost": 100,
+    "cost_multiplier": 1.5,
+    "stat_type": "InvalidStat",
+    "base_value": 200,
+    "value_multiplier": 1.2
+  }])");
+  ASSERT_THROW_MESSAGE(get_shop_system()->add_offerings(json_stream, 0), std::runtime_error,
+                       "Unknown component type: InvalidStat");
+}
+
+/// Test that adding an offering with an unknown type throws an exception.
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsUnknownType) {
+  std::istringstream json_stream(R"([
+  {
+    "type": "unknown",
+    "name": "Mystery Offering",
+    "description": "An offering of unknown type",
+    "icon_type": "Mystery",
+    "base_cost": 100,
+    "cost_multiplier": 1.5
+  }])");
+  ASSERT_THROW_MESSAGE(get_shop_system()->add_offerings(json_stream, 0), std::runtime_error,
+                       "Unknown offering type: unknown");
+}
+
+/// Test that adding an offering with an invalid JSON format throws an exception.
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsInvalidJSON) {
+  std::istringstream json_stream(R"([
+  {
+    "type": "stat",
+    "name": "Invalid Offering",
+    "description": "This offering has an invalid JSON format",
+    "icon_type": "Invalid",
+    "base_cost": 100,
+    "cost_multiplier": 1.5,
+  }])");
+  ASSERT_THROW_MESSAGE(get_shop_system()->add_offerings(json_stream, 0), nlohmann::json::exception,
+                       "[json.exception.parse_error.101] parse error at line 9, column 3: syntax error while parsing "
+                       "object key - unexpected '}'; expected string literal");
+}
+
+/// Test that adding an offering with an empty stream throws an exception.
+TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsEmptyStream) {
+  std::istringstream json_stream("");
+  ASSERT_THROW_MESSAGE(get_shop_system()->add_offerings(json_stream, 0), nlohmann::json::exception,
+                       "[json.exception.parse_error.101] parse error at line 1, column 1: attempting to parse an empty "
+                       "input; check that your input string or stream contains the expected JSON");
 }
 
 /// Test that getting the cost returns the correct value if no offerings are available.

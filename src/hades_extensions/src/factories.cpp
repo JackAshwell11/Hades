@@ -2,6 +2,7 @@
 #include "factories.hpp"
 
 // Std headers
+#include <functional>
 #include <numbers>
 
 // Local headers
@@ -17,6 +18,12 @@
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 namespace {
+/// Alias for a factory function that creates components for a game object.
+using ComponentFactory = std::function<std::vector<std::shared_ptr<ComponentBase>>()>;
+
+/// Alias for a factory function that creates components for a game object with a given level.
+using LeveledComponentFactory = std::function<std::vector<std::shared_ptr<ComponentBase>>(int)>;
+
 /// The velocity of the bullet.
 constexpr int BULLET_VELOCITY{1000};
 
@@ -31,7 +38,7 @@ auto get_hitboxes() -> auto & {
 /// The bullet factory.
 ///
 /// @return The components for the bullet.
-const auto bullet_factory{[](const int /*level*/) {
+const auto bullet_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<Bullet>(),
       std::make_shared<KinematicComponent>(),
@@ -65,7 +72,7 @@ const auto enemy_factory{[](const int /*level*/) {
 /// The wall factory.
 ///
 /// @return The components for the wall.
-const auto wall_factory{[](const int /*level*/) {
+const auto wall_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(true),
       std::make_shared<PythonSprite>(),
@@ -75,7 +82,7 @@ const auto wall_factory{[](const int /*level*/) {
 /// The floor factory.
 ///
 /// @return The components for the floor.
-const auto floor_factory{[](const int /*level*/) {
+const auto floor_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<PythonSprite>(),
   };
@@ -84,7 +91,7 @@ const auto floor_factory{[](const int /*level*/) {
 /// The goal factory.
 ///
 /// @return The components for the goal.
-const auto goal_factory{[](const int /*level*/) {
+const auto goal_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(),
       std::make_shared<PythonSprite>(),
@@ -94,7 +101,7 @@ const auto goal_factory{[](const int /*level*/) {
 /// The player factory.
 ///
 /// @return The components for the player.
-const auto player_factory{[](const int /*level*/) {
+const auto player_factory{[] {
   const auto attack{std::make_shared<Attack>()};
   attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
       AttackStat{1, 3}, AttackStat{20, 3}, AttackStat{3 * SPRITE_SIZE, 3}, AttackStat{BULLET_VELOCITY, 1}));
@@ -125,7 +132,7 @@ const auto player_factory{[](const int /*level*/) {
 /// The health potion factory.
 ///
 /// @return The components for the health potion.
-const auto health_potion_factory{[](const int /*level*/) {
+const auto health_potion_factory{[] {
   auto effect_applier{std::make_shared<EffectApplier>()};
   effect_applier->add_status_effect(EffectType::Regeneration, 5, 10, 1);
   return std::vector<std::shared_ptr<ComponentBase>>{
@@ -138,7 +145,7 @@ const auto health_potion_factory{[](const int /*level*/) {
 /// The chest factory.
 ///
 /// @return The components for the chest.
-const auto chest_factory{[](const int /*level*/) {
+const auto chest_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(),
       std::make_shared<PythonSprite>(),
@@ -148,7 +155,7 @@ const auto chest_factory{[](const int /*level*/) {
 /// The shop factory.
 ///
 /// @return The components for the shop.
-const auto shop_factory{[](const int /*level*/) {
+const auto shop_factory{[] {
   return std::vector<std::shared_ptr<ComponentBase>>{
       std::make_shared<KinematicComponent>(),
       std::make_shared<PythonSprite>(),
@@ -172,17 +179,22 @@ auto load_hitbox(const GameObjectType game_object_type, const std::vector<std::p
 
 void clear_hitboxes() { get_hitboxes().clear(); }
 
-auto get_factories() -> const std::unordered_map<GameObjectType, ComponentFactory> & {
+auto get_game_object_components(const GameObjectType game_object_type, const int level)
+    -> std::vector<std::shared_ptr<ComponentBase>> {
   static const std::unordered_map<GameObjectType, ComponentFactory> factories{
-      {GameObjectType::Bullet, bullet_factory},
-      {GameObjectType::Enemy, enemy_factory},
-      {GameObjectType::Floor, floor_factory},
-      {GameObjectType::Player, player_factory},
-      {GameObjectType::Wall, wall_factory},
-      {GameObjectType::Goal, goal_factory},
-      {GameObjectType::HealthPotion, health_potion_factory},
-      {GameObjectType::Chest, chest_factory},
-      {GameObjectType::Shop, shop_factory},
+      {GameObjectType::Bullet, bullet_factory}, {GameObjectType::Floor, floor_factory},
+      {GameObjectType::Player, player_factory}, {GameObjectType::Wall, wall_factory},
+      {GameObjectType::Goal, goal_factory},     {GameObjectType::HealthPotion, health_potion_factory},
+      {GameObjectType::Chest, chest_factory},   {GameObjectType::Shop, shop_factory},
   };
-  return factories;
+  static const std::unordered_map<GameObjectType, LeveledComponentFactory> leveled_factories{
+      {GameObjectType::Enemy, enemy_factory},
+  };
+  if (factories.contains(game_object_type)) {
+    return factories.at(game_object_type)();
+  }
+  if (leveled_factories.contains(game_object_type)) {
+    return leveled_factories.at(game_object_type)(level);
+  }
+  return {};
 }
