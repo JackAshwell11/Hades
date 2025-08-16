@@ -17,6 +17,9 @@ add_executable(${TEST_MODULE}
         ${CMAKE_SOURCE_DIR}/tests/test_events.cpp
         ${CMAKE_SOURCE_DIR}/tests/test_factories.cpp
         ${CMAKE_SOURCE_DIR}/tests/test_game_engine.cpp
+        ${CMAKE_SOURCE_DIR}/tests/test_game_state.cpp
+        ${CMAKE_SOURCE_DIR}/tests/test_input_handler.cpp
+        ${CMAKE_SOURCE_DIR}/tests/test_save_manager.cpp
 )
 target_include_directories(${TEST_MODULE} PRIVATE ${CMAKE_SOURCE_DIR}/tests)
 target_link_libraries(${TEST_MODULE}

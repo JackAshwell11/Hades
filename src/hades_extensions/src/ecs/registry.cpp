@@ -210,6 +210,21 @@ auto Registry::get_game_object_ids(const GameObjectType game_object_type) const 
   return ids != game_object_ids_.end() ? ids->second : std::vector<GameObjectID>{};
 }
 
+auto Registry::get_game_object_components(const GameObjectID game_object_id) const
+    -> std::vector<std::shared_ptr<ComponentBase>> {
+  // Check if the game object is registered or not
+  if (!has_game_object(game_object_id)) {
+    throw RegistryError("game object", game_object_id);
+  }
+
+  // Return the components of the game object
+  std::vector<std::shared_ptr<ComponentBase>> components;
+  for (const auto &component : std::views::values(game_objects_.at(game_object_id))) {
+    components.push_back(component);
+  }
+  return components;
+}
+
 void Registry::mark_for_deletion(const GameObjectID game_object_id) { objects_to_delete_.insert(game_object_id); }
 
 void Registry::update(const double delta_time) {

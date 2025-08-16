@@ -38,6 +38,7 @@ class GameScene(BaseScene[GameView]):
             (EventType.MoneyUpdate, self.on_money_update),
             (EventType.AttackCooldownUpdate, self.on_attack_cooldown_update),
             (EventType.RangedAttackSwitch, self.on_ranged_attack_switch),
+            (EventType.GameOpen, self.on_game_open),
         ]
         for event_type, callback in callbacks:
             add_callback(event_type, callback)  # type: ignore[call-overload]
@@ -46,11 +47,13 @@ class GameScene(BaseScene[GameView]):
         """Process show view functionality."""
         super().on_show_view()
         self.view.window.push_handlers(self.model.game_engine)
+        self.view.window.push_handlers(self.model.input_handler)
 
     def on_hide_view(self: GameScene) -> None:
         """Process hide view functionality."""
         super().on_hide_view()
         self.view.window.remove_handlers(self.model.game_engine)
+        self.view.window.remove_handlers(self.model.input_handler)
 
     def on_update(self: GameScene, _: float) -> None:
         """Process game logic."""
@@ -172,3 +175,7 @@ class GameScene(BaseScene[GameView]):
             status_effects: The status effects to display.
         """
         self.view.update_status_effects(status_effects)
+
+    def on_game_open(self: GameScene) -> None:
+        """Process game open logic."""
+        self.view.window.show_view(self)

@@ -71,4 +71,10 @@ struct InventorySystem final : SystemBase {
   /// @param game_object_id - The ID of the game object to remove the item from.
   /// @param item_id - The ID of the item to remove from the inventory.
   void remove_item_from_inventory(GameObjectID game_object_id, GameObjectID item_id) const;
+
+  /// Use an item on a target game object.
+  ///
+  /// @param target_id - The game object ID of the target.
+  /// @param item_id - The game object ID of the item to use.
+  void use_item(GameObjectID target_id, GameObjectID item_id) const;
 };

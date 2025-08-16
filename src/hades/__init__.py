@@ -17,11 +17,12 @@ __all__ = ("UI_BACKGROUND_COLOUR", "UI_PADDING", "SceneType")
 class SceneType(Enum):
     """Represents the different scenes in the game."""
 
-    START_MENU = auto()
     GAME = auto()
     GAME_OPTIONS = auto()
     INVENTORY = auto()
+    LOAD_GAME = auto()
     SHOP = auto()
+    START_MENU = auto()
 
 
 # The size of the padding around the UI elements

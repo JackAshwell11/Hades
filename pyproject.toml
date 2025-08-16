@@ -8,6 +8,7 @@ authors = [
 ]
 dependencies = [
     "arcade==3.3.2",
+    "python-dateutil==2.9.0.post0",
 ]
 description = "A procedurally generated bullet bullet-hell dungeon crawler made in Python."
 license = {file = "LICENSE"}

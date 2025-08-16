@@ -20,6 +20,13 @@ void bind_systems(const pybind11::module &module) {
           "    current_position: The current position of the game object.\n\n"
           "Returns:\n"
           "    The distances to the walls around the game object.");
+  pybind11::class_<InventorySystem, SystemBase, std::shared_ptr<InventorySystem>>(
+      module, "InventorySystem", "Provides facilities to manage inventory components.")
+      .def("use_item", &InventorySystem::use_item, pybind11::arg("target_id"), pybind11::arg("item_id"),
+           "Use an item on a target game object.\n\n"
+           "Args:\n"
+           "    target_id: The game object ID of the target.\n"
+           "    item_id: The game object ID of the item to use.");
   pybind11::class_<ShopSystem, SystemBase, std::shared_ptr<ShopSystem>>(module, "ShopSystem",
                                                                         "Provides facilities to manage a shop system.")
       .def("purchase", &ShopSystem::purchase, pybind11::arg("buyer_id"), pybind11::arg("offering_index"),

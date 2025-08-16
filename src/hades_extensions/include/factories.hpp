@@ -2,15 +2,12 @@
 #pragma once
 
 // Std headers
-#include <functional>
 #include <memory>
+#include <vector>
 
-// Local headers
-#include "ecs/bases.hpp"
-#include "game_object.hpp"
-
-/// Alias for a factory function that creates components for a game object with a given level.
-using ComponentFactory = std::function<std::vector<std::shared_ptr<ComponentBase>>(int)>;
+// Forward declarations
+struct ComponentBase;
+enum class GameObjectType : std::uint16_t;
 
 /// Load a hitbox for a given game object type.
 ///
@@ -22,7 +19,10 @@ auto load_hitbox(GameObjectType game_object_type, const std::vector<std::pair<do
 /// Clear all hitboxes.
 void clear_hitboxes();
 
-/// Get the map of game object types to their respective component factories.
+/// Get the components for a game object type.
 ///
-/// @return The map of game object types to component factories.
-auto get_factories() -> const std::unordered_map<GameObjectType, ComponentFactory> &;
+/// @param game_object_type - The game object type.
+/// @param level - The level of the game object, default is 0.
+/// @return The components for the game object type.
+auto get_game_object_components(GameObjectType game_object_type, int level = 0)
+    -> std::vector<std::shared_ptr<ComponentBase>>;
