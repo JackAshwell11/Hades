@@ -2,9 +2,7 @@
 #pragma once
 
 // Std headers
-#include <memory>
 #include <optional>
-#include <vector>
 
 // Local headers
 #include "ecs/stats.hpp"
@@ -13,16 +11,35 @@
 /// Stores the different types of attacks available in the game.
 enum class AttackType : std::uint8_t { Ranged, Melee, Special };
 
+/// Allows a game object to store an attack stat.
+struct AttackStat final : Stat {
+  /// Initialise the object.
+  ///
+  /// @param value - The initial and maximum value of the attack stat.
+  /// @param maximum_level - The maximum level of the attack stat.
+  AttackStat(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
+};
+
 /// Represents the base class for an attack
 struct BaseAttack {
   /// The cooldown for this attack.
-  Stat cooldown;
+  AttackStat cooldown;
 
   /// The damage dealt by this attack.
-  Stat damage;
+  AttackStat damage;
 
   /// The range of this attack.
-  Stat range;
+  AttackStat range;
 
   /// The time since this attack was last used.
   double time_since_last_use{0};
@@ -32,7 +49,7 @@ struct BaseAttack {
   /// @param cooldown - The cooldown for this attack.
   /// @param damage - The damage dealt by this attack.
   /// @param range - The range of this attack.
-  BaseAttack(Stat cooldown, Stat damage, Stat range)
+  BaseAttack(AttackStat cooldown, AttackStat damage, AttackStat range)
       : cooldown(std::move(cooldown)), damage(std::move(damage)), range(std::move(range)) {}
 
   /// The virtual destructor.
@@ -77,7 +94,7 @@ struct BaseAttack {
 /// Represents a ranged attack that can be performed.
 struct RangedAttack : BaseAttack {
   /// The bullet velocity of this attack.
-  Stat velocity;
+  AttackStat velocity;
 
   /// Initialise the object.
   ///
@@ -85,7 +102,7 @@ struct RangedAttack : BaseAttack {
   /// @param damage - The damage dealt by this attack.
   /// @param range - The range of this attack.
   /// @param velocity - The velocity of the bullet.
-  RangedAttack(Stat cooldown, Stat damage, Stat range, Stat velocity)
+  RangedAttack(AttackStat cooldown, AttackStat damage, AttackStat range, AttackStat velocity)
       : BaseAttack(std::move(cooldown), std::move(damage), std::move(range)), velocity(std::move(velocity)) {}
 };
 
@@ -97,7 +114,7 @@ struct SingleBulletAttack final : RangedAttack {
   /// @param damage - The damage dealt by this attack.
   /// @param range - The range of this attack.
   /// @param velocity - The velocity of the bullet.
-  SingleBulletAttack(Stat cooldown, Stat damage, Stat range, Stat velocity)
+  SingleBulletAttack(AttackStat cooldown, AttackStat damage, AttackStat range, AttackStat velocity)
       : RangedAttack(std::move(cooldown), std::move(damage), std::move(range), std::move(velocity)) {}
 
   /// Perform the single bullet attack.
@@ -110,7 +127,7 @@ struct SingleBulletAttack final : RangedAttack {
 /// Represents a ranged attack that fires multiple bullets.
 struct MultiBulletAttack final : RangedAttack {
   /// The number of bullets to fire.
-  Stat bullet_count;
+  AttackStat bullet_count;
 
   /// Initialise the object.
   ///
@@ -119,7 +136,8 @@ struct MultiBulletAttack final : RangedAttack {
   /// @param range - The range of this attack.
   /// @param velocity - The velocity of the bullet.
   /// @param bullet_count - The number of bullets to fire.
-  MultiBulletAttack(Stat cooldown, Stat damage, Stat range, Stat velocity, Stat bullet_count)
+  MultiBulletAttack(AttackStat cooldown, AttackStat damage, AttackStat range, AttackStat velocity,
+                    AttackStat bullet_count)
       : RangedAttack(std::move(cooldown), std::move(damage), std::move(range), std::move(velocity)),
         bullet_count(std::move(bullet_count)) {}
 
@@ -133,7 +151,7 @@ struct MultiBulletAttack final : RangedAttack {
 /// Represents a melee attack that attacks in a cone in front of the game object.
 struct MeleeAttack final : BaseAttack {
   /// The arc size of the melee attack.
-  Stat size;
+  AttackStat size;
 
   /// Initialise the object.
   ///
@@ -141,7 +159,7 @@ struct MeleeAttack final : BaseAttack {
   /// @param damage - The damage dealt by this attack.
   /// @param range - The range of this attack.
   /// @param size - The arc size of the melee attack.
-  MeleeAttack(Stat cooldown, Stat damage, Stat range, Stat size)
+  MeleeAttack(AttackStat cooldown, AttackStat damage, AttackStat range, AttackStat size)
       : BaseAttack(std::move(cooldown), std::move(damage), std::move(range)), size(std::move(size)) {}
 
   /// Perform the melee attack.
@@ -158,7 +176,7 @@ struct AreaOfEffectAttack final : BaseAttack {
   /// @param cooldown - The cooldown for this attack.
   /// @param damage - The damage dealt by this attack.
   /// @param range - The range of this attack.
-  AreaOfEffectAttack(Stat cooldown, Stat damage, Stat range)
+  AreaOfEffectAttack(AttackStat cooldown, AttackStat damage, AttackStat range)
       : BaseAttack(std::move(cooldown), std::move(damage), std::move(range)) {}
 
   /// Perform an area of effect attack
@@ -190,6 +208,19 @@ struct Attack final : ComponentBase {
 
   /// The index of the currently selected attack.
   int selected_ranged_attack{0};
+
+  /// Reset the component to its default state.
+  void reset() override;
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 
   /// Add a ranged attack.
   ///

@@ -11,4 +11,14 @@ struct PlayerLevel final : ComponentBase {
 
   /// The current experience of the game object.
   double experience{0.0};
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };

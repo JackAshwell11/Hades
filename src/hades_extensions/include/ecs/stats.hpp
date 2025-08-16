@@ -16,6 +16,19 @@ class Stat : public ComponentBase {
   /// @param max_level - The maximum level of the stat.
   Stat(const double value, const int max_level) : value_(value), max_value_(value), max_level_(max_level) {}
 
+  /// Reset the component to its default state.
+  void reset() final;
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override = 0;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override = 0;
+
   /// Get the value of the stat.
   ///
   /// @return The value of the stat.
@@ -49,6 +62,17 @@ class Stat : public ComponentBase {
   /// @return The maximum level of the stat.
   [[nodiscard]] auto get_max_level() const -> int { return max_level_; }
 
+ protected:
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file_base(nlohmann::json &json) const;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file_base(const nlohmann::json &json);
+
  private:
   /// The current value of the variable.
   double value_;
@@ -70,6 +94,16 @@ struct Armour final : Stat {
   /// @param value - The initial and maximum value of the armour stat.
   /// @param maximum_level - The maximum level of the armour stat.
   Armour(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };
 
 /// Allows a game object to have a health stat.
@@ -79,4 +113,14 @@ struct Health final : Stat {
   /// @param value - The initial and maximum value of the health stat.
   /// @param maximum_level - The maximum level of the health stat.
   Health(const double value, const int maximum_level) : Stat(value, maximum_level) {}
+
+  /// Serialise the component to a JSON object.
+  ///
+  /// @param json - The JSON object to serialise to.
+  void to_file(nlohmann::json &json) const override;
+
+  /// Deserialise the component from a JSON object.
+  ///
+  /// @param json - The JSON object to deserialise from.
+  void from_file(const nlohmann::json &json) override;
 };

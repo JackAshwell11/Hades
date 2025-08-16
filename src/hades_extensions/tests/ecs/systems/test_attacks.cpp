@@ -1,6 +1,9 @@
 // Std headers
 #include <numbers>
 
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/systems/attacks.hpp"
@@ -8,6 +11,18 @@
 #include "ecs/systems/physics.hpp"
 #include "events.hpp"
 #include "macros.hpp"
+
+namespace {
+/// Assert that the attack stat component is serialised to JSON correctly.
+///
+/// @param stat - The attack stat component to check.
+/// @param expected_json - The expected JSON representation of the attack stat component.
+void assert_attack_stat(const AttackStat &stat, const nlohmann::json &expected_json) {
+  nlohmann::json actual_json;
+  stat.to_file(actual_json);
+  ASSERT_EQ(actual_json, expected_json);
+}
+}  // namespace
 
 /// Implements the fixture for the AttackSystem tests.
 class AttackSystemFixture : public testing::Test {
@@ -63,10 +78,10 @@ class AttackSystemFixture : public testing::Test {
   void create_attacker(const AttackerConfig &config) {
     const auto attack{std::make_shared<Attack>()};
     if (config.ranged) {
-      attack->add_ranged_attack(
-          std::make_unique<SingleBulletAttack>(Stat(2, -1), Stat(20, -1), Stat(3 * SPRITE_SIZE, -1), Stat(200, -1)));
-      attack->add_ranged_attack(std::make_unique<MultiBulletAttack>(Stat{1, 3}, Stat{10, 3}, Stat{3 * SPRITE_SIZE, 3},
-                                                                    Stat{200, 1}, Stat{5, 3}));
+      attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
+          AttackStat(2, -1), AttackStat(20, -1), AttackStat(3 * SPRITE_SIZE, -1), AttackStat(200, -1)));
+      attack->add_ranged_attack(std::make_unique<MultiBulletAttack>(
+          AttackStat{1, 3}, AttackStat{10, 3}, AttackStat{3 * SPRITE_SIZE, 3}, AttackStat{200, 1}, AttackStat{5, 3}));
     }
     if (config.melee) {
       attack->set_melee_attack({{2, -1}, {20, -1}, {3 * SPRITE_SIZE, -1}, {std::numbers::pi / 4, -1}});
@@ -113,6 +128,138 @@ class DamageSystemFixture : public testing::Test {
     return registry.get_system<DamageSystem>();
   }
 };
+
+/// Test that the attack stat component is serialised to a file correctly.
+TEST_F(AttackSystemFixture, TestAttackStatToFile) {
+  nlohmann::json json;
+  const auto attack_stat{std::make_shared<AttackStat>(5, -1)};
+  attack_stat->to_file(json);
+  ASSERT_EQ(json, nlohmann::json::parse(R"({"current_level":0,"max_level":-1,"max_value":5.0,"value":5.0})"));
+}
+
+/// Test that the attack stat component is deserialised from a file correctly.
+TEST_F(AttackSystemFixture, TestAttackStatFromFile) {
+  const nlohmann::json json(
+      nlohmann::json::parse(R"({"current_level":5,"max_level":10,"max_value":100.0,"value":50.0})"));
+  const auto attack_stat{std::make_shared<AttackStat>(0, -1)};
+  attack_stat->from_file(json);
+  ASSERT_EQ(attack_stat->get_value(), 50);
+  ASSERT_EQ(attack_stat->get_max_value(), 100);
+  ASSERT_EQ(attack_stat->get_max_level(), 10);
+  ASSERT_EQ(attack_stat->get_current_level(), 5);
+}
+
+/// Test that the attack component is reset correctly.
+TEST_F(AttackSystemFixture, TestAttackReset) {
+  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  const auto attack{registry.get_component<Attack>(8)};
+  get_attack_system()->next_ranged_attack(8);
+  ASSERT_EQ(attack->selected_ranged_attack, 1);
+  attack->reset();
+  ASSERT_EQ(attack->selected_ranged_attack, 0);
+}
+
+/// Test that the attack component is serialised to a file correctly.
+TEST_F(AttackSystemFixture, TestAttackToFile) {
+  nlohmann::json json;
+  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  registry.get_component<Attack>(8)->to_file(json);
+  const auto expected_json(nlohmann::json::parse(R"({
+    "melee_attack": {
+      "cooldown": {"current_level":0,"max_level":-1,"max_value":2.0,"value":2.0},
+      "damage": {"current_level":0,"max_level":-1,"max_value":20.0,"value":20.0},
+      "range": {"current_level":0,"max_level":-1,"max_value":192.0,"value":192.0},
+      "size": {"current_level":0,"max_level":-1,"max_value":0.7853981633974483,"value":0.7853981633974483}
+    },
+    "ranged_attack": [
+      {
+        "cooldown": {"current_level":0,"max_level":-1,"max_value":2.0,"value":2.0},
+        "damage": {"current_level":0,"max_level":-1,"max_value":20.0,"value":20.0},
+        "range": {"current_level":0,"max_level":-1,"max_value":192.0,"value":192.0},
+        "velocity": {"current_level":0,"max_level":-1,"max_value":200.0,"value":200.0}
+      },
+      {
+        "cooldown": {"current_level":0,"max_level":3,"max_value":1.0,"value":1.0},
+        "damage": {"current_level":0,"max_level":3,"max_value":10.0,"value":10.0},
+        "range": {"current_level":0,"max_level":3,"max_value":192.0,"value":192.0},
+        "velocity": {"current_level":0,"max_level":1,"max_value":200.0,"value":200.0}
+      }
+    ],
+    "selected_ranged_attack": 0,
+    "special_attack": {
+      "cooldown": {"current_level":0,"max_level":-1,"max_value":2.0,"value":2.0},
+      "damage": {"current_level":0,"max_level":-1,"max_value":20.0,"value":20.0},
+      "range": {"current_level":0,"max_level":-1,"max_value":192.0,"value":192.0}
+    }
+  })"));
+  ASSERT_EQ(json, expected_json);
+}
+
+/// Test that the attack component is deserialised from a file correctly.
+TEST_F(AttackSystemFixture, TestAttackFromFile) {
+  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  const auto json(nlohmann::json::parse(R"({
+    "selected_ranged_attack": 1,
+    "melee_attack": {
+      "cooldown": {"current_level":1,"max_level":1,"max_value":5.0,"value":10.0},
+      "damage": {"current_level":2,"max_level":2,"max_value":10.0,"value":15.0},
+      "range": {"current_level":3,"max_level":3,"max_value":15.0,"value":20.0},
+      "size": {"current_level":4,"max_level":4,"max_value":20.0,"value":25.0}
+    },
+    "ranged_attack": [
+      {
+        "cooldown": {"current_level":1,"max_level":1,"max_value":5.0,"value":10.0},
+        "damage": {"current_level":2,"max_level":2,"max_value":10.0,"value":15.0},
+        "range": {"current_level":3,"max_level":3,"max_value":15.0,"value":20.0},
+        "velocity": {"current_level":4,"max_level":4,"max_value":20.0,"value":25.0}
+      },
+      {
+        "cooldown": {"current_level":5,"max_level":5,"max_value":25.0,"value":25.0},
+        "damage": {"current_level":6,"max_level":6,"max_value":30.0,"value":30.0},
+        "range": {"current_level":7,"max_level":7,"max_value":35.0,"value":35.0},
+        "velocity": {"current_level":8,"max_level":8,"max_value":40.0,"value":40.0}
+      }
+    ],
+    "special_attack": {
+      "cooldown": {"current_level":1,"max_level":1,"max_value":5.0,"value":10.0},
+      "damage": {"current_level":2,"max_level":2,"max_value":10.0,"value":15.0},
+      "range": {"current_level":3,"max_level":3,"max_value":15.0,"value":20.0}
+    }
+  })"));
+  const auto attack{registry.get_component<Attack>(8)};
+  attack->from_file(json);
+  ASSERT_EQ(attack->selected_ranged_attack, 1);
+  assert_attack_stat(attack->melee_attack->cooldown,
+                     nlohmann::json::parse(R"({"current_level":1,"max_level":1,"max_value":5.0,"value":10.0})"));
+  assert_attack_stat(attack->melee_attack->damage,
+                     nlohmann::json::parse(R"({"current_level":2,"max_level":2,"max_value":10.0,"value":15.0})"));
+  assert_attack_stat(attack->melee_attack->range,
+                     nlohmann::json::parse(R"({"current_level":3,"max_level":3,"max_value":15.0,"value":20.0})"));
+  assert_attack_stat(attack->melee_attack->size,
+                     nlohmann::json::parse(R"({"current_level":4,"max_level":4,"max_value":20.0,"value":25.0})"));
+  assert_attack_stat(attack->ranged_attacks[0]->cooldown,
+                     nlohmann::json::parse(R"({"current_level":1,"max_level":1,"max_value":5.0,"value":10.0})"));
+  assert_attack_stat(attack->ranged_attacks[0]->damage,
+                     nlohmann::json::parse(R"({"current_level":2,"max_level":2,"max_value":10.0,"value":15.0})"));
+  assert_attack_stat(attack->ranged_attacks[0]->range,
+                     nlohmann::json::parse(R"({"current_level":3,"max_level":3,"max_value":15.0,"value":20.0})"));
+  assert_attack_stat(attack->ranged_attacks[0]->velocity,
+                     nlohmann::json::parse(R"({"current_level":4,"max_level":4,"max_value":20.0,"value":25.0})"));
+  assert_attack_stat(attack->ranged_attacks[1]->cooldown,
+                     nlohmann::json::parse(R"({"current_level":5,"max_level":5,"max_value":25.0,"value":25.0})"));
+  assert_attack_stat(attack->ranged_attacks[1]->damage,
+                     nlohmann::json::parse(R"({"current_level":6,"max_level":6,"max_value":30.0,"value":30.0})"));
+  assert_attack_stat(attack->ranged_attacks[1]->range,
+                     nlohmann::json::parse(R"({"current_level":7,"max_level":7,"max_value":35.0,"value":35.0})"));
+  assert_attack_stat(attack->ranged_attacks[1]->velocity,
+                     nlohmann::json::parse(R"({"current_level":8,"max_level":8,"max_value":40.0,"value":40.0})"));
+  assert_attack_stat(attack->special_attack->cooldown,
+                     nlohmann::json::parse(R"({"current_level":1,"max_level":1,"max_value":5.0,"value":10.0})"));
+  assert_attack_stat(attack->special_attack->damage,
+                     nlohmann::json::parse(R"({"current_level":2,"max_level":2,"max_value":10.0,"value":15.0})"));
+  assert_attack_stat(attack->special_attack->range,
+                     nlohmann::json::parse(R"({"current_level":3,"max_level":3,"max_value":15.0,"value":20.0})"));
+}
 
 /// Test that the attack component is updated correctly with a zero delta time.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateZeroDeltaTime) {

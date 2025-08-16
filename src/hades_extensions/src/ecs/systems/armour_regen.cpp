@@ -1,6 +1,9 @@
 // Related header
 #include "ecs/systems/armour_regen.hpp"
 
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/registry.hpp"
 
@@ -8,6 +11,10 @@ namespace {
 /// The amount of armour to regenerate each time.
 constexpr int ARMOUR_REGEN_AMOUNT{1};
 }  // namespace
+
+void ArmourRegen::to_file(nlohmann::json &json) const { to_file_base(json["armour_regen"]); }
+
+void ArmourRegen::from_file(const nlohmann::json &json) { from_file_base(json.at("armour_regen")); }
 
 void ArmourRegenSystem::update(const double delta_time) const {
   // Update the time since the last armour regen then check if the armour should be regenerated

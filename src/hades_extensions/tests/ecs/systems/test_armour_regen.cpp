@@ -1,6 +1,9 @@
 // External headers
 #include <gtest/gtest.h>
 
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/systems/armour_regen.hpp"
@@ -25,6 +28,27 @@ class ArmourRegenSystemFixture : public testing::Test {
     return registry.get_system<ArmourRegenSystem>();
   }
 };
+
+/// Test that the armour regen component is serialised to a file correctly.
+TEST_F(ArmourRegenSystemFixture, TestArmourRegenToFile) {
+  nlohmann::json json;
+  registry.get_component<ArmourRegen>(0)->to_file(json);
+  ASSERT_EQ(json, nlohmann::json::parse(
+                      R"({"armour_regen":{"current_level":0,"max_level":-1,"max_value":4.0,"value":4.0}})"));
+}
+
+/// Test that the armour regen component is deserialised from a file correctly.
+TEST_F(ArmourRegenSystemFixture, TestArmourRegenFromFile) {
+  const nlohmann::json json(
+      nlohmann::json::parse(R"({"armour_regen":{"current_level":0,"max_level":-1,"max_value":4.0,"value":4.0}})"));
+  const auto armour_regen{std::make_shared<ArmourRegen>(0, -1)};
+  armour_regen->from_file(json);
+  ASSERT_EQ(armour_regen->get_value(), 4);
+  ASSERT_EQ(armour_regen->get_max_value(), 4);
+  ASSERT_EQ(armour_regen->get_max_level(), -1);
+  ASSERT_EQ(armour_regen->get_current_level(), 0);
+  ASSERT_EQ(armour_regen->time_since_armour_regen, 0);
+}
 
 /// Test that the armour regen component is updated correctly when armour is full.
 TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateFullArmour) {

@@ -16,7 +16,7 @@ from hades.constructors import IconType
 from hades.progress_bar import PROGRESS_BAR_HEIGHT, ProgressBar
 from hades.scenes.base.view import BaseView
 from hades.sprite import HadesSprite
-from hades_extensions.ecs import SPRITE_SIZE, GameObjectType, StatusEffectType
+from hades_extensions.ecs import SPRITE_SIZE, EffectType, GameObjectType
 
 if TYPE_CHECKING:
     from hades.window import HadesWindow
@@ -153,12 +153,12 @@ class GameView(BaseView):
             space_between=SPRITE_SIZE / 2,
         )
         self.status_effect_layout: UIBoxLayout = UIBoxLayout(align="right")
-        self.effect_indicators: dict[StatusEffectType, StateIndicator] = {
-            StatusEffectType.Regeneration: StateIndicator(
+        self.effect_indicators: dict[EffectType, StateIndicator] = {
+            EffectType.Regeneration: StateIndicator(
                 IconType.REGENERATION,
                 reverse=True,
             ),
-            StatusEffectType.Poison: StateIndicator(IconType.POISON, reverse=True),
+            EffectType.Poison: StateIndicator(IconType.POISON, reverse=True),
         }
         super().__init__(window)
 
@@ -278,7 +278,7 @@ class GameView(BaseView):
 
     def update_status_effects(
         self: GameView,
-        status_effects: dict[StatusEffectType, float],
+        status_effects: dict[EffectType, float],
     ) -> None:
         """Update the status effects for the player.
 

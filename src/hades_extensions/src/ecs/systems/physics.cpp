@@ -7,6 +7,12 @@
 #include "ecs/systems/movements.hpp"
 #include "factories.hpp"
 
+void KinematicComponent::reset() {
+  cpBodySetPosition(*body, cpvzero);
+  cpBodySetVelocity(*body, cpvzero);
+  rotation = 0;
+}
+
 void PhysicsSystem::update(const double delta_time) const { cpSpaceStep(get_registry()->get_space(), delta_time); }
 
 void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect &force) const {

@@ -1,17 +1,57 @@
 // Related header
 #include "ecs/systems/effects.hpp"
 
+// External headers
+#include <nlohmann/json.hpp>
+
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 #include "events.hpp"
 
 namespace {
+/// A helper struct to provide the component type for each effect type.
+template <EffectType>
+struct EffectTraits;
+
+/// Provides the component type for the Regeneration effect.
+template <>
+struct EffectTraits<EffectType::Regeneration> {
+  /// Get the component type associated with the Regeneration effect.
+  ///
+  /// @return The type index of the component associated with the Regeneration effect.
+  static std::type_index component_type() { return std::type_index(typeid(Health)); }
+};
+
+/// Provides the component type for the Poison effect.
+template <>
+struct EffectTraits<EffectType::Poison> {
+  /// Get the component type associated with the Poison effect.
+  ///
+  /// @return The type index of the component associated with the Poison effect.
+  static std::type_index component_type() { return std::type_index(typeid(Health)); }
+};
+
+/// Get the component type associated with a specific effect type.
+///
+/// @param effect_type - The type of the effect.
+/// @return The type index of the component associated with the effect type.
+auto get_component_type(const EffectType effect_type) -> std::type_index {
+  switch (effect_type) {
+    case EffectType::Regeneration:
+      return EffectTraits<EffectType::Regeneration>::component_type();
+    case EffectType::Poison:
+      return EffectTraits<EffectType::Poison>::component_type();
+    default:
+      return std::type_index(typeid(void));
+  }
+}
+
 /// Notifies the registry of a status effect update.
 ///
 /// @param effects - The status effects that have been applied to the game object.
-void notify_status_effect_update(const std::unordered_map<StatusEffectType, StatusEffect> &effects) {
-  std::unordered_map<StatusEffectType, double> effect_data;
+void notify_status_effect_update(const std::unordered_map<EffectType, StatusEffect> &effects) {
+  std::unordered_map<EffectType, double> effect_data;
   for (const auto &[effect_type, effect] : effects) {
     effect_data.emplace(effect_type, effect.duration - effect.time_elapsed);
   }
@@ -20,7 +60,8 @@ void notify_status_effect_update(const std::unordered_map<StatusEffectType, Stat
 }  // namespace
 
 auto BaseEffect::apply(const Registry *registry, const GameObjectID game_object_id) const -> bool {
-  const auto component{std::static_pointer_cast<Stat>(registry->get_component(game_object_id, target_component))};
+  const auto component{
+      std::static_pointer_cast<Stat>(registry->get_component(game_object_id, get_component_type(effect_type)))};
   if (!component) {
     return false;
   }
@@ -42,6 +83,32 @@ auto StatusEffect::update(const Registry *registry, const GameObjectID target, c
     interval_accumulator -= interval;
   }
   return time_elapsed >= duration;
+}
+
+void StatusEffects::reset() { active_effects.clear(); }
+
+void StatusEffects::to_file(nlohmann::json &json) const {
+  json["active_effects"] = nlohmann::json::object();
+  for (const auto &[effect_type, effect] : active_effects) {
+    json.at("active_effects")[std::to_string(static_cast<int>(effect_type))] = {
+        {"value", effect.value},
+        {"duration", effect.duration},
+        {"interval", effect.interval},
+        {"time_elapsed", effect.time_elapsed},
+        {"interval_accumulator", effect.interval_accumulator},
+    };
+  }
+}
+
+void StatusEffects::from_file(const nlohmann::json &json) {
+  for (const auto &[type, effect_data] : json.at("active_effects").items()) {
+    const auto effect_type{static_cast<EffectType>(std::stoi(type))};
+    StatusEffect status_effect{effect_type, effect_data["value"].get<double>(), effect_data["duration"].get<double>(),
+                               effect_data["interval"].get<double>()};
+    status_effect.time_elapsed = effect_data["time_elapsed"].get<double>();
+    status_effect.interval_accumulator = effect_data["interval_accumulator"].get<double>();
+    active_effects.emplace(effect_type, status_effect);
+  }
 }
 
 void EffectSystem::update(const double delta_time) const {
