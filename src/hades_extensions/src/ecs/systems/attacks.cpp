@@ -9,6 +9,7 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
+#include "events.hpp"
 
 namespace {
 /// The size of the cone angle for the multi-bullet attack (45 degrees).
@@ -99,7 +100,7 @@ void AttackSystem::update(const double delta_time) const {
     if (attack->special_attack) {
       attack->special_attack->update(delta_time);
     }
-    get_registry()->notify<EventType::AttackCooldownUpdate>(
+    notify<EventType::AttackCooldownUpdate>(
         game_object_id,
         std::cmp_less(attack->selected_ranged_attack, attack->ranged_attacks.size())
             ? attack->ranged_attacks[attack->selected_ranged_attack]->get_time_until_attack()
@@ -121,7 +122,7 @@ void AttackSystem::update(const double delta_time) const {
 void AttackSystem::previous_ranged_attack(const GameObjectID game_object_id) const {
   if (const auto attack{get_registry()->get_component<Attack>(game_object_id)}; attack->selected_ranged_attack > 0) {
     attack->selected_ranged_attack--;
-    get_registry()->notify<EventType::RangedAttackSwitch>(attack->selected_ranged_attack);
+    notify<EventType::RangedAttackSwitch>(attack->selected_ranged_attack);
   }
 }
 
@@ -130,7 +131,7 @@ void AttackSystem::next_ranged_attack(const GameObjectID game_object_id) const {
       !attack->ranged_attacks.empty() &&
       std::cmp_less(attack->selected_ranged_attack, attack->ranged_attacks.size() - 1)) {
     attack->selected_ranged_attack++;
-    get_registry()->notify<EventType::RangedAttackSwitch>(attack->selected_ranged_attack);
+    notify<EventType::RangedAttackSwitch>(attack->selected_ranged_attack);
   }
 }
 

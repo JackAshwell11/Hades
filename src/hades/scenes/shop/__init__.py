@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 # Custom
 from hades.scenes.base import BaseScene
 from hades.scenes.shop.view import ShopItemButton, ShopView
-from hades_extensions.ecs import EventType
+from hades_extensions import EventType, add_callback
 from hades_extensions.ecs.systems import ShopSystem
 
 if TYPE_CHECKING:
@@ -33,10 +33,7 @@ class ShopScene(BaseScene[ShopView]):
             (EventType.ShopOpen, self.on_shop_open),
         ]
         for event_type, callback in callbacks:
-            self.model.registry.add_callback(  # type: ignore[call-overload]
-                event_type,
-                callback,
-            )
+            add_callback(event_type, callback)  # type: ignore[call-overload]
 
     def on_hide_view(self: ShopScene) -> None:
         """Process hide view functionality."""

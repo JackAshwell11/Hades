@@ -12,7 +12,7 @@ from arcade.key import E
 from hades import SceneType
 from hades.scenes.base import BaseScene
 from hades.scenes.game_options.view import GameOptionsView
-from hades_extensions.ecs import EventType
+from hades_extensions import EventType, add_callback
 
 if TYPE_CHECKING:
     from typing import ClassVar
@@ -28,10 +28,7 @@ class GameOptionsScene(BaseScene[GameOptionsView]):
 
     def add_callbacks(self: GameOptionsScene) -> None:
         """Set up the controller callbacks."""
-        self.model.registry.add_callback(
-            EventType.GameOptionsOpen,
-            self.on_game_options_open,
-        )
+        add_callback(EventType.GameOptionsOpen, self.on_game_options_open)
 
     def on_optioned_start_game(self: GameOptionsScene, seed: str) -> None:
         """Process the start game functionality with options."""

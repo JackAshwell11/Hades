@@ -12,6 +12,7 @@ add_executable(${TEST_MODULE}
         ${CMAKE_SOURCE_DIR}/tests/generation/test_dijkstra.cpp
         ${CMAKE_SOURCE_DIR}/tests/generation/test_map.cpp
         ${CMAKE_SOURCE_DIR}/tests/generation/test_primitives.cpp
+        ${CMAKE_SOURCE_DIR}/tests/test_events.cpp
         ${CMAKE_SOURCE_DIR}/tests/test_factories.cpp
         ${CMAKE_SOURCE_DIR}/tests/test_game_engine.cpp
 )

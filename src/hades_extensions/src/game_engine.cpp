@@ -13,6 +13,7 @@
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
+#include "events.hpp"
 #include "factories.hpp"
 
 namespace {
@@ -115,10 +116,10 @@ void GameEngine::reset_level(const LevelType level_type) {
 
   // Notify the registry of the level reset
   if (level_type == LevelType::Lobby) {
-    registry_.notify<EventType::InventoryUpdate>(std::vector<GameObjectID>{});
-    registry_.notify<EventType::RangedAttackSwitch>(0);
-    registry_.notify<EventType::AttackCooldownUpdate>(get_player_id(), 0.0, 0.0, 0.0);
-    registry_.notify<EventType::StatusEffectUpdate>(std::unordered_map<StatusEffectType, double>{});
+    notify<EventType::InventoryUpdate>(std::vector<GameObjectID>{});
+    notify<EventType::RangedAttackSwitch>(0);
+    notify<EventType::AttackCooldownUpdate>(get_player_id(), 0.0, 0.0, 0.0);
+    notify<EventType::StatusEffectUpdate>(std::unordered_map<StatusEffectType, double>{});
   }
 }
 
@@ -144,8 +145,8 @@ void GameEngine::setup_shop(std::istream &stream) const {
     } else {
       throw std::runtime_error("Unknown offering type: " + type);
     }
-    registry_.notify<EventType::ShopItemLoaded>(i, std::make_tuple(name, description, icon_type),
-                                                shop_system->get_offering_cost(i, get_player_id()));
+    notify<EventType::ShopItemLoaded>(i, std::make_tuple(name, description, icon_type),
+                                      shop_system->get_offering_cost(i, get_player_id()));
   }
 }
 
@@ -219,7 +220,7 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
         if (is_player_touching_type(GameObjectType::Goal)) {
           reset_level(LevelType::Normal);
         } else if (is_player_touching_type(GameObjectType::Shop)) {
-          registry_.notify<EventType::ShopOpen>();
+          notify<EventType::ShopOpen>();
         }
       } else {
         use_item(get_player_id(), get_nearest_item());
@@ -227,7 +228,7 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
       break;
     case KEY_Q:
       if (game_state_.current_level.is_lobby) {
-        registry_.notify<EventType::GameOptionsOpen>();
+        notify<EventType::GameOptionsOpen>();
       }
       break;
     case KEY_Z:
@@ -238,7 +239,7 @@ void GameEngine::on_key_release(const int symbol, const int /*modifiers*/) {
       break;
     case KEY_I:
       if (!game_state_.current_level.is_lobby) {
-        registry_.notify<EventType::InventoryOpen>();
+        notify<EventType::InventoryOpen>();
       }
     default:
       break;

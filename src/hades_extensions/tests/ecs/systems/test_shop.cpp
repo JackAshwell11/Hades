@@ -2,6 +2,7 @@
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 #include "ecs/systems/shop.hpp"
+#include "events.hpp"
 #include "macros.hpp"
 
 /// Represents a test stat useful for testing the shop system.
@@ -22,6 +23,9 @@ class ShopSystemFixture : public testing::Test {
     registry.create_game_object(GameObjectType::Player, cpvzero,
                                 {std::make_shared<Money>(), std::make_shared<TestShopStat>()});
   }
+
+  /// Tear down the fixture after the tests.
+  void TearDown() override { clear_listeners(); }
 
   /// Add a stat upgrade offering to the shop system.
   void add_stat_upgrade() const {
@@ -233,7 +237,7 @@ TEST_F(ShopSystemFixture, TestShopSystemPurchaseItemShopItemPurchasedCallback) {
   add_stat_upgrade();
   registry.get_component<Money>(0)->money = 500;
   std::tuple<int, int> callback_args;
-  registry.add_callback<EventType::ShopItemPurchased>(
+  add_callback<EventType::ShopItemPurchased>(
       [&](const int offering_index, const int cost) { callback_args = std::make_tuple(offering_index, cost); });
   ASSERT_TRUE(get_shop_system()->purchase(0, 0));
   ASSERT_EQ(std::get<0>(callback_args), 0);

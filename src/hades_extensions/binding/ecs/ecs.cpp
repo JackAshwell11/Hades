@@ -17,20 +17,6 @@ void bind_ecs(const pybind11::module_ &module) {
       .value("Ranged", AttackType::Ranged)
       .value("Melee", AttackType::Melee)
       .value("Special", AttackType::Special);
-  pybind11::enum_<EventType>(module, "EventType", "Stores the different types of events that can occur.")
-      .value("GameObjectCreation", EventType::GameObjectCreation)
-      .value("GameObjectDeath", EventType::GameObjectDeath)
-      .value("InventoryUpdate", EventType::InventoryUpdate)
-      .value("SpriteRemoval", EventType::SpriteRemoval)
-      .value("StatusEffectUpdate", EventType::StatusEffectUpdate)
-      .value("MoneyUpdate", EventType::MoneyUpdate)
-      .value("AttackCooldownUpdate", EventType::AttackCooldownUpdate)
-      .value("RangedAttackSwitch", EventType::RangedAttackSwitch)
-      .value("ShopItemLoaded", EventType::ShopItemLoaded)
-      .value("ShopItemPurchased", EventType::ShopItemPurchased)
-      .value("ShopOpen", EventType::ShopOpen)
-      .value("InventoryOpen", EventType::InventoryOpen)
-      .value("GameOptionsOpen", EventType::GameOptionsOpen);
   pybind11::enum_<GameObjectType>(module, "GameObjectType", "Stores the different types of game objects available.")
       .value("Bullet", GameObjectType::Bullet)
       .value("Enemy", GameObjectType::Enemy)
@@ -109,57 +95,5 @@ void bind_ecs(const pybind11::module_ &module) {
           "    RegistryError: If the system type is not registered.\n"
           "    RuntimeError: If the system type is invalid..\n\n"
           "Returns:\n"
-          "    The system from the registry.")
-      .def(
-          "add_callback",
-          [](Registry &registry, const EventType event_type, const pybind11::function &callback) {
-            switch (event_type) {
-              case EventType::GameObjectCreation:
-                registry.add_callback<EventType::GameObjectCreation>(callback);
-                break;
-              case EventType::GameObjectDeath:
-                registry.add_callback<EventType::GameObjectDeath>(callback);
-                break;
-              case EventType::InventoryUpdate:
-                registry.add_callback<EventType::InventoryUpdate>(callback);
-                break;
-              case EventType::SpriteRemoval:
-                registry.add_callback<EventType::SpriteRemoval>(callback);
-                break;
-              case EventType::StatusEffectUpdate:
-                registry.add_callback<EventType::StatusEffectUpdate>(callback);
-                break;
-              case EventType::MoneyUpdate:
-                registry.add_callback<EventType::MoneyUpdate>(callback);
-                break;
-              case EventType::AttackCooldownUpdate:
-                registry.add_callback<EventType::AttackCooldownUpdate>(callback);
-                break;
-              case EventType::RangedAttackSwitch:
-                registry.add_callback<EventType::RangedAttackSwitch>(callback);
-                break;
-              case EventType::ShopItemLoaded:
-                registry.add_callback<EventType::ShopItemLoaded>(callback);
-                break;
-              case EventType::ShopItemPurchased:
-                registry.add_callback<EventType::ShopItemPurchased>(callback);
-                break;
-              case EventType::ShopOpen:
-                registry.add_callback<EventType::ShopOpen>(callback);
-                break;
-              case EventType::InventoryOpen:
-                registry.add_callback<EventType::InventoryOpen>(callback);
-                break;
-              case EventType::GameOptionsOpen:
-                registry.add_callback<EventType::GameOptionsOpen>(callback);
-                break;
-              default:
-                throw std::runtime_error("Unsupported event type.");
-            }
-          },
-          pybind11::arg("event_type"), pybind11::arg("callback"),
-          "Add a callback to the registry to listen for events.\n\n"
-          "Args:\n"
-          "    event_type: The type of event to listen for.\n"
-          "    callback: The callback to add.");
+          "    The system from the registry.");
 }

@@ -6,6 +6,7 @@
 #include "ecs/systems/inventory.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
+#include "events.hpp"
 #include "factories.hpp"
 #include "game_engine.hpp"
 #include "macros.hpp"
@@ -24,6 +25,9 @@ class GameEngineFixture : public testing::Test {  // NOLINT
     game_engine.reset_level(LevelType::Lobby);
     game_engine.reset_level(LevelType::Normal);
   }
+
+  /// Tear down the fixture after the tests.
+  void TearDown() override { clear_listeners(); }
 
   /// Get an item from the game engine's registry.
   ///
@@ -95,15 +99,14 @@ TEST_F(GameEngineFixture, TestGameEngineResetLevelLobbyCallbacks) {
   auto ranged_attack_switch{false};
   auto attack_cooldown_update{false};
   auto status_effect_update{false};
-  game_engine.get_registry().add_callback<EventType::InventoryUpdate>(
+  add_callback<EventType::InventoryUpdate>(
       [&inventory_update](const std::vector<GameObjectID> &) { inventory_update = true; });
-  game_engine.get_registry().add_callback<EventType::RangedAttackSwitch>(
-      [&ranged_attack_switch](const int) { ranged_attack_switch = true; });
-  game_engine.get_registry().add_callback<EventType::AttackCooldownUpdate>(
+  add_callback<EventType::RangedAttackSwitch>([&ranged_attack_switch](const int) { ranged_attack_switch = true; });
+  add_callback<EventType::AttackCooldownUpdate>(
       [&attack_cooldown_update](const GameObjectID, const double, const double, const double) {
         attack_cooldown_update = true;
       });
-  game_engine.get_registry().add_callback<EventType::StatusEffectUpdate>(
+  add_callback<EventType::StatusEffectUpdate>(
       [&status_effect_update](const std::unordered_map<StatusEffectType, double> &) { status_effect_update = true; });
   game_engine.reset_level(LevelType::Lobby);
   ASSERT_TRUE(inventory_update);
@@ -123,7 +126,7 @@ TEST_F(GameEngineFixture, TestGameEngineResetLevelNormalWithoutLobby) {
 /// Test that setting up the shop with a stat offering works correctly.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidStat) {
   std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
-  game_engine.get_registry().add_callback<EventType::ShopItemLoaded>(
+  add_callback<EventType::ShopItemLoaded>(
       [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
                        const int cost) { callback_args = std::make_tuple(offering_index, data, cost); });
   std::istringstream shop_stream{R"([
@@ -148,7 +151,7 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidStat) {
 /// Test that setting up the shop with a component offering works correctly.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidComponent) {
   std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
-  game_engine.get_registry().add_callback<EventType::ShopItemLoaded>(
+  add_callback<EventType::ShopItemLoaded>(
       [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
                        const int cost) { callback_args = std::make_tuple(offering_index, data, cost); });
   std::istringstream shop_stream{R"([
@@ -170,7 +173,7 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidComponent) {
 /// Test that setting up the shop with an item offering works correctly.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidItem) {
   std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
-  game_engine.get_registry().add_callback<EventType::ShopItemLoaded>(
+  add_callback<EventType::ShopItemLoaded>(
       [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
                        const int cost) { callback_args = std::make_tuple(offering_index, data, cost); });
   std::istringstream shop_stream{R"([
@@ -192,7 +195,7 @@ TEST_F(GameEngineFixture, TestGameEngineSetupShopSingleValidItem) {
 /// Test that setting up the shop with multiple offerings works correctly.
 TEST_F(GameEngineFixture, TestGameEngineSetupShopMultipleValidOfferings) {
   std::vector<std::tuple<int, std::tuple<std::string, std::string, std::string>, int>> callback_args;
-  game_engine.get_registry().add_callback<EventType::ShopItemLoaded>(
+  add_callback<EventType::ShopItemLoaded>(
       [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
                        const int cost) { callback_args.emplace_back(offering_index, data, cost); });
   std::istringstream shop_stream{R"([
@@ -335,7 +338,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalInLobby) {
   game_engine.reset_level(LevelType::Lobby);
   auto called{-1};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+  add_callback<EventType::GameObjectCreation>(
       [&](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   ASSERT_EQ(called, -1);
@@ -346,7 +349,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalInLobby) {
 /// completed any levels.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalFirstLevel) {
   auto called{-1};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+  add_callback<EventType::GameObjectCreation>(
       [&](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   ASSERT_NE(called, -1);
@@ -358,7 +361,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalFirstLevel) {
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedNormalLevels) {
   game_engine.reset_level(LevelType::Normal);
   auto called{-1};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+  add_callback<EventType::GameObjectCreation>(
       [&](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   ASSERT_NE(called, -1);
@@ -371,7 +374,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedLastLe
   game_engine.reset_level(LevelType::Normal);
   game_engine.reset_level(LevelType::Boss);
   auto called{-1};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+  add_callback<EventType::GameObjectCreation>(
       [&](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   ASSERT_NE(called, -1);
@@ -383,7 +386,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyValid) {
   auto enemy_created{-1};
   auto enemy_creation{
       [&](const GameObjectID enemy_id, const std::pair<double, double> &) { enemy_created = enemy_id; }};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(enemy_creation);
+  add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.on_update(1);
   ASSERT_NE(enemy_created, -1);
 }
@@ -393,7 +396,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyTimerNotReached) {
   auto enemy_created{-1};
   auto enemy_creation{
       [&](const GameObjectID enemy_id, const std::pair<double, double> &) { enemy_created = enemy_id; }};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(enemy_creation);
+  add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.on_update(0.5);
   ASSERT_EQ(enemy_created, -1);
 }
@@ -406,7 +409,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyLimit) {
   auto enemy_created{-1};
   auto enemy_creation{
       [&](const GameObjectID enemy_id, const std::pair<double, double> &) { enemy_created = enemy_id; }};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(enemy_creation);
+  add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.on_update(1);
   ASSERT_EQ(enemy_created, -1);
 }
@@ -495,7 +498,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseC) {
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseEInLobbyTouchingGoal) {
   game_engine.reset_level(LevelType::Lobby);
   int called{-1};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+  add_callback<EventType::GameObjectCreation>(
       [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal));
   game_engine.on_key_release(KEY_E, 0);
@@ -507,7 +510,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseEInLobbyTouchingGoal) {
 /// the goal.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseENotInLobbyTouchingGoal) {
   int called{-1};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+  add_callback<EventType::GameObjectCreation>(
       [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   move_player_to_item(get_item(GameObjectType::Goal), false);
   game_engine.on_key_release(KEY_E, 0);
@@ -519,7 +522,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseENotInLobbyTouchingGoal) {
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseEInLobbyNotTouchingGoal) {
   game_engine.reset_level(LevelType::Lobby);
   int called{-1};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+  add_callback<EventType::GameObjectCreation>(
       [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   game_engine.on_key_release(KEY_E, 0);
   ASSERT_EQ(called, -1);
@@ -542,7 +545,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseETouchingHealthPotionNotInLo
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseETouchingShopInLobby) {
   game_engine.reset_level(LevelType::Lobby);
   auto called{false};
-  game_engine.get_registry().add_callback<EventType::ShopOpen>([&called] { called = true; });
+  add_callback<EventType::ShopOpen>([&called] { called = true; });
   move_player_to_item(get_item(GameObjectType::Shop));
   game_engine.on_key_release(KEY_E, 0);
   ASSERT_TRUE(called);
@@ -552,7 +555,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseETouchingShopInLobby) {
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseQInLobby) {
   game_engine.reset_level(LevelType::Lobby);
   auto called{false};
-  game_engine.get_registry().add_callback<EventType::GameOptionsOpen>([&called] { called = true; });
+  add_callback<EventType::GameOptionsOpen>([&called] { called = true; });
   game_engine.on_key_release(KEY_Q, 0);
   ASSERT_TRUE(called);
 }
@@ -560,7 +563,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseQInLobby) {
 /// Test that the game engine processes a 'Q` key release correctly if the player is not in the lobby.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseQNotInLobby) {
   auto called{false};
-  game_engine.get_registry().add_callback<EventType::GameOptionsOpen>([&called] { called = true; });
+  add_callback<EventType::GameOptionsOpen>([&called] { called = true; });
   game_engine.on_key_release(KEY_Q, 0);
   ASSERT_FALSE(called);
 }
@@ -584,7 +587,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseX) {
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseIInLobby) {
   game_engine.reset_level(LevelType::Lobby);
   auto called{false};
-  game_engine.get_registry().add_callback<EventType::InventoryOpen>([&called] { called = true; });
+  add_callback<EventType::InventoryOpen>([&called] { called = true; });
   game_engine.on_key_release(KEY_I, 0);
   ASSERT_FALSE(called);
 }
@@ -592,7 +595,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseIInLobby) {
 /// Test that the game engine processes a 'I' key release correctly if the player is not in the lobby.
 TEST_F(GameEngineFixture, TestGameEngineOnKeyReleaseINotInLobby) {
   auto called{false};
-  game_engine.get_registry().add_callback<EventType::InventoryOpen>([&called] { called = true; });
+  add_callback<EventType::InventoryOpen>([&called] { called = true; });
   game_engine.on_key_release(KEY_I, 0);
   ASSERT_TRUE(called);
 }
@@ -605,7 +608,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnMousePressLeft) {
   game_engine.on_update(1);
   game_engine.get_registry().get_system<AttackSystem>()->update(10);
   int called{-1};
-  game_engine.get_registry().add_callback<EventType::GameObjectCreation>(
+  add_callback<EventType::GameObjectCreation>(
       [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   ASSERT_TRUE(game_engine.on_mouse_press(0, 0, MOUSE_BUTTON_LEFT, 0));
   ASSERT_NE(called, -1);

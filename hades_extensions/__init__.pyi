@@ -1,13 +1,25 @@
 # Builtin
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from enum import Enum
+from typing import Literal, overload
 
 # Custom
-from hades_extensions.ecs import GameObjectType, Registry
+from hades_extensions.ecs import GameObjectType, Registry, StatusEffectType
 
-def load_hitbox(
-    game_object_type: GameObjectType,
-    hitbox: Sequence[tuple[float, float]],
-) -> bool: ...
+class EventType(Enum):
+    GameObjectCreation = ...
+    GameObjectDeath = ...
+    InventoryUpdate = ...
+    SpriteRemoval = ...
+    StatusEffectUpdate = ...
+    MoneyUpdate = ...
+    AttackCooldownUpdate = ...
+    RangedAttackSwitch = ...
+    ShopItemLoaded = ...
+    ShopItemPurchased = ...
+    ShopOpen = ...
+    InventoryOpen = ...
+    GameOptionsOpen = ...
 
 class GameEngine:
     def __init__(self: GameEngine) -> None: ...
@@ -29,3 +41,73 @@ class GameEngine:
         modifiers: int,
     ) -> bool: ...
     def use_item(self: GameEngine, target_id: int, item_id: int) -> None: ...
+
+def load_hitbox(
+    game_object_type: GameObjectType,
+    hitbox: Sequence[tuple[float, float]],
+) -> bool: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.GameObjectCreation],
+    callback: Callable[[int, GameObjectType, tuple[float, float]], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.GameObjectDeath],
+    callback: Callable[[int], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.InventoryUpdate],
+    callback: Callable[[list[int]], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.SpriteRemoval],
+    callback: Callable[[int], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.StatusEffectUpdate],
+    callback: Callable[[dict[StatusEffectType, float]], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.MoneyUpdate],
+    callback: Callable[[int], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.AttackCooldownUpdate],
+    callback: Callable[[int, float, float, float], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.RangedAttackSwitch],
+    callback: Callable[[int], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.ShopItemLoaded],
+    callback: Callable[[int, tuple[str, str, str], int], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.ShopItemPurchased],
+    callback: Callable[[int, int], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.ShopOpen],
+    callback: Callable[[], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.InventoryOpen],
+    callback: Callable[[], None],
+) -> None: ...
+@overload
+def add_callback(
+    event_type: Literal[EventType.GameOptionsOpen],
+    callback: Callable[[], None],
+) -> None: ...

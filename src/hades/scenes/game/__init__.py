@@ -11,11 +11,13 @@ from hades.constructors import game_object_constructors
 from hades.scenes.base import BaseScene
 from hades.scenes.game.view import GameView
 from hades.sprite import make_sprite
-from hades_extensions.ecs import EventType, StatusEffectType
+from hades_extensions import EventType, add_callback
 from hades_extensions.ecs.components import KinematicComponent, PythonSprite
 
 if TYPE_CHECKING:
     from typing import ClassVar
+
+    from hades_extensions.ecs import StatusEffectType
 
 __all__ = ("GameScene",)
 
@@ -38,10 +40,7 @@ class GameScene(BaseScene[GameView]):
             (EventType.RangedAttackSwitch, self.on_ranged_attack_switch),
         ]
         for event_type, callback in callbacks:
-            self.model.registry.add_callback(  # type: ignore[call-overload]
-                event_type,
-                callback,
-            )
+            add_callback(event_type, callback)  # type: ignore[call-overload]
 
     def on_show_view(self: GameScene) -> None:
         """Process show view functionality."""

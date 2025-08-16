@@ -2,6 +2,7 @@
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 #include "ecs/systems/effects.hpp"
+#include "events.hpp"
 #include "macros.hpp"
 
 /// Represents a test stat useful for testing the effect system.
@@ -34,6 +35,9 @@ class EffectSystemFixture : public testing::Test {
     registry.create_game_object(GameObjectType::Player, cpvzero,
                                 {std::make_shared<StatusEffects>(), std::make_shared<TestEffectsStat>()});
   }
+
+  /// Tear down the fixture after the tests.
+  void TearDown() override { clear_listeners(); }
 
   /// Create a game object to hold the instant and status effects.
   ///
@@ -136,7 +140,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemUpdateStatusEffectCallback) {
   std::unordered_map<StatusEffectType, double> callback_args;
   auto status_effect_update_callback{
       [&callback_args](std::unordered_map<StatusEffectType, double> effects) { callback_args = std::move(effects); }};
-  registry.add_callback<EventType::StatusEffectUpdate>(status_effect_update_callback);
+  add_callback<EventType::StatusEffectUpdate>(status_effect_update_callback);
   create_effect_applier({.status = true});
   const auto test_stat{registry.get_component<TestEffectsStat>(0)};
   test_stat->set_value(100);
@@ -235,7 +239,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsStatusEffectCallback) {
   std::unordered_map<StatusEffectType, double> callback_args;
   auto status_effect_update_callback{
       [&callback_args](std::unordered_map<StatusEffectType, double> effects) { callback_args = std::move(effects); }};
-  registry.add_callback<EventType::StatusEffectUpdate>(status_effect_update_callback);
+  add_callback<EventType::StatusEffectUpdate>(status_effect_update_callback);
   create_effect_applier({.status = true});
   const auto test_stat{registry.get_component<TestEffectsStat>(0)};
   test_stat->set_value(100);

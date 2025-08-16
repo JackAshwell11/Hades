@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 # Custom
 from hades.scenes.base import BaseScene
 from hades.scenes.inventory.view import InventoryItemButton, InventoryView
-from hades_extensions.ecs import EventType
+from hades_extensions import EventType, add_callback
 from hades_extensions.ecs.components import PythonSprite
 
 if TYPE_CHECKING:
@@ -32,10 +32,7 @@ class InventoryScene(BaseScene[InventoryView]):
             (EventType.InventoryOpen, self.on_inventory_open),
         ]
         for event_type, callback in callbacks:
-            self.model.registry.add_callback(  # type: ignore[call-overload]
-                event_type,
-                callback,
-            )
+            add_callback(event_type, callback)  # type: ignore[call-overload]
 
     def on_hide_view(self: InventoryScene) -> None:
         """Process hide view functionality."""

@@ -4,6 +4,7 @@
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/systems/physics.hpp"
+#include "events.hpp"
 
 namespace {
 /// The game objects that can be added to the inventory.
@@ -46,8 +47,8 @@ void InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, c
   if (get_registry()->has_component(item, typeid(KinematicComponent))) {
     get_registry()->get_component<KinematicComponent>(item)->collected = true;
   }
-  get_registry()->notify<EventType::InventoryUpdate>(inventory->items);
-  get_registry()->notify<EventType::SpriteRemoval>(item);
+  notify<EventType::InventoryUpdate>(inventory->items);
+  notify<EventType::SpriteRemoval>(item);
 }
 
 void InventorySystem::remove_item_from_inventory(const GameObjectID game_object_id, const GameObjectID item_id) const {
@@ -67,5 +68,5 @@ void InventorySystem::remove_item_from_inventory(const GameObjectID game_object_
   // Remove the item from the inventory, delete the game object, and notify the callbacks
   inventory->items.erase(inventory->items.begin() + index);
   get_registry()->delete_game_object(item_id);
-  get_registry()->notify<EventType::InventoryUpdate>(inventory->items);
+  notify<EventType::InventoryUpdate>(inventory->items);
 }

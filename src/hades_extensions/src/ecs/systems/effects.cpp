@@ -4,19 +4,18 @@
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
+#include "events.hpp"
 
 namespace {
 /// Notifies the registry of a status effect update.
 ///
-/// @param registry - The registry that manages the game objects, components, and systems.
 /// @param effects - The status effects that have been applied to the game object.
-void notify_status_effect_update(Registry *registry,
-                                 const std::unordered_map<StatusEffectType, StatusEffect> &effects) {
+void notify_status_effect_update(const std::unordered_map<StatusEffectType, StatusEffect> &effects) {
   std::unordered_map<StatusEffectType, double> effect_data;
   for (const auto &[effect_type, effect] : effects) {
     effect_data.emplace(effect_type, effect.duration - effect.time_elapsed);
   }
-  registry->notify<EventType::StatusEffectUpdate>(effect_data);
+  notify<EventType::StatusEffectUpdate>(effect_data);
 }
 }  // namespace
 
@@ -59,7 +58,7 @@ void EffectSystem::update(const double delta_time) const {
         ++it;
       }
     }
-    notify_status_effect_update(get_registry(), active_effects);
+    notify_status_effect_update(active_effects);
   }
 }
 
@@ -97,7 +96,7 @@ auto EffectSystem::apply_effects(const GameObjectID source, const GameObjectID t
 
   // Only notify if any status effects were applied
   if (status_effects_applied) {
-    notify_status_effect_update(get_registry(), target_status_effects->active_effects);
+    notify_status_effect_update(target_status_effects->active_effects);
   }
   return any_effect_applied;
 }

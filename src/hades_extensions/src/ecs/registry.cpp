@@ -5,11 +5,11 @@
 #ifdef __GNUC__
 #include <cxxabi.h>
 #endif
-#include <string>
 
 // Custom headers
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/physics.hpp"
+#include "events.hpp"
 
 namespace {
 /// The percentage of velocity a game object will retain after a second.

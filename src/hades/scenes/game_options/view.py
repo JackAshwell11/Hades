@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Final
 # Pip
 from arcade import color, get_window
 from arcade.gui import UIAnchorLayout, UIBoxLayout, UIFlatButton, UIInputText, UILabel
+from arcade.gui.widgets.text import UIInputTextStyle  # type: ignore[attr-defined]
 
 # Custom
 from hades import UI_BACKGROUND_COLOUR, UI_PADDING, SceneType
@@ -36,7 +37,7 @@ class OptionsPanel(UIBoxLayout):
             width=SEED_INPUT_WIDTH,
             text_color=color.BLACK,
             caret_color=color.BLACK,
-            border_color=color.BLACK,
+            style={"normal": UIInputTextStyle(border=color.BLACK)},
         )
         horizontal_layout.add(seed_input)
         self.add(horizontal_layout)

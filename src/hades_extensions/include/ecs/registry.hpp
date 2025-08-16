@@ -2,7 +2,6 @@
 #pragma once
 
 // Std headers
-#include <any>
 #include <functional>
 #include <queue>
 #include <ranges>
@@ -12,7 +11,7 @@
 // Local headers
 #include "ecs/bases.hpp"
 #include "ecs/chipmunk.hpp"
-#include "ecs/events.hpp"
+#include "game_object.hpp"
 
 /// Calculate the screen position based on a grid position.
 ///
@@ -203,36 +202,6 @@ class Registry {
   /// @return The Chipmunk2D space.
   [[nodiscard]] auto get_space() const -> cpSpace * { return *space_; }
 
-  /// Add a callback to the registry to listen for events.
-  ///
-  /// @tparam E - The type of event to listen for.
-  /// @tparam Func - The callback functions' signature
-  /// @param callback - The callback to add.
-  template <EventType E, typename Func>
-  void add_callback(Func &&callback) {
-    listeners_[E].emplace_back([callback = std::forward<Func>(callback)](std::any args) {
-      std::apply(callback, std::any_cast<typename EventTraits<E>::EventArgs>(args));
-    });
-  }
-
-  /// Notify all callbacks of an event.
-  ///
-  /// @tparam E - The type of event to notify callbacks of.
-  /// @tparam Args - The types of the arguments to pass to the callbacks.
-  /// @param args - The arguments to pass to the callbacks.
-  template <EventType E, typename... Args>
-  void notify(Args &&...args) const {
-    using ExpectedArgs = typename EventTraits<E>::EventArgs;
-    static_assert(std::is_same_v<std::tuple<std::decay_t<Args>...>, ExpectedArgs>);
-    if (!listeners_.contains(E)) {
-      return;
-    }
-    const ExpectedArgs tuple_args{std::forward<Args>(args)...};
-    for (const auto &callback : listeners_.at(E)) {
-      callback(tuple_args);
-    }
-  }
-
  private:
   /// Create a Chipmunk2D collision handler to deal with bullet collisions.
   ///
@@ -262,7 +231,4 @@ class Registry {
 
   /// The Chipmunk2D space.
   ChipmunkHandle<cpSpace, cpSpaceFree> space_{cpSpaceNew()};
-
-  /// The listeners registered for each event type.
-  std::unordered_map<EventType, std::vector<std::function<void(std::any)>>> listeners_;
 };

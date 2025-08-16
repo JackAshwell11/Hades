@@ -37,6 +37,7 @@ class BaseScene[V: BaseView](ABC, View):
             raise NotImplementedError(error)
         self.model: HadesModel = self.window.model
         self.view: V = cast("V", self._view_type(self.window))
+        self.add_callbacks()
 
     @abstractmethod
     def add_callbacks(self: BaseScene[V]) -> None:

@@ -2,6 +2,7 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/physics.hpp"
+#include "events.hpp"
 #include "macros.hpp"
 
 /// Represents a game object component useful for testing.
@@ -37,6 +38,9 @@ class RegistryFixture : public testing::Test {
  protected:
   /// The registry that manages the game objects, components, and systems.
   Registry registry;
+
+  /// Tear down the fixture after the tests.
+  void TearDown() override { clear_listeners(); }
 };
 
 /// Test that a valid position is converted correctly.
@@ -231,19 +235,19 @@ TEST_F(RegistryFixture, TestRegistryClearWithPreservedGameObjects) {
   ASSERT_FALSE(registry.has_game_object(1));
 }
 
-/// Test that creating a game object notifies the correct event.
-TEST_F(RegistryFixture, TestRegistryGameObjectCreationEvent) {
+/// Test that the game object creation callback is called correctly.
+TEST_F(RegistryFixture, TestRegistryGameObjectCreationCallback) {
   auto called{-1};
-  registry.add_callback<EventType::GameObjectCreation>(
+  add_callback<EventType::GameObjectCreation>(
       [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
   ASSERT_EQ(called, 0);
 }
 
-/// Test that deleting a game object notifies the correct event.
-TEST_F(RegistryFixture, TestRegistryGameObjectDeathEvent) {
+/// Test that the game object death callback is called correctly.
+TEST_F(RegistryFixture, TestRegistryGameObjectDeathCallback) {
   auto called{-1};
-  registry.add_callback<EventType::GameObjectDeath>([&called](const GameObjectID event) { called = event; });
+  add_callback<EventType::GameObjectDeath>([&called](const GameObjectID event) { called = event; });
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
   ASSERT_EQ(called, -1);
   registry.delete_game_object(0);
@@ -372,28 +376,4 @@ TEST_F(RegistryFixture, TestRegistryWallBulletCollision) {
   // Test that the collision is handled correctly (the bullet should be deleted)
   registry.update(2);
   ASSERT_FALSE(registry.has_game_object(1));
-}
-
-/// Test that an event is not notified if there are no callbacks added to the registry.
-TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksAdded) {
-  constexpr bool called{false};
-  registry.notify<EventType::GameObjectDeath>(0);
-  ASSERT_FALSE(called);
-}
-
-/// Test that an event is not notified if there are no callbacks listening for that event.
-TEST_F(RegistryFixture, TestRegistryNotifyCallbacksNoCallbacksListening) {
-  auto called{-1};
-  registry.add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
-  registry.notify<EventType::GameObjectDeath>(0);
-  ASSERT_EQ(called, -1);
-}
-
-/// Test that an event is notified correctly if there is a callback listening for that event.
-TEST_F(RegistryFixture, TestRegistryNotifyCallbacksListeningCallback) {
-  auto called{-1};
-  registry.add_callback<EventType::GameObjectDeath>([&called](const auto event) { called = event; });
-  registry.notify<EventType::GameObjectDeath>(0);
-  ASSERT_EQ(called, 0);
 }

@@ -42,19 +42,13 @@ def test_hades_window_setup(hades_window: HadesWindow) -> None:
         hades_window: The hades window for testing.
     """
     mock_center_window = Mock()
-    mock_add_callbacks = Mock()
     mock_game_engine = Mock(spec=GameEngine)
     mock_show_view = Mock()
     hades_window.center_window = mock_center_window  # type: ignore[method-assign]
-    hades_window.scenes[SceneType.START_MENU].add_callbacks = mock_add_callbacks  # type: ignore[method-assign]
-    hades_window.scenes[SceneType.GAME].add_callbacks = mock_add_callbacks  # type: ignore[method-assign]
-    hades_window.scenes[SceneType.INVENTORY].add_callbacks = mock_add_callbacks  # type: ignore[method-assign]
-    hades_window.scenes[SceneType.SHOP].add_callbacks = mock_add_callbacks  # type: ignore[method-assign]
     hades_window.model.game_engine = mock_game_engine
     hades_window.show_view = mock_show_view  # type: ignore[method-assign]
     hades_window.setup()
     mock_center_window.assert_called_once()
-    assert mock_add_callbacks.call_count == 4
     mock_game_engine.setup.assert_called_once()
     mock_show_view.assert_called_once_with(hades_window.scenes[SceneType.START_MENU])
 

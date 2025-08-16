@@ -2,6 +2,7 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/inventory.hpp"
 #include "ecs/systems/physics.hpp"
+#include "events.hpp"
 #include "macros.hpp"
 
 /// Implements the fixture for the InventorySystem fixture.
@@ -17,6 +18,9 @@ class InventorySystemFixture : public testing::Test {
         {std::make_shared<Health>(200, -1), std::make_shared<Inventory>(), std::make_shared<InventorySize>(8, -1)});
     registry.add_system<InventorySystem>();
   }
+
+  /// Tear down the fixture after the tests.
+  void TearDown() override { clear_listeners(); }
 
   /// Create an item with the specified type.
   ///
@@ -84,10 +88,10 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   // Add the callbacks to the registry
   std::vector<GameObjectID> inventory_update;
   auto inventory_update_callback{[&](const std::vector<GameObjectID> &items) { inventory_update = items; }};
-  registry.add_callback<EventType::InventoryUpdate>(inventory_update_callback);
+  add_callback<EventType::InventoryUpdate>(inventory_update_callback);
   auto sprite_removal{-1};
   auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
-  registry.add_callback<EventType::SpriteRemoval>(sprite_removal_callback);
+  add_callback<EventType::SpriteRemoval>(sprite_removal_callback);
 
   // Add the item to the inventory and check the results
   const auto game_object_id{create_item(GameObjectType::HealthPotion)};
@@ -131,10 +135,10 @@ TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) 
   // Add the callbacks to the registry
   std::vector<GameObjectID> inventory_update;
   auto inventory_update_callback{[&](const std::vector<GameObjectID> &items) { inventory_update = items; }};
-  registry.add_callback<EventType::InventoryUpdate>(inventory_update_callback);
+  add_callback<EventType::InventoryUpdate>(inventory_update_callback);
   auto sprite_removal{-1};
   auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
-  registry.add_callback<EventType::SpriteRemoval>(sprite_removal_callback);
+  add_callback<EventType::SpriteRemoval>(sprite_removal_callback);
 
   // Add two items and remove one of them from the inventory and check the results
   const auto item_id_one{create_item(GameObjectType::HealthPotion)};

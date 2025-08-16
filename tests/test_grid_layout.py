@@ -30,15 +30,15 @@ if TYPE_CHECKING:
     from hades.window import HadesWindow
 
 
-class TestItemButton(ItemButton):
+class MockItemButton(ItemButton):
     """An implementation of ItemButton for testing purposes."""
 
-    def __init__(self: TestItemButton) -> None:
+    def __init__(self: MockItemButton) -> None:
         """Initialise the object."""
         super().__init__(use_text="Test")
         self.texture = Texture(Image.new("RGBA", (1, 1)))
 
-    def get_info(self: TestItemButton) -> tuple[str, str, Texture]:
+    def get_info(self: MockItemButton) -> tuple[str, str, Texture]:
         """Get the information about the item.
 
         Returns:
@@ -48,7 +48,7 @@ class TestItemButton(ItemButton):
 
 
 def set_items(
-    paginated_grid_layout: PaginatedGridLayout[TestItemButton],
+    paginated_grid_layout: PaginatedGridLayout[MockItemButton],
     count: int,
 ) -> None:
     """Set the items in the paginated grid layout.
@@ -57,11 +57,11 @@ def set_items(
         paginated_grid_layout: The paginated grid layout object for testing.
         count: The number of items to set in the layout.
     """
-    paginated_grid_layout.items = [TestItemButton() for _ in range(count)]
+    paginated_grid_layout.items = [MockItemButton() for _ in range(count)]
 
 
 def assert_counts(
-    paginated_grid_layout: PaginatedGridLayout[TestItemButton],
+    paginated_grid_layout: PaginatedGridLayout[MockItemButton],
     item_button_count: int,
     default_layout_count: int,
 ) -> None:
@@ -73,7 +73,7 @@ def assert_counts(
         default_layout_count: The expected number of default layouts.
     """
     counts = Counter(
-        isinstance(child, TestItemButton)
+        isinstance(child, MockItemButton)
         for child in paginated_grid_layout.grid_layout.children
     )
     assert counts[True] == item_button_count
@@ -90,7 +90,7 @@ def item_button(hades_window: HadesWindow) -> ItemButton:  # noqa: ARG001
     Returns:
         A item button for testing.
     """
-    return TestItemButton()
+    return MockItemButton()
 
 
 @pytest.fixture
@@ -109,7 +109,7 @@ def stats_layout(hades_window: HadesWindow) -> StatsLayout:  # noqa: ARG001
 @pytest.fixture
 def paginated_grid_layout(
     hades_window: HadesWindow,  # noqa: ARG001
-) -> PaginatedGridLayout[TestItemButton]:
+) -> PaginatedGridLayout[MockItemButton]:
     """Create a paginated grid layout for testing.
 
     Args:
@@ -124,7 +124,7 @@ def paginated_grid_layout(
 @pytest.fixture
 def grid_view(
     hades_window: HadesWindow,
-) -> GridView[TestItemButton]:
+) -> GridView[MockItemButton]:
     """Create a grid view for testing.
 
     Args:
@@ -307,7 +307,7 @@ def test_stats_layout_reset(stats_layout: StatsLayout) -> None:
 
 
 def test_paginated_grid_layout_init(
-    paginated_grid_layout: PaginatedGridLayout[TestItemButton],
+    paginated_grid_layout: PaginatedGridLayout[MockItemButton],
 ) -> None:
     """Test that the paginated grid layout initialises correctly.
 
@@ -340,13 +340,13 @@ def test_paginated_grid_layout_init_window_size(counts: tuple[int, int]) -> None
     Args:
         counts: The expected column and row counts.
     """
-    paginated_grid_layout = PaginatedGridLayout[TestItemButton]()
+    paginated_grid_layout = PaginatedGridLayout[MockItemButton]()
     assert paginated_grid_layout.grid_layout.column_count == counts[0]
     assert paginated_grid_layout.grid_layout.row_count == counts[1]
 
 
 def test_paginated_grid_layout_on_action(
-    paginated_grid_layout: PaginatedGridLayout[TestItemButton],
+    paginated_grid_layout: PaginatedGridLayout[MockItemButton],
 ) -> None:
     """Test that the paginated grid layout correctly calls the on_action method.
 
@@ -381,7 +381,7 @@ def test_paginated_grid_layout_on_action(
     ],
 )
 def test_paginated_grid_layout_set_items(
-    paginated_grid_layout: PaginatedGridLayout[TestItemButton],
+    paginated_grid_layout: PaginatedGridLayout[MockItemButton],
     total_size: int,
     item_button_count: int,
     default_layout_count: int,
@@ -399,14 +399,14 @@ def test_paginated_grid_layout_set_items(
 
 
 def test_paginated_grid_layout_add_items_reset_current_row(
-    paginated_grid_layout: PaginatedGridLayout[TestItemButton],
+    paginated_grid_layout: PaginatedGridLayout[MockItemButton],
 ) -> None:
     """Test that the paginated grid layout resets the current row when adding items.
 
     Args:
         paginated_grid_layout: The paginated grid layout object for testing.
     """
-    paginated_grid_layout.items = [TestItemButton() for _ in range(25)]
+    paginated_grid_layout.items = [MockItemButton() for _ in range(25)]
     paginated_grid_layout.navigate_rows(1)
     assert paginated_grid_layout.current_row == 1
     set_items(paginated_grid_layout, 50)
@@ -414,16 +414,16 @@ def test_paginated_grid_layout_add_items_reset_current_row(
 
 
 def test_paginated_grid_layout_add_item(
-    paginated_grid_layout: PaginatedGridLayout[TestItemButton],
+    paginated_grid_layout: PaginatedGridLayout[MockItemButton],
 ) -> None:
     """Test that the paginated grid layout correctly adds an item.
 
     Args:
         paginated_grid_layout: The paginated grid layout object for testing.
     """
-    paginated_grid_layout.items = [TestItemButton() for _ in range(10)]
+    paginated_grid_layout.items = [MockItemButton() for _ in range(10)]
     assert_counts(paginated_grid_layout, 10, 5)
-    paginated_grid_layout.add_item(TestItemButton())
+    paginated_grid_layout.add_item(MockItemButton())
     assert_counts(paginated_grid_layout, 11, 4)
 
 
@@ -444,7 +444,7 @@ def test_paginated_grid_layout_add_item(
     ],
 )
 def test_paginated_grid_layout_navigate_rows(
-    paginated_grid_layout: PaginatedGridLayout[TestItemButton],
+    paginated_grid_layout: PaginatedGridLayout[MockItemButton],
     diffs: list[int],
     expected_current_rows: list[int],
     expected_row_counts: list[int],
@@ -483,7 +483,7 @@ def test_paginated_grid_layout_navigate_rows(
         )
 
 
-def test_grid_view_init(grid_view: GridView[TestItemButton]) -> None:
+def test_grid_view_init(grid_view: GridView[MockItemButton]) -> None:
     """Test that the grid view initialises correctly.
 
     Args:
@@ -493,7 +493,9 @@ def test_grid_view_init(grid_view: GridView[TestItemButton]) -> None:
     assert len(grid_view.ui.children[0]) == 2
 
 
-def test_grid_view_back_button_on_click(grid_view: GridView[TestItemButton]) -> None:
+def test_grid_view_back_button_on_click(
+    grid_view: GridView[MockItemButton],
+) -> None:
     """Test that the grid view back button works correctly.
 
     Args:

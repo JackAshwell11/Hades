@@ -77,8 +77,6 @@ class HadesWindow(Window):
     def setup(self: HadesWindow) -> None:
         """Set up the window and its scenes."""
         self.center_window()
-        for view in self.scenes.values():
-            view.add_callbacks()
         self.model.game_engine.setup(str(SHOP_OFFERINGS))
         self.show_view(self.scenes[SceneType.START_MENU])
 

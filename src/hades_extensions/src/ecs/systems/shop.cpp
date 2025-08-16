@@ -7,6 +7,7 @@
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
+#include "events.hpp"
 
 namespace {
 /// Calculate an exponential value based on the base, level, and multiplier values.
@@ -95,7 +96,7 @@ auto ShopSystem::purchase(const GameObjectID buyer_id, const int offering_index)
   const bool success{offerings_[offering_index]->apply(get_registry(), buyer_id)};
   if (success) {
     money->money -= cost;
-    get_registry()->notify<EventType::ShopItemPurchased>(offering_index, get_offering_cost(offering_index, buyer_id));
+    notify<EventType::ShopItemPurchased>(offering_index, get_offering_cost(offering_index, buyer_id));
   }
   return success;
 }

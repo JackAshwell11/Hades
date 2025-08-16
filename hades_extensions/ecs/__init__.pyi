@@ -1,7 +1,6 @@
 # Builtin
-from collections.abc import Callable
 from enum import Enum
-from typing import Final, Literal, TypeVar, overload
+from typing import Final, TypeVar
 
 # Define some type vars for the registry
 _Component = TypeVar("_Component")
@@ -17,21 +16,6 @@ class AttackType(Enum):
     Ranged = ...
     Melee = ...
     Special = ...
-
-class EventType(Enum):
-    GameObjectCreation = ...
-    GameObjectDeath = ...
-    InventoryUpdate = ...
-    SpriteRemoval = ...
-    StatusEffectUpdate = ...
-    MoneyUpdate = ...
-    AttackCooldownUpdate = ...
-    RangedAttackSwitch = ...
-    ShopItemLoaded = ...
-    ShopItemPurchased = ...
-    ShopOpen = ...
-    InventoryOpen = ...
-    GameOptionsOpen = ...
 
 class GameObjectType(Enum):
     Bullet = ...
@@ -64,81 +48,3 @@ class Registry:
     ) -> _Component: ...
     def get_game_object_type(self: Registry, game_object_id: int) -> GameObjectType: ...
     def get_system(self: Registry, system: type[_System]) -> _System: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.GameObjectCreation],
-        callback: Callable[[int, tuple[float, float]], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.GameObjectDeath],
-        callback: Callable[[int], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.InventoryUpdate],
-        callback: Callable[[list[int]], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.SpriteRemoval],
-        callback: Callable[[int], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.StatusEffectUpdate],
-        callback: Callable[[dict[StatusEffectType, float]], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.MoneyUpdate],
-        callback: Callable[[int], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.AttackCooldownUpdate],
-        callback: Callable[[int, float, float, float], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.RangedAttackSwitch],
-        callback: Callable[[int], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.ShopItemLoaded],
-        callback: Callable[[int, tuple[str, str, str], int], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.ShopItemPurchased],
-        callback: Callable[[int, int], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.ShopOpen],
-        callback: Callable[[], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.InventoryOpen],
-        callback: Callable[[], None],
-    ) -> None: ...
-    @overload
-    def add_callback(
-        self: Registry,
-        event_type: Literal[EventType.GameOptionsOpen],
-        callback: Callable[[], None],
-    ) -> None: ...

@@ -6,6 +6,7 @@
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
+#include "events.hpp"
 #include "macros.hpp"
 
 /// Implements the fixture for the AttackSystem tests.
@@ -52,6 +53,9 @@ class AttackSystemFixture : public testing::Test {
     registry.add_system<DamageSystem>();
     registry.add_system<PhysicsSystem>();
   }
+
+  /// Tear down the fixture after the tests.
+  void TearDown() override { clear_listeners(); }
 
   /// Create an attacker game object with the specified attack types.
   ///
@@ -131,7 +135,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementZeroDeltaTime)
     game_object_created = game_object_id;
   }};
   create_attacker({.ranged{true}, .steering_movement{true}});
-  registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
+  add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(0);
   ASSERT_EQ(game_object_created, -1);
 }
@@ -143,7 +147,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementNotTarget) {
     game_object_created = game_object_id;
   }};
   create_attacker({.ranged{true}, .steering_movement{true}});
-  registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
+  add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
   ASSERT_EQ(game_object_created, -1);
 }
@@ -155,10 +159,25 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
     game_object_created = game_object_id;
   }};
   create_attacker({.ranged{true}, .steering_movement{true}});
-  registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
+  add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   registry.get_component<SteeringMovement>(8)->movement_state = SteeringMovementState::Target;
   get_attack_system()->update(5);
   ASSERT_EQ(game_object_created, 9);
+}
+
+/// Test that the attack system calls the correct callbacks during updating.
+TEST_F(AttackSystemFixture, TestAttackSystemUpdateCallbacks) {
+  auto attack_cooldown_update_callback{[&](const GameObjectID game_object_id, const double ranged_cooldown,
+                                           const double melee_cooldown, const double special_cooldown) {
+    ASSERT_EQ(game_object_id, 8);
+    ASSERT_EQ(ranged_cooldown, 1);
+    ASSERT_EQ(melee_cooldown, 2);
+    ASSERT_EQ(special_cooldown, 2);
+  }};
+  add_callback<EventType::AttackCooldownUpdate>(attack_cooldown_update_callback);
+  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  registry.get_component<Attack>(8)->get_selected_ranged_attack()->time_since_last_use = 1;
+  get_attack_system()->update(0);
 }
 
 /// Test that performing a ranged attack with a single bullet works correctly.
@@ -176,7 +195,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingle) {
     game_object_created = game_object_id;
   }};
   create_attacker({.ranged{true}});
-  registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
+  add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
   ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Ranged));
   ASSERT_EQ(game_object_created, 9);
@@ -196,7 +215,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleBullets) {
     game_objects_created.push_back(game_object_id);
   }};
   create_attacker({.ranged{true}});
-  registry.add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
+  add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
   registry.get_system<AttackSystem>()->next_ranged_attack(8);
   ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Ranged));
@@ -356,10 +375,8 @@ TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackEmptyAttacks
 TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackCallback) {
   std::vector<int> selected_attacks{};
   auto ranged_attack_callback{[&](const int selected_attack) { selected_attacks.push_back(selected_attack); }};
-  registry.add_callback<EventType::RangedAttackSwitch>(ranged_attack_callback);
-  create_attacker({
-      .ranged{true},
-  });
+  add_callback<EventType::RangedAttackSwitch>(ranged_attack_callback);
+  create_attacker({.ranged{true}});
   const auto attack{registry.get_component<Attack>(8)};
   ASSERT_EQ(attack->selected_ranged_attack, 0);
   registry.get_system<AttackSystem>()->next_ranged_attack(8);
