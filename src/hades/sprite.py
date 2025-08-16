@@ -6,10 +6,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Pip
-from arcade import BasicSprite, Texture
+from arcade import BasicSprite, Texture, get_window
 
 # Custom
-from hades_extensions.ecs import SPRITE_SCALE, GameObjectType, Registry
+from hades_extensions.ecs import SPRITE_SCALE, GameObjectType
 from hades_extensions.ecs.components import KinematicComponent
 
 if TYPE_CHECKING:
@@ -21,11 +21,10 @@ __all__ = ("AnimatedSprite", "DynamicSprite", "HadesSprite", "make_sprite")
 class HadesSprite(BasicSprite):
     """Represents a sprite object in the game."""
 
-    __slots__ = ("constructor", "game_object_id", "registry")
+    __slots__ = ("constructor", "game_object_id")
 
     def __init__(
         self: HadesSprite,
-        registry: Registry,
         game_object_id: int,
         position: tuple[float, float],
         constructor: GameObjectConstructor,
@@ -33,8 +32,6 @@ class HadesSprite(BasicSprite):
         """Initialise the object.
 
         Args:
-            registry: The registry that manages the game objects, components, and
-                systems.
             game_object_id: The game object's ID.
             position: The sprite's initial position.
             constructor: The game object's constructor.
@@ -45,7 +42,6 @@ class HadesSprite(BasicSprite):
             position[0],
             position[1],
         )
-        self.registry: Registry = registry
         self.game_object_id: int = game_object_id
         self.constructor: GameObjectConstructor = constructor
         self.depth = constructor.depth
@@ -83,10 +79,11 @@ class DynamicSprite(HadesSprite):
 
     def update(self: DynamicSprite, *_: tuple[float]) -> None:
         """Update the sprite object."""
-        self.position = self.registry.get_component(
-            self.game_object_id,
-            KinematicComponent,
-        ).get_position()
+        self.position = (
+            get_window()
+            .model.registry.get_component(self.game_object_id, KinematicComponent)
+            .get_position()
+        )
 
 
 class AnimatedSprite(DynamicSprite):
@@ -100,7 +97,6 @@ class AnimatedSprite(DynamicSprite):
 
     def __init__(
         self: AnimatedSprite,
-        registry: Registry,
         game_object_id: int,
         position: tuple[float, float],
         constructor: GameObjectConstructor,
@@ -108,13 +104,11 @@ class AnimatedSprite(DynamicSprite):
         """Initialise the object.
 
         Args:
-            registry: The registry that manages the game objects, components, and
-                systems.
             game_object_id: The game object's ID.
             position: The sprite's initial position.
             constructor: The game object's constructor.
         """
-        super().__init__(registry, game_object_id, position, constructor)
+        super().__init__(game_object_id, position, constructor)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
             (texture.get_texture(), texture.get_texture().flip_left_right())
             for texture in constructor.textures
@@ -122,7 +116,6 @@ class AnimatedSprite(DynamicSprite):
 
 
 def make_sprite(
-    registry: Registry,
     game_object_id: int,
     position: tuple[float, float],
     constructor: GameObjectConstructor,
@@ -130,7 +123,6 @@ def make_sprite(
     """Create a sprite object.
 
     Args:
-        registry: The registry that manages the game objects, components, and systems.
         game_object_id: The game object's ID.
         position: The sprite's initial position.
         constructor: The game object's constructor.
@@ -145,4 +137,4 @@ def make_sprite(
         sprite_class = AnimatedSprite
     else:
         sprite_class = HadesSprite
-    return sprite_class(registry, game_object_id, position, constructor)
+    return sprite_class(game_object_id, position, constructor)

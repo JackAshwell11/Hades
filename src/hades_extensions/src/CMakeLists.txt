@@ -26,6 +26,5 @@ target_include_directories(${CPP_LIB}
 )
 target_link_libraries(${CPP_LIB}
         PUBLIC chipmunk2d::chipmunk2d
-        PRIVATE pybind11::module
         PUBLIC nlohmann_json::nlohmann_json
 )

@@ -1,5 +1,4 @@
 # Custom
-from hades.sprite import HadesSprite
 from hades_extensions.ecs import ComponentBase
 
 class Stat(ComponentBase):
@@ -14,6 +13,3 @@ class KinematicComponent(ComponentBase):
     def get_position(self: KinematicComponent) -> tuple[float, float]: ...
     def get_velocity(self: KinematicComponent) -> tuple[float, float]: ...
     def set_rotation(self: KinematicComponent, angle: float) -> None: ...
-
-class PythonSprite(ComponentBase):
-    sprite: HadesSprite

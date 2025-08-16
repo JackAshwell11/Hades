@@ -239,7 +239,7 @@ TEST_F(RegistryFixture, TestRegistryClearWithPreservedGameObjects) {
 TEST_F(RegistryFixture, TestRegistryGameObjectCreationCallback) {
   auto called{-1};
   add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const std::pair<double, double> &) { called = event; });
+      [&called](const GameObjectID event, const GameObjectType, const std::pair<double, double> &) { called = event; });
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
   ASSERT_EQ(called, 0);
 }

@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final
 
 # Pip
-from arcade import color
+from arcade import color, get_window
 from arcade.gui import UIAnchorLayout, UISpace
 
 # Custom
@@ -31,16 +31,14 @@ class ProgressBar(UIAnchorLayout):
     """Represents a variable bar that can display information about a game object.
 
     Attributes:
-        target_sprite: The sprite associated with the progress bar.
-        target_component: The component to get the information from.
         actual_bar: The actual bar of the progress bar.
     """
 
     __slots__ = (
         "actual_bar",
         "order",
-        "target_component",
-        "target_sprite",
+        "target",
+        "target",
     )
 
     def __init__(
@@ -73,11 +71,7 @@ class ProgressBar(UIAnchorLayout):
             height=(PROGRESS_BAR_HEIGHT + UI_PADDING) * scale[1],
             size_hint=None,
         )
-        self.target_sprite: HadesSprite = target[0]
-        self.target_component: Stat = self.target_sprite.registry.get_component(
-            self.target_sprite.game_object_id,
-            target[1],
-        )
+        self.target: tuple[HadesSprite, type[Stat]] = target
         self.actual_bar: UISpace = UISpace(color=colour)
         self.order: int = order
 
@@ -88,9 +82,11 @@ class ProgressBar(UIAnchorLayout):
 
     def on_update(self: ProgressBar, _: float) -> None:
         """Process progress bar update logic."""
-        value = (
-            self.target_component.get_value() / self.target_component.get_max_value()
+        component: Stat = get_window().model.registry.get_component(
+            self.target[0].game_object_id,
+            self.target[1],
         )
+        value = component.get_value() / component.get_max_value()
         self.actual_bar.size_hint = (value, 1)
         self.actual_bar.visible = value > 0
 

@@ -1,6 +1,9 @@
 // Ensure this file is only included once
 #pragma once
 
+// Make pybind11 display detailed error messages
+#define PYBIND11_DETAILED_ERROR_MESSAGES
+
 // External headers
 #ifdef Py_DEBUG
 #undef Py_DEBUG
@@ -18,7 +21,6 @@
 #include "ecs/systems/inventory.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
-#include "ecs/systems/sprite.hpp"
 
 // The declarations for the binding functions
 void bind_ecs(const pybind11::module &module);
@@ -69,7 +71,7 @@ auto make_system_types()
 /// @return The component types mapping.
 inline auto get_component_types()
     -> const std::unordered_map<pybind11::handle, std::type_index, py_handle_hash, py_handle_equal> & {
-  static const auto component_types{make_component_types<Armour, Health, KinematicComponent, PythonSprite>()};
+  static const auto component_types{make_component_types<Armour, Health, KinematicComponent>()};
   return component_types;
 }
 

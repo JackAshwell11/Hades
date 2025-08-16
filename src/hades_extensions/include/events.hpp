@@ -39,7 +39,7 @@ struct EventTraits;
 /// Provides the argument types for the GameObjectCreation event.
 template <>
 struct EventTraits<EventType::GameObjectCreation> {
-  using EventArgs = std::tuple<GameObjectID, std::pair<double, double>>;
+  using EventArgs = std::tuple<GameObjectID, GameObjectType, std::pair<double, double>>;
 };
 
 /// Provides the argument types for the GameObjectDeath event.

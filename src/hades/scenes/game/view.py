@@ -219,7 +219,7 @@ class GameView(BaseView):
             game_object_id: ID of the game object to remove progress bars for.
         """
         for progress_bar in self.progress_bars[:]:
-            if progress_bar.target_sprite.game_object_id == game_object_id:
+            if progress_bar.target[0].game_object_id == game_object_id:
                 self.ui.remove(progress_bar)
                 if progress_bar in self.left_layout.children:
                     self.left_layout.remove(progress_bar)
@@ -232,7 +232,7 @@ class GameView(BaseView):
             camera: The camera to project the progress bars onto.
         """
         for progress_bar in self.progress_bars:
-            screen_pos = camera.project(progress_bar.target_sprite.position)
+            screen_pos = camera.project(progress_bar.target[0].position)
             progress_bar.rect = progress_bar.rect.align_center_x(
                 screen_pos.x,
             ).align_bottom(

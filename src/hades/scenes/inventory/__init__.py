@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from hades.scenes.base import BaseScene
 from hades.scenes.inventory.view import InventoryItemButton, InventoryView
 from hades_extensions import EventType, add_callback
-from hades_extensions.ecs.components import PythonSprite
 from hades_extensions.ecs.systems import InventorySystem
 
 if TYPE_CHECKING:
@@ -47,10 +46,7 @@ class InventoryScene(BaseScene[InventoryView]):
             items: The list of items in the inventory.
         """
         self.view.grid_layout.items = [
-            InventoryItemButton(
-                self.model.registry.get_component(item_id, PythonSprite).sprite,
-            )
-            for item_id in items
+            InventoryItemButton(self.model.sprites[item_id]) for item_id in items
         ]
 
     def on_texture_button_callback(self: InventoryScene, event: UIOnClickEvent) -> None:
