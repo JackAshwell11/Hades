@@ -50,7 +50,4 @@ void bind_components(const pybind11::module_ &module) {
           "Set the rotation of the game object.\n\n"
           "Args:\n"
           "    angle: The angle to set the game object to.");
-  pybind11::class_<PythonSprite, ComponentBase, std::shared_ptr<PythonSprite>>(
-      module, "PythonSprite", "Allows a game object to hold a reference to the Python sprite object.")
-      .def_readwrite("sprite", &PythonSprite::sprite);
 }

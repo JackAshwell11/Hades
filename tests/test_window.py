@@ -45,7 +45,7 @@ def test_hades_window_setup(hades_window: HadesWindow) -> None:
     mock_game_engine = Mock(spec=GameEngine)
     mock_show_view = Mock()
     hades_window.center_window = mock_center_window  # type: ignore[method-assign]
-    hades_window.model.game_engine = mock_game_engine
+    hades_window.model._game_engine = mock_game_engine  # noqa: SLF001
     hades_window.show_view = mock_show_view  # type: ignore[method-assign]
     hades_window.setup()
     mock_center_window.assert_called_once()

@@ -27,7 +27,7 @@ class BaseScene[V: BaseView](ABC, View):
     # The view type for the scene
     _view_type: ClassVar[type[BaseView]] = None  # type: ignore[assignment]
 
-    __slots__ = ("__weakref__", "view")
+    __slots__ = ("__weakref__", "model", "view")
 
     def __init__(self: BaseScene[V]) -> None:
         """Initialise the object."""

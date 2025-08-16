@@ -14,7 +14,6 @@
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
-#include "ecs/systems/sprite.hpp"
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 namespace {
@@ -39,11 +38,8 @@ auto get_hitboxes() -> auto & {
 ///
 /// @return The components for the bullet.
 const auto bullet_factory{[] {
-  return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<Bullet>(),
-      std::make_shared<KinematicComponent>(),
-      std::make_shared<PythonSprite>(),
-  };
+  return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<Bullet>(),
+                                                     std::make_shared<KinematicComponent>()};
 }};
 
 /// The enemy factory.
@@ -59,7 +55,6 @@ const auto enemy_factory{[](const int /*level*/) {
       std::make_shared<Health>(100, 5),
       std::make_shared<KinematicComponent>(get_hitboxes().at(GameObjectType::Enemy)),
       std::make_shared<MovementForce>(1000, 5),
-      std::make_shared<PythonSprite>(),
       std::make_shared<SteeringMovement>(std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{
           {SteeringMovementState::Default, {SteeringBehaviours::ObstacleAvoidance, SteeringBehaviours::Wander}},
           {SteeringMovementState::Footprint, {SteeringBehaviours::FollowPath}},
@@ -72,31 +67,19 @@ const auto enemy_factory{[](const int /*level*/) {
 /// The wall factory.
 ///
 /// @return The components for the wall.
-const auto wall_factory{[] {
-  return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<KinematicComponent>(true),
-      std::make_shared<PythonSprite>(),
-  };
-}};
+const auto wall_factory{
+    [] { return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<KinematicComponent>(true)}; }};
 
 /// The floor factory.
 ///
 /// @return The components for the floor.
-const auto floor_factory{[] {
-  return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<PythonSprite>(),
-  };
-}};
+const auto floor_factory{[] { return std::vector<std::shared_ptr<ComponentBase>>{}; }};
 
 /// The goal factory.
 ///
 /// @return The components for the goal.
-const auto goal_factory{[] {
-  return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<KinematicComponent>(),
-      std::make_shared<PythonSprite>(),
-  };
-}};
+const auto goal_factory{
+    [] { return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<KinematicComponent>()}; }};
 
 /// The player factory.
 ///
@@ -124,7 +107,6 @@ const auto player_factory{[] {
       std::make_shared<Money>(),
       std::make_shared<MovementForce>(5000, 5),
       std::make_shared<PlayerLevel>(),
-      std::make_shared<PythonSprite>(),
       std::make_shared<StatusEffects>(),
   };
 }};
@@ -135,32 +117,20 @@ const auto player_factory{[] {
 const auto health_potion_factory{[] {
   auto effect_applier{std::make_shared<EffectApplier>()};
   effect_applier->add_status_effect(EffectType::Regeneration, 5, 10, 1);
-  return std::vector<std::shared_ptr<ComponentBase>>{
-      std::move(effect_applier),
-      std::make_shared<KinematicComponent>(),
-      std::make_shared<PythonSprite>(),
-  };
+  return std::vector<std::shared_ptr<ComponentBase>>{std::move(effect_applier), std::make_shared<KinematicComponent>()};
 }};
 
 /// The chest factory.
 ///
 /// @return The components for the chest.
-const auto chest_factory{[] {
-  return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<KinematicComponent>(),
-      std::make_shared<PythonSprite>(),
-  };
-}};
+const auto chest_factory{
+    [] { return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<KinematicComponent>()}; }};
 
 /// The shop factory.
 ///
 /// @return The components for the shop.
-const auto shop_factory{[] {
-  return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<KinematicComponent>(),
-      std::make_shared<PythonSprite>(),
-  };
-}};
+const auto shop_factory{
+    [] { return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<KinematicComponent>()}; }};
 }  // namespace
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 

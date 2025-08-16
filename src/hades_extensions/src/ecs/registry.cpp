@@ -133,7 +133,8 @@ auto Registry::create_game_object(const GameObjectType game_object_type, const c
   }
 
   // Increment the game object ID and return the current game object ID
-  notify<EventType::GameObjectCreation>(game_object_id, std::pair{game_object_position.x, game_object_position.y});
+  notify<EventType::GameObjectCreation>(game_object_id, game_object_type,
+                                        std::pair{game_object_position.x, game_object_position.y});
   return game_object_id;
 }
 

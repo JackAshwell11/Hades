@@ -12,12 +12,12 @@ from hades.scenes.base import BaseScene
 from hades.scenes.game.view import GameView
 from hades.sprite import make_sprite
 from hades_extensions import EventType, add_callback
-from hades_extensions.ecs.components import KinematicComponent, PythonSprite
+from hades_extensions.ecs.components import KinematicComponent
 
 if TYPE_CHECKING:
     from typing import ClassVar
 
-    from hades_extensions.ecs import EffectType
+    from hades_extensions.ecs import EffectType, GameObjectType
 
 __all__ = ("GameScene",)
 
@@ -92,19 +92,19 @@ class GameScene(BaseScene[GameView]):
     def on_game_object_creation(
         self: GameScene,
         game_object_id: int,
+        game_object_type: GameObjectType,
         position: tuple[float, float],
     ) -> None:
         """Process game object creation logic.
 
         Args:
             game_object_id: The ID of the newly created game object.
+            game_object_type: The type of the newly created game object.
             position: The position of the newly created game object.
         """
-        constructor = game_object_constructors[
-            self.model.registry.get_game_object_type(game_object_id)
-        ]
-        sprite = make_sprite(self.model.registry, game_object_id, position, constructor)
-        self.model.registry.get_component(game_object_id, PythonSprite).sprite = sprite
+        constructor = game_object_constructors[game_object_type]
+        sprite = make_sprite(game_object_id, position, constructor)
+        self.model.sprites[game_object_id] = sprite
         self.view.add_sprite(sprite)
 
     def on_game_object_death(self: GameScene, game_object_id: int) -> None:
@@ -115,6 +115,7 @@ class GameScene(BaseScene[GameView]):
         """
         self.view.remove_progress_bars(game_object_id)
         self.on_sprite_removal(game_object_id)
+        self.model.sprites.pop(game_object_id)
 
     def on_sprite_removal(self: GameScene, game_object_id: int) -> None:
         """Process sprite removal logic.
@@ -122,10 +123,7 @@ class GameScene(BaseScene[GameView]):
         Args:
             game_object_id: The ID of the sprite to remove.
         """
-        self.model.registry.get_component(
-            game_object_id,
-            PythonSprite,
-        ).sprite.remove_from_sprite_lists()
+        self.model.sprites[game_object_id].remove_from_sprite_lists()
 
     def on_money_update(self: GameScene, money: int) -> None:
         """Process money update logic.

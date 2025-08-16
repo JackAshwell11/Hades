@@ -203,8 +203,9 @@ TEST_F(GameStateFixture, TestGameStateResetLevelFirstSecondWithoutLobby) {
 TEST_F(GameStateFixture, TestGameStateGenerateEnemyValid) {
   game_state->reset_level(LevelType::FirstDungeon);
   auto enemy_created{-1};
-  auto enemy_creation{
-      [&](const GameObjectID enemy_id, const std::pair<double, double> &) { enemy_created = enemy_id; }};
+  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType, const std::pair<double, double> &) {
+    enemy_created = enemy_id;
+  }};
   add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_state->generate_enemy();
   ASSERT_NE(enemy_created, -1);
@@ -213,8 +214,9 @@ TEST_F(GameStateFixture, TestGameStateGenerateEnemyValid) {
 /// Test that the game state doesn't generate an enemy correctly if there are no valid positions.
 TEST_F(GameStateFixture, TestGameStateGenerateEnemyNoValidPositions) {
   auto enemy_created{-1};
-  auto enemy_creation{
-      [&](const GameObjectID enemy_id, const std::pair<double, double> &) { enemy_created = enemy_id; }};
+  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType, const std::pair<double, double> &) {
+    enemy_created = enemy_id;
+  }};
   add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_state->generate_enemy();
   ASSERT_EQ(enemy_created, -1);

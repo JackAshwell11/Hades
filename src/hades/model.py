@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from hades_extensions import GameEngine
 
 if TYPE_CHECKING:
+    from hades.sprite import HadesSprite
     from hades_extensions import GameState, InputHandler, SaveManager
     from hades_extensions.ecs import Registry
 
@@ -20,16 +21,28 @@ class HadesModel:
     """Provides access to the game engine and its functionality.
 
     Attributes:
-        game_engine: The engine which manages the registry and events.
+        sprites: A mapping of game object IDs to their sprites.
     """
 
-    __slots__ = ("__dict__", "game_engine")
+    __slots__ = ("__dict__", "_game_engine", "sprites")
 
     def __init__(self: HadesModel) -> None:
         """Initialise the object."""
-        self.game_engine: GameEngine = GameEngine()
+        self._game_engine: GameEngine | None = None
+        self.sprites: dict[int, HadesSprite] = {}
 
     @property
+    def game_engine(self: HadesModel) -> GameEngine:
+        """Get the game engine which manages the registry and events.
+
+        Returns:
+            The game engine which manages the registry and events.
+        """
+        if self._game_engine is None:
+            self._game_engine = GameEngine()
+        return self._game_engine
+
+    @cached_property
     def registry(self: HadesModel) -> Registry:
         """Get the registry which manages the game objects, components, and systems.
 
