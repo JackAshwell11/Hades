@@ -73,7 +73,9 @@ void InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, c
   // Add the item to the inventory, set the collected flag to prevent collision detection, and notify the callbacks
   inventory->items.push_back(item);
   if (get_registry()->has_component(item, typeid(KinematicComponent))) {
-    get_registry()->get_component<KinematicComponent>(item)->collected = true;
+    const auto kinematic_component{get_registry()->get_component<KinematicComponent>(item)};
+    cpSpaceRemoveShape(get_registry()->get_space(), *kinematic_component->shape);
+    cpSpaceRemoveBody(get_registry()->get_space(), *kinematic_component->body);
   }
   notify<EventType::InventoryUpdate>(inventory->items);
   notify<EventType::SpriteRemoval>(item);

@@ -175,7 +175,9 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryKinematic) {
   const auto game_object_id{create_item(GameObjectType::HealthPotion, {.kinematic = true})};
   get_inventory_system()->add_item_to_inventory(0, game_object_id);
-  ASSERT_TRUE(registry.get_component<KinematicComponent>(game_object_id)->collected);
+  const auto kinematic_component{registry.get_component<KinematicComponent>(game_object_id)};
+  ASSERT_FALSE(cpSpaceContainsShape(registry.get_space(), *kinematic_component->shape));
+  ASSERT_FALSE(cpSpaceContainsBody(registry.get_space(), *kinematic_component->body));
 }
 
 /// Test that an item is not added to the inventory if it is not a collectible item.

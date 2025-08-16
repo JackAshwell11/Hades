@@ -11,7 +11,7 @@ from arcade.gui import UIAnchorLayout, UIBoxLayout, UIFlatButton, UIInputText, U
 from arcade.gui.widgets.text import UIInputTextStyle  # type: ignore[attr-defined]
 
 # Custom
-from hades import UI_BACKGROUND_COLOUR, UI_PADDING, SceneType
+from hades import UI_BACKGROUND_COLOUR, UI_PADDING, BackButton
 from hades.scenes.base.view import BaseView
 
 if TYPE_CHECKING:
@@ -62,13 +62,7 @@ class GameOptionsView(BaseView):
         self.ui.add(self.window.background_image)
         layout = UIBoxLayout(vertical=True, space_between=UI_PADDING)
         layout.add(OptionsPanel())
-        back_button = UIFlatButton(text="Back")
-        back_button.on_click = (  # type: ignore[method-assign]
-            lambda _: self.window.show_view(  # type: ignore[assignment]
-                self.window.scenes[SceneType.GAME],
-            )
-        )
-        layout.add(back_button)
+        layout.add(BackButton())
         self.ui.add(UIAnchorLayout(children=(layout,)))
 
     def __init__(self: GameOptionsView, window: HadesWindow) -> None:

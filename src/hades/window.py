@@ -4,11 +4,11 @@ from __future__ import annotations
 
 # Builtin
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING, Final, cast
 
 # Pip
-from arcade import Texture, Window, get_default_texture, get_image
-from arcade.gui import UIImage
+from arcade import Texture, View, Window, get_default_texture, get_image
+from arcade.gui import UIImage, UIOnClickEvent
 from arcade.resources import resolve
 from PIL.ImageFilter import GaussianBlur
 
@@ -21,6 +21,10 @@ from hades.scenes.inventory import InventoryScene
 from hades.scenes.load_game import LoadGameMenuScene
 from hades.scenes.shop import ShopScene
 from hades.scenes.start_menu import StartMenuScene
+
+if TYPE_CHECKING:
+    from hades.scenes.base import BaseScene
+    from hades.scenes.base.view import BaseView
 
 __all__ = ("HadesWindow", "main")
 
@@ -52,17 +56,19 @@ class HadesWindow(Window):
     """Manages the window and allows switching between scenes.
 
     Attributes:
-        scenes: Holds all the scenes used by the game.
-        background_image: The background image of the window.
         model: The model providing access to the game engine and its functionality.
+        last_scenes: Holds the last scenes shown in the game.
+        background_image: The background image of the window.
+        scenes: Holds all the scenes used by the game.
     """
 
-    __slots__ = ("background_image", "model", "scenes")
+    __slots__ = ("background_image", "last_scenes", "model", "scenes")
 
     def __init__(self: HadesWindow) -> None:
         """Initialise the object."""
         super().__init__()
         self.model: HadesModel = HadesModel()
+        self.last_scenes: list[BaseScene[BaseView]] = []
         self.background_image: UIImage = UIImage(
             texture=get_default_texture(),
             width=self.width,
@@ -84,18 +90,31 @@ class HadesWindow(Window):
             SceneType.SHOP: ShopScene(),
             SceneType.START_MENU: StartMenuScene(),
         }
-        for event_type in EVENT_TYPES:
-            self.register_event_type(event_type)
+
+    def on_previous_view(self: HadesWindow, _: UIOnClickEvent) -> None:
+        """Process the previous view event."""
+        if self.last_scenes:
+            self.show_view(self.last_scenes.pop())
+
+    def show_view(self: HadesWindow, new_view: View) -> None:
+        """Set the currently active view.
+
+        Args:
+            new_view: The view to set as the active view.
+        """
+        if self.current_view is not None:
+            self.last_scenes.append(cast("BaseScene[BaseView]", self.current_view))
+        self.background_image.texture = Texture(get_image().filter(BACKGROUND_BLUR))
+        self.model.save_manager.save_game()
+        super().show_view(new_view)
 
     def setup(self: HadesWindow) -> None:
         """Set up the window and its scenes."""
         self.center_window()
+        for event_type in EVENT_TYPES:
+            self.register_event_type(event_type)
         self.model.game_engine.setup(str(SHOP_OFFERINGS), str(SAVE_DIRECTORY))
         self.show_view(self.scenes[SceneType.START_MENU])
-
-    def save_background(self: HadesWindow) -> None:
-        """Save the current background image to a texture."""
-        self.background_image.texture = Texture(get_image().filter(BACKGROUND_BLUR))
 
 
 def main() -> None:

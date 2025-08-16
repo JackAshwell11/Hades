@@ -16,7 +16,7 @@ from arcade.gui.experimental.scroll_area import (  # type: ignore[attr-defined]
 from dateutil.parser import parse
 
 # Custom
-from hades import UI_BACKGROUND_COLOUR, UI_PADDING, SceneType
+from hades import UI_BACKGROUND_COLOUR, UI_PADDING, BackButton
 from hades.scenes.base.view import BaseView
 
 if TYPE_CHECKING:
@@ -115,13 +115,7 @@ class LoadGameMenuView(BaseView):
         scroll_container.add(scroll_area)
         scroll_container.add(UIScrollBar(scroll_area))
         vertical_box.add(scroll_container)
-        back_button = UIFlatButton(text="Back")
-        back_button.on_click = (  # type: ignore[method-assign]
-            lambda _: self.window.show_view(  # type: ignore[assignment]
-                self.window.scenes[SceneType.START_MENU],
-            )
-        )
-        vertical_box.add(back_button)
+        vertical_box.add(BackButton())
         self.ui.add(UIAnchorLayout(children=(vertical_box,)))
 
     def __init__(self: LoadGameMenuView, window: HadesWindow) -> None:

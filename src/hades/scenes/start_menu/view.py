@@ -11,6 +11,7 @@ from arcade import get_window
 from arcade.gui import UIAnchorLayout, UIBoxLayout, UIFlatButton
 
 # Custom
+from hades import BUTTON_WIDTH
 from hades.scenes.base.view import BaseView
 
 if TYPE_CHECKING:
@@ -54,7 +55,7 @@ class QuitButton(UIFlatButton):
 
     def __init__(self: QuitButton) -> None:
         """Initialise the object."""
-        super().__init__(text="Quit Game", width=START_MENU_BUTTON_WIDTH)
+        super().__init__(text="Quit Game", width=BUTTON_WIDTH)
         self.on_click = partial(  # type: ignore[method-assign]
             get_window().dispatch_event,
             "on_quit_game",

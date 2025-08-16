@@ -36,24 +36,32 @@ auto PhysicsSystem::get_nearest_item(const GameObjectID game_object_id) const ->
   const cpVect &game_object_position{
       cpBodyGetPosition(*get_registry()->get_component<KinematicComponent>(game_object_id)->body)};
 
-  // Collect all relevant game objects
-  std::vector<std::pair<GameObjectID, cpFloat>> distances;
-  for (const auto &[id, component_tuple] : get_registry()->find_components<KinematicComponent>()) {
-    if (const auto kinematic_component{std::get<0>(component_tuple)};
-        game_object_id != id && (cpShapeGetSensor(*kinematic_component->shape) != 0U) &&
-        get_registry()->get_game_object_type(id) != GameObjectType::Floor && !kinematic_component->collected) {
-      if (const cpFloat distance{
-              cpvlength(cpvsub(game_object_position, cpBodyGetPosition(*kinematic_component->body)))};
-          distance <= SPRITE_SIZE / 2) {
-        distances.emplace_back(id, distance);
-      }
-    }
-  }
+  // Determine what information is needed for the query
+  struct QueryInfo {
+    GameObjectID nearest_id{-1};
+    cpFloat min_distance{std::numeric_limits<cpFloat>::infinity()};
+    GameObjectID query_id{};
+  } query_info{.query_id = game_object_id};
 
-  // Return the nearest game object, otherwise, return -1
-  const auto nearest_element{std::ranges::min_element(
-      distances.begin(), distances.end(), [](const auto &lhs, const auto &rhs) { return lhs.second < rhs.second; })};
-  return nearest_element != distances.end() ? nearest_element->first : -1;
+  // Find the nearest game object that matches the query
+  auto callback{[](cpShape *shape, cpVect /*point*/, const cpFloat distance, cpVect /*gradient*/, void *query) -> void {
+    auto *info{static_cast<QueryInfo *>(query)};
+    const auto shape_id{cpShapeToGameObjectID(shape)};
+    if (shape_id == info->query_id) {
+      return;
+    }
+    if (distance < info->min_distance && distance <= SPRITE_SIZE / 2) {
+      info->nearest_id = shape_id;
+      info->min_distance = distance;
+    }
+  }};
+  cpSpacePointQuery(get_registry()->get_space(), game_object_position, SPRITE_SIZE / 2,
+                    {CP_NO_GROUP, CP_ALL_CATEGORIES,
+                     ~(static_cast<cpBitmask>(GameObjectType::Wall) | static_cast<cpBitmask>(GameObjectType::Floor))},
+                    callback, &query_info);
+
+  // Return the nearest game object ID
+  return query_info.nearest_id;
 }
 
 auto PhysicsSystem::get_wall_distances(const cpVect &current_position) const -> std::vector<cpVect> {

@@ -3,7 +3,6 @@
 
 // Std headers
 #include <stdexcept>
-#include <vector>
 
 // Local headers
 #include "ecs/bases.hpp"
@@ -23,9 +22,6 @@ struct KinematicComponent final : ComponentBase {
 
   /// The rotation angle of the game object in radians.
   double rotation{0};
-
-  /// Whether the game object has been collected by the player or not.
-  bool collected{false};
 
   /// Initialise the object.
   ///

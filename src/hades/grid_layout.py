@@ -24,7 +24,7 @@ from arcade.gui import (
 from arcade.types import Color
 
 # Custom
-from hades import UI_BACKGROUND_COLOUR, UI_PADDING, SceneType
+from hades import UI_BACKGROUND_COLOUR, UI_PADDING, BackButton
 from hades.scenes.base.view import BaseView
 from hades_extensions.ecs import SPRITE_SIZE
 
@@ -331,13 +331,7 @@ class GridView[T: ItemButton](BaseView):
         self.ui.add(self.window.background_image)
         layout = UIBoxLayout(vertical=True, space_between=UI_PADDING)
         layout.add(self.grid_layout)
-        back_button = UIFlatButton(text="Back")
-        back_button.on_click = (  # type: ignore[method-assign]
-            lambda _: self.window.show_view(  # type: ignore[assignment]
-                self.window.scenes[SceneType.GAME],
-            )
-        )
-        layout.add(back_button)
+        layout.add(BackButton())
         self.ui.add(UIAnchorLayout(children=(layout,)))
 
     def __init__(self: GridView[T], window: HadesWindow) -> None:

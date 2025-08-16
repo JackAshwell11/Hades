@@ -51,13 +51,10 @@ class BaseScene[V: BaseView](ABC, View):
     def on_show_view(self: BaseScene[V]) -> None:
         """Process show view functionality."""
         self.view.ui.enable()
-        self.view.window.push_handlers(self)
 
     def on_hide_view(self: BaseScene[V]) -> None:
         """Process hide view functionality."""
-        self.view.window.save_background()
         self.view.ui.disable()
-        self.view.window.remove_handlers(self)
 
     def on_draw(self: BaseScene[V]) -> None:
         """Render the screen."""

@@ -9,10 +9,6 @@ void bind_components(const pybind11::module_ &module) {
            "Get the value of the stat.\n\n"
            "Returns:\n"
            "    The value of the stat.")
-      .def("set_value", &Stat::set_value,
-           "Set the value of the stat.\n\n"
-           "Args:\n"
-           "    new_value: The new value of the stat.")
       .def("get_max_value", &Stat::get_max_value,
            "Get the maximum value of the stat.\n\n"
            "Returns:\n"
@@ -34,15 +30,6 @@ void bind_components(const pybind11::module_ &module) {
           "Get the position of the game object.\n\n"
           "Returns:\n"
           "    The position of the game object.")
-      .def(
-          "get_velocity",
-          [](const KinematicComponent &kinematic_component) {
-            const auto [x, y]{cpBodyGetVelocity(*kinematic_component.body)};
-            return pybind11::make_tuple(x, y);
-          },
-          "Get the velocity of the game object.\n\n"
-          "Returns:\n"
-          "    The velocity of the game object.")
       .def(
           "set_rotation",
           [](KinematicComponent &kinematic_component, const double angle) { kinematic_component.rotation = angle; },

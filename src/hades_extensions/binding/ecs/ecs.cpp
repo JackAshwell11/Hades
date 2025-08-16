@@ -13,10 +13,6 @@ void bind_ecs(const pybind11::module_ &module) {
                                                                               "The base class for all systems.");
 
   // Add the enums
-  pybind11::enum_<AttackType>(module, "AttackType", "Stores the different types of attacks available in the game.")
-      .value("Ranged", AttackType::Ranged)
-      .value("Melee", AttackType::Melee)
-      .value("Special", AttackType::Special);
   pybind11::enum_<GameObjectType>(module, "GameObjectType", "Stores the different types of game objects available.")
       .value("Bullet", GameObjectType::Bullet)
       .value("Enemy", GameObjectType::Enemy)

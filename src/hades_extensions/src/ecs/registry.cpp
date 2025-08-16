@@ -15,15 +15,6 @@ namespace {
 /// The percentage of velocity a game object will retain after a second.
 constexpr double DAMPING{0.0001};
 
-/// Convert a Chipmunk2D shape to a game object ID.
-///
-/// @param shape - The Chipmunk2D shape to convert.
-/// @return The game object ID.
-auto cpShapeToGameObjectID(cpShape *shape) -> GameObjectID {
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-  return static_cast<GameObjectID>(reinterpret_cast<uintptr_t>(cpShapeGetUserData(shape)));
-}
-
 /// The collision handler for checking if the player is inside a wall.
 ///
 /// @param arbiter - The arbiter for the collision.
@@ -146,8 +137,13 @@ void Registry::delete_game_object(const GameObjectID game_object_id) {
 
   // Remove the shape and body from the space if the game object has a kinematic component
   if (has_component(game_object_id, typeid(KinematicComponent))) {
-    cpSpaceRemoveShape(*space_, *get_component<KinematicComponent>(game_object_id)->shape);
-    cpSpaceRemoveBody(*space_, *get_component<KinematicComponent>(game_object_id)->body);
+    const auto kinematic_component{get_component<KinematicComponent>(game_object_id)};
+    const auto shape{*kinematic_component->shape};
+    const auto body{*kinematic_component->body};
+    if (cpSpaceContainsShape(*space_, shape) && cpSpaceContainsBody(*space_, body)) {
+      cpSpaceRemoveShape(*space_, shape);
+      cpSpaceRemoveBody(*space_, body);
+    }
   }
 
   // Notify the callbacks then delete the game object

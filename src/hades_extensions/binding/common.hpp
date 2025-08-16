@@ -81,7 +81,7 @@ inline auto get_component_types()
 inline auto get_system_types()
     -> const std::unordered_map<pybind11::handle, std::function<std::shared_ptr<SystemBase>(const Registry &)>,
                                 py_handle_hash, py_handle_equal> & {
-  static const auto system_types{make_system_types<PhysicsSystem, InventorySystem, ShopSystem>()};
+  static const auto system_types{make_system_types<InventorySystem, ShopSystem>()};
   return system_types;
 }
 

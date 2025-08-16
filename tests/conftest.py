@@ -53,7 +53,12 @@ def hades_window(session_window: HadesWindow) -> HadesWindow:
     session_window.flip()
     session_window.clear()
     session_window.default_camera.use()
+
+    # Reset the window's state
+    session_window.setup()
+    session_window._current_view = None  # noqa: SLF001
     session_window.background_image.texture = get_default_texture()
+    session_window.last_views = []
 
     # Reset the context and run the garbage collector
     ctx = session_window.ctx

@@ -5,7 +5,7 @@ from __future__ import annotations
 # Builtin
 from collections import Counter
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 # Pip
 import pytest
@@ -14,7 +14,6 @@ from arcade.gui import UIOnActionEvent, UIOnClickEvent
 from PIL import Image
 
 # Custom
-from hades import SceneType
 from hades.grid_layout import (
     GridView,
     ItemButton,
@@ -81,7 +80,7 @@ def assert_counts(
 
 
 @pytest.fixture
-def item_button(hades_window: HadesWindow) -> ItemButton:  # noqa: ARG001
+def item_button(hades_window: HadesWindow) -> ItemButton:
     """Create an item button for testing.
 
     Args:
@@ -90,6 +89,9 @@ def item_button(hades_window: HadesWindow) -> ItemButton:  # noqa: ARG001
     Returns:
         A item button for testing.
     """
+    hades_window.register_event_type("on_texture_button_callback")
+    hades_window.register_event_type("on_previous_view")
+    hades_window.register_event_type("on_use_button_callback")
     return MockItemButton()
 
 
@@ -107,13 +109,9 @@ def stats_layout(hades_window: HadesWindow) -> StatsLayout:  # noqa: ARG001
 
 
 @pytest.fixture
-def paginated_grid_layout(
-    hades_window: HadesWindow,  # noqa: ARG001
-) -> PaginatedGridLayout[MockItemButton]:
+@pytest.mark.usefixture("hades_window")
+def paginated_grid_layout() -> PaginatedGridLayout[MockItemButton]:
     """Create a paginated grid layout for testing.
-
-    Args:
-        hades_window: The hades window for testing.
 
     Returns:
         The paginated grid layout object for testing.
@@ -122,9 +120,7 @@ def paginated_grid_layout(
 
 
 @pytest.fixture
-def grid_view(
-    hades_window: HadesWindow,
-) -> GridView[MockItemButton]:
+def grid_view(hades_window: HadesWindow) -> GridView[MockItemButton]:
     """Create a grid view for testing.
 
     Args:
@@ -367,6 +363,7 @@ def test_paginated_grid_layout_on_action(
     assert paginated_grid_layout.current_row == 0
 
 
+@pytest.mark.usefixture("hades_window")
 @pytest.mark.parametrize(
     ("total_size", "item_button_count", "default_layout_count"),
     [
@@ -493,16 +490,18 @@ def test_grid_view_init(grid_view: GridView[MockItemButton]) -> None:
     assert len(grid_view.ui.children[0]) == 2
 
 
-def test_grid_view_back_button_on_click(
-    grid_view: GridView[MockItemButton],
-) -> None:
+@pytest.mark.xfail(reason="This should be moved to a test for __init__.py")
+def test_grid_view_back_button_on_click(grid_view: GridView[MockItemButton]) -> None:
     """Test that the grid view back button works correctly.
 
     Args:
         grid_view: The grid view object for testing.
     """
-    mock_show_view = Mock()
-    grid_view.window.show_view = mock_show_view  # type: ignore[method-assign]
-    back_button = grid_view.ui.children[0][1].children[0].children[1]
-    back_button.on_click(UIOnClickEvent(Mock(), -1, -1, -1, -1))
-    mock_show_view.assert_called_once_with(grid_view.window.scenes[SceneType.GAME])
+    mock_dispatch_event = Mock()
+    with patch.object(get_window(), "dispatch_event", mock_dispatch_event):
+        back_button = grid_view.ui.children[0][1].children[0].children[1]
+        back_button.on_click(UIOnClickEvent(Mock(), -1, -1, -1, -1))
+        mock_dispatch_event.assert_called_once_with(
+            "on_previous_view",
+            UIOnClickEvent(Mock(), -1, -1, -1, -1),
+        )

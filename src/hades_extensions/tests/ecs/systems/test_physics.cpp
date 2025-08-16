@@ -30,6 +30,7 @@ class PhysicsSystemFixture : public testing::Test {
           type, position, {std::make_shared<KinematicComponent>(type == GameObjectType::Wall)})};
       if (override) {
         cpBodySetPosition(*registry.get_component<KinematicComponent>(object_id)->body, position);
+        registry.get_system<PhysicsSystem>()->update(1.0);
       }
     }
   }
@@ -194,8 +195,15 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemFarAway) {
 
 /// Test that getting the nearest item doesn't work if the game object is next to the item.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemNextTo) {
-  create_objects(GameObjectType::HealthPotion, {{.x = 65, .y = 32}});
+  // Chipmunk2D uses the minimum distance, not the Euclidean distance, so we need to add another SPRITE_SIZE / 2
+  create_objects(GameObjectType::HealthPotion, {{.x = 96, .y = 32}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), -1);
+}
+
+/// Test that getting the nearest item works if the game object is close enough to the item.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemWithinMinimum) {
+  create_objects(GameObjectType::HealthPotion, {{.x = 80, .y = 32}});
+  ASSERT_EQ(get_physics_system()->get_nearest_item(0), 1);
 }
 
 /// Test that getting the nearest item works if the game object is touching the item.
@@ -214,13 +222,6 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemOnTopOf) {
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemMultipleItems) {
   create_objects(GameObjectType::HealthPotion, {{.x = 48, .y = 32}, {.x = 32, .y = 32}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), 2);
-}
-
-/// Test that getting the nearest item works if the item is already collected.
-TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemCollected) {
-  create_objects(GameObjectType::HealthPotion, {{.x = 32, .y = 32}});
-  registry.get_component<KinematicComponent>(1)->collected = true;
-  ASSERT_EQ(get_physics_system()->get_nearest_item(0), -1);
 }
 
 /// Test that no raycasts hit when getting the distances to the walls when there are no walls.

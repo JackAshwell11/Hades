@@ -25,6 +25,15 @@ inline auto grid_pos_to_pixel(const cpVect &position) -> cpVect {
   return position * SPRITE_SIZE + SPRITE_SIZE / 2;
 }
 
+/// Convert a Chipmunk2D shape to a game object ID.
+///
+/// @param shape - The Chipmunk2D shape to convert.
+/// @return The game object ID.
+inline auto cpShapeToGameObjectID(const cpShape *shape) -> GameObjectID {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  return static_cast<GameObjectID>(reinterpret_cast<uintptr_t>(cpShapeGetUserData(shape)));
+}
+
 /// Raised when an error occurs with the registry.
 class RegistryError final : public std::runtime_error {
  public:
