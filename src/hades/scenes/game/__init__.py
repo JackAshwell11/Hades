@@ -39,6 +39,8 @@ class GameScene(BaseScene[GameView]):
             (EventType.AttackCooldownUpdate, self.on_attack_cooldown_update),
             (EventType.RangedAttackSwitch, self.on_ranged_attack_switch),
             (EventType.GameOpen, self.on_game_open),
+            (EventType.HealthChanged, self.on_health_changed),
+            (EventType.ArmourChanged, self.on_armour_changed),
         ]
         for event_type, callback in callbacks:
             add_callback(event_type, callback)  # type: ignore[call-overload]
@@ -177,3 +179,37 @@ class GameScene(BaseScene[GameView]):
     def on_game_open(self: GameScene) -> None:
         """Process game open logic."""
         self.view.window.show_view(self)
+
+    def on_health_changed(
+        self: GameScene,
+        game_object_id: int,
+        percentage: float,
+    ) -> None:
+        """Process health changed logic.
+
+        Args:
+            game_object_id: The ID of the game object whose health has changed.
+            percentage: The new health percentage.
+        """
+        self.view.update_progress_bar_value(
+            self.model.sprites[game_object_id],
+            percentage,
+            health_bar=True,
+        )
+
+    def on_armour_changed(
+        self: GameScene,
+        game_object_id: int,
+        percentage: float,
+    ) -> None:
+        """Process armour changed logic.
+
+        Args:
+            game_object_id: The ID of the game object whose armour has changed.
+            percentage: The new armour percentage.
+        """
+        self.view.update_progress_bar_value(
+            self.model.sprites[game_object_id],
+            percentage,
+            health_bar=False,
+        )

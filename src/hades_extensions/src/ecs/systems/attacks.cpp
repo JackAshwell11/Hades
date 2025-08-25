@@ -229,8 +229,16 @@ void DamageSystem::deal_damage(const GameObjectID game_object_id, const double d
   // Damage the armour and carry over the extra damage to the health
   const auto health{get_registry()->get_component<Health>(game_object_id)};
   const auto armour{get_registry()->get_component<Armour>(game_object_id)};
+  const auto old_health{health->get_value()};
+  const auto old_armour{armour->get_value()};
   health->set_value(health->get_value() - std::max(damage - armour->get_value(), 0.0));
   armour->set_value(armour->get_value() - damage);
+  if (health->get_value() != old_health) {
+    notify<EventType::HealthChanged>(game_object_id, health->get_value() / health->get_max_value());
+  }
+  if (armour->get_value() != old_armour) {
+    notify<EventType::ArmourChanged>(game_object_id, armour->get_value() / armour->get_max_value());
+  }
 
   // If the health is now 0, delete the game object
   if (health->get_value() <= 0) {

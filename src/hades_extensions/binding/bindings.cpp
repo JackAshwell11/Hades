@@ -66,6 +66,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           case EventType::GameOpen:
             add_callback<EventType::GameOpen>(callback);
             break;
+          case EventType::HealthChanged:
+            add_callback<EventType::HealthChanged>(callback);
+            break;
+          case EventType::ArmourChanged:
+            add_callback<EventType::ArmourChanged>(callback);
+            break;
           default:
             throw std::runtime_error("Unsupported event type.");
         }
@@ -92,7 +98,9 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .value("InventoryOpen", EventType::InventoryOpen)
       .value("GameOptionsOpen", EventType::GameOptionsOpen)
       .value("SaveFilesUpdated", EventType::SaveFilesUpdated)
-      .value("GameOpen", EventType::GameOpen);
+      .value("GameOpen", EventType::GameOpen)
+      .value("HealthChanged", EventType::HealthChanged)
+      .value("ArmourChanged", EventType::ArmourChanged);
 
   pybind11::class_<SaveFileInfo>(module, "SaveFileInfo", "Represents information about a save file.")
       .def_readonly("name", &SaveFileInfo::name)

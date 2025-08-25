@@ -13,13 +13,10 @@ from arcade import color, load_texture
 # Custom
 from hades_extensions import load_hitbox
 from hades_extensions.ecs import GameObjectType
-from hades_extensions.ecs.components import Armour, Health
 
 if TYPE_CHECKING:
     from arcade import Texture
     from arcade.types.color import RGBA255
-
-    from hades_extensions.ecs.components import Stat
 
 __all__ = (
     "GameObjectConstructor",
@@ -82,7 +79,7 @@ class GameObjectConstructor:
     game_object_type: GameObjectType
     depth: int
     textures: list[IconType]
-    progress_bars: list[tuple[type[Stat], tuple[float, float], RGBA255]] = field(
+    progress_bars: list[tuple[tuple[float, float], RGBA255]] = field(
         default_factory=list,
     )
 
@@ -136,7 +133,8 @@ def player_factory() -> GameObjectConstructor:
         GameObjectType.Player,
         3,
         [IconType.PLAYER_IDLE, IconType.PLAYER_IDLE],
-        [(Health, (4, 2), color.RED), (Armour, (4, 2), color.SILVER)],
+        # Note health bars should always be first
+        [((4, 2), color.RED), ((4, 2), color.SILVER)],
     )
 
 
@@ -152,7 +150,8 @@ def enemy_factory() -> GameObjectConstructor:
         GameObjectType.Enemy,
         3,
         [IconType.ENEMY_IDLE, IconType.ENEMY_IDLE],
-        [(Health, (1, 1), color.RED), (Armour, (1, 1), color.SILVER)],
+        # Note health bars should always be first
+        [((1, 1), color.RED), ((1, 1), color.SILVER)],
     )
 
 

@@ -584,6 +584,23 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
   ASSERT_FALSE(registry.has_component(0, typeid(Armour)));
 }
 
+/// Test that the damage system calls the correct callbacks during execution.
+TEST_F(DamageSystemFixture, TestDamageSystemDealDamageCallbacks) {
+  create_health_and_armour_attributes();
+  std::vector<double> health_percentages;
+  std::vector<double> armour_percentages;
+  auto health_changed_callback{
+      [&](const GameObjectID, const double percentage) { health_percentages.push_back(percentage); }};
+  auto armour_changed_callback{
+      [&](const GameObjectID, const double percentage) { armour_percentages.push_back(percentage); }};
+  add_callback<EventType::HealthChanged>(health_changed_callback);
+  add_callback<EventType::ArmourChanged>(armour_changed_callback);
+  get_damage_system()->deal_damage(0, 50);
+  get_damage_system()->deal_damage(0, 125);
+  ASSERT_EQ(health_percentages, std::vector({0.75}));
+  ASSERT_EQ(armour_percentages, std::vector({0.5, 0.0}));
+}
+
 /// Test that an exception is thrown if a game object does not have the required components.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageNonexistentComponents) {
   registry.create_game_object(GameObjectType::Player, cpvzero, {});

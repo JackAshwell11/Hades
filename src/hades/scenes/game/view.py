@@ -139,7 +139,7 @@ class GameView(BaseView):
         """
         self.game_camera: Camera2D = Camera2D()
         self.sprites: SpriteList[HadesSprite] = SpriteList[HadesSprite]()
-        self.progress_bars: list[ProgressBar] = []
+        self.progress_bars: dict[HadesSprite, list[ProgressBar]] = {}
         self.left_layout: UIBoxLayout = UIBoxLayout(align="left")
         self.money_indicator: StateIndicator = StateIndicator(IconType.MONEY)
         self.attack_type_layout: UIBoxLayout = UIBoxLayout(
@@ -178,7 +178,7 @@ class GameView(BaseView):
         """
         self.sprites.update()
         self.game_camera.position = player_position
-        self.update_progress_bars(self.game_camera)
+        self.update_progress_bar_positions(self.game_camera)
 
     def add_sprite(self: GameView, sprite: HadesSprite) -> None:
         """Add a sprite to the game.
@@ -197,13 +197,8 @@ class GameView(BaseView):
             sprite: The sprite to create progress bars for.
         """
         for order, bar_data in enumerate(sprite.constructor.progress_bars):
-            progress_bar = ProgressBar(
-                (sprite, bar_data[0]),
-                bar_data[1],
-                bar_data[2],
-                order,
-            )
-            self.progress_bars.append(progress_bar)
+            progress_bar = ProgressBar(bar_data[0], bar_data[1], order)
+            self.progress_bars.setdefault(sprite, []).append(progress_bar)
             if sprite.game_object_type == GameObjectType.Player:
                 self.left_layout.add(
                     progress_bar.with_padding(top=UI_PADDING, left=UI_PADDING),
@@ -218,28 +213,48 @@ class GameView(BaseView):
         Args:
             game_object_id: ID of the game object to remove progress bars for.
         """
-        for progress_bar in self.progress_bars[:]:
-            if progress_bar.target[0].game_object_id == game_object_id:
-                self.ui.remove(progress_bar)
-                if progress_bar in self.left_layout.children:
-                    self.left_layout.remove(progress_bar)
-                self.progress_bars.remove(progress_bar)
+        for sprite, progress_bars in list(self.progress_bars.items()):
+            if sprite.game_object_id == game_object_id:
+                self.progress_bars.pop(sprite)
+                for progress_bar in progress_bars:
+                    self.ui.remove(progress_bar)
+                    if progress_bar in self.left_layout.children:
+                        self.left_layout.remove(progress_bar)
 
-    def update_progress_bars(self: GameView, camera: Camera2D) -> None:
-        """Update the progress bars on the screen.
+    def update_progress_bar_value(
+        self: GameView,
+        sprite: HadesSprite,
+        percentage: float,
+        *,
+        health_bar: bool,
+    ) -> None:
+        """Update the value of a progress bar.
+
+        Args:
+            sprite: The sprite the progress bar is attached to.
+            percentage: The new percentage value.
+            health_bar: Whether the progress bar is a health bar or not.
+        """
+        progress_bar = self.progress_bars[sprite][0 if health_bar else 1]
+        progress_bar.actual_bar.size_hint = (percentage, 1)
+        progress_bar.actual_bar.visible = percentage > 0
+
+    def update_progress_bar_positions(self: GameView, camera: Camera2D) -> None:
+        """Update the progress bar positions on the screen.
 
         Args:
             camera: The camera to project the progress bars onto.
         """
-        for progress_bar in self.progress_bars:
-            screen_pos = camera.project(progress_bar.target[0].position)
-            progress_bar.rect = progress_bar.rect.align_center_x(
-                screen_pos.x,
-            ).align_bottom(
-                screen_pos.y
-                + SPRITE_SIZE // 2
-                + progress_bar.order * PROGRESS_BAR_HEIGHT,
-            )
+        for sprite, progress_bars in self.progress_bars.items():
+            screen_pos = camera.project(sprite.position)
+            for progress_bar in progress_bars:
+                progress_bar.rect = progress_bar.rect.align_center_x(
+                    screen_pos.x,
+                ).align_bottom(
+                    screen_pos.y
+                    + SPRITE_SIZE // 2
+                    + progress_bar.order * PROGRESS_BAR_HEIGHT,
+                )
 
     def update_money_display(self: GameView, money: int) -> None:
         """Update the money indicator.

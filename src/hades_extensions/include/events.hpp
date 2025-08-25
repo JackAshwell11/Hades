@@ -30,6 +30,8 @@ enum class EventType : std::uint8_t {
   GameOptionsOpen,
   SaveFilesUpdated,
   GameOpen,
+  HealthChanged,
+  ArmourChanged,
 };
 
 /// A helper struct to provide the argument types for each event type.
@@ -124,6 +126,18 @@ struct EventTraits<EventType::SaveFilesUpdated> {
 template <>
 struct EventTraits<EventType::GameOpen> {
   using EventArgs = std::tuple<>;
+};
+
+/// Provides the argument types for the HealthChanged event.
+template <>
+struct EventTraits<EventType::HealthChanged> {
+  using EventArgs = std::tuple<GameObjectID, double>;
+};
+
+/// Provides the argument types for the ArmourChanged event.
+template <>
+struct EventTraits<EventType::ArmourChanged> {
+  using EventArgs = std::tuple<GameObjectID, double>;
 };
 
 /// Get the listeners map for the events.
