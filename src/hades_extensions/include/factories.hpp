@@ -14,7 +14,7 @@ enum class GameObjectType : std::uint16_t;
 /// @param game_object_type - The game object type.
 /// @param hitbox - The hitbox to load.
 /// @return Whether the hitbox was loaded or not.
-auto load_hitbox(GameObjectType game_object_type, const std::vector<std::pair<double, double>> &hitbox) -> bool;
+auto load_hitbox(GameObjectType game_object_type, const std::vector<std::pair<double, double>>& hitbox) -> bool;
 
 /// Clear all hitboxes.
 void clear_hitboxes();

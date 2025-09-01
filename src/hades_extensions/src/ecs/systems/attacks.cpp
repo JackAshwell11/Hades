@@ -24,7 +24,7 @@ constexpr auto MULTI_BULLET_CONE_ANGLE{std::numbers::pi / 4};
 /// @param game_object_id - The game object ID of the attacking game object.
 /// @throws RegistryError - If the game object ID is not registered with the registry.
 /// @return The target IDs for the attack.
-auto get_target_ids(const Registry *registry, const GameObjectID game_object_id) -> std::vector<GameObjectID> {
+auto get_target_ids(const Registry* registry, const GameObjectID game_object_id) -> std::vector<GameObjectID> {
   return registry->get_game_object_ids(registry->get_game_object_type(game_object_id) == GameObjectType::Player
                                            ? GameObjectType::Enemy
                                            : GameObjectType::Player);
@@ -39,7 +39,7 @@ auto get_target_ids(const Registry *registry, const GameObjectID game_object_id)
 /// @param damage - The damage of the bullets.
 /// @throws RegistryError - If the game object ID is not registered with the registry or does not have a kinematic
 /// component.
-void create_bullet_cone(const Registry *registry, const GameObjectID game_object_id, const int bullet_count,
+void create_bullet_cone(const Registry* registry, const GameObjectID game_object_id, const int bullet_count,
                         const double velocity, const double damage) {
   const auto kinematic_component{registry->get_component<KinematicComponent>(game_object_id)};
   const auto direction{cpvforangle(kinematic_component->rotation)};
@@ -54,20 +54,20 @@ void create_bullet_cone(const Registry *registry, const GameObjectID game_object
 }
 }  // namespace
 
-void AttackStat::to_file(nlohmann::json &json) const { to_file_base(json); }
+void AttackStat::to_file(nlohmann::json& json) const { to_file_base(json); }
 
-void AttackStat::from_file(const nlohmann::json &json) { from_file_base(json); }
+void AttackStat::from_file(const nlohmann::json& json) { from_file_base(json); }
 
-void SingleBulletAttack::perform_attack(const Registry *registry, const GameObjectID game_object_id) const {
+void SingleBulletAttack::perform_attack(const Registry* registry, const GameObjectID game_object_id) const {
   create_bullet_cone(registry, game_object_id, 1, velocity.get_value(), damage.get_value());
 }
 
-void MultiBulletAttack::perform_attack(const Registry *registry, const GameObjectID game_object_id) const {
+void MultiBulletAttack::perform_attack(const Registry* registry, const GameObjectID game_object_id) const {
   create_bullet_cone(registry, game_object_id, static_cast<int>(bullet_count.get_value()), velocity.get_value(),
                      damage.get_value());
 }
 
-void MeleeAttack::perform_attack(const Registry *registry, const GameObjectID game_object_id) const {
+void MeleeAttack::perform_attack(const Registry* registry, const GameObjectID game_object_id) const {
   const auto kinematic_component{registry->get_component<KinematicComponent>(game_object_id)};
   const auto current_position{cpBodyGetPosition(*kinematic_component->body)};
   const auto direction{cpvforangle(kinematic_component->rotation)};
@@ -85,7 +85,7 @@ void MeleeAttack::perform_attack(const Registry *registry, const GameObjectID ga
   }
 }
 
-void AreaOfEffectAttack::perform_attack(const Registry *registry, const GameObjectID game_object_id) const {
+void AreaOfEffectAttack::perform_attack(const Registry* registry, const GameObjectID game_object_id) const {
   const auto kinematic_component{registry->get_component<KinematicComponent>(game_object_id)};
   for (const auto target : get_target_ids(registry, game_object_id)) {
     if (cpvdist(cpBodyGetPosition(*kinematic_component->body),
@@ -97,10 +97,10 @@ void AreaOfEffectAttack::perform_attack(const Registry *registry, const GameObje
 
 void Attack::reset() { selected_ranged_attack = 0; }
 
-void Attack::to_file(nlohmann::json &json) const {
+void Attack::to_file(nlohmann::json& json) const {
   json["selected_ranged_attack"] = selected_ranged_attack;
   json["ranged_attack"] = nlohmann::json::array();
-  for (const auto &ranged_attack : ranged_attacks) {
+  for (const auto& ranged_attack : ranged_attacks) {
     nlohmann::json ranged_json;
     ranged_attack->cooldown.to_file(ranged_json["cooldown"]);
     ranged_attack->damage.to_file(ranged_json["damage"]);
@@ -125,24 +125,24 @@ void Attack::to_file(nlohmann::json &json) const {
   }
 }
 
-void Attack::from_file(const nlohmann::json &json) {
+void Attack::from_file(const nlohmann::json& json) {
   selected_ranged_attack = json.at("selected_ranged_attack").get<int>();
   for (auto i{0}; std::cmp_less(i, json.at("ranged_attack").size()); i++) {
-    const nlohmann::json &ranged_json{json.at("ranged_attack")[i]};
+    const nlohmann::json& ranged_json{json.at("ranged_attack")[i]};
     ranged_attacks.at(i)->cooldown.from_file(ranged_json.at("cooldown"));
     ranged_attacks.at(i)->damage.from_file(ranged_json.at("damage"));
     ranged_attacks.at(i)->range.from_file(ranged_json.at("range"));
     ranged_attacks.at(i)->velocity.from_file(ranged_json.at("velocity"));
   }
   if (json.contains("melee_attack")) {
-    const nlohmann::json &json_melee{json.at("melee_attack")};
+    const nlohmann::json& json_melee{json.at("melee_attack")};
     melee_attack->cooldown.from_file(json_melee.at("cooldown"));
     melee_attack->damage.from_file(json_melee.at("damage"));
     melee_attack->range.from_file(json_melee.at("range"));
     melee_attack->size.from_file(json_melee.at("size"));
   }
   if (json.contains("special_attack")) {
-    const nlohmann::json &json_special{json.at("special_attack")};
+    const nlohmann::json& json_special{json.at("special_attack")};
     special_attack->cooldown.from_file(json_special.at("cooldown"));
     special_attack->damage.from_file(json_special.at("damage"));
     special_attack->range.from_file(json_special.at("range"));
@@ -150,9 +150,9 @@ void Attack::from_file(const nlohmann::json &json) {
 }
 
 void AttackSystem::update(const double delta_time) const {
-  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<Attack>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<Attack>()) {
     const auto [attack]{component_tuple};
-    for (const auto &ranged_attack : attack->ranged_attacks) {
+    for (const auto& ranged_attack : attack->ranged_attacks) {
       ranged_attack->update(delta_time);
     }
     if (attack->melee_attack) {
@@ -199,7 +199,7 @@ void AttackSystem::next_ranged_attack(const GameObjectID game_object_id) const {
 auto AttackSystem::do_attack(const GameObjectID game_object_id, const AttackType attack_type) const -> bool {
   // Get the attack object based on the attack type
   const auto attack{get_registry()->get_component<Attack>(game_object_id)};
-  BaseAttack *attack_obj{[&]() -> BaseAttack * {
+  BaseAttack* attack_obj{[&]() -> BaseAttack* {
     switch (attack_type) {
       case AttackType::Ranged:
         return std::cmp_greater_equal(attack->selected_ranged_attack, attack->ranged_attacks.size())

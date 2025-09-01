@@ -16,7 +16,7 @@ struct TestGameObjectComponentTwo final : ComponentBase {
   /// Initialise the object.
   ///
   /// @param test_list - The list to be used for testing.
-  explicit TestGameObjectComponentTwo(const std::vector<int> &test_list) : test_list(test_list) {}
+  explicit TestGameObjectComponentTwo(const std::vector<int>& test_list) : test_list(test_list) {}
 };
 
 /// Represents a test system useful for testing.
@@ -27,7 +27,7 @@ struct TestSystem final : SystemBase {
   /// Initialise the system.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit TestSystem(Registry *registry) : SystemBase(registry) {}
+  explicit TestSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Update the system.
   void update(double /*delta_time*/) const override { called = true; }
@@ -202,8 +202,8 @@ TEST_F(RegistryFixture, TestRegistryDeleteGameObjectNoEffect) {
 /// Test that deleting a game object with a kinematic component works correctly.
 TEST_F(RegistryFixture, TestRegistryDeleteGameObjectKinematicComponent) {
   registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<KinematicComponent>()});
-  auto *body{*registry.get_component<KinematicComponent>(0)->body};
-  auto *shape{*registry.get_component<KinematicComponent>(0)->shape};
+  auto* body{*registry.get_component<KinematicComponent>(0)->body};
+  auto* shape{*registry.get_component<KinematicComponent>(0)->shape};
   registry.delete_game_object(0);
   ASSERT_FALSE(registry.has_game_object(0));
   ASSERT_EQ(std::ranges::distance(registry.find_components<KinematicComponent>()), 0);
@@ -239,7 +239,7 @@ TEST_F(RegistryFixture, TestRegistryClearWithPreservedGameObjects) {
 TEST_F(RegistryFixture, TestRegistryGameObjectCreationCallback) {
   auto called{-1};
   add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const GameObjectType, const std::pair<double, double> &) { called = event; });
+      [&called](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
   ASSERT_EQ(registry.create_game_object(GameObjectType::Player, cpvzero, {}), 0);
   ASSERT_EQ(called, 0);
 }

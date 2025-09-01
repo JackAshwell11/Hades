@@ -22,12 +22,12 @@ class Stat : public ComponentBase {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override = 0;
+  void to_file(nlohmann::json& json) const override = 0;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override = 0;
+  void from_file(const nlohmann::json& json) override = 0;
 
   /// Get the value of the stat.
   ///
@@ -66,12 +66,12 @@ class Stat : public ComponentBase {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file_base(nlohmann::json &json) const;
+  void to_file_base(nlohmann::json& json) const;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file_base(const nlohmann::json &json);
+  void from_file_base(const nlohmann::json& json);
 
  private:
   /// The current value of the variable.
@@ -98,12 +98,12 @@ struct Armour final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Allows a game object to have a health stat.
@@ -117,10 +117,10 @@ struct Health final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };

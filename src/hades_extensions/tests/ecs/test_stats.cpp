@@ -14,12 +14,12 @@ struct TestStat final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override { to_file_base(json["test_stat"]); }
+  void to_file(nlohmann::json& json) const override { to_file_base(json["test_stat"]); }
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override { from_file_base(json.at("test_stat")); }
+  void from_file(const nlohmann::json& json) override { from_file_base(json.at("test_stat")); }
 };
 
 /// Implements the fixture for the ecs/stats.hpp tests.

@@ -48,7 +48,7 @@ class InputHandler {
   ///
   /// @param registry - The registry which manages the game objects, components, and systems.
   /// @param game_state - The storage for the state of the game.
-  explicit InputHandler(const std::shared_ptr<Registry> &registry, const std::shared_ptr<GameState> &game_state);
+  explicit InputHandler(const std::shared_ptr<Registry>& registry, const std::shared_ptr<GameState>& game_state);
 
   /// Process key press functionality.
   ///

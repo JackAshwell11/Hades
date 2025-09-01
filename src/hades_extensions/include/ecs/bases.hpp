@@ -10,10 +10,10 @@ class Registry;
 /// The base class for all components.
 struct ComponentBase {
   /// The copy assignment operator.
-  auto operator=(const ComponentBase &) -> ComponentBase & = default;
+  auto operator=(const ComponentBase&) -> ComponentBase& = default;
 
   /// The move assignment operator.
-  auto operator=(ComponentBase &&) -> ComponentBase & = default;
+  auto operator=(ComponentBase&&) -> ComponentBase& = default;
 
   /// The default constructor.
   ComponentBase() = default;
@@ -22,59 +22,59 @@ struct ComponentBase {
   virtual ~ComponentBase() = default;
 
   /// The copy constructor.
-  ComponentBase(const ComponentBase &) = default;
+  ComponentBase(const ComponentBase&) = default;
 
   /// The move constructor.
-  ComponentBase(ComponentBase &&) = default;
+  ComponentBase(ComponentBase&&) = default;
 
   /// Reset the component to its default state.
   virtual void reset() {}
 
   /// Serialise the component to a JSON object.
-  virtual void to_file(nlohmann::json & /*json*/) const {}
+  virtual void to_file(nlohmann::json& /*json*/) const {}
 
   /// Serialise the component to a JSON object.
-  virtual void to_file(nlohmann::json & /*json*/, const Registry * /*registry*/) const {}
+  virtual void to_file(nlohmann::json& /*json*/, const Registry* /*registry*/) const {}
 
   /// Deserialise the component from a JSON object.
-  virtual void from_file(const nlohmann::json & /*json*/) {}
+  virtual void from_file(const nlohmann::json& /*json*/) {}
 
   /// Deserialise the component from a JSON object.
-  virtual void from_file(const nlohmann::json & /*json*/, Registry * /*registry*/) {}
+  virtual void from_file(const nlohmann::json& /*json*/, Registry* /*registry*/) {}
 };
 
 /// The base class for all systems.
 class SystemBase {
  public:
   /// The copy assignment operator.
-  auto operator=(const SystemBase &) -> SystemBase & = default;
+  auto operator=(const SystemBase&) -> SystemBase& = default;
 
   /// The move assignment operator.
-  auto operator=(SystemBase &&) -> SystemBase & = default;
+  auto operator=(SystemBase&&) -> SystemBase& = default;
 
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit SystemBase(Registry *registry) : registry_(registry) {}
+  explicit SystemBase(Registry* registry) : registry_(registry) {}
 
   /// The virtual destructor.
   virtual ~SystemBase() = default;
 
   /// The copy constructor.
-  SystemBase(const SystemBase &) = default;
+  SystemBase(const SystemBase&) = default;
 
   /// The move constructor.
-  SystemBase(SystemBase &&) = default;
+  SystemBase(SystemBase&&) = default;
 
   /// Get the registry that manages the game objects, components, and systems.
   ///
   /// @return The registry that manages the game objects, components, and systems.
-  [[nodiscard]] auto get_registry() const -> Registry * { return registry_; }
+  [[nodiscard]] auto get_registry() const -> Registry* { return registry_; }
 
   /// Process update logic for a system.
   virtual void update(double /*delta_time*/) const {}
 
  private:
   /// The registry that manages the game objects, components, and systems.
-  Registry *registry_;
+  Registry* registry_;
 };

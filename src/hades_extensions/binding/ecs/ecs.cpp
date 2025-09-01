@@ -3,7 +3,7 @@
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/effects.hpp"
 
-void bind_ecs(const pybind11::module_ &module) {
+void bind_ecs(const pybind11::module_& module) {
   // Add the global constants, functions, and base classes
   module.attr("SPRITE_SCALE") = SPRITE_SCALE;
   module.attr("SPRITE_SIZE") = SPRITE_SIZE;
@@ -33,7 +33,7 @@ void bind_ecs(const pybind11::module_ &module) {
       module, "Registry", "Manages game objects, components, and systems that are registered.")
       .def(
           "has_component",
-          [](const Registry &registry, const GameObjectID game_object_id, const pybind11::handle &component_type) {
+          [](const Registry& registry, const GameObjectID game_object_id, const pybind11::handle& component_type) {
             return registry.has_component(game_object_id, get_type_index(component_type));
           },
           pybind11::arg("game_object_id"), pybind11::arg("component_type"),
@@ -47,7 +47,7 @@ void bind_ecs(const pybind11::module_ &module) {
           "    Whether the game object has the component or not.")
       .def(
           "get_component",
-          [](const Registry &registry, const GameObjectID game_object_id, const pybind11::handle &component_type) {
+          [](const Registry& registry, const GameObjectID game_object_id, const pybind11::handle& component_type) {
             return registry.get_component(game_object_id, get_type_index(component_type));
           },
           pybind11::arg("game_object_id"), pybind11::arg("component_type"),
@@ -71,9 +71,9 @@ void bind_ecs(const pybind11::module_ &module) {
            "    The type of the game object.")
       .def(
           "get_system",
-          [](const Registry &registry, const pybind11::object &system_type) {
+          [](const Registry& registry, const pybind11::object& system_type) {
             // Get all the system types and check if the given system type exists
-            const auto &system_types = get_system_types();
+            const auto& system_types = get_system_types();
             const auto iter = system_types.find(system_type);
             if (iter == system_types.end()) {
               throw std::runtime_error("Invalid system type provided.");

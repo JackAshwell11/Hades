@@ -39,12 +39,12 @@ namespace {
 ///
 /// @param grid - The grid to check for adjacent walls.
 /// @param tile_type - The tile type to check for adjacent walls.
-void assert_no_adjacent_walls(const Grid &grid, const GameObjectType tile_type) {
+void assert_no_adjacent_walls(const Grid& grid, const GameObjectType tile_type) {
   for (int i{0}; i < grid.width * grid.height; i++) {
     if (const Position pos{grid.convert_position(i)}; grid.get_value(pos) == tile_type) {
       const auto neighbours{grid.get_neighbours(pos)};
       ASSERT_EQ(std::ranges::count_if(neighbours.begin(), neighbours.end(),
-                                      [&grid](const auto &pos) { return grid.get_value(pos) == GameObjectType::Wall; }),
+                                      [&grid](const auto& pos) { return grid.get_value(pos) == GameObjectType::Wall; }),
                 0);
     }
   }
@@ -54,7 +54,7 @@ void assert_no_adjacent_walls(const Grid &grid, const GameObjectType tile_type) 
 ///
 /// @param grid - The grid to check for minimum distances.
 /// @param tile_type - The tile type to check for minimum distances.
-void assert_min_distance(const Grid &grid, const GameObjectType tile_type) {
+void assert_min_distance(const Grid& grid, const GameObjectType tile_type) {
   // Collect all positions of the specified tile type
   std::vector<Position> positions;
   for (int i{0}; i < grid.width * grid.height; i++) {
@@ -113,16 +113,16 @@ TEST_F(MapFixture, TestMapCreateConnectionsMultipleRooms) {
 
   // Check that the minimum spanning tree has the correct total cost
   ASSERT_EQ(std::accumulate(connections.begin(), connections.end(), 0,
-                            [](const int &sum, const Connection &connection) { return sum + connection.cost; }),
+                            [](const int& sum, const Connection& connection) { return sum + connection.cost; }),
             19);
 
   // Check that all the connections are correct
   const std::vector<Connection> expected_connections{
       {.cost = 7, .source = {.x = 2, .y = 5}, .destination = {.x = 9, .y = 3}},
       {.cost = 12, .source = {.x = 9, .y = 3}, .destination = {.x = 21, .y = 10}}};
-  for (const auto &connection : connections) {
+  for (const auto& connection : connections) {
     ASSERT_TRUE(std::ranges::any_of(connections.begin(), connections.end(),
-                                    [&connection](const Connection &other) { return connection == other; }));
+                                    [&connection](const Connection& other) { return connection == other; }));
   }
 }
 
@@ -178,7 +178,7 @@ TEST_F(MapFixture, TestMapGenerateHallwaysEmptyMap) {
 
 /// Test that running cellular automata on a grid with mixed floor and wall tiles works correctly.
 TEST_F(MapFixture, TestMapGeneratorCellularAutomataMixedFloors) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   grid.set_value({.x = 1, .y = 1}, GameObjectType::Floor);
   grid.set_value({.x = 2, .y = 1}, GameObjectType::Floor);
   grid.set_value({.x = 3, .y = 1}, GameObjectType::Floor);
@@ -214,7 +214,7 @@ TEST_F(MapFixture, TestMapGeneratorCellularAutomataMixedFloors) {
 
 /// Test that running multiple cellular automata simulations works correctly.
 TEST_F(MapFixture, TestMapGeneratorCellularAutomataMultipleSimulations) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   grid.set_value({.x = 1, .y = 1}, GameObjectType::Floor);
   grid.set_value({.x = 2, .y = 1}, GameObjectType::Floor);
   grid.set_value({.x = 3, .y = 1}, GameObjectType::Floor);
@@ -263,14 +263,14 @@ TEST_F(MapFixture, TestMapGeneratorGenerateWallsEmptyGrid) {
 
 /// Test that placing walls in a grid with all empty tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllEmpty) {
-  auto &grid{empty_map.get_grid()};
+  auto& grid{empty_map.get_grid()};
   empty_map.generate_walls();
   ASSERT_EQ(grid.grid, std::vector(static_cast<std::size_t>(grid.width * grid.height), GameObjectType::Empty));
 }
 
 /// Test that placing walls in a grid with all wall tiles sets all tiles to walls.
 TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllWalls) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (int y = 0; y < grid.height; y++) {
     for (int x = 0; x < grid.width; x++) {
       grid.set_value({.x = x, .y = y}, GameObjectType::Wall);
@@ -282,7 +282,7 @@ TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllWalls) {
 
 /// Test that placing walls in a grid with all floor tiles sets the edges to walls.
 TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllFloors) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (int y = 0; y < grid.height; y++) {
     for (int x = 0; x < grid.width; x++) {
       grid.set_value({.x = x, .y = y}, GameObjectType::Floor);
@@ -316,7 +316,7 @@ TEST_F(MapFixture, TestMapGeneratorGenerateWallsAllFloors) {
 
 /// Test that placing walls in a grid with a non-uniform floor pattern works correctly.
 TEST_F(MapFixture, TestMapGeneratorGenerateWallsMixedFloors) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   grid.set_value({.x = 1, .y = 1}, GameObjectType::Floor);
   grid.set_value({.x = 2, .y = 1}, GameObjectType::Floor);
   grid.set_value({.x = 3, .y = 1}, GameObjectType::Floor);
@@ -367,7 +367,7 @@ TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllEmpty) {
 
 /// Test that placing obstacles in a grid with all floor tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllFloors) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
     grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }
@@ -377,7 +377,7 @@ TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllFloors) {
 
 /// Test that placing obstacles in a grid with all wall tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlaceObstaclesAllWalls) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
     grid.set_value(grid.convert_position(i), GameObjectType::Wall);
   }
@@ -401,7 +401,7 @@ TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllEmpty) {
 
 /// Test that placing a player in a grid with all floor tiles works correctly.
 TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllFloors) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
     grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }
@@ -413,7 +413,7 @@ TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllFloors) {
 
 /// Test that placing a player in a grid with all wall tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlacePlayerAllWalls) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
     grid.set_value(grid.convert_position(i), GameObjectType::Wall);
   }
@@ -437,7 +437,7 @@ TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllEmpty) {
 
 /// Test that placing items in a grid with all floor tiles works correctly.
 TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllFloors) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
     grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }
@@ -449,7 +449,7 @@ TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllFloors) {
 
 /// Test that placing items in a grid with all wall tiles doesn't do anything.
 TEST_F(MapFixture, TestMapGeneratorPlaceItemsAllWalls) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (int i{0}; i < grid.width * grid.height; i++) {
     grid.set_value(grid.convert_position(i), GameObjectType::Wall);
   }
@@ -467,7 +467,7 @@ TEST_F(MapFixture, TestMapGeneratorPlaceGoalAllEmpty){
 
 /// Test that generating a goal on a grid with no player tile throws an exception.
 TEST_F(MapFixture, TestMapGeneratorPlaceGoalNoPlayer) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (auto i{0}; i < grid.width * grid.height; i++) {
     grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }
@@ -476,7 +476,7 @@ TEST_F(MapFixture, TestMapGeneratorPlaceGoalNoPlayer) {
 
 /// Test that generating a goal on a grid with a player tile works correctly.
 TEST_F(MapFixture, TestMapGeneratorPlaceGoalPlayer) {
-  auto &grid{small_map.get_grid()};
+  auto& grid{small_map.get_grid()};
   for (auto i{0}; i < grid.width * grid.height; i++) {
     grid.set_value(grid.convert_position(i), GameObjectType::Floor);
   }

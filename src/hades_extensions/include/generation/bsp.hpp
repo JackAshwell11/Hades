@@ -27,17 +27,17 @@ struct Leaf {
   /// Initialise the object.
   ///
   /// @param container - The rect object that represents this leaf.
-  explicit Leaf(const Rect &container);
+  explicit Leaf(const Rect& container);
 
   /// Split a leaf either horizontally or vertically recursively.
   ///
   /// @param random_generator - The random generator to use.
-  void split(std::mt19937 &random_generator);
+  void split(std::mt19937& random_generator);
 
   /// Create a random sized room inside a container.
   ///
   /// @param grid - The 2D grid which represents the dungeon.
   /// @param random_generator - The random generator to use.
   /// @param rooms - The vector of rooms to add the new room to.
-  void create_room(Grid &grid, std::mt19937 &random_generator, std::vector<Position> &rooms);
+  void create_room(Grid& grid, std::mt19937& random_generator, std::vector<Position>& rooms);
 };

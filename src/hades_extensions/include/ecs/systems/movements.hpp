@@ -40,12 +40,12 @@ struct FootprintInterval final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Allows a game object to determine the maximum number of footprints it can leave.
@@ -59,12 +59,12 @@ struct FootprintLimit final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Allows a game object to periodically leave footprints around the game map.
@@ -105,12 +105,12 @@ struct MovementForce final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Allows a game object to determine how far it can see.
@@ -124,12 +124,12 @@ struct ViewDistance final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Allows a game object's movement to be controlled by steering behaviours.
@@ -150,7 +150,7 @@ struct SteeringMovement final : ComponentBase {
   ///
   /// @param behaviours - The steering behaviours used by the game object.
   explicit SteeringMovement(
-      const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> &behaviours)
+      const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>& behaviours)
       : behaviours(behaviours) {}
 };
 
@@ -159,7 +159,7 @@ struct FootprintSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit FootprintSystem(Registry *registry) : SystemBase(registry) {}
+  explicit FootprintSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Process update logic for a footprint component.
   ///
@@ -172,7 +172,7 @@ struct KeyboardMovementSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit KeyboardMovementSystem(Registry *registry) : SystemBase(registry) {}
+  explicit KeyboardMovementSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Process update logic for a keyboard movement component.
   ///
@@ -185,7 +185,7 @@ struct SteeringMovementSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit SteeringMovementSystem(Registry *registry) : SystemBase(registry) {}
+  explicit SteeringMovementSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Process update logic for a steering movement component.
   ///
@@ -196,5 +196,5 @@ struct SteeringMovementSystem final : SystemBase {
   ///
   /// @param target_game_object_id - The ID of the game object to follow.
   /// @param footprints - The list of footprints to follow.
-  void update_path_list(GameObjectID target_game_object_id, const std::deque<cpVect> &footprints) const;
+  void update_path_list(GameObjectID target_game_object_id, const std::deque<cpVect>& footprints) const;
 };

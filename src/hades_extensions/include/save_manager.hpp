@@ -33,12 +33,12 @@ class SaveManager {
   ///
   /// @param registry - The registry which manages the game objects, components, and systems.
   /// @param game_state - The storage for the state of the game.
-  explicit SaveManager(const std::shared_ptr<Registry> &registry, const std::shared_ptr<GameState> &game_state);
+  explicit SaveManager(const std::shared_ptr<Registry>& registry, const std::shared_ptr<GameState>& game_state);
 
   /// Set the path where the game state will be saved.
   ///
   /// @param path - The path to save the game state to.
-  void set_save_path(const std::string &path);
+  void set_save_path(const std::string& path);
 
   /// Create a new game.
   void new_game() const;

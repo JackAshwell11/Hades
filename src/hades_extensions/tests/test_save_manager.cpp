@@ -141,7 +141,7 @@ TEST_F(SaveManagerFixture, TestSaveManagerDeleteSaveNonExistent) {
 /// Test that updating the save directory calls the correct callbacks.
 TEST_F(SaveManagerFixture, TestSaveManagerUpdateSavesCallbacks) {
   std::vector<SaveFileInfo> saves;
-  add_callback<EventType::SaveFilesUpdated>([&saves](const std::vector<SaveFileInfo> &saveData) { saves = saveData; });
+  add_callback<EventType::SaveFilesUpdated>([&saves](const std::vector<SaveFileInfo>& saveData) { saves = saveData; });
   for (int i{1}; i < 6; i++) {
     registry->get_component<PlayerLevel>(game_state->get_player_id())->level = i;
     game_state->reset_level(LevelType::Lobby);

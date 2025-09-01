@@ -184,7 +184,7 @@ TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsMultipleTypes) {
 TEST_F(ShopSystemFixture, TestShopSystemAddOfferingsItemLoadedCallback) {
   std::tuple<int, std::tuple<std::string, std::string, std::string>, int> callback_args;
   add_callback<EventType::ShopItemLoaded>(
-      [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string> &data,
+      [&callback_args](const int offering_index, const std::tuple<std::string, std::string, std::string>& data,
                        const int cost) { callback_args = std::make_tuple(offering_index, data, cost); });
   add_stat_upgrade();
   ASSERT_EQ(std::get<0>(callback_args), 0);

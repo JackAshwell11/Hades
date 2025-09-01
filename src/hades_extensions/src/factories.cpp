@@ -29,7 +29,7 @@ constexpr int BULLET_VELOCITY{1000};
 /// Get the hitboxes for the game objects.
 ///
 /// @return The hitboxes for the game objects.
-auto get_hitboxes() -> auto & {
+auto get_hitboxes() -> auto& {
   static std::unordered_map<GameObjectType, std::vector<cpVect>> hitboxes;
   return hitboxes;
 }
@@ -134,13 +134,13 @@ const auto shop_factory{
 }  // namespace
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
-auto load_hitbox(const GameObjectType game_object_type, const std::vector<std::pair<double, double>> &hitbox) -> bool {
+auto load_hitbox(const GameObjectType game_object_type, const std::vector<std::pair<double, double>>& hitbox) -> bool {
   if (get_hitboxes().contains(game_object_type)) {
     return false;
   }
   std::vector<cpVect> hitbox_points;
   hitbox_points.reserve(hitbox.size());
-  for (const auto &[x, y] : hitbox) {
+  for (const auto& [x, y] : hitbox) {
     hitbox_points.push_back(cpv(x, y) * SPRITE_SCALE);
   }
   get_hitboxes()[game_object_type] = hitbox_points;

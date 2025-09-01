@@ -161,14 +161,14 @@ TEST_F(GameStateFixture, TestGameStateResetLevelLobbyCallbacks) {
   auto status_effect_update{false};
   auto game_open{false};
   add_callback<EventType::InventoryUpdate>(
-      [&inventory_update](const std::vector<GameObjectID> &) { inventory_update = true; });
+      [&inventory_update](const std::vector<GameObjectID>&) { inventory_update = true; });
   add_callback<EventType::RangedAttackSwitch>([&ranged_attack_switch](const int) { ranged_attack_switch = true; });
   add_callback<EventType::AttackCooldownUpdate>(
       [&attack_cooldown_update](const GameObjectID, const double, const double, const double) {
         attack_cooldown_update = true;
       });
   add_callback<EventType::StatusEffectUpdate>(
-      [&status_effect_update](const std::unordered_map<EffectType, double> &) { status_effect_update = true; });
+      [&status_effect_update](const std::unordered_map<EffectType, double>&) { status_effect_update = true; });
   add_callback<EventType::GameOpen>([&game_open] { game_open = true; });
   game_state->reset_level(LevelType::Lobby);
   ASSERT_TRUE(inventory_update);
@@ -203,7 +203,7 @@ TEST_F(GameStateFixture, TestGameStateResetLevelFirstSecondWithoutLobby) {
 TEST_F(GameStateFixture, TestGameStateGenerateEnemyValid) {
   game_state->reset_level(LevelType::FirstDungeon);
   auto enemy_created{-1};
-  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType, const std::pair<double, double> &) {
+  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType, const std::pair<double, double>&) {
     enemy_created = enemy_id;
   }};
   add_callback<EventType::GameObjectCreation>(enemy_creation);
@@ -214,7 +214,7 @@ TEST_F(GameStateFixture, TestGameStateGenerateEnemyValid) {
 /// Test that the game state doesn't generate an enemy correctly if there are no valid positions.
 TEST_F(GameStateFixture, TestGameStateGenerateEnemyNoValidPositions) {
   auto enemy_created{-1};
-  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType, const std::pair<double, double> &) {
+  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType, const std::pair<double, double>&) {
     enemy_created = enemy_id;
   }};
   add_callback<EventType::GameObjectCreation>(enemy_creation);

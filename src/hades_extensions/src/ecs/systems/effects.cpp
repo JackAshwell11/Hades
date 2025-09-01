@@ -50,16 +50,16 @@ auto get_component_type(const EffectType effect_type) -> std::type_index {
 /// Notifies the registry of a status effect update.
 ///
 /// @param effects - The status effects that have been applied to the game object.
-void notify_status_effect_update(const std::unordered_map<EffectType, StatusEffect> &effects) {
+void notify_status_effect_update(const std::unordered_map<EffectType, StatusEffect>& effects) {
   std::unordered_map<EffectType, double> effect_data;
-  for (const auto &[effect_type, effect] : effects) {
+  for (const auto& [effect_type, effect] : effects) {
     effect_data.emplace(effect_type, effect.duration - effect.time_elapsed);
   }
   notify<EventType::StatusEffectUpdate>(effect_data);
 }
 }  // namespace
 
-auto BaseEffect::apply(const Registry *registry, const GameObjectID game_object_id) const -> bool {
+auto BaseEffect::apply(const Registry* registry, const GameObjectID game_object_id) const -> bool {
   const auto component{
       std::static_pointer_cast<Stat>(registry->get_component(game_object_id, get_component_type(effect_type)))};
   if (!component) {
@@ -75,7 +75,7 @@ auto BaseEffect::apply(const Registry *registry, const GameObjectID game_object_
   return true;
 }
 
-auto StatusEffect::update(const Registry *registry, const GameObjectID target, const double delta_time) -> bool {
+auto StatusEffect::update(const Registry* registry, const GameObjectID target, const double delta_time) -> bool {
   interval_accumulator += std::clamp(duration - time_elapsed, 0.0, delta_time);
   time_elapsed += delta_time;
   while (interval_accumulator >= interval) {
@@ -87,9 +87,9 @@ auto StatusEffect::update(const Registry *registry, const GameObjectID target, c
 
 void StatusEffects::reset() { active_effects.clear(); }
 
-void StatusEffects::to_file(nlohmann::json &json) const {
+void StatusEffects::to_file(nlohmann::json& json) const {
   json["active_effects"] = nlohmann::json::object();
-  for (const auto &[effect_type, effect] : active_effects) {
+  for (const auto& [effect_type, effect] : active_effects) {
     json.at("active_effects")[std::to_string(static_cast<int>(effect_type))] = {
         {"value", effect.value},
         {"duration", effect.duration},
@@ -100,8 +100,8 @@ void StatusEffects::to_file(nlohmann::json &json) const {
   }
 }
 
-void StatusEffects::from_file(const nlohmann::json &json) {
-  for (const auto &[type, effect_data] : json.at("active_effects").items()) {
+void StatusEffects::from_file(const nlohmann::json& json) {
+  for (const auto& [type, effect_data] : json.at("active_effects").items()) {
     const auto effect_type{static_cast<EffectType>(std::stoi(type))};
     StatusEffect status_effect{effect_type, effect_data["value"].get<double>(), effect_data["duration"].get<double>(),
                                effect_data["interval"].get<double>()};
@@ -112,9 +112,9 @@ void StatusEffects::from_file(const nlohmann::json &json) {
 }
 
 void EffectSystem::update(const double delta_time) const {
-  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<StatusEffects>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<StatusEffects>()) {
     // Update and remove expired effects
-    auto &active_effects{std::get<0>(component_tuple)->active_effects};
+    auto& active_effects{std::get<0>(component_tuple)->active_effects};
     if (active_effects.empty()) {
       continue;
     }
@@ -136,7 +136,7 @@ auto EffectSystem::apply_effects(const GameObjectID source, const GameObjectID t
 
   // Apply instant effects
   bool any_effect_applied{false};
-  for (const auto &effect : effect_applier->instant_effects) {
+  for (const auto& effect : effect_applier->instant_effects) {
     if (effect.apply(get_registry(), target)) {
       any_effect_applied = true;
     }
@@ -144,7 +144,7 @@ auto EffectSystem::apply_effects(const GameObjectID source, const GameObjectID t
 
   // Apply status effects
   bool status_effects_applied{false};
-  for (const auto &[effect_type, effect] : effect_applier->status_effects) {
+  for (const auto& [effect_type, effect] : effect_applier->status_effects) {
     // Extend the duration if it is already applied
     if (target_status_effects->active_effects.contains(effect_type)) {
       any_effect_applied = true;

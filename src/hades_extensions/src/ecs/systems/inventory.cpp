@@ -18,16 +18,16 @@ constexpr std::array COLLECTIBLE_TYPES{GameObjectType::HealthPotion};
 
 void Inventory::reset() { items.clear(); }
 
-void Inventory::to_file(nlohmann::json &json, const Registry *registry) const {
+void Inventory::to_file(nlohmann::json& json, const Registry* registry) const {
   json["items"] = nlohmann::json::array();
   for (const auto item_id : items) {
     json.at("items").push_back(registry->get_game_object_type(item_id));
   }
 }
 
-void Inventory::from_file(const nlohmann::json &json, Registry *registry) {
+void Inventory::from_file(const nlohmann::json& json, Registry* registry) {
   const auto player_id{registry->get_game_object_ids(GameObjectType::Player)[0]};
-  for (const auto &item_type : json.at("items").items()) {
+  for (const auto& item_type : json.at("items").items()) {
     const auto game_object_type{static_cast<GameObjectType>(item_type.value())};
     const auto game_object_id{
         registry->create_game_object(game_object_type, cpvzero, get_game_object_components(game_object_type))};
@@ -35,9 +35,9 @@ void Inventory::from_file(const nlohmann::json &json, Registry *registry) {
   }
 }
 
-void InventorySize::to_file(nlohmann::json &json) const { to_file_base(json["inventory_size"]); }
+void InventorySize::to_file(nlohmann::json& json) const { to_file_base(json["inventory_size"]); }
 
-void InventorySize::from_file(const nlohmann::json &json) { from_file_base(json.at("inventory_size")); }
+void InventorySize::from_file(const nlohmann::json& json) { from_file_base(json.at("inventory_size")); }
 
 auto InventorySystem::has_item_in_inventory(const GameObjectID game_object_id, const GameObjectID item_id) const
     -> bool {

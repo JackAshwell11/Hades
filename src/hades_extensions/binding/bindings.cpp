@@ -19,7 +19,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
              "    Whether the hitbox was loaded or not.");
   module.def(
       "add_callback",
-      [](const EventType event_type, const pybind11::function &callback) {
+      [](const EventType event_type, const pybind11::function& callback) {
         switch (event_type) {
           case EventType::GameObjectCreation:
             add_callback<EventType::GameObjectCreation>(callback);
@@ -157,7 +157,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def_property_readonly("save_manager", &GameEngine::get_save_manager)
       .def(
           "setup",
-          [](GameEngine &engine, const std::string &shop_file_path, const std::string &save_directory_path) {
+          [](GameEngine& engine, const std::string& shop_file_path, const std::string& save_directory_path) {
             std::ifstream shop_stream{shop_file_path};
             engine.get_registry()->get_system<ShopSystem>()->add_offerings(shop_stream,
                                                                            engine.get_game_state()->get_player_id());

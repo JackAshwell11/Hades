@@ -15,13 +15,13 @@ void KinematicComponent::reset() {
 
 void PhysicsSystem::update(const double delta_time) const { cpSpaceStep(get_registry()->get_space(), delta_time); }
 
-void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect &force) const {
+void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect& force) const {
   cpBodyApplyForceAtLocalPoint(
       *get_registry()->get_component<KinematicComponent>(game_object_id)->body,
       cpvnormalize(force) * get_registry()->get_component<MovementForce>(game_object_id)->get_value(), cpvzero);
 }
 
-void PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect> &bullet, const double damage,
+void PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect>& bullet, const double damage,
                                const GameObjectType source_type) const {
   const auto bullet_id{get_registry()->create_game_object(GameObjectType::Bullet, get<0>(bullet),
                                                           get_game_object_components(GameObjectType::Bullet))};
@@ -33,7 +33,7 @@ void PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect> &bullet, const do
 
 auto PhysicsSystem::get_nearest_item(const GameObjectID game_object_id) const -> GameObjectID {
   // Get the current position of the game object
-  const cpVect &game_object_position{
+  const cpVect& game_object_position{
       cpBodyGetPosition(*get_registry()->get_component<KinematicComponent>(game_object_id)->body)};
 
   // Determine what information is needed for the query
@@ -44,8 +44,8 @@ auto PhysicsSystem::get_nearest_item(const GameObjectID game_object_id) const ->
   } query_info{.query_id = game_object_id};
 
   // Find the nearest game object that matches the query
-  auto callback{[](cpShape *shape, cpVect /*point*/, const cpFloat distance, cpVect /*gradient*/, void *query) -> void {
-    auto *info{static_cast<QueryInfo *>(query)};
+  auto callback{[](cpShape* shape, cpVect /*point*/, const cpFloat distance, cpVect /*gradient*/, void* query) -> void {
+    auto* info{static_cast<QueryInfo*>(query)};
     const auto shape_id{cpShapeToGameObjectID(shape)};
     if (shape_id == info->query_id) {
       return;
@@ -64,7 +64,7 @@ auto PhysicsSystem::get_nearest_item(const GameObjectID game_object_id) const ->
   return query_info.nearest_id;
 }
 
-auto PhysicsSystem::get_wall_distances(const cpVect &current_position) const -> std::vector<cpVect> {
+auto PhysicsSystem::get_wall_distances(const cpVect& current_position) const -> std::vector<cpVect> {
   const auto space{get_registry()->get_space()};
   auto raycast{[&space, &current_position](const cpVect direction) -> cpVect {
     // Calculate the end position of the ray based on the direction

@@ -29,7 +29,7 @@ constexpr double ENEMY_GENERATION_DISTANCE{5 * SPRITE_SIZE};
 constexpr std::hash<std::string> seed_hasher;
 }  // namespace
 
-GameState::GameState(const std::shared_ptr<Registry> &registry) : registry_(registry) {
+GameState::GameState(const std::shared_ptr<Registry>& registry) : registry_(registry) {
   if (get_player_id() == -1) {
     game_state_.game.player_id = registry_->create_game_object(GameObjectType::Player, cpvzero,
                                                                get_game_object_components(GameObjectType::Player));
@@ -63,7 +63,7 @@ auto GameState::is_player_touching_type(const GameObjectType game_object_type) c
   return get_nearest_item() != -1 && registry_->get_game_object_type(get_nearest_item()) == game_object_type;
 }
 
-void GameState::set_seed(const std::string &seed) {
+void GameState::set_seed(const std::string& seed) {
   game_state_.dungeon_run.random_generator.seed(static_cast<unsigned int>(seed_hasher(seed)));
 }
 
@@ -81,7 +81,7 @@ void GameState::reset_level(const LevelType level_type) {
     const auto inventory{registry_->get_component<Inventory>(get_player_id())};
     preserved_ids.insert(inventory->items.begin(), inventory->items.end());
   } else {
-    for (const auto &component : registry_->get_game_object_components(get_player_id())) {
+    for (const auto& component : registry_->get_game_object_components(get_player_id())) {
       component->reset();
     }
   }
@@ -124,7 +124,7 @@ void GameState::reset_level(const LevelType level_type) {
 
 void GameState::generate_enemy() {
   // Get a random floor position and check if it is valid for enemy generation
-  const auto &current_level{game_state_.current_level};
+  const auto& current_level{game_state_.current_level};
   if (current_level.floor_positions.empty()) {
     return;
   }
@@ -150,7 +150,7 @@ void GameState::generate_enemy() {
   registry_->get_component<SteeringMovement>(enemy_id)->target_id = get_player_id();
 }
 
-void GameState::create_game_objects(const Grid &grid, const bool store_floor_positions) {
+void GameState::create_game_objects(const Grid& grid, const bool store_floor_positions) {
   for (auto i{0}; std::cmp_less(i, grid.grid.size()); i++) {
     const auto game_object_type{grid.grid[i]};
     if (game_object_type == GameObjectType::Empty || game_object_type == GameObjectType::Obstacle) {

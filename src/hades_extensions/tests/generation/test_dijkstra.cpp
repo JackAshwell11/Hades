@@ -42,7 +42,7 @@ class DijkstraFixture : public testing::Test {
   ///
   /// @param walls - The positions of the walls to add.
   /// @param all - Whether to add walls to the entire grid or not.
-  void add_floors(const std::unordered_set<Position> &walls, const bool all = false) {
+  void add_floors(const std::unordered_set<Position>& walls, const bool all = false) {
     for (int y = 0; y < grid.height; y++) {
       for (int x = 0; x < grid.width; x++) {
         if (all) {

@@ -17,7 +17,7 @@ namespace {
 ///
 /// @param stat - The attack stat component to check.
 /// @param expected_json - The expected JSON representation of the attack stat component.
-void assert_attack_stat(const AttackStat &stat, const nlohmann::json &expected_json) {
+void assert_attack_stat(const AttackStat& stat, const nlohmann::json& expected_json) {
   nlohmann::json actual_json;
   stat.to_file(actual_json);
   ASSERT_EQ(actual_json, expected_json);
@@ -75,7 +75,7 @@ class AttackSystemFixture : public testing::Test {
   /// Create an attacker game object with the specified attack types.
   ///
   /// @param config - The component configuration for the attacker.
-  void create_attacker(const AttackerConfig &config) {
+  void create_attacker(const AttackerConfig& config) {
     const auto attack{std::make_shared<Attack>()};
     if (config.ranged) {
       attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
@@ -279,7 +279,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateNonZeroDeltaTime) {
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementZeroDeltaTime) {
   auto game_object_created{-1};
   auto game_object_creation_callback{[&](const GameObjectID game_object_id, const GameObjectType,
-                                         const std::pair<double, double> &) { game_object_created = game_object_id; }};
+                                         const std::pair<double, double>&) { game_object_created = game_object_id; }};
   create_attacker({.ranged{true}, .steering_movement{true}});
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(0);
@@ -290,7 +290,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementZeroDeltaTime)
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementNotTarget) {
   auto game_object_created{-1};
   auto game_object_creation_callback{[&](const GameObjectID game_object_id, const GameObjectType,
-                                         const std::pair<double, double> &) { game_object_created = game_object_id; }};
+                                         const std::pair<double, double>&) { game_object_created = game_object_id; }};
   create_attacker({.ranged{true}, .steering_movement{true}});
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
@@ -301,7 +301,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementNotTarget) {
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
   auto game_object_created{-1};
   auto game_object_creation_callback{[&](const GameObjectID game_object_id, const GameObjectType,
-                                         const std::pair<double, double> &) { game_object_created = game_object_id; }};
+                                         const std::pair<double, double>&) { game_object_created = game_object_id; }};
   create_attacker({.ranged{true}, .steering_movement{true}});
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   registry.get_component<SteeringMovement>(8)->movement_state = SteeringMovementState::Target;
@@ -328,9 +328,9 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateCallbacks) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingle) {
   auto game_object_created{-1};
   auto game_object_creation_callback{
-      [&](const GameObjectID game_object_id, const GameObjectType, const std::pair<double, double> &) {
+      [&](const GameObjectID game_object_id, const GameObjectType, const std::pair<double, double>&) {
         // The velocity for the bullet is set after the game object is created
-        const auto *bullet{*registry.get_component<KinematicComponent>(game_object_id)->body};
+        const auto* bullet{*registry.get_component<KinematicComponent>(game_object_id)->body};
         const auto [pos_x, pos_y]{cpBodyGetPosition(bullet)};
         const auto [vel_x, vel_y]{cpBodyGetVelocity(bullet)};
         ASSERT_NEAR(pos_x, 32, 1e-13);
@@ -357,7 +357,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingleWrongType) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleBullets) {
   std::vector<GameObjectID> game_objects_created;
   auto game_object_creation_callback{
-      [&](const GameObjectID game_object_id, const GameObjectType, const std::pair<double, double> &) {
+      [&](const GameObjectID game_object_id, const GameObjectType, const std::pair<double, double>&) {
         game_objects_created.push_back(game_object_id);
       }};
   create_attacker({.ranged{true}});
@@ -374,7 +374,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleBullets) {
                                                  {.x = 76.536686473017966, .y = -184.77590650225736},
                                                  {.x = 141.42135623730951, .y = -141.42135623730951}}};
   for (auto i{0}; std::cmp_less(i, game_objects_created.size()); i++) {
-    const auto *bullet{*registry.get_component<KinematicComponent>(game_objects_created[i])->body};
+    const auto* bullet{*registry.get_component<KinematicComponent>(game_objects_created[i])->body};
     const auto [vel_x, vel_y]{cpBodyGetVelocity(bullet)};
     ASSERT_NEAR(vel_x, expected_velocities[i].x, 1e-13);
     ASSERT_NEAR(vel_y, expected_velocities[i].y, 1e-13);

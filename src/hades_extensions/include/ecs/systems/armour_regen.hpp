@@ -18,12 +18,12 @@ struct ArmourRegen final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Provides facilities to manipulate armour regen components.
@@ -31,7 +31,7 @@ struct ArmourRegenSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit ArmourRegenSystem(Registry *registry) : SystemBase(registry) {}
+  explicit ArmourRegenSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Process update logic for an armour regeneration component.
   ///

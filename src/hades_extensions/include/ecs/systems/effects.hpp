@@ -32,23 +32,23 @@ struct BaseEffect {
   virtual ~BaseEffect() = default;
 
   /// The copy constructor.
-  BaseEffect(const BaseEffect &) = default;
+  BaseEffect(const BaseEffect&) = default;
 
   /// The move constructor.
-  BaseEffect(BaseEffect &&) = default;
+  BaseEffect(BaseEffect&&) = default;
 
   /// The copy assignment operator.
-  auto operator=(const BaseEffect &) -> BaseEffect & = default;
+  auto operator=(const BaseEffect&) -> BaseEffect& = default;
 
   /// The move assignment operator.
-  auto operator=(BaseEffect &&) -> BaseEffect & = default;
+  auto operator=(BaseEffect&&) -> BaseEffect& = default;
 
   /// Apply the effect to the game object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param game_object_id - The ID of the game object to apply the effect to.
   /// @return Whether the effect was applied or not.
-  virtual auto apply(const Registry *registry, GameObjectID game_object_id) const -> bool;
+  virtual auto apply(const Registry* registry, GameObjectID game_object_id) const -> bool;
 };
 
 /// Represents an effect that can be applied immediately to a game object.
@@ -89,7 +89,7 @@ struct StatusEffect final : BaseEffect {
   /// @param target - The ID of the game object to apply the status effect to.
   /// @param delta_time - The time interval since the last time the function was called.
   /// @return Whether the status effect has expired or not.
-  auto update(const Registry *registry, GameObjectID target, double delta_time) -> bool;
+  auto update(const Registry* registry, GameObjectID target, double delta_time) -> bool;
 };
 
 /// Allows a game object to have status effects applied to it.
@@ -103,12 +103,12 @@ struct StatusEffects final : ComponentBase {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Allows a game object to provide instant or status effects.
@@ -144,7 +144,7 @@ struct EffectSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit EffectSystem(Registry *registry) : SystemBase(registry) {}
+  explicit EffectSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Process update logic for a status effect component.
   ///

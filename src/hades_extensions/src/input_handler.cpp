@@ -8,7 +8,7 @@
 #include "events.hpp"
 #include "game_state.hpp"
 
-InputHandler::InputHandler(const std::shared_ptr<Registry> &registry, const std::shared_ptr<GameState> &game_state)
+InputHandler::InputHandler(const std::shared_ptr<Registry>& registry, const std::shared_ptr<GameState>& game_state)
     : registry_(registry), game_state_(game_state) {}
 
 void InputHandler::on_key_press(const int symbol, const int /*modifiers*/) const {
