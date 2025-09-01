@@ -14,9 +14,9 @@ namespace {
 /// @param is_not_traversable - A function which checks if a position is not traversable.
 /// @param heuristic_function - A function which calculates the heuristic cost between two positions.
 /// @return A map of positions and their neighbours.
-auto pathfind(const Grid &grid, const Position &start, const Position &end,
-              const std::function<bool(const Position &)> &is_not_traversable,
-              const std::function<int(const Position &, int)> &heuristic_function)
+auto pathfind(const Grid& grid, const Position& start, const Position& end,
+              const std::function<bool(const Position&)>& is_not_traversable,
+              const std::function<int(const Position&, int)>& heuristic_function)
     -> std::unordered_map<Position, Connection> {
   // Check if the grid size is not zero
   if (grid.width == 0 || grid.height == 0) {
@@ -42,7 +42,7 @@ auto pathfind(const Grid &grid, const Position &start, const Position &end,
     //   f - The total cost of traversing the neighbour.
     //   g - The distance between the start pair and the neighbour pair.
     //   h - The estimated distance between the neighbour and the end position.
-    for (const Position &neighbour : grid.get_neighbours(current)) {
+    for (const Position& neighbour : grid.get_neighbours(current)) {
       // Move around the neighbour if it's not valid
       if (is_not_traversable(neighbour)) {
         continue;
@@ -64,13 +64,13 @@ auto pathfind(const Grid &grid, const Position &start, const Position &end,
 }
 }  // namespace
 
-auto calculate_astar_path(const Grid &grid, const Position &start, const Position &end) -> std::vector<Position> {
+auto calculate_astar_path(const Grid& grid, const Position& start, const Position& end) -> std::vector<Position> {
   // Explore the grid using the A* algorithm with the Chebyshev distance heuristic and then check if we've reached the
   // end
   const auto obstacle_check{
-      [&grid](const Position &neighbour) { return grid.get_value(neighbour) == GameObjectType::Obstacle; }};
+      [&grid](const Position& neighbour) { return grid.get_value(neighbour) == GameObjectType::Obstacle; }};
   const auto chebyshev_heuristic{
-      [&end](const Position &neighbour, const int cost) { return cost + neighbour.get_distance_to(end); }};
+      [&end](const Position& neighbour, const int cost) { return cost + neighbour.get_distance_to(end); }};
   const auto result{pathfind(grid, start, end, obstacle_check, chebyshev_heuristic)};
   if (!result.contains(end)) {
     return {};
@@ -85,15 +85,15 @@ auto calculate_astar_path(const Grid &grid, const Position &start, const Positio
   return path;
 }
 
-auto get_furthest_position(const Grid &grid, const Position &start) -> Position {
+auto get_furthest_position(const Grid& grid, const Position& start) -> Position {
   // Initialise some variables needed to find the furthest position
   Position furthest_position{.x = -1, .y = -1};
   int max_distance{-1};
 
   // Explore the grid using the Dijkstra algorithm to find the furthest position from the start
   const auto floor_check{
-      [&grid](const Position &neighbour) { return grid.get_value(neighbour) != GameObjectType::Floor; }};
-  const auto dijkstra_heuristic{[&max_distance, &furthest_position](const Position &neighbour, const int cost) {
+      [&grid](const Position& neighbour) { return grid.get_value(neighbour) != GameObjectType::Floor; }};
+  const auto dijkstra_heuristic{[&max_distance, &furthest_position](const Position& neighbour, const int cost) {
     if (cost > max_distance) {
       max_distance = cost;
       furthest_position = neighbour;

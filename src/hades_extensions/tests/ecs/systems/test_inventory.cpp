@@ -41,7 +41,7 @@ class InventorySystemFixture : public testing::Test {
   /// @param type - The type of the game object.
   /// @param config - The configuration for the item.
   /// @return The game object ID of the item.
-  [[nodiscard]] auto create_item(const GameObjectType type, const ItemConfig &config) -> GameObjectID {
+  [[nodiscard]] auto create_item(const GameObjectType type, const ItemConfig& config) -> GameObjectID {
     std::vector<std::shared_ptr<ComponentBase>> components;
     if (config.kinematic) {
       components.push_back(std::make_shared<KinematicComponent>());
@@ -156,7 +156,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemHasItemInInventoryInvalidGameO
 TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryValid) {
   // Add the callbacks to the registry
   std::vector<GameObjectID> inventory_update;
-  auto inventory_update_callback{[&](const std::vector<GameObjectID> &items) { inventory_update = items; }};
+  auto inventory_update_callback{[&](const std::vector<GameObjectID>& items) { inventory_update = items; }};
   add_callback<EventType::InventoryUpdate>(inventory_update_callback);
   auto sprite_removal{-1};
   auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};
@@ -205,7 +205,7 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryZeroSize) {
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
   // Add the callbacks to the registry
   std::vector<GameObjectID> inventory_update;
-  auto inventory_update_callback{[&](const std::vector<GameObjectID> &items) { inventory_update = items; }};
+  auto inventory_update_callback{[&](const std::vector<GameObjectID>& items) { inventory_update = items; }};
   add_callback<EventType::InventoryUpdate>(inventory_update_callback);
   auto sprite_removal{-1};
   auto sprite_removal_callback{[&](const GameObjectID game_object_id) { sprite_removal = game_object_id; }};

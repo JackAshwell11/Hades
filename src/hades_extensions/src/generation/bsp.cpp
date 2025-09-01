@@ -18,9 +18,9 @@ constexpr int MIN_ROOM_SIZE{4};
 constexpr double ROOM_RATIO{0.625};
 }  // namespace
 
-Leaf::Leaf(const Rect &container) : container{std::make_unique<Rect>(container)} {}
+Leaf::Leaf(const Rect& container) : container{std::make_unique<Rect>(container)} {}
 
-void Leaf::split(std::mt19937 &random_generator) {  // NOLINT(misc-no-recursion)
+void Leaf::split(std::mt19937& random_generator) {  // NOLINT(misc-no-recursion)
   // Check if this leaf is already split or not
   if (left && right) {
     return;
@@ -67,8 +67,8 @@ void Leaf::split(std::mt19937 &random_generator) {  // NOLINT(misc-no-recursion)
   right->split(random_generator);
 }
 
-void Leaf::create_room(Grid &grid, std::mt19937 &random_generator,  // NOLINT(misc-no-recursion)
-                       std::vector<Position> &rooms) {
+void Leaf::create_room(Grid& grid, std::mt19937& random_generator,  // NOLINT(misc-no-recursion)
+                       std::vector<Position>& rooms) {
   // Check if this leaf is already split or not, if so, create rooms for the left and right leafs
   if (left && right) {
     left->create_room(grid, random_generator, rooms);

@@ -19,8 +19,8 @@ class ObstacleAvoidanceFixture : public testing::Test {
   ///
   /// @param positions - The list of game object positions.
   /// @param entity - The type of game object to add.
-  void add_game_objects(const std::vector<cpVect> &&positions, const GameObjectType entity = GameObjectType::Wall) {
-    for (const auto &position : positions) {
+  void add_game_objects(const std::vector<cpVect>&& positions, const GameObjectType entity = GameObjectType::Wall) {
+    for (const auto& position : positions) {
       auto body{ChipmunkHandle<cpBody, cpBodyFree>(cpBodyNewStatic())};
       auto shape{ChipmunkHandle<cpShape, cpShapeFree>(cpBoxShapeNew(*body, SPRITE_SIZE, SPRITE_SIZE, 0))};
       cpBodySetPosition(*body, position);

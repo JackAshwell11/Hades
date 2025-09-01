@@ -18,7 +18,7 @@ namespace {
 /// @param actual - The actual vector.
 /// @param expected_x - The expected x value.
 /// @param expected_y - The expected y value.
-void test_force_double(const cpVect &actual, const double expected_x, const double expected_y) {
+void test_force_double(const cpVect& actual, const double expected_x, const double expected_y) {
   ASSERT_DOUBLE_EQ(actual.x, expected_x);
   ASSERT_DOUBLE_EQ(actual.y, expected_y);
 }
@@ -96,7 +96,7 @@ class SteeringMovementSystemFixture : public testing::Test {
   /// @param steering_behaviours - The steering behaviours to initialise the component with.
   /// @return The game object ID of the created game object.
   auto create_steering_movement_component(
-      const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>> &steering_behaviours) -> int {
+      const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>& steering_behaviours) -> int {
     const int game_object_id{registry.create_game_object(
         GameObjectType::Player, cpvzero,
         {std::make_shared<MovementForce>(200, -1), std::make_shared<SteeringMovement>(steering_behaviours),

@@ -17,13 +17,13 @@ struct Inventory final : ComponentBase {
   ///
   /// @param json - The JSON object to serialise to.
   /// @param registry - The registry that manages the game objects, components, and systems.
-  void to_file(nlohmann::json &json, const Registry *registry) const override;
+  void to_file(nlohmann::json& json, const Registry* registry) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
   /// @param registry - The registry that manages the game objects, components, and systems.
-  void from_file(const nlohmann::json &json, Registry *registry) override;
+  void from_file(const nlohmann::json& json, Registry* registry) override;
 };
 
 /// Allows a game object to change the size of its inventory.
@@ -37,12 +37,12 @@ struct InventorySize final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Provides facilities to manipulate inventory components.
@@ -50,7 +50,7 @@ struct InventorySystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit InventorySystem(Registry *registry) : SystemBase(registry) {}
+  explicit InventorySystem(Registry* registry) : SystemBase(registry) {}
 
   /// Check if a game object has an item in its inventory.
   ///

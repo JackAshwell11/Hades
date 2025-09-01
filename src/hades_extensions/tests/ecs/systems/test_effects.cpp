@@ -39,7 +39,7 @@ class EffectSystemFixture : public testing::Test {
   /// Create a game object to hold the instant and status effects.
   ///
   /// @param config - The configuration for the effect applier.
-  void create_effect_applier(const EffectApplierConfig &config) {
+  void create_effect_applier(const EffectApplierConfig& config) {
     const auto effect_applier{std::make_shared<EffectApplier>()};
     if (config.instant) {
       effect_applier->add_instant_effect(EffectType::Regeneration, 5);
@@ -160,7 +160,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemUpdateMultipleDeltaTimes) {
   health->set_value(100);
   ASSERT_TRUE(get_effect_system()->apply_effects(1, 0));
   ASSERT_EQ(health->get_value(), 105);
-  const auto &active_effects{registry.get_component<StatusEffects>(0)->active_effects};
+  const auto& active_effects{registry.get_component<StatusEffects>(0)->active_effects};
   get_effect_system()->update(1);
   ASSERT_EQ(health->get_value(), 105);
   ASSERT_EQ(active_effects.at(EffectType::Regeneration).time_elapsed, 1);

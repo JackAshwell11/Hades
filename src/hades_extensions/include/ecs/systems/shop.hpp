@@ -26,16 +26,16 @@ struct ShopOffering {
   virtual ~ShopOffering() = default;
 
   /// The copy constructor.
-  ShopOffering(const ShopOffering &) = default;
+  ShopOffering(const ShopOffering&) = default;
 
   /// The move constructor.
-  ShopOffering(ShopOffering &&) = default;
+  ShopOffering(ShopOffering&&) = default;
 
   /// The copy assignment operator.
-  auto operator=(const ShopOffering &) -> ShopOffering & = default;
+  auto operator=(const ShopOffering&) -> ShopOffering& = default;
 
   /// The move assignment operator.
-  auto operator=(ShopOffering &&) -> ShopOffering & = default;
+  auto operator=(ShopOffering&&) -> ShopOffering& = default;
 
   /// Apply the offering to the buyer.
   ///
@@ -43,14 +43,14 @@ struct ShopOffering {
   /// @param buyer_id - The ID of the buyer.
   /// @throws RegistryError - If the game object does not exist or does not have the required components.
   /// @return true if the application was successful, false otherwise.
-  virtual auto apply(const Registry *registry, GameObjectID buyer_id) const -> bool = 0;
+  virtual auto apply(const Registry* registry, GameObjectID buyer_id) const -> bool = 0;
 
   /// Get the cost of the offering.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param buyer_id - The ID of the buyer.
   /// @return The cost of the offering.
-  [[nodiscard]] virtual auto get_cost(const Registry *registry, GameObjectID buyer_id) const -> double;
+  [[nodiscard]] virtual auto get_cost(const Registry* registry, GameObjectID buyer_id) const -> double;
 
   /// The name of the offering.
   std::string name;
@@ -76,7 +76,7 @@ struct StatUpgradeOffering final : ShopOffering {
   /// @param cost_multiplier - The cost multiplier of the offering.
   /// @param base_value - The base value of the offering.
   /// @param value_multiplier - The value multiplier of the offering.
-  StatUpgradeOffering(const std::string &name, const std::string &description, const std::type_index component_type,
+  StatUpgradeOffering(const std::string& name, const std::string& description, const std::type_index component_type,
                       const double base_cost, const double cost_multiplier, const double base_value,
                       const double value_multiplier)
       : ShopOffering(name, description, base_cost, cost_multiplier),
@@ -90,14 +90,14 @@ struct StatUpgradeOffering final : ShopOffering {
   /// @param buyer_id - The ID of the buyer.
   /// @throws RegistryError - If the game object does not exist or does not have the required components.
   /// @return true if the application was successful, false otherwise.
-  auto apply(const Registry *registry, GameObjectID buyer_id) const -> bool override;
+  auto apply(const Registry* registry, GameObjectID buyer_id) const -> bool override;
 
   /// Get the cost of the offering.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param buyer_id - The ID of the buyer.
   /// @return The cost of the offering.
-  [[nodiscard]] auto get_cost(const Registry *registry, GameObjectID buyer_id) const -> double override;
+  [[nodiscard]] auto get_cost(const Registry* registry, GameObjectID buyer_id) const -> double override;
 
   /// The type of the component to upgrade.
   std::type_index component_type;
@@ -117,7 +117,7 @@ struct ComponentUnlockOffering final : ShopOffering {
   /// @param description - The description of the offering.
   /// @param cost - The cost of the offering.
   /// @param cost_multiplier - The cost multiplier of the offering.
-  ComponentUnlockOffering(const std::string &name, const std::string &description, const double cost,
+  ComponentUnlockOffering(const std::string& name, const std::string& description, const double cost,
                           const double cost_multiplier)
       : ShopOffering(name, description, cost, cost_multiplier) {}
 
@@ -127,7 +127,7 @@ struct ComponentUnlockOffering final : ShopOffering {
   /// @param buyer_id - The ID of the buyer.
   /// @throws RegistryError - If the game object does not exist or does not have the required components.
   /// @return true if the application was successful, false otherwise.
-  auto apply(const Registry *registry, GameObjectID buyer_id) const -> bool override;
+  auto apply(const Registry* registry, GameObjectID buyer_id) const -> bool override;
 };
 
 /// Represents a repeatable item offering in the shop.
@@ -138,7 +138,7 @@ struct ItemOffering final : ShopOffering {
   /// @param description - The description of the offering.
   /// @param base_cost - The base cost of the offering.
   /// @param cost_multiplier - The cost multiplier of the offering.
-  ItemOffering(const std::string &name, const std::string &description, const double base_cost,
+  ItemOffering(const std::string& name, const std::string& description, const double base_cost,
                const double cost_multiplier)
       : ShopOffering(name, description, base_cost, cost_multiplier) {}
 
@@ -148,7 +148,7 @@ struct ItemOffering final : ShopOffering {
   /// @param buyer_id - The ID of the buyer.
   /// @throws RegistryError - If the game object does not exist or does not have the required components.
   /// @return true if the application was successful, false otherwise.
-  auto apply(const Registry *registry, GameObjectID buyer_id) const -> bool override;
+  auto apply(const Registry* registry, GameObjectID buyer_id) const -> bool override;
 };
 
 /// Allows a game object to have currency.
@@ -159,12 +159,12 @@ struct Money final : ComponentBase {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Provides facilities to manage a shop system.
@@ -173,19 +173,19 @@ class ShopSystem final : public SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit ShopSystem(Registry *registry) : SystemBase(registry) {}
+  explicit ShopSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Add offerings to the shop from a stream.
   ///
   /// @param stream - The input stream containing the JSON data for the shop offerings.
   /// @param player_id - The game object ID of the player.
   /// @throws std::runtime_error if there was an error parsing the JSON file or the offering type is unknown.
-  void add_offerings(std::istream &stream, GameObjectID player_id);
+  void add_offerings(std::istream& stream, GameObjectID player_id);
 
   /// Get an offering by its index.
   ///
   /// @param offering_index - The index of the offering.
-  [[nodiscard]] auto get_offering(int offering_index) const -> const ShopOffering *;
+  [[nodiscard]] auto get_offering(int offering_index) const -> const ShopOffering*;
 
   /// Get the cost of an offering.
   ///

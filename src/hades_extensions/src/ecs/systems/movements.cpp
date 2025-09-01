@@ -20,14 +20,14 @@ namespace {
 /// @param steering_movement - The steering movement component of the game object.
 /// @param kinematic_owner - The kinematic component of the game object.
 /// @param kinematic_target - The kinematic component of the target game object.
-auto calculate_steering_force(Registry *registry, const std::shared_ptr<SteeringMovement> &steering_movement,
-                              const cpBody *kinematic_owner, const cpBody *kinematic_target) -> cpVect {
+auto calculate_steering_force(Registry* registry, const std::shared_ptr<SteeringMovement>& steering_movement,
+                              const cpBody* kinematic_owner, const cpBody* kinematic_target) -> cpVect {
   cpVect steering_force{cpvzero};
   const auto kinematic_owner_position{cpBodyGetPosition(kinematic_owner)};
   const auto kinematic_owner_velocity{cpBodyGetVelocity(kinematic_owner)};
   const auto kinematic_target_position{cpBodyGetPosition(kinematic_target)};
   const auto kinematic_target_velocity{cpBodyGetVelocity(kinematic_target)};
-  for (const auto &behaviour : steering_movement->behaviours[steering_movement->movement_state]) {
+  for (const auto& behaviour : steering_movement->behaviours[steering_movement->movement_state]) {
     switch (behaviour) {
       case SteeringBehaviours::Arrive:
         steering_force += arrive(kinematic_owner_position, kinematic_target_position);
@@ -61,13 +61,13 @@ auto calculate_steering_force(Registry *registry, const std::shared_ptr<Steering
 }
 }  // namespace
 
-void FootprintInterval::to_file(nlohmann::json &json) const { to_file_base(json["footprint_interval"]); }
+void FootprintInterval::to_file(nlohmann::json& json) const { to_file_base(json["footprint_interval"]); }
 
-void FootprintInterval::from_file(const nlohmann::json &json) { from_file_base(json.at("footprint_interval")); }
+void FootprintInterval::from_file(const nlohmann::json& json) { from_file_base(json.at("footprint_interval")); }
 
-void FootprintLimit::to_file(nlohmann::json &json) const { to_file_base(json["footprint_limit"]); }
+void FootprintLimit::to_file(nlohmann::json& json) const { to_file_base(json["footprint_limit"]); }
 
-void FootprintLimit::from_file(const nlohmann::json &json) { from_file_base(json.at("footprint_limit")); }
+void FootprintLimit::from_file(const nlohmann::json& json) { from_file_base(json.at("footprint_limit")); }
 
 void KeyboardMovement::reset() {
   moving_north = false;
@@ -76,17 +76,17 @@ void KeyboardMovement::reset() {
   moving_west = false;
 }
 
-void MovementForce::to_file(nlohmann::json &json) const { to_file_base(json["movement_force"]); }
+void MovementForce::to_file(nlohmann::json& json) const { to_file_base(json["movement_force"]); }
 
-void MovementForce::from_file(const nlohmann::json &json) { from_file_base(json.at("movement_force")); }
+void MovementForce::from_file(const nlohmann::json& json) { from_file_base(json.at("movement_force")); }
 
-void ViewDistance::to_file(nlohmann::json &json) const { to_file_base(json["view_distance"]); }
+void ViewDistance::to_file(nlohmann::json& json) const { to_file_base(json["view_distance"]); }
 
-void ViewDistance::from_file(const nlohmann::json &json) { from_file_base(json.at("view_distance")); }
+void ViewDistance::from_file(const nlohmann::json& json) { from_file_base(json.at("view_distance")); }
 
 void FootprintSystem::update(const double delta_time) const {
   // Update the time since the last footprint then check if a new footprint should be created
-  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<Footprints>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<Footprints>()) {
     const auto footprints{std::get<0>(component_tuple)};
     footprints->time_since_last_footprint += delta_time;
     if (footprints->time_since_last_footprint <
@@ -110,7 +110,7 @@ void FootprintSystem::update(const double delta_time) const {
 }
 
 void KeyboardMovementSystem::update(const double /*delta_time*/) const {
-  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<KeyboardMovement>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<KeyboardMovement>()) {
     const auto keyboard_movement{std::get<0>(component_tuple)};
     get_registry()->get_system<PhysicsSystem>()->add_force(
         game_object_id, {static_cast<double>(static_cast<int>(keyboard_movement->moving_east) -
@@ -121,7 +121,7 @@ void KeyboardMovementSystem::update(const double /*delta_time*/) const {
 }
 
 void SteeringMovementSystem::update(const double /*delta_time*/) const {
-  for (const auto &[game_object_id, component_tuple] :
+  for (const auto& [game_object_id, component_tuple] :
        get_registry()->find_components<SteeringMovement, KinematicComponent>()) {
     // Unpack the components and check if the target game object exists
     const auto [steering_movement, kinematic_owner] = component_tuple;
@@ -149,9 +149,9 @@ void SteeringMovementSystem::update(const double /*delta_time*/) const {
 }
 
 void SteeringMovementSystem::update_path_list(const GameObjectID target_game_object_id,
-                                              const std::deque<cpVect> &footprints) const {
+                                              const std::deque<cpVect>& footprints) const {
   // Update the path list for all SteeringMovement components that have the correct target ID
-  for (const auto &[game_object_id, component_tuple] : get_registry()->find_components<SteeringMovement>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<SteeringMovement>()) {
     const auto steering_movement{std::get<0>(component_tuple)};
     if (steering_movement->target_id != target_game_object_id) {
       continue;

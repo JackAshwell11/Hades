@@ -35,7 +35,7 @@ struct KinematicComponent final : ComponentBase {
   /// Initialise the object.
   ///
   /// @param vertices - The vertices of the shape.
-  explicit KinematicComponent(const std::vector<cpVect> &vertices)
+  explicit KinematicComponent(const std::vector<cpVect>& vertices)
       : body(cpBodyNew(1, std::numeric_limits<cpFloat>::infinity())),
         shape(cpPolyShapeNew(*body, static_cast<int>(vertices.size()), vertices.data(), cpTransformIdentity, 0.0)) {
     if (vertices.size() < 3) {
@@ -52,7 +52,7 @@ struct PhysicsSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit PhysicsSystem(Registry *registry) : SystemBase(registry) {}
+  explicit PhysicsSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Process update logic for the physics system.
   ///
@@ -64,14 +64,14 @@ struct PhysicsSystem final : SystemBase {
   /// @param game_object_id - The ID of the game object.
   /// @param force - The force to add.
   /// @throws RegistryError if the game object does not exist or does not have a kinematic component.
-  void add_force(GameObjectID game_object_id, const cpVect &force) const;
+  void add_force(GameObjectID game_object_id, const cpVect& force) const;
 
   /// Add a bullet to the physics engine.
   ///
   /// @param bullet - The bullet's position and velocity.
   /// @param damage - The damage the bullet inflicts.
   /// @param source_type - The game object type that fired the bullet.
-  void add_bullet(const std::pair<cpVect, cpVect> &bullet, double damage, GameObjectType source_type) const;
+  void add_bullet(const std::pair<cpVect, cpVect>& bullet, double damage, GameObjectType source_type) const;
 
   /// Get the nearest item to a game object.
   ///
@@ -84,5 +84,5 @@ struct PhysicsSystem final : SystemBase {
   ///
   /// @param current_position - The current position of the game object.
   /// @return The distances to the walls around the game object.
-  [[nodiscard]] auto get_wall_distances(const cpVect &current_position) const -> std::vector<cpVect>;
+  [[nodiscard]] auto get_wall_distances(const cpVect& current_position) const -> std::vector<cpVect>;
 };

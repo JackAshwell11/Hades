@@ -17,73 +17,73 @@ class MapGenerator {
   ///
   /// @param level - The game level to generate a map for.
   /// @param random_generator - The random generator to use for the map generation.
-  explicit MapGenerator(int level, const std::mt19937 &random_generator);
+  explicit MapGenerator(int level, const std::mt19937& random_generator);
 
   /// Generate the rooms in the dungeon.
   ///
   /// @return A reference to the MapGenerator object.
-  auto generate_rooms() -> MapGenerator &;
+  auto generate_rooms() -> MapGenerator&;
 
   /// Create connections between the rooms in the dungeon.
   ///
   /// @return A reference to the MapGenerator object.
-  auto create_connections() -> MapGenerator &;
+  auto create_connections() -> MapGenerator&;
 
   /// Generate the hallways in the dungeon.
   ///
   /// @return A reference to the MapGenerator object.
-  auto generate_hallways() -> MapGenerator &;
+  auto generate_hallways() -> MapGenerator&;
 
   /// Perform the cellular automata simulation in the dungeon.
   ///
   /// @param generations - The number of generations to simulate.
   /// @return A reference to the MapGenerator object.
-  auto cellular_automata(int generations) -> MapGenerator &;
+  auto cellular_automata(int generations) -> MapGenerator&;
 
   /// Generate the walls in the dungeon.
   ///
   /// @return A reference to the MapGenerator object.
-  auto generate_walls() -> MapGenerator &;
+  auto generate_walls() -> MapGenerator&;
 
   /// Place the obstacles in the dungeon.
   ///
   /// @return A reference to the MapGenerator object.
-  auto place_obstacles() -> MapGenerator &;
+  auto place_obstacles() -> MapGenerator&;
 
   /// Place the player in the dungeon.
   ///
   /// @return A reference to the MapGenerator object.
-  auto place_player() -> MapGenerator &;
+  auto place_player() -> MapGenerator&;
 
   /// Place the items in the dungeon.
   ///
   /// @return A reference to the MapGenerator object.
-  auto place_items() -> MapGenerator &;
+  auto place_items() -> MapGenerator&;
 
   /// Place the goal in the dungeon.
   ///
   /// @return A reference to the MapGenerator object.
-  auto place_goal() -> MapGenerator &;
+  auto place_goal() -> MapGenerator&;
 
   /// Place the lobby in the dungeon.
   ///
   /// @return A reference to the MapGenerator object.
-  auto place_lobby() -> MapGenerator &;
+  auto place_lobby() -> MapGenerator&;
 
   /// Get the grid.
   ///
   /// @return The grid.
-  [[nodiscard]] auto get_grid() -> Grid & { return grid_; }
+  [[nodiscard]] auto get_grid() -> Grid& { return grid_; }
 
   /// Get the rooms.
   ///
   /// @return The rooms.
-  [[nodiscard]] auto get_rooms() -> std::vector<Position> & { return rooms_; }
+  [[nodiscard]] auto get_rooms() -> std::vector<Position>& { return rooms_; }
 
   /// Get the connections.
   ///
   /// @return The connections.
-  [[nodiscard]] auto get_connections() -> std::vector<Connection> & { return connections_; }
+  [[nodiscard]] auto get_connections() -> std::vector<Connection>& { return connections_; }
 
   /// Get the enemy limit.
   ///

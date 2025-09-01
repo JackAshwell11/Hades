@@ -22,12 +22,12 @@ struct AttackStat final : Stat {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 };
 
 /// Represents the base class for an attack
@@ -56,16 +56,16 @@ struct BaseAttack {
   virtual ~BaseAttack() = default;
 
   /// The copy constructor.
-  BaseAttack(const BaseAttack &) = default;
+  BaseAttack(const BaseAttack&) = default;
 
   /// The move constructor.
-  BaseAttack(BaseAttack &&) = default;
+  BaseAttack(BaseAttack&&) = default;
 
   /// The copy assignment operator.
-  auto operator=(const BaseAttack &) -> BaseAttack & = default;
+  auto operator=(const BaseAttack&) -> BaseAttack& = default;
 
   /// The move assignment operator.
-  auto operator=(BaseAttack &&) -> BaseAttack & = default;
+  auto operator=(BaseAttack&&) -> BaseAttack& = default;
 
   /// Get the time until the attack can be used again.
   ///
@@ -88,7 +88,7 @@ struct BaseAttack {
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param game_object_id - The game object ID of the attacking game object.
-  virtual void perform_attack(const Registry *registry, GameObjectID game_object_id) const = 0;
+  virtual void perform_attack(const Registry* registry, GameObjectID game_object_id) const = 0;
 };
 
 /// Represents a ranged attack that can be performed.
@@ -121,7 +121,7 @@ struct SingleBulletAttack final : RangedAttack {
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param game_object_id - The game object ID of the attacking game object.
-  void perform_attack(const Registry *registry, GameObjectID game_object_id) const override;
+  void perform_attack(const Registry* registry, GameObjectID game_object_id) const override;
 };
 
 /// Represents a ranged attack that fires multiple bullets.
@@ -145,7 +145,7 @@ struct MultiBulletAttack final : RangedAttack {
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param game_object_id - The game object ID of the attacking game object.
-  void perform_attack(const Registry *registry, GameObjectID game_object_id) const override;
+  void perform_attack(const Registry* registry, GameObjectID game_object_id) const override;
 };
 
 /// Represents a melee attack that attacks in a cone in front of the game object.
@@ -166,7 +166,7 @@ struct MeleeAttack final : BaseAttack {
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param game_object_id - The game object ID of the attacking game object.
-  void perform_attack(const Registry *registry, GameObjectID game_object_id) const override;
+  void perform_attack(const Registry* registry, GameObjectID game_object_id) const override;
 };
 
 /// Represents an area of effect attack that attacks all targets in a radius.
@@ -183,7 +183,7 @@ struct AreaOfEffectAttack final : BaseAttack {
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param game_object_id - The game object ID of the attacking game object.
-  void perform_attack(const Registry *registry, GameObjectID game_object_id) const override;
+  void perform_attack(const Registry* registry, GameObjectID game_object_id) const override;
 };
 
 /// Allows a game object to act as a projectile that deals damage on impact.
@@ -215,12 +215,12 @@ struct Attack final : ComponentBase {
   /// Serialise the component to a JSON object.
   ///
   /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json &json) const override;
+  void to_file(nlohmann::json& json) const override;
 
   /// Deserialise the component from a JSON object.
   ///
   /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json &json) override;
+  void from_file(const nlohmann::json& json) override;
 
   /// Add a ranged attack.
   ///
@@ -240,7 +240,7 @@ struct Attack final : ComponentBase {
   /// Get the currently selected ranged attack.
   ///
   /// @return The currently selected ranged attack.
-  [[nodiscard]] auto get_selected_ranged_attack() const -> RangedAttack * {
+  [[nodiscard]] auto get_selected_ranged_attack() const -> RangedAttack* {
     return ranged_attacks[selected_ranged_attack].get();
   }
 };
@@ -250,7 +250,7 @@ struct AttackSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit AttackSystem(Registry *registry) : SystemBase(registry) {}
+  explicit AttackSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Process update logic for an attack component.
   ///
@@ -282,7 +282,7 @@ struct DamageSystem final : SystemBase {
   /// Initialise the object.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
-  explicit DamageSystem(Registry *registry) : SystemBase(registry) {}
+  explicit DamageSystem(Registry* registry) : SystemBase(registry) {}
 
   /// Deal damage to a game object.
   ///

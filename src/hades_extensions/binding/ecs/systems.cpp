@@ -1,7 +1,7 @@
 // Local headers
 #include "common.hpp"
 
-void bind_systems(const pybind11::module &module) {
+void bind_systems(const pybind11::module& module) {
   pybind11::class_<InventorySystem, SystemBase, std::shared_ptr<InventorySystem>>(
       module, "InventorySystem", "Provides facilities to manage inventory components.")
       .def("use_item", &InventorySystem::use_item, pybind11::arg("target_id"), pybind11::arg("item_id"),

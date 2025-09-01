@@ -28,7 +28,7 @@ auto calculate_exponential(const double base, const int level, const double mult
 /// @param type - The string representation of the component type.
 /// @throws std::runtime_error if the type is not recognised.
 /// @return The type index of the component type.
-auto get_component_type_from_string(const std::string &type) -> std::type_index {
+auto get_component_type_from_string(const std::string& type) -> std::type_index {
   static const std::unordered_map<std::string, std::type_index> type_map{{"Health", typeid(Health)},
                                                                          {"Armour", typeid(Armour)}};
   if (type_map.contains(type)) {
@@ -38,21 +38,21 @@ auto get_component_type_from_string(const std::string &type) -> std::type_index 
 }
 }  // namespace
 
-void Money::to_file(nlohmann::json &json) const { json["money"] = money; }
+void Money::to_file(nlohmann::json& json) const { json["money"] = money; }
 
-void Money::from_file(const nlohmann::json &json) { money = json.at("money").get<int>(); }
+void Money::from_file(const nlohmann::json& json) { money = json.at("money").get<int>(); }
 
-auto ShopOffering::get_cost(const Registry * /*registry*/, const GameObjectID /*buyer_id*/) const -> double {
+auto ShopOffering::get_cost(const Registry* /*registry*/, const GameObjectID /*buyer_id*/) const -> double {
   return calculate_exponential(base_cost, 0, cost_multiplier);
 }
 
-auto StatUpgradeOffering::get_cost(const Registry *registry, const GameObjectID buyer_id) const -> double {
+auto StatUpgradeOffering::get_cost(const Registry* registry, const GameObjectID buyer_id) const -> double {
   const auto component{std::static_pointer_cast<Stat>(registry->get_component(buyer_id, component_type))};
   return calculate_exponential(base_cost, component->get_current_level(), cost_multiplier);
 }
 
-auto StatUpgradeOffering::apply(const Registry *registry, const GameObjectID buyer_id) const -> bool {
-  const auto &component{std::static_pointer_cast<Stat>(registry->get_component(buyer_id, component_type))};
+auto StatUpgradeOffering::apply(const Registry* registry, const GameObjectID buyer_id) const -> bool {
+  const auto& component{std::static_pointer_cast<Stat>(registry->get_component(buyer_id, component_type))};
   if (component->get_current_level() >= component->get_max_level()) {
     return false;
   }
@@ -63,17 +63,17 @@ auto StatUpgradeOffering::apply(const Registry *registry, const GameObjectID buy
   return true;
 }
 
-auto ComponentUnlockOffering::apply(const Registry * /*registry*/, const GameObjectID /*buyer_id*/) const -> bool {
+auto ComponentUnlockOffering::apply(const Registry* /*registry*/, const GameObjectID /*buyer_id*/) const -> bool {
   return true;
 }
 
-auto ItemOffering::apply(const Registry * /*registry*/, const GameObjectID /*buyer_id*/) const -> bool { return true; }
+auto ItemOffering::apply(const Registry* /*registry*/, const GameObjectID /*buyer_id*/) const -> bool { return true; }
 
-void ShopSystem::add_offerings(std::istream &stream, const GameObjectID player_id) {
+void ShopSystem::add_offerings(std::istream& stream, const GameObjectID player_id) {
   nlohmann::json offerings;
   stream >> offerings;
   for (int i{0}; std::cmp_less(i, offerings.size()); i++) {
-    const auto &offering{offerings.at(i)};
+    const auto& offering{offerings.at(i)};
     const auto type{offering.at("type").get<std::string>()};
     const auto name{offering.at("name").get<std::string>()};
     const auto description{offering.at("description").get<std::string>()};
@@ -98,7 +98,7 @@ void ShopSystem::add_offerings(std::istream &stream, const GameObjectID player_i
   }
 }
 
-auto ShopSystem::get_offering(const int offering_index) const -> const ShopOffering * {
+auto ShopSystem::get_offering(const int offering_index) const -> const ShopOffering* {
   if (offering_index < 0 || std::cmp_greater_equal(offering_index, offerings_.size())) {
     return nullptr;
   }

@@ -31,10 +31,10 @@ auto generate_save_file_name() -> std::string {
 }
 }  // namespace
 
-SaveManager::SaveManager(const std::shared_ptr<Registry> &registry, const std::shared_ptr<GameState> &game_state)
+SaveManager::SaveManager(const std::shared_ptr<Registry>& registry, const std::shared_ptr<GameState>& game_state)
     : registry_(registry), game_state_(game_state) {}
 
-void SaveManager::set_save_path(const std::string &path) {
+void SaveManager::set_save_path(const std::string& path) {
   save_path_ = path;
   refresh_save_files();
 }
@@ -50,7 +50,7 @@ void SaveManager::load_save(const int save_index) const {
 
   nlohmann::json json_data;
   stream >> json_data;
-  for (const auto &component : registry_->get_game_object_components(game_state_->get_player_id())) {
+  for (const auto& component : registry_->get_game_object_components(game_state_->get_player_id())) {
     component->from_file(json_data);
     component->from_file(json_data, registry_.get());
   }
@@ -68,7 +68,7 @@ void SaveManager::save_game() {
     nlohmann::json json_data;
     const std::chrono::zoned_time local_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
     json_data["save_date"] = std::format("{0:%FT%T%z}", local_time);
-    for (const auto &component : registry_->get_game_object_components(game_state_->get_player_id())) {
+    for (const auto& component : registry_->get_game_object_components(game_state_->get_player_id())) {
       component->to_file(json_data);
       component->to_file(json_data, registry_.get());
     }
@@ -96,7 +96,7 @@ void SaveManager::delete_save(const int save_index) {
 
 void SaveManager::refresh_save_files() {
   save_files_.clear();
-  for (const auto &entry : std::filesystem::directory_iterator(save_path_)) {
+  for (const auto& entry : std::filesystem::directory_iterator(save_path_)) {
     if (!entry.is_regular_file() || entry.path().extension() != ".json") {
       continue;
     }
@@ -111,7 +111,7 @@ void SaveManager::refresh_save_files() {
     save_files_.push_back(info);
   }
 
-  std::ranges::sort(save_files_.begin(), save_files_.end(), [](const SaveFileInfo &lhs, const SaveFileInfo &rhs) {
+  std::ranges::sort(save_files_.begin(), save_files_.end(), [](const SaveFileInfo& lhs, const SaveFileInfo& rhs) {
     return lhs.last_modified > rhs.last_modified;
   });
   if (save_files_.size() > MAX_SAVE_FILES) {

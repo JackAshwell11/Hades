@@ -31,7 +31,7 @@ constexpr int WANDER_CIRCLE_DISTANCE{50};
 constexpr int WANDER_CIRCLE_RADIUS{25};
 }  // namespace
 
-auto arrive(const cpVect &current_position, const cpVect &target_position) -> cpVect {
+auto arrive(const cpVect& current_position, const cpVect& target_position) -> cpVect {
   // Calculate a vector to the target and its length
   const cpVect direction{target_position - current_position};
 
@@ -42,15 +42,15 @@ auto arrive(const cpVect &current_position, const cpVect &target_position) -> cp
   return cpvnormalize(direction);
 }
 
-auto evade(const cpVect &current_position, const cpVect &target_position, const cpVect &target_velocity) -> cpVect {
+auto evade(const cpVect& current_position, const cpVect& target_position, const cpVect& target_velocity) -> cpVect {
   return flee(current_position, target_position + target_velocity);
 }
 
-auto flee(const cpVect &current_position, const cpVect &target_position) -> cpVect {
+auto flee(const cpVect& current_position, const cpVect& target_position) -> cpVect {
   return cpvnormalize(current_position - target_position);
 }
 
-auto follow_path(const cpVect &current_position, std::vector<cpVect> &path_list) -> cpVect {
+auto follow_path(const cpVect& current_position, std::vector<cpVect>& path_list) -> cpVect {
   // Check if the path list is empty
   if (path_list.empty()) {
     throw std::length_error("The path list is empty.");
@@ -64,7 +64,7 @@ auto follow_path(const cpVect &current_position, std::vector<cpVect> &path_list)
   return seek(current_position, path_list[0]);
 }
 
-auto obstacle_avoidance(cpSpace *space, const cpVect &current_position, const cpVect &current_velocity) -> cpVect {
+auto obstacle_avoidance(cpSpace* space, const cpVect& current_position, const cpVect& current_velocity) -> cpVect {
   // Create the lambda function to cast a ray from the game object's position in the direction of its velocity at a
   // given angle
   auto raycast{[&space, &current_position, &current_velocity](const double angle = 0) -> cpVect {
@@ -84,7 +84,7 @@ auto obstacle_avoidance(cpSpace *space, const cpVect &current_position, const cp
 
   // Check if there are any obstacles ahead. If so, accumulate the avoidance force
   cpVect avoidance_force{};
-  for (const auto &ray : {raycast(), raycast(OBSTACLE_AVOIDANCE_ANGLE), raycast(-OBSTACLE_AVOIDANCE_ANGLE)}) {
+  for (const auto& ray : {raycast(), raycast(OBSTACLE_AVOIDANCE_ANGLE), raycast(-OBSTACLE_AVOIDANCE_ANGLE)}) {
     if (ray != cpvzero) {
       avoidance_force += flee(current_position, ray);
     }
@@ -92,15 +92,15 @@ auto obstacle_avoidance(cpSpace *space, const cpVect &current_position, const cp
   return avoidance_force;
 }
 
-auto pursue(const cpVect &current_position, const cpVect &target_position, const cpVect &target_velocity) -> cpVect {
+auto pursue(const cpVect& current_position, const cpVect& target_position, const cpVect& target_velocity) -> cpVect {
   return seek(current_position, target_position + target_velocity);
 }
 
-auto seek(const cpVect &current_position, const cpVect &target_position) -> cpVect {
+auto seek(const cpVect& current_position, const cpVect& target_position) -> cpVect {
   return cpvnormalize(target_position - current_position);
 }
 
-auto wander(const cpVect &current_velocity, const double displacement_angle) -> cpVect {
+auto wander(const cpVect& current_velocity, const double displacement_angle) -> cpVect {
   // Calculate the position of an invisible circle in front of the game object
   const cpVect circle_center{cpvnormalize(current_velocity) * WANDER_CIRCLE_DISTANCE};
 

@@ -28,7 +28,7 @@ class GameState {
   /// Initialise the object.
   ///
   /// /// @param registry - The registry that manages game objects, components, and systems.
-  explicit GameState(const std::shared_ptr<Registry> &registry);
+  explicit GameState(const std::shared_ptr<Registry>& registry);
 
   /// Get the player's game object ID.
   ///
@@ -84,7 +84,7 @@ class GameState {
   /// Set the seed for the random generator.
   ///
   /// @param seed - The seed to set for the random generator.
-  void set_seed(const std::string &seed);
+  void set_seed(const std::string& seed);
 
   /// Initialise the dungeon run.
   void initialise_dungeon_run();
@@ -103,7 +103,7 @@ class GameState {
   /// @details If this is called twice, the game objects will be duplicated.
   /// @param grid - The grid to create the game objects from.
   /// @param store_floor_positions - Whether to store the positions of the floor game objects or not.
-  void create_game_objects(const Grid &grid, bool store_floor_positions = true);
+  void create_game_objects(const Grid& grid, bool store_floor_positions = true);
 
   /// The registry that manages game objects, components, and systems.
   std::shared_ptr<Registry> registry_;

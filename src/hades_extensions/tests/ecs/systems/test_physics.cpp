@@ -24,8 +24,8 @@ class PhysicsSystemFixture : public testing::Test {
   /// @param type The type of the objects to create.
   /// @param positions The positions to create the objects.
   /// @param override Whether to override the game objects' positions.
-  void create_objects(const GameObjectType type, const std::vector<cpVect> &positions, const bool override = true) {
-    for (const auto &position : positions) {
+  void create_objects(const GameObjectType type, const std::vector<cpVect>& positions, const bool override = true) {
+    for (const auto& position : positions) {
       const auto object_id{registry.create_game_object(
           type, position, {std::make_shared<KinematicComponent>(type == GameObjectType::Wall)})};
       if (override) {
@@ -166,7 +166,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceInvalidGameObjectId) {
 /// Test that adding a bullet with a zero position and velocity works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletZero) {
   get_physics_system()->add_bullet({cpvzero, cpvzero}, 50, GameObjectType::Player);
-  const auto *body{*registry.get_component<KinematicComponent>(1)->body};
+  const auto* body{*registry.get_component<KinematicComponent>(1)->body};
   ASSERT_EQ(cpBodyGetPosition(body), cpvzero);
   ASSERT_EQ(cpBodyGetForce(body), cpvzero);
 }
@@ -174,7 +174,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletZero) {
 /// Test that adding a bullet with a non-zero position works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroPosition) {
   get_physics_system()->add_bullet({{.x = 100, .y = 0}, cpvzero}, 100, GameObjectType::Player);
-  const auto *body{*registry.get_component<KinematicComponent>(1)->body};
+  const auto* body{*registry.get_component<KinematicComponent>(1)->body};
   ASSERT_EQ(cpBodyGetPosition(body), cpv(100, 0));
   ASSERT_EQ(cpBodyGetForce(body), cpvzero);
 }
@@ -182,7 +182,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroPosition) {
 /// Test that adding a bullet with a non-zero velocity works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddBulletNonZeroVelocity) {
   get_physics_system()->add_bullet({cpvzero, {.x = 200, .y = 150}}, 10, GameObjectType::Player);
-  const auto *body{*registry.get_component<KinematicComponent>(1)->body};
+  const auto* body{*registry.get_component<KinematicComponent>(1)->body};
   ASSERT_EQ(cpBodyGetPosition(body), cpvzero);
   ASSERT_EQ(cpBodyGetVelocity(body), cpv(200, 150));
 }
