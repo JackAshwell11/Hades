@@ -17,8 +17,9 @@ class ShopSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     registry.add_system<ShopSystem>();
-    registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<Money>(), std::make_shared<Health>(200, 5)});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<Money>(game_object_id);
+    registry.add_component<Health>(game_object_id, 200, 5);
   }
 
   /// Tear down the fixture after the tests.
@@ -334,7 +335,8 @@ TEST_F(ShopSystemFixture, TestShopSystemPurchaseStatUpgradeMaxLevel) {
 /// Test that an exception is thrown when purchasing a stat upgrade offering if the game object does not have the
 /// required component.
 TEST_F(ShopSystemFixture, TestShopSystemPurchaseStatUpgradeNoComponent) {
-  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<Money>()});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<Money>(game_object_id);
   add_stat_upgrade();
   ASSERT_THROW_MESSAGE(get_shop_system()->purchase(1, 0), RegistryError,
                        "The component `Health` for the game object ID `1` is not registered with the registry.");
@@ -404,7 +406,8 @@ TEST_F(ShopSystemFixture, TestShopSystemPurchaseInvalidOfferingIndex) {
 
 /// Test that an exception is thrown if the game object does not have a money component.
 TEST_F(ShopSystemFixture, TestShopSystemPurchaseNoMoneyComponent) {
-  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<Health>(0, -1)});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<Health>(game_object_id, 0, -1);
   add_stat_upgrade();
   ASSERT_THROW_MESSAGE(get_shop_system()->purchase(1, 0), RegistryError,
                        "The component `Money` for the game object ID `1` is not registered with the registry.");

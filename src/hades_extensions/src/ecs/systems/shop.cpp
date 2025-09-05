@@ -23,18 +23,123 @@ auto calculate_exponential(const double base, const int level, const double mult
   return base + std::pow(level, multiplier);
 }
 
-/// Get a component type from a string.
-///
-/// @param type - The string representation of the component type.
-/// @throws std::runtime_error if the type is not recognised.
-/// @return The type index of the component type.
-auto get_component_type_from_string(const std::string& type) -> std::type_index {
-  static const std::unordered_map<std::string, std::type_index> type_map{{"Health", typeid(Health)},
-                                                                         {"Armour", typeid(Armour)}};
-  if (type_map.contains(type)) {
-    return type_map.at(type);
+/// Represents an upgradable stat offering in the shop.
+template <typename StatComponent>
+struct StatUpgradeOffering final : ShopOffering {
+  /// Initialise the object.
+  ///
+  /// @param name - The name of the offering.
+  /// @param description - The description of the offering.
+  /// @param base_cost - The base cost of the offering.
+  /// @param cost_multiplier - The cost multiplier of the offering.
+  /// @param base_value - The base value of the offering.
+  /// @param value_multiplier - The value multiplier of the offering.
+  StatUpgradeOffering(const std::string& name, const std::string& description, const double base_cost,
+                      const double cost_multiplier, const double base_value, const double value_multiplier)
+      : ShopOffering(name, description, base_cost, cost_multiplier),
+        base_value(base_value),
+        value_multiplier(value_multiplier) {}
+
+  /// Apply the offering to the buyer.
+  ///
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  /// @param buyer_id - The ID of the buyer.
+  /// @throws RegistryError - If the game object does not exist or does not have the required components.
+  /// @return true if the application was successful, false otherwise.
+  auto apply(const Registry* registry, const GameObjectID buyer_id) const -> bool override {
+    const auto& component{registry->get_component<StatComponent>(buyer_id)};
+    if (component->get_current_level() >= component->get_max_level()) {
+      return false;
+    }
+    const auto diff{calculate_exponential(base_value, component->get_current_level(), value_multiplier)};
+    component->add_to_max_value(diff);
+    component->increment_current_level();
+    component->set_value(component->get_value() + diff);
+    return true;
   }
-  throw std::runtime_error("Unknown component type: " + type);
+
+  /// Get the cost of the offering.
+  ///
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  /// @param buyer_id - The ID of the buyer.
+  /// @return The cost of the offering.
+  [[nodiscard]] auto get_cost(const Registry* registry, const GameObjectID buyer_id) const -> double override {
+    const auto component{registry->get_component<StatComponent>(buyer_id)};
+    return calculate_exponential(base_cost, component->get_current_level(), cost_multiplier);
+  }
+
+  /// The base value of the offering.
+  double base_value;
+
+  /// The value multiplier of the offering.
+  double value_multiplier;
+};
+
+/// Represents a one-time component unlock offering in the shop.
+struct ComponentUnlockOffering final : ShopOffering {
+  /// Initialise the object.
+  ///
+  /// @param name - The name of the offering.
+  /// @param description - The description of the offering.
+  /// @param cost - The cost of the offering.
+  /// @param cost_multiplier - The cost multiplier of the offering.
+  ComponentUnlockOffering(const std::string& name, const std::string& description, const double cost,
+                          const double cost_multiplier)
+      : ShopOffering(name, description, cost, cost_multiplier) {}
+
+  /// Apply the offering to the buyer.
+  ///
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  /// @param buyer_id - The ID of the buyer.
+  /// @throws RegistryError - If the game object does not exist or does not have the required components.
+  /// @return true if the application was successful, false otherwise.
+  auto apply(const Registry* registry, GameObjectID buyer_id) const -> bool override;
+};
+
+/// Represents a repeatable item offering in the shop.
+struct ItemOffering final : ShopOffering {
+  /// Initialise the object.
+  ///
+  /// @param name - The name of the offering.
+  /// @param description - The description of the offering.
+  /// @param base_cost - The base cost of the offering.
+  /// @param cost_multiplier - The cost multiplier of the offering.
+  ItemOffering(const std::string& name, const std::string& description, const double base_cost,
+               const double cost_multiplier)
+      : ShopOffering(name, description, base_cost, cost_multiplier) {}
+
+  /// Apply the offering to the buyer.
+  ///
+  /// @param registry - The registry that manages the game objects, components, and systems.
+  /// @param buyer_id - The ID of the buyer.
+  /// @throws RegistryError - If the game object does not exist or does not have the required components.
+  /// @return true if the application was successful, false otherwise.
+  auto apply(const Registry* registry, GameObjectID buyer_id) const -> bool override;
+};
+
+/// Get a stat upgrade offering based on the stat type.
+///
+/// @param name - The name of the offering.
+/// @param description - The description of the offering.
+/// @param stat_type - The type of stat to upgrade.
+/// @param base_cost - The base cost of the offering.
+/// @param cost_multiplier - The cost multiplier of the offering.
+/// @param base_value - The base value of the offering.
+/// @param value_multiplier - The value multiplier of the offering.
+/// @throws std::runtime_error if the stat type is not recognised.
+/// @return A unique pointer to the stat upgrade offering.
+auto get_stat_upgrade_offering(const std::string& name, const std::string& description, const std::string& stat_type,
+                               const double base_cost, const double cost_multiplier, const double base_value,
+                               const double value_multiplier) -> std::unique_ptr<ShopOffering> {
+  if (stat_type == "Health") {
+    return std::make_unique<StatUpgradeOffering<Health>>(name, description, base_cost, cost_multiplier, base_value,
+                                                         value_multiplier);
+  }
+  if (stat_type == "Armour") {
+    return std::make_unique<StatUpgradeOffering<Armour>>(name, description, base_cost, cost_multiplier, base_value,
+                                                         value_multiplier);
+  }
+  throw std::runtime_error("Unknown component type: " + stat_type);
 }
 }  // namespace
 
@@ -44,23 +149,6 @@ void Money::from_file(const nlohmann::json& json) { money = json.at("money").get
 
 auto ShopOffering::get_cost(const Registry* /*registry*/, const GameObjectID /*buyer_id*/) const -> double {
   return calculate_exponential(base_cost, 0, cost_multiplier);
-}
-
-auto StatUpgradeOffering::get_cost(const Registry* registry, const GameObjectID buyer_id) const -> double {
-  const auto component{std::static_pointer_cast<Stat>(registry->get_component(buyer_id, component_type))};
-  return calculate_exponential(base_cost, component->get_current_level(), cost_multiplier);
-}
-
-auto StatUpgradeOffering::apply(const Registry* registry, const GameObjectID buyer_id) const -> bool {
-  const auto& component{std::static_pointer_cast<Stat>(registry->get_component(buyer_id, component_type))};
-  if (component->get_current_level() >= component->get_max_level()) {
-    return false;
-  }
-  const auto diff{calculate_exponential(base_value, component->get_current_level(), value_multiplier)};
-  component->add_to_max_value(diff);
-  component->increment_current_level();
-  component->set_value(component->get_value() + diff);
-  return true;
 }
 
 auto ComponentUnlockOffering::apply(const Registry* /*registry*/, const GameObjectID /*buyer_id*/) const -> bool {
@@ -81,11 +169,11 @@ void ShopSystem::add_offerings(std::istream& stream, const GameObjectID player_i
     const auto base_cost{offering.at("base_cost").get<double>()};
     const auto cost_multiplier{offering.at("cost_multiplier").get<double>()};
     if (type == "stat") {
-      const auto component_type{get_component_type_from_string(offering.at("stat_type").get<std::string>())};
+      const auto stat_type{offering.at("stat_type").get<std::string>()};
       const auto base_value{offering.at("base_value").get<double>()};
       const auto value_multiplier{offering.at("value_multiplier").get<double>()};
-      offerings_.push_back(std::make_unique<StatUpgradeOffering>(name, description, component_type, base_cost,
-                                                                 cost_multiplier, base_value, value_multiplier));
+      offerings_.push_back(get_stat_upgrade_offering(name, description, stat_type, base_cost, cost_multiplier,
+                                                     base_value, value_multiplier));
     } else if (type == "component") {
       offerings_.push_back(std::make_unique<ComponentUnlockOffering>(name, description, base_cost, cost_multiplier));
     } else if (type == "item") {

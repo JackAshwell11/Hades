@@ -23,8 +23,7 @@ void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect& f
 
 void PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect>& bullet, const double damage,
                                const GameObjectType source_type) const {
-  const auto bullet_id{get_registry()->create_game_object(GameObjectType::Bullet, get<0>(bullet),
-                                                          get_game_object_components(GameObjectType::Bullet))};
+  const auto bullet_id{create_game_object(get_registry(), GameObjectType::Bullet, get<0>(bullet))};
   const auto bullet_component{get_registry()->get_component<Bullet>(bullet_id)};
   bullet_component->damage = damage;
   bullet_component->source_type = source_type;

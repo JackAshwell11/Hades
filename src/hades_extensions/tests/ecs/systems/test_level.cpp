@@ -15,7 +15,8 @@ class PlayerLevelFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<PlayerLevel>()});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<PlayerLevel>(game_object_id);
   }
 };
 

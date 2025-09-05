@@ -60,8 +60,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemNotGoal) {
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalInLobby) {
   get_game_state()->reset_level(LevelType::Lobby);
   auto called{-1};
-  add_callback<EventType::GameObjectCreation>(
-      [&](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
+  add_callback<EventType::GameObjectCreation>([&](const GameObjectID event, const GameObjectType) { called = event; });
   move_player_to_item(get_registry(), get_game_state(), GameObjectType::Goal);
   game_engine.on_update(0);
   ASSERT_EQ(called, -1);
@@ -72,8 +71,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalInLobby) {
 /// completed any levels.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalFirstLevel) {
   auto called{-1};
-  add_callback<EventType::GameObjectCreation>(
-      [&](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
+  add_callback<EventType::GameObjectCreation>([&](const GameObjectID event, const GameObjectType) { called = event; });
   move_player_to_item(get_registry(), get_game_state(), GameObjectType::Goal);
   game_engine.on_update(0);
   ASSERT_NE(called, -1);
@@ -85,8 +83,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalFirstLevel) {
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedFirstSecondLevels) {
   get_game_state()->reset_level(LevelType::SecondDungeon);
   auto called{-1};
-  add_callback<EventType::GameObjectCreation>(
-      [&](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
+  add_callback<EventType::GameObjectCreation>([&](const GameObjectID event, const GameObjectType) { called = event; });
   move_player_to_item(get_registry(), get_game_state(), GameObjectType::Goal);
   game_engine.on_update(0);
   ASSERT_NE(called, -1);
@@ -98,8 +95,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedFirstS
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedLastLevel) {
   get_game_state()->reset_level(LevelType::Boss);
   auto called{-1};
-  add_callback<EventType::GameObjectCreation>(
-      [&](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
+  add_callback<EventType::GameObjectCreation>([&](const GameObjectID event, const GameObjectType) { called = event; });
   move_player_to_item(get_registry(), get_game_state(), GameObjectType::Goal);
   game_engine.on_update(0);
   ASSERT_NE(called, -1);
@@ -109,9 +105,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateNearestItemIsGoalCompletedLastLe
 /// Test that the game engine generates an enemy correctly.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyTimerReached) {
   auto enemy_created{-1};
-  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType, const std::pair<double, double>&) {
-    enemy_created = enemy_id;
-  }};
+  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType) { enemy_created = enemy_id; }};
   add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.on_update(1);
   ASSERT_NE(enemy_created, -1);
@@ -121,9 +115,7 @@ TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyTimerReached) {
 /// Test that the game engine can't generate an enemy if the timer is not reached.
 TEST_F(GameEngineFixture, TestGameEngineOnUpdateGenerateEnemyTimerNotReached) {
   auto enemy_created{-1};
-  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType, const std::pair<double, double>&) {
-    enemy_created = enemy_id;
-  }};
+  auto enemy_creation{[&](const GameObjectID enemy_id, const GameObjectType) { enemy_created = enemy_id; }};
   add_callback<EventType::GameObjectCreation>(enemy_creation);
   game_engine.on_update(0.5);
   ASSERT_EQ(enemy_created, -1);

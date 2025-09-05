@@ -2,6 +2,7 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
+#include "factories.hpp"
 #include "macros.hpp"
 
 /// Implements the fixture for the PhysicsSystem tests.
@@ -12,10 +13,10 @@ class PhysicsSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(
-        GameObjectType::Player, cpvzero,
-        {std::make_shared<KinematicComponent>(std::vector<cpVect>{{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}}),
-         std::make_shared<MovementForce>(100, -1)});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<KinematicComponent>(
+        game_object_id, std::vector<cpVect>{{.x = 0.0, .y = 1.0}, {.x = 1.0, .y = 2.0}, {.x = 2.0, .y = 0.0}});
+    registry.add_component<MovementForce>(game_object_id, 100, -1);
     registry.add_system<PhysicsSystem>();
   }
 
@@ -26,8 +27,8 @@ class PhysicsSystemFixture : public testing::Test {
   /// @param override Whether to override the game objects' positions.
   void create_objects(const GameObjectType type, const std::vector<cpVect>& positions, const bool override = true) {
     for (const auto& position : positions) {
-      const auto object_id{registry.create_game_object(
-          type, position, {std::make_shared<KinematicComponent>(type == GameObjectType::Wall)})};
+      const auto object_id{registry.create_game_object(type)};
+      registry.add_component<KinematicComponent>(object_id, type == GameObjectType::Wall);
       if (override) {
         cpBodySetPosition(*registry.get_component<KinematicComponent>(object_id)->body, position);
         registry.get_system<PhysicsSystem>()->update(1.0);
@@ -43,6 +44,12 @@ class PhysicsSystemFixture : public testing::Test {
   }
 };
 
+/// Test that providing an invalid number of vertices throws an exception.
+TEST_F(PhysicsSystemFixture, TestKinematicComponentInvalidVertices) {
+  ASSERT_THROW_MESSAGE(KinematicComponent(std::vector<cpVect>{{0.0, 1.0}}), std::invalid_argument,
+                       "The shape must have at least 3 vertices.");
+}
+
 /// Test that the kinematic component is reset correctly.
 TEST_F(PhysicsSystemFixture, TestKinematicComponentReset) {
   const auto kinematic_component{registry.get_component<KinematicComponent>(0)};
@@ -53,18 +60,10 @@ TEST_F(PhysicsSystemFixture, TestKinematicComponentReset) {
   ASSERT_EQ(cpBodyGetVelocity(*kinematic_component->body), cpvzero);
 }
 
-/// Test that providing an invalid number of vertices throws an exception.
-TEST_F(PhysicsSystemFixture, TestPhysicsSystemKinematicComponentInvalidVertices) {
-  ASSERT_THROW_MESSAGE(
-      registry.create_game_object(GameObjectType::Player, cpvzero,
-                                  {std::make_shared<KinematicComponent>(std::vector<cpVect>{{0.0, 1.0}})}),
-      std::invalid_argument, "The shape must have at least 3 vertices.");
-}
-
 /// Test updating the physics system with a game object that has no velocity and no force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityNoForce) {
   get_physics_system()->update(1.0);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(32, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
   ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -73,7 +72,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityNoForce) {
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityValidForce) {
   cpBodySetForce(*registry.get_component<KinematicComponent>(0)->body, {.x = 10, .y = 0});
   get_physics_system()->update(1.0);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(32, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
   ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(10, 0));
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -82,7 +81,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityValidForce) {
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityNoForce) {
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 0});
   get_physics_system()->update(1.0);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(132, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(100, 0));
   ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(0.01, 0));
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -92,7 +91,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityValidForce) {
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 0});
   cpBodySetForce(*registry.get_component<KinematicComponent>(0)->body, {.x = 10, .y = 0});
   get_physics_system()->update(1.0);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(132, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(100, 0));
   ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(10.01, 0));
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -133,17 +132,18 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveForceValidForce) {
 /// Test that adding a force to a static wall body doesn't change its position.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceStaticWall) {
   // Walls should never have a MovementForce component, but if they do, their position should not change
-  const auto wall_id{registry.create_game_object(
-      GameObjectType::Wall, cpvzero,
-      {std::make_shared<KinematicComponent>(true), std::make_shared<MovementForce>(100, -1)})};
+  const auto wall_id{registry.create_game_object(GameObjectType::Wall)};
+  registry.add_component<KinematicComponent>(wall_id, true);
+  registry.add_component<MovementForce>(wall_id, 100, -1);
   get_physics_system()->add_force(wall_id, {10, 0});
   get_physics_system()->update(1);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(wall_id)->body), cpv(32, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(wall_id)->body), cpvzero);
 }
 
 /// Test that an exception is thrown if a game object does not have a kinematic component.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicComponent) {
-  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<MovementForce>(100, -1)});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<MovementForce>(game_object_id, 100, -1);
   ASSERT_THROW_MESSAGE(
       get_physics_system()->add_force(1, {0, 0}), RegistryError,
       "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.");
@@ -151,7 +151,8 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicCompon
 
 /// Test that an exception is thrown if a game object does not have a movement force component.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentMovementForceComponent) {
-  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<KinematicComponent>()});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<KinematicComponent>(game_object_id);
   ASSERT_THROW_MESSAGE(get_physics_system()->add_force(1, {0, 0}), RegistryError,
                        "The component `MovementForce` for the game object ID `1` is not registered with the registry.");
 }
