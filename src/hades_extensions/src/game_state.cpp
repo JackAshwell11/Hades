@@ -1,15 +1,14 @@
-// Std headers
-#include <utility>
-
 // Related header
 #include "game_state.hpp"
+
+// Std headers
+#include <utility>
 
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/systems/inventory.hpp"
 #include "ecs/systems/level.hpp"
 #include "ecs/systems/movements.hpp"
-#include "ecs/systems/physics.hpp"
 #include "events.hpp"
 #include "factories.hpp"
 #include "generation/map.hpp"
@@ -31,8 +30,7 @@ constexpr std::hash<std::string> seed_hasher;
 
 GameState::GameState(const std::shared_ptr<Registry>& registry) : registry_(registry) {
   if (get_player_id() == -1) {
-    game_state_.game.player_id = registry_->create_game_object(GameObjectType::Player, cpvzero,
-                                                               get_game_object_components(GameObjectType::Player));
+    game_state_.game.player_id = create_game_object(registry.get(), GameObjectType::Player, cpvzero);
   }
   initialise_dungeon_run();
 }
@@ -145,8 +143,7 @@ void GameState::generate_enemy() {
   const int enemy_level{
       static_cast<int>(game_state_.dungeon_run.level_distribution(game_state_.dungeon_run.random_generator))};
   const auto enemy_id{
-      registry_->create_game_object(GameObjectType::Enemy, grid_position,
-                                    get_game_object_components(GameObjectType::Enemy, std::max(0, enemy_level)))};
+      create_game_object(registry_.get(), GameObjectType::Enemy, grid_position, std::max(0, enemy_level))};
   registry_->get_component<SteeringMovement>(enemy_id)->target_id = get_player_id();
 }
 
@@ -167,17 +164,11 @@ void GameState::create_game_objects(const Grid& grid, const bool store_floor_pos
         game_state_.current_level.floor_positions.emplace_back(position);
       }
       if (game_object_type != GameObjectType::Floor) {
-        registry_->create_game_object(GameObjectType::Floor, position,
-                                      get_game_object_components(GameObjectType::Floor));
+        (void)create_game_object(registry_.get(), GameObjectType::Floor, position);
       }
     }
 
     // Handle game object creation
-    if (game_object_type == GameObjectType::Player) {
-      cpBodySetPosition(*registry_->get_component<KinematicComponent>(get_player_id())->body,
-                        grid_pos_to_pixel(position));
-    } else {
-      registry_->create_game_object(game_object_type, position, get_game_object_components(game_object_type));
-    }
+    (void)create_game_object(registry_.get(), game_object_type, position);
   }
 }

@@ -26,21 +26,17 @@ class HadesSprite(BasicSprite):
     def __init__(
         self: HadesSprite,
         game_object_id: int,
-        position: tuple[float, float],
         constructor: GameObjectConstructor,
     ) -> None:
         """Initialise the object.
 
         Args:
             game_object_id: The game object's ID.
-            position: The sprite's initial position.
             constructor: The game object's constructor.
         """
         super().__init__(
             constructor.textures[0].get_texture(),
             SPRITE_SCALE,
-            position[0],
-            position[1],
         )
         self.game_object_id: int = game_object_id
         self.constructor: GameObjectConstructor = constructor
@@ -98,33 +94,26 @@ class AnimatedSprite(DynamicSprite):
     def __init__(
         self: AnimatedSprite,
         game_object_id: int,
-        position: tuple[float, float],
         constructor: GameObjectConstructor,
     ) -> None:
         """Initialise the object.
 
         Args:
             game_object_id: The game object's ID.
-            position: The sprite's initial position.
             constructor: The game object's constructor.
         """
-        super().__init__(game_object_id, position, constructor)
+        super().__init__(game_object_id, constructor)
         self.sprite_textures: list[tuple[Texture, Texture]] = [
             (texture.get_texture(), texture.get_texture().flip_left_right())
             for texture in constructor.textures
         ]
 
 
-def make_sprite(
-    game_object_id: int,
-    position: tuple[float, float],
-    constructor: GameObjectConstructor,
-) -> HadesSprite:
+def make_sprite(game_object_id: int, constructor: GameObjectConstructor) -> HadesSprite:
     """Create a sprite object.
 
     Args:
         game_object_id: The game object's ID.
-        position: The sprite's initial position.
         constructor: The game object's constructor.
 
     Returns:
@@ -137,4 +126,4 @@ def make_sprite(
         sprite_class = AnimatedSprite
     else:
         sprite_class = HadesSprite
-    return sprite_class(game_object_id, position, constructor)
+    return sprite_class(game_object_id, constructor)

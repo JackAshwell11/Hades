@@ -5,25 +5,10 @@
 #include <functional>
 #include <queue>
 #include <ranges>
-#include <typeindex>
 #include <unordered_set>
 
 // Local headers
-#include "ecs/bases.hpp"
-#include "ecs/chipmunk.hpp"
-#include "game_object.hpp"
-
-/// Calculate the screen position based on a grid position.
-///
-/// @param position - The position in the grid.
-/// @throws std::invalid_argument - If the position is negative.
-/// @return The screen position of the grid position.
-inline auto grid_pos_to_pixel(const cpVect& position) -> cpVect {
-  if (position.x < 0 || position.y < 0) {
-    throw std::invalid_argument("The position cannot be negative.");
-  }
-  return position * SPRITE_SIZE + SPRITE_SIZE / 2;
-}
+#include "systems/physics.hpp"
 
 /// Convert a Chipmunk2D shape to a game object ID.
 ///
@@ -34,39 +19,52 @@ inline auto cpShapeToGameObjectID(const cpShape* shape) -> GameObjectID {
   return static_cast<GameObjectID>(reinterpret_cast<uintptr_t>(cpShapeGetUserData(shape)));
 }
 
+/// Get the type name from a type info object.
+///
+/// @param info - The type info object.
+/// @return The type name as a string.
+auto type_name_from_info(const std::type_info& info) -> std::string;
+
 /// Raised when an error occurs with the registry.
 class RegistryError final : public std::runtime_error {
  public:
   /// Initialise the object.
   ///
-  /// @param not_registered_type - The type of item that is not registered.
-  /// @param value - The value that is not registered.
-  /// @param extra - Any extra information to add to the error message.
-  template <typename T>
-  explicit RegistryError(const std::string& not_registered_type, const T& value,
-                         const std::string& extra = "is not registered with the registry")
-      : std::runtime_error("The " + not_registered_type + " `" + to_string(value) + "` " + extra + ".") {}
+  /// @param type - The type that caused the registry error.
+  explicit RegistryError(const std::string& type)
+      : std::runtime_error("The " + type + " is not registered with the registry.") {}
 
   /// Initialise the object.
   ///
-  /// @param game_object_id - The game object ID that threw the error.
-  /// @param type - The type of item that is not registered.
-  explicit RegistryError(const GameObjectID game_object_id, const std::type_index& type)
-      : std::runtime_error("The component `" + to_string(type) + "` for the game object ID `" +
-                           to_string(game_object_id) + "` is not registered with the registry.") {}
+  /// @param type - The type that caused the registry error.
+  explicit RegistryError(const GameObjectID type) : RegistryError("game object ID `" + std::to_string(type) + "`") {}
 
- private:
-  /// Convert a value to a string.
+  /// Initialise the object.
   ///
-  /// @param value - The value to convert to a string.
-  /// @return The value as a string.
-  static auto to_string(const std::type_index& value) -> std::string;
+  /// @param type - The type that caused the registry error.
+  /// @param game_object_id - The game object ID which caused the registry error.
+  explicit RegistryError(const std::string& type, const GameObjectID game_object_id)
+      : std::runtime_error("The component `" + type + "` for the game object ID `" + std::to_string(game_object_id) +
+                           "` is not registered with the registry.") {}
 
-  /// Convert a value to a string.
+  /// Create a RegistryError given a type.
   ///
-  /// @param value - The value to convert to a string.
-  /// @return The value as a string.
-  static auto to_string(GameObjectID value) -> std::string;
+  /// @tparam T - The type that caused the registry error.
+  /// @return The registry error.
+  template <typename T>
+  static auto for_type() -> RegistryError {
+    return RegistryError("`" + type_name_from_info(typeid(T)) + "`");
+  }
+
+  /// Create a RegistryError given a type and game object ID.
+  ///
+  /// @tparam T - The type that caused the registry error.
+  /// @param game_object_id - The game object ID which caused the registry error.
+  /// @return The registry error.
+  template <typename T>
+  static auto for_type(const GameObjectID game_object_id) -> RegistryError {
+    return RegistryError(type_name_from_info(typeid(T)), game_object_id);
+  }
 };
 
 /// Manages game objects, components, and systems that are registered.
@@ -78,11 +76,20 @@ class Registry {
   /// Create a new game object.
   ///
   /// @param game_object_type - The type of game object to create.
-  /// @param position - The position of the game object.
-  /// @param components - The components to add to the game object.
   /// @return The game object ID.
-  auto create_game_object(GameObjectType game_object_type, const cpVect& position,
-                          const std::vector<std::shared_ptr<ComponentBase>>&& components) -> GameObjectID;
+  auto create_game_object(GameObjectType game_object_type) -> GameObjectID;
+
+  /// Check if a game object is registered or not.
+  ///
+  /// @param game_object_id - The game object ID.
+  /// @return Whether the game object is registered or not.
+  [[nodiscard]] auto has_game_object(GameObjectID game_object_id) const -> bool;
+
+  /// Mark a game object for deletion after the next update step
+  ///
+  /// @param game_object_id - The ID of the game object to delete.
+  /// @throws RegistryError if the game object does not exist or does not have a kinematic component.
+  void mark_for_deletion(GameObjectID game_object_id);
 
   /// Delete a game object.
   ///
@@ -95,38 +102,100 @@ class Registry {
   /// @param game_object_ids_to_preserve - The game object IDs to preserve.
   void clear_game_objects(const std::unordered_set<GameObjectID>& game_object_ids_to_preserve = {});
 
-  /// Check if a game object is registered or not.
+  /// Add a component to a game object.
   ///
-  /// @param game_object_id - The game object ID.
-  /// @return Whether the game object is registered or not.
-  [[nodiscard]] auto has_game_object(GameObjectID game_object_id) const -> bool;
-
-  /// Checks if a game object has a given component or not.
-  ///
-  /// @param game_object_id - The game object ID.
-  /// @param component_type - The type of component to check for.
-  /// @return Whether the game object has the component or not.
-  [[nodiscard]] auto has_component(GameObjectID game_object_id, const std::type_index& component_type) const -> bool;
-
-  /// Get a component from the registry.
-  ///
-  /// @tparam T - The type of component to get.
-  /// @param game_object_id - The game object ID.
-  /// @throws RegistryError - If the game object is not registered or if the game object does not have the component.
-  /// @return The component from the registry.
-  template <typename T>
-  auto get_component(const GameObjectID game_object_id) const -> std::shared_ptr<T> {
-    return std::static_pointer_cast<T>(get_component(game_object_id, typeid(T)));
+  /// @tparam Component - The type of component to add.
+  /// @tparam Args - The types of arguments to pass to the component constructor.
+  /// @param game_object_id - The game object ID of the game object to add the component to.
+  /// @param args - The arguments to pass to the component constructor.
+  /// @throws RegistryError - If the game object is not registered.
+  template <typename Component, typename... Args>
+  void add_component(const GameObjectID game_object_id, Args&&... args) {
+    const auto component{std::make_shared<Component>(std::forward<Args>(args)...)};
+    components_[type_id<Component>()][game_object_id] = component;
+    if constexpr (std::is_base_of_v<Component, KinematicComponent>) {
+      auto* const body{*component->body};
+      auto* const shape{*component->shape};
+      const auto game_object_type{get_game_object_type(game_object_id)};
+      cpShapeSetCollisionType(shape, static_cast<cpCollisionType>(game_object_type));
+      cpShapeSetFilter(shape, {CP_NO_GROUP, static_cast<cpBitmask>(game_object_type), CP_ALL_CATEGORIES});
+      cpShapeSetUserData(shape, reinterpret_cast<void*>(static_cast<uintptr_t>(game_object_id)));
+      cpShapeSetBody(shape, body);
+      cpSpaceAddBody(*space_, body);
+      cpSpaceAddShape(*space_, shape);
+    }
   }
 
   /// Get a component from the registry.
   ///
+  /// @tparam Component - The type of component to get.
   /// @param game_object_id - The game object ID.
-  /// @param component_type - The type of component to get.
   /// @throws RegistryError - If the game object is not registered or if the game object does not have the component.
   /// @return The component from the registry.
-  [[nodiscard]] auto get_component(GameObjectID game_object_id, const std::type_index& component_type) const
-      -> std::shared_ptr<ComponentBase>;
+  template <typename Component>
+  auto get_component(const GameObjectID game_object_id) const -> std::shared_ptr<Component> {
+    const auto component_id{type_id<Component>()};
+    if (!components_.contains(component_id)) {
+      throw RegistryError::for_type<Component>(game_object_id);
+    }
+    const auto& component_map{components_.at(component_id)};
+    if (!component_map.contains(game_object_id)) {
+      throw RegistryError::for_type<Component>(game_object_id);
+    }
+    return std::static_pointer_cast<Component>(component_map.at(game_object_id));
+  }
+
+  /// Checks if a game object has a given component or not.
+  ///
+  /// @tparam Component - The type of component to check for.
+  /// @param game_object_id - The game object ID.
+  /// @return Whether the game object has the component or not.
+  template <typename Component>
+  [[nodiscard]] auto has_component(GameObjectID game_object_id) const -> bool {
+    const auto component_id{type_id<Component>()};
+    if (!components_.contains(component_id)) {
+      return false;
+    }
+    return components_.at(component_id).contains(game_object_id);
+  }
+
+  /// Get all components of a game object.
+  ///
+  /// @param game_object_id - The game object ID.
+  /// @throws RegistryError - If the game object is not registered.
+  /// @return A range of all components of the game object.
+  [[nodiscard]] auto get_game_object_components(const GameObjectID game_object_id) const {
+    if (!has_game_object(game_object_id)) {
+      throw RegistryError("game object", game_object_id);
+    }
+    auto components{components_ |
+                    std::views::transform([game_object_id](auto const& pair) -> std::shared_ptr<ComponentBase> {
+                      auto const& component_map{pair.second};
+                      if (auto component_it{component_map.find(game_object_id)}; component_it != component_map.end()) {
+                        return std::static_pointer_cast<ComponentBase>(component_it->second);
+                      }
+                      return nullptr;
+                    }) |
+                    std::views::filter([](auto const& ptr) { return ptr != nullptr; })};
+    return components;
+  }
+
+  /// Get all game objects that have the required components.
+  ///
+  /// @tparam Component - The types of components to find.
+  /// @return The game objects that have the required components.
+  template <typename... Component>
+  auto get_game_object_components() const {
+    auto filtered{game_object_types_ | std::views::filter([this](auto const& pair) {
+                    return (has_component<Component>(pair.first) && ...);
+                  })};
+    auto transformed{filtered | std::views::transform([this](auto const& pair) {
+                       return std::make_pair(pair.first, std::tuple<std::shared_ptr<Component>...>{
+                                                             get_component<Component>(pair.first)...});
+                     })};
+
+    return transformed;
+  }
 
   /// Get the type of a game object.
   ///
@@ -141,72 +210,27 @@ class Registry {
   /// @return The game object IDs of the game object type.
   [[nodiscard]] auto get_game_object_ids(GameObjectType game_object_type) const -> std::vector<GameObjectID>;
 
-  /// Get the components of a game object.
-  ///
-  /// @param game_object_id - The game object ID.
-  /// @throws RegistryError - If the game object is not registered.
-  /// @return The components of the game object.
-  [[nodiscard]] auto get_game_object_components(GameObjectID game_object_id) const
-      -> std::vector<std::shared_ptr<ComponentBase>>;
-
-  /// Mark a game object for deletion after the next update step
-  ///
-  /// @param game_object_id - The ID of the game object to delete.
-  /// @throws RegistryError if the game object does not exist or does not have a kinematic component.
-  void mark_for_deletion(GameObjectID game_object_id);
-
-  /// Find all the game objects that have the required components.
-  ///
-  /// @tparam Ts - The types of components to find.
-  /// @return The game objects that have the required components.
-  template <typename... Ts>
-  auto find_components() const {
-    // Use ranges::filter to filter out the game objects that have all the components then use ranges::transform to get
-    // only the game object ID and the required components
-    return game_objects_ | std::views::filter([this](const auto& game_object) {
-             const auto& [game_object_id, game_object_components] = game_object;
-             return (has_component(game_object_id, typeid(Ts)) && ...);
-           }) |
-           std::views::transform([](const auto& game_object) {
-             const auto& [game_object_id, game_object_components] = game_object;
-             return std::make_tuple(
-                 game_object_id,
-                 std::make_tuple(std::static_pointer_cast<Ts>(game_object_components.at(typeid(Ts)))...));
-           });
-  }
-
   /// Add a system to the registry.
   ///
-  /// @tparam T - The type of system to add.
+  /// @tparam System - The type of system to add.
   /// @throws RegistryError - If the system is already registered.
-  template <typename T>
+  template <typename System>
   void add_system() {
-    // Check if the system is already registered
-    const std::type_index system_type{typeid(T)};
-    if (systems_.contains(system_type)) {
-      throw RegistryError("system", system_type, "is already registered with the registry");
-    }
-
-    // Add the system to the registry
-    systems_[system_type] = std::make_shared<T>(this);
+    systems_[type_id<System>()] = std::make_shared<System>(this);
   }
 
   /// Get a system from the registry.
   ///
-  /// @tparam T - The type of system to get.
+  /// @tparam System - The type of system to get.
   /// @throws RegistryError - If the system is not registered.
   /// @return The system from the registry.
-  template <typename T>
-  auto get_system() const -> std::shared_ptr<T> {
-    // Check if the system is registered
-    const std::type_index system_type{typeid(T)};
-    const auto system_result{systems_.find(system_type)};
-    if (system_result == systems_.end()) {
-      throw RegistryError("system", system_type);
+  template <typename System>
+  auto get_system() const -> std::shared_ptr<System> {
+    const auto system_id{type_id<System>()};
+    if (!systems_.contains(system_id)) {
+      throw RegistryError::for_type<System>();
     }
-
-    // Return the system
-    return std::static_pointer_cast<T>(system_result->second);
+    return std::static_pointer_cast<System>(systems_.at(system_id));
   }
 
   /// Update all the systems in the registry.
@@ -220,10 +244,29 @@ class Registry {
   [[nodiscard]] auto get_space() const -> cpSpace* { return *space_; }
 
  private:
-  /// Create a Chipmunk2D collision handler to deal with bullet collisions.
+  /// The next component type ID to use.
+  inline static int next_component_type_id_{0};
+
+  /// The next system type ID to use.
+  inline static int next_system_type_id_{0};
+
+  /// Get the next type ID to use.
   ///
-  /// @param game_object_type - The type of game object to create the collision handler for.
-  void createBulletCollisionHandler(GameObjectType game_object_type);
+  /// @tparam T - The type to get the type ID for.
+  /// @return The type ID.
+  template <typename T>
+  [[nodiscard]] static auto type_id() -> int {
+    if constexpr (std::is_base_of_v<ComponentBase, T>) {
+      static auto current_id{next_component_type_id_++};
+      return current_id;
+    } else if constexpr (std::is_base_of_v<SystemBase, T>) {
+      static auto current_id{next_system_type_id_++};
+      return current_id;
+    } else {
+      static_assert(sizeof(T) == 0, "type_id called on unknown type");
+      return -1;
+    }
+  }
 
   /// The next game object ID to use.
   GameObjectID next_game_object_id_{0};
@@ -231,8 +274,8 @@ class Registry {
   /// The recycled game object IDs that can be reused.
   std::queue<GameObjectID> recycled_ids_;
 
-  /// The game objects and their components registered with the registry.
-  std::unordered_map<GameObjectID, std::unordered_map<std::type_index, std::shared_ptr<ComponentBase>>> game_objects_;
+  /// The components registered with the registry.
+  std::unordered_map<int, std::unordered_map<GameObjectID, std::shared_ptr<ComponentBase>>> components_;
 
   /// The game object types registered with the registry.
   std::unordered_map<GameObjectID, GameObjectType> game_object_types_;
@@ -244,7 +287,7 @@ class Registry {
   std::unordered_set<GameObjectID> objects_to_delete_;
 
   /// The systems registered with the registry.
-  std::unordered_map<std::type_index, std::shared_ptr<SystemBase>> systems_;
+  std::unordered_map<int, std::shared_ptr<SystemBase>> systems_;
 
   /// The Chipmunk2D space.
   ChipmunkHandle<cpSpace, cpSpaceFree> space_{cpSpaceNew()};

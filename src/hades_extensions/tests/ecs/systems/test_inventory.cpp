@@ -5,7 +5,6 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/effects.hpp"
 #include "ecs/systems/inventory.hpp"
-#include "ecs/systems/physics.hpp"
 #include "events.hpp"
 #include "macros.hpp"
 
@@ -26,9 +25,11 @@ class InventorySystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<Health>(200, -1), std::make_shared<Inventory>(),
-                                 std::make_shared<InventorySize>(8, -1), std::make_shared<StatusEffects>()});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<Health>(game_object_id, 200, -1);
+    registry.add_component<Inventory>(game_object_id);
+    registry.add_component<InventorySize>(game_object_id, 8, -1);
+    registry.add_component<StatusEffects>(game_object_id);
     registry.add_system<EffectSystem>();
     registry.add_system<InventorySystem>();
   }
@@ -42,16 +43,16 @@ class InventorySystemFixture : public testing::Test {
   /// @param config - The configuration for the item.
   /// @return The game object ID of the item.
   [[nodiscard]] auto create_item(const GameObjectType type, const ItemConfig& config) -> GameObjectID {
-    std::vector<std::shared_ptr<ComponentBase>> components;
+    const auto game_object_id{registry.create_game_object(type)};
     if (config.kinematic) {
-      components.push_back(std::make_shared<KinematicComponent>());
+      registry.add_component<KinematicComponent>(game_object_id, cpvzero);
     }
     if (config.effect_applier) {
-      const auto effect_applier{std::make_shared<EffectApplier>()};
+      registry.add_component<EffectApplier>(game_object_id);
+      const auto effect_applier{registry.get_component<EffectApplier>(game_object_id)};
       effect_applier->add_instant_effect(EffectType::Regeneration, 5);
-      components.push_back(std::move(effect_applier));
     }
-    return registry.create_game_object(type, cpvzero, std::move(components));
+    return game_object_id;
   }
 
   /// Get the inventory system from the registry.

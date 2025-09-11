@@ -89,7 +89,7 @@ TEST_F(SaveManagerFixture, TestSaveManagerLoadSaveNonExistent) {
 /// Test that loading an invalid JSON save throws an exception.
 TEST_F(SaveManagerFixture, TestSaveManagerLoadSaveInvalidJson) {
   save_manager->save_game();
-  const std::filesystem::path save_file{(*std::filesystem::directory_iterator(test_save_path)).path()};
+  const std::filesystem::path save_file{std::filesystem::directory_iterator(test_save_path)->path()};
   std::ofstream stream{save_file};
   stream << "{\"invalid json content}";
   stream.close();

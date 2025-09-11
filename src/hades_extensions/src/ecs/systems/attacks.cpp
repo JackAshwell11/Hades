@@ -11,7 +11,6 @@
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/systems/movements.hpp"
-#include "ecs/systems/physics.hpp"
 #include "events.hpp"
 
 namespace {
@@ -150,7 +149,7 @@ void Attack::from_file(const nlohmann::json& json) {
 }
 
 void AttackSystem::update(const double delta_time) const {
-  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<Attack>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->get_game_object_components<Attack>()) {
     const auto [attack]{component_tuple};
     for (const auto& ranged_attack : attack->ranged_attacks) {
       ranged_attack->update(delta_time);
@@ -171,7 +170,7 @@ void AttackSystem::update(const double delta_time) const {
 
     // If the game object has a steering movement component, they are in the target state, and their cooldown is up,
     // then attack
-    if (get_registry()->has_component(game_object_id, typeid(SteeringMovement)) && !attack->ranged_attacks.empty()) {
+    if (get_registry()->has_component<SteeringMovement>(game_object_id) && !attack->ranged_attacks.empty()) {
       if (const auto steering_movement{get_registry()->get_component<SteeringMovement>(game_object_id)};
           steering_movement->movement_state == SteeringMovementState::Target) {
         (void)do_attack(game_object_id, AttackType::Ranged);

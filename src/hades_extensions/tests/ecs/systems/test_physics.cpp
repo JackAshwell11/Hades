@@ -2,6 +2,7 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
+#include "factories.hpp"
 #include "macros.hpp"
 
 /// Implements the fixture for the PhysicsSystem tests.
@@ -12,10 +13,10 @@ class PhysicsSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(
-        GameObjectType::Player, cpvzero,
-        {std::make_shared<KinematicComponent>(std::vector<cpVect>{{0.0, 1.0}, {1.0, 2.0}, {2.0, 0.0}}),
-         std::make_shared<MovementForce>(100, -1)});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<KinematicComponent>(
+        game_object_id, cpvzero, std::vector<cpVect>{{.x = 0.0, .y = 1.0}, {.x = 1.0, .y = 2.0}, {.x = 2.0, .y = 0.0}});
+    registry.add_component<MovementForce>(game_object_id, 100, -1);
     registry.add_system<PhysicsSystem>();
   }
 
@@ -23,16 +24,12 @@ class PhysicsSystemFixture : public testing::Test {
   ///
   /// @param type The type of the objects to create.
   /// @param positions The positions to create the objects.
-  /// @param override Whether to override the game objects' positions.
-  void create_objects(const GameObjectType type, const std::vector<cpVect>& positions, const bool override = true) {
+  void create_objects(const GameObjectType type, const std::vector<cpVect>& positions) {
     for (const auto& position : positions) {
-      const auto object_id{registry.create_game_object(
-          type, position, {std::make_shared<KinematicComponent>(type == GameObjectType::Wall)})};
-      if (override) {
-        cpBodySetPosition(*registry.get_component<KinematicComponent>(object_id)->body, position);
-        registry.get_system<PhysicsSystem>()->update(1.0);
-      }
+      const auto object_id{registry.create_game_object(type)};
+      registry.add_component<KinematicComponent>(object_id, position, type == GameObjectType::Wall);
     }
+    registry.get_system<PhysicsSystem>()->update(1);
   }
 
   /// Get the physics system from the registry.
@@ -42,6 +39,18 @@ class PhysicsSystemFixture : public testing::Test {
     return registry.get_system<PhysicsSystem>();
   }
 };
+
+/// Test that providing an invalid number of vertices throws an exception.
+TEST_F(PhysicsSystemFixture, TestKinematicComponentInvalidVertices) {
+  ASSERT_THROW_MESSAGE(KinematicComponent(cpvzero, std::vector<cpVect>{{0.0, 1.0}}), std::invalid_argument,
+                       "The shape must have at least 3 vertices.");
+}
+
+/// Test that providing a position sets the body position correctly.
+TEST_F(PhysicsSystemFixture, TestKinematicComponentPosition) {
+  const KinematicComponent kinematic_component{{.x = 10, .y = 20}};
+  ASSERT_EQ(cpBodyGetPosition(*kinematic_component.body), cpv(10, 20));
+}
 
 /// Test that the kinematic component is reset correctly.
 TEST_F(PhysicsSystemFixture, TestKinematicComponentReset) {
@@ -53,18 +62,10 @@ TEST_F(PhysicsSystemFixture, TestKinematicComponentReset) {
   ASSERT_EQ(cpBodyGetVelocity(*kinematic_component->body), cpvzero);
 }
 
-/// Test that providing an invalid number of vertices throws an exception.
-TEST_F(PhysicsSystemFixture, TestPhysicsSystemKinematicComponentInvalidVertices) {
-  ASSERT_THROW_MESSAGE(
-      registry.create_game_object(GameObjectType::Player, cpvzero,
-                                  {std::make_shared<KinematicComponent>(std::vector<cpVect>{{0.0, 1.0}})}),
-      std::invalid_argument, "The shape must have at least 3 vertices.");
-}
-
 /// Test updating the physics system with a game object that has no velocity and no force.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityNoForce) {
   get_physics_system()->update(1.0);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(32, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
   ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -73,7 +74,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityNoForce) {
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityValidForce) {
   cpBodySetForce(*registry.get_component<KinematicComponent>(0)->body, {.x = 10, .y = 0});
   get_physics_system()->update(1.0);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(32, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
   ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(10, 0));
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -82,7 +83,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateNoVelocityValidForce) {
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityNoForce) {
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 0});
   get_physics_system()->update(1.0);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(132, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(100, 0));
   ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(0.01, 0));
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -92,7 +93,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityValidForce) {
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 0});
   cpBodySetForce(*registry.get_component<KinematicComponent>(0)->body, {.x = 10, .y = 0});
   get_physics_system()->update(1.0);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(132, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(100, 0));
   ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(10.01, 0));
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -133,17 +134,18 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveForceValidForce) {
 /// Test that adding a force to a static wall body doesn't change its position.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceStaticWall) {
   // Walls should never have a MovementForce component, but if they do, their position should not change
-  const auto wall_id{registry.create_game_object(
-      GameObjectType::Wall, cpvzero,
-      {std::make_shared<KinematicComponent>(true), std::make_shared<MovementForce>(100, -1)})};
+  const auto wall_id{registry.create_game_object(GameObjectType::Wall)};
+  registry.add_component<KinematicComponent>(wall_id, cpvzero, true);
+  registry.add_component<MovementForce>(wall_id, 100, -1);
   get_physics_system()->add_force(wall_id, {10, 0});
   get_physics_system()->update(1);
-  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(wall_id)->body), cpv(32, 32));
+  ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(wall_id)->body), cpvzero);
 }
 
 /// Test that an exception is thrown if a game object does not have a kinematic component.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicComponent) {
-  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<MovementForce>(100, -1)});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<MovementForce>(game_object_id, 100, -1);
   ASSERT_THROW_MESSAGE(
       get_physics_system()->add_force(1, {0, 0}), RegistryError,
       "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.");
@@ -151,7 +153,8 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicCompon
 
 /// Test that an exception is thrown if a game object does not have a movement force component.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentMovementForceComponent) {
-  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<KinematicComponent>()});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<KinematicComponent>(game_object_id, cpvzero);
   ASSERT_THROW_MESSAGE(get_physics_system()->add_force(1, {0, 0}), RegistryError,
                        "The component `MovementForce` for the game object ID `1` is not registered with the registry.");
 }
@@ -195,26 +198,20 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemFarAway) {
 
 /// Test that getting the nearest item doesn't work if the game object is next to the item.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemNextTo) {
-  // Chipmunk2D uses the minimum distance, not the Euclidean distance, so we need to add another SPRITE_SIZE / 2
-  create_objects(GameObjectType::HealthPotion, {{.x = 96, .y = 32}});
+  // If a shape is at the maximum distance, it is not accepted, its distance must be less
+  create_objects(GameObjectType::HealthPotion, {{.x = 64, .y = 0}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), -1);
 }
 
 /// Test that getting the nearest item works if the game object is close enough to the item.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemWithinMinimum) {
-  create_objects(GameObjectType::HealthPotion, {{.x = 80, .y = 32}});
-  ASSERT_EQ(get_physics_system()->get_nearest_item(0), 1);
-}
-
-/// Test that getting the nearest item works if the game object is touching the item.
-TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemTouching) {
-  create_objects(GameObjectType::HealthPotion, {{.x = 64, .y = 32}});
+  create_objects(GameObjectType::HealthPotion, {{.x = 50, .y = 32}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), 1);
 }
 
 /// Test that getting the nearest item works if the game object is on top of the item.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetNearestItemOnTopOf) {
-  create_objects(GameObjectType::HealthPotion, {{.x = 32, .y = 32}});
+  create_objects(GameObjectType::HealthPotion, {{.x = 0, .y = 0}});
   ASSERT_EQ(get_physics_system()->get_nearest_item(0), 1);
 }
 
@@ -233,8 +230,8 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesNoWalls) {
 /// Test that only the bottom three raycasts hit when getting the distances to the walls when there is one wall game
 /// object.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesOneWallGameObject) {
-  create_objects(GameObjectType::Wall, {cpv(1, 0)}, false);
-  const auto result{get_physics_system()->get_wall_distances({96, 96})};
+  create_objects(GameObjectType::Wall, {{.x = 96, .y = 32}});
+  const auto result{get_physics_system()->get_wall_distances({.x = 96, .y = 96})};
   const std::vector expected_result{cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE),
                                     cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE),
                                     cpv(96, 64),
@@ -243,7 +240,7 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesOneWallGameObject)
                                     cpv(112, 64),
                                     cpv(MAX_WALL_DISTANCE, MAX_WALL_DISTANCE),
                                     cpv(80, 64)};
-  for (auto i{0}; i < static_cast<int>(result.size()); i++) {
+  for (auto i{0}; std::cmp_less(i, result.size()); i++) {
     ASSERT_DOUBLE_EQ(result[i].x, expected_result[i].x);
     ASSERT_DOUBLE_EQ(result[i].y, expected_result[i].y);
   }
@@ -251,11 +248,12 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesOneWallGameObject)
 
 /// Test that all raycasts hit when getting the distances to the walls when there are four wall game objects.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesFourWallGameObjects) {
-  create_objects(GameObjectType::Wall, {cpv(1, 0), cpv(0, 1), cpv(2, 1), cpv(1, 2)}, false);
+  create_objects(GameObjectType::Wall,
+                 {{.x = 96, .y = 32}, {.x = 32, .y = 96}, {.x = 160, .y = 96}, {.x = 96, .y = 160}});
   const auto result{get_physics_system()->get_wall_distances({96, 96})};
   const std::vector expected_result{cpv(96, 128),  cpv(128, 96), cpv(96, 64),  cpv(64, 96),
                                     cpv(112, 128), cpv(112, 64), cpv(80, 128), cpv(80, 64)};
-  for (auto i{0}; i < static_cast<int>(result.size()); i++) {
+  for (auto i{0}; std::cmp_less(i, result.size()); i++) {
     ASSERT_DOUBLE_EQ(result[i].x, expected_result[i].x);
     ASSERT_DOUBLE_EQ(result[i].y, expected_result[i].y);
   }
@@ -263,12 +261,18 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesFourWallGameObject
 
 /// Test that all raycasts hit when getting the distances to the walls when there are eight wall game objects.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemGetWallDistancesEightWallGameObjects) {
-  create_objects(GameObjectType::Wall,
-                 {cpv(0, 0), cpv(1, 0), cpv(2, 0), cpv(0, 1), cpv(2, 1), cpv(0, 2), cpv(1, 2), cpv(2, 2)}, false);
+  create_objects(GameObjectType::Wall, {{.x = 32, .y = 32},
+                                        {.x = 96, .y = 32},
+                                        {.x = 160, .y = 32},
+                                        {.x = 32, .y = 96},
+                                        {.x = 160, .y = 96},
+                                        {.x = 32, .y = 160},
+                                        {.x = 96, .y = 160},
+                                        {.x = 160, .y = 160}});
   const auto result{get_physics_system()->get_wall_distances({96, 96})};
   const std::vector expected_result{cpv(96, 128),  cpv(128, 96), cpv(96, 64),  cpv(64, 96),
                                     cpv(112, 128), cpv(112, 64), cpv(80, 128), cpv(80, 64)};
-  for (auto i{0}; i < static_cast<int>(result.size()); i++) {
+  for (auto i{0}; std::cmp_less(i, result.size()); i++) {
     ASSERT_DOUBLE_EQ(result[i].x, expected_result[i].x);
     ASSERT_DOUBLE_EQ(result[i].y, expected_result[i].y);
   }

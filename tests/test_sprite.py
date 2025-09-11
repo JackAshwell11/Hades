@@ -60,7 +60,7 @@ def test_hades_sprite_init(
         constructor: The game object constructor for testing.
         expected_path: The expected path of the texture.
     """
-    sprite = HadesSprite(0, (0, 0), constructor)
+    sprite = HadesSprite(0, constructor)
     assert sprite.position == (0, 0)
     assert sprite.texture.file_path == expected_path
     assert sprite.game_object_id == 0
@@ -74,7 +74,6 @@ def test_hades_sprite_init_no_texture() -> None:
     with pytest.raises(expected_exception=IndexError, match="list index out of range"):
         HadesSprite(
             0,
-            (0, 0),
             GameObjectConstructor("Test", "Test", GameObjectType.Player, 0, []),
         )
 
@@ -88,7 +87,7 @@ def test_dynamic_sprite_init() -> None:
         0,
         [IconType.FLOOR],
     )
-    sprite = DynamicSprite(0, (0, 0), constructor)
+    sprite = DynamicSprite(0, constructor)
     assert sprite.position == (0, 0)
 
 
@@ -111,7 +110,7 @@ def test_dynamic_sprite_update() -> None:
         0,
         [IconType.FLOOR],
     )
-    sprite = DynamicSprite(-1, (0, 0), constructor)
+    sprite = DynamicSprite(-1, constructor)
 
     # Update the sprite object and check that the position is correct
     assert sprite.position == (0, 0)
@@ -140,7 +139,7 @@ def test_animated_sprite_init(
         constructor: The game object constructor for testing.
         expected_paths: The expected path of the textures.
     """
-    sprite = AnimatedSprite(0, (0, 0), constructor)
+    sprite = AnimatedSprite(0, constructor)
     assert sprite.position == (0, 0)
     assert sprite.texture.file_path == expected_paths[0]
     assert sprite.game_object_id == 0
@@ -171,5 +170,5 @@ def test_make_sprite(
         constructor: The game object constructor for testing.
         expected_sprite_type: The expected type of the sprite object.
     """
-    sprite = make_sprite(0, (0, 0), constructor)
+    sprite = make_sprite(0, constructor)
     assert isinstance(sprite, expected_sprite_type)

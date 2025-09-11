@@ -32,23 +32,18 @@ void bind_ecs(const pybind11::module_& module) {
   pybind11::class_<Registry, std::shared_ptr<Registry>>(
       module, "Registry", "Manages game objects, components, and systems that are registered.")
       .def(
-          "has_component",
-          [](const Registry& registry, const GameObjectID game_object_id, const pybind11::handle& component_type) {
-            return registry.has_component(game_object_id, get_type_index(component_type));
-          },
-          pybind11::arg("game_object_id"), pybind11::arg("component_type"),
-          "Checks if a game object has a given component or not.\n\n"
-          "Args:\n"
-          "    game_object_id: The game object ID.\n"
-          "    component_type: The type of component to check for.\n\n"
-          "Raises:\n"
-          "    RuntimeError: If the component type is invalid.\n\n"
-          "Returns:\n"
-          "    Whether the game object has the component or not.")
-      .def(
           "get_component",
           [](const Registry& registry, const GameObjectID game_object_id, const pybind11::handle& component_type) {
-            return registry.get_component(game_object_id, get_type_index(component_type));
+            const auto type_index{get_type_index(component_type)};
+            std::shared_ptr<ComponentBase> component;
+            if (type_index == typeid(Armour)) {
+              component = registry.get_component<Armour>(game_object_id);
+            } else if (type_index == typeid(Health)) {
+              component = registry.get_component<Health>(game_object_id);
+            } else if (type_index == typeid(KinematicComponent)) {
+              component = registry.get_component<KinematicComponent>(game_object_id);
+            }
+            return component;
           },
           pybind11::arg("game_object_id"), pybind11::arg("component_type"),
           "Get a component from the registry.\n\n"

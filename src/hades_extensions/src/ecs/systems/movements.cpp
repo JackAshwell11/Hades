@@ -20,7 +20,7 @@ namespace {
 /// @param steering_movement - The steering movement component of the game object.
 /// @param kinematic_owner - The kinematic component of the game object.
 /// @param kinematic_target - The kinematic component of the target game object.
-auto calculate_steering_force(Registry* registry, const std::shared_ptr<SteeringMovement>& steering_movement,
+auto calculate_steering_force(const Registry* registry, const std::shared_ptr<SteeringMovement>& steering_movement,
                               const cpBody* kinematic_owner, const cpBody* kinematic_target) -> cpVect {
   cpVect steering_force{cpvzero};
   const auto kinematic_owner_position{cpBodyGetPosition(kinematic_owner)};
@@ -86,7 +86,7 @@ void ViewDistance::from_file(const nlohmann::json& json) { from_file_base(json.a
 
 void FootprintSystem::update(const double delta_time) const {
   // Update the time since the last footprint then check if a new footprint should be created
-  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<Footprints>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->get_game_object_components<Footprints>()) {
     const auto footprints{std::get<0>(component_tuple)};
     footprints->time_since_last_footprint += delta_time;
     if (footprints->time_since_last_footprint <
@@ -110,7 +110,7 @@ void FootprintSystem::update(const double delta_time) const {
 }
 
 void KeyboardMovementSystem::update(const double /*delta_time*/) const {
-  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<KeyboardMovement>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->get_game_object_components<KeyboardMovement>()) {
     const auto keyboard_movement{std::get<0>(component_tuple)};
     get_registry()->get_system<PhysicsSystem>()->add_force(
         game_object_id, {static_cast<double>(static_cast<int>(keyboard_movement->moving_east) -
@@ -122,10 +122,10 @@ void KeyboardMovementSystem::update(const double /*delta_time*/) const {
 
 void SteeringMovementSystem::update(const double /*delta_time*/) const {
   for (const auto& [game_object_id, component_tuple] :
-       get_registry()->find_components<SteeringMovement, KinematicComponent>()) {
+       get_registry()->get_game_object_components<SteeringMovement, KinematicComponent>()) {
     // Unpack the components and check if the target game object exists
     const auto [steering_movement, kinematic_owner] = component_tuple;
-    if (!get_registry()->has_component(steering_movement->target_id, typeid(KinematicComponent))) {
+    if (!get_registry()->has_component<KinematicComponent>(steering_movement->target_id)) {
       continue;
     }
     const auto kinematic_target{get_registry()->get_component<KinematicComponent>(steering_movement->target_id)};
@@ -151,7 +151,7 @@ void SteeringMovementSystem::update(const double /*delta_time*/) const {
 void SteeringMovementSystem::update_path_list(const GameObjectID target_game_object_id,
                                               const std::deque<cpVect>& footprints) const {
   // Update the path list for all SteeringMovement components that have the correct target ID
-  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<SteeringMovement>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->get_game_object_components<SteeringMovement>()) {
     const auto steering_movement{std::get<0>(component_tuple)};
     if (steering_movement->target_id != target_game_object_id) {
       continue;

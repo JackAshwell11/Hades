@@ -25,22 +25,26 @@ struct KinematicComponent final : ComponentBase {
 
   /// Initialise the object.
   ///
+  /// @param position - The initial position of the body.
   /// @param is_static - Whether the body is static or not.
-  explicit KinematicComponent(const bool is_static = false)
+  explicit KinematicComponent(const cpVect& position, const bool is_static = false)
       : body(is_static ? cpBodyNewStatic() : cpBodyNewKinematic()),
         shape(cpBoxShapeNew(*body, SPRITE_SIZE, SPRITE_SIZE, 0.0)) {
+    cpBodySetPosition(*body, position);
     cpShapeSetSensor(*shape, !is_static);
   }
 
   /// Initialise the object.
   ///
+  /// @param position - The initial position of the body.
   /// @param vertices - The vertices of the shape.
-  explicit KinematicComponent(const std::vector<cpVect>& vertices)
+  explicit KinematicComponent(const cpVect& position, const std::vector<cpVect>& vertices)
       : body(cpBodyNew(1, std::numeric_limits<cpFloat>::infinity())),
         shape(cpPolyShapeNew(*body, static_cast<int>(vertices.size()), vertices.data(), cpTransformIdentity, 0.0)) {
     if (vertices.size() < 3) {
       throw std::invalid_argument("The shape must have at least 3 vertices.");
     }
+    cpBodySetPosition(*body, position);
   }
 
   /// Reset the component to its default state.

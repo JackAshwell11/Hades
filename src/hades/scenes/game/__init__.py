@@ -33,6 +33,7 @@ class GameScene(BaseScene[GameView]):
         callbacks = [
             (EventType.GameObjectCreation, self.on_game_object_creation),
             (EventType.GameObjectDeath, self.on_game_object_death),
+            (EventType.PositionChanged, self.on_position_changed),
             (EventType.SpriteRemoval, self.on_sprite_removal),
             (EventType.StatusEffectUpdate, self.on_status_effect_update),
             (EventType.MoneyUpdate, self.on_money_update),
@@ -95,17 +96,15 @@ class GameScene(BaseScene[GameView]):
         self: GameScene,
         game_object_id: int,
         game_object_type: GameObjectType,
-        position: tuple[float, float],
     ) -> None:
         """Process game object creation logic.
 
         Args:
             game_object_id: The ID of the newly created game object.
             game_object_type: The type of the newly created game object.
-            position: The position of the newly created game object.
         """
         constructor = game_object_constructors[game_object_type]
-        sprite = make_sprite(game_object_id, position, constructor)
+        sprite = make_sprite(game_object_id, constructor)
         self.model.sprites[game_object_id] = sprite
         self.view.add_sprite(sprite)
 
@@ -118,6 +117,19 @@ class GameScene(BaseScene[GameView]):
         self.view.remove_progress_bars(game_object_id)
         self.on_sprite_removal(game_object_id)
         self.model.sprites.pop(game_object_id)
+
+    def on_position_changed(
+        self: GameScene,
+        game_object_id: int,
+        position: tuple[float, float],
+    ) -> None:
+        """Process position changed logic.
+
+        Args:
+            game_object_id: The ID of the game object to update.
+            position: The new position of the game object.
+        """
+        self.model.sprites[game_object_id].position = position
 
     def on_sprite_removal(self: GameScene, game_object_id: int) -> None:
         """Process sprite removal logic.
