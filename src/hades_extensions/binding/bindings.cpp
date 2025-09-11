@@ -27,6 +27,9 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
           case EventType::GameObjectDeath:
             add_callback<EventType::GameObjectDeath>(callback);
             break;
+          case EventType::PositionChanged:
+            add_callback<EventType::PositionChanged>(callback);
+            break;
           case EventType::InventoryUpdate:
             add_callback<EventType::InventoryUpdate>(callback);
             break;
@@ -86,6 +89,7 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   pybind11::enum_<EventType>(module, "EventType", "Stores the different types of events that can occur.")
       .value("GameObjectCreation", EventType::GameObjectCreation)
       .value("GameObjectDeath", EventType::GameObjectDeath)
+      .value("PositionChanged", EventType::PositionChanged)
       .value("InventoryUpdate", EventType::InventoryUpdate)
       .value("SpriteRemoval", EventType::SpriteRemoval)
       .value("StatusEffectUpdate", EventType::StatusEffectUpdate)

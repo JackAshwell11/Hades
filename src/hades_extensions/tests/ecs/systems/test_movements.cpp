@@ -32,15 +32,13 @@ class FootprintSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(
-        GameObjectType::Player, cpvzero,
-        {std::make_shared<Footprints>(), std::make_shared<KinematicComponent>(),
-         std::make_shared<FootprintInterval>(0.2, -1), std::make_shared<FootprintLimit>(10, -1)});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<Footprints>(game_object_id);
+    registry.add_component<FootprintInterval>(game_object_id, 0.2, -1);
+    registry.add_component<FootprintLimit>(game_object_id, 10, -1);
+    registry.add_component<KinematicComponent>(game_object_id, cpvzero);
     registry.add_system<FootprintSystem>();
     registry.add_system<SteeringMovementSystem>();
-
-    // Set the position of the game object to (0, 0) since grid_pos_to_pixel() sets the position to (32, 32)
-    cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, cpvzero);
   }
 
   /// Get the footprint system from the registry.
@@ -59,9 +57,10 @@ class KeyboardMovementSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<MovementForce>(100, -1), std::make_shared<KeyboardMovement>(),
-                                 std::make_shared<KinematicComponent>()});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<MovementForce>(game_object_id, 100, -1);
+    registry.add_component<KeyboardMovement>(game_object_id);
+    registry.add_component<KinematicComponent>(game_object_id, cpvzero);
     registry.add_system<KeyboardMovementSystem>();
     registry.add_system<PhysicsSystem>();
   }
@@ -82,10 +81,11 @@ class SteeringMovementSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    // Create the target game object and add the required systems
-    registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<FootprintInterval>(0.3, -1), std::make_shared<FootprintLimit>(10, -1),
-                                 std::make_shared<Footprints>(), std::make_shared<KinematicComponent>()});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<Footprints>(game_object_id);
+    registry.add_component<FootprintInterval>(game_object_id, 0.3, -1);
+    registry.add_component<FootprintLimit>(game_object_id, 10, -1);
+    registry.add_component<KinematicComponent>(game_object_id, cpvzero);
     registry.add_system<FootprintSystem>();
     registry.add_system<PhysicsSystem>();
     registry.add_system<SteeringMovementSystem>();
@@ -97,10 +97,12 @@ class SteeringMovementSystemFixture : public testing::Test {
   /// @return The game object ID of the created game object.
   auto create_steering_movement_component(
       const std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>& steering_behaviours) -> int {
-    const int game_object_id{registry.create_game_object(
-        GameObjectType::Player, cpvzero,
-        {std::make_shared<MovementForce>(200, -1), std::make_shared<SteeringMovement>(steering_behaviours),
-         std::make_shared<KinematicComponent>(), std::make_shared<ViewDistance>(2 * SPRITE_SIZE, -1)})};
+    const int game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<MovementForce>(game_object_id, 200, -1);
+    registry.add_component<SteeringMovement>(game_object_id, steering_behaviours);
+    registry.add_component<KinematicComponent>(game_object_id, cpvzero);
+    registry.add_component<ViewDistance>(game_object_id, 2 * SPRITE_SIZE, -1);
+    registry.add_system<SteeringMovementSystem>();
     registry.get_component<SteeringMovement>(game_object_id)->target_id = 0;
     return game_object_id;
   }
@@ -189,8 +191,8 @@ TEST_F(KeyboardMovementSystemFixture, TestMovementForceFromFile) {
 /// Test that the view distance component is serialised to a file correctly.
 TEST_F(SteeringMovementSystemFixture, TestViewDistanceToFile) {
   nlohmann::json json;
-  const auto game_object_id{
-      registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<ViewDistance>(64, -1)})};
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<ViewDistance>(game_object_id, 64, -1);
   registry.get_component<ViewDistance>(game_object_id)->to_file(json);
   ASSERT_EQ(json,
             nlohmann::json::parse(R"({"view_distance":{"value":64,"max_level":-1,"max_value":64,"current_level":0}})"));
@@ -260,9 +262,9 @@ TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateMultipleUpdates) {
 
 /// Test that the footprint system is not updated correctly if the game object does not have the required components.
 TEST_F(FootprintSystemFixture, TestFootprintSystemUpdateIncompleteComponents) {
-  registry.create_game_object(GameObjectType::Player, cpvzero,
-                              {std::make_shared<SteeringMovement>(
-                                  std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{})});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<SteeringMovement>(
+      game_object_id, std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{});
   get_footprint_system()->update(0.1);
   ASSERT_EQ(registry.get_component<Footprints>(0)->footprints, std::deque<cpVect>{});
 }
@@ -341,8 +343,9 @@ TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateSouthEast)
 
 /// Test that the correct force is not applied if the game object does not have the required components.
 TEST_F(KeyboardMovementSystemFixture, TestKeyboardMovementSystemUpdateIncompleteComponents) {
-  registry.create_game_object(GameObjectType::Player, cpvzero,
-                              {std::make_shared<KinematicComponent>(), std::make_shared<MovementForce>(100, -1)});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<KinematicComponent>(game_object_id, cpvzero);
+  registry.add_component<MovementForce>(game_object_id, 100, -1);
   get_keyboard_movement_system()->update(0);
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -402,12 +405,12 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateArrive) {
 /// Test that the correct force is calculated for the evade behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateEvade) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Evade}}});
-  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 100});
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 64, .y = 64});
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = -50, .y = 0});
   get_steering_movement_system()->update(0);
-  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -51.17851206325652,
-                    -193.34104557230242);
-  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -1.8295672187585943);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -42.73937576108645,
+                    -195.38000347925234);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -1.7861540264926348);
 }
 
 /// Test that the correct force is calculated for the flee behaviour.
@@ -439,7 +442,8 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateObstacleAv
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::ObstacleAvoidance}}});
   cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 32, .y = 96});
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(1)->body, {.x = 100, .y = 100});
-  registry.create_game_object(GameObjectType::Wall, {.x = 1, .y = 2}, {std::make_shared<KinematicComponent>(true)});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Wall)};
+  registry.add_component<KinematicComponent>(game_object_id, cpVect{.x = 96, .y = 160}, true);
   get_steering_movement_system()->update(0);
   test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -141.42135623730951,
                     -141.42135623730951);
@@ -449,12 +453,12 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateObstacleAv
 /// Test that the correct force is calculated for the pursue behaviour.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePursue) {
   create_steering_movement_component({{SteeringMovementState::Target, {SteeringBehaviours::Pursue}}});
-  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 100});
+  cpBodySetPosition(*registry.get_component<KinematicComponent>(0)->body, {.x = 64, .y = 64});
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = -50, .y = 0});
   get_steering_movement_system()->update(0);
-  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), 51.17851206325652,
-                    193.34104557230242);
-  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 1.312025434831199);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), 42.73937576108645,
+                    195.38000347925234);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 1.3554386270971586);
 }
 
 /// Test that the correct force is calculated for the seek behaviour.
@@ -503,9 +507,9 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleSt
   cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = -50, .y = 100});
   cpBodySetPosition(*registry.get_component<KinematicComponent>(1)->body, {.x = 100, .y = 100});
   get_steering_movement_system()->update(0);
-  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -193.02806555399468,
-                    52.346594048540929);
-  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, 2.8767753236840043);
+  test_force_double(cpBodyGetForce(*registry.get_component<KinematicComponent>(1)->body), -141.42135623730951,
+                    -141.42135623730951);
+  ASSERT_DOUBLE_EQ(registry.get_component<KinematicComponent>(1)->rotation, -2.3561944901923448);
 
   // Test the default state making sure to clear the force
   cpBodySetForce(*registry.get_component<KinematicComponent>(1)->body, cpvzero);
@@ -518,8 +522,9 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateMultipleSt
 
 /// Test that the correct force is not applied if the game object does not have the required components.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateIncompleteComponents) {
-  registry.create_game_object(GameObjectType::Player, cpvzero,
-                              {std::make_shared<KinematicComponent>(), std::make_shared<MovementForce>(100, -1)});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<KinematicComponent>(game_object_id, cpvzero);
+  registry.add_component<MovementForce>(game_object_id, 100, -1);
   get_steering_movement_system()->update(0);
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
 }
@@ -527,8 +532,8 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdateIncomplete
 /// Test if the path list is updated if the position is within the view distance.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePathListWithinDistance) {
   create_steering_movement_component({});
-  get_steering_movement_system()->update_path_list(0, {{.x = 100, .y = 100}, {.x = 300, .y = 300}});
-  const std::vector<cpVect> expected_path_list{{.x = 100, .y = 100}, {.x = 300, .y = 300}};
+  get_steering_movement_system()->update_path_list(0, {{.x = 50, .y = 50}, {.x = 300, .y = 300}});
+  const std::vector<cpVect> expected_path_list{{.x = 50, .y = 50}, {.x = 300, .y = 300}};
   ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, expected_path_list);
 }
 
@@ -542,9 +547,9 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePathListOu
 /// Test if the path list is updated if the position is equal to the view distance.
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePathListEqualDistance) {
   create_steering_movement_component({});
-  get_steering_movement_system()->update_path_list(0, {{.x = 122.50966798868408, .y = 122.50966798868408}});
+  get_steering_movement_system()->update_path_list(0, {{.x = 90.509667991878082, .y = 90.509667991878082}});
   ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list,
-            std::vector{cpv(122.50966798868408, 122.50966798868408)});
+            std::vector{cpv(90.509667991878082, 90.509667991878082)});
 }
 
 /// Test if the path list is updated if multiple footprints are within view distance.
@@ -575,5 +580,5 @@ TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePathListDi
 TEST_F(SteeringMovementSystemFixture, TestSteeringMovementSystemUpdatePathListFootprintUpdate) {
   create_steering_movement_component({});
   registry.get_system<FootprintSystem>()->update(0.5);
-  ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, std::vector{cpv(32, 32)});
+  ASSERT_EQ(registry.get_component<SteeringMovement>(1)->path_list, std::vector{cpv(0, 0)});
 }

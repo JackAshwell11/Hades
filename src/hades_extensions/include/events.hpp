@@ -17,6 +17,7 @@ struct SaveFileInfo;
 enum class EventType : std::uint8_t {
   GameObjectCreation,
   GameObjectDeath,
+  PositionChanged,
   InventoryUpdate,
   SpriteRemoval,
   StatusEffectUpdate,
@@ -41,13 +42,19 @@ struct EventTraits;
 /// Provides the argument types for the GameObjectCreation event.
 template <>
 struct EventTraits<EventType::GameObjectCreation> {
-  using EventArgs = std::tuple<GameObjectID, GameObjectType, std::pair<double, double>>;
+  using EventArgs = std::tuple<GameObjectID, GameObjectType>;
 };
 
 /// Provides the argument types for the GameObjectDeath event.
 template <>
 struct EventTraits<EventType::GameObjectDeath> {
   using EventArgs = std::tuple<GameObjectID>;
+};
+
+/// Provides the argument types for the PositionChanged event.
+template <>
+struct EventTraits<EventType::PositionChanged> {
+  using EventArgs = std::tuple<GameObjectID, std::pair<double, double>>;
 };
 
 /// Provides the argument types for the InventoryUpdate event.

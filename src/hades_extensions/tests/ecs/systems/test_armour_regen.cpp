@@ -16,8 +16,9 @@ class ArmourRegenSystemFixture : public testing::Test {
 
   /// Set up the fixture for the tests.
   void SetUp() override {
-    registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<Armour>(50, -1), std::make_shared<ArmourRegen>(4, -1)});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<Armour>(game_object_id, 50, -1);
+    registry.add_component<ArmourRegen>(game_object_id, 4, -1);
     registry.add_system<ArmourRegenSystem>();
   }
 
@@ -89,7 +90,8 @@ TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateMultipleUpdates) {
 
 /// Test that the armour regen component is not updated if the game object does not have the required components.
 TEST_F(ArmourRegenSystemFixture, TestArmourRegenSystemUpdateNoArmourRegen) {
-  registry.create_game_object(GameObjectType::Player, cpvzero, {std::make_shared<Armour>(100, -1)});
+  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+  registry.add_component<Armour>(game_object_id, 100, -1);
   registry.get_component<Armour>(1)->set_value(50);
   get_armour_regen_system()->update(5);
   ASSERT_EQ(registry.get_component<Armour>(1)->get_value(), 50);

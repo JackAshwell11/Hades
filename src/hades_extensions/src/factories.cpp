@@ -2,10 +2,10 @@
 #include "factories.hpp"
 
 // Std headers
-#include <functional>
 #include <numbers>
 
 // Local headers
+#include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/effects.hpp"
@@ -14,14 +14,15 @@
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
+#include "events.hpp"
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 namespace {
 /// Alias for a factory function that creates components for a game object.
-using ComponentFactory = std::function<std::vector<std::shared_ptr<ComponentBase>>()>;
+using ComponentFactory = std::function<void(Registry*, GameObjectID, cpVect)>;
 
 /// Alias for a factory function that creates components for a game object with a given level.
-using LeveledComponentFactory = std::function<std::vector<std::shared_ptr<ComponentBase>>(int)>;
+using LeveledComponentFactory = std::function<void(Registry*, GameObjectID, cpVect, int)>;
 
 /// The velocity of the bullet.
 constexpr int BULLET_VELOCITY{1000};
@@ -34,58 +35,49 @@ auto get_hitboxes() -> auto& {
   return hitboxes;
 }
 
-/// The bullet factory.
-///
-/// @return The components for the bullet.
-const auto bullet_factory{[] {
-  return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<Bullet>(),
-                                                     std::make_shared<KinematicComponent>()};
+/// Add the components for the bullet game object.
+const auto bullet_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
+  registry->add_component<Bullet>(game_object_id);
+  registry->add_component<KinematicComponent>(game_object_id, position);
 }};
 
-/// The enemy factory.
-///
-/// @return The components for the enemy.
-const auto enemy_factory{[](const int /*level*/) {
-  const auto attack{std::make_shared<Attack>()};
+/// Add the components for the enemy game object.
+const auto enemy_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position, const int) {
+  registry->add_component<Armour>(game_object_id, 50, 5);
+  registry->add_component<Attack>(game_object_id);
+  const auto attack{registry->get_component<Attack>(game_object_id)};
   attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
       AttackStat{1, 3}, AttackStat{10, 3}, AttackStat{3 * SPRITE_SIZE, 3}, AttackStat{BULLET_VELOCITY, 1}));
-  return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<Armour>(50, 5),
-      attack,
-      std::make_shared<Health>(100, 5),
-      std::make_shared<KinematicComponent>(get_hitboxes().at(GameObjectType::Enemy)),
-      std::make_shared<MovementForce>(1000, 5),
-      std::make_shared<SteeringMovement>(std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{
+  registry->add_component<Health>(game_object_id, 100, 5);
+  registry->add_component<KinematicComponent>(game_object_id, position, get_hitboxes().at(GameObjectType::Enemy));
+  registry->add_component<MovementForce>(game_object_id, 1000, 5);
+  registry->add_component<SteeringMovement>(
+      game_object_id,
+      std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{
           {SteeringMovementState::Default, {SteeringBehaviours::ObstacleAvoidance, SteeringBehaviours::Wander}},
           {SteeringMovementState::Footprint, {SteeringBehaviours::FollowPath}},
-          {SteeringMovementState::Target, {SteeringBehaviours::Pursue}},
-      }),
-      std::make_shared<ViewDistance>(3 * SPRITE_SIZE, 3),
-  };
+          {SteeringMovementState::Target, {SteeringBehaviours::Pursue}}});
+  registry->add_component<ViewDistance>(game_object_id, 3 * SPRITE_SIZE, 3);
 }};
 
-/// The wall factory.
-///
-/// @return The components for the wall.
-const auto wall_factory{
-    [] { return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<KinematicComponent>(true)}; }};
+/// Add the components for the wall game object.
+const auto wall_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
+  registry->add_component<KinematicComponent>(game_object_id, position, true);
+}};
 
-/// The floor factory.
-///
-/// @return The components for the floor.
-const auto floor_factory{[] { return std::vector<std::shared_ptr<ComponentBase>>{}; }};
+/// Add the components for the floor game object.
+const auto floor_factory{[](Registry*, const GameObjectID, const cpVect&) {}};
 
-/// The goal factory.
-///
-/// @return The components for the goal.
-const auto goal_factory{
-    [] { return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<KinematicComponent>()}; }};
+/// Add the components for the goal game object.
+const auto goal_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
+  registry->add_component<KinematicComponent>(game_object_id, position);
+}};
 
-/// The player factory.
-///
-/// @return The components for the player.
-const auto player_factory{[] {
-  const auto attack{std::make_shared<Attack>()};
+/// Add the components for the player game object.
+const auto player_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
+  registry->add_component<Armour>(game_object_id, 100, 5);
+  registry->add_component<Attack>(game_object_id);
+  const auto attack{registry->get_component<Attack>(game_object_id)};
   attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
       AttackStat{1, 3}, AttackStat{20, 3}, AttackStat{3 * SPRITE_SIZE, 3}, AttackStat{BULLET_VELOCITY, 1}));
   attack->add_ranged_attack(std::make_unique<MultiBulletAttack>(AttackStat{1, 3}, AttackStat{10, 3},
@@ -93,44 +85,37 @@ const auto player_factory{[] {
                                                                 AttackStat{BULLET_VELOCITY, 1}, AttackStat{5, 3}));
   attack->set_melee_attack({{1, 3}, {20, 3}, {3 * SPRITE_SIZE, 3}, {std::numbers::pi / 4, 3}});
   attack->set_special_attack({{1, 3}, {20, 3}, {3 * SPRITE_SIZE, 3}});
-  return std::vector<std::shared_ptr<ComponentBase>>{
-      std::make_shared<Armour>(100, 5),
-      attack,
-      std::make_shared<Footprints>(),
-      std::make_shared<FootprintInterval>(0.5, 3),
-      std::make_shared<FootprintLimit>(5, 3),
-      std::make_shared<Health>(200, 5),
-      std::make_shared<Inventory>(),
-      std::make_shared<InventorySize>(30, 3),
-      std::make_shared<KeyboardMovement>(),
-      std::make_shared<KinematicComponent>(get_hitboxes().at(GameObjectType::Player)),
-      std::make_shared<Money>(),
-      std::make_shared<MovementForce>(5000, 5),
-      std::make_shared<PlayerLevel>(),
-      std::make_shared<StatusEffects>(),
-  };
+  registry->add_component<Footprints>(game_object_id);
+  registry->add_component<FootprintInterval>(game_object_id, 0.5, 3);
+  registry->add_component<FootprintLimit>(game_object_id, 5, 3);
+  registry->add_component<Health>(game_object_id, 200, 5);
+  registry->add_component<Inventory>(game_object_id);
+  registry->add_component<InventorySize>(game_object_id, 30, 3);
+  registry->add_component<KeyboardMovement>(game_object_id);
+  registry->add_component<KinematicComponent>(game_object_id, position, get_hitboxes().at(GameObjectType::Player));
+  registry->add_component<Money>(game_object_id);
+  registry->add_component<MovementForce>(game_object_id, 5000, 5);
+  registry->add_component<PlayerLevel>(game_object_id);
+  registry->add_component<StatusEffects>(game_object_id);
 }};
 
-/// The health potion factory.
-///
-/// @return The components for the health potion.
-const auto health_potion_factory{[] {
-  auto effect_applier{std::make_shared<EffectApplier>()};
+/// Add the components for the health potion game object.
+const auto health_potion_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
+  registry->add_component<EffectApplier>(game_object_id);
+  const auto effect_applier{registry->get_component<EffectApplier>(game_object_id)};
   effect_applier->add_status_effect(EffectType::Regeneration, 5, 10, 1);
-  return std::vector<std::shared_ptr<ComponentBase>>{std::move(effect_applier), std::make_shared<KinematicComponent>()};
+  registry->add_component<KinematicComponent>(game_object_id, position);
 }};
 
-/// The chest factory.
-///
-/// @return The components for the chest.
-const auto chest_factory{
-    [] { return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<KinematicComponent>()}; }};
+/// Add the components for the chest game object,
+const auto chest_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
+  registry->add_component<KinematicComponent>(game_object_id, position);
+}};
 
-/// The shop factory.
-///
-/// @return The components for the shop.
-const auto shop_factory{
-    [] { return std::vector<std::shared_ptr<ComponentBase>>{std::make_shared<KinematicComponent>()}; }};
+/// Add the components for the shop game object.
+const auto shop_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
+  registry->add_component<KinematicComponent>(game_object_id, position);
+}};
 }  // namespace
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
@@ -149,8 +134,9 @@ auto load_hitbox(const GameObjectType game_object_type, const std::vector<std::p
 
 void clear_hitboxes() { get_hitboxes().clear(); }
 
-auto get_game_object_components(const GameObjectType game_object_type, const int level)
-    -> std::vector<std::shared_ptr<ComponentBase>> {
+auto create_game_object(Registry* registry, const GameObjectType game_object_type, const cpVect& position,
+                        const std::optional<int> level) -> GameObjectID {
+  // Define the factories for each game object type
   static const std::unordered_map<GameObjectType, ComponentFactory> factories{
       {GameObjectType::Bullet, bullet_factory}, {GameObjectType::Floor, floor_factory},
       {GameObjectType::Player, player_factory}, {GameObjectType::Wall, wall_factory},
@@ -160,11 +146,24 @@ auto get_game_object_components(const GameObjectType game_object_type, const int
   static const std::unordered_map<GameObjectType, LeveledComponentFactory> leveled_factories{
       {GameObjectType::Enemy, enemy_factory},
   };
-  if (factories.contains(game_object_type)) {
-    return factories.at(game_object_type)();
+
+  GameObjectID game_object_id{-1};
+  const auto game_object_position{game_object_type == GameObjectType::Bullet ? position : grid_pos_to_pixel(position)};
+  if (const auto player_ids{registry->get_game_object_ids(GameObjectType::Player)};
+      game_object_type != GameObjectType::Player || player_ids.empty()) {
+    // Make a new game object
+    game_object_id = registry->create_game_object(game_object_type);
+    if (factories.contains(game_object_type)) {
+      factories.at(game_object_type)(registry, game_object_id, game_object_position);
+    }
+    if (leveled_factories.contains(game_object_type) && level.has_value()) {
+      leveled_factories.at(game_object_type)(registry, game_object_id, game_object_position, level.value());
+    }
+  } else {
+    // Just move the existing player
+    game_object_id = player_ids.at(0);
+    cpBodySetPosition(*registry->get_component<KinematicComponent>(player_ids.at(0))->body, game_object_position);
   }
-  if (leveled_factories.contains(game_object_type)) {
-    return leveled_factories.at(game_object_type)(level);
-  }
-  return {};
+  notify<EventType::PositionChanged>(game_object_id, std::make_pair(game_object_position.x, game_object_position.y));
+  return game_object_id;
 }

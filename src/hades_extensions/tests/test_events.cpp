@@ -20,7 +20,7 @@ TEST_F(EventsFixture, TestNotifyCallbacksNoCallbacksAdded) {
 TEST_F(EventsFixture, TestNotifyCallbacksNoCallbacksListening) {
   auto called{-1};
   add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
+      [&called](const GameObjectID event, const GameObjectType) { called = event; });
   notify<EventType::GameObjectDeath>(1);
   ASSERT_EQ(called, -1);
 }

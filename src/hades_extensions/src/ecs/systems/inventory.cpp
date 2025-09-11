@@ -7,7 +7,6 @@
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/systems/effects.hpp"
-#include "ecs/systems/physics.hpp"
 #include "events.hpp"
 #include "factories.hpp"
 
@@ -29,8 +28,7 @@ void Inventory::from_file(const nlohmann::json& json, Registry* registry) {
   const auto player_id{registry->get_game_object_ids(GameObjectType::Player)[0]};
   for (const auto& item_type : json.at("items").items()) {
     const auto game_object_type{static_cast<GameObjectType>(item_type.value())};
-    const auto game_object_id{
-        registry->create_game_object(game_object_type, cpvzero, get_game_object_components(game_object_type))};
+    const auto game_object_id{create_game_object(registry, game_object_type, cpvzero)};
     registry->get_system<InventorySystem>()->add_item_to_inventory(player_id, game_object_id);
   }
 }
@@ -72,7 +70,7 @@ void InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, c
 
   // Add the item to the inventory, set the collected flag to prevent collision detection, and notify the callbacks
   inventory->items.push_back(item);
-  if (get_registry()->has_component(item, typeid(KinematicComponent))) {
+  if (get_registry()->has_component<KinematicComponent>(item)) {
     const auto kinematic_component{get_registry()->get_component<KinematicComponent>(item)};
     cpSpaceRemoveShape(get_registry()->get_space(), *kinematic_component->shape);
     cpSpaceRemoveBody(get_registry()->get_space(), *kinematic_component->body);
@@ -109,7 +107,7 @@ void InventorySystem::use_item(const GameObjectID target_id, const GameObjectID 
 
   // Use the item if it can be used
   bool used{false};
-  if (get_registry()->has_component(item_id, typeid(EffectApplier))) {
+  if (get_registry()->has_component<EffectApplier>(item_id)) {
     used = get_registry()->get_system<EffectSystem>()->apply_effects(item_id, target_id);
   }
 

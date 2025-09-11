@@ -8,7 +8,6 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/movements.hpp"
-#include "ecs/systems/physics.hpp"
 #include "events.hpp"
 #include "macros.hpp"
 
@@ -51,18 +50,18 @@ class AttackSystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     auto create_target{[&](const cpVect position) {
-      const int target{registry.create_game_object(
-          GameObjectType::Enemy, cpvzero,
-          {std::make_shared<Armour>(0, -1), std::make_shared<Health>(80, -1), std::make_shared<KinematicComponent>()})};
+      const int target{registry.create_game_object(GameObjectType::Enemy)};
+      registry.add_component<Armour>(target, 0, -1);
+      registry.add_component<Health>(target, 80, -1);
+      registry.add_component<KinematicComponent>(target, cpvzero);
       cpBodySetPosition(*registry.get_component<KinematicComponent>(target)->body, position);
       return target;
     }};
 
-    // Create the targets and add the attack system offsetting the positions by (32, 32) since grid_pos_to_pixel()
-    // converts the target position to (32, 32)
+    // Create the targets and add the attack system
     targets = {
-        create_target({12, -68}),  create_target({52, 92}),   create_target({-168, 132}), create_target({132, -68}),
-        create_target({-68, -68}), create_target({32, -168}), create_target({32, -160}),  create_target({32, 32}),
+        create_target({-20, -100}),  create_target({20, 60}),  create_target({-200, 100}), create_target({100, -100}),
+        create_target({-100, -100}), create_target({0, -200}), create_target({0, -192}),   create_target({0, 0}),
     };
     registry.add_system<AttackSystem>();
     registry.add_system<DamageSystem>();
@@ -76,7 +75,9 @@ class AttackSystemFixture : public testing::Test {
   ///
   /// @param config - The component configuration for the attacker.
   void create_attacker(const AttackerConfig& config) {
-    const auto attack{std::make_shared<Attack>()};
+    const int game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<Attack>(game_object_id);
+    const auto attack{registry.get_component<Attack>(game_object_id)};
     if (config.ranged) {
       attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
           AttackStat(2, -1), AttackStat(20, -1), AttackStat(3 * SPRITE_SIZE, -1), AttackStat(200, -1)));
@@ -89,13 +90,12 @@ class AttackSystemFixture : public testing::Test {
     if (config.area_of_effect) {
       attack->set_special_attack({{2, -1}, {20, -1}, {3 * SPRITE_SIZE, -1}});
     }
-    std::vector<std::shared_ptr<ComponentBase>> components{attack, std::make_shared<KinematicComponent>()};
-    if (config.steering_movement) {
-      components.emplace_back(std::make_shared<SteeringMovement>(
-          std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{}));
-    }
-    const int game_object_id{registry.create_game_object(GameObjectType::Player, cpvzero, std::move(components))};
+    registry.add_component<KinematicComponent>(game_object_id, cpvzero);
     registry.get_component<KinematicComponent>(game_object_id)->rotation = -std::numbers::pi / 2;
+    if (config.steering_movement) {
+      registry.add_component<SteeringMovement>(
+          game_object_id, std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{});
+    }
   }
 
   /// Get the attack system from the registry.
@@ -117,8 +117,9 @@ class DamageSystemFixture : public testing::Test {
 
   /// Create health and armour attributes for use in testing.
   void create_health_and_armour_attributes() {
-    registry.create_game_object(GameObjectType::Player, cpvzero,
-                                {std::make_shared<Armour>(100, -1), std::make_shared<Health>(300, -1)});
+    const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
+    registry.add_component<Armour>(game_object_id, 100, -1);
+    registry.add_component<Health>(game_object_id, 300, -1);
   }
 
   /// Get the damage system from the registry.
@@ -151,7 +152,7 @@ TEST_F(AttackSystemFixture, TestAttackStatFromFile) {
 
 /// Test that the attack component is reset correctly.
 TEST_F(AttackSystemFixture, TestAttackReset) {
-  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
   const auto attack{registry.get_component<Attack>(8)};
   get_attack_system()->next_ranged_attack(8);
   ASSERT_EQ(attack->selected_ranged_attack, 1);
@@ -162,7 +163,7 @@ TEST_F(AttackSystemFixture, TestAttackReset) {
 /// Test that the attack component is serialised to a file correctly.
 TEST_F(AttackSystemFixture, TestAttackToFile) {
   nlohmann::json json;
-  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
   registry.get_component<Attack>(8)->to_file(json);
   const auto expected_json(nlohmann::json::parse(R"({
     "melee_attack": {
@@ -197,7 +198,7 @@ TEST_F(AttackSystemFixture, TestAttackToFile) {
 
 /// Test that the attack component is deserialised from a file correctly.
 TEST_F(AttackSystemFixture, TestAttackFromFile) {
-  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
   const auto json(nlohmann::json::parse(R"({
     "selected_ranged_attack": 1,
     "melee_attack": {
@@ -263,14 +264,14 @@ TEST_F(AttackSystemFixture, TestAttackFromFile) {
 
 /// Test that the attack component is updated correctly with a zero delta time.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateZeroDeltaTime) {
-  create_attacker({.ranged{true}});
+  create_attacker({.ranged = true});
   get_attack_system()->update(0);
   ASSERT_EQ(registry.get_component<Attack>(8)->get_selected_ranged_attack()->time_since_last_use, 0);
 }
 
 /// Test that the attack component is updated correctly with a non-zero delta time.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateNonZeroDeltaTime) {
-  create_attacker({.ranged{true}});
+  create_attacker({.ranged = true});
   get_attack_system()->update(5);
   ASSERT_EQ(registry.get_component<Attack>(8)->get_selected_ranged_attack()->time_since_last_use, 5);
 }
@@ -278,9 +279,9 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateNonZeroDeltaTime) {
 /// Test that the attack system does not do an automated attack if the cooldown is not up.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementZeroDeltaTime) {
   auto game_object_created{-1};
-  auto game_object_creation_callback{[&](const GameObjectID game_object_id, const GameObjectType,
-                                         const std::pair<double, double>&) { game_object_created = game_object_id; }};
-  create_attacker({.ranged{true}, .steering_movement{true}});
+  auto game_object_creation_callback{
+      [&](const GameObjectID game_object_id, const GameObjectType) { game_object_created = game_object_id; }};
+  create_attacker({.ranged = true, .steering_movement = true});
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(0);
   ASSERT_EQ(game_object_created, -1);
@@ -289,9 +290,9 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementZeroDeltaTime)
 /// Test that the attack system does not do an automated attack if the steering movement is not in the target state.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementNotTarget) {
   auto game_object_created{-1};
-  auto game_object_creation_callback{[&](const GameObjectID game_object_id, const GameObjectType,
-                                         const std::pair<double, double>&) { game_object_created = game_object_id; }};
-  create_attacker({.ranged{true}, .steering_movement{true}});
+  auto game_object_creation_callback{
+      [&](const GameObjectID game_object_id, const GameObjectType) { game_object_created = game_object_id; }};
+  create_attacker({.ranged = true, .steering_movement = true});
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
   ASSERT_EQ(game_object_created, -1);
@@ -300,9 +301,9 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovementNotTarget) {
 /// Test that the attack system does an automated attack correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
   auto game_object_created{-1};
-  auto game_object_creation_callback{[&](const GameObjectID game_object_id, const GameObjectType,
-                                         const std::pair<double, double>&) { game_object_created = game_object_id; }};
-  create_attacker({.ranged{true}, .steering_movement{true}});
+  auto game_object_creation_callback{
+      [&](const GameObjectID game_object_id, const GameObjectType) { game_object_created = game_object_id; }};
+  create_attacker({.ranged = true, .steering_movement = true});
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   registry.get_component<SteeringMovement>(8)->movement_state = SteeringMovementState::Target;
   get_attack_system()->update(5);
@@ -319,7 +320,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateCallbacks) {
     ASSERT_EQ(special_cooldown, 2);
   }};
   add_callback<EventType::AttackCooldownUpdate>(attack_cooldown_update_callback);
-  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
   registry.get_component<Attack>(8)->get_selected_ranged_attack()->time_since_last_use = 1;
   get_attack_system()->update(0);
 }
@@ -328,27 +329,24 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateCallbacks) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingle) {
   auto game_object_created{-1};
   auto game_object_creation_callback{
-      [&](const GameObjectID game_object_id, const GameObjectType, const std::pair<double, double>&) {
-        // The velocity for the bullet is set after the game object is created
-        const auto* bullet{*registry.get_component<KinematicComponent>(game_object_id)->body};
-        const auto [pos_x, pos_y]{cpBodyGetPosition(bullet)};
-        const auto [vel_x, vel_y]{cpBodyGetVelocity(bullet)};
-        ASSERT_NEAR(pos_x, 32, 1e-13);
-        ASSERT_NEAR(pos_y, -32, 1e-13);
-        ASSERT_NEAR(vel_x, 0, 1e-13);
-        ASSERT_NEAR(vel_y, 0, 1e-13);
-        game_object_created = game_object_id;
-      }};
-  create_attacker({.ranged{true}});
+      [&](const GameObjectID game_object_id, const GameObjectType) { game_object_created = game_object_id; }};
+  create_attacker({.ranged = true});
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
   ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Ranged));
   ASSERT_EQ(game_object_created, 9);
+  const auto bullet{registry.get_component<KinematicComponent>(game_object_created)};
+  const auto [pos_x, pos_y]{cpBodyGetPosition(*bullet->body)};
+  const auto [vel_x, vel_y]{cpBodyGetVelocity(*bullet->body)};
+  ASSERT_NEAR(pos_x, 0, 1e-13);
+  ASSERT_NEAR(pos_y, -64, 1e-13);
+  ASSERT_NEAR(vel_x, 0, 1e-13);
+  ASSERT_NEAR(vel_y, -200, 1e-13);
 }
 
 /// Test that performing a ranged attack with a single bullet does not work if the attack type is wrong.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingleWrongType) {
-  create_attacker({.ranged{true}});
+  create_attacker({.ranged = true});
   get_attack_system()->update(5);
   ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Melee));
 }
@@ -357,10 +355,8 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingleWrongType) {
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleBullets) {
   std::vector<GameObjectID> game_objects_created;
   auto game_object_creation_callback{
-      [&](const GameObjectID game_object_id, const GameObjectType, const std::pair<double, double>&) {
-        game_objects_created.push_back(game_object_id);
-      }};
-  create_attacker({.ranged{true}});
+      [&](const GameObjectID game_object_id, const GameObjectType) { game_objects_created.push_back(game_object_id); }};
+  create_attacker({.ranged = true});
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
   registry.get_system<AttackSystem>()->next_ranged_attack(8);
@@ -383,14 +379,14 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleBullets) {
 
 /// Test that performing a ranged attack with multiple bullets does not work if the attack type is wrong.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleWrongType) {
-  create_attacker({.ranged{true}});
+  create_attacker({.ranged = true});
   get_attack_system()->update(5);
   ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Melee));
 }
 
 /// Test that performing a melee attack works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
-  create_attacker({.melee{true}});
+  create_attacker({.melee = true});
   get_attack_system()->update(5);
   ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Melee));
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
@@ -405,7 +401,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
 
 /// Test that performing a melee attack does not work if the attack type is wrong.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMeleeWrongType) {
-  create_attacker({.melee{true}});
+  create_attacker({.melee = true});
   get_attack_system()->update(5);
   ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Special));
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 80);
@@ -420,7 +416,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMeleeWrongType) {
 
 /// Test that performing an area of effect attack works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
-  create_attacker({.area_of_effect{true}});
+  create_attacker({.area_of_effect = true});
   get_attack_system()->update(5);
   ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Special));
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
@@ -435,7 +431,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
 
 /// Test that performing an area of effect attack does not work if the attack type is wrong.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffectWrongType) {
-  create_attacker({.area_of_effect{true}});
+  create_attacker({.area_of_effect = true});
   get_attack_system()->update(5);
   ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Ranged));
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 80);
@@ -465,20 +461,20 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackEmptyAttacks) {
 
 /// Test that performing an attack before the cooldown is up doesn't work.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackCooldown) {
-  create_attacker({.ranged{true}});
+  create_attacker({.ranged = true});
   ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Ranged));
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackInvalidGameObjectId) {
-  create_attacker({.ranged{true}});
+  create_attacker({.ranged = true});
   ASSERT_THROW_MESSAGE((get_attack_system()->do_attack(-1, AttackType::Ranged)), RegistryError,
                        "The component `Attack` for the game object ID `-1` is not registered with the registry.")
 }
 
 /// Test that switching between ranged attacks once works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackSingle) {
-  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
   const auto attack{registry.get_component<Attack>(8)};
   ASSERT_EQ(attack->selected_ranged_attack, 0);
   registry.get_system<AttackSystem>()->next_ranged_attack(8);
@@ -489,7 +485,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackSingle) {
 
 /// Test that switching between ranged attacks multiple times works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackMultiple) {
-  create_attacker({.ranged{true}, .melee{true}, .area_of_effect{true}});
+  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
   const auto attack{registry.get_component<Attack>(8)};
   ASSERT_EQ(attack->selected_ranged_attack, 0);
   registry.get_system<AttackSystem>()->next_ranged_attack(8);
@@ -522,7 +518,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackCallback) {
   std::vector<int> selected_attacks{};
   auto ranged_attack_callback{[&](const int selected_attack) { selected_attacks.push_back(selected_attack); }};
   add_callback<EventType::RangedAttackSwitch>(ranged_attack_callback);
-  create_attacker({.ranged{true}});
+  create_attacker({.ranged = true});
   const auto attack{registry.get_component<Attack>(8)};
   ASSERT_EQ(attack->selected_ranged_attack, 0);
   registry.get_system<AttackSystem>()->next_ranged_attack(8);
@@ -570,8 +566,8 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageDeleteGameObject) {
   create_health_and_armour_attributes();
   get_damage_system()->deal_damage(0, 500);
   registry.update(0);
-  ASSERT_FALSE(registry.has_component(0, typeid(Health)));
-  ASSERT_FALSE(registry.has_component(0, typeid(Armour)));
+  ASSERT_FALSE(registry.has_component<Health>(0));
+  ASSERT_FALSE(registry.has_component<Armour>(0));
 }
 
 /// Test that a game object is deleted if the health is already 0.
@@ -580,8 +576,8 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageZeroHealth) {
   registry.get_component<Health>(0)->set_value(0);
   get_damage_system()->deal_damage(0, 0);
   registry.update(0);
-  ASSERT_FALSE(registry.has_component(0, typeid(Health)));
-  ASSERT_FALSE(registry.has_component(0, typeid(Armour)));
+  ASSERT_FALSE(registry.has_component<Health>(0));
+  ASSERT_FALSE(registry.has_component<Armour>(0));
 }
 
 /// Test that the damage system calls the correct callbacks during execution.
@@ -603,7 +599,7 @@ TEST_F(DamageSystemFixture, TestDamageSystemDealDamageCallbacks) {
 
 /// Test that an exception is thrown if a game object does not have the required components.
 TEST_F(DamageSystemFixture, TestDamageSystemDealDamageNonexistentComponents) {
-  registry.create_game_object(GameObjectType::Player, cpvzero, {});
+  registry.create_game_object(GameObjectType::Player);
   ASSERT_THROW_MESSAGE(get_damage_system()->deal_damage(0, 100), RegistryError,
                        "The component `Health` for the game object ID `0` is not registered with the registry.")
 }

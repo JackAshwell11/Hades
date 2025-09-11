@@ -120,7 +120,7 @@ TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseEInLobbyTouchingGoal) {
   game_state->reset_level(LevelType::Lobby);
   int called{-1};
   add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
+      [&called](const GameObjectID event, const GameObjectType) { called = event; });
   move_player_to_item(registry, game_state, GameObjectType::Goal);
   input_handler->on_key_release(KEY_E, 0);
   ASSERT_NE(called, -1);
@@ -132,7 +132,7 @@ TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseEInLobbyTouchingGoal) {
 TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseENotInLobbyTouchingGoal) {
   int called{-1};
   add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
+      [&called](const GameObjectID event, const GameObjectType) { called = event; });
   move_player_to_item(registry, game_state, GameObjectType::Goal, false);
   input_handler->on_key_release(KEY_E, 0);
   ASSERT_EQ(called, -1);
@@ -144,7 +144,7 @@ TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseEInLobbyNotTouchingGoal)
   game_state->reset_level(LevelType::Lobby);
   int called{-1};
   add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
+      [&called](const GameObjectID event, const GameObjectType) { called = event; });
   input_handler->on_key_release(KEY_E, 0);
   ASSERT_EQ(called, -1);
 }
@@ -228,7 +228,7 @@ TEST_F(InputHandlerFixture, TestInputHandlerOnMousePressLeft) {
   registry->get_system<AttackSystem>()->update(10);
   int called{-1};
   add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const GameObjectType, const std::pair<double, double>&) { called = event; });
+      [&called](const GameObjectID event, const GameObjectType) { called = event; });
   ASSERT_TRUE(input_handler->on_mouse_press(0, 0, MOUSE_BUTTON_LEFT, 0));
   ASSERT_NE(called, -1);
 }

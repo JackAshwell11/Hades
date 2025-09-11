@@ -18,7 +18,7 @@ void ArmourRegen::from_file(const nlohmann::json& json) { from_file_base(json.at
 
 void ArmourRegenSystem::update(const double delta_time) const {
   // Update the time since the last armour regen then check if the armour should be regenerated
-  for (const auto& [_, component_tuple] : get_registry()->find_components<Armour, ArmourRegen>()) {
+  for (const auto& [_, component_tuple] : get_registry()->get_game_object_components<Armour, ArmourRegen>()) {
     const auto& [armour, armour_regen]{component_tuple};
     armour_regen->time_since_armour_regen += delta_time;
     if (armour_regen->time_since_armour_regen >= armour_regen->get_value()) {

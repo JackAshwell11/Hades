@@ -10,40 +10,21 @@
 #include "events.hpp"
 
 namespace {
-/// A helper struct to provide the component type for each effect type.
-template <EffectType>
-struct EffectTraits;
-
-/// Provides the component type for the Regeneration effect.
-template <>
-struct EffectTraits<EffectType::Regeneration> {
-  /// Get the component type associated with the Regeneration effect.
-  ///
-  /// @return The type index of the component associated with the Regeneration effect.
-  static std::type_index component_type() { return std::type_index(typeid(Health)); }
-};
-
-/// Provides the component type for the Poison effect.
-template <>
-struct EffectTraits<EffectType::Poison> {
-  /// Get the component type associated with the Poison effect.
-  ///
-  /// @return The type index of the component associated with the Poison effect.
-  static std::type_index component_type() { return std::type_index(typeid(Health)); }
-};
-
-/// Get the component type associated with a specific effect type.
+/// Get the stat component type associated with an effect type.
 ///
+/// @param registry - The registry to query for the component.
+/// @param game_object_id - The ID of the game object to query for the component.
 /// @param effect_type - The type of the effect.
-/// @return The type index of the component associated with the effect type.
-auto get_component_type(const EffectType effect_type) -> std::type_index {
+/// @return The stat component associated with the effect type, or nullptr if none exists.
+auto get_stat_component(const Registry* registry, const GameObjectID game_object_id, const EffectType effect_type)
+    -> std::shared_ptr<Stat> {
   switch (effect_type) {
     case EffectType::Regeneration:
-      return EffectTraits<EffectType::Regeneration>::component_type();
+      return registry->get_component<Health>(game_object_id);
     case EffectType::Poison:
-      return EffectTraits<EffectType::Poison>::component_type();
+      return registry->get_component<Health>(game_object_id);
     default:
-      return std::type_index(typeid(void));
+      return nullptr;
   }
 }
 
@@ -60,8 +41,7 @@ void notify_status_effect_update(const std::unordered_map<EffectType, StatusEffe
 }  // namespace
 
 auto BaseEffect::apply(const Registry* registry, const GameObjectID game_object_id) const -> bool {
-  const auto component{
-      std::static_pointer_cast<Stat>(registry->get_component(game_object_id, get_component_type(effect_type)))};
+  const auto component{get_stat_component(registry, game_object_id, effect_type)};
   if (!component) {
     return false;
   }
@@ -112,7 +92,7 @@ void StatusEffects::from_file(const nlohmann::json& json) {
 }
 
 void EffectSystem::update(const double delta_time) const {
-  for (const auto& [game_object_id, component_tuple] : get_registry()->find_components<StatusEffects>()) {
+  for (const auto& [game_object_id, component_tuple] : get_registry()->get_game_object_components<StatusEffects>()) {
     // Update and remove expired effects
     auto& active_effects{std::get<0>(component_tuple)->active_effects};
     if (active_effects.empty()) {

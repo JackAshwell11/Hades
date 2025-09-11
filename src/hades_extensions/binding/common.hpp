@@ -19,7 +19,6 @@
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
 #include "ecs/systems/inventory.hpp"
-#include "ecs/systems/physics.hpp"
 #include "ecs/systems/shop.hpp"
 
 // The declarations for the binding functions
