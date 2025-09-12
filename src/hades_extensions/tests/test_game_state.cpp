@@ -90,6 +90,15 @@ TEST_F(GameStateFixture, TestGameStateSetSeed) {
   ASSERT_NO_THROW(game_state->set_seed(seed));
 }
 
+/// Test setting the window size works correctly.
+TEST_F(GameStateFixture, TestGameStateSetWindowSize) {
+  constexpr std::pair original_window_size{0, 0};
+  constexpr std::pair expected_window_size{1024, 768};
+  ASSERT_EQ(game_state->get_window_size(), original_window_size);
+  game_state->set_window_size(1024, 768);
+  ASSERT_EQ(game_state->get_window_size(), expected_window_size);
+}
+
 /// Test that the dungeon can be initialised with an arbitrary player level.
 TEST_F(GameStateFixture, TestGameStateInitialiseDungeonRun) {
   registry->get_component<PlayerLevel>(game_state->get_player_id())->level = 5;

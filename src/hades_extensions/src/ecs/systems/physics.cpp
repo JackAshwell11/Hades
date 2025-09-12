@@ -5,7 +5,21 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/movements.hpp"
+#include "events.hpp"
 #include "factories.hpp"
+
+namespace {
+/// Notify the event system of position changes for all game objects of a specific type
+///
+/// @param registry - The registry that manages the game objects, components, and systems.
+/// @param game_object_type - The type of game objects to notify about position changes.
+void notify_positions(const Registry* registry, const GameObjectType game_object_type) {
+  for (const auto game_object_id : registry->get_game_object_ids(game_object_type)) {
+    const auto [pos_x, pos_y]{cpBodyGetPosition(*registry->get_component<KinematicComponent>(game_object_id)->body)};
+    notify<EventType::PositionChanged>(game_object_id, std::make_pair(pos_x, pos_y));
+  }
+}
+}  // namespace
 
 void KinematicComponent::reset() {
   cpBodySetPosition(*body, cpvzero);
@@ -13,7 +27,12 @@ void KinematicComponent::reset() {
   rotation = 0;
 }
 
-void PhysicsSystem::update(const double delta_time) const { cpSpaceStep(get_registry()->get_space(), delta_time); }
+void PhysicsSystem::update(const double delta_time) const {
+  cpSpaceStep(get_registry()->get_space(), delta_time);
+  notify_positions(get_registry(), GameObjectType::Player);
+  notify_positions(get_registry(), GameObjectType::Enemy);
+  notify_positions(get_registry(), GameObjectType::Bullet);
+}
 
 void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect& force) const {
   cpBodyApplyForceAtLocalPoint(

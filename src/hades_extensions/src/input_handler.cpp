@@ -89,3 +89,12 @@ auto InputHandler::on_mouse_press(const double /*x*/, const double /*y*/, const 
   }
   return false;
 }
+
+void InputHandler::on_mouse_motion(const double x, const double y, const double /*delta_x*/,
+                                   const double /*delta_y*/) const {
+  const auto [width, height]{game_state_->get_window_size()};
+  const auto kinematic_component{registry_->get_component<KinematicComponent>(game_state_->get_player_id())};
+  const auto [player_x, player_y]{cpBodyGetPosition(*kinematic_component->body)};
+  kinematic_component->rotation = std::atan2(y + player_y - (static_cast<double>(height) / 2) - player_y,
+                                             x + player_x - (static_cast<double>(width) / 2) - player_x);
+}

@@ -111,6 +111,7 @@ class HadesWindow(Window):
     def setup(self: HadesWindow) -> None:
         """Set up the window and its scenes."""
         self.center_window()
+        self.model.game_state.set_window_size(self.width, self.height)
         for event_type in EVENT_TYPES:
             self.register_event_type(event_type)
         self.model.game_engine.setup(str(SHOP_OFFERINGS), str(SAVE_DIRECTORY))

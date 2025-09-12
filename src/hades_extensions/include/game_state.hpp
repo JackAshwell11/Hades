@@ -86,6 +86,17 @@ class GameState {
   /// @param seed - The seed to set for the random generator.
   void set_seed(const std::string& seed);
 
+  /// Get the window size.
+  ///
+  /// @return The size of the window.
+  [[nodiscard]] auto get_window_size() const -> std::pair<int, int>;
+
+  /// Set the window size.
+  ///
+  /// @param width - The width of the window.
+  /// @param height - The height of the window.
+  void set_window_size(int width, int height);
+
   /// Initialise the dungeon run.
   void initialise_dungeon_run();
 
@@ -107,6 +118,9 @@ class GameState {
 
   /// The registry that manages game objects, components, and systems.
   std::shared_ptr<Registry> registry_;
+
+  /// The size of the window.
+  std::pair<int, int> window_size_;
 
   /// Stores the state of the game.
   struct {

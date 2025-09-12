@@ -1,5 +1,4 @@
 pybind11_add_module(${PY_MODULE}
-        ${CMAKE_SOURCE_DIR}/binding/ecs/components.cpp
         ${CMAKE_SOURCE_DIR}/binding/ecs/ecs.cpp
         ${CMAKE_SOURCE_DIR}/binding/ecs/systems.cpp
         ${CMAKE_SOURCE_DIR}/binding/bindings.cpp
