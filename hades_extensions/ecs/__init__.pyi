@@ -3,7 +3,6 @@ from enum import Enum
 from typing import Final, TypeVar
 
 # Define some type vars for the registry
-_Component = TypeVar("_Component")
 _System = TypeVar("_System")
 
 # Define the global variables
@@ -27,19 +26,7 @@ class EffectType(Enum):
     Regeneration = ...
     Poison = ...
 
-class ComponentBase: ...
 class SystemBase: ...
 
 class Registry:
-    def has_component(
-        self: Registry,
-        game_object_id: int,
-        component: type[ComponentBase],
-    ) -> bool: ...
-    def get_component(
-        self: Registry,
-        game_object_id: int,
-        component: type[_Component],
-    ) -> _Component: ...
-    def get_game_object_type(self: Registry, game_object_id: int) -> GameObjectType: ...
     def get_system(self: Registry, system: type[_System]) -> _System: ...

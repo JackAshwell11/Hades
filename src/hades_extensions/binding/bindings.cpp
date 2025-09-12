@@ -3,6 +3,7 @@
 
 // Local headers
 #include "common.hpp"
+#include "ecs/systems/shop.hpp"
 #include "events.hpp"
 #include "factories.hpp"
 #include "game_engine.hpp"
@@ -116,7 +117,12 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
       .def("set_seed", &GameState::set_seed, pybind11::arg("seed"),
            "Set the seed for the random generator.\n\n"
            "Args:\n"
-           "    seed: The seed to set for the random generator.");
+           "    seed: The seed to set for the random generator.")
+      .def("set_window_size", &GameState::set_window_size, pybind11::arg("width"), pybind11::arg("height"),
+           "Set the window size.\n\n"
+           "Args:\n"
+           "    width: The width of the window.\n"
+           "    height: The height of the window.");
 
   pybind11::class_<InputHandler, std::shared_ptr<InputHandler>>(
       module, "InputHandler", "Handles input events such as key presses, releases, and mouse clicks.")
@@ -137,7 +143,15 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
            "    x: The x position of the mouse.\n"
            "    y: The y position of the mouse.\n"
            "    button: The button that was pressed.\n"
-           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.");
+           "    modifiers: Bitwise AND of all modifiers (shift, ctrl, num lock) pressed during this event.")
+      .def("on_mouse_motion", &InputHandler::on_mouse_motion, pybind11::arg("x"), pybind11::arg("y"),
+           pybind11::arg("delta_x"), pybind11::arg("delta_y"),
+           "Process mouse motion functionality.\n\n"
+           "Args:\n"
+           "    x: The x position of the mouse.\n"
+           "    y: The y position of the mouse.\n"
+           "    delta_x: The change in x position of the mouse.\n"
+           "    delta_y: The change in y position of the mouse.");
 
   pybind11::class_<SaveManager, std::shared_ptr<SaveManager>>(module, "SaveManager",
                                                               "Manages the saving and loading of game states.")
@@ -185,8 +199,6 @@ PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
   auto ecs{module.def_submodule(
       "ecs", "Contains the registry and the various components and systems that can be used with it.")};
   const auto systems{ecs.def_submodule("systems", "Contains the systems which manage the game objects.")};
-  const auto components{ecs.def_submodule("components", "Contains the components which can be added to game objects.")};
   bind_ecs(ecs);
-  bind_components(components);
   bind_systems(systems);
 }

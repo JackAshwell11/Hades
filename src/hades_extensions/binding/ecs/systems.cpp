@@ -1,5 +1,7 @@
 // Local headers
 #include "common.hpp"
+#include "ecs/systems/inventory.hpp"
+#include "ecs/systems/shop.hpp"
 
 void bind_systems(const pybind11::module& module) {
   pybind11::class_<InventorySystem, SystemBase, std::shared_ptr<InventorySystem>>(

@@ -65,6 +65,10 @@ void GameState::set_seed(const std::string& seed) {
   game_state_.dungeon_run.random_generator.seed(static_cast<unsigned int>(seed_hasher(seed)));
 }
 
+auto GameState::get_window_size() const -> std::pair<int, int> { return window_size_; }
+
+void GameState::set_window_size(const int width, const int height) { window_size_ = {width, height}; }
+
 void GameState::initialise_dungeon_run() {
   const auto player_level{registry_->get_component<PlayerLevel>(get_player_id())->level};
   game_state_.dungeon_run = {

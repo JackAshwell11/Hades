@@ -71,6 +71,14 @@ class InputHandler {
   /// @return Whether the attack was successful or not.
   [[nodiscard]] auto on_mouse_press(double x, double y, int button, int modifiers) const -> bool;
 
+  /// Process mouse motion functionality.
+  ///
+  /// @param x - The x position of the mouse.
+  /// @param y - The y position of the mouse.
+  /// @param delta_x - The change in x position of the mouse.
+  /// @param delta_y - The change in y position of the mouse.
+  void on_mouse_motion(double x, double y, double delta_x, double delta_y) const;
+
  private:
   /// The registry that manages game objects, components, and systems.
   std::shared_ptr<Registry> registry_;

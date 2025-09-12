@@ -1,14 +1,14 @@
 // Local headers
 #include "common.hpp"
-#include "ecs/systems/attacks.hpp"
+#include "ecs/registry.hpp"
 #include "ecs/systems/effects.hpp"
+#include "ecs/systems/inventory.hpp"
+#include "ecs/systems/shop.hpp"
 
 void bind_ecs(const pybind11::module_& module) {
   // Add the global constants, functions, and base classes
   module.attr("SPRITE_SCALE") = SPRITE_SCALE;
   module.attr("SPRITE_SIZE") = SPRITE_SIZE;
-  const pybind11::class_<ComponentBase, std::shared_ptr<ComponentBase>> component_base(
-      module, "ComponentBase", "The base class for all components.");
   const pybind11::class_<SystemBase, std::shared_ptr<SystemBase>> system_base(module, "SystemBase",
                                                                               "The base class for all systems.");
 
@@ -32,50 +32,15 @@ void bind_ecs(const pybind11::module_& module) {
   pybind11::class_<Registry, std::shared_ptr<Registry>>(
       module, "Registry", "Manages game objects, components, and systems that are registered.")
       .def(
-          "get_component",
-          [](const Registry& registry, const GameObjectID game_object_id, const pybind11::handle& component_type) {
-            const auto type_index{get_type_index(component_type)};
-            std::shared_ptr<ComponentBase> component;
-            if (type_index == typeid(Armour)) {
-              component = registry.get_component<Armour>(game_object_id);
-            } else if (type_index == typeid(Health)) {
-              component = registry.get_component<Health>(game_object_id);
-            } else if (type_index == typeid(KinematicComponent)) {
-              component = registry.get_component<KinematicComponent>(game_object_id);
-            }
-            return component;
-          },
-          pybind11::arg("game_object_id"), pybind11::arg("component_type"),
-          "Get a component from the registry.\n\n"
-          "Args:\n"
-          "    game_object_id: The game object ID.\n"
-          "    component_type: The type of component to get.\n\n"
-          "Raises:\n"
-          "    RegistryError: If the game object is not registered or if the game object does not have the "
-          "component."
-          "   RuntimeError: If the component type is invalid.\n\n"
-          "Returns:\n"
-          "    The component from the registry.")
-      .def("get_game_object_type", &Registry::get_game_object_type, pybind11::arg("game_object_id"),
-           "Get the type of a game object.\n\n"
-           "Args:\n"
-           "    game_object_id: The game object ID.\n\n"
-           "Raises:\n"
-           "    RegistryError: If the game object is not registered.\n\n"
-           "Returns:\n"
-           "    The type of the game object.")
-      .def(
           "get_system",
-          [](const Registry& registry, const pybind11::object& system_type) {
-            // Get all the system types and check if the given system type exists
-            const auto& system_types = get_system_types();
-            const auto iter = system_types.find(system_type);
-            if (iter == system_types.end()) {
-              throw std::runtime_error("Invalid system type provided.");
+          [](const Registry& registry, const pybind11::object& system_type) -> std::shared_ptr<SystemBase> {
+            if (system_type.is(pybind11::type::of<InventorySystem>())) {
+              return registry.get_system<InventorySystem>();
             }
-
-            // Return the system from the registry
-            return iter->second(registry);
+            if (system_type.is(pybind11::type::of<ShopSystem>())) {
+              return registry.get_system<ShopSystem>();
+            }
+            throw std::runtime_error("Invalid system type provided.");
           },
           pybind11::arg("system_type"),
           "Get a system from the registry.\n\n"

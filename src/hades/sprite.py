@@ -6,16 +6,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 # Pip
-from arcade import BasicSprite, Texture, get_window
+from arcade import BasicSprite, Texture
 
 # Custom
 from hades_extensions.ecs import SPRITE_SCALE, GameObjectType
-from hades_extensions.ecs.components import KinematicComponent
 
 if TYPE_CHECKING:
     from hades.constructors import GameObjectConstructor
 
-__all__ = ("AnimatedSprite", "DynamicSprite", "HadesSprite", "make_sprite")
+__all__ = ("AnimatedSprite", "HadesSprite", "make_sprite")
 
 
 class HadesSprite(BasicSprite):
@@ -70,19 +69,7 @@ class HadesSprite(BasicSprite):
         return self.constructor.description
 
 
-class DynamicSprite(HadesSprite):
-    """Represents a dynamic sprite object in the game."""
-
-    def update(self: DynamicSprite, *_: tuple[float]) -> None:
-        """Update the sprite object."""
-        self.position = (
-            get_window()
-            .model.registry.get_component(self.game_object_id, KinematicComponent)
-            .get_position()
-        )
-
-
-class AnimatedSprite(DynamicSprite):
+class AnimatedSprite(HadesSprite):
     """Represents an animated sprite object in the game.
 
     Attributes:
@@ -119,11 +106,5 @@ def make_sprite(game_object_id: int, constructor: GameObjectConstructor) -> Hade
     Returns:
         The sprite object.
     """
-    sprite_class: type[HadesSprite]
-    if constructor.game_object_type == GameObjectType.Bullet:
-        sprite_class = DynamicSprite
-    elif len(constructor.textures) > 1:
-        sprite_class = AnimatedSprite
-    else:
-        sprite_class = HadesSprite
+    sprite_class = AnimatedSprite if len(constructor.textures) > 1 else HadesSprite
     return sprite_class(game_object_id, constructor)

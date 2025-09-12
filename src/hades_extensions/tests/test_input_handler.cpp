@@ -237,3 +237,34 @@ TEST_F(InputHandlerFixture, TestInputHandlerOnMousePressLeft) {
 TEST_F(InputHandlerFixture, TestInputHandlerOnMousePressUnknown) {
   ASSERT_FALSE(input_handler->on_mouse_press(0, 0, -1, 0));
 }
+
+/// Test that the input handler processes mouse motion when the window size is set.
+TEST_F(InputHandlerFixture, TestInputHandlerOnMouseMotionWindowSizeSet) {
+  game_state->set_window_size(800, 600);
+  input_handler->on_mouse_motion(100, 200, 0, 0);
+  const auto kinematic_component{registry->get_component<KinematicComponent>(0)};
+  ASSERT_EQ(kinematic_component->rotation, -2.819842099193151);
+}
+
+/// Test that the input handler processes mouse motion when the position is zero.
+TEST_F(InputHandlerFixture, TestInputHandlerOnMouseMotionZeroPosition) {
+  game_state->set_window_size(800, 600);
+  input_handler->on_mouse_motion(0, 0, 0, 0);
+  const auto kinematic_component{registry->get_component<KinematicComponent>(0)};
+  ASSERT_EQ(kinematic_component->rotation, -2.4980915447965089);
+}
+
+/// Test that the input handler processes mouse motion when the position is negative.
+TEST_F(InputHandlerFixture, TestInputHandlerOnMouseMotionNegativePosition) {
+  game_state->set_window_size(800, 600);
+  input_handler->on_mouse_motion(-100, -200, 0, 0);
+  const auto kinematic_component{registry->get_component<KinematicComponent>(0)};
+  ASSERT_EQ(kinematic_component->rotation, -2.3561944901923448);
+}
+
+/// Test that the input handler processes mouse motion when the window size is not set.
+TEST_F(InputHandlerFixture, TestInputHandlerOnMouseMotionWindowSizeNotSet) {
+  input_handler->on_mouse_motion(100, 200, 0, 0);
+  const auto kinematic_component{registry->get_component<KinematicComponent>(0)};
+  ASSERT_EQ(kinematic_component->rotation, 1.1071487177940904);
+}

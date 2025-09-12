@@ -5,16 +5,14 @@ from __future__ import annotations
 
 # Builtin
 from pathlib import Path
-from unittest.mock import Mock
 
 # Pip
 import pytest
 
 # Custom
 from hades.constructors import GameObjectConstructor, IconType
-from hades.sprite import AnimatedSprite, DynamicSprite, HadesSprite, make_sprite
-from hades_extensions.ecs import GameObjectType, Registry
-from hades_extensions.ecs.components import KinematicComponent
+from hades.sprite import AnimatedSprite, HadesSprite, make_sprite
+from hades_extensions.ecs import GameObjectType
 
 __all__ = ()
 
@@ -76,46 +74,6 @@ def test_hades_sprite_init_no_texture() -> None:
             0,
             GameObjectConstructor("Test", "Test", GameObjectType.Player, 0, []),
         )
-
-
-def test_dynamic_sprite_init() -> None:
-    """Test that a dynamic sprite object initialises correctly."""
-    constructor = GameObjectConstructor(
-        "Test constructor",
-        "Test description",
-        GameObjectType.Player,
-        0,
-        [IconType.FLOOR],
-    )
-    sprite = DynamicSprite(0, constructor)
-    assert sprite.position == (0, 0)
-
-
-@pytest.mark.xfail(
-    reason="DynamicSprite.update() needs to be updated to work with ECS properly",
-)
-def test_dynamic_sprite_update() -> None:
-    """Test that a dynamic sprite object is updated correctly."""
-    # Set up the mocks for the test
-    registry = Mock(spec=Registry)
-    kinematic_component = Mock(spec=KinematicComponent)
-    kinematic_component.get_position.return_value = (64.0, 64.0)
-    registry.get_component.return_value = kinematic_component
-
-    # Create the sprite object and check that the position is correct
-    constructor = GameObjectConstructor(
-        "Test",
-        "Test description",
-        GameObjectType.Player,
-        0,
-        [IconType.FLOOR],
-    )
-    sprite = DynamicSprite(-1, constructor)
-
-    # Update the sprite object and check that the position is correct
-    assert sprite.position == (0, 0)
-    sprite.update()
-    assert sprite.position == (64.0, 64.0)
 
 
 @pytest.mark.parametrize(

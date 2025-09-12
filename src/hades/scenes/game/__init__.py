@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 # Builtin
-import math
 from typing import TYPE_CHECKING
 
 # Custom
@@ -12,7 +11,6 @@ from hades.scenes.base import BaseScene
 from hades.scenes.game.view import GameView
 from hades.sprite import make_sprite
 from hades_extensions import EventType, add_callback
-from hades_extensions.ecs.components import KinematicComponent
 
 if TYPE_CHECKING:
     from typing import ClassVar
@@ -60,37 +58,7 @@ class GameScene(BaseScene[GameView]):
 
     def on_update(self: GameScene, _: float) -> None:
         """Process game logic."""
-        self.view.update(
-            self.model.registry.get_component(
-                self.model.player_id,
-                KinematicComponent,
-            ).get_position(),
-        )
-
-    def on_mouse_motion(self: GameScene, x: int, y: int, _: int, __: int) -> None:
-        """Process mouse motion functionality.
-
-        Args:
-            x: The x position of the mouse.
-            y: The y position of the mouse.
-        """
-        kinematic_component = self.model.registry.get_component(
-            self.model.player_id,
-            KinematicComponent,
-        )
-        player_x, player_y = kinematic_component.get_position()
-        kinematic_component.set_rotation(
-            math.atan2(
-                y
-                + self.view.game_camera.position[1]
-                - self.view.window.height / 2
-                - player_y,
-                x
-                + self.view.game_camera.position[0]
-                - self.view.window.width / 2
-                - player_x,
-            ),
-        )
+        self.view.update(self.model.sprites[self.model.player_id].position)
 
     def on_game_object_creation(
         self: GameScene,

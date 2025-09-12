@@ -2,6 +2,7 @@
 #include "ecs/registry.hpp"
 #include "ecs/systems/movements.hpp"
 #include "ecs/systems/physics.hpp"
+#include "events.hpp"
 #include "factories.hpp"
 #include "macros.hpp"
 
@@ -19,6 +20,9 @@ class PhysicsSystemFixture : public testing::Test {
     registry.add_component<MovementForce>(game_object_id, 100, -1);
     registry.add_system<PhysicsSystem>();
   }
+
+  /// Tear down the fixture after the tests.
+  void TearDown() override { clear_listeners(); }
 
   /// Create objects at the specified positions.
   ///
@@ -96,6 +100,53 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateValidVelocityValidForce) {
   ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(0)->body), cpv(100, 0));
   ASSERT_EQ(cpBodyGetVelocity(*registry.get_component<KinematicComponent>(0)->body), cpv(10.01, 0));
   ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpvzero);
+}
+
+/// Test that updating the physics system with a player game object calls the correct callbacks.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdatePlayerCallbacks) {
+  std::vector<std::pair<double, double>> changed_positions;
+  const auto position_changed{[&changed_positions](const GameObjectID, const std::pair<double, double>& position) {
+    changed_positions.push_back(position);
+  }};
+  add_callback<EventType::PositionChanged>(position_changed);
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = 100, .y = 0});
+  get_physics_system()->update(5.0);
+  const std::vector<std::pair<double, double>> expected_positions{{500, 0}};
+  ASSERT_EQ(changed_positions, expected_positions);
+}
+
+/// Test that updating the physics system with enemy game objects calls the correct callbacks.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateEnemyCallbacks) {
+  registry.delete_game_object(0);
+  create_objects(GameObjectType::Enemy, {{.x = 0, .y = 0}, {.x = 100, .y = 0}, {.x = 200, .y = 0}});
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(1)->body, {.x = 100, .y = 0});
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(2)->body, {.x = 50, .y = 0});
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = 25, .y = 0});
+  std::vector<std::pair<double, double>> changed_positions;
+  const auto position_changed{[&changed_positions](const GameObjectID, const std::pair<double, double>& position) {
+    changed_positions.push_back(position);
+  }};
+  add_callback<EventType::PositionChanged>(position_changed);
+  get_physics_system()->update(5.0);
+  const std::vector<std::pair<double, double>> expected_positions{{125, 0}, {600, 0}, {450, 0}};
+  ASSERT_EQ(changed_positions, expected_positions);
+}
+
+/// Tests that updating the physics systems with bullet game objects calls the correct callbacks.
+TEST_F(PhysicsSystemFixture, TestPhysicsSystemUpdateBulletCallbacks) {
+  registry.delete_game_object(0);
+  create_objects(GameObjectType::Bullet, {{.x = 0, .y = 200}, {.x = 0, .y = 300}, {.x = 0, .y = 400}});
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(1)->body, {.x = 0, .y = 150});
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(2)->body, {.x = 0, .y = 100});
+  cpBodySetVelocity(*registry.get_component<KinematicComponent>(0)->body, {.x = 0, .y = 50});
+  std::vector<std::pair<double, double>> changed_positions;
+  const auto position_changed{[&changed_positions](const GameObjectID, const std::pair<double, double>& position) {
+    changed_positions.push_back(position);
+  }};
+  add_callback<EventType::PositionChanged>(position_changed);
+  get_physics_system()->update(5.0);
+  const std::vector<std::pair<double, double>> expected_positions{{0, 450}, {0, 1050}, {0, 900}};
+  ASSERT_EQ(changed_positions, expected_positions);
 }
 
 /// Test that adding a zero force to a game object without a force works correctly.
