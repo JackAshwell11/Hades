@@ -11,7 +11,7 @@ from arcade.key import E
 # Custom
 from hades.scenes.base import BaseScene
 from hades.scenes.game_options.view import GameOptionsView
-from hades_extensions import EventType, add_callback
+from hades_engine import EventType, add_callback
 
 if TYPE_CHECKING:
     from typing import ClassVar

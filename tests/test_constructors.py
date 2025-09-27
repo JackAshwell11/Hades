@@ -12,7 +12,7 @@ from hades.constructors import (
     game_object_constructors,
     texture_cache,
 )
-from hades_extensions.ecs import GameObjectType
+from hades_engine.ecs import GameObjectType
 
 
 @pytest.mark.parametrize(

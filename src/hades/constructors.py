@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING
 from arcade import color, load_texture
 
 # Custom
-from hades_extensions import load_hitbox
-from hades_extensions.ecs import GameObjectType
+from hades_engine import load_hitbox
+from hades_engine.ecs import GameObjectType
 
 if TYPE_CHECKING:
     from arcade import Texture

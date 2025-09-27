@@ -12,7 +12,7 @@ import pytest
 # Custom
 from hades.constructors import GameObjectConstructor, IconType
 from hades.sprite import AnimatedSprite, HadesSprite, make_sprite
-from hades_extensions.ecs import GameObjectType
+from hades_engine.ecs import GameObjectType
 
 __all__ = ()
 

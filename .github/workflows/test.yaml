@@ -59,17 +59,17 @@ jobs:
       - name: Set up CMake
         uses: lukka/get-cmake@v4.1.1
       - name: Build CMake and run CTest
-        working-directory: ${{ github.workspace }}/src/hades_extensions
+        working-directory: ${{ github.workspace }}/src/hades_engine
         run: |
           pip install conan
           cmake -DDO_PYTHON=OFF --preset Debug
           cmake --build build-debug
-          ctest --output-on-failure --no-tests=error --test-dir ${{ github.workspace }}/src/hades_extensions/build-debug/tests
+          ctest --output-on-failure --no-tests=error --test-dir ${{ github.workspace }}/src/hades_engine/build-debug/tests
       - name: Generate the coverage report
         if: matrix.os == 'ubuntu-latest'
         run: |
           pip install gcovr
-          gcovr -r ${{ github.workspace }} --exclude src/hades_extensions/build-debug --exclude src/hades_extensions/tests --exclude src/hades_extensions/src/binding.cpp --coveralls coverage.json
+          gcovr -r ${{ github.workspace }} --exclude src/hades_engine/build-debug --exclude src/hades_engine/tests --exclude src/hades_engine/src/binding.cpp --coveralls coverage.json
       - name: Upload coverage report
         if: matrix.os == 'ubuntu-latest'
         uses: coverallsapp/github-action@v2.3.6

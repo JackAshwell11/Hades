@@ -16,7 +16,7 @@ from PIL import Image
 from hades import SceneType
 from hades.model import HadesModel
 from hades.window import HadesWindow, main
-from hades_extensions import GameEngine
+from hades_engine import GameEngine
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch

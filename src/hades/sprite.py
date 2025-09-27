@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from arcade import BasicSprite, Texture
 
 # Custom
-from hades_extensions.ecs import SPRITE_SCALE, GameObjectType
+from hades_engine.ecs import SPRITE_SCALE, GameObjectType
 
 if TYPE_CHECKING:
     from hades.constructors import GameObjectConstructor

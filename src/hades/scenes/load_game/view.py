@@ -21,7 +21,7 @@ from hades.scenes.base.view import BaseView
 
 if TYPE_CHECKING:
     from hades.window import HadesWindow
-    from hades_extensions import SaveFileInfo
+    from hades_engine import SaveFileInfo
 
 __all__ = (
     "LoadGameMenuView",

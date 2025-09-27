@@ -22,7 +22,7 @@ from hades.grid_layout import (
     create_default_layout,
     create_divider_line,
 )
-from hades_extensions.ecs import SPRITE_SIZE
+from hades_engine.ecs import SPRITE_SIZE
 
 if TYPE_CHECKING:
 

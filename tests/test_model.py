@@ -7,8 +7,8 @@ from unittest.mock import Mock
 
 # Custom
 from hades.model import HadesModel
-from hades_extensions import GameEngine, GameState
-from hades_extensions.ecs import Registry
+from hades_engine import GameEngine, GameState
+from hades_engine.ecs import Registry
 
 
 def test_hades_model_init() -> None:

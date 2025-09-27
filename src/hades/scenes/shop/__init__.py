@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 # Custom
 from hades.scenes.base import BaseScene
 from hades.scenes.shop.view import ShopItemButton, ShopView
-from hades_extensions import EventType, add_callback
-from hades_extensions.ecs.systems import ShopSystem
+from hades_engine import EventType, add_callback
+from hades_engine.ecs.systems import ShopSystem
 
 if TYPE_CHECKING:
     from typing import ClassVar

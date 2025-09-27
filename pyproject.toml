@@ -158,7 +158,7 @@ extend-ignore = [
 select = ["ALL"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["hades", "hades_ai", "hades_extensions"]
+known-first-party = ["hades", "hades_ai", "hades_engine"]
 
 [tool.ruff.lint.per-file-ignores]
 "noxfile.py" = [
@@ -170,7 +170,7 @@ known-first-party = ["hades", "hades_ai", "hades_extensions"]
     "PLR2004",  # Ignore pylint-refactor magic number rule for the tests
     "S101",  # Ignore flake8-bandit assert rule for the tests
 ]
-"hades_extensions/*.pyi" = [
+"hades_engine/*.pyi" = [
     "D100",  # Ignore pydocstyle module docstring rule
     "D101",  # Ignore pydocstyle class docstring rule
     "D103",  # Ignore pydocstyle method docstring rule
@@ -179,7 +179,7 @@ known-first-party = ["hades", "hades_ai", "hades_extensions"]
 "src/hades/views/start_menu.py" = [
     "PLR6301",  # Ignore pylint no-self-use rule for the start menu event handlers
 ]
-"src/hades_extensions/conanfile.py" = [
+"src/hades_engine/conanfile.py" = [
     "INP001"  # Ignore flake8-no-pep420 implicit namespace package rule
 ]
 
@@ -187,7 +187,7 @@ known-first-party = ["hades", "hades_ai", "hades_extensions"]
 convention = "google"
 
 [tool.scikit-build]
-cmake.source-dir = "src/hades_extensions"
+cmake.source-dir = "src/hades_engine"
 cmake.args = ["-GNinja", "-DDO_TESTS=OFF", "--preset Release"]
 
 [tool.uv]

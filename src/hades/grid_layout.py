@@ -26,7 +26,7 @@ from arcade.types import Color
 # Custom
 from hades import UI_BACKGROUND_COLOUR, UI_PADDING, BackButton
 from hades.scenes.base.view import BaseView
-from hades_extensions.ecs import SPRITE_SIZE
+from hades_engine.ecs import SPRITE_SIZE
 
 if TYPE_CHECKING:
     from hades.window import HadesWindow

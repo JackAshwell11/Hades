@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Literal, overload
 
 # Custom
-from hades_extensions.ecs import EffectType, GameObjectType, Registry
+from hades_engine.ecs import EffectType, GameObjectType, Registry
 
 class EventType(Enum):
     GameObjectCreation = ...

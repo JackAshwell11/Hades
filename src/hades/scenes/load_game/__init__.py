@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 # Custom
 from hades.scenes.base import BaseScene
 from hades.scenes.load_game.view import LoadGameMenuView, SaveEntry
-from hades_extensions import EventType, SaveFileInfo, add_callback
+from hades_engine import EventType, SaveFileInfo, add_callback
 
 if TYPE_CHECKING:
     from typing import ClassVar

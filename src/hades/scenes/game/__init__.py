@@ -10,12 +10,12 @@ from hades.constructors import game_object_constructors
 from hades.scenes.base import BaseScene
 from hades.scenes.game.view import GameView
 from hades.sprite import make_sprite
-from hades_extensions import EventType, add_callback
+from hades_engine import EventType, add_callback
 
 if TYPE_CHECKING:
     from typing import ClassVar
 
-    from hades_extensions.ecs import EffectType, GameObjectType
+    from hades_engine.ecs import EffectType, GameObjectType
 
 __all__ = ("GameScene",)
 

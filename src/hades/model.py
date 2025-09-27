@@ -7,12 +7,12 @@ from functools import cached_property
 from typing import TYPE_CHECKING
 
 # Custom
-from hades_extensions import GameEngine
+from hades_engine import GameEngine
 
 if TYPE_CHECKING:
     from hades.sprite import HadesSprite
-    from hades_extensions import GameState, InputHandler, SaveManager
-    from hades_extensions.ecs import Registry
+    from hades_engine import GameState, InputHandler, SaveManager
+    from hades_engine.ecs import Registry
 
 __all__ = ("HadesModel",)
 

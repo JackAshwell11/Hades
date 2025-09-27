@@ -16,7 +16,7 @@ from hades.constructors import IconType
 from hades.progress_bar import PROGRESS_BAR_HEIGHT, ProgressBar
 from hades.scenes.base.view import BaseView
 from hades.sprite import HadesSprite
-from hades_extensions.ecs import SPRITE_SIZE, EffectType, GameObjectType
+from hades_engine.ecs import SPRITE_SIZE, EffectType, GameObjectType
 
 if TYPE_CHECKING:
     from hades.window import HadesWindow

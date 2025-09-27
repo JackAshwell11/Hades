@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from hades import SceneType
 from hades.scenes.base import BaseScene
 from hades.scenes.start_menu.view import StartMenuView
-from hades_extensions import EventType, SaveFileInfo, add_callback
+from hades_engine import EventType, SaveFileInfo, add_callback
 
 if TYPE_CHECKING:
     from typing import ClassVar

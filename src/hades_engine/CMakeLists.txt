@@ -15,9 +15,9 @@ set(DO_PYTHON ON CACHE BOOL "Enable Python bindings")
 set(DO_TESTS ON CACHE BOOL "Enable testing")
 
 # Define the module names and initialise the project
-set(PY_MODULE hades_extensions)
-set(CPP_LIB hades_extensions_lib)
-set(TEST_MODULE hades_extensions_tests)
+set(PY_MODULE hades_engine)
+set(CPP_LIB hades_engine_lib)
+set(TEST_MODULE hades_engine_tests)
 project(${PY_MODULE} LANGUAGES CXX)
 
 # Include the required modules

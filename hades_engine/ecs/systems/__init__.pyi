@@ -1,5 +1,5 @@
 # Custom
-from hades_extensions.ecs import SystemBase
+from hades_engine.ecs import SystemBase
 
 class InventorySystem(SystemBase):
     def use_item(self: InventorySystem, target_id: int, item_id: int) -> None: ...

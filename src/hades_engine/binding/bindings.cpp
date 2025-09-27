@@ -9,7 +9,7 @@
 #include "game_engine.hpp"
 #include "save_manager.hpp"
 
-PYBIND11_MODULE(hades_extensions, module) {  // NOLINT
+PYBIND11_MODULE(hades_engine, module) {  // NOLINT
   module.doc() = "Manages the various C++ extension modules for the game.";
   module.def("load_hitbox", &load_hitbox, pybind11::arg("game_object_type"), pybind11::arg("hitbox"),
              "Load a hitbox for a game object type.\n\n"
