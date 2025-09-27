@@ -46,6 +46,9 @@ class GameEngine {
   /// @param delta_time - The time interval since the last time the function was called.
   void on_fixed_update(double delta_time) const;
 
+  /// Enter the dungeon from the lobby.
+  void enter_dungeon() const;
+
  private:
   /// Manages game objects, components, and systems that are registered.
   std::shared_ptr<Registry> registry_;

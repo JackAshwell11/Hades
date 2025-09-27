@@ -13,6 +13,13 @@ class Registry;
 struct Grid;
 struct cpVect;
 
+/// Stores the different types of difficulty levels in the game.
+enum class DifficultyLevel : std::uint8_t {
+  Easy,
+  Normal,
+  Hard,
+};
+
 /// Stores the different types of levels in the game.
 enum class LevelType : std::uint8_t {
   None,
@@ -34,6 +41,16 @@ class GameState {
   ///
   /// @return The player's game object ID.
   [[nodiscard]] auto get_player_id() const -> GameObjectID;
+
+  /// Get the difficulty level of the game.
+  ///
+  /// @return The difficulty level of the game.
+  [[nodiscard]] auto get_difficulty_level() const -> DifficultyLevel;
+
+  /// Set the difficulty level of the game.
+  ///
+  /// @param difficulty_level - The difficulty level to set.
+  void set_difficulty_level(DifficultyLevel difficulty_level);
 
   /// Get the nearest item to the player.
   ///
@@ -128,6 +145,9 @@ class GameState {
     struct {
       /// The player's game object ID.
       GameObjectID player_id{-1};
+
+      /// The difficulty level of the game.
+      DifficultyLevel difficulty_level{DifficultyLevel::Normal};
     } game;
 
     /// Store state which should persist across the entire level.

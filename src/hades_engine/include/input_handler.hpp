@@ -26,9 +26,6 @@ constexpr int KEY_C{99};
 /// The E key code.
 constexpr int KEY_E{101};
 
-/// The Q key code.
-constexpr int KEY_Q{113};
-
 /// The Z key code.
 constexpr int KEY_Z{122};
 

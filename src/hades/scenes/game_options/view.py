@@ -3,67 +3,113 @@
 from __future__ import annotations
 
 # Builtin
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 # Pip
-from arcade import color, get_window
-from arcade.gui import UIAnchorLayout, UIBoxLayout, UIFlatButton, UIInputText, UILabel
-from arcade.gui.widgets.text import UIInputTextStyle  # type: ignore[attr-defined]
+from arcade import get_window
+from arcade.gui import UIAnchorLayout, UIBoxLayout, UIFlatButton
 
 # Custom
-from hades import UI_BACKGROUND_COLOUR, UI_PADDING, BackButton
+from hades import MENU_WIDGET_SPACING, UI_PADDING, BackButton
 from hades.scenes.base.view import BaseView
+from hades_engine import DifficultyLevel
 
 if TYPE_CHECKING:
+    from arcade.gui.style import StyleRef
+
     from hades.window import HadesWindow
 
 __all__ = ("GameOptionsView",)
 
-# The width of the input text for the seed
-SEED_INPUT_WIDTH: Final[int] = 200
 
-
-class OptionsPanel(UIBoxLayout):
-    """Represents a panel for specifying game options."""
+class StartButton(UIFlatButton):
+    """Represents a button to start the game."""
 
     __slots__ = ()
 
-    def __init__(self: OptionsPanel) -> None:
+    def __init__(self: StartButton) -> None:
         """Initialise the object."""
-        super().__init__(space_between=UI_PADDING)
-        horizontal_layout = UIBoxLayout(vertical=False, space_between=UI_PADDING)
-        horizontal_layout.add(UILabel("Enter seed:", text_color=color.BLACK))
-        seed_input = UIInputText(
-            width=SEED_INPUT_WIDTH,
-            text_color=color.BLACK,
-            caret_color=color.BLACK,
-            style={"normal": UIInputTextStyle(border=color.BLACK)},
+        super().__init__(text="Start Game")
+        self.on_click = (  # type: ignore[method-assign]
+            lambda _: get_window().dispatch_event("on_start_level")  # type: ignore[assignment]
         )
-        horizontal_layout.add(seed_input)
-        self.add(horizontal_layout)
-        start_button = UIFlatButton(text="Start Game")
-        start_button.on_click = (  # type: ignore[method-assign]
+
+
+class DifficultyButton(UIFlatButton):
+    """Represents a button to select a difficulty level.
+
+    Attributes:
+        clicked: Whether the button has been clicked or not.
+    """
+
+    __slots__ = ()
+
+    def __init__(self: DifficultyButton, level: DifficultyLevel) -> None:
+        """Initialise the object.
+
+        Args:
+            level: The difficulty level for the button.
+        """
+        self.clicked: bool = False
+        super().__init__(text=level.name)
+        self.on_click = (  # type: ignore[method-assign]
             lambda _: get_window().dispatch_event(  # type: ignore[assignment]
-                "on_optioned_start_level",
-                seed_input.text,
+                "on_difficulty_change",
+                level,
             )
         )
-        self.add(start_button)
-        self.with_background(color=UI_BACKGROUND_COLOUR).with_padding(all=UI_PADDING)
+
+    def get_current_style(self: DifficultyButton) -> StyleRef | None:
+        """Get the current style of the button.
+
+        Returns:
+            The current style of the button.
+        """
+        if self.clicked:
+            return self.style.get("press")
+        return super().get_current_style()  # type: ignore[no-any-return]
+
+
+class DifficultyLayout(UIBoxLayout):
+    """Represents a layout for selecting the difficulty level."""
+
+    __slots__ = ("buttons",)
+
+    def __init__(self: DifficultyLayout) -> None:
+        """Initialise the object."""
+        super().__init__(space_between=UI_PADDING)
+        self.buttons: dict[DifficultyLevel, DifficultyButton] = {
+            level: DifficultyButton(level)
+            for level in (
+                DifficultyLevel.Easy,
+                DifficultyLevel.Normal,
+                DifficultyLevel.Hard,
+            )
+        }
+        self.add(
+            UIBoxLayout(
+                vertical=False,
+                children=self.buttons.values(),
+                space_between=UI_PADDING,
+            ),
+        )
 
 
 class GameOptionsView(BaseView):
     """Manages the rendering of game option elements on the screen."""
 
-    __slots__ = ()
+    __slots__ = ("difficulty_layout",)
 
     def _setup_layout(self: GameOptionsView) -> None:
         """Set up the layout for the view."""
-        self.ui.add(self.window.background_image)
-        layout = UIBoxLayout(vertical=True, space_between=UI_PADDING)
-        layout.add(OptionsPanel())
-        layout.add(BackButton())
-        self.ui.add(UIAnchorLayout(children=(layout,)))
+        vertical_box = UIBoxLayout(space_between=MENU_WIDGET_SPACING)
+        vertical_box.add(StartButton())
+        vertical_box.add(self.difficulty_layout)
+        vertical_box.add(BackButton())
+        self.difficulty_layout.buttons[
+            self.window.model.game_state.difficulty_level
+        ].clicked = True
+        self.ui.add(UIAnchorLayout(children=(vertical_box,)))
 
     def __init__(self: GameOptionsView, window: HadesWindow) -> None:
         """Initialise the object.
@@ -71,4 +117,5 @@ class GameOptionsView(BaseView):
         Args:
             window: The window for the game.
         """
+        self.difficulty_layout: DifficultyLayout = DifficultyLayout()
         super().__init__(window)

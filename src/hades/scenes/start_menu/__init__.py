@@ -31,7 +31,7 @@ class StartMenuScene(BaseScene[StartMenuView]):
 
     def on_new_game(self: StartMenuScene, _: UIOnClickEvent) -> None:
         """Process new game functionality."""
-        self.model.save_manager.new_game()
+        self.view.window.show_view(self.view.window.scenes[SceneType.GAME_OPTIONS])
 
     def on_load_game(self: StartMenuScene, _: UIOnClickEvent) -> None:
         """Process load game functionality."""

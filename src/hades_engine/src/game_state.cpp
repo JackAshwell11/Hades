@@ -37,6 +37,12 @@ GameState::GameState(const std::shared_ptr<Registry>& registry) : registry_(regi
 
 auto GameState::get_player_id() const -> GameObjectID { return game_state_.game.player_id; }
 
+auto GameState::get_difficulty_level() const -> DifficultyLevel { return game_state_.game.difficulty_level; }
+
+void GameState::set_difficulty_level(const DifficultyLevel difficulty_level) {
+  game_state_.game.difficulty_level = difficulty_level;
+}
+
 auto GameState::get_nearest_item() const -> GameObjectID { return game_state_.current_level.nearest_item; }
 
 void GameState::set_nearest_item(const GameObjectID item_id) { game_state_.current_level.nearest_item = item_id; }

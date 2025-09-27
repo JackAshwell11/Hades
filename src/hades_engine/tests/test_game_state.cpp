@@ -33,6 +33,13 @@ class GameStateFixture : public testing::Test {  // NOLINT
   void TearDown() override { clear_listeners(); }
 };
 
+/// Test that getting the difficulty level works correctly.
+TEST_F(GameStateFixture, TestGameStateDifficultyLevel) {
+  ASSERT_EQ(game_state->get_difficulty_level(), DifficultyLevel::Normal);
+  game_state->set_difficulty_level(DifficultyLevel::Hard);
+  ASSERT_EQ(game_state->get_difficulty_level(), DifficultyLevel::Hard);
+}
+
 /// Test that getting the nearest item works correctly.
 TEST_F(GameStateFixture, TestGameStateNearestItem) {
   ASSERT_EQ(game_state->get_nearest_item(), -1);
@@ -110,6 +117,7 @@ TEST_F(GameStateFixture, TestGameStateInitialiseDungeonRun) {
 TEST_F(GameStateFixture, TestGameStateResetLevelLobby) {
   game_state->reset_level(LevelType::Lobby);
   ASSERT_EQ(game_state->get_player_id(), 0);
+  ASSERT_EQ(game_state->get_difficulty_level(), DifficultyLevel::Normal);
   ASSERT_EQ(game_state->get_nearest_item(), -1);
   ASSERT_EQ(game_state->get_dungeon_level(), LevelType::Lobby);
   ASSERT_EQ(game_state->get_game_level(), 1);
@@ -137,6 +145,7 @@ TEST_F(GameStateFixture, TestGameStateResetLevelLobbyClearEverything) {
 TEST_F(GameStateFixture, TestGameStateResetLevelFirstSecond) {
   game_state->reset_level(LevelType::FirstDungeon);
   ASSERT_EQ(game_state->get_player_id(), 0);
+  ASSERT_EQ(game_state->get_difficulty_level(), DifficultyLevel::Normal);
   ASSERT_EQ(game_state->get_nearest_item(), -1);
   ASSERT_EQ(game_state->get_dungeon_level(), LevelType::FirstDungeon);
   ASSERT_EQ(game_state->get_game_level(), 1);

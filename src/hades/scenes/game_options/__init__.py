@@ -5,16 +5,14 @@ from __future__ import annotations
 # Builtin
 from typing import TYPE_CHECKING
 
-# Pip
-from arcade.key import E
-
 # Custom
 from hades.scenes.base import BaseScene
 from hades.scenes.game_options.view import GameOptionsView
-from hades_engine import EventType, add_callback
 
 if TYPE_CHECKING:
     from typing import ClassVar
+
+    from hades_engine import DifficultyLevel
 
 __all__ = ("GameOptionsScene",)
 
@@ -27,14 +25,21 @@ class GameOptionsScene(BaseScene[GameOptionsView]):
 
     def add_callbacks(self: GameOptionsScene) -> None:
         """Set up the controller callbacks."""
-        add_callback(EventType.GameOptionsOpen, self.on_game_options_open)
 
-    def on_optioned_start_level(self: GameOptionsScene, seed: str) -> None:
-        """Process the start level functionality with options."""
-        if seed:
-            self.model.game_state.set_seed(seed)
-        self.model.input_handler.on_key_release(E, 0)
+    def on_start_level(self: GameOptionsScene) -> None:
+        """Process the start level functionality."""
+        self.model.game_engine.enter_dungeon()
 
-    def on_game_options_open(self: GameOptionsScene) -> None:
-        """Process game options open functionality."""
-        self.view.window.show_view(self)
+    def on_difficulty_change(
+        self: GameOptionsScene,
+        difficulty_level: DifficultyLevel,
+    ) -> None:
+        """Process the difficulty change functionality.
+
+        Args:
+            difficulty_level: The difficulty level to set.
+        """
+        self.model.game_state.difficulty_level = difficulty_level
+        for level, difficulty_button in self.view.difficulty_layout.buttons.items():
+            difficulty_button.clicked = level == difficulty_level
+        self.view.difficulty_layout.trigger_render()

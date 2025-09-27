@@ -61,9 +61,6 @@ PYBIND11_MODULE(hades_engine, module) {  // NOLINT
           case EventType::InventoryOpen:
             add_callback<EventType::InventoryOpen>(callback);
             break;
-          case EventType::GameOptionsOpen:
-            add_callback<EventType::GameOptionsOpen>(callback);
-            break;
           case EventType::SaveFilesUpdated:
             add_callback<EventType::SaveFilesUpdated>(callback);
             break;
@@ -101,11 +98,15 @@ PYBIND11_MODULE(hades_engine, module) {  // NOLINT
       .value("ShopItemPurchased", EventType::ShopItemPurchased)
       .value("ShopOpen", EventType::ShopOpen)
       .value("InventoryOpen", EventType::InventoryOpen)
-      .value("GameOptionsOpen", EventType::GameOptionsOpen)
       .value("SaveFilesUpdated", EventType::SaveFilesUpdated)
       .value("GameOpen", EventType::GameOpen)
       .value("HealthChanged", EventType::HealthChanged)
       .value("ArmourChanged", EventType::ArmourChanged);
+
+  pybind11::enum_<DifficultyLevel>(module, "DifficultyLevel", "Stores the different types of difficulty levels.")
+      .value("Easy", DifficultyLevel::Easy)
+      .value("Normal", DifficultyLevel::Normal)
+      .value("Hard", DifficultyLevel::Hard);
 
   pybind11::class_<SaveFileInfo>(module, "SaveFileInfo", "Represents information about a save file.")
       .def_readonly("name", &SaveFileInfo::name)
@@ -114,6 +115,7 @@ PYBIND11_MODULE(hades_engine, module) {  // NOLINT
 
   pybind11::class_<GameState, std::shared_ptr<GameState>>(module, "GameState", "Stores the state of the game.")
       .def_property_readonly("player_id", &GameState::get_player_id)
+      .def_property("difficulty_level", &GameState::get_difficulty_level, &GameState::set_difficulty_level)
       .def("set_seed", &GameState::set_seed, pybind11::arg("seed"),
            "Set the seed for the random generator.\n\n"
            "Args:\n"
@@ -193,7 +195,8 @@ PYBIND11_MODULE(hades_engine, module) {  // NOLINT
       .def("on_fixed_update", &GameEngine::on_fixed_update, pybind11::arg("delta_time"),
            "Process fixed update logic for the game engine.\n\n"
            "Args:\n"
-           "    delta_time: The time interval since the last time the function was called.");
+           "    delta_time: The time interval since the last time the function was called.")
+      .def("enter_dungeon", &GameEngine::enter_dungeon, "Enter the dungeon from the lobby.");
 
   // Create the submodules for the ECS
   auto ecs{module.def_submodule(

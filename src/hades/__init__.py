@@ -16,6 +16,7 @@ from arcade.types import Color
 
 __all__ = (
     "BUTTON_WIDTH",
+    "MENU_WIDGET_SPACING",
     "UI_BACKGROUND_COLOUR",
     "UI_PADDING",
     "BackButton",
@@ -42,6 +43,9 @@ BUTTON_WIDTH: Final[int] = 200
 
 # The background colour of the UI
 UI_BACKGROUND_COLOUR: Final[Color] = Color(198, 198, 198)
+
+# The spacing between the menu widgets
+MENU_WIDGET_SPACING: Final[int] = 20
 
 
 class BackButton(UIFlatButton):

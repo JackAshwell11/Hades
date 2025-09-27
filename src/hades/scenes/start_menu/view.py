@@ -11,7 +11,7 @@ from arcade import get_window
 from arcade.gui import UIAnchorLayout, UIBoxLayout, UIFlatButton
 
 # Custom
-from hades import BUTTON_WIDTH
+from hades import BUTTON_WIDTH, MENU_WIDGET_SPACING
 from hades.scenes.base.view import BaseView
 
 if TYPE_CHECKING:
@@ -21,9 +21,6 @@ __all__ = ("LoadGameButton", "NewGameButton", "StartMenuView")
 
 # The width of the start menu buttons
 START_MENU_BUTTON_WIDTH: Final[int] = 200
-
-# The spacing between the start menu widgets
-START_MENU_WIDGET_SPACING: Final[int] = 20
 
 
 class NewGameButton(UIFlatButton):
@@ -69,7 +66,7 @@ class StartMenuView(BaseView):
 
     def _setup_layout(self: StartMenuView) -> None:
         """Set up the layout for the view."""
-        vertical_box = UIBoxLayout(space_between=START_MENU_WIDGET_SPACING)
+        vertical_box = UIBoxLayout(space_between=MENU_WIDGET_SPACING)
         vertical_box.add(NewGameButton())
         vertical_box.add(self.load_game_button)
         vertical_box.add(QuitButton())

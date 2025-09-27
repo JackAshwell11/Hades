@@ -114,41 +114,6 @@ TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseC) {
   ASSERT_EQ(inventory->items.front(), item_id);
 }
 
-/// Test that the input handler processes an "E" key release correctly when the player is in the lobby and is touching
-/// the goal.
-TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseEInLobbyTouchingGoal) {
-  game_state->reset_level(LevelType::Lobby);
-  int called{-1};
-  add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const GameObjectType) { called = event; });
-  move_player_to_item(registry, game_state, GameObjectType::Goal);
-  input_handler->on_key_release(KEY_E, 0);
-  ASSERT_NE(called, -1);
-  ASSERT_EQ(game_state->get_dungeon_level(), LevelType::FirstDungeon);
-}
-
-/// Test that the input handler processes an "E" key release correctly when the player is not in the lobby and is
-/// touching the goal.
-TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseENotInLobbyTouchingGoal) {
-  int called{-1};
-  add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const GameObjectType) { called = event; });
-  move_player_to_item(registry, game_state, GameObjectType::Goal, false);
-  input_handler->on_key_release(KEY_E, 0);
-  ASSERT_EQ(called, -1);
-}
-
-/// Test that the input handler processes an "E" key release correctly when the player is in the lobby not touching the
-/// goal.
-TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseEInLobbyNotTouchingGoal) {
-  game_state->reset_level(LevelType::Lobby);
-  int called{-1};
-  add_callback<EventType::GameObjectCreation>(
-      [&called](const GameObjectID event, const GameObjectType) { called = event; });
-  input_handler->on_key_release(KEY_E, 0);
-  ASSERT_EQ(called, -1);
-}
-
 /// Test that the input handler processes an "E" key release correctly when the player is touching a health potion and
 /// not in the lobby.
 TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseETouchingHealthPotionNotInLobby) {
@@ -169,23 +134,6 @@ TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseETouchingShopInLobby) {
   move_player_to_item(registry, game_state, GameObjectType::Shop);
   input_handler->on_key_release(KEY_E, 0);
   ASSERT_TRUE(called);
-}
-
-/// Test that the input handler processes a "Q" key release correctly if the player is in the lobby.
-TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseQInLobby) {
-  game_state->reset_level(LevelType::Lobby);
-  auto called{false};
-  add_callback<EventType::GameOptionsOpen>([&called] { called = true; });
-  input_handler->on_key_release(KEY_Q, 0);
-  ASSERT_TRUE(called);
-}
-
-/// Test that the input handler processes a "Q" key release correctly if the player is not in the lobby.
-TEST_F(InputHandlerFixture, TestInputHandlerOnKeyReleaseQNotInLobby) {
-  auto called{false};
-  add_callback<EventType::GameOptionsOpen>([&called] { called = true; });
-  input_handler->on_key_release(KEY_Q, 0);
-  ASSERT_FALSE(called);
 }
 
 /// Test that the input handler processes a "Z" key release correctly.

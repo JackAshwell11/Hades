@@ -41,8 +41,11 @@ GameEngine::GameEngine()
 
 void GameEngine::on_update(const double delta_time) const {
   game_state_->set_nearest_item(registry_->get_system<PhysicsSystem>()->get_nearest_item(game_state_->get_player_id()));
-  if (game_state_->is_player_touching_type(GameObjectType::Goal) && !game_state_->is_lobby()) {
-    if (const auto dungeon_level{game_state_->get_dungeon_level()}; dungeon_level == LevelType::FirstDungeon) {
+  if (game_state_->is_player_touching_type(GameObjectType::Goal)) {
+    const auto dungeon_level{game_state_->get_dungeon_level()};
+    if (game_state_->is_lobby()) {
+      game_state_->reset_level(LevelType::FirstDungeon);
+    } else if (dungeon_level == LevelType::FirstDungeon) {
       game_state_->reset_level(LevelType::SecondDungeon);
     } else if (dungeon_level == LevelType::SecondDungeon) {
       game_state_->reset_level(LevelType::Boss);
@@ -61,3 +64,5 @@ void GameEngine::on_update(const double delta_time) const {
 }
 
 void GameEngine::on_fixed_update(const double delta_time) const { registry_->update(delta_time); }
+
+void GameEngine::enter_dungeon() const { game_state_->reset_level(LevelType::FirstDungeon); }

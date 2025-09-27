@@ -51,20 +51,11 @@ void InputHandler::on_key_release(const int symbol, const int /*modifiers*/) con
                                                                       game_state_->get_nearest_item());
       break;
     case KEY_E:
-      if (game_state_->is_lobby()) {
-        if (game_state_->is_player_touching_type(GameObjectType::Goal)) {
-          game_state_->reset_level(LevelType::FirstDungeon);
-        } else if (game_state_->is_player_touching_type(GameObjectType::Shop)) {
-          notify<EventType::ShopOpen>();
-        }
+      if (game_state_->is_lobby() && game_state_->is_player_touching_type(GameObjectType::Shop)) {
+        notify<EventType::ShopOpen>();
       } else {
         registry_->get_system<InventorySystem>()->use_item(game_state_->get_player_id(),
                                                            game_state_->get_nearest_item());
-      }
-      break;
-    case KEY_Q:
-      if (game_state_->is_lobby()) {
-        notify<EventType::GameOptionsOpen>();
       }
       break;
     case KEY_Z:

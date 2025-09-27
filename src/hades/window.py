@@ -41,12 +41,13 @@ SHOP_OFFERINGS: Final[Path] = resolve(":resources:shop_offerings.json")
 # The event types to register for the window
 EVENT_TYPES: Final[list[str]] = [
     "on_delete_save",
+    "on_difficulty_change",
     "on_load_game",
     "on_load_save",
     "on_new_game",
-    "on_optioned_start_level",
     "on_previous_view",
     "on_quit_game",
+    "on_start_level",
     "on_texture_button_callback",
     "on_use_button_callback",
 ]
@@ -105,7 +106,8 @@ class HadesWindow(Window):
         if self.current_view is not None:
             self.last_scenes.append(cast("BaseScene[BaseView]", self.current_view))
         self.background_image.texture = Texture(get_image().filter(BACKGROUND_BLUR))
-        self.model.save_manager.save_game()
+        if new_view is self.scenes[SceneType.GAME]:
+            self.model.save_manager.save_game()
         super().show_view(new_view)
 
     def setup(self: HadesWindow) -> None:
