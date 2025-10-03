@@ -28,7 +28,7 @@ jobs:
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Set up CMake
-        uses: lukka/get-cmake@v4.1.1
+        uses: lukka/get-cmake@v4.1.2
       - name: Install Mesa on Windows for headless Arcade
         if: matrix.os == 'windows-latest'
         uses: ssciwr/setup-mesa-dist-win@v2
@@ -57,7 +57,7 @@ jobs:
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Set up CMake
-        uses: lukka/get-cmake@v4.1.1
+        uses: lukka/get-cmake@v4.1.2
       - name: Build CMake and run CTest
         working-directory: ${{ github.workspace }}/src/hades_engine
         run: |
