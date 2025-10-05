@@ -39,15 +39,12 @@ class IconType(Enum):
     FLOOR = "floor.png"
     GOAL = "armour_potion.png"
     HEALTH = "health_potion.png"
-    MELEE = "fire_rate_boost_potion.png"
     MONEY = "money.png"
     MULTI_BULLET = "multi_bullet.png"
     PLAYER_IDLE = "player_idle.png"
     POISON = "speed_boost_potion.png"
     REGENERATION = "regeneration.png"
-    SHOP = "shop.png"
     SINGLE_BULLET = "health_boost_potion.png"
-    SPECIAL = "armour_boost_potion.png"
     WALL = "wall.png"
 
     def get_texture(self) -> Texture:
@@ -215,21 +212,6 @@ def bullet_factory() -> GameObjectConstructor:
     )
 
 
-def shop_factory() -> GameObjectConstructor:
-    """Create a shop game object constructor.
-
-    Returns:
-        A shop game object constructor.
-    """
-    return GameObjectConstructor(
-        "Shop",
-        "A shop that sells items.",
-        GameObjectType.Shop,
-        1,
-        [IconType.CHEST],
-    )
-
-
 game_object_constructors: dict[GameObjectType, GameObjectConstructor] = {
     GameObjectType.Bullet: bullet_factory(),
     GameObjectType.Enemy: enemy_factory(),
@@ -239,5 +221,4 @@ game_object_constructors: dict[GameObjectType, GameObjectConstructor] = {
     GameObjectType.Wall: wall_factory(),
     GameObjectType.HealthPotion: health_potion_factory(),
     GameObjectType.Chest: chest_factory(),
-    GameObjectType.Shop: shop_factory(),
 }

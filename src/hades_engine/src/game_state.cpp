@@ -51,8 +51,6 @@ auto GameState::get_dungeon_level() const -> LevelType { return game_state_.curr
 
 auto GameState::get_game_level() const -> int { return game_state_.dungeon_run.game_level; }
 
-auto GameState::is_lobby() const -> bool { return game_state_.current_level.dungeon_level == LevelType::Lobby; }
-
 auto GameState::is_boss() const -> bool { return game_state_.current_level.dungeon_level == LevelType::Boss; }
 
 auto GameState::get_enemy_generation_timer() const -> double {
@@ -85,48 +83,26 @@ void GameState::initialise_dungeon_run() {
 void GameState::reset_level(const LevelType level_type) {
   // Reset the game state while preserving inventory items if necessary
   std::unordered_set preserved_ids{get_player_id()};
-  if (level_type != LevelType::Lobby) {
+  if (level_type != LevelType::None) {
     const auto inventory{registry_->get_component<Inventory>(get_player_id())};
     preserved_ids.insert(inventory->items.begin(), inventory->items.end());
-  } else {
-    for (const auto& component : registry_->get_game_object_components(get_player_id())) {
-      component->reset();
-    }
   }
   registry_->clear_game_objects(preserved_ids);
-
-  // Set up the player and game state
   game_state_.current_level = {.floor_positions = {}, .dungeon_level = level_type};
-  if (level_type == LevelType::Lobby) {
-    initialise_dungeon_run();
-  }
 
   // Create the game objects for the level
-  Grid grid(0, 0);
-  if (level_type == LevelType::Lobby) {
-    grid = MapGenerator{}.place_lobby().get_grid();
-  } else {
-    grid = MapGenerator{get_game_level(), game_state_.dungeon_run.random_generator}
-               .generate_rooms()
-               .place_obstacles()
-               .create_connections()
-               .generate_hallways()
-               .cellular_automata(CELLULAR_AUTOMATA_SIMULATIONS)
-               .generate_walls()
-               .place_player()
-               .place_items()
-               .place_goal()
-               .get_grid();
-  }
-  create_game_objects(grid, level_type != LevelType::Lobby);
-
-  // Notify the Python module of the level reset
-  if (level_type == LevelType::Lobby) {
-    notify<EventType::InventoryUpdate>(std::vector<GameObjectID>{});
-    notify<EventType::RangedAttackSwitch>(0);
-    notify<EventType::AttackCooldownUpdate>(get_player_id(), 0.0, 0.0, 0.0);
-    notify<EventType::StatusEffectUpdate>(std::unordered_map<EffectType, double>{});
-  }
+  const Grid grid{MapGenerator{get_game_level(), game_state_.dungeon_run.random_generator}
+                      .generate_rooms()
+                      .place_obstacles()
+                      .create_connections()
+                      .generate_hallways()
+                      .cellular_automata(CELLULAR_AUTOMATA_SIMULATIONS)
+                      .generate_walls()
+                      .place_player()
+                      .place_items()
+                      .place_goal()
+                      .get_grid()};
+  create_game_objects(grid, level_type != LevelType::None);
   notify<EventType::GameOpen>();
 }
 

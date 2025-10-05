@@ -96,19 +96,6 @@ struct StatusEffect final : BaseEffect {
 struct StatusEffects final : ComponentBase {
   /// The status effects currently applied to the game object.
   std::unordered_map<EffectType, StatusEffect> active_effects;
-
-  /// Reset the component to its default state.
-  void reset() override;
-
-  /// Serialise the component to a JSON object.
-  ///
-  /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json& json) const override;
-
-  /// Deserialise the component from a JSON object.
-  ///
-  /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json& json) override;
 };
 
 /// Allows a game object to provide instant or status effects.

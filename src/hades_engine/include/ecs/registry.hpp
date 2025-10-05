@@ -5,6 +5,7 @@
 #include <functional>
 #include <queue>
 #include <ranges>
+#include <string>
 #include <unordered_set>
 
 // Local headers

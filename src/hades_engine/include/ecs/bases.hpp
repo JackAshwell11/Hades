@@ -1,9 +1,6 @@
 // Ensure this file is only included once
 #pragma once
 
-// External headers
-#include <nlohmann/json_fwd.hpp>
-
 // Forward declarations
 class Registry;
 
@@ -26,21 +23,6 @@ struct ComponentBase {
 
   /// The move constructor.
   ComponentBase(ComponentBase&&) = default;
-
-  /// Reset the component to its default state.
-  virtual void reset() {}
-
-  /// Serialise the component to a JSON object.
-  virtual void to_file(nlohmann::json& /*json*/) const {}
-
-  /// Serialise the component to a JSON object.
-  virtual void to_file(nlohmann::json& /*json*/, const Registry* /*registry*/) const {}
-
-  /// Deserialise the component from a JSON object.
-  virtual void from_file(const nlohmann::json& /*json*/) {}
-
-  /// Deserialise the component from a JSON object.
-  virtual void from_file(const nlohmann::json& /*json*/, Registry* /*registry*/) {}
 };
 
 /// The base class for all systems.

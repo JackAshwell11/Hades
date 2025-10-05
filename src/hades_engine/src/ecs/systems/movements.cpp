@@ -5,15 +5,21 @@
 #include <numbers>
 #include <random>
 
-// External headers
-#include <nlohmann/json.hpp>
-
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/steering.hpp"
 #include "ecs/systems/physics.hpp"
 
 namespace {
+/// The footprint interval.
+constexpr auto FOOTPRINT_INTERVAL{0.5};
+
+/// The footprint limit.
+constexpr auto FOOTPRINT_LIMIT{5};
+
+/// The view distance.
+constexpr auto VIEW_DISTANCE{3 * SPRITE_SIZE};
+
 /// Calculate the new steering force to apply to the game object.
 ///
 /// @param registry - The registry that manages the game objects, components, and systems.
@@ -61,36 +67,12 @@ auto calculate_steering_force(const Registry* registry, const std::shared_ptr<St
 }
 }  // namespace
 
-void FootprintInterval::to_file(nlohmann::json& json) const { to_file_base(json["footprint_interval"]); }
-
-void FootprintInterval::from_file(const nlohmann::json& json) { from_file_base(json.at("footprint_interval")); }
-
-void FootprintLimit::to_file(nlohmann::json& json) const { to_file_base(json["footprint_limit"]); }
-
-void FootprintLimit::from_file(const nlohmann::json& json) { from_file_base(json.at("footprint_limit")); }
-
-void KeyboardMovement::reset() {
-  moving_north = false;
-  moving_south = false;
-  moving_east = false;
-  moving_west = false;
-}
-
-void MovementForce::to_file(nlohmann::json& json) const { to_file_base(json["movement_force"]); }
-
-void MovementForce::from_file(const nlohmann::json& json) { from_file_base(json.at("movement_force")); }
-
-void ViewDistance::to_file(nlohmann::json& json) const { to_file_base(json["view_distance"]); }
-
-void ViewDistance::from_file(const nlohmann::json& json) { from_file_base(json.at("view_distance")); }
-
 void FootprintSystem::update(const double delta_time) const {
   // Update the time since the last footprint then check if a new footprint should be created
   for (const auto& [game_object_id, component_tuple] : get_registry()->get_game_object_components<Footprints>()) {
     const auto footprints{std::get<0>(component_tuple)};
     footprints->time_since_last_footprint += delta_time;
-    if (footprints->time_since_last_footprint <
-        get_registry()->get_component<FootprintInterval>(game_object_id)->get_value()) {
+    if (footprints->time_since_last_footprint < FOOTPRINT_INTERVAL) {
       return;
     }
 
@@ -98,8 +80,7 @@ void FootprintSystem::update(const double delta_time) const {
     const cpVect current_position{
         cpBodyGetPosition(*get_registry()->get_component<KinematicComponent>(game_object_id)->body)};
     footprints->time_since_last_footprint = 0;
-    if (static_cast<int>(footprints->footprints.size()) >=
-        get_registry()->get_component<FootprintLimit>(game_object_id)->get_value()) {
+    if (std::cmp_greater_equal(footprints->footprints.size(), FOOTPRINT_LIMIT)) {
       footprints->footprints.pop_front();
     }
     footprints->footprints.push_back(current_position);
@@ -132,7 +113,7 @@ void SteeringMovementSystem::update(const double /*delta_time*/) const {
 
     // Determine if the movement state should change or not
     if (cpvdist(cpBodyGetPosition(*kinematic_owner->body), cpBodyGetPosition(*kinematic_target->body)) <=
-        get_registry()->get_component<ViewDistance>(game_object_id)->get_value()) {
+        VIEW_DISTANCE) {
       steering_movement->movement_state = SteeringMovementState::Target;
     } else if (!steering_movement->path_list.empty()) {
       steering_movement->movement_state = SteeringMovementState::Footprint;
@@ -164,7 +145,7 @@ void SteeringMovementSystem::update_path_list(const GameObjectID target_game_obj
 
     // Get the closest footprint to the target that is still within range of the game object
     auto closest_footprint{footprints.end()};
-    double closest_distance{get_registry()->get_component<ViewDistance>(game_object_id)->get_value()};
+    double closest_distance{VIEW_DISTANCE};
     for (auto it{footprints.begin()}; it != footprints.end(); ++it) {
       if (const double distance{cpvdist(current_position, *it)}; distance < closest_distance) {
         closest_footprint = it;

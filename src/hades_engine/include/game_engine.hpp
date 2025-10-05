@@ -8,7 +8,6 @@
 #include "ecs/registry.hpp"
 #include "game_state.hpp"
 #include "input_handler.hpp"
-#include "save_manager.hpp"
 
 /// Manages the interaction between Python and C++.
 class GameEngine {
@@ -30,11 +29,6 @@ class GameEngine {
   ///
   /// @return The input handler.
   [[nodiscard]] auto get_input_handler() -> std::shared_ptr<InputHandler> { return input_handler_; }
-
-  /// Get the save manager.
-  ///
-  /// @return The save manager.
-  [[nodiscard]] auto get_save_manager() -> std::shared_ptr<SaveManager> { return save_manager_; }
 
   /// Process update logic for the game engine.
   ///
@@ -58,7 +52,4 @@ class GameEngine {
 
   /// Handles input events such as key presses, releases, and mouse clicks.
   std::shared_ptr<InputHandler> input_handler_;
-
-  /// Manages the saving and loading of game states.
-  std::shared_ptr<SaveManager> save_manager_;
 };

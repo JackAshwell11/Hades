@@ -51,12 +51,7 @@ void InputHandler::on_key_release(const int symbol, const int /*modifiers*/) con
                                                                       game_state_->get_nearest_item());
       break;
     case KEY_E:
-      if (game_state_->is_lobby() && game_state_->is_player_touching_type(GameObjectType::Shop)) {
-        notify<EventType::ShopOpen>();
-      } else {
-        registry_->get_system<InventorySystem>()->use_item(game_state_->get_player_id(),
-                                                           game_state_->get_nearest_item());
-      }
+      registry_->get_system<InventorySystem>()->use_item(game_state_->get_player_id(), game_state_->get_nearest_item());
       break;
     case KEY_Z:
       registry_->get_system<AttackSystem>()->previous_ranged_attack(game_state_->get_player_id());
@@ -65,9 +60,9 @@ void InputHandler::on_key_release(const int symbol, const int /*modifiers*/) con
       registry_->get_system<AttackSystem>()->next_ranged_attack(game_state_->get_player_id());
       break;
     case KEY_I:
-      if (!game_state_->is_lobby()) {
-        notify<EventType::InventoryOpen>();
-      }
+      notify<EventType::InventoryOpen>();
+    case KEY_R:
+      notify<EventType::ShopOpen>();
     default:
       break;
   }
@@ -76,7 +71,7 @@ void InputHandler::on_key_release(const int symbol, const int /*modifiers*/) con
 auto InputHandler::on_mouse_press(const double /*x*/, const double /*y*/, const int button,
                                   const int /*modifiers*/) const -> bool {
   if (button == MOUSE_BUTTON_LEFT) {
-    return registry_->get_system<AttackSystem>()->do_attack(game_state_->get_player_id(), AttackType::Ranged);
+    return registry_->get_system<AttackSystem>()->do_attack(game_state_->get_player_id());
   }
   return false;
 }

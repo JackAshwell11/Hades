@@ -1,13 +1,1 @@
-[
-  {
-    "base_cost": 100.0,
-    "base_value": 10.0,
-    "cost_multiplier": 1.5,
-    "description": "Increases maximum health",
-    "icon_type": "health",
-    "name": "Health Boost",
-    "stat_type": "Health",
-    "type": "stat",
-    "value_multiplier": 1.2
-  }
-]
+[]

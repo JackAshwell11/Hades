@@ -1,5 +1,6 @@
 // Local headers
 #include "ecs/registry.hpp"
+#include "ecs/stats.hpp"
 #include "ecs/systems/attacks.hpp"
 #include "events.hpp"
 #include "macros.hpp"
@@ -276,8 +277,8 @@ TEST_F(RegistryFixture, TestRegistryPlayerEnemyBulletCollision) {
   registry.add_system<PhysicsSystem>();
   registry.add_system<DamageSystem>();
   const auto player_id{registry.create_game_object(GameObjectType::Player)};
-  registry.add_component<Armour>(0, 0, 0);
-  registry.add_component<Health>(0, 100, 0);
+  registry.add_component<Armour>(0, 0);
+  registry.add_component<Health>(0, 100);
   registry.add_component<KinematicComponent>(0, cpvzero);
   registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 50, GameObjectType::Enemy);
 
@@ -293,8 +294,8 @@ TEST_F(RegistryFixture, TestRegistryEnemyPlayerBulletCollision) {
   registry.add_system<PhysicsSystem>();
   registry.add_system<DamageSystem>();
   const auto enemy_id{registry.create_game_object(GameObjectType::Enemy)};
-  registry.add_component<Armour>(0, 0, 0);
-  registry.add_component<Health>(0, 100, 0);
+  registry.add_component<Armour>(0, 0);
+  registry.add_component<Health>(0, 100);
   registry.add_component<KinematicComponent>(0, cpvzero);
   registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 50, GameObjectType::Player);
 
@@ -310,8 +311,8 @@ TEST_F(RegistryFixture, TestRegistryPlayerPlayerBulletCollision) {
   registry.add_system<PhysicsSystem>();
   registry.add_system<DamageSystem>();
   const auto player_id{registry.create_game_object(GameObjectType::Player)};
-  registry.add_component<Armour>(0, 0, 0);
-  registry.add_component<Health>(0, 100, 0);
+  registry.add_component<Armour>(0, 0);
+  registry.add_component<Health>(0, 100);
   registry.add_component<KinematicComponent>(0, cpvzero);
   registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 50, GameObjectType::Player);
 
@@ -329,8 +330,8 @@ TEST_F(RegistryFixture, TestRegistryEnemyEnemyBulletCollision) {
   registry.add_system<PhysicsSystem>();
   registry.add_system<DamageSystem>();
   const auto enemy_id{registry.create_game_object(GameObjectType::Enemy)};
-  registry.add_component<Armour>(0, 0, 0);
-  registry.add_component<Health>(0, 100, 0);
+  registry.add_component<Armour>(0, 0);
+  registry.add_component<Health>(0, 100);
   registry.add_component<KinematicComponent>(0, cpvzero);
   registry.get_system<PhysicsSystem>()->add_bullet({{.x = -32, .y = 0}, {.x = 16, .y = 0}}, 50, GameObjectType::Enemy);
 

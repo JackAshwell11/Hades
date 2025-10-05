@@ -9,6 +9,22 @@
 #include "factories.hpp"
 
 namespace {
+/// Get the movement force for a game object.
+///
+/// @param registry - The registry that manages the game objects, components, and systems.
+/// @param game_object_id - The ID of the game object.
+/// @return The movement force of the game object.
+auto get_movement_force(const Registry* registry, const GameObjectID game_object_id) -> double {
+  const auto game_object_type{registry->get_game_object_type(game_object_id)};
+  if (game_object_type == GameObjectType::Player) {
+    return 5000;
+  }
+  if (game_object_type == GameObjectType::Enemy) {
+    return 1000;
+  }
+  return 0;
+}
+
 /// Notify the event system of position changes for all game objects of a specific type
 ///
 /// @param registry - The registry that manages the game objects, components, and systems.
@@ -21,12 +37,6 @@ void notify_positions(const Registry* registry, const GameObjectType game_object
 }
 }  // namespace
 
-void KinematicComponent::reset() {
-  cpBodySetPosition(*body, cpvzero);
-  cpBodySetVelocity(*body, cpvzero);
-  rotation = 0;
-}
-
 void PhysicsSystem::update(const double delta_time) const {
   cpSpaceStep(get_registry()->get_space(), delta_time);
   notify_positions(get_registry(), GameObjectType::Player);
@@ -35,9 +45,8 @@ void PhysicsSystem::update(const double delta_time) const {
 }
 
 void PhysicsSystem::add_force(const GameObjectID game_object_id, const cpVect& force) const {
-  cpBodyApplyForceAtLocalPoint(
-      *get_registry()->get_component<KinematicComponent>(game_object_id)->body,
-      cpvnormalize(force) * get_registry()->get_component<MovementForce>(game_object_id)->get_value(), cpvzero);
+  cpBodyApplyForceAtLocalPoint(*get_registry()->get_component<KinematicComponent>(game_object_id)->body,
+                               cpvnormalize(force) * get_movement_force(get_registry(), game_object_id), cpvzero);
 }
 
 void PhysicsSystem::add_bullet(const std::pair<cpVect, cpVect>& bullet, const double damage,
