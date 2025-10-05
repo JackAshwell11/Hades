@@ -1,6 +1,3 @@
-// External headers
-#include <nlohmann/json.hpp>
-
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
@@ -30,7 +27,7 @@ class EffectSystemFixture : public testing::Test {
   void SetUp() override {
     registry.add_system<EffectSystem>();
     const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
-    registry.add_component<Health>(game_object_id, 200, -1);
+    registry.add_component<Health>(game_object_id, 200);
     registry.add_component<StatusEffects>(game_object_id);
   }
 
@@ -62,74 +59,6 @@ class EffectSystemFixture : public testing::Test {
     return registry.get_system<EffectSystem>();
   }
 };
-
-/// Test that the status effects component is reset correctly.
-TEST_F(EffectSystemFixture, TestStatusEffectsReset) {
-  create_effect_applier({.status = true});
-  registry.get_component<Health>(0)->set_value(100);
-  (void)get_effect_system()->apply_effects(1, 0);
-  const auto status_effects{registry.get_component<StatusEffects>(0)};
-  ASSERT_FALSE(status_effects->active_effects.empty());
-  status_effects->reset();
-  ASSERT_TRUE(status_effects->active_effects.empty());
-}
-
-/// Test that the status effects component is serialised to a file correctly.
-TEST_F(EffectSystemFixture, TestStatusEffectsToFile) {
-  create_effect_applier({.status = true});
-  registry.get_component<Health>(0)->set_value(100);
-  (void)get_effect_system()->apply_effects(1, 0);
-  get_effect_system()->update(5);
-  nlohmann::json json;
-  registry.get_component<StatusEffects>(0)->to_file(json);
-  ASSERT_EQ(json, nlohmann::json::parse(R"({
-    "active_effects": {
-      "0": {
-        "value": 5.0,
-        "duration": 10.0,
-        "interval": 2.0,
-        "time_elapsed": 5.0,
-        "interval_accumulator": 1.0
-      }
-    }
-  })"));
-}
-
-/// Test that the status effects component is deserialised from a file correctly.
-TEST_F(EffectSystemFixture, TestStatusEffectsFromFile) {
-  const nlohmann::json json(nlohmann::json::parse(R"({
-    "active_effects": {
-      "0": {
-        "value": 5.0,
-        "duration": 10.0,
-        "interval": 2.0,
-        "time_elapsed": 5.0,
-        "interval_accumulator": 1.0
-      }, "1": {
-        "value": -5.0,
-        "duration": 10.0,
-        "interval": 2.0,
-        "time_elapsed": 3.0,
-        "interval_accumulator": 0.5
-      }
-    }
-  })"));
-  const auto status_effects{registry.get_component<StatusEffects>(0)};
-  status_effects->from_file(json);
-  ASSERT_EQ(status_effects->active_effects.size(), 2);
-  const auto regeneration_effect{status_effects->active_effects.at(EffectType::Regeneration)};
-  ASSERT_EQ(regeneration_effect.value, 5.0);
-  ASSERT_EQ(regeneration_effect.duration, 10.0);
-  ASSERT_EQ(regeneration_effect.interval, 2.0);
-  ASSERT_EQ(regeneration_effect.time_elapsed, 5.0);
-  ASSERT_EQ(regeneration_effect.interval_accumulator, 1.0);
-  const auto poison_effect{status_effects->active_effects.at(EffectType::Poison)};
-  ASSERT_EQ(poison_effect.value, -5.0);
-  ASSERT_EQ(poison_effect.duration, 10.0);
-  ASSERT_EQ(poison_effect.interval, 2.0);
-  ASSERT_EQ(poison_effect.time_elapsed, 3.0);
-  ASSERT_EQ(poison_effect.interval_accumulator, 0.5);
-}
 
 /// Test that a status effect is updated correctly with a small delta time.
 TEST_F(EffectSystemFixture, TestEffectSystemUpdateSmallDeltaTime) {
@@ -341,7 +270,7 @@ TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsNonexistentEffectApplier
 TEST_F(EffectSystemFixture, TestEffectSystemApplyEffectsNonexistentStatusEffects) {
   create_effect_applier({});
   const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
-  registry.add_component<Health>(game_object_id, -1, -1);
+  registry.add_component<Health>(game_object_id, -1);
   ASSERT_THROW_MESSAGE(get_effect_system()->apply_effects(1, 2), RegistryError,
                        "The component `StatusEffects` for the game object ID `2` is not registered with the registry.")
 }

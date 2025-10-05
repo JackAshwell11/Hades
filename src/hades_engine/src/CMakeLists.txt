@@ -3,12 +3,10 @@ add_library(${CPP_LIB} STATIC
         ${CMAKE_SOURCE_DIR}/src/ecs/systems/attacks.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/systems/effects.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/systems/inventory.cpp
-        ${CMAKE_SOURCE_DIR}/src/ecs/systems/level.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/systems/movements.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/systems/physics.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/systems/shop.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/registry.cpp
-        ${CMAKE_SOURCE_DIR}/src/ecs/stats.cpp
         ${CMAKE_SOURCE_DIR}/src/ecs/steering.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/bsp.cpp
         ${CMAKE_SOURCE_DIR}/src/generation/dijkstra.cpp
@@ -18,7 +16,6 @@ add_library(${CPP_LIB} STATIC
         ${CMAKE_SOURCE_DIR}/src/game_engine.cpp
         ${CMAKE_SOURCE_DIR}/src/game_state.cpp
         ${CMAKE_SOURCE_DIR}/src/input_handler.cpp
-        ${CMAKE_SOURCE_DIR}/src/save_manager.cpp
 )
 target_include_directories(${CPP_LIB}
         PUBLIC ${CMAKE_SOURCE_DIR}/include

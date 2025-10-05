@@ -23,7 +23,6 @@ enum class DifficultyLevel : std::uint8_t {
 /// Stores the different types of levels in the game.
 enum class LevelType : std::uint8_t {
   None,
-  Lobby,
   FirstDungeon,
   SecondDungeon,
   Boss,
@@ -71,11 +70,6 @@ class GameState {
   ///
   /// @return The level of the game objects.
   [[nodiscard]] auto get_game_level() const -> int;
-
-  /// Check if the current level is a lobby level.
-  ///
-  /// @return True if the current level is a lobby level, false otherwise.
-  [[nodiscard]] auto is_lobby() const -> bool;
 
   /// Checks if the current level is a boss level.
   ///

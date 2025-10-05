@@ -3,6 +3,7 @@
 
 // Std headers
 #include <stdexcept>
+#include <vector>
 
 // Local headers
 #include "ecs/bases.hpp"
@@ -46,9 +47,6 @@ struct KinematicComponent final : ComponentBase {
     }
     cpBodySetPosition(*body, position);
   }
-
-  /// Reset the component to its default state.
-  void reset() override;
 };
 
 /// Provides facilities to manipulate a game object's physics.

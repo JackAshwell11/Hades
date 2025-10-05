@@ -1,9 +1,6 @@
 // Related header
 #include "ecs/systems/effects.hpp"
 
-// External headers
-#include <nlohmann/json.hpp>
-
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
@@ -63,32 +60,6 @@ auto StatusEffect::update(const Registry* registry, const GameObjectID target, c
     interval_accumulator -= interval;
   }
   return time_elapsed >= duration;
-}
-
-void StatusEffects::reset() { active_effects.clear(); }
-
-void StatusEffects::to_file(nlohmann::json& json) const {
-  json["active_effects"] = nlohmann::json::object();
-  for (const auto& [effect_type, effect] : active_effects) {
-    json.at("active_effects")[std::to_string(static_cast<int>(effect_type))] = {
-        {"value", effect.value},
-        {"duration", effect.duration},
-        {"interval", effect.interval},
-        {"time_elapsed", effect.time_elapsed},
-        {"interval_accumulator", effect.interval_accumulator},
-    };
-  }
-}
-
-void StatusEffects::from_file(const nlohmann::json& json) {
-  for (const auto& [type, effect_data] : json.at("active_effects").items()) {
-    const auto effect_type{static_cast<EffectType>(std::stoi(type))};
-    StatusEffect status_effect{effect_type, effect_data["value"].get<double>(), effect_data["duration"].get<double>(),
-                               effect_data["interval"].get<double>()};
-    status_effect.time_elapsed = effect_data["time_elapsed"].get<double>();
-    status_effect.interval_accumulator = effect_data["interval_accumulator"].get<double>();
-    active_effects.emplace(effect_type, status_effect);
-  }
 }
 
 void EffectSystem::update(const double delta_time) const {

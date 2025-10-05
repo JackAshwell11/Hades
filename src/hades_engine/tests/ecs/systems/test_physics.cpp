@@ -17,7 +17,6 @@ class PhysicsSystemFixture : public testing::Test {
     const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
     registry.add_component<KinematicComponent>(
         game_object_id, cpvzero, std::vector<cpVect>{{.x = 0.0, .y = 1.0}, {.x = 1.0, .y = 2.0}, {.x = 2.0, .y = 0.0}});
-    registry.add_component<MovementForce>(game_object_id, 100, -1);
     registry.add_system<PhysicsSystem>();
   }
 
@@ -54,16 +53,6 @@ TEST_F(PhysicsSystemFixture, TestKinematicComponentInvalidVertices) {
 TEST_F(PhysicsSystemFixture, TestKinematicComponentPosition) {
   const KinematicComponent kinematic_component{{.x = 10, .y = 20}};
   ASSERT_EQ(cpBodyGetPosition(*kinematic_component.body), cpv(10, 20));
-}
-
-/// Test that the kinematic component is reset correctly.
-TEST_F(PhysicsSystemFixture, TestKinematicComponentReset) {
-  const auto kinematic_component{registry.get_component<KinematicComponent>(0)};
-  cpBodySetPosition(*kinematic_component->body, cpv(10, 10));
-  cpBodySetVelocity(*kinematic_component->body, cpv(5, 5));
-  kinematic_component->reset();
-  ASSERT_EQ(cpBodyGetPosition(*kinematic_component->body), cpvzero);
-  ASSERT_EQ(cpBodyGetVelocity(*kinematic_component->body), cpvzero);
 }
 
 /// Test updating the physics system with a game object that has no velocity and no force.
@@ -158,13 +147,13 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceZeroForceNoForce) {
 /// Test that adding a positive force to a game object without a force works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveForceNoForce) {
   get_physics_system()->add_force(0, {10, 0});
-  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(100, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(5000, 0));
 }
 
 /// Test that adding a negative force to a game object without a force works correctly.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNegativeForceNoForce) {
   get_physics_system()->add_force(0, {-10, 0});
-  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(-100, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(-5000, 0));
 }
 
 /// Test that adding a positive infinite force to a game object without a force works correctly.
@@ -179,15 +168,13 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveInfiniteForceNoFor
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForcePositiveForceValidForce) {
   cpBodySetForce(*registry.get_component<KinematicComponent>(0)->body, {.x = 10, .y = 0});
   get_physics_system()->add_force(0, {10, 0});
-  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(110, 0));
+  ASSERT_EQ(cpBodyGetForce(*registry.get_component<KinematicComponent>(0)->body), cpv(5010, 0));
 }
 
 /// Test that adding a force to a static wall body doesn't change its position.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceStaticWall) {
-  // Walls should never have a MovementForce component, but if they do, their position should not change
   const auto wall_id{registry.create_game_object(GameObjectType::Wall)};
   registry.add_component<KinematicComponent>(wall_id, cpvzero, true);
-  registry.add_component<MovementForce>(wall_id, 100, -1);
   get_physics_system()->add_force(wall_id, {10, 0});
   get_physics_system()->update(1);
   ASSERT_EQ(cpBodyGetPosition(*registry.get_component<KinematicComponent>(wall_id)->body), cpvzero);
@@ -195,26 +182,16 @@ TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceStaticWall) {
 
 /// Test that an exception is thrown if a game object does not have a kinematic component.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentKinematicComponent) {
-  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
-  registry.add_component<MovementForce>(game_object_id, 100, -1);
+  registry.create_game_object(GameObjectType::Player);
   ASSERT_THROW_MESSAGE(
       get_physics_system()->add_force(1, {0, 0}), RegistryError,
       "The component `KinematicComponent` for the game object ID `1` is not registered with the registry.");
 }
 
-/// Test that an exception is thrown if a game object does not have a movement force component.
-TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceNonexistentMovementForceComponent) {
-  const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
-  registry.add_component<KinematicComponent>(game_object_id, cpvzero);
-  ASSERT_THROW_MESSAGE(get_physics_system()->add_force(1, {0, 0}), RegistryError,
-                       "The component `MovementForce` for the game object ID `1` is not registered with the registry.");
-}
-
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(PhysicsSystemFixture, TestPhysicsSystemAddForceInvalidGameObjectId) {
-  ASSERT_THROW_MESSAGE(
-      get_physics_system()->add_force(-1, {0, 0}), RegistryError,
-      "The component `MovementForce` for the game object ID `-1` is not registered with the registry.");
+  ASSERT_THROW_MESSAGE(get_physics_system()->add_force(-1, {0, 0}), RegistryError,
+                       "The game object ID `-1` is not registered with the registry.");
 }
 
 /// Test that adding a bullet with a zero position and velocity works correctly.

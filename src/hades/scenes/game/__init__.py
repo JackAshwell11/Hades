@@ -119,23 +119,15 @@ class GameScene(BaseScene[GameView]):
         self: GameScene,
         game_object_id: int,
         ranged_cooldown: float,
-        melee_cooldown: float,
-        special_cooldown: float,
     ) -> None:
         """Process attack cooldown update logic.
 
         Args:
             game_object_id: The ID of the game object to update.
             ranged_cooldown: The cooldown time for the ranged attack.
-            melee_cooldown: The cooldown time for the melee attack.
-            special_cooldown: The cooldown time for the special attack.
         """
         if game_object_id == self.model.player_id:
-            self.view.update_attack_cooldown_display(
-                ranged_cooldown,
-                melee_cooldown,
-                special_cooldown,
-            )
+            self.view.update_attack_cooldown_display(ranged_cooldown)
 
     def on_ranged_attack_switch(self: GameScene, selected_attack: int) -> None:
         """Process ranged attack switch logic.

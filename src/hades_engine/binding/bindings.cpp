@@ -7,7 +7,6 @@
 #include "events.hpp"
 #include "factories.hpp"
 #include "game_engine.hpp"
-#include "save_manager.hpp"
 
 PYBIND11_MODULE(hades_engine, module) {  // NOLINT
   module.doc() = "Manages the various C++ extension modules for the game.";
@@ -61,9 +60,6 @@ PYBIND11_MODULE(hades_engine, module) {  // NOLINT
           case EventType::InventoryOpen:
             add_callback<EventType::InventoryOpen>(callback);
             break;
-          case EventType::SaveFilesUpdated:
-            add_callback<EventType::SaveFilesUpdated>(callback);
-            break;
           case EventType::GameOpen:
             add_callback<EventType::GameOpen>(callback);
             break;
@@ -98,7 +94,6 @@ PYBIND11_MODULE(hades_engine, module) {  // NOLINT
       .value("ShopItemPurchased", EventType::ShopItemPurchased)
       .value("ShopOpen", EventType::ShopOpen)
       .value("InventoryOpen", EventType::InventoryOpen)
-      .value("SaveFilesUpdated", EventType::SaveFilesUpdated)
       .value("GameOpen", EventType::GameOpen)
       .value("HealthChanged", EventType::HealthChanged)
       .value("ArmourChanged", EventType::ArmourChanged);
@@ -107,11 +102,6 @@ PYBIND11_MODULE(hades_engine, module) {  // NOLINT
       .value("Easy", DifficultyLevel::Easy)
       .value("Normal", DifficultyLevel::Normal)
       .value("Hard", DifficultyLevel::Hard);
-
-  pybind11::class_<SaveFileInfo>(module, "SaveFileInfo", "Represents information about a save file.")
-      .def_readonly("name", &SaveFileInfo::name)
-      .def_readonly("last_modified", &SaveFileInfo::last_modified)
-      .def_readonly("player_level", &SaveFileInfo::player_level);
 
   pybind11::class_<GameState, std::shared_ptr<GameState>>(module, "GameState", "Stores the state of the game.")
       .def_property_readonly("player_id", &GameState::get_player_id)
@@ -155,39 +145,23 @@ PYBIND11_MODULE(hades_engine, module) {  // NOLINT
            "    delta_x: The change in x position of the mouse.\n"
            "    delta_y: The change in y position of the mouse.");
 
-  pybind11::class_<SaveManager, std::shared_ptr<SaveManager>>(module, "SaveManager",
-                                                              "Manages the saving and loading of game states.")
-      .def("new_game", &SaveManager::new_game, "Create a new game.")
-      .def("load_save", &SaveManager::load_save, pybind11::arg("save_index"),
-           "Load a save from a file.\n\n"
-           "Args:\n"
-           "    save_index: The index of the save file to load.\n\n")
-      .def("save_game", &SaveManager::save_game, "Save the current game state to a file.")
-      .def("delete_save", &SaveManager::delete_save, pybind11::arg("save_index"),
-           "Delete a save file.\n\n"
-           "Args:\n"
-           "    save_index: The index of the save file to delete.\n\n");
-
   pybind11::class_<GameEngine, std::shared_ptr<GameEngine>>(module, "GameEngine",
                                                             "Manages the game objects and systems.")
       .def(pybind11::init<>(), "Initialise the object.")
       .def_property_readonly("registry", &GameEngine::get_registry)
       .def_property_readonly("game_state", &GameEngine::get_game_state)
       .def_property_readonly("input_handler", &GameEngine::get_input_handler)
-      .def_property_readonly("save_manager", &GameEngine::get_save_manager)
       .def(
           "setup",
-          [](GameEngine& engine, const std::string& shop_file_path, const std::string& save_directory_path) {
+          [](GameEngine& engine, const std::string& shop_file_path) {
             std::ifstream shop_stream{shop_file_path};
             engine.get_registry()->get_system<ShopSystem>()->add_offerings(shop_stream,
                                                                            engine.get_game_state()->get_player_id());
-            engine.get_save_manager()->set_save_path(save_directory_path);
           },
-          pybind11::arg("shop_file_path") = "", pybind11::arg("save_directory_path") = "",
+          pybind11::arg("shop_file_path") = "",
           "Set up the game engine.\n\n"
           "Args:\n"
-          "    shop_file_path: The path to the shop file.\n"
-          "    save_directory_path: The path to the save directory.")
+          "    shop_file_path: The path to the shop file.")
       .def("on_update", &GameEngine::on_update, pybind11::arg("delta_time"),
            "Process update logic for the game engine.\n\n"
            "Args:\n"

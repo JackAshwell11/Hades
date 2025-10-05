@@ -1,12 +1,6 @@
 // Related header
 #include "game_engine.hpp"
 
-// Std headers
-#include <fstream>
-
-// External headers
-#include <nlohmann/json.hpp>
-
 // Local headers
 #include "ecs/systems/armour_regen.hpp"
 #include "ecs/systems/attacks.hpp"
@@ -25,8 +19,7 @@ constexpr double ENEMY_GENERATION_INTERVAL{1.0};
 GameEngine::GameEngine()
     : registry_(std::make_shared<Registry>()),
       game_state_(std::make_shared<GameState>(registry_)),
-      input_handler_(std::make_shared<InputHandler>(registry_, game_state_)),
-      save_manager_(std::make_shared<SaveManager>(registry_, game_state_)) {
+      input_handler_(std::make_shared<InputHandler>(registry_, game_state_)) {
   registry_->add_system<ArmourRegenSystem>();
   registry_->add_system<AttackSystem>();
   registry_->add_system<DamageSystem>();
@@ -42,15 +35,12 @@ GameEngine::GameEngine()
 void GameEngine::on_update(const double delta_time) const {
   game_state_->set_nearest_item(registry_->get_system<PhysicsSystem>()->get_nearest_item(game_state_->get_player_id()));
   if (game_state_->is_player_touching_type(GameObjectType::Goal)) {
-    const auto dungeon_level{game_state_->get_dungeon_level()};
-    if (game_state_->is_lobby()) {
-      game_state_->reset_level(LevelType::FirstDungeon);
-    } else if (dungeon_level == LevelType::FirstDungeon) {
+    if (const auto dungeon_level{game_state_->get_dungeon_level()}; dungeon_level == LevelType::FirstDungeon) {
       game_state_->reset_level(LevelType::SecondDungeon);
     } else if (dungeon_level == LevelType::SecondDungeon) {
       game_state_->reset_level(LevelType::Boss);
     } else {
-      game_state_->reset_level(LevelType::Lobby);
+      game_state_->reset_level(LevelType::None);
     }
     return;
   }

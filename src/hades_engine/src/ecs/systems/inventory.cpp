@@ -1,41 +1,21 @@
 // Related header
 #include "ecs/systems/inventory.hpp"
 
-// External headers
-#include <nlohmann/json.hpp>
+// Std headers
+#include <utility>
 
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/systems/effects.hpp"
 #include "events.hpp"
-#include "factories.hpp"
 
 namespace {
 /// The game objects that can be added to the inventory.
 constexpr std::array COLLECTIBLE_TYPES{GameObjectType::HealthPotion};
+
+/// The inventory size.
+constexpr auto INVENTORY_SIZE{30};
 }  // namespace
-
-void Inventory::reset() { items.clear(); }
-
-void Inventory::to_file(nlohmann::json& json, const Registry* registry) const {
-  json["items"] = nlohmann::json::array();
-  for (const auto item_id : items) {
-    json.at("items").push_back(registry->get_game_object_type(item_id));
-  }
-}
-
-void Inventory::from_file(const nlohmann::json& json, Registry* registry) {
-  const auto player_id{registry->get_game_object_ids(GameObjectType::Player)[0]};
-  for (const auto& item_type : json.at("items").items()) {
-    const auto game_object_type{static_cast<GameObjectType>(item_type.value())};
-    const auto game_object_id{create_game_object(registry, game_object_type, cpvzero)};
-    registry->get_system<InventorySystem>()->add_item_to_inventory(player_id, game_object_id);
-  }
-}
-
-void InventorySize::to_file(nlohmann::json& json) const { to_file_base(json["inventory_size"]); }
-
-void InventorySize::from_file(const nlohmann::json& json) { from_file_base(json.at("inventory_size")); }
 
 auto InventorySystem::has_item_in_inventory(const GameObjectID game_object_id, const GameObjectID item_id) const
     -> bool {
@@ -63,8 +43,7 @@ void InventorySystem::add_item_to_inventory(const GameObjectID game_object_id, c
 
   // Check if the inventory is full or not
   const auto inventory{get_registry()->get_component<Inventory>(game_object_id)};
-  if (const auto inventory_size{get_registry()->get_component<InventorySize>(game_object_id)};
-      static_cast<int>(inventory->items.size()) == inventory_size->get_value()) {
+  if (std::cmp_equal(inventory->items.size(), INVENTORY_SIZE)) {
     throw std::runtime_error("The inventory is full.");
   }
 

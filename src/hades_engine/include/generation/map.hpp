@@ -11,9 +11,6 @@
 class MapGenerator {
  public:
   /// Initialise the object.
-  MapGenerator();
-
-  /// Initialise the object.
   ///
   /// @param level - The game level to generate a map for.
   /// @param random_generator - The random generator to use for the map generation.
@@ -64,11 +61,6 @@ class MapGenerator {
   ///
   /// @return A reference to the MapGenerator object.
   auto place_goal() -> MapGenerator&;
-
-  /// Place the lobby in the dungeon.
-  ///
-  /// @return A reference to the MapGenerator object.
-  auto place_lobby() -> MapGenerator&;
 
   /// Get the grid.
   ///
