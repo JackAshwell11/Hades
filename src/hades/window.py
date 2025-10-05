@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 # Builtin
-from pathlib import Path
 from typing import TYPE_CHECKING, Final, cast
 
 # Pip
@@ -18,11 +17,12 @@ from hades.model import HadesModel
 from hades.scenes.game import GameScene
 from hades.scenes.game_options import GameOptionsScene
 from hades.scenes.inventory import InventoryScene
-from hades.scenes.load_game import LoadGameMenuScene
 from hades.scenes.shop import ShopScene
 from hades.scenes.start_menu import StartMenuScene
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from hades.scenes.base import BaseScene
     from hades.scenes.base.view import BaseView
 
@@ -31,19 +31,12 @@ __all__ = ("HadesWindow", "main")
 # The Gaussian blur filter to apply to the background image
 BACKGROUND_BLUR: Final[GaussianBlur] = GaussianBlur(5)
 
-# The path to the save directory
-SAVE_DIRECTORY: Final[Path] = Path().home() / ".hades" / "saves"
-SAVE_DIRECTORY.mkdir(parents=True, exist_ok=True)
-
 # The path to the shop offerings JSON file
 SHOP_OFFERINGS: Final[Path] = resolve(":resources:shop_offerings.json")
 
 # The event types to register for the window
 EVENT_TYPES: Final[list[str]] = [
-    "on_delete_save",
     "on_difficulty_change",
-    "on_load_game",
-    "on_load_save",
     "on_new_game",
     "on_previous_view",
     "on_quit_game",
@@ -77,17 +70,11 @@ class HadesWindow(Window):
         )
         self.scenes: dict[
             SceneType,
-            GameScene
-            | GameOptionsScene
-            | InventoryScene
-            | LoadGameMenuScene
-            | ShopScene
-            | StartMenuScene,
+            GameScene | GameOptionsScene | InventoryScene | ShopScene | StartMenuScene,
         ] = {
             SceneType.GAME: GameScene(),
             SceneType.GAME_OPTIONS: GameOptionsScene(),
             SceneType.INVENTORY: InventoryScene(),
-            SceneType.LOAD_GAME: LoadGameMenuScene(),
             SceneType.SHOP: ShopScene(),
             SceneType.START_MENU: StartMenuScene(),
         }
@@ -106,8 +93,6 @@ class HadesWindow(Window):
         if self.current_view is not None:
             self.last_scenes.append(cast("BaseScene[BaseView]", self.current_view))
         self.background_image.texture = Texture(get_image().filter(BACKGROUND_BLUR))
-        if new_view is self.scenes[SceneType.GAME]:
-            self.model.save_manager.save_game()
         super().show_view(new_view)
 
     def setup(self: HadesWindow) -> None:
@@ -116,7 +101,7 @@ class HadesWindow(Window):
         self.model.game_state.set_window_size(self.width, self.height)
         for event_type in EVENT_TYPES:
             self.register_event_type(event_type)
-        self.model.game_engine.setup(str(SHOP_OFFERINGS), str(SAVE_DIRECTORY))
+        self.model.game_engine.setup(str(SHOP_OFFERINGS))
         self.show_view(self.scenes[SceneType.START_MENU])
 
 

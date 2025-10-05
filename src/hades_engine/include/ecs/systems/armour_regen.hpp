@@ -2,28 +2,12 @@
 #pragma once
 
 // Local headers
-#include "ecs/stats.hpp"
+#include "ecs/bases.hpp"
 
 /// Allows a game object to regenerate armour.
-struct ArmourRegen final : Stat {
+struct ArmourRegen final : ComponentBase {
   /// The time since the game object last regenerated armour.
   double time_since_armour_regen{0};
-
-  /// Initialise the object.
-  ///
-  /// @param value - The initial and maximum value of the armour regen stat.
-  /// @param maximum_level - The maximum level of the armour regen stat.
-  ArmourRegen(const double value, const int maximum_level) : Stat(value, maximum_level) {}
-
-  /// Serialise the component to a JSON object.
-  ///
-  /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json& json) const override;
-
-  /// Deserialise the component from a JSON object.
-  ///
-  /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json& json) override;
 };
 
 /// Provides facilities to manipulate armour regen components.

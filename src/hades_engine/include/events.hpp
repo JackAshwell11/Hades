@@ -11,7 +11,6 @@
 
 // Forward declarations
 enum class EffectType : std::uint8_t;
-struct SaveFileInfo;
 
 /// Stores the different types of events that can occur.
 enum class EventType : std::uint8_t {
@@ -28,7 +27,6 @@ enum class EventType : std::uint8_t {
   ShopItemPurchased,
   ShopOpen,
   InventoryOpen,
-  SaveFilesUpdated,
   GameOpen,
   HealthChanged,
   ArmourChanged,
@@ -83,7 +81,7 @@ struct EventTraits<EventType::MoneyUpdate> {
 /// Provides the argument types for the AttackCooldownUpdate event.
 template <>
 struct EventTraits<EventType::AttackCooldownUpdate> {
-  using EventArgs = std::tuple<GameObjectID, double, double, double>;
+  using EventArgs = std::tuple<GameObjectID, double>;
 };
 
 /// Provides the argument types for the RangedAttackSwitch event.
@@ -114,12 +112,6 @@ struct EventTraits<EventType::ShopOpen> {
 template <>
 struct EventTraits<EventType::InventoryOpen> {
   using EventArgs = std::tuple<>;
-};
-
-/// Provides the argument types for the SaveFilesUpdated event.
-template <>
-struct EventTraits<EventType::SaveFilesUpdated> {
-  using EventArgs = std::tuple<std::vector<SaveFileInfo>>;
 };
 
 /// Provides the argument types for the GameOpen event.

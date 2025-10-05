@@ -1,9 +1,20 @@
 // Ensure this file is only included once
 #pragma once
 
+// Std headers
+#include <memory>
+#include <string>
+#include <vector>
+
 // Local headers
 #include "ecs/bases.hpp"
 #include "game_object.hpp"
+
+/// Allows a game object to have currency.
+struct Money final : ComponentBase {
+  /// The amount of money the game object has.
+  int money;
+};
 
 /// Represents an offering in the shop.
 struct ShopOffering {
@@ -19,35 +30,20 @@ struct ShopOffering {
         base_cost(base_cost),
         cost_multiplier(cost_multiplier) {}
 
-  /// The virtual destructor.
-  virtual ~ShopOffering() = default;
-
-  /// The copy constructor.
-  ShopOffering(const ShopOffering&) = default;
-
-  /// The move constructor.
-  ShopOffering(ShopOffering&&) = default;
-
-  /// The copy assignment operator.
-  auto operator=(const ShopOffering&) -> ShopOffering& = default;
-
-  /// The move assignment operator.
-  auto operator=(ShopOffering&&) -> ShopOffering& = default;
-
   /// Apply the offering to the buyer.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param buyer_id - The ID of the buyer.
   /// @throws RegistryError - If the game object does not exist or does not have the required components.
   /// @return true if the application was successful, false otherwise.
-  virtual auto apply(const Registry* registry, GameObjectID buyer_id) const -> bool = 0;
+  auto apply(const Registry* registry, GameObjectID buyer_id) const -> bool;
 
   /// Get the cost of the offering.
   ///
   /// @param registry - The registry that manages the game objects, components, and systems.
   /// @param buyer_id - The ID of the buyer.
   /// @return The cost of the offering.
-  [[nodiscard]] virtual auto get_cost(const Registry* registry, GameObjectID buyer_id) const -> double;
+  [[nodiscard]] auto get_cost(const Registry* registry, GameObjectID buyer_id) const -> int;
 
   /// The name of the offering.
   std::string name;
@@ -60,22 +56,6 @@ struct ShopOffering {
 
   /// The cost multiplier of the offering.
   double cost_multiplier;
-};
-
-/// Allows a game object to have currency.
-struct Money final : ComponentBase {
-  /// The amount of money the game object has.
-  int money;
-
-  /// Serialise the component to a JSON object.
-  ///
-  /// @param json - The JSON object to serialise to.
-  void to_file(nlohmann::json& json) const override;
-
-  /// Deserialise the component from a JSON object.
-  ///
-  /// @param json - The JSON object to deserialise from.
-  void from_file(const nlohmann::json& json) override;
 };
 
 /// Provides facilities to manage a shop system.
@@ -96,15 +76,9 @@ class ShopSystem final : public SystemBase {
   /// Get an offering by its index.
   ///
   /// @param offering_index - The index of the offering.
-  [[nodiscard]] auto get_offering(int offering_index) const -> const ShopOffering*;
-
-  /// Get the cost of an offering.
-  ///
-  /// @param offering_index - The index of the offering.
-  /// @param buyer_id - The ID of the buyer.
-  /// @throws RegistryError - If the game object does not exist or does not have the required components.
-  /// @return The cost of the offering.
-  [[nodiscard]] auto get_offering_cost(int offering_index, GameObjectID buyer_id) const -> int;
+  /// @throws std::out_of_range if the index is out of bounds.
+  /// @return The offering at the specified index, or nullptr if the index is out of bounds.
+  [[nodiscard]] auto get_offering(int offering_index) const -> const ShopOffering&;
 
   /// Purchase an offering from the shop for a buyer.
   ///
@@ -116,5 +90,5 @@ class ShopSystem final : public SystemBase {
 
  private:
   /// The offerings available in the shop.
-  std::vector<std::unique_ptr<ShopOffering>> offerings_;
+  std::vector<ShopOffering> offerings_;
 };

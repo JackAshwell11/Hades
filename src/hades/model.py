@@ -11,7 +11,7 @@ from hades_engine import GameEngine
 
 if TYPE_CHECKING:
     from hades.sprite import HadesSprite
-    from hades_engine import GameState, InputHandler, SaveManager
+    from hades_engine import GameState, InputHandler
     from hades_engine.ecs import Registry
 
 __all__ = ("HadesModel",)
@@ -68,15 +68,6 @@ class HadesModel:
             The input handler which handles input events.
         """
         return self.game_engine.input_handler
-
-    @cached_property
-    def save_manager(self: HadesModel) -> SaveManager:
-        """Get the save manager which manages the saving and loading of game states.
-
-        Returns:
-            The save manager which manages the saving and loading of game states.
-        """
-        return self.game_engine.save_manager
 
     @property
     def player_id(self: HadesModel) -> int:

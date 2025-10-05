@@ -147,8 +147,6 @@ class GameView(BaseView):
             align="right",
             children=[
                 StateIndicator(IconType.SINGLE_BULLET, reverse=True),
-                StateIndicator(IconType.MELEE, reverse=True),
-                StateIndicator(IconType.SPECIAL, reverse=True),
             ],
             space_between=SPRITE_SIZE / 2,
         )
@@ -264,22 +262,13 @@ class GameView(BaseView):
         """
         self.money_indicator.update_value(money)
 
-    def update_attack_cooldown_display(
-        self: GameView,
-        ranged_cooldown: float,
-        melee_cooldown: float,
-        special_cooldown: float,
-    ) -> None:
+    def update_attack_cooldown_display(self: GameView, ranged_cooldown: float) -> None:
         """Update the attack cooldown indicators.
 
         Args:
             ranged_cooldown: The cooldown time for the ranged attack.
-            melee_cooldown: The cooldown time for the melee attack.
-            special_cooldown: The cooldown time for the special attack.
         """
         self.attack_type_layout.children[0].update_value(ranged_cooldown)
-        self.attack_type_layout.children[1].update_value(melee_cooldown)
-        self.attack_type_layout.children[2].update_value(special_cooldown)
 
     def update_ranged_attack_icon(self: GameView, selected_attack: int) -> None:
         """Update the ranged attack type indicator.

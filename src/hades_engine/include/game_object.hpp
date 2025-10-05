@@ -24,5 +24,4 @@ enum class GameObjectType : std::uint16_t {
   Goal = 1U << 6U,          // 64
   HealthPotion = 1U << 7U,  // 128
   Chest = 1U << 8U,         // 256
-  Shop = 1U << 9U,          // 512
 };

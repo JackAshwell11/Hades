@@ -71,13 +71,6 @@ TEST_F(GameStateFixture, TestGameStateIsPlayerTouchingTypeNotSpecifiedType) {
   ASSERT_FALSE(game_state->is_player_touching_type(GameObjectType::Goal));
 }
 
-/// Test that the player is touching a game object type when the nearest item is the specified type.
-TEST_F(GameStateFixture, TestGameStateIsPlayerTouchingTypeIsSpecifiedType) {
-  game_state->reset_level(LevelType::Lobby);
-  move_player_to_item(registry, game_state, GameObjectType::Goal);
-  ASSERT_TRUE(game_state->is_player_touching_type(GameObjectType::Goal));
-}
-
 /// Test that the player is initialised on constructing the game state.
 TEST_F(GameStateFixture, TestGameStatePlayerInitialised) {
   ASSERT_EQ(game_state->get_player_id(), 0);
@@ -113,34 +106,6 @@ TEST_F(GameStateFixture, TestGameStateInitialiseDungeonRun) {
   ASSERT_EQ(game_state->get_game_level(), 5);
 }
 
-/// Test that resetting to a lobby creates the lobby game objects.
-TEST_F(GameStateFixture, TestGameStateResetLevelLobby) {
-  game_state->reset_level(LevelType::Lobby);
-  ASSERT_EQ(game_state->get_player_id(), 0);
-  ASSERT_EQ(game_state->get_difficulty_level(), DifficultyLevel::Normal);
-  ASSERT_EQ(game_state->get_nearest_item(), -1);
-  ASSERT_EQ(game_state->get_dungeon_level(), LevelType::Lobby);
-  ASSERT_EQ(game_state->get_game_level(), 1);
-  ASSERT_TRUE(game_state->is_lobby());
-  ASSERT_FALSE(game_state->is_boss());
-  ASSERT_EQ(game_state->get_enemy_generation_timer(), 0.0);
-  ASSERT_TRUE(registry->get_game_object_ids(GameObjectType::Enemy).empty());
-  ASSERT_TRUE(registry->get_game_object_ids(GameObjectType::HealthPotion).empty());
-  ASSERT_FALSE(registry->get_game_object_ids(GameObjectType::Goal).empty());
-}
-
-/// Test that resetting to a lobby clears all game objects and inventory items except the player.
-TEST_F(GameStateFixture, TestGameStateResetLevelLobbyClearEverything) {
-  game_state->reset_level(LevelType::FirstDungeon);
-  const auto item_id{get_item(registry, GameObjectType::HealthPotion)};
-  registry->get_system<InventorySystem>()->add_item_to_inventory(game_state->get_player_id(), item_id);
-  game_state->reset_level(LevelType::Lobby);
-  const auto health_potion_ids{registry->get_game_object_ids(GameObjectType::HealthPotion)};
-  ASSERT_TRUE(health_potion_ids.empty());
-  ASSERT_TRUE(registry->get_component<Inventory>(game_state->get_player_id())->items.empty());
-  ASSERT_TRUE(registry->get_game_object_ids(GameObjectType::HealthPotion).empty());
-}
-
 /// Test that resetting to a game level works correctly.
 TEST_F(GameStateFixture, TestGameStateResetLevelFirstSecond) {
   game_state->reset_level(LevelType::FirstDungeon);
@@ -149,7 +114,6 @@ TEST_F(GameStateFixture, TestGameStateResetLevelFirstSecond) {
   ASSERT_EQ(game_state->get_nearest_item(), -1);
   ASSERT_EQ(game_state->get_dungeon_level(), LevelType::FirstDungeon);
   ASSERT_EQ(game_state->get_game_level(), 1);
-  ASSERT_FALSE(game_state->is_lobby());
   ASSERT_FALSE(game_state->is_boss());
   ASSERT_EQ(game_state->get_enemy_generation_timer(), 0.0);
   ASSERT_TRUE(registry->get_game_object_ids(GameObjectType::Enemy).empty());
@@ -171,48 +135,12 @@ TEST_F(GameStateFixture, TestGameStateResetLevelFirstSecondClearObjects) {
   ASSERT_FALSE(registry->get_game_object_ids(GameObjectType::HealthPotion).empty());
 }
 
-/// Test that resetting the level to a lobby calls the correct callbacks.
-TEST_F(GameStateFixture, TestGameStateResetLevelLobbyCallbacks) {
-  auto inventory_update{false};
-  auto ranged_attack_switch{false};
-  auto attack_cooldown_update{false};
-  auto status_effect_update{false};
-  auto game_open{false};
-  add_callback<EventType::InventoryUpdate>(
-      [&inventory_update](const std::vector<GameObjectID>&) { inventory_update = true; });
-  add_callback<EventType::RangedAttackSwitch>([&ranged_attack_switch](const int) { ranged_attack_switch = true; });
-  add_callback<EventType::AttackCooldownUpdate>(
-      [&attack_cooldown_update](const GameObjectID, const double, const double, const double) {
-        attack_cooldown_update = true;
-      });
-  add_callback<EventType::StatusEffectUpdate>(
-      [&status_effect_update](const std::unordered_map<EffectType, double>&) { status_effect_update = true; });
-  add_callback<EventType::GameOpen>([&game_open] { game_open = true; });
-  game_state->reset_level(LevelType::Lobby);
-  ASSERT_TRUE(inventory_update);
-  ASSERT_TRUE(ranged_attack_switch);
-  ASSERT_TRUE(attack_cooldown_update);
-  ASSERT_TRUE(status_effect_update);
-  ASSERT_TRUE(game_open);
-}
-
 /// Test that resetting the level to a game level calls the correct callbacks.
 TEST_F(GameStateFixture, TestGameStateResetLevelGameLevelCallbacks) {
   auto game_open{false};
   add_callback<EventType::GameOpen>([&game_open] { game_open = true; });
   game_state->reset_level(LevelType::FirstDungeon);
   ASSERT_TRUE(game_open);
-}
-
-/// Test that resetting the level to a game level when it hasn't been reset to the lobby works correctly.
-TEST_F(GameStateFixture, TestGameStateResetLevelFirstSecondWithoutLobby) {
-  GameState game_state_no_lobby{registry};
-  game_state_no_lobby.reset_level(LevelType::FirstDungeon);
-  ASSERT_EQ(game_state_no_lobby.get_player_id(), 0);
-  ASSERT_EQ(game_state_no_lobby.get_dungeon_level(), LevelType::FirstDungeon);
-  ASSERT_EQ(game_state_no_lobby.get_game_level(), 1);
-  ASSERT_FALSE(game_state_no_lobby.is_lobby());
-  ASSERT_FALSE(game_state_no_lobby.is_boss());
 }
 
 /// Test that the game state generates an enemy correctly.

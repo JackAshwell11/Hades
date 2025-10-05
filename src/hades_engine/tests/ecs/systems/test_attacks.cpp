@@ -1,27 +1,13 @@
 // Std headers
 #include <numbers>
 
-// External headers
-#include <nlohmann/json.hpp>
-
 // Local headers
 #include "ecs/registry.hpp"
+#include "ecs/stats.hpp"
 #include "ecs/systems/attacks.hpp"
 #include "ecs/systems/movements.hpp"
 #include "events.hpp"
 #include "macros.hpp"
-
-namespace {
-/// Assert that the attack stat component is serialised to JSON correctly.
-///
-/// @param stat - The attack stat component to check.
-/// @param expected_json - The expected JSON representation of the attack stat component.
-void assert_attack_stat(const AttackStat& stat, const nlohmann::json& expected_json) {
-  nlohmann::json actual_json;
-  stat.to_file(actual_json);
-  ASSERT_EQ(actual_json, expected_json);
-}
-}  // namespace
 
 /// Implements the fixture for the AttackSystem tests.
 class AttackSystemFixture : public testing::Test {
@@ -30,12 +16,6 @@ class AttackSystemFixture : public testing::Test {
   struct AttackerConfig {
     /// Whether the ranged attack is enabled or not.
     bool ranged = false;
-
-    /// Whether the melee attack is enabled or not.
-    bool melee = false;
-
-    /// Whether the area of effect attack is enabled or not.
-    bool area_of_effect = false;
 
     /// Whether the game object has a steering movement component or not.
     bool steering_movement = false;
@@ -51,8 +31,8 @@ class AttackSystemFixture : public testing::Test {
   void SetUp() override {
     auto create_target{[&](const cpVect position) {
       const int target{registry.create_game_object(GameObjectType::Enemy)};
-      registry.add_component<Armour>(target, 0, -1);
-      registry.add_component<Health>(target, 80, -1);
+      registry.add_component<Armour>(target, 0);
+      registry.add_component<Health>(target, 80);
       registry.add_component<KinematicComponent>(target, cpvzero);
       cpBodySetPosition(*registry.get_component<KinematicComponent>(target)->body, position);
       return target;
@@ -76,20 +56,12 @@ class AttackSystemFixture : public testing::Test {
   /// @param config - The component configuration for the attacker.
   void create_attacker(const AttackerConfig& config) {
     const int game_object_id{registry.create_game_object(GameObjectType::Player)};
-    registry.add_component<Attack>(game_object_id);
-    const auto attack{registry.get_component<Attack>(game_object_id)};
+    std::vector<std::unique_ptr<RangedAttack>> attacks;
     if (config.ranged) {
-      attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
-          AttackStat(2, -1), AttackStat(20, -1), AttackStat(3 * SPRITE_SIZE, -1), AttackStat(200, -1)));
-      attack->add_ranged_attack(std::make_unique<MultiBulletAttack>(
-          AttackStat{1, 3}, AttackStat{10, 3}, AttackStat{3 * SPRITE_SIZE, 3}, AttackStat{200, 1}, AttackStat{5, 3}));
+      attacks.push_back(std::make_unique<SingleBulletAttack>(2, 20, 3 * SPRITE_SIZE, 200));
+      attacks.push_back(std::make_unique<MultiBulletAttack>(1, 10, 3 * SPRITE_SIZE, 200, 5));
     }
-    if (config.melee) {
-      attack->set_melee_attack({{2, -1}, {20, -1}, {3 * SPRITE_SIZE, -1}, {std::numbers::pi / 4, -1}});
-    }
-    if (config.area_of_effect) {
-      attack->set_special_attack({{2, -1}, {20, -1}, {3 * SPRITE_SIZE, -1}});
-    }
+    registry.add_component<Attack>(game_object_id, std::move(attacks));
     registry.add_component<KinematicComponent>(game_object_id, cpvzero);
     registry.get_component<KinematicComponent>(game_object_id)->rotation = -std::numbers::pi / 2;
     if (config.steering_movement) {
@@ -118,8 +90,8 @@ class DamageSystemFixture : public testing::Test {
   /// Create health and armour attributes for use in testing.
   void create_health_and_armour_attributes() {
     const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
-    registry.add_component<Armour>(game_object_id, 100, -1);
-    registry.add_component<Health>(game_object_id, 300, -1);
+    registry.add_component<Armour>(game_object_id, 100);
+    registry.add_component<Health>(game_object_id, 300);
   }
 
   /// Get the damage system from the registry.
@@ -129,138 +101,6 @@ class DamageSystemFixture : public testing::Test {
     return registry.get_system<DamageSystem>();
   }
 };
-
-/// Test that the attack stat component is serialised to a file correctly.
-TEST_F(AttackSystemFixture, TestAttackStatToFile) {
-  nlohmann::json json;
-  const auto attack_stat{std::make_shared<AttackStat>(5, -1)};
-  attack_stat->to_file(json);
-  ASSERT_EQ(json, nlohmann::json::parse(R"({"current_level":0,"max_level":-1,"max_value":5.0,"value":5.0})"));
-}
-
-/// Test that the attack stat component is deserialised from a file correctly.
-TEST_F(AttackSystemFixture, TestAttackStatFromFile) {
-  const nlohmann::json json(
-      nlohmann::json::parse(R"({"current_level":5,"max_level":10,"max_value":100.0,"value":50.0})"));
-  const auto attack_stat{std::make_shared<AttackStat>(0, -1)};
-  attack_stat->from_file(json);
-  ASSERT_EQ(attack_stat->get_value(), 50);
-  ASSERT_EQ(attack_stat->get_max_value(), 100);
-  ASSERT_EQ(attack_stat->get_max_level(), 10);
-  ASSERT_EQ(attack_stat->get_current_level(), 5);
-}
-
-/// Test that the attack component is reset correctly.
-TEST_F(AttackSystemFixture, TestAttackReset) {
-  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
-  const auto attack{registry.get_component<Attack>(8)};
-  get_attack_system()->next_ranged_attack(8);
-  ASSERT_EQ(attack->selected_ranged_attack, 1);
-  attack->reset();
-  ASSERT_EQ(attack->selected_ranged_attack, 0);
-}
-
-/// Test that the attack component is serialised to a file correctly.
-TEST_F(AttackSystemFixture, TestAttackToFile) {
-  nlohmann::json json;
-  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
-  registry.get_component<Attack>(8)->to_file(json);
-  const auto expected_json(nlohmann::json::parse(R"({
-    "melee_attack": {
-      "cooldown": {"current_level":0,"max_level":-1,"max_value":2.0,"value":2.0},
-      "damage": {"current_level":0,"max_level":-1,"max_value":20.0,"value":20.0},
-      "range": {"current_level":0,"max_level":-1,"max_value":192.0,"value":192.0},
-      "size": {"current_level":0,"max_level":-1,"max_value":0.7853981633974483,"value":0.7853981633974483}
-    },
-    "ranged_attack": [
-      {
-        "cooldown": {"current_level":0,"max_level":-1,"max_value":2.0,"value":2.0},
-        "damage": {"current_level":0,"max_level":-1,"max_value":20.0,"value":20.0},
-        "range": {"current_level":0,"max_level":-1,"max_value":192.0,"value":192.0},
-        "velocity": {"current_level":0,"max_level":-1,"max_value":200.0,"value":200.0}
-      },
-      {
-        "cooldown": {"current_level":0,"max_level":3,"max_value":1.0,"value":1.0},
-        "damage": {"current_level":0,"max_level":3,"max_value":10.0,"value":10.0},
-        "range": {"current_level":0,"max_level":3,"max_value":192.0,"value":192.0},
-        "velocity": {"current_level":0,"max_level":1,"max_value":200.0,"value":200.0}
-      }
-    ],
-    "selected_ranged_attack": 0,
-    "special_attack": {
-      "cooldown": {"current_level":0,"max_level":-1,"max_value":2.0,"value":2.0},
-      "damage": {"current_level":0,"max_level":-1,"max_value":20.0,"value":20.0},
-      "range": {"current_level":0,"max_level":-1,"max_value":192.0,"value":192.0}
-    }
-  })"));
-  ASSERT_EQ(json, expected_json);
-}
-
-/// Test that the attack component is deserialised from a file correctly.
-TEST_F(AttackSystemFixture, TestAttackFromFile) {
-  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
-  const auto json(nlohmann::json::parse(R"({
-    "selected_ranged_attack": 1,
-    "melee_attack": {
-      "cooldown": {"current_level":1,"max_level":1,"max_value":5.0,"value":10.0},
-      "damage": {"current_level":2,"max_level":2,"max_value":10.0,"value":15.0},
-      "range": {"current_level":3,"max_level":3,"max_value":15.0,"value":20.0},
-      "size": {"current_level":4,"max_level":4,"max_value":20.0,"value":25.0}
-    },
-    "ranged_attack": [
-      {
-        "cooldown": {"current_level":1,"max_level":1,"max_value":5.0,"value":10.0},
-        "damage": {"current_level":2,"max_level":2,"max_value":10.0,"value":15.0},
-        "range": {"current_level":3,"max_level":3,"max_value":15.0,"value":20.0},
-        "velocity": {"current_level":4,"max_level":4,"max_value":20.0,"value":25.0}
-      },
-      {
-        "cooldown": {"current_level":5,"max_level":5,"max_value":25.0,"value":25.0},
-        "damage": {"current_level":6,"max_level":6,"max_value":30.0,"value":30.0},
-        "range": {"current_level":7,"max_level":7,"max_value":35.0,"value":35.0},
-        "velocity": {"current_level":8,"max_level":8,"max_value":40.0,"value":40.0}
-      }
-    ],
-    "special_attack": {
-      "cooldown": {"current_level":1,"max_level":1,"max_value":5.0,"value":10.0},
-      "damage": {"current_level":2,"max_level":2,"max_value":10.0,"value":15.0},
-      "range": {"current_level":3,"max_level":3,"max_value":15.0,"value":20.0}
-    }
-  })"));
-  const auto attack{registry.get_component<Attack>(8)};
-  attack->from_file(json);
-  ASSERT_EQ(attack->selected_ranged_attack, 1);
-  assert_attack_stat(attack->melee_attack->cooldown,
-                     nlohmann::json::parse(R"({"current_level":1,"max_level":1,"max_value":5.0,"value":10.0})"));
-  assert_attack_stat(attack->melee_attack->damage,
-                     nlohmann::json::parse(R"({"current_level":2,"max_level":2,"max_value":10.0,"value":15.0})"));
-  assert_attack_stat(attack->melee_attack->range,
-                     nlohmann::json::parse(R"({"current_level":3,"max_level":3,"max_value":15.0,"value":20.0})"));
-  assert_attack_stat(attack->melee_attack->size,
-                     nlohmann::json::parse(R"({"current_level":4,"max_level":4,"max_value":20.0,"value":25.0})"));
-  assert_attack_stat(attack->ranged_attacks[0]->cooldown,
-                     nlohmann::json::parse(R"({"current_level":1,"max_level":1,"max_value":5.0,"value":10.0})"));
-  assert_attack_stat(attack->ranged_attacks[0]->damage,
-                     nlohmann::json::parse(R"({"current_level":2,"max_level":2,"max_value":10.0,"value":15.0})"));
-  assert_attack_stat(attack->ranged_attacks[0]->range,
-                     nlohmann::json::parse(R"({"current_level":3,"max_level":3,"max_value":15.0,"value":20.0})"));
-  assert_attack_stat(attack->ranged_attacks[0]->velocity,
-                     nlohmann::json::parse(R"({"current_level":4,"max_level":4,"max_value":20.0,"value":25.0})"));
-  assert_attack_stat(attack->ranged_attacks[1]->cooldown,
-                     nlohmann::json::parse(R"({"current_level":5,"max_level":5,"max_value":25.0,"value":25.0})"));
-  assert_attack_stat(attack->ranged_attacks[1]->damage,
-                     nlohmann::json::parse(R"({"current_level":6,"max_level":6,"max_value":30.0,"value":30.0})"));
-  assert_attack_stat(attack->ranged_attacks[1]->range,
-                     nlohmann::json::parse(R"({"current_level":7,"max_level":7,"max_value":35.0,"value":35.0})"));
-  assert_attack_stat(attack->ranged_attacks[1]->velocity,
-                     nlohmann::json::parse(R"({"current_level":8,"max_level":8,"max_value":40.0,"value":40.0})"));
-  assert_attack_stat(attack->special_attack->cooldown,
-                     nlohmann::json::parse(R"({"current_level":1,"max_level":1,"max_value":5.0,"value":10.0})"));
-  assert_attack_stat(attack->special_attack->damage,
-                     nlohmann::json::parse(R"({"current_level":2,"max_level":2,"max_value":10.0,"value":15.0})"));
-  assert_attack_stat(attack->special_attack->range,
-                     nlohmann::json::parse(R"({"current_level":3,"max_level":3,"max_value":15.0,"value":20.0})"));
-}
 
 /// Test that the attack component is updated correctly with a zero delta time.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateZeroDeltaTime) {
@@ -312,15 +152,12 @@ TEST_F(AttackSystemFixture, TestAttackSystemUpdateSteeringMovement) {
 
 /// Test that the attack system calls the correct callbacks during updating.
 TEST_F(AttackSystemFixture, TestAttackSystemUpdateCallbacks) {
-  auto attack_cooldown_update_callback{[&](const GameObjectID game_object_id, const double ranged_cooldown,
-                                           const double melee_cooldown, const double special_cooldown) {
+  auto attack_cooldown_update_callback{[&](const GameObjectID game_object_id, const double ranged_cooldown) {
     ASSERT_EQ(game_object_id, 8);
     ASSERT_EQ(ranged_cooldown, 1);
-    ASSERT_EQ(melee_cooldown, 2);
-    ASSERT_EQ(special_cooldown, 2);
   }};
   add_callback<EventType::AttackCooldownUpdate>(attack_cooldown_update_callback);
-  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
+  create_attacker({.ranged = true});
   registry.get_component<Attack>(8)->get_selected_ranged_attack()->time_since_last_use = 1;
   get_attack_system()->update(0);
 }
@@ -333,7 +170,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingle) {
   create_attacker({.ranged = true});
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
-  ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Ranged));
+  ASSERT_TRUE(get_attack_system()->do_attack(8));
   ASSERT_EQ(game_object_created, 9);
   const auto bullet{registry.get_component<KinematicComponent>(game_object_created)};
   const auto [pos_x, pos_y]{cpBodyGetPosition(*bullet->body)};
@@ -342,13 +179,6 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingle) {
   ASSERT_NEAR(pos_y, -64, 1e-13);
   ASSERT_NEAR(vel_x, 0, 1e-13);
   ASSERT_NEAR(vel_y, -200, 1e-13);
-}
-
-/// Test that performing a ranged attack with a single bullet does not work if the attack type is wrong.
-TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedSingleWrongType) {
-  create_attacker({.ranged = true});
-  get_attack_system()->update(5);
-  ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Melee));
 }
 
 /// Test that performing a ranged attack with multiple bullets works correctly.
@@ -360,7 +190,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleBullets) {
   add_callback<EventType::GameObjectCreation>(game_object_creation_callback);
   get_attack_system()->update(5);
   registry.get_system<AttackSystem>()->next_ranged_attack(8);
-  ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Ranged));
+  ASSERT_TRUE(get_attack_system()->do_attack(8));
   ASSERT_EQ(game_objects_created.size(), 5);
 
   // Check that each bullet has the expected velocity
@@ -377,78 +207,11 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleBullets) {
   }
 }
 
-/// Test that performing a ranged attack with multiple bullets does not work if the attack type is wrong.
-TEST_F(AttackSystemFixture, TestAttackSystemDoAttackRangedMultipleWrongType) {
-  create_attacker({.ranged = true});
-  get_attack_system()->update(5);
-  ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Melee));
-}
-
-/// Test that performing a melee attack works correctly.
-TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMelee) {
-  create_attacker({.melee = true});
-  get_attack_system()->update(5);
-  ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Melee));
-  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 60);
-}
-
-/// Test that performing a melee attack does not work if the attack type is wrong.
-TEST_F(AttackSystemFixture, TestAttackSystemDoAttackMeleeWrongType) {
-  create_attacker({.melee = true});
-  get_attack_system()->update(5);
-  ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Special));
-  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 80);
-}
-
-/// Test that performing an area of effect attack works correctly.
-TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffect) {
-  create_attacker({.area_of_effect = true});
-  get_attack_system()->update(5);
-  ASSERT_TRUE(get_attack_system()->do_attack(8, AttackType::Special));
-  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 60);
-  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 60);
-}
-
-/// Test that performing an area of effect attack does not work if the attack type is wrong.
-TEST_F(AttackSystemFixture, TestAttackSystemDoAttackAreaOfEffectWrongType) {
-  create_attacker({.area_of_effect = true});
-  get_attack_system()->update(5);
-  ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Ranged));
-  ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[3])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[4])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[5])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[6])->get_value(), 80);
-  ASSERT_EQ(registry.get_component<Health>(targets[7])->get_value(), 80);
-}
-
 /// Test that performing an attack with no attack algorithms doesn't work.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackEmptyAttacks) {
   create_attacker({});
   get_attack_system()->update(5);
-  ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Ranged));
+  ASSERT_FALSE(get_attack_system()->do_attack(8));
   ASSERT_EQ(registry.get_component<Health>(targets[0])->get_value(), 80);
   ASSERT_EQ(registry.get_component<Health>(targets[1])->get_value(), 80);
   ASSERT_EQ(registry.get_component<Health>(targets[2])->get_value(), 80);
@@ -462,19 +225,19 @@ TEST_F(AttackSystemFixture, TestAttackSystemDoAttackEmptyAttacks) {
 /// Test that performing an attack before the cooldown is up doesn't work.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackCooldown) {
   create_attacker({.ranged = true});
-  ASSERT_FALSE(get_attack_system()->do_attack(8, AttackType::Ranged));
+  ASSERT_FALSE(get_attack_system()->do_attack(8));
 }
 
 /// Test that an exception is thrown if an invalid game object ID is provided.
 TEST_F(AttackSystemFixture, TestAttackSystemDoAttackInvalidGameObjectId) {
   create_attacker({.ranged = true});
-  ASSERT_THROW_MESSAGE((get_attack_system()->do_attack(-1, AttackType::Ranged)), RegistryError,
+  ASSERT_THROW_MESSAGE((get_attack_system()->do_attack(-1)), RegistryError,
                        "The component `Attack` for the game object ID `-1` is not registered with the registry.")
 }
 
 /// Test that switching between ranged attacks once works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackSingle) {
-  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
+  create_attacker({.ranged = true});
   const auto attack{registry.get_component<Attack>(8)};
   ASSERT_EQ(attack->selected_ranged_attack, 0);
   registry.get_system<AttackSystem>()->next_ranged_attack(8);
@@ -485,7 +248,7 @@ TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackSingle) {
 
 /// Test that switching between ranged attacks multiple times works correctly.
 TEST_F(AttackSystemFixture, TestAttackSystemPreviousNextRangedAttackMultiple) {
-  create_attacker({.ranged = true, .melee = true, .area_of_effect = true});
+  create_attacker({.ranged = true});
   const auto attack{registry.get_component<Attack>(8)};
   ASSERT_EQ(attack->selected_ranged_attack, 0);
   registry.get_system<AttackSystem>()->next_ranged_attack(8);

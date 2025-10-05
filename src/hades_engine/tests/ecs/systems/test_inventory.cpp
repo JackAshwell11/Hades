@@ -1,8 +1,6 @@
-// External headers
-#include <nlohmann/json.hpp>
-
 // Local headers
 #include "ecs/registry.hpp"
+#include "ecs/stats.hpp"
 #include "ecs/systems/effects.hpp"
 #include "ecs/systems/inventory.hpp"
 #include "events.hpp"
@@ -26,9 +24,8 @@ class InventorySystemFixture : public testing::Test {
   /// Set up the fixture for the tests.
   void SetUp() override {
     const auto game_object_id{registry.create_game_object(GameObjectType::Player)};
-    registry.add_component<Health>(game_object_id, 200, -1);
+    registry.add_component<Health>(game_object_id, 200);
     registry.add_component<Inventory>(game_object_id);
-    registry.add_component<InventorySize>(game_object_id, 8, -1);
     registry.add_component<StatusEffects>(game_object_id);
     registry.add_system<EffectSystem>();
     registry.add_system<InventorySystem>();
@@ -62,56 +59,6 @@ class InventorySystemFixture : public testing::Test {
     return registry.get_system<InventorySystem>();
   }
 };
-
-/// Test that the inventory component is reset correctly.
-TEST_F(InventorySystemFixture, TestInventoryReset) {
-  const auto inventory{registry.get_component<Inventory>(0)};
-  inventory->items = {1, 2, 3};
-  inventory->reset();
-  ASSERT_TRUE(inventory->items.empty());
-}
-
-/// Test that the inventory component is serialised to a file correctly.
-TEST_F(InventorySystemFixture, TestInventoryToFile) {
-  registry.get_system<InventorySystem>()->add_item_to_inventory(0, create_item(GameObjectType::HealthPotion, {}));
-  registry.get_system<InventorySystem>()->add_item_to_inventory(0, create_item(GameObjectType::HealthPotion, {}));
-  registry.get_system<InventorySystem>()->add_item_to_inventory(0, create_item(GameObjectType::HealthPotion, {}));
-  nlohmann::json json;
-  registry.get_component<Inventory>(0)->to_file(json, &registry);
-  ASSERT_EQ(json.at("items"), nlohmann::json::array({128, 128, 128}));
-}
-
-/// Test that the inventory component is deserialised from a file correctly.
-TEST_F(InventorySystemFixture, TestInventoryFromFile) {
-  const nlohmann::json json(nlohmann::json::parse(R"({"items":[128, 128]})"));
-  const auto inventory{registry.get_component<Inventory>(0)};
-  inventory->from_file(json, &registry);
-  ASSERT_EQ(inventory->items.size(), 2);
-  ASSERT_EQ(inventory->items[0], 1);
-  ASSERT_EQ(registry.get_game_object_type(inventory->items[0]), GameObjectType::HealthPotion);
-  ASSERT_EQ(inventory->items[1], 2);
-  ASSERT_EQ(registry.get_game_object_type(inventory->items[1]), GameObjectType::HealthPotion);
-}
-
-/// Test that the inventory size component is serialised to a file correctly.
-TEST_F(InventorySystemFixture, TestInventorySizeToFile) {
-  nlohmann::json json;
-  registry.get_component<InventorySize>(0)->to_file(json);
-  ASSERT_EQ(json, nlohmann::json::parse(
-                      R"({"inventory_size":{"current_level":0,"max_level":-1,"max_value":8.0,"value":8.0}})"));
-}
-
-/// Test that the inventory size component is deserialised from a file correctly.
-TEST_F(InventorySystemFixture, TestInventorySizeFromFile) {
-  const nlohmann::json json(
-      nlohmann::json::parse(R"({"inventory_size":{"current_level":0,"max_level":10,"max_value":5.0,"value":5.0}})"));
-  const auto inventory_size{std::make_shared<InventorySize>(0, -1)};
-  inventory_size->from_file(json);
-  ASSERT_EQ(inventory_size->get_value(), 5);
-  ASSERT_EQ(inventory_size->get_max_value(), 5);
-  ASSERT_EQ(inventory_size->get_max_level(), 10);
-  ASSERT_EQ(inventory_size->get_current_level(), 0);
-}
 
 /// Test that an item does not exist in the inventory if it has not been added.
 TEST_F(InventorySystemFixture, TestInventorySystemHasItemInInventoryNotAdded) {
@@ -193,15 +140,6 @@ TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryInvalidItem)
   get_inventory_system()->add_item_to_inventory(0, -1);
   ASSERT_TRUE(registry.get_component<Inventory>(0)->items.empty());
 }
-
-/// Test that a valid item is not added to a zero size inventory.
-TEST_F(InventorySystemFixture, TestInventorySystemAddItemToInventoryZeroSize) {
-  const auto game_object_id{create_item(GameObjectType::HealthPotion, {})};
-  registry.get_component<InventorySize>(0)->set_value(0);
-  ASSERT_THROW_MESSAGE(get_inventory_system()->add_item_to_inventory(0, game_object_id), std::runtime_error,
-                       "The inventory is full.")
-}
-
 /// Test that a valid item is removed from the inventory correctly.
 TEST_F(InventorySystemFixture, TestInventorySystemRemoveItemFromInventoryValid) {
   // Add the callbacks to the registry

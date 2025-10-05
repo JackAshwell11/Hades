@@ -1,9 +1,6 @@
 // Related header
 #include "factories.hpp"
 
-// Std headers
-#include <numbers>
-
 // Local headers
 #include "ecs/registry.hpp"
 #include "ecs/stats.hpp"
@@ -43,21 +40,18 @@ const auto bullet_factory{[](Registry* registry, const GameObjectID game_object_
 
 /// Add the components for the enemy game object.
 const auto enemy_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position, const int) {
-  registry->add_component<Armour>(game_object_id, 50, 5);
-  registry->add_component<Attack>(game_object_id);
-  const auto attack{registry->get_component<Attack>(game_object_id)};
-  attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
-      AttackStat{1, 3}, AttackStat{10, 3}, AttackStat{3 * SPRITE_SIZE, 3}, AttackStat{BULLET_VELOCITY, 1}));
-  registry->add_component<Health>(game_object_id, 100, 5);
+  std::vector<std::unique_ptr<RangedAttack>> attacks;
+  attacks.push_back(std::make_unique<SingleBulletAttack>(1, 10, 3 * SPRITE_SIZE, BULLET_VELOCITY));
+  registry->add_component<Armour>(game_object_id, 50);
+  registry->add_component<Attack>(game_object_id, std::move(attacks));
+  registry->add_component<Health>(game_object_id, 100);
   registry->add_component<KinematicComponent>(game_object_id, position, get_hitboxes().at(GameObjectType::Enemy));
-  registry->add_component<MovementForce>(game_object_id, 1000, 5);
   registry->add_component<SteeringMovement>(
       game_object_id,
       std::unordered_map<SteeringMovementState, std::vector<SteeringBehaviours>>{
           {SteeringMovementState::Default, {SteeringBehaviours::ObstacleAvoidance, SteeringBehaviours::Wander}},
           {SteeringMovementState::Footprint, {SteeringBehaviours::FollowPath}},
           {SteeringMovementState::Target, {SteeringBehaviours::Pursue}}});
-  registry->add_component<ViewDistance>(game_object_id, 3 * SPRITE_SIZE, 3);
 }};
 
 /// Add the components for the wall game object.
@@ -75,26 +69,17 @@ const auto goal_factory{[](Registry* registry, const GameObjectID game_object_id
 
 /// Add the components for the player game object.
 const auto player_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
-  registry->add_component<Armour>(game_object_id, 100, 5);
-  registry->add_component<Attack>(game_object_id);
-  const auto attack{registry->get_component<Attack>(game_object_id)};
-  attack->add_ranged_attack(std::make_unique<SingleBulletAttack>(
-      AttackStat{1, 3}, AttackStat{20, 3}, AttackStat{3 * SPRITE_SIZE, 3}, AttackStat{BULLET_VELOCITY, 1}));
-  attack->add_ranged_attack(std::make_unique<MultiBulletAttack>(AttackStat{1, 3}, AttackStat{10, 3},
-                                                                AttackStat{3 * SPRITE_SIZE, 3},
-                                                                AttackStat{BULLET_VELOCITY, 1}, AttackStat{5, 3}));
-  attack->set_melee_attack({{1, 3}, {20, 3}, {3 * SPRITE_SIZE, 3}, {std::numbers::pi / 4, 3}});
-  attack->set_special_attack({{1, 3}, {20, 3}, {3 * SPRITE_SIZE, 3}});
+  std::vector<std::unique_ptr<RangedAttack>> attacks;
+  attacks.push_back(std::make_unique<SingleBulletAttack>(1, 20, 3 * SPRITE_SIZE, BULLET_VELOCITY));
+  attacks.push_back(std::make_unique<MultiBulletAttack>(1, 10, 3 * SPRITE_SIZE, BULLET_VELOCITY, 5));
+  registry->add_component<Armour>(game_object_id, 100);
+  registry->add_component<Attack>(game_object_id, std::move(attacks));
   registry->add_component<Footprints>(game_object_id);
-  registry->add_component<FootprintInterval>(game_object_id, 0.5, 3);
-  registry->add_component<FootprintLimit>(game_object_id, 5, 3);
-  registry->add_component<Health>(game_object_id, 200, 5);
+  registry->add_component<Health>(game_object_id, 200);
   registry->add_component<Inventory>(game_object_id);
-  registry->add_component<InventorySize>(game_object_id, 30, 3);
   registry->add_component<KeyboardMovement>(game_object_id);
   registry->add_component<KinematicComponent>(game_object_id, position, get_hitboxes().at(GameObjectType::Player));
   registry->add_component<Money>(game_object_id);
-  registry->add_component<MovementForce>(game_object_id, 5000, 5);
   registry->add_component<PlayerLevel>(game_object_id);
   registry->add_component<StatusEffects>(game_object_id);
 }};
@@ -109,11 +94,6 @@ const auto health_potion_factory{[](Registry* registry, const GameObjectID game_
 
 /// Add the components for the chest game object,
 const auto chest_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
-  registry->add_component<KinematicComponent>(game_object_id, position);
-}};
-
-/// Add the components for the shop game object.
-const auto shop_factory{[](Registry* registry, const GameObjectID game_object_id, const cpVect& position) {
   registry->add_component<KinematicComponent>(game_object_id, position);
 }};
 }  // namespace
@@ -141,8 +121,7 @@ auto create_game_object(Registry* registry, const GameObjectType game_object_typ
       {GameObjectType::Bullet, bullet_factory}, {GameObjectType::Floor, floor_factory},
       {GameObjectType::Player, player_factory}, {GameObjectType::Wall, wall_factory},
       {GameObjectType::Goal, goal_factory},     {GameObjectType::HealthPotion, health_potion_factory},
-      {GameObjectType::Chest, chest_factory},   {GameObjectType::Shop, shop_factory},
-  };
+      {GameObjectType::Chest, chest_factory}};
   static const std::unordered_map<GameObjectType, LeveledComponentFactory> leveled_factories{
       {GameObjectType::Enemy, enemy_factory},
   };
