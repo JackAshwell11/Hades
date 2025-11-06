@@ -502,7 +502,7 @@ requires-dist = [
     { name = "gymnasium", marker = "extra == 'ai'", specifier = "==1.2.2" },
     { name = "ipython", marker = "extra == 'ai'", specifier = "==9.7.0" },
     { name = "matplotlib", marker = "extra == 'ai'", specifier = "==3.10.7" },
-    { name = "mpld3", marker = "extra == 'ai'", specifier = "==0.5.11" },
+    { name = "mpld3", marker = "extra == 'ai'", specifier = "==0.5.12" },
     { name = "opencv-python", marker = "extra == 'ai'", specifier = "==4.12.0.88" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
     { name = "torch", marker = "extra == 'ai'", specifier = "==2.9.0" },
@@ -808,15 +808,15 @@ wheels = [
 
 [[package]]
 name = "mpld3"
-version = "0.5.11"
+version = "0.5.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jinja2" },
     { name = "matplotlib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/dd/c2/7c556858bcd2575c64b993197674e6294e7963e4ad561b2b6f8951838202/mpld3-0.5.11.tar.gz", hash = "sha256:bffe2c93f8b406f8d4dc059565dfecb4779e8a1fc50bfbb4e7f5d476a274eab7", size = 1028240, upload-time = "2025-07-27T20:10:30.648Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/b2/9943f3e0bdf4ff9968b7ac4499152162d8ee8fc8eaa55487339872f86300/mpld3-0.5.12.tar.gz", hash = "sha256:1333e2bca012ea9af3c27801ba36f65bc26540b6fad4c56a903afb19477f2c37", size = 1028433, upload-time = "2025-11-05T18:12:24.183Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f5/b7/339b9ed180c28418f3c5c425f341759ce3722b61cc54f8c20918a034a1d5/mpld3-0.5.11-py3-none-any.whl", hash = "sha256:99c086c51e03372c91620e715031ffae43fa6263207784214a1efbe2254702f6", size = 202924, upload-time = "2025-07-27T20:10:28.259Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/69/93b34728cc386efdde0c342f8c680b9187dea7beb7adaf6b58a0713be101/mpld3-0.5.12-py3-none-any.whl", hash = "sha256:bea31799a4041029a906f53f2662bbf1c49903e0c0bc712b412354158ec7cf54", size = 203051, upload-time = "2025-11-05T18:12:22.527Z" },
 ]
 
 [[package]]
