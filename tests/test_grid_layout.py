@@ -96,7 +96,9 @@ def item_button(hades_window: HadesWindow) -> ItemButton:
 
 
 @pytest.fixture
-def stats_layout(hades_window: HadesWindow) -> StatsLayout:  # noqa: ARG001
+def stats_layout(
+    hades_window: HadesWindow,  # noqa: ARG001
+) -> StatsLayout:
     """Create a stats layout for testing.
 
     Args:
@@ -109,9 +111,13 @@ def stats_layout(hades_window: HadesWindow) -> StatsLayout:  # noqa: ARG001
 
 
 @pytest.fixture
-@pytest.mark.usefixture("hades_window")
-def paginated_grid_layout() -> PaginatedGridLayout[MockItemButton]:
+def paginated_grid_layout(
+    hades_window: HadesWindow,  # noqa: ARG001
+) -> PaginatedGridLayout[MockItemButton]:
     """Create a paginated grid layout for testing.
+
+    Args:
+        hades_window: The hades window for testing.
 
     Returns:
         The paginated grid layout object for testing.
@@ -363,7 +369,6 @@ def test_paginated_grid_layout_on_action(
     assert paginated_grid_layout.current_row == 0
 
 
-@pytest.mark.usefixture("hades_window")
 @pytest.mark.parametrize(
     ("total_size", "item_button_count", "default_layout_count"),
     [
@@ -378,6 +383,7 @@ def test_paginated_grid_layout_on_action(
     ],
 )
 def test_paginated_grid_layout_set_items(
+    hades_window: HadesWindow,  # noqa: ARG001
     paginated_grid_layout: PaginatedGridLayout[MockItemButton],
     total_size: int,
     item_button_count: int,
@@ -386,6 +392,7 @@ def test_paginated_grid_layout_set_items(
     """Test that the paginated grid layout correctly sets the items.
 
     Args:
+        hades_window: The hades window for testing.
         paginated_grid_layout: The paginated grid layout object for testing.
         total_size: The total size of the grid layout.
         item_button_count: The expected number of item buttons.
