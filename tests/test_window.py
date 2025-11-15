@@ -21,8 +21,6 @@ from hades_engine import GameEngine
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
 
-pytestmark = pytest.mark.xfail(reason="These tests need rewriting to be more stable.")
-
 
 def test_hades_window_init(hades_window: HadesWindow) -> None:
     """Test that the hades window object initialises correctly.
@@ -54,6 +52,7 @@ def test_hades_window_setup(hades_window: HadesWindow) -> None:
     mock_show_view.assert_called_once_with(hades_window.scenes[SceneType.START_MENU])
 
 
+@pytest.mark.xfail(reason="This needs rewriting to be more stable.")
 def test_hades_window_save_background(
     hades_window: HadesWindow,
     monkeypatch: MonkeyPatch,
