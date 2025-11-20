@@ -19,7 +19,7 @@ jobs:
         python-version: ["3.12", "3.13"]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6.0.0
         with:
@@ -27,7 +27,7 @@ jobs:
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Set up CMake
-        uses: lukka/get-cmake@v4.1.2
+        uses: lukka/get-cmake@v4.2.0
       - name: Install Mesa on Windows for headless Arcade
         if: matrix.os == 'windows-latest'
         uses: ssciwr/setup-mesa-dist-win@v2
@@ -39,7 +39,7 @@ jobs:
           fi
           pipx run nox --error-on-missing-interpreters --stop-on-first-error -s tests-${{ matrix.python-version }}
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v2.3.6
+        uses: coverallsapp/github-action@v2.3.7
         with:
           file: coverage.lcov
           flag-name: run-python-${{ matrix.os }}-${{ matrix.python-version }}
@@ -52,11 +52,11 @@ jobs:
 #        os: [ubuntu-latest, windows-latest]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Set up CMake
-        uses: lukka/get-cmake@v4.1.2
+        uses: lukka/get-cmake@v4.2.0
       - name: Build CMake and run CTest
         working-directory: ${{ github.workspace }}/src/hades_engine
         run: |
@@ -71,7 +71,7 @@ jobs:
           gcovr -r ${{ github.workspace }} --exclude src/hades_engine/build-debug --exclude src/hades_engine/tests --exclude src/hades_engine/src/binding.cpp --coveralls coverage.json
       - name: Upload coverage report
         if: matrix.os == 'ubuntu-latest'
-        uses: coverallsapp/github-action@v2.3.6
+        uses: coverallsapp/github-action@v2.3.7
         with:
           file: coverage.json
           flag-name: run-cpp-${{ matrix.os }}
@@ -81,6 +81,6 @@ jobs:
     needs: [python, cpp]
     steps:
       - name: Upload coverage report
-        uses: coverallsapp/github-action@v2.3.6
+        uses: coverallsapp/github-action@v2.3.7
         with:
           parallel-finished: true
