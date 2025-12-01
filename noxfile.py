@@ -15,7 +15,7 @@ from nox import Session, options, session
 options.sessions = ["tests"]
 
 
-@session()  # type: ignore[misc]
+@session()  # type: ignore[untyped-decorator]
 def executable(executable_session: Session) -> None:  # type: ignore[misc]
     """Compiles the game into an executable format for portable use.
 
@@ -59,7 +59,7 @@ def executable(executable_session: Session) -> None:  # type: ignore[misc]
             zip_file.write(build_file, str(build_file).replace(str(dist_dir), ""))
 
 
-@session(python=["3.12", "3.13"])  # type: ignore[misc]
+@session(python=["3.12", "3.13"])  # type: ignore[untyped-decorator]
 def tests(test_session: Session) -> None:  # type: ignore[misc]
     """Run the tests with coverage.
 
