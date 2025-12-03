@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
       - name: Set up CMake
         uses: lukka/get-cmake@v4.2.0
       - name: Configure CMake
@@ -24,7 +24,7 @@ jobs:
 #    runs-on: ubuntu-latest
 #    steps:
 #      - name: Checkout repository
-#        uses: actions/checkout@v6.0.0
+#        uses: actions/checkout@v6.0.1
 #      - name: Run cppcheck
 #        working-directory: ${{ github.workspace }}/src/hades_engine
 #        run: |
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
       - name: Run clang-format
         uses: jidicula/clang-format-action@v4.16.0
         with:
